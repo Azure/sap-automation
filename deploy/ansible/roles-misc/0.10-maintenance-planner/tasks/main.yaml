@@ -267,175 +267,164 @@
     file:                              "process_bom.yaml"
   when:                                create_checksums | default(false)
 
-# - name:                                "0.10-maintenance-planner: - Upload Files using SAS Token"
-#   ansible.builtin.command: >-
-#                                        az storage blob upload-batch
-#                                          --account-name  {{ account }}
-#                                          --sas-token     {{ sapbits_sas_token }}
-#                                          --destination   {{ container }}
-#                                          --source        {{ sap_download_dir }}
-#                                          --overwrite True
-#                                          --if-none-match "*"
-#                                          --no-progress
-#   delegate_to:                         localhost
-#   register:                            azresult
-#   changed_when:                        false
-#   failed_when:
-#     - azresult.rc != 0
-#     - azresult.stderr is defined
-#     - azresult.stderr.find("BlobAlreadyExists") == -1
-#   when:                                allowSharedKeyAccess
+- name:                                "0.10-maintenance-planner: - Using SAS Token"
+  when:
+    - allowSharedKeyAccess
+  block:
+    - name:                            "0.10-maintenance-planner: - Delete BoM using SAS Token"
+      ansible.builtin.command: >-
+                                       az storage blob delete
+                                         --account-name {{ account }}
+                                         --sas-token {{ sapbits_sas_token }}
+                                         --container-name {{ bom_container }}
+                                         --name {{ maintenance_plan_id }}.yaml
+      delegate_to:                       localhost
+      register:                          azresult
+      changed_when:                      false
+      failed_when:
+        - azresult.rc != 0
+        - azresult.stderr is defined
+        - azresult.stderr.find("BlobNotFound") == -1
 
-# - name:                                "0.10-maintenance-planner: - Upload Files"
-#   ansible.builtin.command: >-
-#                                        az storage blob upload-batch
-#                                          --account-name  {{ account }}
-#                                          --auth-mode login
-#                                          --destination   {{ container }}
-#                                          --source        {{ sap_download_dir }}
-#                                          --overwrite True
-#                                          --if-none-match "*"
-#                                          --no-progress
-#   delegate_to:                         localhost
-#   register:                            azresult
-#   changed_when:                        false
-#   failed_when:
-#     - azresult.rc != 0
-#     - azresult.stderr is defined
-#     - azresult.stderr.find("BlobAlreadyExists") == -1
-#   when:                                not allowSharedKeyAccess
+    - name:                            "0.10-maintenance-planner: - Upload BoM File using SAS Token"
+      ansible.builtin.command: >-
+                                       az storage blob upload
+                                         --account-name  {{ account }}
+                                         --sas-token {{ sapbits_sas_token }}
+                                         --container-name {{ bom_container }}
+                                         --name {{ maintenance_plan_id }}.yaml
+                                         --file /home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml
+                                         --overwrite True
+                                         --if-none-match "*"
+                                         --no-progress
+      delegate_to:                      localhost
+      register:                         azresult
+      ignore_errors:                    true
+      failed_when:
+        - azresult.rc != 0
+        - azresult.stderr is defined
+        - azresult.stderr.find("BlobAlreadyExists") == -1
 
-#   03) Upload files to Azure
-# TODO - put this in a block
+    - name:                            "0.10-maintenance-planner: - Upload stack file using SAS Token"
+      ansible.builtin.command: >-
+                                       az storage blob upload
+                                       --account-name  {{ account }}
+                                       --sas-token {{ sapbits_sas_token }}
+                                       --container-name {{ bom_container }}
+                                       --name stack.xml
+                                       --file {{ stack_xml_file }}
+                                       --overwrite True
+                                       --if-none-match "*"
+                                       --no-progress
+      delegate_to:                     localhost
+      register:                        azresult
+      ignore_errors:                   true
+      failed_when:
+        - azresult.rc != 0
+        - azresult.stderr is defined
+        - azresult.stderr.find("BlobAlreadyExists") == -1
+
+
+    # - name:                            "0.10-maintenance-planner: - Upload Files using SAS Token"
+    #   ansible.builtin.command: >-
+    #                                    az storage blob upload-batch
+    #                                      --account-name  {{ account }}
+    #                                      --sas-token     {{ sapbits_sas_token }}
+    #                                      --destination   {{ container }}
+    #                                      --source        {{ sap_download_dir }}
+    #                                      --overwrite True
+    #                                      --if-none-match "*"
+    #                                      --no-progress
+    #   delegate_to:                      localhost
+    #   register:                         azresult
+    #   changed_when:                     false
+    #   failed_when:
+    #     - azresult.rc != 0
+    #     - azresult.stderr is defined
+    #     - azresult.stderr.find("BlobAlreadyExists") == -1
+
+- name:                                "0.10-maintenance-planner: - Using integrated login"
+  when:
+    - not allowSharedKeyAccess
+  block:
+    - name:                            "0.10-maintenance-planner: - Delete BoM using integrated login"
+      ansible.builtin.command: >-
+                                       az storage blob delete
+                                         --account-name {{ account }}
+                                         --auth-mode login
+                                         --container-name {{ bom_container }}
+                                         --name {{ maintenance_plan_id }}.yaml
+      delegate_to:                       localhost
+      register:                          azresult
+      changed_when:                      false
+      failed_when:
+        - azresult.rc != 0
+        - azresult.stderr is defined
+        - azresult.stderr.find("BlobNotFound") == -1
+
+    - name:                            "0.10-maintenance-planner: - Upload BoM File using integrated login"
+      ansible.builtin.command: >-
+                                       az storage blob upload
+                                         --account-name  {{ account }}
+                                         --auth-mode login
+                                         --container-name {{ bom_container }}
+                                         --name {{ maintenance_plan_id }}.yaml
+                                         --file /home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml
+                                         --overwrite True
+                                         --if-none-match "*"
+                                         --no-progress
+      delegate_to:                      localhost
+      register:                         azresult
+      ignore_errors:                    true
+      failed_when:
+        - azresult.rc != 0
+        - azresult.stderr is defined
+        - azresult.stderr.find("BlobAlreadyExists") == -1
+
+    - name:                            "0.10-maintenance-planner: - Upload stack file using integrated login"
+      ansible.builtin.command: >-
+                                       az storage blob upload
+                                       --account-name  {{ account }}
+                                       --auth-mode login
+                                       --container-name {{ bom_container }}
+                                       --name stack.xml
+                                       --file {{ stack_xml_file }}
+                                       --overwrite True
+                                       --if-none-match "*"
+                                       --no-progress
+      delegate_to:                     localhost
+      register:                        azresult
+      ignore_errors:                   true
+      failed_when:
+        - azresult.rc != 0
+        - azresult.stderr is defined
+        - azresult.stderr.find("BlobAlreadyExists") == -1
+
+
+    # - name:                            "0.10-maintenance-planner: - Upload Files using integrated login"
+    #   ansible.builtin.command: >-
+    #                                    az storage blob upload-batch
+    #                                      --account-name  {{ account }}
+    #                                      --auth-mode login
+    #                                      --destination   {{ container }}
+    #                                      --source        {{ sap_download_dir }}
+    #                                      --overwrite True
+    #                                      --if-none-match "*"
+    #                                      --no-progress
+    #   delegate_to:                      localhost
+    #   register:                         azresult
+    #   changed_when:                     false
+    #   failed_when:
+    #     - azresult.rc != 0
+    #     - azresult.stderr is defined
+    #     - azresult.stderr.find("BlobAlreadyExists") == -1
+
+
 # -------------------------------+---------------------------------------------8
 # Step: 05-04-01
 # Description:
 #
 
-- name:                                "0.10-maintenance-planner: - delete BoM using SAS Token"
-  ansible.builtin.command: >-
-                                       az storage blob delete
-                                         --account-name {{ account }}
-                                         --sas-token {{ sapbits_sas_token }}
-                                         --container-name {{ bom_container }}
-                                         --name {{ maintenance_plan_id }}.yaml
-  delegate_to:                          localhost
-  register:                             azresult
-  changed_when:                         false
-  failed_when:
-    - azresult.rc != 0
-    - azresult.stderr is defined
-    - azresult.stderr.find("BlobNotFound") == -1
-  when:
-    - sapbits_sas_token is defined
-
-- name:                                "0.10-maintenance-planner: -  delete BoM"
-  ansible.builtin.command: >-
-                                       az storage blob delete
-                                         --account-name {{ account }}
-                                         --auth-mode login
-                                         --container-name {{ bom_container }}
-                                         --name {{ maintenance_plan_id }}.yaml
-  delegate_to:                          localhost
-  register:                             azresult
-  changed_when:                         false
-  failed_when:
-    - azresult.rc != 0
-    - azresult.stderr is defined
-    - azresult.stderr.find("BlobNotFound") == -1
-  when:
-    - sapbits_sas_token is undefined
-
-
-- name:                                "0.10-maintenance-planner: - Upload BoM File using SAS keys"
-  ansible.builtin.command: >-
-                                       az storage blob upload
-                                         --account-name  {{ account }}
-                                         --sas-token {{ sapbits_sas_token }}
-                                         --container-name {{ bom_container }}
-                                         --name {{ maintenance_plan_id }}.yaml
-                                         --file /home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml
-                                         --overwrite True
-                                         --if-none-match "*"
-                                         --no-progress
-  delegate_to:                         localhost
-  register:                            azresult
-  ignore_errors:                       true
-  failed_when:
-    - azresult.rc != 0
-    - azresult.stderr is defined
-    - azresult.stderr.find("BlobAlreadyExists") == -1
-  when:
-    - sapbits_sas_token is defined
-
-- name:                                "0.10-maintenance-planner: - Upload BoM File using SAS keys"
-  ansible.builtin.command: >-
-                                       az storage blob upload
-                                         --account-name {{ account }}
-                                         --auth-mode login
-                                         --container-name {{ bom_container }}
-                                         --name {{ maintenance_plan_id }}.yaml
-                                         --file /home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml
-                                         --overwrite True
-                                         --if-none-match "*"
-                                         --no-progress
-  delegate_to:                         localhost
-  register:                            azresult
-  ignore_errors:                       true
-  failed_when:
-    - azresult.rc != 0
-    - azresult.stderr is defined
-    - azresult.stderr.find("BlobAlreadyExists") == -1
-  when:
-    - sapbits_sas_token is undefined
-
-
-
-- name:                                "0.10-maintenance-planner: - Upload stack file using SAS keys"
-  ansible.builtin.command: >-
-                                       az storage blob upload
-                                         --account-name  {{ account }}
-                                         --sas-token {{ sapbits_sas_token }}
-                                         --container-name {{ bom_container }}
-                                         --name stack.xml
-                                         --file {{ stack_xml_file }}
-                                         --overwrite True
-                                         --if-none-match "*"
-                                         --no-progress
-  delegate_to:                         localhost
-  register:                            azresult
-  ignore_errors:                       true
-  failed_when:
-    - azresult.rc != 0
-    - azresult.stderr is defined
-    - azresult.stderr.find("BlobAlreadyExists") == -1
-  when:
-    - sapbits_sas_token is defined
-
-- name:                                "0.10-maintenance-planner: - Upload stack file using SAS keys"
-  ansible.builtin.command: >-
-                                       az storage blob upload
-                                         --account-name {{ account }}
-                                         --auth-mode login
-                                         --container-name {{ bom_container }}
-                                         --name stack.xml
-                                         --overwrite True
-                                         --file {{ stack_xml_file }}
-                                         --if-none-match "*"
-                                         --no-progress
-  delegate_to:                         localhost
-  register:                            azresult
-  ignore_errors:                       true
-  failed_when:
-    - azresult.rc != 0
-    - azresult.stderr is defined
-    - azresult.stderr.find("BlobAlreadyExists") == -1
-  when:
-    - sapbits_sas_token is undefined
-
-
-# Step: 05-04-01 - END
-# -------------------------------+---------------------------------------------8
 
 # - name:                               "0.10-maintenance-planner: Remove downloaded files"
 #   ansible.builtin.file:
@@ -443,9 +432,12 @@
 #     state:                            absent
 
 
-- name:                               "0.10-maintenance-planner: Remove ini file"
-  ansible.builtin.file:
-    path:                             "{{ ini_file }}"
-    state:                            absent
+# - name:                               "0.10-maintenance-planner: Remove ini file"
+#   ansible.builtin.file:
+#     path:                             "{{ ini_file }}"
+#     state:                            absent
+
+# Step: 05-04-01 - END
+# -------------------------------+---------------------------------------------8
 
 ...
