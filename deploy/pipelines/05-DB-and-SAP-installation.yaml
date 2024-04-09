@@ -234,7 +234,9 @@ stages:
                   sed -i 's|bom_base_name:.*|bom_base_name:                 '"$BOM_BASE_NAME"'|'  sap-parameters.yaml
                 fi
 
-              echo -e "$green--- Update GIT  ---$reset"
+              echo -e "$green--- Update git  ---$reset"
+                git config --global user.email "$(Build.RequestedForEmail)"
+                git config --global user.name "$(Build.RequestedFor)"
                 git add sap-parameters.yaml
                 git commit -m "Updated BOM name"
                 git push
