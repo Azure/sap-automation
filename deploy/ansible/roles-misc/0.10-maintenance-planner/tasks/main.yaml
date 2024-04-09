@@ -265,43 +265,43 @@
     file:                              "process_bom.yaml"
   when:                                create_checksums | default(false)
 
-- name:                                "0.10-maintenance-planner: - Upload Files using SAS Token"
-  ansible.builtin.command: >-
-                                       az storage blob upload-batch
-                                         --account-name  {{ account }}
-                                         --sas-token     {{ sapbits_sas_token }}
-                                         --destination   {{ container }}
-                                         --source        {{ sap_download_dir }}
-                                         --overwrite True
-                                         --if-none-match "*"
-                                         --no-progress
-  delegate_to:                         localhost
-  register:                            azresult
-  changed_when:                        false
-  failed_when:
-    - azresult.rc != 0
-    - azresult.stderr is defined
-    - azresult.stderr.find("BlobAlreadyExists") == -1
-  when:                                allowSharedKeyAccess
+# - name:                                "0.10-maintenance-planner: - Upload Files using SAS Token"
+#   ansible.builtin.command: >-
+#                                        az storage blob upload-batch
+#                                          --account-name  {{ account }}
+#                                          --sas-token     {{ sapbits_sas_token }}
+#                                          --destination   {{ container }}
+#                                          --source        {{ sap_download_dir }}
+#                                          --overwrite True
+#                                          --if-none-match "*"
+#                                          --no-progress
+#   delegate_to:                         localhost
+#   register:                            azresult
+#   changed_when:                        false
+#   failed_when:
+#     - azresult.rc != 0
+#     - azresult.stderr is defined
+#     - azresult.stderr.find("BlobAlreadyExists") == -1
+#   when:                                allowSharedKeyAccess
 
-- name:                                "0.10-maintenance-planner: - Upload Files"
-  ansible.builtin.command: >-
-                                       az storage blob upload-batch
-                                         --account-name  {{ account }}
-                                         --auth-mode login
-                                         --destination   {{ container }}
-                                         --source        {{ sap_download_dir }}
-                                         --overwrite True
-                                         --if-none-match "*"
-                                         --no-progress
-  delegate_to:                         localhost
-  register:                            azresult
-  changed_when:                        false
-  failed_when:
-    - azresult.rc != 0
-    - azresult.stderr is defined
-    - azresult.stderr.find("BlobAlreadyExists") == -1
-  when:                                not allowSharedKeyAccess
+# - name:                                "0.10-maintenance-planner: - Upload Files"
+#   ansible.builtin.command: >-
+#                                        az storage blob upload-batch
+#                                          --account-name  {{ account }}
+#                                          --auth-mode login
+#                                          --destination   {{ container }}
+#                                          --source        {{ sap_download_dir }}
+#                                          --overwrite True
+#                                          --if-none-match "*"
+#                                          --no-progress
+#   delegate_to:                         localhost
+#   register:                            azresult
+#   changed_when:                        false
+#   failed_when:
+#     - azresult.rc != 0
+#     - azresult.stderr is defined
+#     - azresult.stderr.find("BlobAlreadyExists") == -1
+#   when:                                not allowSharedKeyAccess
 
 #   03) Upload files to Azure
 # TODO - put this in a block
@@ -405,5 +405,10 @@
     path:                             "{{ sap_download_dir }}"
     state:                            absent
 
+
+- name:                               "0.10-maintenance-planner: Remove ini file"
+  ansible.builtin.file:
+    path:                             "{{ ini_file }}"
+    state:                            absent
 
 ...
