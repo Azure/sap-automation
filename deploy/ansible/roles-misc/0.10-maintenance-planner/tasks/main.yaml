@@ -24,7 +24,7 @@
 
 - name:                                "0.10-maintenance-planner: Set the fact for swpm_version"
   ansible.builtin.set_fact:
-    swpm_version_to_use:               "{{ swpm_version | default('SWPM10') }}"
+    swpm_version_to_use:               "{{ swpm_version | default('SWPM20') }}"
     account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
     bom_container:                     "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ maintenance_plan_id }}"
