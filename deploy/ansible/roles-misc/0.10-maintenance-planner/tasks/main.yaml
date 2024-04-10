@@ -73,11 +73,26 @@
     swpm_catalog_file_path:            "{{ tools_base_dir ~ swpm_version_to_use }}/product.catalog"
 
 - name:                                "0.10-maintenance-planner: Get the top level product catalog directory details"
-  community.general.xml:
-    path:                              "{{ swpm_catalog_file_path }}"
-    xpath:                             "/product-catalog/catalog/components/constraint[@name='ppms-main-app-id' and @value='{{ ppms_main_app_id }}']/parent::*[@output-dir]"
-    content:                           attribute
-  register:                            product_catalog_top_level_dir
+  block:
+    - name:                            "0.10-maintenance-planner: Get the top level product catalog directory details"
+      community.general.xml:
+        path:                          "{{ swpm_catalog_file_path }}"
+        xpath:                         "/product-catalog/catalog/components/constraint[@name='ppms-main-app-id' and @value='{{ ppms_main_app_id }}']/parent::*[@output-dir]"
+        content:                       attribute
+      register:                        product_catalog_top_level_dir
+  rescue:
+    - name:                            "0.10-maintenance-planner: Set the fact for swpm_version"
+      ansible.builtin.set_fact:
+        swpm_version_to_use:           "{{ swpm_version | default('SWPM10') }}"
+    - name:                            "0.10-maintenance-planner: Set the fact for swpm_version"
+      ansible.builtin.set_fact:
+        swpm_catalog_file_path:        "{{ tools_base_dir ~ swpm_version_to_use }}/product.catalog"
+    - name:                            "0.10-maintenance-planner: Get the top level product catalog directory details"
+      community.general.xml:
+        path:                          "{{ swpm_catalog_file_path }}"
+        xpath:                         "/product-catalog/catalog/components/constraint[@name='ppms-main-app-id' and @value='{{ ppms_main_app_id }}']/parent::*[@output-dir]"
+        content:                       attribute
+      register:                        product_catalog_top_level_dir
 
 - name:                                "0.10-maintenance-planner: Set fact for product-catalog-top-level-dir"
   ansible.builtin.set_fact:
