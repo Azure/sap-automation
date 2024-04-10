@@ -400,7 +400,7 @@
   ansible.builtin.import_tasks:        "2.6.6-oracle-nfs-mounts.yaml"
   when:
     - node_tier in ['oracle','oracle-asm','observer']
-    - platform 1= "HANA"
+    - platform != "HANA"
     # ensure that this is not triggered for HANA scale out with HSR which uses an observer tier VM
 
 
