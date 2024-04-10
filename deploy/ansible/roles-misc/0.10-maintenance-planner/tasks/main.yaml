@@ -71,13 +71,14 @@
 - name:                                "0.10-maintenance-planner: Set the fact for swpm_version"
   ansible.builtin.set_fact:
     swpm_catalog_file_path:            "{{ tools_base_dir ~ swpm_version_to_use }}/product.catalog"
+    components_path:                   "components/"
 
 - name:                                "0.10-maintenance-planner: Get the top level product catalog directory details"
   block:
     - name:                            "0.10-maintenance-planner: Get the top level product catalog directory details"
       community.general.xml:
         path:                          "{{ swpm_catalog_file_path }}"
-        xpath:                         "/product-catalog/catalog/components/constraint[@name='ppms-main-app-id' and @value='{{ ppms_main_app_id }}']/parent::*[@output-dir]"
+        xpath:                         "/product-catalog/catalog/{{ components_path }}constraint[@name='ppms-main-app-id' and @value='{{ ppms_main_app_id }}']/parent::*[@output-dir]"
         content:                       attribute
       register:                        product_catalog_top_level_dir
   rescue:
@@ -85,6 +86,7 @@
     - name:                            "0.10-maintenance-planner: Set the fact for swpm_version"
       ansible.builtin.set_fact:
         swpm_version_to_use:           "SWPM10"
+        components_path:               "components/components/"
 
     - name:                            "0.10-maintenance-planner: Set the fact for swpm_version"
       ansible.builtin.set_fact:
@@ -93,9 +95,13 @@
     - name:                            "0.10-maintenance-planner: Get the top level product catalog directory details"
       community.general.xml:
         path:                          "{{ swpm_catalog_file_path }}"
-        xpath:                         "/product-catalog/catalog/components/components/constraint[@name='ppms-main-app-id' and @value='{{ ppms_main_app_id }}']/parent::*[@output-dir]"
+        xpath:                         "/product-catalog/catalog/{{ components_path }}constraint[@name='ppms-main-app-id' and @value='{{ ppms_main_app_id }}']/parent::*[@output-dir]"
         content:                       attribute
       register:                        product_catalog_top_level_dir
+
+- name:                                "0.10-maintenance-planner: Set fact for product-catalog-top-level-dir"
+  ansible.builtin.debug:
+    var:                               product_catalog_top_level_dir
 
 - name:                                "0.10-maintenance-planner: Set fact for product-catalog-top-level-dir"
   ansible.builtin.set_fact:
@@ -107,7 +113,7 @@
 - name:                                "0.10-maintenance-planner: Get the top level product directory details"
   community.general.xml:
     path:                              "{{ swpm_catalog_file_path }}"
-    xpath:                             "/product-catalog/catalog/components[@output-dir='{{ top_level_dir }}']/components/*"
+    xpath:                             "/product-catalog/catalog/{{ components_path }}[@output-dir='{{ top_level_dir }}']/components/*"
     content:                           attribute
   register:                            product_top_level_dir
   ignore_errors:                       true
@@ -131,7 +137,7 @@
 - name:                                "0.10-maintenance-planner: Get the product install level directory details"
   community.general.xml:
     path:                              "{{ swpm_catalog_file_path }}"
-    xpath:                             "/product-catalog/catalog/components[@output-dir='{{ dir_level[0] }}']/constraint[@name='ppms-main-app-id' and @value='{{ ppms_main_app_id }}']/parent::*/components/components[@output-dir='{{ dir_level[1] }}']/components/*"
+    xpath:                             "/product-catalog/catalog/{{ components_path }}[@output-dir='{{ dir_level[0] }}']/constraint[@name='ppms-main-app-id' and @value='{{ ppms_main_app_id }}']/parent::*/components/components[@output-dir='{{ dir_level[1] }}']/components/*"
     content:                           attribute
   register:                            install_output_dir
   ignore_errors:                       true
