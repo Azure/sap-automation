@@ -21,6 +21,7 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "hdbserver_{{ virtual_host }}_{{ sap_sid }}_install.rsp"
     dir_params:                        "{{ tmp_directory }}/.params"
+    sap_custom_config:                 "global.ini"
 
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Create list of all db hosts"
   ansible.builtin.set_fact:
