@@ -21,7 +21,7 @@
     - node_tier in ['observer','hana']
     - platform == 'HANA'
     - db_scale_out
-    - db_high_availability
+    - database_high_availability
     - ansible_os_family | upper == "SUSE"
   block:
     - name:                            Generate list of deployed packages on current host
@@ -71,7 +71,7 @@
   when:
     - node_tier in ['observer','hana']
     - db_scale_out
-    - db_high_availability
+    - database_high_availability
     - ansible_os_family | upper == "REDHAT"
   block:
     - name:                            Generate list of deployed packages on current host

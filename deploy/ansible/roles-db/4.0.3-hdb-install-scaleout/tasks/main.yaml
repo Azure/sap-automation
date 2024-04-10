@@ -369,7 +369,7 @@
             timeout:                   300
   when:
     - not hana_installed.stat.exists
-    - not db_high_availability
+    - not database_high_availability
     # Only allowed for the first node. No other node in the scale out - ANF setup is allowed to install hdblcm.
     - ansible_hostname == ansible_play_hosts_all[0]
 
@@ -802,7 +802,7 @@
     - ansible_hostname == secondary_instance_name
     - not hana_installed.stat.exists
   when:
-  - db_high_availability
+  - database_high_availability
 
 # /*----------------------------End of setup----------------------------------8
 

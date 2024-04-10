@@ -12,7 +12,7 @@
 
 - name: "5.5 HANADB Pacemaker - import - SAP HanaSRMultiTarget"
   ansible.builtin.import_tasks: 5.5.3.1-SAPHanaSRMultiTarget.yml
-  when: db_scale_out and db_high_availability
+  when: db_scale_out and database_high_availability
 
 - name: "5.5 HANADB Pacemaker - import - provision"
   ansible.builtin.import_tasks: 5.5.4-provision.yml
