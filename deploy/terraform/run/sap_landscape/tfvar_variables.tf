@@ -417,6 +417,11 @@ variable "deploy_monitoring_extension"          {
                                                   default     = false
                                                 }
 
+variable "deploy_defender_extension"            {
+                                                  description = "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines"
+                                                  default     = false
+                                                }
+
 
 #########################################################################################
 #                                                                                       #
@@ -533,6 +538,7 @@ variable "register_virtual_network_to_dns"         {
                                                      default     = true
                                                      type        = bool
                                                    }
+
 variable "dns_zone_names"                          {
                                                      description = "Private DNS zone names"
                                                      type        = map(string)
@@ -543,6 +549,12 @@ variable "dns_zone_names"                          {
                                                                 "table_dns_zone_name"  = "privatelink.table.core.windows.net"
                                                                 "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
                                                                }
+                                                   }
+
+variable "register_endpoints_with_dns"             {
+                                                     description = "Boolean value indicating if endpoints should be registered to the dns zone"
+                                                     default     = true
+                                                     type        = bool
                                                    }
 
 #########################################################################################

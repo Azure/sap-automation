@@ -22,16 +22,22 @@
       ansible.builtin.debug:
         msg:
           - "SDAF Version: {{ SDAF_Version }}"
+      tags:
+        - always
 
     - name:                            "0.0 Validations - ensure jmespath is installed in the playbook python"
       ansible.builtin.pip:
         name:                          jmespath
         state:                         present
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - ensure netaddr is installed in the controller"
       ansible.builtin.pip:
         name:                          netaddr
         state:                         present
+      tags:
+                                       - always
 
     # - name:                            "0.0 Validations - ensure credssp is installed in the controller"
     #   ansible.builtin.pip:
@@ -44,11 +50,15 @@
         path:                          "{{ _workspace_directory }}/.progress"
         state:                         directory
         mode:                          0755
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Remove os-install-done flag"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/validation-done"
         state:                         absent
+      tags:
+                                       - always
 
 # -------------------------------------+---------------------------------------8
 #
@@ -61,6 +71,8 @@
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Check required variables are present and not empty"
       ansible.builtin.assert:
@@ -77,7 +89,9 @@
                                        - { parameter:  "use_msi_for_clusters",         error:  "use_msi_for_clusters has no value assigned"        }
                                        - { parameter:  "platform",                     error:  "platform has no value assigned"                    }
       loop_control:
-        loop_var:                               item_to_check
+        loop_var:                      item_to_check
+      tags:
+                                       - always
 
 # -------------------------------------+---------------------------------------8
 #
@@ -94,6 +108,8 @@
                                        - "use_msi_for_clusters:           {{ use_msi_for_clusters }}"
                                        - "platform:                       {{ platform | upper }}"
         verbosity:                     2
+      tags:
+                                       - always
 
 # -------------------------------------+
 # Fencing support is only needed when:
@@ -128,6 +144,7 @@
                                          (scs_high_availability      and      scs_cluster_type == "AFA")
                                        - platform != "ORACLE"
       tags:
+                                       - always
                                        - kv-secrets
 
 # -------------------------------------+
@@ -138,7 +155,8 @@
         tasks_from:                    windows.yaml
         public:                        true
       tags:
-        - 0.1-win-passwords
+                                       - always
+                                       - 0.1-win-passwords
       when:
         - platform == "SQLSERVER"
 
@@ -147,7 +165,8 @@
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
       tags:
-        - kv-sap-installation-media-storage-details
+                                       - always
+                                       - kv-sap-installation-media-storage-details
 
     - name:                            "0.0 Validations - Check required variables are present and not empty"
       ansible.builtin.assert:
@@ -183,6 +202,8 @@
         }
       loop_control:
         loop_var:                      item_to_check
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Check required SCS HA variables are present and not empty"
       ansible.builtin.assert:
@@ -213,6 +234,8 @@
       when:
         - scs_high_availability
         - platform != "SQLSERVER"
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Check required SCS HA fencing variables are present and not empty"
       ansible.builtin.assert:
@@ -244,6 +267,8 @@
         # - scs_high_availability
         - (scs_high_availability      and      scs_cluster_type == "AFA")
         - not use_msi_for_clusters
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Check required Database HA variables are present and not empty"
       ansible.builtin.assert:
@@ -279,6 +304,8 @@
         # - db_high_availability
         - (database_high_availability and database_cluster_type == "AFA")
         - platform in ["HANA", "DB2"]
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - sharedHome variables"
       ansible.builtin.debug:
@@ -287,56 +314,69 @@
       loop:                            "{{ MULTI_SIDS }}"
       loop_control:
         loop_var:                      sid_to_be_deployed
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Validate ORACLE parameters (ora_release and ora_version)"
+      when:
+        - platform in ['ORACLE', 'ORACLE-ASM']
       ansible.builtin.assert:
         that:
           - ora_release is version(ora_supported_version,'>=')
           - ora_version is version(ora_supported_version,'>=')
         fail_msg: "Oracle deployments requires that ora_release and ora_version are provided"
-      when:
-        - platform in ['ORACLE', 'ORACLE-ASM']
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Validate ORACLE parameters (oracle_sbp_patch)"
+      when:
+        - platform in ['ORACLE', 'ORACLE-ASM']
       ansible.builtin.assert:
         that:
           - oracle_sbp_patch is defined
           - oracle_sbp_patch | default('') | trim | length > 1
         fail_msg: "Oracle deployments requires that oracle_sbp_patch is provided"
-      when:
-        - platform in ['ORACLE', 'ORACLE-ASM']
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Show ORACLE parameters"
+      when:
+        - platform in ['ORACLE', 'ORACLE-ASM']
       ansible.builtin.debug:
         msg:
           - "ora_release: {{ ora_release }}"
           - "ora_version: {{ ora_version }}"
           - "oracle_sbp_patch: {{ oracle_sbp_patch }}"
-
-      when:
-        - platform in ['ORACLE', 'ORACLE-ASM']
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Validate SQL Server parameters"
+      when:
+        - platform == 'SQLSERVER'
       ansible.builtin.assert:
         that:
           - domain_name is defined                    # Has the variable been defined
           - domain_name | type_debug != 'NoneType'    # Does it have a value
           - domain_name | trim | length > 1
         fail_msg:                      'SQL Server deployments require that domain is specified'
-      when:
-        - platform == 'SQLSERVER'
-
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Get Access Token"
       ansible.builtin.command: >-
         az account get-access-token --query accessToken -o tsv
       changed_when:                    false
       register:                        access_token_data
+      no_log: true
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Save the access token"
       ansible.builtin.set_fact:
         access_token:                  "{{ access_token_data.stdout }}"
       no_log: true
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Retrieve Subscription ID and Resource Group Name"
       ansible.builtin.uri:
@@ -345,6 +385,8 @@
         headers:
           Metadata:                    true
       register: azure_metadata
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Show IMDS results (JSON)"
       ansible.builtin.debug:
@@ -356,16 +398,22 @@
         subscription_id:               "{{ azure_metadata.json.compute.subscriptionId }}"
         resource_group_name:           "{{ azure_metadata.json.compute.resourceGroupName }}"
         mnt_free_diskspace:            "{{ ansible_mounts | json_query('[?mount == `/mnt`].size_available') }}"
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Show IMDS results"
       ansible.builtin.debug:
         var:                           mnt_free_diskspace
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Deployer disk space requirements"
       ansible.builtin.set_fact:
         deployer_free_temp_disk_space: 40
       when:
         - deployer_free_temp_disk_space is not defined
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Check for free disk space on deployer"
       ansible.builtin.assert:
@@ -374,7 +422,8 @@
       when:
         - mnt_free_diskspace | length > 0
       tags:
-        - 0.0-agent-diskspace
+                                       - always
+                                       - 0.0-agent-diskspace
 
 
 # /*---------------------------------------------------------------------------8
@@ -401,15 +450,21 @@
       ansible.builtin.wait_for_connection:
         timeout:                       120
       register:                        wait_for_connection_results
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations: - Gather facts for first time"
       ansible.builtin.setup:
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations: - Set distro"
       ansible.builtin.set_fact:
         distro_family:                 "{{ ansible_os_family | upper }}"
         distribution_id:               "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
         distribution_full_id:          "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations: - Show distro"
       ansible.builtin.debug:
@@ -417,15 +472,21 @@
           - "Distro family:        {{ distro_family }}"
           - "Distribution id:      {{ distribution_id }}"
           - "Distribution full id: {{ distribution_full_id }}"
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
       ansible.builtin.set_fact:
         python_version: "python3"
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
+      when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
       ansible.builtin.set_fact:
         python_version: "python2"
-      when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Get details from local host"
       ansible.builtin.set_fact:
@@ -433,6 +494,8 @@
         resource_group_name: "{{ hostvars.localhost.resource_group_name }}"
         access_token: "{{ hostvars.localhost.access_token }}"
       no_log: true
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Variables"
       ansible.builtin.debug:
@@ -459,16 +522,19 @@
         - (ansible_play_hosts_all | length) == 1
         - platform == "HANA"
       tags:
-        - 0.0-scs-db-instance-single
+                                       - always
+                                       - 0.0-scs-db-instance-single
 
     - name:                            "0.0 Validations - Validate SCS and HDB SIDs"
+      when:
+        - (ansible_play_hosts_all | length) == 1
+        - platform != "ORACLE"
       ansible.builtin.assert:
         that:
           - "sap_sid != db_sid"
         fail_msg:                      "Please ensure that the sap_sid is different from the db_sid when performing a standalone installation"
-      when:
-        - (ansible_play_hosts_all | length) == 1
-        - platform != "ORACLE"
+      tags:
+                                       - always
 
     - name: Validate SCS and PAS instance numbers
       ansible.builtin.assert:
@@ -477,7 +543,8 @@
         fail_msg:                      "Please ensure that the pas_instance_number is different from the scs_instance_number when installing PAS on ASCS"
       when:                            (ansible_play_hosts_all | length) == 2
       tags:
-        - 0.0-scs-pas
+                                       - always
+                                       - 0.0-scs-pas
 
     - name:                            "0.0 Validations - Validate SCS and PAS instance numbers"
       ansible.builtin.assert:
@@ -486,7 +553,8 @@
         fail_msg:                      "Please ensure that the pas_instance_number is different from the scs_instance_number on standalone installation"
       when:                            (ansible_play_hosts_all | length) == 1
       tags:
-        - 0.0-scs-pas-single
+                                       - always
+                                       - 0.0-scs-pas-single
 
     - name:                            "0.0 Validations - Validate DB and PAS instance numbers"
       ansible.builtin.assert:
@@ -495,7 +563,8 @@
         fail_msg:                      "Please ensure that the pas_instance_number is different from the db_instance_number on standalone installation"
       when:                            (ansible_play_hosts_all | length) == 1
       tags:
-        - 0.0-scs-pas-db-single
+                                       - always
+                                       - 0.0-scs-pas-db-single
 
     # url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01"
     # url: "https://azure.status.microsoft/en-us/status"
@@ -513,11 +582,12 @@
       vars:
         ansible_python_interpreter: "{{ python_version }}"
       when:
-        - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'redhat9', 'sles_sap15' ]
-        - ansible_os_family != "Windows"
-        - check_outbound | bool
+                                       - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'redhat9', 'sles_sap15' ]
+                                       - ansible_os_family != "Windows"
+                                       - check_outbound | bool
       tags:
-        - 0.0-internet
+                                       - always
+                                       - 0.0-internet
 
     - name:                            "0.0 Validations - Check internet connectivity"
       ansible.builtin.uri:
@@ -530,11 +600,12 @@
           - 200
           - 403
       when:
-        - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'redhat9', 'sles_sap15' ]
-        - ansible_os_family != "Windows"
-        - check_outbound | bool
+                                       - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'redhat9', 'sles_sap15' ]
+                                       - ansible_os_family != "Windows"
+                                       - check_outbound | bool
       tags:
-        - 0.0-internet
+                                       - always
+                                       - 0.0-internet
 
     # - name:                            "0.0 Validations - Get repository listing (SUSE)"
     #   ansible.builtin.command:         zypper lr
@@ -580,9 +651,9 @@
     - name:                            "0.0 Validations - Show Mounts"
       ansible.builtin.debug:
         msg:
-          - "Mount:      {{ item.mount }}"
-          - "Device:     {{ item.device }}"
-          - "Filesystem: {{ item.fstype }}"
+                                       - "Mount:      {{ item.mount }}"
+                                       - "Device:     {{ item.device }}"
+                                       - "Filesystem: {{ item.fstype }}"
       with_items:
         - "{{ ansible_mounts }}"
       when:
@@ -596,14 +667,17 @@
         mode:                          '0755'
       when:
         - ansible_os_family != "Windows"
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Show Hosts"
+      when:
+        - ansible_os_family != "Windows"
       ansible.builtin.shell:           set -o pipefail && cat /etc/hosts | grep -v -e "^#" | grep -v -e '^[[:space:]]*$'
       register: hosts
       tags:
-        - 0.0-hosts
-      when:
-        - ansible_os_family != "Windows"
+                                       - always
+                                       - 0.0-hosts
 
     - name:                            "0.0 Validations - Show Hosts"
       ansible.builtin.debug:
@@ -619,16 +693,18 @@
         path:                          "{{ _workspace_directory }}/.progress/validation-done"
         state:                         touch
         mode:                          0755
+      tags:
+                                       - always
 
     - name:                            "0.0 Validations - Netmask"
+      when:
+        - ansible_os_family != "Windows"
       ansible.builtin.debug:
         msg:
           - "Netmask: {{ hostvars[ansible_hostname]['ansible_default_ipv4']['netmask'] }}"
           - "CIDR:    {{ ((hostvars[ansible_hostname]['ansible_default_ipv4']['address'] | string) + '/' +
             (hostvars[ansible_hostname]['ansible_default_ipv4']['netmask'] | string)) | ansible.utils.ipaddr('prefix') }}"
           - "IPV4:    {{ hostvars[ansible_hostname]['ansible_default_ipv4']['address'] }}"
-      when:
-        - ansible_os_family != "Windows"
 
     - name:                            Check if /usr/sap is already mounted
       when:
@@ -641,6 +717,8 @@
           when:
             - item.mount == "/usr/sap"
             - "'scs' in supported_tiers"
+          tags:
+                                       - always
 
         - name:                        "0.0 Validations - Disk space details"
           when:
@@ -651,12 +729,16 @@
             - name:                    "0.0 Validations - Disk space details"
               ansible.builtin.set_fact:
                 free_diskspace:        "{{ ansible_mounts | json_query('[?mount == `/usr/sap`].size_available') }}"
+              tags:
+                                       - always
 
             - name:                    "0.0 Validations - SCS /usr/sap disk space requirements"
               ansible.builtin.set_fact:
                 scs_free_diskspace:    10
               when:
                 - scs_free_diskspace is not defined
+              tags:
+                                       - always
 
             - name:                    "0.0 Validations - Show SCS disk space"
               ansible.builtin.debug:
@@ -676,7 +758,9 @@
                   - (free_diskspace | first | int / (1024 * 1024 * 1024) | int) > (scs_free_diskspace | int)
                 fail_msg: "The SCS server needs at least {{ scs_free_diskspace }} GB of free disk space in /mnt"
               tags:
-                - 0.0-scs-diskspace
+                                       - 0.0-scs-diskspace
+          tags:
+                                       - always
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -700,7 +784,7 @@
           - "distribution_id ==  'oraclelinux8'"
         fail_msg: "For Oracle deployments DB, PAS and APP needs to run on OracleLinux"
       when:
-        - platform == 'ORACLE'
+        - platform in ['ORACLE', 'ORACLE-ASM']
 
 - hosts:                               "{{ sap_sid | upper }}_DB"
 

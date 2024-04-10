@@ -13,6 +13,7 @@
     name:                              '*'
     state:                             latest
     skip_broken:                       true
+    update_only:                       true
   register:                            reboot_output
   when:
     - tier == 'os'

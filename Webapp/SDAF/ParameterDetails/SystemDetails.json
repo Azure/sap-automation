@@ -279,6 +279,15 @@
         "Display": 3
       },
       {
+        "Name": "deploy_defender_extension",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "vm_disk_encryption_set_id",
         "Required": false,
         "Description": "Azure resource identifier for custom encryption key to use for disk encryption.",
@@ -322,6 +331,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "register_endpoints_with_dns",
+        "Required": false,
+        "Description": "Defines if the Private Endpoints are registered with DNS",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       },
       {
         "Name": "use_private_endpoint",

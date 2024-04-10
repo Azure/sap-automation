@@ -47,6 +47,7 @@ module "sap_landscape" {
   peer_with_control_plane_vnet                 = var.peer_with_control_plane_vnet
   place_delete_lock_on_resources               = var.place_delete_lock_on_resources
   public_network_access_enabled                = var.public_network_access_enabled
+  register_endpoints_with_dns                  = var.register_endpoints_with_dns
   register_virtual_network_to_dns              = var.register_virtual_network_to_dns
   service_principal                            = var.use_spn ? local.service_principal : local.account
   soft_delete_retention_days                   = var.soft_delete_retention_days

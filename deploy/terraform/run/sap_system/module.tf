@@ -94,6 +94,7 @@ module "common_infrastructure" {
   use_private_endpoint                          = var.use_private_endpoint
   use_random_id_for_storageaccounts             = var.use_random_id_for_storageaccounts
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
+  register_endpoints_with_dns                   = var.register_endpoints_with_dns
 }
 
 #-------------------------------------------------------------------------------
@@ -161,6 +162,7 @@ module "hdb_node" {
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
+  register_endpoints_with_dns                   = var.register_endpoints_with_dns
 }
 
 #########################################################################################
@@ -200,6 +202,7 @@ module "app_tier" {
   order_deployment                              = null
   ppg                                           = var.use_app_proximityplacementgroups ? module.common_infrastructure.app_ppg : module.common_infrastructure.ppg
   register_virtual_network_to_dns               = try(data.terraform_remote_state.landscape.outputs.register_virtual_network_to_dns, true)
+  register_endpoints_with_dns                   = var.register_endpoints_with_dns
   resource_group                                = module.common_infrastructure.resource_group
   route_table_id                                = module.common_infrastructure.route_table_id
   sap_sid                                       = local.sap_sid
@@ -266,6 +269,7 @@ module "anydb_node" {
                                                   ) : (null)
   ppg                                           = module.common_infrastructure.ppg
   register_virtual_network_to_dns               = try(data.terraform_remote_state.landscape.outputs.register_virtual_network_to_dns, true)
+  register_endpoints_with_dns                   = var.register_endpoints_with_dns
   resource_group                                = module.common_infrastructure.resource_group
   sap_sid                                       = local.sap_sid
   scale_set_id                                  = try(module.common_infrastructure.scale_set_id, null)
