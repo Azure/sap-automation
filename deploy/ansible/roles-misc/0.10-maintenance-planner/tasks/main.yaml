@@ -239,7 +239,7 @@
                                                 SAPINST_SKIP_DIALOGS=true                                           \
                                                 SAPINST_START_GUISERVER=false
   args:
-    chdir:                             "{{ tools_base_dir ~ swpm_version_to_use }}"
+    chdir:                             "{{ tools_base_dir ~ 'SWPM20' }}"
   environment:
     TMPDIR:                            "/home/{{ orchestration_ansible_user }}/download_basket/tmp"
 
