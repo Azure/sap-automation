@@ -203,15 +203,15 @@
 # Step: 02
 # Description: Download the files
 #
-
 - name:                                "0.10-maintenance-planner: Create directories"
   become:                              "{{ bom_processing_become }}"
-  become_user:                         root
+  become_user:                         "{{ orchestration_ansible_user }}"
   ansible.builtin.file:
     path:                              "{{ item }}"
     state:                             directory
     mode:                              0755
-    owner:                             "{{ orchestration_ansible_user if bom_processing_become else omit }}"
+    owner:                             "{{ orchestration_ansible_user }}"
+    group:                             sapinst
   delegate_to:                         localhost
   loop:
     - "/home/{{ orchestration_ansible_user }}/download_basket"

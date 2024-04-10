@@ -450,6 +450,19 @@
     fail_msg: |-
                                         Please ensure that the stack.xml is present in WORKSPACES/BOMS/stack.xml
 
+
+- name:                                "0.10-maintenance-planner: Create sapinst group"
+  ansible.builtin.group:
+    name:                              sapinst
+    state:                             present
+
+- name:                                "0.10-maintenance-planner: Add current user to sapinst group"
+  ansible.builtin.user:
+    name:                              "{{ orchestration_ansible_user }}"
+    groups:                            sapinst
+    append:                            yes
+
+
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
