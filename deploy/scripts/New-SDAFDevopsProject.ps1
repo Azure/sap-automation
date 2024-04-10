@@ -36,10 +36,10 @@ az logout
 az account clear
 
 if ($ARM_TENANT_ID.Length -eq 0) {
-  az login --output none --only-show-errors
+  az login --output none --only-show-errors --scope https://graph.microsoft.com//.default
 }
 else {
-  az login --output none --tenant $ARM_TENANT_ID --only-show-errors
+  az login --output none --tenant $ARM_TENANT_ID --only-show-errors --scope https://graph.microsoft.com//.default
 }
 
 # Check if access to the Azure DevOps organization is available and prompt for PAT if needed
@@ -760,7 +760,7 @@ if ($found_appRegistration.Length -ne 0) {
 
   $confirmation = Read-Host "Reset the app registration secret y/n?"
   if ($confirmation -eq 'y') {
-    $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors)
+    $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors --display-name "SDAF")
   }
   else {
     $WEB_APP_CLIENT_SECRET = Read-Host "Please enter the app registration secret"
@@ -774,7 +774,7 @@ else {
 
   if (Test-Path ".${pathSeparator}manifest.json") { Write-Host "Removing manifest.json" ; Remove-Item ".${pathSeparator}manifest.json" }
 
-  $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors)
+  $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors --display-name "SDAF")
 }
 
 #endregion
