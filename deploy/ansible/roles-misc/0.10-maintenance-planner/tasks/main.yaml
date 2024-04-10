@@ -16,7 +16,7 @@
     tools_base_dir:                    "/home/{{ orchestration_ansible_user }}/Azure_SAP_Automated_Deployment/SAP_tools/"
     new_bom_name:                      "{{ maintenance_plan_id }}.yaml"
     sap_download_dir:                  "/home/{{ orchestration_ansible_user }}/download_basket/{{ maintenance_plan_id }}/"
-    ini_file:                          "/home/{{ orchestration_ansible_user }}//{{ maintenance_plan_id }}download.ini"
+    ini_file:                          "/home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}download.ini"
     bom_file:                          "/home/{{ orchestration_ansible_user }}/{{ maintenance_plan_id }}.yaml"
 
 - name:                                "0.10-maintenance-planner: Execute Pre-checks Task"
