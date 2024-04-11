@@ -137,23 +137,26 @@ resource "azurerm_windows_web_app" "webapp" {
 
   key_vault_reference_identity_id = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id
 
-  identity {
-    type         = length(var.deployer.user_assigned_identity_id) == 0 ? "SystemAssigned" : "SystemAssigned, UserAssigned"
-    identity_ids = [length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : [azurerm_user_assigned_identity.deployer[0].id,data.azurerm_user_assigned_identity.deployer[0].id ]]
-  }
-  connection_string {
-    name  = "tfstate"
-    type  = "Custom"
-    value = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/tfstate/)", local.user_keyvault_name) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/tfstate/)", local.user_keyvault_name)
-  }
+  identity                                   {
+    type                                        = length(var.deployer.user_assigned_identity_id) == 0 ? (
+                                                    "SystemAssigned") : (
+                                                    "SystemAssigned, UserAssigned"
+                                                  )
+    identity_ids                                = [length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id ]
+                                             }
+  connection_string                          {
+    name                                        = "tfstate"
+    type                                        = "Custom"
+    value                                       = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/tfstate/)", local.user_keyvault_name) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/tfstate/)", local.user_keyvault_name)
+                                             }
 
-  lifecycle {
-    ignore_changes = [
-      app_settings,
-      zip_deploy_file,
-      tags
-    ]
-  }
+  lifecycle                                  {
+    ignore_changes                              = [
+                                                    app_settings,
+                                                    zip_deploy_file,
+                                                    tags
+                                                  ]
+                                             }
 
 }
 
