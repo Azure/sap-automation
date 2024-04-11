@@ -138,7 +138,7 @@ resource "azurerm_windows_web_app" "webapp" {
   key_vault_reference_identity_id = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id
 
   identity {
-    type         = "SystemAssigned, UserAssigned"
+    type         = length(var.deployer.user_assigned_identity_id) == 0 ? "SystemAssigned" : "UserAssigned"
     identity_ids = [length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id ]
   }
   connection_string {
