@@ -40,6 +40,7 @@
     seconds:                           "{{ hsr_status_report_wait_in_s }}"
 
 - name:                                "Verify that the hook script is working as expected"
+  when:                                not db_scale_out
   block:
     - name:                            "Verify the hook Installation"
       become_user:                     "{{ db_sid | lower }}adm"
@@ -76,6 +77,32 @@
         chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
       register:                        saphanasr
       when:                            inventory_hostname == primary_instance_name
+
+
+# - name:                                "Verify that the hook script is working as expected (Scale Out)"
+#   when:                                db_scale_out
+#   block:
+#     - name:                            "Verify the hook Installation is working for SUSE"
+#       become_user:                     "{{ db_sid | lower }}adm"
+#       become:                          true
+#       ansible.builtin.shell: |
+#                                        set -o pipefail
+#                                        IFS=' '
+#                                        get_saphanasr_rc=$(grep ha_dr_ nameserver_* | \
+#                                            awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
+#                                            { printf "%s ",$16 }')
+#                                        read -a saphanasr_status <<< ${get_saphanasr_rc}
+#                                        echo "${saphanasr_status[-1]}"
+#       args:
+#         chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
+#       register:                        saphanasr
+#       when:
+#         - inventory_hostname == primary_instance_name
+#         - ansible_os_family | upper == "SUSE"
+#   rescue:
+
+
+
 
 - name:                                "Log that the hook script is working as expected"
   block:
