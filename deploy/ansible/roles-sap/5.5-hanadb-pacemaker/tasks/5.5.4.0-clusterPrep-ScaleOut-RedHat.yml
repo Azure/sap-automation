@@ -177,7 +177,8 @@
     # Note: We need to manually start HANA on all participating nodes via HDB script.
     - name:                            Start HANA database on each participating node
       become_user:                     "{{ db_sid | lower }}adm"
-      chdir:                           "/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}"
+      args:
+        chdir:                           "/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}"
       become:                          true
       ansible.builtin.command:         "HDB start"
       failed_when:                     hdb_start.rc > 0
