@@ -213,6 +213,8 @@
       failed_when:                     hana_system_started.rc > 0
       changed_when:                    false
       register:                        hana_system_started
+      when:
+        - ansible_hostname in ["{{ primary_instance_name }}","{{ secondary_instance_name }}"]
 
     - name:                            Wait 5 minutes for SAP system to stablize
       ansible.builtin.pause:
