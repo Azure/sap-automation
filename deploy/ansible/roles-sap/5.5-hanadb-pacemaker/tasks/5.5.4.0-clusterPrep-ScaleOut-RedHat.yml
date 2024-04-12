@@ -173,6 +173,26 @@
             - { fs_clone: 'fs_hana_shared_s1-clone', res_clone: 'hana_nfs_s1_active-clone' }
             - { fs_clone: 'fs_hana_shared_s2-clone', res_clone: 'hana_nfs_s2_active-clone' }
 
+    - name:                            Wait for /hana/shared to become available on all participating nodes
+      block:
+        - name:                        Check if /hana/shared is mounted
+          ansible.builtin.shell: >
+                                       mountpoint -q /hana/shared
+          register:                    hana_shared_mounted
+          changed_when:                false
+          failed_when:                 false
+
+        - name:                        Wait for /hana/shared to be mounted
+          ansible.builtin.wait_for:
+            path:                      /hana/shared
+            state:                     mounted
+            timeout:                   300
+          when:                        not hana_shared_mounted.stdout
+
+        - name:                        Fail if /hana/shared is not mounted
+          ansible.builtin.fail:
+            msg:                       "Critical failure : /hana/shared is not mounted"
+          when:                        not hana_shared_mounted.stdout
 
     # Note: We need to manually start HANA on all participating nodes via HDB script.
     - name:                            Start HANA database on each participating node
