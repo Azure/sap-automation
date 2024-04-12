@@ -173,15 +173,26 @@
             - { fs_clone: 'fs_hana_shared_s1-clone', res_clone: 'hana_nfs_s1_active-clone' }
             - { fs_clone: 'fs_hana_shared_s2-clone', res_clone: 'hana_nfs_s2_active-clone' }
 
-    - name:                            Start HANA System on both nodes
+
+    # Note: We need to manually start HANA on all participating nodes via HDB script.
+    - name:                            Start HANA database on each participating node
+      become_user:                     "{{ db_sid | lower }}adm"
+      chdir:                           "/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}"
+      become:                          true
+      ansible.builtin.command:         "HDB start"
+      failed_when:                     hdb_start.rc > 0
+      changed_when:                    false
+      register:                        hdb_start
+
+    - name:                            Start HANA System on both sites
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
       ansible.builtin.command:         "{{ sapcontrol_command }} -function StartSystem"
-      failed_when:                     false
+      failed_when:                     hana_system_started.rc > 0
       changed_when:                    false
       register:                        hana_system_started
 
-    - name:                            Wait 5 minutes for SAP system to start
+    - name:                            Wait 5 minutes for SAP system to stablize
       ansible.builtin.pause:
         seconds:                       300
 # End of HANA clustering resources
