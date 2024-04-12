@@ -185,7 +185,7 @@
         - name:                        Wait for /hana/shared to be mounted
           ansible.builtin.wait_for:
             path:                      /hana/shared
-            state:                     mounted
+            state:                     present
             timeout:                   300
           when:                        not hana_shared_mounted.stdout
 
