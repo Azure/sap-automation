@@ -199,7 +199,7 @@
       # args:
       #   chdir:                           "/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}"
       become:                          true
-      ansible.builtin.command:         HDB start
+      ansible.builtin.command:         "./HDB start"
       failed_when:                     hdb_start.rc > 0
       changed_when:                    false
       register:                        hdb_start
