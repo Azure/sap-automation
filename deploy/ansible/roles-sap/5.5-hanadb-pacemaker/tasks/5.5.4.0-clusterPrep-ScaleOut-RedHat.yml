@@ -219,7 +219,7 @@
     - name:                            Wait 5 minutes for SAP system to stablize
       ansible.builtin.pause:
         seconds:                       300
-# End of HANA clustering resources
+# End of HANA filesystem clustering resources
 
 
 # ⠀⠀⠀⠀⠀⠀⣠⡤⠶⠒⢛⢻⠛⠛⠛⠛⠛⠛⢿⣛⡓⠶⢦⣤⠀⠀⠀⠀⠀⠀

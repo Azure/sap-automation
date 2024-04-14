@@ -1,22 +1,44 @@
 ---
-- name: "5.5 HANADB Pacemaker - import - set_runtime_facts"
-  ansible.builtin.import_tasks: 5.5.1-set_runtime_facts.yml
+- name: "5.5 HANADB Pacemaker configuration"
+  when:
+    - not db_scale_out
+  block:
+      - name: "5.5 HANADB Pacemaker - import - set_runtime_facts"
+        ansible.builtin.import_tasks: 5.5.1-set_runtime_facts.yml
 
-- name: "5.5 HANADB Pacemaker - import - pre_checks"
-  ansible.builtin.import_tasks: 5.5.2-pre_checks.yml
+      - name: "5.5 HANADB Pacemaker - import - pre_checks"
+        ansible.builtin.import_tasks: 5.5.2-pre_checks.yml
 
-# Add a conditional fork here for HSR and HSR-SO systems
-- name: "5.5 HANADB Pacemaker - import - SAP HanaSR"
-  ansible.builtin.import_tasks: 5.5.3-SAPHanaSR.yml
-  when: not db_scale_out
+      - name: "5.5 HANADB Pacemaker - import - SAP HanaSR"
+        ansible.builtin.import_tasks: 5.5.3-SAPHanaSR.yml
 
-- name: "5.5 HANADB Pacemaker - import - SAP HanaSRMultiTarget"
-  ansible.builtin.import_tasks: 5.5.3.1-SAPHanaSRMultiTarget.yml
-  when: db_scale_out and database_high_availability
+      - name: "5.5 HANADB Pacemaker - import - provision"
+        ansible.builtin.import_tasks: 5.5.4-provision.yml
+        when: not hana_cluster_existence_check
 
-- name: "5.5 HANADB Pacemaker - import - provision"
-  ansible.builtin.import_tasks: 5.5.4-provision.yml
-  when: not hana_cluster_existence_check
+      - name: "5.5 HANADB Pacemaker - import - post_provision_report"
+        ansible.builtin.import_tasks: 5.5.5-post_provision_report.yml
 
-- name: "5.5 HANADB Pacemaker - import - post_provision_repor"
-  ansible.builtin.import_tasks: 5.5.5-post_provision_report.yml
+- name: "5.5 HANADB Pacemaker configuration Scale-Out"
+  when:
+    - db_scale_out
+  block:
+      - name: "5.5 HANADB Pacemaker - import - set_runtime_facts"
+        ansible.builtin.import_tasks:   5.5.1-set_runtime_facts.yml
+
+      - name: "5.5 HANADB Pacemaker - import - pre_checks"
+        ansible.builtin.import_tasks:   5.5.2-pre_checks.yml
+
+      - name: "5.5 HANADB Pacemaker - configure pre-requisites"
+        ansible.builtin.include_tasks:  "5.5.4.0-clusterPrep-ScaleOut-{{ ansible_os_family }}.yml"
+
+      - name: "5.5 HANADB Pacemaker - import - SAP HanaSRMultiTarget"
+        ansible.builtin.import_tasks:   5.5.3.1-SAPHanaSRMultiTarget.yml
+
+      - name: "5.5 HANADB Pacemaker - configure cluster resources"
+        ansible.builtin.import_tasks:   "5.5.4.1-cluster-ScaleOut-{{ ansible_os_family }}.yml"
+        when: not hana_cluster_existence_check
+
+      - name: "5.5 HANADB Pacemaker - import - post_provision_report"
+        ansible.builtin.import_tasks:   5.5.5-post_provision_report.yml
+

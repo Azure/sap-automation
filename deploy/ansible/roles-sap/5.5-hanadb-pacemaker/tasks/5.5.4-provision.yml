@@ -8,21 +8,9 @@
 # Clustering commands are based on the Host OS
 - name:                                Cluster based on OS in VM
   ansible.builtin.include_tasks:       "5.5.4.0-clusterPrep-{{ ansible_os_family }}.yml"
-  when:
-    - not db_scale_out
 
-- name:                                Scale-Out Cluster based on OS in VM
-  ansible.builtin.include_tasks:       "5.5.4.0-clusterPrep-ScaleOut-{{ ansible_os_family }}.yml"
-  when:
-    - db_scale_out
 
 - name:                                Cluster based on OS in VM
   ansible.builtin.include_tasks:       "5.5.4.1-cluster-{{ ansible_os_family }}.yml"
-  when:
-   - not db_scale_out
 
-- name:                                Scale-Out Cluster based on OS in VM
-  ansible.builtin.include_tasks:       "5.5.4.1-cluster-ScaleOut-{{ ansible_os_family }}.yml"
-  when:
-   - db_scale_out
 ...
