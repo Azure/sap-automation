@@ -87,6 +87,8 @@
     allowSharedKeyAccess:             true
 
 - name:                                "0.4 Installation Media: - Check Binaries Storage Account for Shared Key Access with Control Plane Subscription"
+  when:
+    - not is_executed_by_acss
   ansible.builtin.command: >-
                                        az storage account show          \
                                          --name {{ account_name }}      \
