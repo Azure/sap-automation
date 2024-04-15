@@ -19,6 +19,25 @@
   notify:
     - Restart waagent
 
+- name:                                "1.1 Swap: - Update WAAgent {{ ansible_os_family }}"
+  ansible.builtin.package:
+    name:                              WALinuxAgent
+    state:                             latest
+  when:
+    - ansible_os_family == 'RedHat'
+
+- name:                                "1.1 Swap: - Update WAAgent {{ ansible_os_family }}"
+  ansible.builtin.package:
+    name:                              WALinuxAgent
+    state:                             latest
+  when:
+    - ansible_os_family == 'Suse'
+
+- name:                                "1.1 Swap: - Restart {{ distro_name }}"
+  ansible.builtin.service:
+    name:                              waagent
+    state:                             restarted
+
 # Check the current swap size
 - name:                                "check swap size"
   ansible.builtin.shell:               set -o pipefail && cat /proc/meminfo | grep SwapTotal
@@ -28,7 +47,6 @@
   ansible.builtin.debug:
     msg:                               "SWAP size from procinfo: {{ swap_space }}"
     verbosity:                         2
-
 
 - name:                                "Trim Swap space"
   ansible.builtin.set_fact:
