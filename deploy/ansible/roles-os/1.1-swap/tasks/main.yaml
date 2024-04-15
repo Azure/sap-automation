@@ -19,21 +19,21 @@
   notify:
     - Restart waagent
 
-- name:                                "1.1 Swap: - Update WAAgent {{ ansible_os_family }}"
+- name:                                "1.1 Swap: - Update WAAgent on {{ ansible_os_family }}"
   ansible.builtin.package:
     name:                              WALinuxAgent
     state:                             latest
   when:
     - ansible_os_family == 'RedHat'
 
-- name:                                "1.1 Swap: - Update WAAgent {{ ansible_os_family }}"
+- name:                                "1.1 Swap: - Update WAAgent on {{ ansible_os_family }}"
   ansible.builtin.package:
     name:                              WALinuxAgent
     state:                             latest
   when:
     - ansible_os_family == 'Suse'
 
-- name:                                "1.1 Swap: - Restart {{ distro_name }}"
+- name:                                "1.1 Swap: - Restart WAAgent on {{ distro_name }}"
   ansible.builtin.service:
     name:                              waagent
     state:                             restarted
