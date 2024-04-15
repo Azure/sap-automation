@@ -21,7 +21,7 @@
 
 - name: "5.5 HANADB Pacemaker configuration Scale-Out"
   when:
-    - db_scale_out
+    - db_scale_out and database_high_availability
   block:
       - name: "5.5 HANADB Pacemaker - import - set_runtime_facts"
         ansible.builtin.import_tasks:   5.5.1-set_runtime_facts.yml
