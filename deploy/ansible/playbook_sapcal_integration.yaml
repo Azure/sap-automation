@@ -1,0 +1,162 @@
+---
+
+- name:                                "SAP CAL Integration"
+  hosts:                               "{{ sap_sid | upper }}_DB  :
+                                        {{ sap_sid | upper }}_SCS :
+                                        {{ sap_sid | upper }}_PAS :
+                                        {{ sap_sid | upper }}_APP"
+  become:                              true
+  gather_facts:                        true
+  vars_files:                          vars/ansible-input-api.yaml
+  tasks:
+    - name:                            "Retrieve Resource Group Name and ResourceID"
+      ansible.builtin.uri:
+        url:                           http://169.254.169.254/metadata/instance?api-version=2021-02-01
+        use_proxy:                     false
+        headers:
+          Metadata:                    true
+      register: azure_metadata
+
+    - name:                            "Set ResourceID for SCS"
+      set_fact:
+        subscription_id:               "{{ azure_metadata.json.compute.subscriptionId }}"
+        resource_group_name:           "{{ azure_metadata.json.compute.resourceGroupName }}"
+        scs_resource_id:               "{{ azure_metadata.json.compute.resourceId }}"
+        scs_physical_hostname:         "{{ ansible_hostname }}"
+        scs_virtual_hostname:          "{{ virtual_host }}"
+      when:
+        - "'scs' in supported_tiers"
+        - not scs_high_availability
+
+    - name:                            "Set ResourceID for DB"
+      set_fact:
+        db_resource_id:                "{{ azure_metadata.json.compute.resourceId }}"
+        db_physical_hostname:          "{{ ansible_hostname }}"
+        db_virtual_hostname:           "{{ virtual_host }}"
+      when:
+        - "'hana' in supported_tiers"
+        - not db_high_availability
+
+    - name:                            "Set ResourceID for PAS"
+      set_fact:
+        pas_resource_id:               "{{ azure_metadata.json.compute.resourceId }}"
+        pas_physical_hostname:         "{{ ansible_hostname }}"
+        pas_virtual_hostname:          "{{ virtual_host }}"
+      when:
+        - "'pas' in supported_tiers"
+
+    - name:                            "Set ResourceID for APP"
+      set_fact:
+        app_resource_id:               "{{ azure_metadata.json.compute.resourceId }}"
+        app_physical_hostname:         "{{ ansible_hostname }}"
+        app_virtual_hostname:          "{{ virtual_host }}"
+      when:
+        - "'app' in supported_tiers"
+
+
+- name: "Provision a new SAP environment"
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  vars_files:                          vars/ansible-input-api.yaml
+  tasks:
+  - name:                              Run the keyvault role
+    ansible.builtin.include_role:
+      name:                            roles-misc/0.2-kv-secrets
+    vars:
+      operation:                       sapcal
+    tags:
+                                       - kv-secrets
+
+  # - name:                            "Retrieve Resource Group Name and ResourceID"
+  #   ansible.builtin.uri:
+  #     url:                           http://169.254.169.254/metadata/instance?api-version=2021-02-01
+  #     use_proxy:                     false
+  #     headers:
+  #       Metadata:                    true
+  #   register: azure_metadata_deployer
+
+
+
+  - name: Call provisioning API endpoint
+    public_api:
+      method: "software_provisioning"
+      calKeyvaultId: "{{ kv_calapi }}"
+      #If the VM does not have ManagedIdentity
+      #clientId: "<client_id>"
+      #clientSecret: "client_secret"
+      #tenantId: "<tenant_id>"
+      productId: "3b1dc287-c865-4f79-b9ed-d5ec2dc755e9"
+      availabilityScenario: "non-ha"
+      infrastructureParameterSet:
+        #one of privateDnsZone or domainName
+        #privateDnsZone: "/subscriptions/8d8422a3-a9c1-4fe9-b880-adcf61557c71/resourceGroups/MGMT-DNS-CAL/providers/Microsoft.Network/privateDnsZones/azure.contoso.net"
+        domainName: "{{ sap_fqdn }}"
+        #deploymentServerSubnet: "/subscriptions/8d8422a3-a9c1-4fe9-b880-adcf61557c71/resourceGroups/MGMT-WEEU-DEP01-INFRASTRUCTURE/providers/Microsoft.Network/virtualNetworks/MGMT-WEEU-DEP01-vnet/subnets/MGMT-WEEU-DEP01_deployment-subnet"
+        #executionEngineSubnet: "/subscriptions/8d8422a3-a9c1-4fe9-b880-adcf61557c71/resourceGroups/MGMT-WEEU-DEP01-INFRASTRUCTURE/providers/Microsoft.Network/virtualNetworks/MGMT-WEEU-DEP01-vnet/subnets/MGMT-WEEU-DEP01_deployment-subnet"
+        remoteOsUser: "{{ orchestration_ansible_user }}"
+        secretStoreId: "/subscriptions/{{ subscription_id }}/resourceGroups/{{ secret_prefix }}-INFRASTRUCTURE/providers/Microsoft.KeyVault/vaults/{{ kv_name }}"
+        sshPublicKeySecretName: "{{ secret_prefix }}-sid-sshkey-pub"
+        sshPrivateKeySecretName: "{{ secret_prefix }}-sid-sshkey"
+        deploymentServerResourceGroup: "{{ resource_group_name }}-SAPCAL-DS"
+        technicalCommunicationUser: "{{ s_user }}"
+        techUserPassword: "{{ s_password }}"
+        parameters: ""
+      installationParameterSets:
+        hanaDeployment:
+          primaryVmResourceId: "{{ db_resource_id }}"
+          # secondaryVmResourceId: "/subscriptions/<subscription>/resourceGroups/<resourceGroup>/providers/Microsoft.Compute/virtualMachines/<machineID>"
+          # loadBalancerResourceId: "/subscriptions/<subscription>/resourceGroups/<resourceGroup>/providers/Microsoft.Network/loadBalancers/<loadBalancerID>/"
+          # frontEndIp: "/subscriptions/<subscription>/resourceGroups/<resourceGroup>/providers/Microsoft.Network/loadBalancers/<loadBalancerID>/frontendIPConfigurations/FE-ID"
+          DBSID: "{{ db_sid | upper }}"
+          DBSIDAdminUserId: "1050"
+          instanceNumber: "{{ db_instance_number }}"
+          # frontendHostname: "vhdbdb"
+          primaryPhysicalHostname: "{{ db_physical_hostname }}"
+          primaryVirtualHostname: "{{ db_virtual_hostname }}"
+          # secondaryPhysicalHostname: "phdbdbsr"
+          # secondaryVirtualHostname: "vhdbdbsr"
+        s4hanaDeployment:
+          SID: "{{ sap_sid | upper }}"
+          SAPSysAdminUserId: "1079"
+          SAPSysAdminGroupId: "79"
+          sapGuiDefaultLanguage: "en"
+          SAPSystemAdditionalLanguages: ""
+          numberOfDialogWorkProcesses: "10"
+          numberOfBatchWorkProcesses: "7"
+        centralServicesDeployment:
+          vmResourceId: "{{ scs_resource_id}}"
+          # loadBalancerResourceId: "/subscriptions/<subscription>/resourceGroups/<resourceGroup>/providers/Microsoft.Network/loadBalancers/<loadBalancerID>/"
+          # frontEndIp: "/subscriptions/<subscription>/resourceGroups/<resourceGroup>/providers/Microsoft.Network/loadBalancers/<loadBalancerID>/frontendIPConfigurations/FE-ID"
+          instanceNumber: "{{ scs_instance_number }}"
+          ABAPMessageServerPort: "3600"
+          physicalHostname: "{{ scs_physical_hostname }}"
+          virtualHostname: "{{ scs_virtual_hostname }}"
+          #loadBalancerHostname: "s25scs00cl1"
+        # enqueueReplicationServerDeployment:
+          # vmResourceId: "/subscriptions/<subscription>/resourceGroups/<resourceGroup>/providers/Microsoft.Compute/virtualMachines/<machineID>"
+          # frontEndIp: "/subscriptions/<subscription>/resourceGroups/<resourceGroup>/providers/Microsoft.Network/loadBalancers/<loadBalancerID>/frontendIPConfigurations/FE-ID"
+          # instanceNumber: "10"
+          # physicalHostname: "ps4hers"
+          # virtualHostname: "vs4hers"
+          # loadBalancerHostname: "s25scs00cl1"
+        applicationServersDeployment:
+          - vmResourceId: "{{ pas_resource_id }}"
+            instanceNumber: "{{ pas_instance_number }}"
+            physicalHostname: "{{ pas_physical_hostname }}"
+            virtualHostname: "{{ pas_virtual_hostname }}"
+          - vmResourceId: "{{ app_resource_id }}"
+            instanceNumber: "{{ app_instance_number }}"
+            physicalHostname: "{{ app_physical_hostname }}"
+            virtualHostname: "{{ app_virtual_hostname }}"
+        # fioriConfiguration:
+          # fioriHostname: "S4Hweb01l5f1.azure.sdaf.contoso.net"
+          # fioriHostPort: "44300"
+          # productiveClientNumber: "500"
+          # ossUser: "S0000000"
+          # ossUserPassword=: "XXXXX"
+          # ossUserPasswordReference: "<secret-store-reference>"
+        # webDispatcherDeployment:
+          # installationType: "Standalone"
+          # virtualHostname: "vw00w01l65"
+          # fioriHostname: "vw00w01l65.sap.contoso.net"

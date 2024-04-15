@@ -22,6 +22,10 @@ parameters:
     displayName:                       Bill of Materials name
     type:                              string
 
+  - name:                              sap_cal_product_id
+    displayName:                       SAP CAL Product ID
+    type:                              string
+
   - name:                              extra_params
     displayName:                       Extra Parameters
     type:                              string
@@ -87,7 +91,10 @@ parameters:
     type:                             boolean
     default:                          false
 
-
+  - name:                              sapcal_integration
+    displayName:                       SAP CAL Integration
+    type:                              boolean
+    default:                           false
 
 # 20220929 MKD - ACSS Registration <BEGIN>
   - name:                             acss_registration
@@ -580,6 +587,24 @@ stages:
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+          - ${{ if eq(parameters.sapcal_integration, true) }}:
+              - template:                    templates\run-ansible.yaml
+                parameters:
+                  displayName:               "SAPCAL Integration"
+                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_sapcal_integration.yaml
+                  secretName:                "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                 $(Preparation.VAULT_NAME)
+                  parametersFolder:          $(Preparation.FOLDER)
+                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                  $(Preparation.HOSTS)
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
           - template:                          templates\collect-log-files.yaml
             parameters:
               logPath:                         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
