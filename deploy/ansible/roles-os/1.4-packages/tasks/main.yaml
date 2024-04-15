@@ -36,6 +36,8 @@
   register:                            waagent_conf_save
 
 - name:                                "1.4 Copy the conf file"
+  become:                              true
+  become_user:                         root
   ansible.builtin.copy:
     src:                               /etc/waagent.conf.rpmsave
     dest:                              /etc/waagent.conf
