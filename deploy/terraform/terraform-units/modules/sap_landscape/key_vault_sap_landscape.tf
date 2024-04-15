@@ -81,10 +81,6 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
                                          )
   role_definition_name                 = "Key Vault Administrator"
   principal_id                         = var.deployer_tfstate.deployer_uai.principal_id
-
-  lifecycle {
-    ignore_changes = [principal_id]
-  }
 }
 
 resource "azurerm_role_assignment" "role_assignment_spn" {
@@ -96,10 +92,6 @@ resource "azurerm_role_assignment" "role_assignment_spn" {
                                                                      )
   role_definition_name                 = "Key Vault Administrator"
   principal_id                         = local.service_principal.object_id
-
-  lifecycle {
-    ignore_changes = [principal_id]
-  }
 }
 
 resource "azurerm_key_vault_access_policy" "kv_user" {
