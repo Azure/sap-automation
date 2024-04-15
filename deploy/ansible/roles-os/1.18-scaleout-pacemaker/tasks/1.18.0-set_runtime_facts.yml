@@ -104,10 +104,10 @@
 
 - name:                                           "Wait for primary_ip check on current node to finish"
   ansible.builtin.set_fact:
-    "is_primIP_defined_on_{{ host_var }}":        "{{ hostvars[ansible_hostname].primary_ip is defined }}"
+    "is_primIP_defined_on_host":                  "{{ hostvars[ansible_hostname].primary_ip is defined }}"
   retries:                                        30
   delay:                                          60
-  until:                                          is_primIP_defined_on_{{ host_var }}
+  until:                                          is_primIP_defined_on_host
 
 
 - name:                                           "1.18.0 Generic Pacemaker - Extract NIC IPs"
