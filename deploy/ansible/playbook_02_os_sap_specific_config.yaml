@@ -80,6 +80,20 @@
 #
 # -------------------------------------+---------------------------------------8
   tasks:
+
+    - name:                            "SAP OS Configuration: - Set deployment type"
+      ansible.builtin.set_fact:
+        single_server:                 false
+      tags:
+        - always
+
+    - name:                            "SAP OS Configuration: - Set deployment type"
+      ansible.builtin.set_fact:
+        single_server:                 true
+      when:                            (ansible_play_hosts_all | length) == 1
+      tags:
+        - always
+
     - name:                            "SAP OS Configuration - Linux based systems"
       become:                          true
       become_user:                     "root"
@@ -157,7 +171,7 @@
             subnet_client_cidr:        "{{ subnet_cidr_client | default(azure_network_metadata.json.interface[0].ipv4.subnet[0].address + '/' + azure_network_metadata.json.interface[0].ipv4.subnet[0].prefix) }}"
           when:
             - platform == 'HANA'
-            - node_tier == 'hana' or ['hana'] in supported_tiers
+            - db_scale_out
             - not database_high_availability
           tags:
             - always

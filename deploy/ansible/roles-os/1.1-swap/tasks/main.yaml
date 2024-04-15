@@ -56,11 +56,12 @@
     #     ResourceDisk.EnableSwap         = n
     #     ResourceDisk.SwapSizeMB         = 0
     #     ResourceDisk.MountOptions       = None
-    - { state: 'present',  regexp: 'ResourceDisk.Format=',      line: 'ResourceDisk.Format=y'                                      }
-    - { state: 'present',  regexp: 'ResourceDisk.EnableSwap=',  line: 'ResourceDisk.EnableSwap=y'                                  }
-    - { state: 'present',  regexp: 'ResourceDisk.SwapSizeMB=',  line: 'ResourceDisk.SwapSizeMB={{ swap_size_mb | default(2052) }}' }
-    - { state: 'present',  regexp: 'ResourceDisk.MountPoint=',  line: 'ResourceDisk.MountPoint=/mnt'                               }
-    - { state: 'present',  regexp: 'Provisioning.Agent=',       line: 'Provisioning.Agent=waagent'                                 }
+    - { state: 'present',  regexp: 'ResourceDisk.Format=',               line: 'ResourceDisk.Format=y'                                      }
+    - { state: 'present',  regexp: 'ResourceDisk.EnableSwap=',           line: 'ResourceDisk.EnableSwap=y'                                  }
+    - { state: 'present',  regexp: 'ResourceDisk.SwapSizeMB=',           line: 'ResourceDisk.SwapSizeMB={{ swap_size_mb | default(2052) }}' }
+    - { state: 'present',  regexp: 'ResourceDisk.MountPoint=',           line: 'ResourceDisk.MountPoint=/mnt'                               }
+    - { state: 'present',  regexp: 'AutoUpdate.UpdateToLatestVersion=',  line: 'AutoUpdate.UpdateToLatestVersion=y'                         }
+    - { state: 'present',  regexp: 'Extensions.WaitForCloudInit=',       line: 'Extensions.WaitForCloudInit=y'                              }
   register:                            wagent_configuration
   vars:
     swap_size_mb:                      "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"

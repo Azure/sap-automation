@@ -189,8 +189,7 @@
 
 # Oracle installation has to be done with oracle user. Change the user to become orasid and call the installer.
 
-- hosts:                               "{{ sap_sid | upper }}_DB[0]"
-  # serial:                               1
+- hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Data Guard setup - Oracle
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true
@@ -205,16 +204,22 @@
         - db_high_availability is defined
         - database_high_availability is not defined
 
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
+        secondary_instance_name:   "{{ ansible_play_hosts_all[1] | default('N/A') }}"         # Setting up Secondary Instance Name
+
     - name:                            "Oracle Data Guard Setup"
       when:
         - database_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
+        - inventory_hostname == primary_instance_name
       become:                          true
       block:
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
-            action:                    0
+            action:                    Prepare_Secondary
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
@@ -225,21 +230,6 @@
           tags:
             - 4.1.3-ora-dg
 
-- hosts:                               "{{ sap_sid | upper }}_DB"
-  name:                                DB Dataguard setup - Oracle
-  remote_user:                         "{{ orchestration_ansible_user }}"
-  gather_facts:                        true
-  vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
-
-  tasks:
-    - name:                            "Backward Compatibility - Check required Database HA variables"
-      ansible.builtin.set_fact:
-        database_high_availability:    "{{ db_high_availability | default(false) }}"
-      when:
-        - db_high_availability is defined
-        - database_high_availability is not defined
-
     - name:                            "Oracle Data Guard Setup"
       when:
         - database_high_availability
@@ -249,7 +239,7 @@
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
-            action:                    1
+            action:                    Prepare_and_Restore
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
@@ -267,31 +257,17 @@
             suffix:                   "_DC_ACTION_1"
             tier:                     'oracle'
 
-- hosts:                               "{{ sap_sid | upper }}_DB[0]"
-  name:                                DB Dataguard setup - Oracle
-  remote_user:                         "{{ orchestration_ansible_user }}"
-  gather_facts:                        true
-  vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
-
-  tasks:
-    - name:                            "Backward Compatibility - Check required Database HA variables"
-      ansible.builtin.set_fact:
-        database_high_availability:    "{{ db_high_availability | default(false) }}"
-      when:
-        - db_high_availability is defined
-        - database_high_availability is not defined
-
     - name:                            "Oracle Data Guard Setup"
       when:
         - database_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
+        - inventory_hostname == primary_instance_name
       become:                          true
       block:
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
-            action:                    2
+            action:                    Post_Processing_Primary
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
@@ -309,25 +285,18 @@
             suffix:                   "_DC_ACTION_2"
             tier:                     'oracle'
 
-- hosts:                               "{{ sap_sid | upper }}_DB[1]"
-  name:                                DB Dataguard setup on secondary - Oracle
-  remote_user:                         "root"
-  gather_facts:                        true
-  vars_files:
-    - vars/ansible-input-api.yaml                               # API Input template with defaults
-
-  tasks:
 
     - name:                            "Oracle Data Guard Setup on Secondary"
       when:
         - db_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
+        - inventory_hostname == secondary_instance_name
       become:                          true
       block:
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
-            action:                    3
+            action:                    Post_Processing_Secondary
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
@@ -376,7 +345,7 @@
         - name:                            "Observer Playbook: Setting the DB facts"
           ansible.builtin.set_fact:
             node_tier:                     observer
-            action:                        4
+            action:                        Setup_Observer
             main_password:                 "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
