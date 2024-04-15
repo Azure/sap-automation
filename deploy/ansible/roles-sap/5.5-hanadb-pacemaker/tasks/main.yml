@@ -29,14 +29,8 @@
       - name: "5.5 HANADB Pacemaker - import - pre_checks"
         ansible.builtin.import_tasks:   5.5.2-pre_checks.yml
 
-      - name: "5.5 HANADB Pacemaker - configure pre-requisites"
-        ansible.builtin.include_tasks:  "5.5.4.0-clusterPrep-ScaleOut-{{ ansible_os_family }}.yml"
-
-      - name: "5.5 HANADB Pacemaker - import - SAP HanaSRMultiTarget"
-        ansible.builtin.import_tasks:   5.5.3.1-SAPHanaSRMultiTarget.yml
-
-      - name: "5.5 HANADB Pacemaker - configure cluster resources"
-        ansible.builtin.import_tasks:   "5.5.4.1-cluster-ScaleOut-{{ ansible_os_family }}.yml"
+      - name: "5.5 HANADB Pacemaker - import - provision"
+        ansible.builtin.import_tasks: 5.5.4-provision-ScaleOut.yml
         when: not hana_cluster_existence_check
 
       - name: "5.5 HANADB Pacemaker - import - post_provision_report"
