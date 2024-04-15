@@ -104,6 +104,11 @@
         - db_high_availability is defined
         - database_high_availability is not defined
 
+    - name:                            "0.0 Validations: - Gather facts for first time"
+      ansible.builtin.setup:
+      tags:
+                                       - always
+
     - name:                            "HANA HA Setup"
       become:                          true
       block:
