@@ -168,7 +168,7 @@
             - name:                    "HANA HA Setup: - run the Pacemaker role"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.5-hanadb-pacemaker
-              when:                    db_high_availability
+              when:                    database_high_availability
               tags:
                 - 5.5-hanadb-pacemaker
 
