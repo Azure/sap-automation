@@ -54,7 +54,7 @@
           register:                         sap_hana
           failed_when:                      sap_hana.rc > 0
 
-        - name:                             Ensure master/slave (msl) resource for managing an SAP HANA instance is created
+        - name:                             Ensure master-slave (msl) resource for managing an SAP HANA instance is created
           ansible.builtin.shell: >
                                             pcs resource master msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
                                             meta master-max="1" clone-node-max=1 interleave=true
@@ -86,8 +86,8 @@
           register:                         colocation
           failed_when:                      colocation.rc > 0
 
-        # Ref : https://access.redhat.com/articles/6093611#5123-constraints
-        - name:                             Ensure that SAP HANA master/slave resources avoids running on the majority maker node
+          # Ref : https://access.redhat.com/articles/6093611#5123-constraints
+        - name:                             Ensure that SAP HANA master-slave resources avoids running on the majority maker node
           ansible.builtin.shell:            pcs constraint location msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} avoids {{ majority_maker }}
           register:                         msl_mm_location
           failed:                           msl_mm_location.rc > 0
