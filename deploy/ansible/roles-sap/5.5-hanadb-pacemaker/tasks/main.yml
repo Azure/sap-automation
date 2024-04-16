@@ -1,41 +1,3 @@
-# ---
-# - name: "5.5 HANADB Pacemaker configuration"
-#   when:
-#     - not db_scale_out
-#   block:
-#       - name: "5.5 HANADB Pacemaker - import - set_runtime_facts"
-#         ansible.builtin.import_tasks: 5.5.1-set_runtime_facts.yml
-
-#       - name: "5.5 HANADB Pacemaker - import - pre_checks"
-#         ansible.builtin.import_tasks: 5.5.2-pre_checks.yml
-
-#       - name: "5.5 HANADB Pacemaker - import - SAP HanaSR"
-#         ansible.builtin.import_tasks: 5.5.3-SAPHanaSR.yml
-
-#       - name: "5.5 HANADB Pacemaker - import - provision"
-#         ansible.builtin.import_tasks: 5.5.4-provision.yml
-#         when: not hana_cluster_existence_check
-
-#       - name: "5.5 HANADB Pacemaker - import - post_provision_report"
-#         ansible.builtin.import_tasks: 5.5.5-post_provision_report.yml
-
-# - name: "5.5 HANADB Pacemaker configuration Scale-Out"
-#   when:
-#     - db_scale_out and database_high_availability
-#   block:
-#       - name: "5.5 HANADB Pacemaker - import - set_runtime_facts"
-#         ansible.builtin.import_tasks:   5.5.1-set_runtime_facts.yml
-
-#       - name: "5.5 HANADB Pacemaker - import - pre_checks"
-#         ansible.builtin.import_tasks:   5.5.2-pre_checks.yml
-
-#       - name: "5.5 HANADB Pacemaker - import - provision"
-#         ansible.builtin.import_tasks: 5.5.4-provision-ScaleOut.yml
-#         when: not hana_cluster_existence_check
-
-#       - name: "5.5 HANADB Pacemaker - import - post_provision_report"
-#         ansible.builtin.import_tasks:   5.5.5-post_provision_report.yml
-
 ---
 - name: "5.5 HANADB Pacemaker - import - set_runtime_facts"
   ansible.builtin.import_tasks: 5.5.1-set_runtime_facts.yml
@@ -50,7 +12,9 @@
 
 - name: "5.5 HANADB Pacemaker - import - provision"
   ansible.builtin.import_tasks: 5.5.4-provision.yml
-  when: not hana_cluster_existence_check and not db_scale_out
+  when:
+  - not hana_cluster_existence_check
+  - not db_scale_out
 
 - name: "5.5 HANADB Pacemaker - import - provision Scale-Out-HSR"
   ansible.builtin.import_tasks: 5.5.4-provision-ScaleOut.yml
