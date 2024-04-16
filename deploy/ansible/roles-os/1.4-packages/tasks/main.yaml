@@ -25,12 +25,12 @@
     - upgrade_packages is defined
     - upgrade_packages
 
-- name:                                "1.4 Packages: - Resolve failed waagent updates"
+- name:                                "1.4 Packages: - Check for (waagent_conf)"
   ansible.builtin.stat:
     path:                              /etc/waagent.conf
   register:                            waagent_conf
 
-- name:                                "1.4 Packages: - Resolve failed waagent updates"
+- name:                                "1.4 Packages: - Check for (waagent.conf.rpmsave)"
   ansible.builtin.stat:
     path:                              /etc/waagent.conf.rpmsave
   register:                            waagent_conf_save
