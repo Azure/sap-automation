@@ -13,6 +13,11 @@
 
 # +------------------------------------4--------------------------------------*/
 
+# Fetch the majority maker node OS Hostname as we need to create a constraint to prevent HANA resources from running on it
+- name:                            "Scale-Out Cluster Compatibility - Fetch majority maker node name"
+  ansible.builtin.set_fact:
+    majority_maker:                "{{ (query('inventory_hostnames', '{{ sap_sid | upper }}_OBSERVER_DB'))[0] }}"
+
 - name:                                     "5.5.4.1 HANA Cluster configuration - Optimise the Pacemaker cluster for SAP HANA"
   block:
     - name:                                 "5.5.4.1 HANA Cluster configuration - Get the cluster maintenance mode status"
@@ -77,9 +82,28 @@
           failed_when:                      order.rc > 1
 
         - name:                             Ensure the Virtual IP group colocation constraint is configured
-          ansible.builtin.shell:            pcs constraint colocation add g_ip_{{ db_sid | upper }}_03 with master msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} 4000
+          ansible.builtin.shell:            pcs constraint colocation add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} with master msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} 4000
           register:                         colocation
           failed_when:                      colocation.rc > 1
+
+        # Ref : https://access.redhat.com/articles/6093611#5123-constraints
+        - name:                             Ensure that SAP HANA master/slave resources avoids running on the majority maker node
+          ansible.builtin.shell: >
+                                            pcs constraint location msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} avoids {{ majority_maker }}
+          register:                         msl_mm_location
+          failed:                           msl_mm_location.rc > 0s
+
+        - name:                             Ensure that HANA Resource topology avoids running on the majority maker node
+          ansible.builtin.shell: >
+                                            pcs constraint location SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone avoids {{ majority_maker }}
+          register:                         hana_mm_location
+          failed:                           hana_mm_location.rc > 0s
+
+        - name:                             Ensure that IP Resource avoids running on the majority maker node
+          ansible.builtin.shell: >
+                                            pcs constraint location g_ip_{{ db_sid | upper }}_{{ db_instance_number }} avoids {{ majority_maker }}
+          register:                         vip_mm_location
+          failed:                           vip_mm_location.rc > 0s
 
         - name:                             Ensure the HANA resources and NFS filesystem constraint is configured
           ansible.builtin.shell:            pcs constraint location SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone rule resource-discovery=never score=-INFINITY hana_nfs_s1_active ne true and hana_nfs_s2_active ne true
@@ -140,9 +164,29 @@
           failed_when:                      order.rc > 1
 
         - name:                             Ensure the Virtual IP group colocation constraint is configured
-          ansible.builtin.shell:            pcs constraint colocation add g_ip_{{ db_sid | upper }}_03 with master SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone 4000
+          ansible.builtin.shell:            pcs constraint colocation add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} with master SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone 4000
           register:                         colocation
           failed_when:                      colocation.rc > 1
+
+        # Ref: https://access.redhat.com/articles/6093611#5123-constraints
+        - name:                             Ensure that SAP HANA resources avoids running on the majority maker node
+          ansible.builtin.shell: >
+                                            pcs constraint location SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone avoids {{ majority_maker }}
+          register:                         msl_mm_location
+          failed:                           msl_mm_location.rc > 0s
+
+        - name:                             Ensure that HANA Resource topology avoids running on the majority maker node
+          ansible.builtin.shell: >
+                                            pcs constraint location SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone avoids {{ majority_maker }}
+          register:                         hana_mm_location
+          failed:                           hana_mm_location.rc > 0s
+
+        - name:                             Ensure that IP Resource avoids running on the majority maker node
+          ansible.builtin.shell: >
+                                            pcs constraint location g_ip_{{ db_sid | upper }}_{{ db_instance_number }} avoids {{ majority_maker }}
+          register:                         vip_mm_location
+          failed:                           vip_mm_location.rc > 0s
+
 
         - name:                             Ensure the HANA resources and NFS filesystem constraint is configured
           ansible.builtin.shell:            pcs constraint location SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone rule resource-discovery=never score=-INFINITY hana_nfs_s1_active ne true and hana_nfs_s2_active ne true

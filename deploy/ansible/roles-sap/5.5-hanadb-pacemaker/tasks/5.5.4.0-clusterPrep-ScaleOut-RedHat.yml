@@ -23,10 +23,6 @@
   ansible.builtin.set_fact:
     nfs_mount_options:             "{% if NFS_provider == 'ANF' %}bind,defaults,rw,hard,rsize=262144,wsize=262144,proto=tcp,noatime,_netdev,nfsvers=4.1,lock,sec=sys{% else %}noresvport,defaults,rw,hard,proto=tcp,noatime,nfsvers=4.1,lock{% endif %}"
 
-- name:                            "Scale-Out Cluster Compatibility - Fetch majority maker node name"
-  ansible.builtin.set_fact:
-    majority_maker:                "{{ (query('inventory_hostnames', '{{ sap_sid | upper }}_OBSERVER_DB'))[0] }}"
-
   # Ref : https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-scale-out-hsr-rhel?tabs=lb-portal#create-file-system-resources
 - name:                                "Configure the ANF/AFS file system resources"
   when:
@@ -220,6 +216,25 @@
       ansible.builtin.pause:
         seconds:                       300
 # End of HANA filesystem clustering resources
+
+  # Ref : https://access.redhat.com/articles/3004101 - 4.3 Configure general cluster properties
+- name:                            "Configure general cluster properties"
+  when:
+    - ansible_hostname -- primary_instance_name
+  block:
+    - name:                         "Set resource stickiness value to 1000"
+      ansible.builtin.shell: >
+                                    pcs resource defaults resource-stickiness=1000
+      register:                     res_stickiness
+      failed_when:                  res_stickiness.rc > 0
+      changed_when:                 false
+
+    - name:                         "Set migration threshold value to 5000"
+      ansible.builtin.shell: >
+                                    pcs resource defaults migration-threshold=5000
+      register:                     mig_threshold
+      failed_when:                  mig_threshold.rc > 0
+      changed_when:                 false
 
 
 # ⠀⠀⠀⠀⠀⠀⣠⡤⠶⠒⢛⢻⠛⠛⠛⠛⠛⠛⢿⣛⡓⠶⢦⣤⠀⠀⠀⠀⠀⠀
