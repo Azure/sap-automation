@@ -413,29 +413,53 @@
         access_time:                   preserve
         owner:                         "{{ orchestration_ansible_user }}"
 
+    - name:                            "Does SWPM10 exist?"
+      ansible.builtin.stat:
+        path:                          "{{ tools_directory }}/swpm10"
+      register:                        swpm10_exists
+
     - name:                            "Extract SWPM10 using SAPCAR"
       ansible.builtin.command:         "{{ tools_directory }}/SAPCAR -manifest SIGNATURE.SMF -xf {{ tools_directory }}/swpm10"
       args:
         chdir:                         "{{ tools_directory }}/SWPM10"
         creates:                       "{{ tools_directory }}/SWPM10/sapinst"
+      when:                            swpm10_exists.stat.exists
+
+    - name:                            "Does SWPM20 exist?"
+      ansible.builtin.stat:
+        path:                          "{{ tools_directory }}/swpm20"
+      register:                        swpm20_exists
 
     - name:                            "Extract SWPM20 using SAPCAR"
       ansible.builtin.command:         "{{ tools_directory }}/SAPCAR -manifest SIGNATURE.SMF -xf {{ tools_directory }}/swpm20"
       args:
         chdir:                         "{{ tools_directory }}/SWPM20"
         creates:                       "{{ tools_directory }}/SWPM20/sapinst"
+      when:                            swpm20_exists.stat.exists
+
+    - name:                            "Does SWPM10WIN exist?"
+      ansible.builtin.stat:
+        path:                          "{{ tools_directory }}/swpm10win"
+      register:                        swpm10win_exists
 
     - name:                            "Extract SWPM10WIN using SAPCAR"
       ansible.builtin.command:         "{{ tools_directory }}/SAPCAR -manifest SIGNATURE.SMF -xf {{ tools_directory }}/swpm10win"
       args:
         chdir:                         "{{ tools_directory }}/SWPM10WIN"
         creates:                       "{{ tools_directory }}/SWPM10WIN/sapinst"
+      when:                            swpm10win_exists.stat.exists
+
+    - name:                            "Does SWPM20WIN exist?"
+      ansible.builtin.stat:
+        path:                          "{{ tools_directory }}/swpm20win"
+      register:                        swpm20win_exists
 
     - name:                            "Extract SWPM20WIN using SAPCAR"
       ansible.builtin.command:         "{{ tools_directory }}/SAPCAR -manifest SIGNATURE.SMF -xf {{ tools_directory }}/swpm20win"
       args:
         chdir:                         "{{ tools_directory }}/SWPM20WIN"
         creates:                       "{{ tools_directory }}/SWPM20WIN/sapinst"
+      when:                            swpm20win_exists.stat.exists
 
 # Step: 12 - END
 
