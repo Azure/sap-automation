@@ -19,6 +19,25 @@
   notify:
     - Restart waagent
 
+- name:                                "1.1 Swap: - Update WAAgent on {{ ansible_os_family }}"
+  ansible.builtin.package:
+    name:                              WALinuxAgent
+    state:                             latest
+  when:
+    - ansible_os_family == 'RedHat'
+
+- name:                                "1.1 Swap: - Update WAAgent on {{ ansible_os_family }}"
+  ansible.builtin.package:
+    name:                              WALinuxAgent
+    state:                             latest
+  when:
+    - ansible_os_family == 'Suse'
+
+- name:                                "1.1 Swap: - Restart WAAgent on {{ distro_name }}"
+  ansible.builtin.service:
+    name:                              waagent
+    state:                             restarted
+
 # Check the current swap size
 - name:                                "check swap size"
   ansible.builtin.shell:               set -o pipefail && cat /proc/meminfo | grep SwapTotal
@@ -28,7 +47,6 @@
   ansible.builtin.debug:
     msg:                               "SWAP size from procinfo: {{ swap_space }}"
     verbosity:                         2
-
 
 - name:                                "Trim Swap space"
   ansible.builtin.set_fact:
@@ -41,6 +59,43 @@
 - name:                                "SWAP size"
   ansible.builtin.debug:
     msg:                               "Swap size: {{ swap_size }}"
+
+- name:                                "1.1 Swap: - Check for (waagent_conf)"
+  ansible.builtin.stat:
+    path:                              /etc/waagent.conf
+  register:                            waagent_conf
+
+- name:                                "1.1 Swap: - Check for (waagent.conf.rpmsave)"
+  ansible.builtin.stat:
+    path:                              /etc/waagent.conf.rpmsave
+  register:                            waagent_conf_save
+
+- name:                                "1.1 Swap: Copy the conf file"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.copy:
+    remote_src:                        true
+    src:                               /etc/waagent.conf.rpmsave
+    dest:                              /etc/waagent.conf
+  when:
+    - not waagent_conf.stat.exists
+    - waagent_conf_save.stat.exists
+  register:                            waagent_conf_copy
+
+
+- name:                                "1.1 Swap: - Force systemd to reread configs {{ distro_name }}"
+  ansible.builtin.systemd_service:
+    daemon_reload:                     true
+
+- name:                                "1.1 Swap: - Restart WAAgent on {{ distro_name }}"
+  ansible.builtin.service:
+    name:                              waagent
+    state:                             restarted
+  when:
+    - waagent_conf_copy is defined
+    - waagent_conf_copy.changed
+
+
 
 - name:                                "1.1 Swap: - Ensure waagent file is configured with proper parameters"
   ansible.builtin.lineinfile:
@@ -56,11 +111,13 @@
     #     ResourceDisk.EnableSwap         = n
     #     ResourceDisk.SwapSizeMB         = 0
     #     ResourceDisk.MountOptions       = None
-    - { state: 'present',  regexp: 'ResourceDisk.Format=',      line: 'ResourceDisk.Format=y'                                      }
-    - { state: 'present',  regexp: 'ResourceDisk.EnableSwap=',  line: 'ResourceDisk.EnableSwap=y'                                  }
-    - { state: 'present',  regexp: 'ResourceDisk.SwapSizeMB=',  line: 'ResourceDisk.SwapSizeMB={{ swap_size_mb | default(2052) }}' }
-    - { state: 'present',  regexp: 'ResourceDisk.MountPoint=',  line: 'ResourceDisk.MountPoint=/mnt'                               }
-    - { state: 'present',  regexp: 'Provisioning.Agent=',       line: 'Provisioning.Agent=waagent'                                 }
+    - { state: 'present',  regexp: 'ResourceDisk.Format=',               line: 'ResourceDisk.Format=y'                                      }
+    - { state: 'present',  regexp: 'ResourceDisk.EnableSwap=',           line: 'ResourceDisk.EnableSwap=y'                                  }
+    - { state: 'present',  regexp: 'ResourceDisk.SwapSizeMB=',           line: 'ResourceDisk.SwapSizeMB={{ swap_size_mb | default(2052) }}' }
+    - { state: 'present',  regexp: 'ResourceDisk.MountPoint=',           line: 'ResourceDisk.MountPoint=/mnt'                               }
+    - { state: 'present',  regexp: 'AutoUpdate.Enabled=',                line: 'AutoUpdate.Enabled=y'                                       }
+    - { state: 'present',  regexp: 'AutoUpdate.UpdateToLatestVersion=',  line: 'AutoUpdate.UpdateToLatestVersion=y'                         }
+    - { state: 'present',  regexp: 'Extensions.WaitForCloudInit=',       line: 'Extensions.WaitForCloudInit=y'                              }
   register:                            wagent_configuration
   vars:
     swap_size_mb:                      "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"
