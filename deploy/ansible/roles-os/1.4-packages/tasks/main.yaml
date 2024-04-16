@@ -25,6 +25,39 @@
     - upgrade_packages is defined
     - upgrade_packages
 
+- name:                                "1.4 Packages: - Check for (waagent_conf)"
+  ansible.builtin.stat:
+    path:                              /etc/waagent.conf
+  register:                            waagent_conf
+
+- name:                                "1.4 Packages: - Check for (waagent.conf.rpmsave)"
+  ansible.builtin.stat:
+    path:                              /etc/waagent.conf.rpmsave
+  register:                            waagent_conf_save
+
+- name:                                "1.4 Copy the conf file"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.copy:
+    src:                               /etc/waagent.conf.rpmsave
+    dest:                              /etc/waagent.conf
+    owner:                             root
+    group:                             root
+    mode:                              0644
+  when:
+    - not waagent_conf.stat.exists
+    - waagent_conf_save.stat.exists
+  register:                            waagent_conf_copy
+
+- name:                                "1.1 Swap: - Restart WAAgent on {{ distro_name }}"
+  ansible.builtin.service:
+    name:                              waagent
+    state:                             restarted
+  when:
+    - waagent_conf_copy is defined
+    - waagent_conf_copy.changed
+
+
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |
 # +------------------------------------4---------------------------------------*/

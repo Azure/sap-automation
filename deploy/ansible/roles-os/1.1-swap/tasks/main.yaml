@@ -19,21 +19,21 @@
   notify:
     - Restart waagent
 
-- name:                                "1.1 Swap: - Update WAAgent {{ ansible_os_family }}"
+- name:                                "1.1 Swap: - Update WAAgent on {{ ansible_os_family }}"
   ansible.builtin.package:
     name:                              WALinuxAgent
     state:                             latest
   when:
     - ansible_os_family == 'RedHat'
 
-- name:                                "1.1 Swap: - Update WAAgent {{ ansible_os_family }}"
+- name:                                "1.1 Swap: - Update WAAgent on {{ ansible_os_family }}"
   ansible.builtin.package:
     name:                              WALinuxAgent
     state:                             latest
   when:
     - ansible_os_family == 'Suse'
 
-- name:                                "1.1 Swap: - Restart {{ distro_name }}"
+- name:                                "1.1 Swap: - Restart WAAgent on {{ distro_name }}"
   ansible.builtin.service:
     name:                              waagent
     state:                             restarted
@@ -78,8 +78,8 @@
     - { state: 'present',  regexp: 'ResourceDisk.EnableSwap=',           line: 'ResourceDisk.EnableSwap=y'                                  }
     - { state: 'present',  regexp: 'ResourceDisk.SwapSizeMB=',           line: 'ResourceDisk.SwapSizeMB={{ swap_size_mb | default(2052) }}' }
     - { state: 'present',  regexp: 'ResourceDisk.MountPoint=',           line: 'ResourceDisk.MountPoint=/mnt'                               }
-    - { state: 'present',  regexp: 'AutoUpdate.Enabled=',                line: 'AutoUpdate.Enabled=y'                                       }
-    - { state: 'present',  regexp: 'AutoUpdate.UpdateToLatestVersion=',  line: 'AutoUpdate.UpdateToLatestVersion=y'                         }
+    - { state: 'present',  regexp: 'AutoUpdate.Enabled=',                line: 'AutoUpdate.Enabled=n'                                       }
+    - { state: 'present',  regexp: 'AutoUpdate.UpdateToLatestVersion=',  line: 'AutoUpdate.UpdateToLatestVersion=n'                         }
     - { state: 'present',  regexp: 'Extensions.WaitForCloudInit=',       line: 'Extensions.WaitForCloudInit=y'                              }
   register:                            wagent_configuration
   vars:
