@@ -363,6 +363,7 @@
 
 # SUSE only
 # Check on all nodes, status of susTkOver Hook
+
     - name:                            Verify that the susTkOver hook script is working as expected (SUSE)"
       when:
       # - inventory_hostname == primary_instance_name

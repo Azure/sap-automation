@@ -216,20 +216,6 @@
 
     - name:                                 "5.5.4.1 HANA Cluster configuration - Cleanup any stale cluster resource StartSystem"
       ansible.builtin.shell:                pcs resource cleanup
-    # - name:                            Ensure Cluster resources are started
-    #   ansible.builtin.shell:           pcs status | grep '\* Started:'
-    #   register:                        hana_pcs_cluster_resource_check
-    #   when:                            ansible_distribution_major_version == "8"
-
-    # - name:                            Ensure Cluster resources are started
-    #   ansible.builtin.shell:           pcs status | grep '^Started '
-    #   register:                        hana_pcs_cluster_resource_check
-    #   when:                            ansible_distribution_major_version != "8"
-
-
-    # - name:                            Ensure Cluster resources are started
-    # ansible.builtin.debug:
-    #   var:                           hana_pcs_cluster_resource_check
 
     # the leading spaces are irrelevant here as we are looking for *<space>Started:
     - name:                               "5.5.4.1 HANA Cluster configuration - Ensure Cluster resources are started on RHEL 7"
