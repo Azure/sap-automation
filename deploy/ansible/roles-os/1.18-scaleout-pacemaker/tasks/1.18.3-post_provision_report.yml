@@ -5,7 +5,7 @@
     seconds:                           "{{ cluster_status_report_wait_in_s }}"
 
 - name:                                "1.18.3 Generic Pacemaker - Cleanup resource status"
-  ansible.builtin:shell: >
+  ansible.builtin.shell: >
                                        pcs resource cleanup
   register:                            cluster_cleanup
   failed_when:                         cluster_cleanup.rc > 0
