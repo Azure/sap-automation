@@ -16,6 +16,7 @@
   - not hana_cluster_existence_check
   - not db_scale_out
 
+# Scale-Out HSR Specific provision task with its own unique sequence
 - name: "5.5 HANADB Pacemaker - import - provision Scale-Out-HSR"
   ansible.builtin.import_tasks: 5.5.4-provision-ScaleOut.yml
   when:
