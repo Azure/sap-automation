@@ -33,7 +33,7 @@
     path:                              "/usr/sbin/crm"
   register:                            cluster_scripts_status_results
   failed_when:                         not cluster_scripts_status_results.stat.exists
-  when: ansible_os_family == 'Suse'
+  when: ansible_os_family == 'SUSE'
 
 - name:                                "HANA PCM Install: Create run flag directory"
   ansible.builtin.file:
