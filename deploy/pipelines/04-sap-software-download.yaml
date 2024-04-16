@@ -9,10 +9,6 @@ parameters:
     displayName:                       Name of Bill of Materials (BoM)
     type:                              string
 
-  - name:                              bom_override_name
-    displayName:                       Custom Name of Bill of Materials (BoM)
-    type:                              string
-
   - name:                              maintenance_plan_id
     displayName:                       Maintenance Plan ID
     type:                              string
