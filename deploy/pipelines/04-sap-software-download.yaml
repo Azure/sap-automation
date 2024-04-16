@@ -50,7 +50,6 @@ stages:
       - template:                      variables/04-sap-software-download-variables.yaml
         parameters:
           bom_base_name:               ${{ parameters.bom_base_name }}
-          bom_override_name:           ${{ parameters.bom_override_name }}
           maintenance_plan_id:         ${{ parameters.maintenance_plan_id }}
           environment:                 ${{ parameters.environment }}
           re_download:                 ${{ parameters.re_download }}
@@ -188,7 +187,6 @@ stages:
       - template:                      variables/04-sap-software-download-variables.yaml
         parameters:
           bom_base_name:               ${{ parameters.bom_base_name }}
-          bom_override_name:           ${{ parameters.bom_override_name }}
           maintenance_plan_id:         ${{ parameters.maintenance_plan_id }}
           environment:                 ${{ parameters.environment }}
           re_download:                 ${{ parameters.re_download }}
