@@ -36,7 +36,7 @@
 
 - name:                                "1.4 Packages: - Remove /etc/init.d"
   ansible.builtin.file:
-    src:                               /etc/init.d
+    path:                              /etc/init.d
     state:                             absent
   when:
     - is_rhel_90_or_newer
