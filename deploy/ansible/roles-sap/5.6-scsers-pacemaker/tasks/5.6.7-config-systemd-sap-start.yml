@@ -17,6 +17,10 @@
     loop_var:                          sap_instance_number
 
 - name:                                "5.6 SCSERS - Set fact for the systemd services existance"
+  ansible.builtin.debug:
+    loop_var:                          systemd_service_file_path
+
+- name:                                "5.6 SCSERS - Set fact for the systemd services existance"
   ansible.builtin.set_fact:
     systemd_service_names:             "{{
                                            systemd_service_file_path.results
@@ -24,6 +28,11 @@
                                            | map(attribute='stat.path')
                                            | regex_replace('/etc/systemd/system/', '')
                                          }}"
+
+- name:                                "5.6 SCSERS - Set fact for the systemd services existance"
+  ansible.builtin.debug:
+    loop_var:                          systemd_service_names
+
 
 - name:                                "5.6 SCSERS - Disable the services and stop auto-restart if they exist"
   when:
