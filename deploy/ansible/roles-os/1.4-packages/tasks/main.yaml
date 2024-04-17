@@ -76,6 +76,8 @@
     remote_src:                        true
     src:                               /etc/init.d.bckp
     dest:                              /etc/init.d
+    mode:                              preserve
+    directory_mode:                    preserve
   register:                            initd_copy
   when:
     - is_rhel_90_or_newer | default(false)
