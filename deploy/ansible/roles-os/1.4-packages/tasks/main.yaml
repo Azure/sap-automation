@@ -78,7 +78,7 @@
     dest:                              /etc/init.d
   register:                            initd_copy
   when:
-    - is_rhel_90_or_newer
+    - is_rhel_90_or_newer | default(false)
     - init_d_bckp_exists
 
 
