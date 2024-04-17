@@ -234,7 +234,7 @@
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
-            action:                    Prepare_and_Restore
+            action:                    'Prepare_and_Restore'
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
@@ -262,7 +262,7 @@
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
-            action:                    Post_Processing_Primary
+            action:                    'Post_Processing_Primary'
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
@@ -291,7 +291,7 @@
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
-            action:                    Post_Processing_Secondary
+            action:                    'Post_Processing_Secondary'
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
@@ -340,7 +340,7 @@
         - name:                            "Observer Playbook: Setting the DB facts"
           ansible.builtin.set_fact:
             node_tier:                     observer
-            action:                        Setup_Observer
+            action:                        'Setup_Observer'
             main_password:                 "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
