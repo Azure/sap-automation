@@ -18,7 +18,7 @@
 
 - name:                                "5.6 SCSERS - Set fact for the systemd services existance"
   ansible.builtin.debug:
-    loop_var:                          systemd_service_file_path
+    var:                               systemd_service_file_path
 
 - name:                                "5.6 SCSERS - Set fact for the systemd services existance"
   ansible.builtin.set_fact:
@@ -31,7 +31,7 @@
 
 - name:                                "5.6 SCSERS - Set fact for the systemd services existance"
   ansible.builtin.debug:
-    loop_var:                          systemd_service_names
+    var:                               systemd_service_names
 
 
 - name:                                "5.6 SCSERS - Disable the services and stop auto-restart if they exist"
