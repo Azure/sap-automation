@@ -26,7 +26,7 @@
 
 - name:                                "1.4 Packages: - Copy /etc/init.d"
   ansible.builtin.copy:
-    remote_src:                        false
+    remote_src:                        true
     src:                               /etc/init.d
     dest:                              /etc/init.d.bckp
   register:                            initd_copy

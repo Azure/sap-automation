@@ -73,7 +73,7 @@
 
 - name:                                "1.4 Packages: - Restore /etc/init.d.bckp"
   ansible.builtin.copy:
-    remote_src:                        false
+    remote_src:                        true
     src:                               /etc/init.d.bckp
     dest:                              /etc/init.d
   register:                            initd_copy
