@@ -8,7 +8,7 @@
 # the path for the service file is /etc/systemd/system/SAP<SID>_<InstanceNumber>.service
 - name:                                "5.6 SCSERS - check if the SAP ASCS/SCS and ERS resources are created as systemd services"
   ansible.builtin.stat:
-    path:                              "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ sap_instance_number }}.service"
+    path:                              "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ item }}.service"
   register:                            systemd_service_file_path
   loop:
     - "{{ scs_instance_number }}"
