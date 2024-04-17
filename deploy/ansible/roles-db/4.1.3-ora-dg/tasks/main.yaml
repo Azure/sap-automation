@@ -22,7 +22,7 @@
   ansible.builtin.include_tasks:       "ora-dg-secondary-preparation.yaml"
   when:
     - node_tier in ["oracle", "oracle-asm"]
-    - action == Prepare_Secondary
+    - action == 'Prepare_Secondary'
 
 - name:                                "Oracle Data Guard: Prepare and Restore"
   block:

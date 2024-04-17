@@ -214,7 +214,7 @@
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
-            action:                    Prepare_Secondary
+            action:                    'Prepare_Secondary'
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
