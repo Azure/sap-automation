@@ -1,7 +1,6 @@
 
-Cmnd_Alias SITEA_SOK = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_site_srHook_SITE_A -v SOK -t crm_config -s SAPHanaSR
-Cmnd_Alias SITEA_SFAIL = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_site_srHook_SITE_A -v SFAIL -t crm_config -s SAPHanaSR
-Cmnd_Alias SITEB_SOK = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_site_srHook_SITE_B -v SOK -t crm_config -s SAPHanaSR
-Cmnd_Alias SITEB_SFAIL = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_site_srHook_SITE_B -v SFAIL -t crm_config -s SAPHanaSR
-{{ db_sid | lower }}adm ALL=(ALL) NOPASSWD: SITEA_SOK, SITEA_SFAIL, SITEB_SOK, SITEB_SFAIL
-Defaults!SITEA_SOK, SITEA_SFAIL, SITEB_SOK, SITEB_SFAIL !requiretty
+Cmnd_Alias SOK = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_glob_srHook -v SOK -t crm_config -s SAPHanaSR
+Cmnd_Alias SFAIL = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_glob_srHook -v SFAIL -t crm_config -s SAPHanaSR
+{{ db_sid | lower }}adm ALL=(ALL) NOPASSWD: SOK, SFAIL
+Defaults!SOK, SFAIL !requiretty
+
