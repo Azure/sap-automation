@@ -221,23 +221,17 @@ stages:
                                 export TF_VAR_agent_pool=$(POOL)
                                 export TF_VAR_agent_pat=$(PAT)
                             fi
-                            echo "1"
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                            echo "11"
                                 pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
-                                echo "12"
                                 unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
-                                echo "13"
                             fi
-                            echo "2"
 
-                          if [ $(use_webapp) = "true" ]; then
-                              echo "Use WebApp is selected"
-                          else
-                              echo "No WebApp"
-                          fi
+                            if [ $(use_webapp) = "true" ]; then
+                                echo "Use WebApp is selected"
+                            else
+                                echo "No WebApp"
+                            fi
 
-                           echo "3"
                             export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
                             set +eu
 
