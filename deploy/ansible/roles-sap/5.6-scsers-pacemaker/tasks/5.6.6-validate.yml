@@ -114,7 +114,12 @@
       #                                  cluster_group_moved.stderr is not search('Already in requested state')
       #                                  or cluster_group_moved.stderr is not search('is already active on')
       #                                  )
-    - name:                            "5.6 SCS/ERS Validation: Wait 300 secs for the StartService {{ sap_sid | upper }} to finish"
+
+    - name:                            "5.6 SCS/ERS Validation: Wait 300 seconds for the StartService {{ sap_sid | upper }} to finish"
+      ansible.builtin.debug:
+        msg:                           "Wait for 300 seconds for the StartService {{ sap_sid | upper }} to finish"
+
+    - name:                            "5.6 SCS/ERS Validation: Wait 300 seconds for the StartService {{ sap_sid | upper }} to finish"
       ansible.builtin.wait_for:
         timeout:                       300
 
