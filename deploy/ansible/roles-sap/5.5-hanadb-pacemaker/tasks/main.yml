@@ -24,3 +24,6 @@
 # Note the include_task here instead of import_task.
 - name: "5.5 HANADB Pacemaker - import - post_provision_report"
   ansible.builtin.include_tasks: 5.5.5-post_provision_report.yml
+  when:
+    - not db_scale_out
+    - not hana_cluster_existence_check
