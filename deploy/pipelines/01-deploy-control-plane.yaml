@@ -223,8 +223,11 @@ stages:
                             fi
                             echo "1"
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
+                            echo "11"
                                 pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
+                                echo "12"
                                 unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
+                                echo "13"
                             fi
                             echo "2"
 
