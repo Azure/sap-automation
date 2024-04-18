@@ -40,6 +40,7 @@
     seconds:                           "{{ hsr_status_report_wait_in_s }}"
 
 - name:                                "Verify that the hook script is working as expected"
+  when:                                not db_scale_out
   block:
     - name:                            "Verify the hook Installation"
       become_user:                     "{{ db_sid | lower }}adm"
@@ -77,9 +78,89 @@
       register:                        saphanasr
       when:                            inventory_hostname == primary_instance_name
 
+# Code block is specifically for ScaleOut, SUSE and RedHat
+- name:                                "Verify that the hook script is working as expected (Scale Out) for SUSE "
+  when:
+    - db_scale_out
+    - ansible_os_family | upper == 'SUSE'
+    - inventory_hostname == primary_instance_name
+  block:
+    - name:                        "Verify the hook Installation (SUSE)"
+      become_user:                 "{{ db_sid | lower }}adm"
+      become:                      true
+      ansible.builtin.shell: |
+                                    set -o pipefail
+                                    grep SAPHanaSr.*init nameserver_*.trc | tail -3
+      args:
+        chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ inventory_hostname }}/trace
+      register:                    saphanasr
+      until:                       saphanasr.stdout is search("Running")
+      retries:                     10
+      delay:                       30
+  rescue:
+    - name:                        "[Rescue] - Pause to give HANA replication time to stabilize"
+      ansible.builtin.pause:
+        seconds:                   "{{ rescue_hsr_status_report_wait_in_s }}"
+
+    - name:                        "[Rescue] - Verify the hook Installation (SUSE)"
+      become_user:                 "{{ db_sid | lower }}adm"
+      become:                      true
+      ansible.builtin.shell: |
+                                    set -o pipefail
+                                    grep SAPHanaSr.*init nameserver_*.trc | tail -3
+      args:
+        chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ inventory_hostname }}/trace
+      register:                    saphanasr
+      until:                       saphanasr.stdout is search("Running")
+      retries:                     10
+      delay:                       30
+
+- name:                            Verify that the hook script is working as expected (Scale Out) for Red Hat {{ ansible_distribution_major_version }}"
+  when:
+  - ansible_os_family | upper == "REDHAT"
+  - ansible_hostname == primary_instance_name
+  - db_scale_out
+  block:
+    - name:                        "Verify the hook Installation (REDHAT)"
+      become_user:                 "{{ db_sid | lower }}adm"
+      become:                      true
+      ansible.builtin.shell: |
+                                    set -o pipefail
+                                    awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
+                                    { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_* | tail -n 1
+      args:
+        chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ primary_instance_name }}/trace
+      register:                    saphanasr
+      until:                       saphanasr.stdout is search("SOK")
+      retries:                     10
+      delay:                       30
+  rescue:
+    - name:                        "[Rescue] - Pause to give HANA replication time to stabilize"
+      ansible.builtin.pause:
+        seconds:                   "{{ rescue_hsr_status_report_wait_in_s }}"
+
+    - name:                        "[Rescue] - Verify the hook Installation (REDHAT)"
+      become_user:                 "{{ db_sid | lower }}adm"
+      become:                      true
+      ansible.builtin.shell: |
+                                    set -o pipefail
+                                    awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
+                                    { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_* | tail -n 1
+      args:
+        chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ primary_instance_name }}/trace
+      register:                    saphanasr
+      until:                       saphanasr.stdout is search("SOK")
+      retries:                     10
+      delay:                       30
+
+
+
+# SUSE only
+# Check on all nodes, status of susTkOver Hook
+
+
 - name:                                "Log that the hook script is working as expected"
   block:
-
     - name:                            "Debug (saphanasr)"
       ansible.builtin.debug:
         var:                           saphanasr

@@ -10,20 +10,7 @@
 
 - name: "5.5 HANADB Pacemaker - import - provision"
   ansible.builtin.import_tasks: 5.5.4-provision.yml
-  when:
-  - not hana_cluster_existence_check
-  - not db_scale_out
+  when: not hana_cluster_existence_check
 
-# Scale-Out HSR Specific provision task with its own unique sequence
-- name: "5.5 HANADB Pacemaker - import - provision Scale-Out-HSR"
-  ansible.builtin.import_tasks: 5.5.4-provision-ScaleOut.yml
-  when:
-    - not hana_cluster_existence_check
-    - db_scale_out
-
-# Note the include_task here instead of import_task.
 - name: "5.5 HANADB Pacemaker - import - post_provision_report"
-  ansible.builtin.include_tasks: 5.5.5-post_provision_report.yml
-  when:
-    - not db_scale_out
-    - not hana_cluster_existence_check
+  ansible.builtin.import_tasks: 5.5.5-post_provision_report.yml

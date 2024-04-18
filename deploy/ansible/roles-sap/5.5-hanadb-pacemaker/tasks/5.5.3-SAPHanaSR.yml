@@ -99,7 +99,7 @@
       ansible.builtin.pause:
         seconds:                       120
 
-    - name:                            Copy SAPHanaSR.py (SUSE)
+    - name:                            copy SAPHanaSR.py (SUSE)
       ansible.builtin.copy:
         src:                           /usr/share/SAPHanaSR/SAPHanaSR.py
         dest:                          /hana/shared/myHooks/
@@ -111,9 +111,9 @@
         - ansible_os_family | upper == "SUSE"
         - not my_hooks_stat.stat.exists
 
-    - name:                            Copy SAPHanaSR.py (RHEL)
+    - name:                            copy SAPHanaSR.py (RHEL)
       ansible.builtin.copy:
-        src:                           /usr/share/SAPHanaSR-ScaleOut/SAPHanaSR.py
+        src:                           /usr/share/SAPHanaSR/srHook/SAPHanaSR.py
         dest:                          /hana/shared/myHooks/
         remote_src:                    true
         owner:                         root

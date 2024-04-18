@@ -11,8 +11,6 @@
 - name:                                HANA 2.0 only - Implement the Python system replication hook SAPHanaSR-ScaleOut MultiTarget
   when:
     - hdb_version[0:2] == "2."
-    - node_tier == 'hana'
-    - db_scale_out
     - database_high_availability
   block:
     - name:                            Generate list of deployed packages on current host
