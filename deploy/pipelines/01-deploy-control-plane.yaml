@@ -222,10 +222,13 @@ stages:
                                 export TF_VAR_agent_pat=$(PAT)
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
+                                echo "1"
                                 deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
-
+                                echo "2"
                                 pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
+                                echo "3"
                                 unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
+                                echo "4"
                             fi
 
                           if [ "$USE_WEBAPP" = "true" ]; then
