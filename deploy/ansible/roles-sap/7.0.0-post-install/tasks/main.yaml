@@ -61,6 +61,7 @@
   when:
     - tier != 'hana'
     - tier != 'oracle'
+    - tier != 'oracle-asm'
     - sap_installation_tried.stat.exists
     - work_log_component_name is defined
 
@@ -78,6 +79,9 @@
     - name:                            "Post Installation: Error while acquiring other SAP logs"
       ansible.builtin.debug:
         msg:                           "Error occurred while acquiring other SAP logs."
+  when:
+    - tier != 'oracle'
+    - tier != 'oracle-asm'
 
 - name:                                "Post Installation: Debug (sapinst_log_files)"
   ansible.builtin.debug:
