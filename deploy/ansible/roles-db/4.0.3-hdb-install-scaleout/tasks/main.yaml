@@ -1009,8 +1009,8 @@
         path:                               "/usr/sap"
         state:                              directory
         mode:                               '0755'
-        owner:                              "{{ hdbadmin_uid }}"
-        group:                              "{{ sapsys_gid }}"
+        owner:                              root
+        group:                              root
         force:                              yes
 
     - name:                            "Create {{ db_sid | lower }}adm account for Observer "
