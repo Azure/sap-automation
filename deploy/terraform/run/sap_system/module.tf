@@ -160,6 +160,7 @@ module "hdb_node" {
   use_custom_dns_a_registration                 = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, false)
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
   use_msi_for_clusters                          = var.use_msi_for_clusters
+  use_observer                                  = var.database_HANA_use_ANF_scaleout_scenario && local.database.high_availability
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
   register_endpoints_with_dns                   = var.register_endpoints_with_dns
@@ -369,8 +370,15 @@ module "output_files" {
   #########################################################################################
   bom_name                                      = var.bom_name
   db_sid                                        = local.db_sid
-  observer_ips                                  = module.anydb_node.observer_ips
-  observer_vms                                  = module.anydb_node.observer_vms
+  observer_ips                                  = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.observer_ips) : (
+                                                    module.anydb_node.observer_ips
+                                                  )
+  observer_vms                                  = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.observer_vms) : (
+                                                    module.anydb_node.observer_vms
+                                                  )
+
   platform                                      = upper(try(local.database.platform, "HANA"))
   sap_sid                                       = local.sap_sid
   web_sid                                       = var.web_sid

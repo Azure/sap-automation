@@ -227,3 +227,20 @@ output "ANF_subnet_prefix"             {
                                                            )
 
                                            }
+
+
+output "observer_ips"                  {
+                                         description = "IP adresses for observer nodes"
+                                         value       = local.enable_deployment && local.deploy_observer ? (
+                                                         azurerm_network_interface.observer[*].private_ip_address) : (
+                                                         []
+                                                       )
+                                       }
+
+output "observer_vms"                  {
+                                         description = "Resource IDs for observer nodes"
+                                         value       = local.enable_deployment ? (
+                                                           azurerm_linux_virtual_machine.observer[*].id,) : (
+                                                         [""]
+                                                       )
+                                       }

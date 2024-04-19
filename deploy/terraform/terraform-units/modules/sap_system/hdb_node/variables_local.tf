@@ -413,4 +413,13 @@ locals {
   create_shared_volumes                = !local.use_avg && var.hana_ANF_volumes.use_for_shared && !var.hana_ANF_volumes.use_existing_shared_volume
   use_shared_volumes                   = local.use_avg || var.hana_ANF_volumes.use_for_shared && var.hana_ANF_volumes.use_existing_shared_volume
 
+  #If using an existing VM for observer set use_observer to false in .tfvars
+  deploy_observer                      = var.use_observer
+  observer_size                        = "Standard_D4s_v3"
+  observer_authentication              = local.authentication
+  observer_custom_image                = local.hdb_custom_image
+  observer_custom_image_id             = local.enable_deployment ? local.hdb_os.source_image_id : ""
+  observer_os                          = local.enable_deployment ? local.hdb_os : null
+
+
 }
