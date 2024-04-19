@@ -755,7 +755,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_scs_win" {
   name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityWindowsAgent"
   publisher                            = "Microsoft.Azure.Security.Monitoring"
   type                                 = "AzureSecurityWindowsAgent"
-  type_handler_version                 = "2.0"
+  type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
 
   settings                             = jsonencode(
