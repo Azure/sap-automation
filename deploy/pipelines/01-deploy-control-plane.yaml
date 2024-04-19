@@ -222,15 +222,15 @@ stages:
                                 export TF_VAR_agent_pat=$(PAT)
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                                deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
-
                                 pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
                                 unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                             fi
 
-                          if [ "$USE_WEBAPP" = "true" ]; then
-                              echo "Use WebApp is selected"
-                          fi
+                            if [ $(use_webapp) = "true" ]; then
+                                echo "Use WebApp is selected"
+                            else
+                                echo "No WebApp"
+                            fi
 
                             export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
                             set +eu
