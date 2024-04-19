@@ -624,7 +624,7 @@ namespace AutomationForm.Models
     |                               Deployment                                   |
     |                                                                            |
     +------------------------------------4--------------------------------------*/
-    public bool? use_spn { get; set; } = true;
+    public bool? use_spn { get; set; } = false;
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
