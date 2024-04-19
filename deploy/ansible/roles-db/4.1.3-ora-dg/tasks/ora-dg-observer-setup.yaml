@@ -218,7 +218,7 @@
 - name:                                "ENABLE FSFO"
   block:
 
-    - name:                            "Oracle Data Guard - Observer: Enable FSFO"
+    - name:                            "Oracle Data Guard - Observer: Enable FSFO template"
       become:                          true
       become_user:                     "oracle"
       ansible.builtin.template:
@@ -263,13 +263,15 @@
     - name:                            "Oracle Data Guard - Observer: Enable FSFO"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.shell:           dgmgrl  sys/{{ main_password }}@{{ db_sid | upper }}  "ENABLE FAST_START FAILOVER"
+      ansible.builtin.shell:           dgmgrl sys/{{ main_password }}@{{ db_sid | upper }}  "ENABLE FAST_START FAILOVER"
       register:                        fsfo_enable_results
       failed_when:                     fsfo_enable_results.rc > 0
       args:
         creates:                       /etc/sap_deployment_automation/fsfo_enabled.txt
         chdir:                         /etc/sap_deployment_automation/
         executable:                    /bin/csh
+      when:
+        - ansible_hostname == primary_observer_name
 
     - name:                            "Oracle Data Guard - Observer: Enable FSFO output"
       ansible.builtin.debug:

@@ -199,7 +199,7 @@
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                            "Backward Compatibility - Check required Database HA variables"
+    - name:                            "Get Instance names"
       ansible.builtin.set_fact:
         primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
         secondary_instance_name:   "{{ ansible_play_hosts_all[1] | default('N/A') }}"         # Setting up Secondary Instance Name
@@ -330,6 +330,11 @@
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
+
+    - name:                            "Get Instance names"
+      ansible.builtin.set_fact:
+        primary_observer_name :        "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
+        secondary_observer_name:       "{{ ansible_play_hosts_all[1] | default('N/A') }}"         # Setting up Secondary Instance Name
 
     - name:                            "Oracle: Observer setup"
       become:                          true
