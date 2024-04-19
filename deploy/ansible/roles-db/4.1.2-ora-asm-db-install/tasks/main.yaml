@@ -238,8 +238,6 @@
         remote_src:                    true
         mode:                          preserve
         directory_mode:                preserve
-      when:
-        - not opatchgrid_stat.stat.exists
       register:                        gridbackup
 
     - name:                            "Oracle ASM: Create flag gridbackedup.txt "
