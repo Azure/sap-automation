@@ -6,41 +6,49 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+- name:                                "1.17 Generic Pacemaker: - Ensure passlib is installed"
+  ansible.builtin.pip:
+    name:                              passlib
+    state:                             present
+  tags:
+    - always
+
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Fencing Specific                                                           |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-- name:                                           "Cluster Type: Fencing"
+- name:                                "Cluster Type: Fencing"
   when:
-                                                  - (database_cluster_type == "AFA") or
-                                                    (scs_cluster_type      == "AFA")        # scs_high_availability = true is already assumed
+                                       - (database_cluster_type == "AFA") or
+                                         (scs_cluster_type      == "AFA")        # scs_high_availability = true is already assumed
   block:
 
-    - name:                                       "BEGIN: Fencing specific..."
+    - name:                            "BEGIN: Fencing specific..."
       ansible.builtin.debug:
         msg:                                      # Best method for formatting output with Azure Devops Logs
-                                                  - "BEGIN: Fencing specific..."
+                                       - "BEGIN: Fencing specific..."
 
-    - name:                                       "1.17 Generic Pacemaker - Check the fencing agent configuration variables are set"
+    - name:                            "1.17 Generic Pacemaker - Check the fencing agent configuration variables are set"
       ansible.builtin.assert:
         that:
-                                                  - "fencing_spn_subscription_id  is defined"
-                                                  - "fencing_spn_subscription_id  | trim | length > 0"
-                                                  - "fencing_spn_tenant_id        is defined"
-                                                  - "fencing_spn_tenant_id        | trim | length > 0"
-                                                  - "fencing_spn_client_id        is defined"
-                                                  - "fencing_spn_client_id        | trim | length > 0"
-                                                  - "fencing_spn_client_pwd       is defined"
-                                                  - "fencing_spn_client_pwd       | trim | length > 0"
-        fail_msg:                                 "A highly available deployment requires that an SPN is defined for the fencing agent"
+                                       - "fencing_spn_subscription_id  is defined"
+                                       - "fencing_spn_subscription_id  | trim | length > 0"
+                                       - "fencing_spn_tenant_id        is defined"
+                                       - "fencing_spn_tenant_id        | trim | length > 0"
+                                       - "fencing_spn_client_id        is defined"
+                                       - "fencing_spn_client_id        | trim | length > 0"
+                                       - "fencing_spn_client_pwd       is defined"
+                                       - "fencing_spn_client_pwd       | trim | length > 0"
+        fail_msg:                      "A highly available deployment requires that an SPN is defined for the fencing agent"
       when:
-                                                  - not use_msi_for_clusters
+                                       - not use_msi_for_clusters
 
-    - name:                                       "END  : Fencing specific..."
+    - name:                            "END  : Fencing specific..."
       ansible.builtin.debug:
         msg:                                      # Best method for formatting output with Azure Devops Logs
-                                                  - "END  : Fencing specific..."
+                                       - "END  : Fencing specific..."
 
 
 # /*---------------------------------------------------------------------------8
@@ -55,25 +63,25 @@
 # | SBD Specific                                                               |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-- name:                                           "Cluster Type: SBD"
+- name:                                "Cluster Type: SBD"
   block:
 
-    - name:                                       "BEGIN: SBD specific..."
+    - name:                            "BEGIN: SBD specific..."
       ansible.builtin.debug:
-        msg:                                      # Best method for formatting output with Azure Devops Logs
-                                                  - "BEGIN: SBD specific..."
+        msg:                           # Best method for formatting output with Azure Devops Logs
+                                       - "BEGIN: SBD specific..."
 
 
-    - name:                                       "END  : SBD specific..."
+    - name:                            "END  : SBD specific..."
       ansible.builtin.debug:
-        msg:                                      # Best method for formatting output with Azure Devops Logs
-                                                  - "END  : SBD specific..."
+        msg:                           # Best method for formatting output with Azure Devops Logs
+                                       - "END  : SBD specific..."
 
   when:
-                                                  - (database_cluster_type == "ASD")   or
-                                                    (database_cluster_type == "ISCSI") or
-                                                    (scs_cluster_type      == "ASD")   or
-                                                    (scs_cluster_type      == "ISCSI")        # scs_high_availability = true is already assumed
+                                       - (database_cluster_type == "ASD")   or
+                                         (database_cluster_type == "ISCSI") or
+                                         (scs_cluster_type      == "ASD")   or
+                                         (scs_cluster_type      == "ISCSI")        # scs_high_availability = true is already assumed
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | SBD Specific - END                                                         |
@@ -86,106 +94,107 @@
 # | SUSE Specific                                                              |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-- name:                                           "SUSE specific"
+- name:                                "SUSE specific"
   block:
 
-    - name:                                       "1.17 Generic Pacemaker - Check the required Clustering scripts are available"
+    - name:                            "1.17 Generic Pacemaker - Check the required Clustering scripts are available"
       ansible.builtin.stat:
-        path:                                     "/usr/sbin/crm"
-      register:                                   cluster_scripts_status_results
-      failed_when:                                not cluster_scripts_status_results.stat.exists
+        path:                          "/usr/sbin/crm"
+      register:                        cluster_scripts_status_results
+      failed_when:                     not cluster_scripts_status_results.stat.exists
 
   when:
-                                                  - ansible_os_family | upper == "SUSE"
+                                       - ansible_os_family | upper == "SUSE"
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | SUSE Specific - END                                                        |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                           "1.17 Generic Pacemaker - Check the required cluster password is set"
+- name:                                "1.17 Generic Pacemaker - Check the required cluster password is set"
   ansible.builtin.assert:
     that:
-                                                  - "password_ha_db_cluster is defined"
-                                                  - "password_ha_db_cluster | trim | length > 0"
-    fail_msg:                                     "A highly available SCS deployment requires that an cluster password is set"
+                                       - "password_ha_db_cluster is defined"
+                                       - "password_ha_db_cluster | trim | length > 0"
+    fail_msg:                          "A highly available SCS deployment requires that an cluster password is set"
 
-- name:                                           "1.17 Generic Pacemaker - Check if a cluster has already been prepared"
-  ansible.builtin.command:                        "{{ cluster_status_cmd[ansible_os_family] }}"
-  register:                                       cluster_existence_check_result
-  changed_when:                                   false
-  failed_when:                                    false
+- name:                                "1.17 Generic Pacemaker - Check if a cluster has already been prepared"
+  ansible.builtin.command:             "{{ cluster_status_cmd[ansible_os_family] }}"
+  register:                            cluster_existence_check_result
+  changed_when:                        false
+  failed_when:                         false
 
-- name:                                           "1.17 Generic Pacemaker - Save settings"
+- name:                                "1.17 Generic Pacemaker - Save settings"
   ansible.builtin.set_fact:
-    cluster_existence_check:                      "{{ cluster_existence_check_result.rc | int }}"
+    cluster_existence_check:           "{{ (cluster_existence_check_result.rc | int) == 0 }}"
 
-- name:                                           "1.17 Generic Pacemaker - Show if a cluster has already been prepared"
+- name:                                "1.17 Generic Pacemaker - Show if a cluster has already been prepared"
   ansible.builtin.debug:
     msg:
-                                                  - "CLUSTER VALIDATION : {{ cluster_existence_check }}"
+                                       - "CLUSTER VALIDATION : {{ cluster_existence_check }}"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Fencing Specific - Kdump RHEL only                                         |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-- name:                                           "1.17 Generic Pacemaker - RHEL - Configure optional fence_kdump stonith device"
+- name:                                "1.17 Generic Pacemaker - RHEL - Configure optional fence_kdump stonith device"
   when:
-                                                  - ansible_os_family | upper == "REDHAT"
-                                                  - use_fence_kdump
+                                       - ansible_os_family | upper == "REDHAT"
+                                       - use_fence_kdump
   block:
-    - name:                                       "1.17 Generic Pacemaker - kdump service is enabled"
+    - name:                            "1.17 Generic Pacemaker - kdump service is enabled"
       ansible.builtin.service:
-        name:                                     "kdump"
-        enabled:                                  true
-        state:                                    started
+        name:                          "kdump"
+        enabled:                       true
+        state:                         started
 
     # Todo: Use ansible.builtin.service_facts to get the status of the kdump service
-    - name:                                       "1.17 Generic Pacemaker  - RHEL - Check if kdump is enabled"
-      ansible.builtin.command:                    "systemctl is-enabled kdump"
-      register:                                   kdump_enabled_check_result
-      changed_when:                               false
-      failed_when:                                false
+    - name:                            "1.17 Generic Pacemaker  - RHEL - Check if kdump is enabled"
+      ansible.builtin.command:         "systemctl is-enabled kdump"
+      register:                        kdump_enabled_check_result
+      changed_when:                    false
+      failed_when:                     false
       tags:
-                                                  - skip_ansible_lint
+                                       - skip_ansible_lint
 
-    - name:                                       "1.17 Generic Pacemaker  - RHEL -  Save kdump facts"
+    - name:                            "1.17 Generic Pacemaker  - RHEL -  Save kdump facts"
       ansible.builtin.set_fact:
-        kdump_enabled_check:                      "{{ kdump_enabled_check_result.rc | int }}"
-        kdump_enabled:                            "{{ kdump_enabled_check_result.stdout | trim }}"
+        kdump_enabled_check:           "{{ kdump_enabled_check_result.rc | int }}"
+        kdump_enabled:                 "{{ kdump_enabled_check_result.stdout | trim }}"
       when:
-                                                  - kdump_enabled_check_result.rc == 0
+                                       - kdump_enabled_check_result.rc == 0
 
     # kdump_enabled_check_result.stdout == "enabled"
-    - name:                                       "1.17 Generic Pacemaker - RHEL - show if kdump is enabled"
+    - name:                            "1.17 Generic Pacemaker - RHEL - show if kdump is enabled"
       ansible.builtin.debug:
         msg:
-                                                  - "Kdump is enabled: {{ kdump_enabled | default('false') }}"
-        verbosity:                                2
+                                       - "Kdump is enabled: {{ kdump_enabled | default('false') }}"
+        verbosity:                     2
 
     # Install the fence_kdump fence agent. This is required for fencing to work with kdump.
-    - name:                                       "1.17 Generic Pacemaker - RHEL - Install fence-agents-kdump"
+    - name:                            "1.17 Generic Pacemaker - RHEL - Install fence-agents-kdump"
       ansible.builtin.package:
-        name:                                     "fence-agents-kdump"
-        state:                                    present
+        name:                          "fence-agents-kdump"
+        state:                         present
       when:
-                                                  - kdump_enabled_check == 0
-                                                  - kdump_enabled == "enabled"
+                                       - kdump_enabled_check == 0
+                                       - kdump_enabled == "enabled"
 
     # Allow the required ports for fence_kdump through the firewall.
-    - name:                                       "1.17 Generic Pacemaker - RHEL - Allow ports for fence_kdump through the firewall"
+    - name:                            "1.17 Generic Pacemaker - RHEL - Allow ports for fence_kdump through the firewall"
       ansible.posix.firewalld:
-        port:                                     "7410/udp"
-        permanent:                                true
-        state:                                    enabled
-        offline:                                  true
+        port:                          "7410/udp"
+        permanent:                     true
+        state:                         enabled
+        offline:                       true
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Fencing Specific - Kdump RHEL only - END                                   |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+
 
 ...
 # /*---------------------------------------------------------------------------8
