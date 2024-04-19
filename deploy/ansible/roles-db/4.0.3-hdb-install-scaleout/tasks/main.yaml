@@ -986,6 +986,45 @@
   when:
     - hana_installed.stat.exists
 
+
+# Scale out Supplementary tasks
+# Create {{ db_sid | lower}}adm account on majority maker VM
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Supplementary tasks"
+  block:
+    - name:                            "Create Create SAP Groups on Observer VM"
+      when:
+        - node_tier == 'observer'
+      ansible.builtin.group:
+        name:                              "{{ item.group }}"
+        gid:                               "{{ item.gid }}"
+        state:                             present
+      loop:
+        - { group: 'sapsys',    gid: '{{ sapsys_gid }}'  }
+        - { group: 'sapinst',   gid: '{{ sapinst_gid }}' }
+
+    - name:                                 "Create /usr/sap directory"
+      when:
+        - node_tier == 'observer'
+      ansible.builtin.file:
+        path:                               "/usr/sap"
+        state:                              directory
+        mode:                               '0755'
+        owner:                              "{{ hdbadmin_uid }}"
+        group:                              "{{ sapsys_gid }}"
+        force:                              yes
+
+    - name:                            "Create {{ db_sid | lower }}adm account for Observer "
+      when:
+        - node_tier == 'observer'
+      ansible.builtin.user:
+        name:                                 "{{ db_sid | lower }}adm"
+        comment:                              "SAP HANA Database System Administrator"
+        uid:                                  "{{ hdbadm_uid }}"
+        group:                                "sapsys"
+        state:                                present
+        shell:                                "/bin/sh"
+        home:                                 "/usr/sap/{{ db_sid | upper }}/home"
+
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
