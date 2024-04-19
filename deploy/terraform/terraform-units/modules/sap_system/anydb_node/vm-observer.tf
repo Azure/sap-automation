@@ -7,7 +7,7 @@
 #######################################4#######################################8
 resource "azurerm_network_interface" "observer" {
   provider                             = azurerm.main
-  count                                = local.deploy_observer ? 1 : 0
+  count                                = local.deploy_observer ? local.db_zone_count : 0
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.nic,
                                            local.prefix,
@@ -47,7 +47,7 @@ resource "azurerm_network_interface" "observer" {
 
 resource "azurerm_linux_virtual_machine" "observer" {
   provider                             = azurerm.main
-  count                                = local.deploy_observer  && upper(local.anydb_ostype) == "LINUX" ? 1 : 0
+  count                                = local.deploy_observer  && upper(local.anydb_ostype) == "LINUX" ? local.db_zone_count : 0
   depends_on                           = [var.anchor_vm]
   resource_group_name                  = var.resource_group[0].name
   location                             = var.resource_group[0].location
@@ -120,7 +120,7 @@ resource "azurerm_linux_virtual_machine" "observer" {
 # Create the Windows Application VM(s)
 resource "azurerm_windows_virtual_machine" "observer" {
   provider                             = azurerm.main
-  count                                = local.deploy_observer  && upper(local.anydb_ostype) == "WINDOWS" ? 1 : 0
+  count                                = local.deploy_observer  && upper(local.anydb_ostype) == "WINDOWS" ? local.db_zone_count : 0
   depends_on                           = [var.anchor_vm]
   resource_group_name                  = var.resource_group[0].name
   location                             = var.resource_group[0].location
