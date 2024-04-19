@@ -37,6 +37,10 @@ always_upload_jinja_templates:         true
 hana_use_master_password:              y
 hana_password_copy:                    ""
 hana_backup_path:                      /hana/backup
+# Note: the spacing and lining of Jinja2 expression is critical here, lest we end up with a stray character in the path
+hana_data_basepath:                    "{% if db_scale_out %}/hana/data/{{ db_sid | upper }}{% else %}/hana/data{% endif %}"
+hana_log_basepath:                     "{% if db_scale_out %}/hana/log/{{ db_sid | upper }}{% else %}/hana/log{% endif %}"
+hana_autostart:                        false                                   # When set to true, will configure autostart parameter to 1 for HANA nodes. Only applicable for Scale out
 sap_sid:                               ""                                      # REQUIRED - SAP Install
 download_basket_dir:                   "{{ target_media_location }}/download_basket"
 db_sid:                                "XDB"                                   # Default
