@@ -161,6 +161,7 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   size                                 = local.anydb_sku
   source_image_id                      = var.database.os.type == "custom" ? var.database.os.source_image_id : null
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
+  patch_mode                           = var.infrastructure.patch_mode
 
   admin_username                       = var.sid_username
   admin_password                       = local.enable_auth_key ? null : var.sid_password
@@ -299,6 +300,8 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   size                                 = local.anydb_sku
   source_image_id                      = var.database.os.type == "custom" ? var.database.os.source_image_id : null
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
+  patch_mode                           = var.infrastructure.patch_mode
+
 
   admin_username                       = var.sid_username
   admin_password                       = var.sid_password
