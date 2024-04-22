@@ -76,6 +76,7 @@ resource "azurerm_linux_virtual_machine" "observer" {
   custom_data                          = var.deployment == "new" ? var.cloudinit_growpart_config : null
 
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
+  patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(local.tags, var.tags)
 
@@ -148,6 +149,7 @@ resource "azurerm_windows_virtual_machine" "observer" {
   custom_data                          = var.deployment == "new" ? var.cloudinit_growpart_config : null
 
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
+  patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(local.tags, var.tags)
 

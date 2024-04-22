@@ -54,6 +54,8 @@ resource "azurerm_linux_virtual_machine" "anchor" {
   custom_data                          = var.deployment == "new" ? local.cloudinit_growpart_config : null
   source_image_id                      = local.anchor_custom_image ? local.anchor_os.source_image_id : null
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
+  patch_mode                           = var.infrastructure.patch_mode
+
   dynamic "admin_ssh_key" {
     for_each                           = range(var.deployment == "new" ? 1 : (local.enable_anchor_auth_password ? 0 : 1))
       content {

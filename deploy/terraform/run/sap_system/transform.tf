@@ -11,6 +11,7 @@ locals {
                                             use_app_proximityplacementgroups = var.use_app_proximityplacementgroups
                                             deploy_monitoring_extension      = var.deploy_monitoring_extension
                                             deploy_defender_extension        = var.deploy_defender_extension
+                                            patch_mode                       = var.patch_mode
                                          }
 
 
