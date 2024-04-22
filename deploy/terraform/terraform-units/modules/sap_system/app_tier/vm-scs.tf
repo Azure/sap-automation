@@ -165,7 +165,8 @@ resource "azurerm_linux_virtual_machine" "scs" {
 
   source_image_id                      = var.application_tier.scs_os.type == "custom" ? var.application_tier.scs_os.source_image_id : null
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
-  patch_mode                           = var.infrastructure.patch_mode
+  # ToDo Add back later
+# patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(var.application_tier.scs_tags, var.tags)
 

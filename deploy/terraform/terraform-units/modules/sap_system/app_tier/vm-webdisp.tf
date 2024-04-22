@@ -166,7 +166,8 @@ resource "azurerm_linux_virtual_machine" "web" {
 
   source_image_id                      = var.application_tier.web_os.type == "custom" ? var.application_tier.web_os.source_image_id : null
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
-  patch_mode                           = var.infrastructure.patch_mode
+  # ToDo Add back later
+# patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(var.application_tier.web_tags, var.tags)
 
@@ -312,7 +313,8 @@ resource "azurerm_windows_virtual_machine" "web" {
 
   #ToDo: Remove once feature is GA  patch_mode = "Manual"
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
-  patch_mode                           = var.infrastructure.patch_mode
+  # ToDo Add back later
+# patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(var.application_tier.web_tags, var.tags)
 
