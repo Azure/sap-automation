@@ -55,7 +55,7 @@
     mode:                              '{{ item.mode }}'
   loop:
     - { mode: '0755', path: '{{ dir_params }}' }
-    - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
+    - { mode: '0775', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
 - name:                                "APP Install: reset"
@@ -213,7 +213,7 @@
       ansible.builtin.import_tasks:    ../../../roles-sap-os/2.10-sap-notes/tasks/2.10.3119751.yaml
       when:
         - ansible_os_family == 'RedHat'
-        - "distribution_id != 'oraclelinux8'"
+        - distribution_id != 'oraclelinux8'
 
     - name:                            "APP Install: progress"
       ansible.builtin.debug:
