@@ -80,12 +80,6 @@
 
         - name:                        "OS configuration playbook: - Set deployment type"
           ansible.builtin.set_fact:
-            single_server:             false
-          tags:
-            - always
-
-        - name:                        "OS configuration playbook: - Set deployment type"
-          ansible.builtin.set_fact:
             single_server:             true
           when:                        (ansible_play_hosts_all | length) == 1
           tags:

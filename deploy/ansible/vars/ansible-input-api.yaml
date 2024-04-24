@@ -59,6 +59,8 @@ instance_type:                         "ASCS"
 
 dbload_retry_count:                    120
 
+single_server:                         false
+
 # Default sizes for volumes
 
 sapmnt_volume_size:                    32g
