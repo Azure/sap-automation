@@ -84,8 +84,12 @@
 
 
 - name:                                "1.1 Swap: - Force systemd to reread configs {{ distro_name }}"
-  ansible.builtin.systemd_service:
-    daemon_reload:                     true
+  ansible.builtin.service:
+    name:                              systemd
+    state:                             reloaded
+ when:
+    - waagent_conf_copy is defined
+    - waagent_conf_copy.changed
 
 - name:                                "1.1 Swap: - Restart WAAgent on {{ distro_name }}"
   ansible.builtin.service:
@@ -94,7 +98,6 @@
   when:
     - waagent_conf_copy is defined
     - waagent_conf_copy.changed
-
 
 
 - name:                                "1.1 Swap: - Ensure waagent file is configured with proper parameters"
