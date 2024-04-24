@@ -199,7 +199,7 @@
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                            "Backward Compatibility - Check required Database HA variables"
+    - name:                            "Get Instance names"
       ansible.builtin.set_fact:
         primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
         secondary_instance_name:   "{{ ansible_play_hosts_all[1] | default('N/A') }}"         # Setting up Secondary Instance Name
@@ -214,7 +214,7 @@
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
-            action:                    Prepare_Secondary
+            action:                    'Prepare_Secondary'
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
@@ -234,7 +234,7 @@
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
-            action:                    Prepare_and_Restore
+            action:                    'Prepare_and_Restore'
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
@@ -262,7 +262,7 @@
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
-            action:                    Post_Processing_Primary
+            action:                    'Post_Processing_Primary'
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
@@ -291,7 +291,7 @@
         - name:                        Setting the DB facts
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
-            action:                    Post_Processing_Secondary
+            action:                    'Post_Processing_Secondary'
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
@@ -331,6 +331,11 @@
         - db_high_availability is defined
         - database_high_availability is not defined
 
+    - name:                            "Get Instance names"
+      ansible.builtin.set_fact:
+        primary_observer_name :        "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
+        secondary_observer_name:       "{{ ansible_play_hosts_all[1] | default('N/A') }}"         # Setting up Secondary Instance Name
+
     - name:                            "Oracle: Observer setup"
       become:                          true
       when:
@@ -340,7 +345,7 @@
         - name:                            "Observer Playbook: Setting the DB facts"
           ansible.builtin.set_fact:
             node_tier:                     observer
-            action:                        Setup_Observer
+            action:                        'Setup_Observer'
             main_password:                 "{{ hostvars.localhost.sap_password }}"
           tags:
             - always

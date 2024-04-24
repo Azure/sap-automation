@@ -194,6 +194,8 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   custom_data                          = var.deployment == "new" ? var.cloudinit_growpart_config : null
 
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
+  # ToDo Add back later
+# patch_mode                           = var.infrastructure.patch_mode
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = local.use_avset && !local.enable_ultradisk ? (

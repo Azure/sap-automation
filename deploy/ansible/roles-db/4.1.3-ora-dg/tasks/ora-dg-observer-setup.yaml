@@ -40,7 +40,7 @@
     name:                               dba
     gid:                                "{{ dba_gid }}"
 
-- name:                                "Oracle Data Guard - Observer: Change UIDfor Oracle user"
+- name:                                "Oracle Data Guard - Observer: Change UID for Oracle user"
   ansible.builtin.user:
     name:                              oracle
     uid:                               "{{ oracle_uid }}"
@@ -66,6 +66,10 @@
     state:                             directory
     owner:                             oracle
     group:                             oinstall
+
+- name:                                "Oracle Data Guard - Observer: Execute RUNINSTALLER"
+  ansible.builtin.debug:
+    msg:                               "Oracle Data Guard - Observer: Execute RUNINSTALLER"
 
 - name:                                "Oracle Data Guard - Observer: Execute RUNINSTALLER"
   become:                              true
@@ -218,7 +222,7 @@
 - name:                                "ENABLE FSFO"
   block:
 
-    - name:                            "Oracle Data Guard - Observer: Enable FSFO"
+    - name:                            "Oracle Data Guard - Observer: Enable FSFO template"
       become:                          true
       become_user:                     "oracle"
       ansible.builtin.template:
@@ -263,7 +267,7 @@
     - name:                            "Oracle Data Guard - Observer: Enable FSFO"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.shell:           dgmgrl  sys/{{ main_password }}@{{ db_sid | upper }}  "ENABLE FAST_START FAILOVER"
+      ansible.builtin.shell:           dgmgrl sys/{{ main_password }}@{{ db_sid | upper }}  "ENABLE FAST_START FAILOVER"
       register:                        fsfo_enable_results
       failed_when:                     fsfo_enable_results.rc > 0
       args:
@@ -281,7 +285,8 @@
         dest:                          /etc/sap_deployment_automation/fsfo_enable.log
         content:                       "{{ fsfo_enable_results.stdout }}"
         mode:                          '0777'
-      when:                            fsfo_enable_results.stdout is defined
+      when:
+        - fsfo_enable_results.stdout is defined
 
     - name:                            "Oracle Data Guard - Observer: Create fsfo_enabled.txt"
       become:                          true
@@ -325,6 +330,7 @@
       when:                            observer_results.rc == 0
   when:
     - dg_enabled.stat.exists
+    - ansible_hostname == primary_observer_name
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
