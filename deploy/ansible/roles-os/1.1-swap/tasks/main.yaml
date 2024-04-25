@@ -87,7 +87,7 @@
   ansible.builtin.service:
     name:                              systemd
     state:                             reloaded
- when:
+  when:
     - waagent_conf_copy is defined
     - waagent_conf_copy.changed
 
