@@ -476,12 +476,6 @@
                                        - always
 
     - name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
-      ansible.builtin.set_fact:
-        python_version: "python3"
-      tags:
-                                       - always
-
-    - name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
       when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
       ansible.builtin.set_fact:
         python_version: "python2"
