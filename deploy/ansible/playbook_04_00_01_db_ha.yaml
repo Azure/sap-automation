@@ -33,6 +33,13 @@
             path:                      "{{ _workspace_directory }}/.progress/db-ha-done"
             state:                      absent
 
+        - name:                        "Ensure passlib is installed on the controller"
+          ansible.builtin.pip:
+            name:                      passlib
+            state:                     present
+          tags:
+            - always
+
         # MKD - Fencing is not a tier... it is a misuse to code for that
         #       To detect we should be using:
         #         database_high_availability

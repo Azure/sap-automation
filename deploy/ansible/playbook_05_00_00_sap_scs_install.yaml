@@ -29,6 +29,12 @@
         path:                          "{{ _workspace_directory }}/.progress/ers-install-done"
         state:                          absent
 
+    - name:                            "SCS Installation Playbook: - Ensure passlib is installed on the controller"
+      ansible.builtin.pip:
+        name:                          passlib
+        state:                         present
+      tags:
+        - always
 
     - name:                            "SCS Installation Playbook: - Set scs fact"
       ansible.builtin.set_fact:
