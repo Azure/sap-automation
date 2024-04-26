@@ -250,3 +250,6 @@ ams_resource_id:                        ""
 enable_os_monitoring:                   false
 enable_ha_monitoring:                   false
 # ------------------- End - Azure Monitor for SAP (AMS) variables --------------8
+
+
+python_version:                        "python3"

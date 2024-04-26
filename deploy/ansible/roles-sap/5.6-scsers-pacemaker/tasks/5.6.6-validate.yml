@@ -1,7 +1,4 @@
 # Validate that the SCS cluster is working as expected
-- name:                                "5.6 SCS/ERS Validation: - Set Python version {{ distribution_id }}"
-  ansible.builtin.set_fact:
-    python_version: "python3"
 
 - name:                                "5.6 SCS/ERS Validation: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
@@ -16,7 +13,7 @@
   block:
     - name:                            "5.6 SCS/ERS Validation: Get sapcontrol path"
       ansible.builtin.find:
-        paths:                         "/usr/sap/hostctrl/exe"
+        paths:                         "/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64,/usr/sap/hostctrl/exe"
         file_type:                     file
         patterns:                      'sapcontrol'
         recurse:                       true
@@ -30,7 +27,7 @@
 
     # {{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
     - name:                            "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"
-      ansible.builtin.command:         "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList"
+      ansible.builtin.shell:           "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList"
       changed_when:                    false
       failed_when:                     false
       register:                        is_running
@@ -50,7 +47,6 @@
     - name:                            "5.6 SCS/ERS Validation: Show if SCS is running on {{ ansible_hostname }}"
       ansible.builtin.debug:
         msg:                           "SCS status: {{ is_running.stdout_lines }}"
-        verbosity:                     2
       when:                            is_running.stdout_lines is defined
 
     # when the rc is 3, the SCS is running on ansible_hostname.
