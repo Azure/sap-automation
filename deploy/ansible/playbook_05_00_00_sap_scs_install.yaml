@@ -30,6 +30,8 @@
         state:                          absent
 
     - name:                            "SCS Installation Playbook: - Ensure passlib is installed on the controller"
+      become:                          true
+      become_user:                     root
       ansible.builtin.pip:
         name:                          passlib
         state:                         present
