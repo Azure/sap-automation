@@ -35,6 +35,7 @@
                                       (database_cluster_type == "ISCSI") or
                                       (scs_cluster_type      == "ASD")   or
                                       (scs_cluster_type      == "ISCSI")
+                                    - node_tier != 'hana'
 
 - name:                                "1.17 Generic Pacemaker - Ensure Primary node initiates the Cluster"
   when:                                ansible_hostname == primary_instance_name
