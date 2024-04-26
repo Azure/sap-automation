@@ -83,7 +83,7 @@
   args:
     executable:                        /bin/csh
     chdir:                             "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
-    creates:                           /etc/sap_deployment_automation/oracle_installed.txt
+    creates:                           /etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_installed.txt
 
 - name:                                "Oracle Data Guard - Observer: installer output"
   ansible.builtin.debug:
@@ -92,7 +92,7 @@
 
 - name:                                "Oracle Data Guard - Observer: installer output"
   ansible.builtin.copy:
-    dest:                              /etc/sap_deployment_automation/install.log
+    dest:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/install.log
     content:                           "{{ orainstall_results.stdout }}"
     mode:                              '0777'
   when:                                orainstall_results.stdout is defined
@@ -101,7 +101,7 @@
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation/oracle_installed.txt
+    path:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_installed.txt
     state:                             touch
     mode:                              '0755'
   when:                                orainstall_results.rc >= 3
@@ -185,7 +185,7 @@
 
 - name:                                "Oracle Data Guard - Observer: tnsping Primary output"
   ansible.builtin.copy:
-    dest:                              /etc/sap_deployment_automation/tnsping_primary.log
+    dest:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/tnsping_primary.log
     content:                           "{{ tnsping_primary_results.stdout }}"
     mode:                              '0777'
   when:                                tnsping_primary_results.stdout is defined
@@ -207,7 +207,7 @@
 
 - name:                                "Oracle Data Guard - Observer: tnsping Secondary output"
   ansible.builtin.copy:
-    dest:                              /etc/sap_deployment_automation/tnsping_secondary.log
+    dest:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/tnsping_secondary.log
     content:                           "{{ tnsping_secondary_results.stdout }}"
     mode:                              '0777'
   when:                                tnsping_secondary_results.stdout is defined
@@ -228,7 +228,7 @@
       ansible.builtin.template:
         backup:                        true
         src:                           enablefsfo.j2
-        dest:                          "/etc/sap_deployment_automation/enablefsfo.dgmgrl"
+        dest:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/enablefsfo.dgmgrl"
         mode:                          '0644'
         force:                         true
 
@@ -239,8 +239,8 @@
       register:                        fsfo_results
       failed_when:                     fsfo_results.rc > 0
       args:
-        creates:                       /etc/sap_deployment_automation/fsfo_prepared.txt
-        chdir:                         /etc/sap_deployment_automation/
+        creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/fsfo_prepared.txt
+        chdir:                         /etc/sap_deployment_automation/{{ sap_sid | upper }}/
         executable:                    /bin/csh
 
     - name:                            "Oracle Data Guard - Observer: Prepare for FSFO output"
@@ -250,7 +250,7 @@
 
     - name:                            "Oracle Data Guard - Observer: Prepare for FSFO output"
       ansible.builtin.copy:
-        dest:                          /etc/sap_deployment_automation/fsfo_prepared.log
+        dest:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/fsfo_prepared.log
         content:                       "{{ fsfo_results.stdout }}"
         mode:                          '0777'
       when:                            fsfo_results.stdout is defined
@@ -259,7 +259,7 @@
       become:                          true
       become_user:                     "oracle"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/fsfo_prepared.txt
+        path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/fsfo_prepared.txt
         state:                         touch
         mode:                          '0755'
       when:                            fsfo_results.rc == 0
@@ -271,8 +271,8 @@
       register:                        fsfo_enable_results
       failed_when:                     fsfo_enable_results.rc > 0
       args:
-        creates:                       /etc/sap_deployment_automation/fsfo_enabled.txt
-        chdir:                         /etc/sap_deployment_automation/
+        creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/fsfo_enabled.txt
+        chdir:                         /etc/sap_deployment_automation/{{ sap_sid | upper }}/
         executable:                    /bin/csh
 
     - name:                            "Oracle Data Guard - Observer: Enable FSFO output"
@@ -282,7 +282,7 @@
 
     - name:                            "Oracle Data Guard - Observer: Enable FSFO output"
       ansible.builtin.copy:
-        dest:                          /etc/sap_deployment_automation/fsfo_enable.log
+        dest:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/fsfo_enable.log
         content:                       "{{ fsfo_enable_results.stdout }}"
         mode:                          '0777'
       when:
@@ -292,7 +292,7 @@
       become:                          true
       become_user:                     "oracle"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/fsfo_enabled.txt
+        path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/fsfo_enabled.txt
         state:                         touch
         mode:                          '0755'
       when:                            fsfo_enable_results.rc == 0
@@ -304,8 +304,8 @@
       register:                        observer_results
       failed_when:                     observer_results.rc > 0
       args:
-        creates:                       /etc/sap_deployment_automation/observer_started.txt
-        chdir:                         /etc/sap_deployment_automation/
+        creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/observer_started.txt
+        chdir:                         /etc/sap_deployment_automation/{{ sap_sid | upper }}/
         executable:                    /bin/csh
 
     - name:                            "Oracle Data Guard - Observer: Debug Start FSFO Observer"
@@ -315,7 +315,7 @@
 
     - name:                            "Oracle Data Guard - Observer: Start FSFO Observer output"
       ansible.builtin.copy:
-        dest:                          /etc/sap_deployment_automation/start_observer.log
+        dest:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/start_observer.log
         content:                       "{{ observer_results.stdout }}"
         mode:                          '0777'
       when:                            observer_results.stdout is defined
@@ -324,7 +324,7 @@
       become:                          true
       become_user:                     "oracle"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/observer_started.txt
+        path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/observer_started.txt
         state:                         touch
         mode:                          '0755'
       when:                            observer_results.rc == 0
