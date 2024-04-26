@@ -25,14 +25,14 @@
       tags:
         - always
 
-    - name:                            "0.0 Validations - ensure jmespath is installed in the playbook python"
+    - name:                            "0.0 Validations - Ensure jmespath is installed on the controller"
       ansible.builtin.pip:
         name:                          jmespath
         state:                         present
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - ensure netaddr is installed in the controller"
+    - name:                            "0.0 Validations - Ensure netaddr is installed in the controller"
       ansible.builtin.pip:
         name:                          netaddr
         state:                         present
