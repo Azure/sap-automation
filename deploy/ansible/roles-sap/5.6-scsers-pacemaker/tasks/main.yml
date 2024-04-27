@@ -34,9 +34,8 @@
         - 5.6.4-provision
       become:                          true
       become_user:                     root
-  # when:
-  #   - cluster_existence_check_result is defined
-  #   - not cluster_existence_check_result
+  when:
+    - cluster_existence_check | default(false)
 
 - name:                                "Post SCS HA Install: check if installed"
   become:                              true
