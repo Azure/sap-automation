@@ -126,7 +126,7 @@
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana data)"
   ansible.posix.mount:
     src:                               '/dev/vg_hana_data/lv_hana_data'
-    path:                              '/hana/data'
+    path:                              "{{ hana_data_basepath }}"
     fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
@@ -137,7 +137,7 @@
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana log)"
   ansible.posix.mount:
     src:                               '/dev/vg_hana_log/lv_hana_log'
-    path:                              '/hana/log'
+    path:                              "{{ hana_log_basepath }}"
     fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
@@ -353,6 +353,8 @@
   ansible.builtin.import_tasks:        "2.6.3-oracle-observer.yaml"
   when:
     - node_tier == "observer"
+    - platform != "HANA"
+    # This is to prevent conflict between HANA scaleout-hsr and oracle DB as they both share observer, but only one platform can be deployed at a time
 
 - name:                                "2.6 SAP Mounts: - Import Oracle shared home tasks"
   ansible.builtin.import_tasks:        "2.6.3-oracle-multi-sid.yaml"
@@ -396,6 +398,8 @@
   ansible.builtin.import_tasks:        "2.6.6-oracle-nfs-mounts.yaml"
   when:
     - node_tier in ['oracle','oracle-asm','observer']
+    - platform != "HANA"
+    # ensure that this is not triggered for HANA scale out with HSR which uses an observer tier VM
 
 
 - name:                                "2.6 SAP Mounts: - Set permissions"
@@ -412,8 +416,8 @@
         path:                          "{{ item.path }}"
         mode:                          '{{ item.mode }}'
       loop:
-        - { mode: '0755', path: '/hana/data' }
-        - { mode: '0755', path: '/hana/log' }
+        - { mode: '0755', path: "{{ hana_data_basepath }}" }
+        - { mode: '0755', path: "{{ hana_log_basepath }}" }
         - { mode: '0755', path: '/hana/shared' }
   rescue:
     - name:                            "2.6 SAP Mounts: - Set permissions on hana folders"
@@ -425,8 +429,8 @@
         path:                          "{{ item.path }}"
         mode:                          '{{ item.mode }}'
       loop:
-        - { mode: '0755', path: '/hana/data' }
-        - { mode: '0755', path: '/hana/log' }
+        - { mode: '0755', path: "{{ hana_data_basepath }}" }
+        - { mode: '0755', path: "{{ hana_log_basepath }}" }
         - { mode: '0755', path: '/hana/shared' }
 
 # Import custom NFS mounts.

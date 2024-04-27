@@ -1,0 +1,17 @@
+---
+
+###########################################################################################
+# This file calls the OS specific tasks to configure HANA specific clustering resources  #8
+###########################################################################################
+
+
+# Clustering commands are based on the Host OS
+- name: "5.8 HANADB Pacemaker - configure pre-requisites"
+  ansible.builtin.include_tasks:  "5.8.4.0-clusterPrep-ScaleOut-{{ ansible_os_family }}.yml"
+
+- name: "5.8 HANADB Pacemaker - import - SAP HanaSRMultiTarget"
+  ansible.builtin.include_tasks:   5.8.3-SAPHanaSRMultiTarget.yml
+
+- name: "5.8 HANADB Pacemaker - configure cluster resources"
+  ansible.builtin.include_tasks:   "5.8.4.1-cluster-ScaleOut-{{ ansible_os_family }}.yml"
+...
