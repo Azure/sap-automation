@@ -42,6 +42,7 @@
     remote_src:                        true
     src:                               /etc/waagent.conf.rpmsave
     dest:                              /etc/waagent.conf
+    mode:                              preserve
   when:
     - not waagent_conf.stat.exists
     - waagent_conf_save.stat.exists
@@ -82,8 +83,6 @@
   when:
     - is_rhel_90_or_newer | default(false)
     - init_d_bckp_exists
-
-
 
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |

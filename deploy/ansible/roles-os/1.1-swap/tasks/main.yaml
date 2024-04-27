@@ -25,6 +25,8 @@
     state:                             latest
   when:
     - ansible_os_family == 'RedHat'
+  tags:
+    - skip_ansible_lint
 
 - name:                                "1.1 Swap: - Update WAAgent on {{ ansible_os_family }}"
   ansible.builtin.package:
@@ -32,6 +34,8 @@
     state:                             latest
   when:
     - ansible_os_family == 'Suse'
+  tags:
+    - skip_ansible_lint
 
 - name:                                "1.1 Swap: - Restart WAAgent on {{ distro_name }}"
   ansible.builtin.service:
@@ -77,6 +81,7 @@
     remote_src:                        true
     src:                               /etc/waagent.conf.rpmsave
     dest:                              /etc/waagent.conf
+    mode:                              preserve
   when:
     - not waagent_conf.stat.exists
     - waagent_conf_save.stat.exists
@@ -98,7 +103,6 @@
   when:
     - waagent_conf_copy is defined
     - waagent_conf_copy.changed
-
 
 - name:                                "1.1 Swap: - Ensure waagent file is configured with proper parameters"
   ansible.builtin.lineinfile:
