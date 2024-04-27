@@ -192,8 +192,8 @@
 
 - name:                                "5.6 SCSERS - SUSE - Reboot the primary/secondary instance"
   ansible.builtin.reboot:
-    reboot_timeout:                    300
-    post_reboot_delay:                 300
+    reboot_timeout:                    150
+    post_reboot_delay:                 150
 
 - name:                                "5.6 SCSERS - SUSE - Set the Cluster out of maintenance mode"
   ansible.builtin.command:             crm configure property maintenance-mode=false

@@ -12,6 +12,8 @@
     - ansible_hostname == primary_instance_name
   block:
     - name:                            "5.6 SCS/ERS Validation: Get sapcontrol path"
+      become_user:                     "root"
+      become:                          true
       ansible.builtin.find:
         paths:                         "/usr/sap/{{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64,/usr/sap/hostctrl/exe"
         file_type:                     file
