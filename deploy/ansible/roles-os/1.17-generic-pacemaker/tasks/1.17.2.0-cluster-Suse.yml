@@ -158,6 +158,8 @@
       ansible.builtin.shell: |
                                        crm configure property stonith-enabled=true
                                        crm configure property concurrent-fencing=true
+      register:                        crm_configure_result
+      failed_when:                     crm_configure_result.rc > 1
 
     - name:                            "1.17 Generic Pacemaker - Create Azure Fencing Agent"
       ansible.builtin.shell:   >
