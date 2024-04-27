@@ -30,7 +30,7 @@
                                            | regex_replace('/etc/systemd/system/', '')
                                          }}"
 
-- name:                                "5.6 SCSERS - Set fact for the systemd services existance"
+- name:                                "5.6 SCSERS - Show fact for the systemd services existance"
   ansible.builtin.debug:
     var:                               systemd_service_names
     verbosity:                         2
@@ -97,9 +97,9 @@
         loop_var:                      dropfile
       register:                        dropinfile
 
-    - name:                                "5.6 SCSERS - systemd reload"
+    - name:                            "5.6 SCSERS - systemd reload"
       ansible.builtin.systemd:
-        daemon_reload:                     true
+        daemon_reload:                 true
       when:
         - dropinfile.changed
 
