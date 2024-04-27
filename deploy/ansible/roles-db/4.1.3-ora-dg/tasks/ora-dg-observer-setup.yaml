@@ -51,7 +51,7 @@
   become:                              true
   become_user:                         root
   ansible.builtin.file:
-    path:                              /etc/sap_deployment_automation
+    path:                              /etc/sap_deployment_automation/{{ sap_sid }}
     mode:                              '0755'
     state:                             directory
     owner:                             oracle
