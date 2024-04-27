@@ -50,12 +50,16 @@
       # ha-cluster-init is not supported in SLES 15 SP4 anymore, crm syntax required
       # ansible.builtin.command:       "ha-cluster-init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
       ansible.builtin.command:         "crm cluster init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
+      register:                        crm_init_result
+      failed_when:                     crm_init_result.rc > 1
       when:
                                        - node_tier == 'hana'
                                        - database_cluster_type == "AFA"
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (hdb_{{ db_sid | upper }}) is configured - SBD"
       ansible.builtin.command:         "crm cluster init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device={{ sbd_device }}"
+      register:                        crm_init_result
+      failed_when:                     crm_init_result.rc > 1
       when:
                                        - node_tier == 'hana'
                                        - not database_cluster_type == "AFA"
@@ -63,24 +67,32 @@
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (scs_{{ sap_sid | upper }}) is configured"
       ansible.builtin.command:         "crm cluster init -y --name 'scs_{{ sap_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
+      register:                        crm_init_result
+      failed_when:                     crm_init_result.rc > 1
       when:
                                        - node_tier == 'scs'
                                        - scs_cluster_type == "AFA"
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (scs_{{ sap_sid | upper }}) is configured - SBD"
       ansible.builtin.command:         "crm cluster init -y --name 'scs_{{ sap_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device={{ sbd_device }}"
+      register:                        crm_init_result
+      failed_when:                     crm_init_result.rc > 1
       when:
                                        - node_tier == 'scs'
                                        - not scs_cluster_type == "AFA"
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (db2_{{ db_sid | upper }}) is configured"
       ansible.builtin.command:         "crm cluster init -y --name 'db2_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
+      register:                        crm_init_result
+      failed_when:                     crm_init_result.rc > 1
       when:
                                        - node_tier == 'db2'
                                        - database_cluster_type == "AFA"
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (db2_{{ db_sid | upper }}) is configured - SBD"
       ansible.builtin.command:         "crm cluster init -y --name 'db2_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device={{ sbd_device }}"
+      register:                        crm_init_result
+      failed_when:                     crm_init_result.rc > 1
       when:
                                        - node_tier == 'db2'
                                        - not database_cluster_type == "AFA"
