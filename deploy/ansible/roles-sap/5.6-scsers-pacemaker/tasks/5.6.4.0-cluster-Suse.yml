@@ -274,6 +274,7 @@
     - name:                            "5.6 SCSERS - SUSE - ERS - print nfs_instdir_mounted"
       ansible.builtin.debug:
         msg:                           "{{ nfs_instdir_mounted }}"
+        verbosity:                     2
 
     - name:                            "5.6 SCSERS - SUSE - ERS - Assign ownership"
       ansible.builtin.file:
