@@ -35,7 +35,7 @@
 
 - name:                                "Pre SCS HA Install: check if installed"
   ansible.builtin.set_fact:
-    scs_installed:                     {{ pre_scs_install.stat.exists | default(false) }}
+    scs_installed:                     "{{ pre_scs_install.stat.exists | default(false) }}"
   when:                                ansible_hostname == primary_instance_name
 
 - name:                                "Pre ERS Install: check if installed"
@@ -47,7 +47,7 @@
 
 - name:                                "Pre ERS Install: check if installed"
   ansible.builtin.set_fact:
-    ers_installed:                     {{ pre_ers_install.stat.exists | default(false) }}
+    ers_installed:                     "{{ pre_ers_install.stat.exists | default(false) }}"
   when:                                ansible_hostname == secondary_instance_name
 
 - name:                                "Check if SAP components are installed"
