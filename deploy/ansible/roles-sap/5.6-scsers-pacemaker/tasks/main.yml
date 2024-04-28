@@ -63,7 +63,7 @@
 
 - name:                                "Check if all SAP components are installed"
   ansible.builtin.set_fact:
-    SAP_installed:                     "{{ hostvars[primary_instance_name]['scs_installed'] and hostvars[secondary_instance_name]['ers_installed'] and sap_resources_installed }}"
+    SAP_installed:                     "{{ hostvars[primary_instance_name]['scs_installed'] and hostvars[secondary_instance_name]['ers_installed'] and hostvars[primary_instance_name]['sap_resources_installed'] }}"
 
 - name:                                "Show if SAP components are installed"
   ansible.builtin.debug:
