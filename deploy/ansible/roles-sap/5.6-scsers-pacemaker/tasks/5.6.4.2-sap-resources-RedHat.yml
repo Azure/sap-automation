@@ -186,5 +186,12 @@
   when:
     - inventory_hostname == primary_instance_name
 
+- name:                                "5.6 SCSERS: Set Resources Flag"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_resources_deployment.txt"
+    state:                             touch
+    mode:                              0755
+
+
 # End of SAP Resources cluster configuration
 ...
