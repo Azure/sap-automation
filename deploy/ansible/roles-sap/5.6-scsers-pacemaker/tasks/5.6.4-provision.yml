@@ -29,6 +29,11 @@
   register:                            ers_installed
   when:                                ansible_hostname == secondary_instance_name
 
+- name:                                "5.6 SCSERS: SCS HA Install: check if SAP resources are installed"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation//{{ sap_sid | upper }}/sap_resources_deployment.txt
+  register:                            sap_resources_installed
+
 # - name:                                "Wait for ERS check on second node to finish"
 #   when:                                ansible_hostname == primary_instance_name
 #   ansible.builtin.set_fact:
@@ -90,6 +95,7 @@
 # registered post_[scs/ers] vars are empty not dictionaries
 - name:                                "5.6 SCSERS: Adapt the ASCS/SCS and ERS instance profiles"
   throttle:                            1
+  when:                                not sap_resources_installed.stat.exists
   block:
 
     - name:                            "5.6 SCSERS: SCS cluster group validation"
@@ -131,6 +137,7 @@
             - "5.6.4.2-sap-resources-simplemount"
       when:
         - use_simple_mount
+
     # - name:                            "5.6 SCSERS - SAP resources"
     #   ansible.builtin.include_tasks:
     #     file:                          "5.6.4.2-sap-resources-{{ ansible_os_family }}.yml"
