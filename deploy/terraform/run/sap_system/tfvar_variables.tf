@@ -1388,6 +1388,10 @@ variable "deploy_defender_extension"            {
                                                   default     = false
                                                 }
 
+variable "patch_mode"                           {
+                                                  description = "If defined, define the patch mode for the virtual machines"
+                                                  default     = "ImageDefault"
+                                                }
 
 #########################################################################################
 #                                                                                       #

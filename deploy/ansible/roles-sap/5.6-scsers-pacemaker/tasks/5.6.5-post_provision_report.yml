@@ -3,13 +3,13 @@
 # @TODO- Check if any modification is required from ASCS/SCS resources perspective
 
 - name:                                "5.6 SCSERS - SUSE - Cleanup resources"
-  ansible.builtin.command:             crm resource cleanup
+  ansible.builtin.shell:               crm resource cleanup
   when:
     - ansible_os_family | upper == 'SUSE'
     - inventory_hostname == primary_instance_name
 
 - name:                                "5.6 SCSERS - SUSE - Cleanup stonith"
-  ansible.builtin.command:             stonith_admin --cleanup --history={{ primary_instance_name }}
+  ansible.builtin.shell:               stonith_admin --cleanup --history={{ primary_instance_name }}
   when:
     - ansible_os_family | upper == 'SUSE'
     - inventory_hostname == primary_instance_name
@@ -19,7 +19,7 @@
     seconds:                           "{{ cluster_status_report_wait_in_s }}"
 
 - name:                                "5.6 SCSERS - Check the post-provisioning cluster status"
-  ansible.builtin.command:             "{{ cluster_status_cmd[ansible_os_family] }}"
+  ansible.builtin.shell:               "{{ cluster_status_cmd[ansible_os_family] }}"
   register:                            cluster_status_report
   changed_when:                        false
   failed_when:                         false

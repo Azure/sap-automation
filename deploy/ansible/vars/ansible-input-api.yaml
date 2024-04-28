@@ -61,6 +61,8 @@ instance_type:                         "ASCS"
 
 dbload_retry_count:                    120
 
+single_server:                         false
+
 # Default sizes for volumes
 
 sapmnt_volume_size:                    32g
@@ -250,3 +252,6 @@ ams_resource_id:                        ""
 enable_os_monitoring:                   false
 enable_ha_monitoring:                   false
 # ------------------- End - Azure Monitor for SAP (AMS) variables --------------8
+
+
+python_version:                        "python3"

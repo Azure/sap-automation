@@ -156,6 +156,13 @@
       tags:
         - always
 
+    - name:                            "PAS Installation Playbook: - Set deployment type"
+      ansible.builtin.set_fact:
+        single_server:                 true
+      when:                            (ansible_play_hosts_all | length) == 1
+      tags:
+        - always
+
     - name:                            "PAS Installation Playbook: Define this SID"
       ansible.builtin.set_fact:
         this_sid:

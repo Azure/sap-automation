@@ -166,6 +166,9 @@ resource "azurerm_linux_virtual_machine" "web" {
 
   source_image_id                      = var.application_tier.web_os.type == "custom" ? var.application_tier.web_os.source_image_id : null
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
+  # ToDo Add back later
+# patch_mode                           = var.infrastructure.patch_mode
+
   tags                                 = merge(var.application_tier.web_tags, var.tags)
 
   dynamic "admin_ssh_key" {
@@ -310,6 +313,8 @@ resource "azurerm_windows_virtual_machine" "web" {
 
   #ToDo: Remove once feature is GA  patch_mode = "Manual"
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
+  # ToDo Add back later
+# patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(var.application_tier.web_tags, var.tags)
 
@@ -680,7 +685,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_web_win" {
   name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityWindowsAgent"
   publisher                            = "Microsoft.Azure.Security.Monitoring"
   type                                 = "AzureSecurityWindowsAgent"
-  type_handler_version                 = "2.0"
+  type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
 
   settings                             = jsonencode(
