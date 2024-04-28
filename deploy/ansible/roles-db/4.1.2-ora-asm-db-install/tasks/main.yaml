@@ -230,22 +230,22 @@
     # Backup Oracle GRID Home prior to patching.
 
     - name:                            "Oracle ASM : BACKUP ORACLE GRID"
-      become:                              true
-      become_user:                         "root"
-      ansible.builtin.shell: |
-                                       cp -rp /oracle/GRID/{{ ora_version }} /oracle/GRID/{{ ora_version }}.bck
+      become:                          true
+      become_user:                     "root"
+      ansible.builtin.copy:
+        src:                           /oracle/GRID/{{ ora_version }}
+        dest:                          /oracle/GRID/{{ ora_version }}.bck
+        remote_src:                    true
+        mode:                          preserve
+        directory_mode:                preserve
       register:                        gridbackup
-      args:
-        creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridbackedup.txt
-        executable:                    /bin/csh
-
 
     - name:                            "Oracle ASM: Create flag gridbackedup.txt "
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridbackedup.txt
         state:                         touch
         mode:                          '0755'
-      when:                            gridbackup.rc == 0
+      when:                            gridbackup.changed
 
     - name:                            "Oracle ASM: Check if 'OPatch.bck' exists"
       ansible.builtin.stat:
@@ -656,10 +656,14 @@
         owner:                         oracle
         group:                         oinstall
 
+    - name:                            "ORACLE ASM: Post Processing - SBP Patching - progress"
+      ansible.builtin.debug:
+        msg:                           "Running SBP Patching, please wait"
+
     - name:                            "Oracle ASM: Post Processing - SBP Patching"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.shell:          $IHRDBMS/MOPatch/mopatch.sh -v -s {{ oracle_sbp_patch }}
+      ansible.builtin.shell:           $IHRDBMS/MOPatch/mopatch.sh -v -s {{ oracle_sbp_patch }}
       environment:
         DB_SID:                        "{{ db_sid }}"
         CV_ASSUME_DISTID:              OL7

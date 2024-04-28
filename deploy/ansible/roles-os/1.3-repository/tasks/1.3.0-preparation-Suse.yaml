@@ -20,6 +20,10 @@
 
     - name:                            "1.3 Repository - Attempt to re-register SLE instance with Public Cloud Update Infrastructure and rescue"
       block:
+        - name:                        "1.3 Repository - Attempt to re-register SLE instance with Public Cloud Update Infrastructure cleanup"
+          ansible.builtin.shell:      |
+                                          SUSEConnect --cleanup
+
         - name:                        "1.3 Repository - Attempt to re-register SLE instance with Public Cloud Update Infrastructure"
           ansible.builtin.shell:      |
                                           rm -f /etc/SUSEConnect

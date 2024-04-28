@@ -26,7 +26,7 @@
 # Import this task only if the cluster is not yet created
 - name:                                     "1.17 Generic Pacemaker - Provision"
   when:
-                                            - not cluster_existence_check == '0'
+                                            - not cluster_existence_check
   block:
     - name:                                 "1.17 Generic Pacemaker - Provision Pacemaker"
       ansible.builtin.import_tasks:         1.17.2-provision.yml

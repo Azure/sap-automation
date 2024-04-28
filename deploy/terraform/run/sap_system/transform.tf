@@ -11,6 +11,7 @@ locals {
                                             use_app_proximityplacementgroups = var.use_app_proximityplacementgroups
                                             deploy_monitoring_extension      = var.deploy_monitoring_extension
                                             deploy_defender_extension        = var.deploy_defender_extension
+                                            patch_mode                       = var.patch_mode
                                          }
 
 
@@ -223,6 +224,7 @@ locals {
                                                                             0
                                                                           )
                                         web_instance_number             = var.web_instance_number
+                                        web_sid                         = upper(var.web_sid)
                                         web_sku                         = try(coalesce(var.webdispatcher_server_sku, var.application_tier.web_sku), "")
                                         web_use_ppg                     = (var.webdispatcher_server_count) > 0 ? var.use_scalesets_for_deployment ? (
                                                                             false) : (
@@ -232,6 +234,7 @@ locals {
                                                                             false) : (
                                                                             var.webdispatcher_server_use_avset
                                                                           )
+
                                         deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
                                         user_assigned_identity_id       = var.user_assigned_identity_id
                                       }

@@ -5,6 +5,12 @@ variable "application_tier"                      {
                                                     )
                                                     error_message = "The sid must be specified in the sid field."
                                                   }
+                                       validation {
+                                                    condition = (
+                                                      var.application_tier.webdispatcher_count > 0 ? length(trimspace(try(var.application_tier.web_sid, ""))) == 3 : true
+                                                    )
+                                                    error_message = "The web dispatcher sid must be specified in the web_sid field."
+                                                  }
 
                                        validation {
                                                     condition = (

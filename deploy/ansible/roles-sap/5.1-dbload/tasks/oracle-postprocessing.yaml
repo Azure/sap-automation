@@ -104,6 +104,10 @@
   block:
 
     - name:                            "ORACLE Post Processing: Reboot after the Enabling HugePages"
+      ansible.builtin.debug:
+        msg:                           "Reboot after the Enabling HugePages"
+
+    - name:                            "ORACLE Post Processing: Reboot after the Enabling HugePages"
       become:                          true
       ansible.builtin.reboot:
         reboot_timeout:                300

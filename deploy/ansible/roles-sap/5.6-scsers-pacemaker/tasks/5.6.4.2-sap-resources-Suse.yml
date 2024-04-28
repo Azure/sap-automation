@@ -27,7 +27,7 @@
     #   ansible.builtin.command:         crm configure property maintenance-mode=true
 
     - name:                            "5.6 SCSERS - SUSE - ENSA1 - Configure SAP ASCS/SCS resources"
-      ansible.builtin.command: >
+      ansible.builtin.shell: >
                                        crm configure primitive rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
                                        operations \$id=rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }}-operations \
                                        op monitor interval=11 timeout=60 on-fail=restart \
@@ -40,7 +40,7 @@
       failed_when:                     ascs_rsc_sap.rc > 1
 
     - name:                            "5.6 SCSERS - SUSE - ENSA1 - Configure SAP ERS resources"
-      ansible.builtin.command: >
+      ansible.builtin.shell: >
                                        crm configure primitive rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} SAPInstance \
                                        operations \$id=rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }}-operations \
                                        op monitor interval=11 timeout=60 on-fail=restart \
@@ -139,7 +139,7 @@
       failed_when:                     co_location.rc > 1
 
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Bring primary node online "
-      ansible.builtin.command:         crm node online {{ primary_instance_name }}
+      ansible.builtin.shell:           crm node online {{ primary_instance_name }}
 
     # - name:                            "5.6 SCSERS - SUSE - ENSA2 - Set the Cluster out of maintenance mode"
     #   ansible.builtin.command:         crm configure property maintenance-mode=false
@@ -192,8 +192,8 @@
 
 - name:                                "5.6 SCSERS - SUSE - Reboot the primary/secondary instance"
   ansible.builtin.reboot:
-    reboot_timeout:                    300
-    post_reboot_delay:                 300
+    reboot_timeout:                    150
+    post_reboot_delay:                 150
 
 - name:                                "5.6 SCSERS - SUSE - Set the Cluster out of maintenance mode"
   ansible.builtin.command:             crm configure property maintenance-mode=false
@@ -209,6 +209,12 @@
   when:
     - inventory_hostname == primary_instance_name
     # - ensa2 | default(false)
+
+- name:                                "5.6 SCSERS: Set Resources Flag"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_resources_deployment.txt"
+    state:                             touch
+    mode:                              0755
 
 # End of SAP Resources Cluster configuration
 ...
