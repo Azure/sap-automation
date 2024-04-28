@@ -270,14 +270,19 @@
     - name:                            "ORACLE: Find MOPatch"
       ansible.builtin.fail:
         msg:                           "Too many MOPatches found"
-      when:                            mopatch_directory.matched != 1
+      when:                            mopatch_directory.matched > 1
+
+    - name:                            "ORACLE: Find MOPatch"
+      ansible.builtin.fail:
+        msg:                           "No MOPatches found"
+      when:                            mopatch_directory.matched == 0
 
     - name:                            "ORACLE: MOPatch path"
       ansible.builtin.set_fact:
         mopatch_path:                  "{{ mopatch_directory.files[0].path }}"
       when:                            mopatch_directory.matched == 1
 
-    - name:                            "ORACLE: Check if 'OPatch.bck' exists"
+    - name:                            "ORACLE: Check if 'OPatch.bck' exists in /oracle/{{ db_sid | upper }}/{{ ora_version }}"
       ansible.builtin.stat:
         path:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck
       register:                        opatch_stat
@@ -291,14 +296,14 @@
       when:
         - not opatch_stat.stat.exists
 
-    - name:                            "ORACLE: remove old OPatch"
+    - name:                            "ORACLE: remove old OPatch from /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch "
       ansible.builtin.file:
         path:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch
         state:                         absent
       when:
         - not opatch_stat.stat.exists
 
-    - name:                            "ORACLE: copy OPatch"
+    - name:                            "ORACLE: copy OPatch from {{ target_media_location }}/SBP/OPATCH/OPatch to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
       # become:                              true
       # become_user:                         "oracle"
       ansible.builtin.copy:
@@ -309,9 +314,7 @@
         owner:                         oracle
         group:                         oinstall
 
-    - name:                            "ORACLE: copy MOPatch"
-      # become:                              true
-      # become_user:                         "oracle"
+    - name:                            "ORACLE: copy MOPatch from {{ mopatch_path }} to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
       ansible.builtin.copy:
         src:                           "{{ mopatch_path }}"
         dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}
@@ -330,7 +333,7 @@
 
     - name:                            "ORACLE: Post Processing - SBP Patching - progress"
       ansible.builtin.debug:
-        msg:                           "Running SBP Patching, please wait"
+        msg:                           "Running SBP Patching using ({{ oracle_sbp_patch }}), please wait"
 
     - name:                            "ORACLE: Post Processing - SBP Patching"
       become:                          true
