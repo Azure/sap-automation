@@ -1,4 +1,15 @@
 
+
+data "azurerm_netapp_pool" "workload_netapp_pool" {
+  provider                             = azurerm.main
+  count                                = var.NFS_provider == "ANF" ? 1 : 0
+  name                                 = local.ANF_pool_settings.pool_name
+  resource_group_name                  = local.ANF_pool_settings.resource_group_name
+  account_name                         = local.ANF_pool_settings.account_name
+
+}
+
+
 #######################################4#######################################8
 #                                                                              #
 #                             Azure NetApp Volumes                             #
@@ -48,7 +59,7 @@ resource "azurerm_netapp_volume" "sapmnt" {
                      }
 
   storage_quota_in_gb                  = var.hana_ANF_volumes.sapmnt_volume_size
-  throughput_in_mibps                  = var.hana_ANF_volumes.sapmnt_volume_throughput
+  throughput_in_mibps                  = data.azurerm_netapp_pool.workload_netapp_pool[0].qos_type == "Auto" ? null : var.hana_ANF_volumes.sapmnt_volume_throughput
 
   zone                                 = length(local.scs_zones) > 0  && var.hana_ANF_volumes.use_zones ? try(local.scs_zones[0], null) : null
 
