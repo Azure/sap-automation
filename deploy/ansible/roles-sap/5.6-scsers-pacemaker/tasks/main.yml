@@ -69,9 +69,9 @@
   ansible.builtin.debug:
     msg:
       - "SAP components installed on the cluster: {{ SAP_installed }}"
-      - "SCS installed on the cluster: {{ hostvars[primary_instance_name]['scs_installed'] }}"
-      - "ERS installed on the cluster: {{ hostvars[secondary_instance_name]['ers_installed'] }}"
-      - "SAP resources installed on the cluster: {{ hostvars[primary_instance_name]['sap_resources_installed'] }}"
+      - "SCS installed on the cluster: {{ hostvars[primary_instance_name]['scs_installed'] | default(false) }}"
+      - "ERS installed on the cluster: {{ hostvars[secondary_instance_name]['ers_installed'] | default(false) }}"
+      - "SAP resources installed on the cluster: {{ hostvars[primary_instance_name]['sap_resources_installed'] | default(false) }}"
 
 - name:                                "5.6 SCSERS Pacemaker - provision"
   ansible.builtin.include_tasks:
