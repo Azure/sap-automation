@@ -28,7 +28,7 @@ resource "azurerm_netapp_volume" "hanadata" {
   network_features                     = "Standard"
   protocols                            = ["NFSv4.1"]
   storage_quota_in_gb                  = var.hana_ANF_volumes.data_volume_size
-  throughput_in_mibps                  = var.hana_ANF_volumes.data_volume_throughput
+  throughput_in_mibps                  = upper(local.ANF_pool_settings.qos_type) == "AUTO" ? null : var.hana_ANF_volumes.data_volume_throughput
 
   snapshot_directory_visible           = true
 
@@ -91,7 +91,7 @@ resource "azurerm_netapp_volume" "hanalog" {
   network_features                     = "Standard"
   protocols                            = ["NFSv4.1"]
   storage_quota_in_gb                  = var.hana_ANF_volumes.log_volume_size
-  throughput_in_mibps                  = var.hana_ANF_volumes.log_volume_throughput
+  throughput_in_mibps                  = upper(local.ANF_pool_settings.qos_type) == "AUTO" ? null : var.hana_ANF_volumes.log_volume_throughput
   snapshot_directory_visible           = true
 
   tags                                 = var.tags
@@ -150,7 +150,7 @@ resource "azurerm_netapp_volume" "hanashared" {
   network_features                     = "Standard"
   protocols                            = ["NFSv4.1"]
   storage_quota_in_gb                  = var.hana_ANF_volumes.shared_volume_size
-  throughput_in_mibps                  = var.hana_ANF_volumes.shared_volume_throughput
+  throughput_in_mibps                  = upper(local.ANF_pool_settings.qos_type) == "AUTO" ? null : var.hana_ANF_volumes.shared_volume_throughput
 
 
   zone = local.db_zone_count > 0 && var.hana_ANF_volumes.use_zones ? try(local.zones[count.index], null) : null
