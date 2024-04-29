@@ -39,7 +39,7 @@
 
 - name:                                "DBLoad (sharedHome): START THE LISTENER"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               lsnrctl start
   args:
     creates:                           "/etc/sap_deployment_automation/startlsnrctl.txt"

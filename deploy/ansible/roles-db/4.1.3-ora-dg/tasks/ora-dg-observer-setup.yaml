@@ -73,7 +73,7 @@
 
 - name:                                "Oracle Data Guard - Observer: Execute RUNINSTALLER"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               ./RUNINSTALLER  -ignorePrereqWarnings -silent
   register:                            orainstall_results
   failed_when:                         orainstall_results.rc >= 3
@@ -99,7 +99,7 @@
 
 - name:                                "Oracle Data Guard - Observer: Create oracle_installed.txt"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/oracle_installed.txt
     state:                             touch
@@ -132,7 +132,7 @@
 
 - name:                                "Oracle Data Guard - Observer: Add environment variables to the Bash profile"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     path:                              /home/oracle/.bashrc
     insertafter:                       'fi '
@@ -149,7 +149,7 @@
 
 - name:                                "Oracle Data Guard - Observer: create .cshrc"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /home/oracle/.cshrc
@@ -171,7 +171,7 @@
 # TNSPING FOR PRIMARY
 - name:                                "Oracle Data Guard - Observer: Run tnsping on Primary"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               tnsping {{ db_sid | upper }}
   register:                            tnsping_primary_results
   args:
@@ -193,7 +193,7 @@
 # TNSPING FOR SECONDARY
 - name:                                "Oracle Data Guard - Observer: Run tnsping on Secondary"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               tnsping {{ db_sid | upper }}_STDBY
   register:                            tnsping_secondary_results
   args:
@@ -224,7 +224,7 @@
 
     - name:                            "Oracle Data Guard - Observer: Enable FSFO template"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.template:
         backup:                        true
         src:                           enablefsfo.j2
@@ -234,7 +234,7 @@
 
     - name:                            "Oracle Data Guard - Observer: Prepare for FSFO"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           dgmgrl  sys/{{ main_password }}@{{ db_sid | upper }} @enablefsfo.dgmgrl
       register:                        fsfo_results
       failed_when:                     fsfo_results.rc > 0
@@ -257,7 +257,7 @@
 
     - name:                            "Oracle Data Guard - Observer: Create fsfo_prepared.txt"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/fsfo_prepared.txt
         state:                         touch
@@ -266,7 +266,7 @@
 
     - name:                            "Oracle Data Guard - Observer: Enable FSFO"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           dgmgrl sys/{{ main_password }}@{{ db_sid | upper }}  "ENABLE FAST_START FAILOVER"
       register:                        fsfo_enable_results
       failed_when:                     fsfo_enable_results.rc > 0
@@ -290,7 +290,7 @@
 
     - name:                            "Oracle Data Guard - Observer: Create fsfo_enabled.txt"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/fsfo_enabled.txt
         state:                         touch
@@ -299,7 +299,7 @@
 
     - name:                            "Oracle Data Guard - Observer: Start FSFO Observer"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           dgmgrl  sys/{{ main_password }}@{{ db_sid | upper }}  "START OBSERVER" &
       register:                        observer_results
       failed_when:                     observer_results.rc > 0
@@ -322,7 +322,7 @@
 
     - name:                            "Oracle Data Guard - Observer: Create observer_started.txt"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/observer_started.txt
         state:                         touch

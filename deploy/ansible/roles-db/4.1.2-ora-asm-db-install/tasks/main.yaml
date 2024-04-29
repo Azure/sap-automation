@@ -79,7 +79,7 @@
 
     - name:                            "Oracle ASM: Execute RUNINSTALLER PreCheck"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           ./RUNINSTALLER -ohcheck -silent
       register:                        oraprecheck_results
       failed_when:                     oraprecheck_results.rc > 3
@@ -122,7 +122,7 @@
 
     - name:                            "Oracle ASM: Execute RUNINSTALLER"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           ./RUNINSTALLER -silent
       register:                        orainstaller_results
       failed_when:                     orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
@@ -456,7 +456,7 @@
     #   block:
     #    - name:                            "Oracle ASM: Post Processing - GRID SBP Patching"
     #      become:                          true
-    #      become_user:                     "oracle"
+    #      become_user:                     "{{ oracle_user_name }}"
     #      ansible.builtin.shell:          $OHGRID/MOPatch/mopatch.sh -v -s {{ oraclegrid_sbp_patch }}
     #      environment:
     #        OHGRID:                         /oracle/GRID/{{ ora_version }}
@@ -474,7 +474,7 @@
     #   rescue:
     #    - name:                             "Remove the Pre-install.txt File for preparing Re-run"
     #      become:                          true
-    #      become_user:                     "oracle"
+    #      become_user:                     "{{ oracle_user_name }}"
     #      ansible.builtin.shell:           rm -rf gridpreinstall.txt
     #      args:
     #        chdir:                         /etc/sap_deployment_automation/{{ db_sid | upper }}
@@ -482,7 +482,7 @@
 
     #    - name:                             "Remove the Link Files created in the previous run"
     #      become:                          true
-    #      become_user:                     "oracle"
+    #      become_user:                     "{{ oracle_user_name }}"
     #      ansible.builtin.shell:           rm -rf link*
     #      register:                        removelinkfiles
     #      failed_when:                     removelinkfiles.rc >= 2
@@ -504,7 +504,7 @@
 
     #    - name:                            "Oracle ASM: Post Processing - GRID SBP Patching"
     #      become:                          true
-    #      become_user:                     "oracle"
+    #      become_user:                     "{{ oracle_user_name }}"
     #      ansible.builtin.shell:            $OHGRID/MOPatch/mopatch.sh -v -s {{ oraclegrid_sbp_patch }}
     #      environment:
     #        OHGRID:                         /oracle/GRID/{{ ora_version }}
@@ -627,7 +627,7 @@
 
     - name:                            "Oracle ASM: copy OPatch"
       # become:                              true
-      # become_user:                         "oracle"
+      # become_user:                         "{{ oracle_user_name }}"
       ansible.builtin.copy:
         src:                           "{{ target_media_location }}/SBP/OPATCH/OPatch"
         dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}
@@ -638,7 +638,7 @@
 
     - name:                            "Oracle ASM: copy MOPatch"
       # become:                              true
-      # become_user:                         "oracle"
+      # become_user:                         "{{ oracle_user_name }}"
       ansible.builtin.copy:
         src:                           "{{ mopatch_path }}"
         dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}
@@ -662,7 +662,7 @@
 
     - name:                            "Oracle ASM: Post Processing - SBP Patching"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           $IHRDBMS/MOPatch/mopatch.sh -v -s {{ oracle_sbp_patch }}
       environment:
         DB_SID:                        "{{ db_sid }}"
@@ -719,7 +719,7 @@
 
     - name:                            "Oracle ASM: environment variables to the Bash profile"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.blockinfile:
         path:                          /home/oracle/.bashrc
         insertafter:                   'fi '
@@ -736,7 +736,7 @@
 
     - name:                            "Oracle ASM: create .cshrc"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.blockinfile:
         create:                        true
         path:                          /home/oracle/.cshrc
