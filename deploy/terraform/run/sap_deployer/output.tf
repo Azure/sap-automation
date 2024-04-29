@@ -52,6 +52,11 @@ output "deployer_msi_id"                         {
                                                    value = module.sap_deployer.deployer_uai.principal_id
                                                  }
 
+output "deployer_user_assigned_identity"         {
+                                                   description = "The Object ID of the deployer MSI"
+                                                   value = module.sap_deployer.deployer_user_assigned_identity
+                                                 }
+
 output "deployer_public_ip_address"              {
                                                    description = "Public IP address of the deployer"
                                                    value = module.sap_deployer.deployer_public_ip_address

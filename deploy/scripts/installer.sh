@@ -673,7 +673,20 @@ if [ 1 != $return_value ] ; then
                       az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID --value $webapp_id --output none --only-show-errors
                   fi
                 fi
+
+                msi_object_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
+
+                if [ -n "${msi_object_id}" ] ; then
+                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "MSI_ID.value")
+                  if [ -z ${az_var} ]; then
+                      az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name MSI_ID --value $msi_object_id --output none --only-show-errors
+                  else
+                      az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name MSI_ID --value $msi_object_id --output none --only-show-errors
+                  fi
                 fi
+
+
+            fi
 
         fi
 
