@@ -218,7 +218,6 @@ stages:
                                     exit 2
                                 fi
                                 echo 'Deployer Agent Pool found' $POOL_NAME
-                                export TF_VAR_agent_pool=$(POOL)
 
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
@@ -637,8 +636,6 @@ stages:
                                   echo "##vso[task.logissue type=warning]Agent Pool $(POOL) does not exist."
                               fi
 
-                              export TF_VAR_agent_pool=$(POOL)
-
                           fi
 
                           if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
@@ -858,6 +855,7 @@ stages:
                       TF_IN_AUTOMATION:               true
                       TF_LOG:                         $(TF_LOG)
                       TF_VAR_agent_ado_url:           $(System.CollectionUri)
+                      TF_VAR_agent_pool:              $(POOL)
                       TF_VAR_ansible_core_version:    $(ansible_core_version)
                       TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
                       TF_VAR_deployer_kv_user_arm_id: $(Deployer_Key_Vault)
