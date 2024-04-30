@@ -219,7 +219,7 @@ stages:
                                 fi
                                 echo 'Deployer Agent Pool found' $POOL_NAME
                                 export TF_VAR_agent_pool=$(POOL)
-                                export TF_VAR_agent_pat=$(PAT)
+
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
                                 pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
@@ -642,7 +642,6 @@ stages:
                               fi
 
                               export TF_VAR_agent_pool=$(POOL)
-                              export TF_VAR_agent_pat=$(PAT)
 
                           fi
 
