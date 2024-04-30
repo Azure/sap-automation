@@ -629,16 +629,12 @@ stages:
 
                           echo -e "$green--- Deploy the Control Plane ---$reset"
 
-                          if [ -n $(PAT) ]; then
-                              echo 'Deployer Agent PAT is defined'
-                          fi
-
                           if [ -n $(POOL) ]; then
                               echo 'Deployer Agent Pool' $(POOL)
                               POOL_NAME=$(az pipelines pool list --query "[?name=='$(POOL)'].name | [0]")
 
                               if [ ${#POOL_NAME} -eq 0 ]; then
-                                  echo "##vso[task.logissue type=warning]Agent Pool $TF_VAR_agent_pool does not exist."
+                                  echo "##vso[task.logissue type=warning]Agent Pool $(POOL) does not exist."
                               fi
 
                               export TF_VAR_agent_pool=$(POOL)
