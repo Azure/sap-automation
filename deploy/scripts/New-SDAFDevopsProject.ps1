@@ -29,7 +29,7 @@ $Workload_zoneSubscriptionName = $Env:SDAF_WorkloadZoneSubscriptionName
 if ($IsWindows) { $pathSeparator = "\" } else { $pathSeparator = "/" }
 #endregion
 
-$versionLabel = "v3.11.0.1"
+$versionLabel = "v3.11.0.2"
 
 az logout
 
