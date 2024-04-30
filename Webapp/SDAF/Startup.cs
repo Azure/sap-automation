@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using System;
 
 namespace AutomationForm
 {
@@ -40,7 +41,12 @@ namespace AutomationForm
       {
         builder.AddClient<ArmClient, ArmClientOptions>((provider, credential, options) =>
           {
-            return new ArmClient(new DefaultAzureCredential());
+            return new ArmClient(new DefaultAzureCredential(
+              new DefaultAzureCredentialOptions
+              {
+                TenantId= Environment.GetEnvironmentVariable("AZURE_TENANT_ID"),
+                ManagedIdentityClientId = Environment.GetEnvironmentVariable("OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID")
+              }));
           });
       });
 
