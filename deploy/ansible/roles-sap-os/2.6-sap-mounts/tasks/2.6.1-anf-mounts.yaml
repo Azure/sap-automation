@@ -207,7 +207,7 @@
       loop:
         - { path: '/saptmp/sapmnt{{ sap_sid | upper }}'                              }
         - { path: '/saptmp/usrsap{{ sap_sid | upper }}'                              }
-        - { path: '/saptmp/usrsap{{ sap_sid | upper }}ascs{{ scs_instance_number }}' }
+        - { path: '/saptmp/usrsap{{ sap_sid | upper }}{{ instance_type | lower }}{{ scs_instance_number }}' }
         - { path: '/saptmp/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}'  }
         - { path: '/saptmp/usrsap{{ sap_sid | upper }}sys'                           }
 
@@ -232,7 +232,7 @@
       loop:
         - { path: '/saptmp/sapmnt{{ sap_sid | upper }}'                              }
         - { path: '/saptmp/usrsap{{ sap_sid | upper }}'                              }
-        - { path: '/saptmp/usrsap{{ sap_sid | upper }}ascs{{ scs_instance_number }}' }
+        - { path: '/saptmp/usrsap{{ sap_sid | upper }}{{ instance_type | lower }}{{ scs_instance_number }}' }
         - { path: '/saptmp/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}'  }
         - { path: '/saptmp/usrsap{{ sap_sid | upper }}sys'                           }
 
