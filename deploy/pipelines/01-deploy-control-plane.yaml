@@ -544,6 +544,7 @@ stages:
                           cd ${CONFIG_REPO_PATH}
                           mkdir -p .sap_deployment_automation
                           echo SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH >.sap_deployment_automation/config
+                          export SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH
 
                       echo -e "$green--- File Validations ---$reset"
                           if [ ! -f DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
