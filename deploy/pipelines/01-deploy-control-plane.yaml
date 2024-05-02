@@ -420,6 +420,9 @@ stages:
                           echo "Project:        $(System.TeamProject)"
                           echo "Deployer Folder $(deployerfolder)"
                           echo "Deployer TFvars $(deployerconfig)"
+                          echo "Library Folder  $(libraryfolder)"
+                          echo "Library TFvars  $(libraryconfig)"
+                          echo ""
                           echo "Azure CLI version:"
                           echo "-------------------------------------------------"
                           az --version
@@ -427,7 +430,7 @@ stages:
                           cd $CONFIG_REPO_PATH
                           git checkout -q $(Build.SourceBranchName)
 
-                          ls -lart ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
+                          cat ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig)
 
                       echo -e "$green--- Configure devops CLI extension ---$reset"
                           az config set extension.use_dynamic_install=yes_without_prompt
@@ -536,22 +539,16 @@ stages:
                       echo -e "$green--- Update .sap_deployment_automation/config as SAP_AUTOMATION_REPO_PATH can change on devops agent ---$reset"
                           cd ${CONFIG_REPO_PATH}
                           mkdir -p .sap_deployment_automation
-                          pwd
-                          ls -lart
-
-                          cd DEPLOYER
-                          ls -lart
-                          cd $(deployerfolder)
-                          ls -lart
+                          cd ${CONFIG_REPO_PATH}
 
                       echo -e "$green--- File Validations ---$reset"
-                          if [ ! -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
+                          if [ ! -f DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
                               echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found ---$reset"
                               echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found."
                               exit 2
                           fi
 
-                          if [ ! -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig) ]; then
+                          if [ ! -f LIBRARY/$(libraryfolder)/$(libraryconfig) ]; then
                               echo -e "$boldred--- File ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)  was not found ---$reset"
                               echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig) was not found."
                               exit 2
