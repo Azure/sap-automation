@@ -50,6 +50,9 @@ do
 done
 
 
+echo "Parameter file:    $parameterfile"
+echo "Current directory: $(pwd)"
+
 tfstate_resource_id=""
 tfstate_parameter=""
 
