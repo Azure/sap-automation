@@ -75,11 +75,7 @@ stages:
 
                 az config set extension.use_dynamic_install=yes_without_prompt --output none
 
-                export AZURE_DEVOPS_EXT_PAT=$PAT
-
                 az extension add --name azure-devops --output none
-
-                export AZURE_DEVOPS_EXT_PAT=$PAT
 
                 HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
                 cd $HOME_CONFIG; mkdir -p .sap_deployment_automation
@@ -124,10 +120,19 @@ stages:
                     NETWORK=$(grep "^network_logical_name" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
                     SID=$(grep "^sid" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
 
-                echo "Environment: $ENVIRONMENT"
-                echo "Location:    $LOCATION"
-                echo "Network:     $NETWORK"
-                echo "SID:         $SID"
+                echo "Environment:           $ENVIRONMENT"
+                echo "Location:              $LOCATION"
+                echo "Network:               $NETWORK"
+                echo "SID:                   $SID"
+                echo "System TFvars          $sap_system_configuration"
+                echo ""
+                echo "Agent:                 $(this_agent)"
+                echo "Organization:          $(System.CollectionUri)"
+                echo "Project:               $(System.TeamProject)"
+                echo ""
+                echo "Azure CLI version:"
+                echo "-------------------------------------------------"
+                az --version
 
                 ENVIRONMENT_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ;
                           LOCATION_CODE=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ;
@@ -420,7 +425,7 @@ stages:
             env:
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}
               LOGON_USING_SPN:          $(Logon_Using_SPN)
-              PAT:                      $(WZ_PAT)
+              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               TEST_ONLY:                ${{ parameters.test }}

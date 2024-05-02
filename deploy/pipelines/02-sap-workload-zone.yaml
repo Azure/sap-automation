@@ -261,12 +261,12 @@ stages:
                 echo "Network(filename):     $NETWORK_IN_FILENAME"
                 echo "Deployer Environment   $(deployer_environment)"
                 echo "Deployer Region        $(deployer_region)"
+                echo "Workload TFvars        $workload_zone_configuration_file"
                 echo ""
 
                 echo "Agent:                 $(this_agent)"
                 echo "Organization:          $(System.CollectionUri)"
                 echo "Project:               $(System.TeamProject)"
-                echo "Workload TFvars        $workload_zone_configuration_file"
                 echo ""
                 echo "Azure CLI version:"
                 echo "-------------------------------------------------"
