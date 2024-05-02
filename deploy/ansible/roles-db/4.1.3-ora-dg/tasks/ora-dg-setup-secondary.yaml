@@ -301,7 +301,6 @@
       ansible.builtin.file:
         path:                          "{{ item.directory_to_empty }}"
         state:                         absent
-        recurse:                       true
       loop:
         - { directory_to_empty: '/oracle/{{ db_sid | upper }}/sapdata1' }
         - { directory_to_empty: '/oracle/{{ db_sid | upper }}/sapdata2' }
