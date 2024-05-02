@@ -531,6 +531,11 @@ stages:
                           pwd
                           ls -lart
 
+                          cd DEPLOYER
+                          ls -lart
+                          cd $(deployerfolder)
+                          ls -lart
+
                       echo -e "$green--- File Validations ---$reset"
                           if [ ! -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
                               echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found ---$reset"
