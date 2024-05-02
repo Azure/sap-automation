@@ -390,7 +390,7 @@ stages:
             workspace:
                 clean: all
             steps:
-                - task: PostBuildCleanup
+                - task: PostBuildCleanup@4
                 - template: templates\download.yaml
                   parameters:
                     getLatestFromBranch: true
