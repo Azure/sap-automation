@@ -404,8 +404,8 @@ stages:
                           boldred="\e[1;31m"
                           cyan="\e[1;36m"
 
-                          ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment ${ENVIRONMENT}
-                          LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ;    echo Location ${LOCATION}
+                          ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs)
+                          LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs)
                           deployer_environment_file_name=${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                           file_deployer_tfstate_key=$(deployerfolder).tfstate
                           file_key_vault=""
@@ -413,9 +413,15 @@ stages:
                           file_REMOTE_STATE_RG=$(deployerfolder)
 
                       echo -e "$green--- Information ---$reset"
-                          echo "Agent:        " $(this_agent)
-                          echo "Organization: " $(System.CollectionUri)
-                          echo "Project:      " $(System.TeamProject)
+                          echo "Environment:    ${ENVIRONMENT}"
+                          echo "Location:       ${LOCATION}"
+                          echo "Agent:          $(this_agent)"
+                          echo "Organization:   $(System.CollectionUri)"
+                          echo "Project:        $(System.TeamProject)"
+                          echo "Deployer Folder $(deployerfolder)"
+                          echo "Deployer TFvars $(deployerfolder).tfvars"
+                          echo "Azure CLI version:"
+                          echo "-------------------------------------------------"
                           az --version
                       echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
                           cd $CONFIG_REPO_PATH
