@@ -419,13 +419,15 @@ stages:
                           echo "Organization:   $(System.CollectionUri)"
                           echo "Project:        $(System.TeamProject)"
                           echo "Deployer Folder $(deployerfolder)"
-                          echo "Deployer TFvars $(deployerfolder).tfvars"
+                          echo "Deployer TFvars $(deployerconfig)"
                           echo "Azure CLI version:"
                           echo "-------------------------------------------------"
                           az --version
                       echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
                           cd $CONFIG_REPO_PATH
                           git checkout -q $(Build.SourceBranchName)
+
+                          ls -lart ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
 
                       echo -e "$green--- Configure devops CLI extension ---$reset"
                           az config set extension.use_dynamic_install=yes_without_prompt
