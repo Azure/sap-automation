@@ -24,7 +24,7 @@
           register: azure_metadata
 
         - name:                            "Set ResourceID for SCS"
-          set_fact:
+          ansible.builtin.set_fact:
             subscription_id:               "{{ azure_metadata.json.compute.subscriptionId }}"
             resource_group_name:           "{{ azure_metadata.json.compute.resourceGroupName }}"
             scs_resource_id:               "{{ azure_metadata.json.compute.resourceId }}"
@@ -35,7 +35,7 @@
             - not scs_high_availability
 
         - name:                            "Set ResourceID for DB"
-          set_fact:
+          ansible.builtin.set_fact:
             db_resource_id:                "{{ azure_metadata.json.compute.resourceId }}"
             db_physical_hostname:          "{{ ansible_hostname }}"
             db_virtual_hostname:           "{{ virtual_host }}"
@@ -44,7 +44,7 @@
             - not db_high_availability
 
         - name:                            "Set ResourceID for PAS"
-          set_fact:
+          ansible.builtin.set_fact:
             pas_resource_id:               "{{ azure_metadata.json.compute.resourceId }}"
             pas_physical_hostname:         "{{ ansible_hostname }}"
             pas_virtual_hostname:          "{{ virtual_host }}"
@@ -52,7 +52,7 @@
             - "'pas' in supported_tiers"
 
         - name:                            "Set ResourceID for APP"
-          set_fact:
+          ansible.builtin.set_fact:
             app_resource_id:               "{{ azure_metadata.json.compute.resourceId }}"
             app_physical_hostname:         "{{ ansible_hostname }}"
             app_virtual_hostname:          "{{ virtual_host }}"
@@ -96,7 +96,7 @@
             - always
 
         - name:                                "Set facts from other hosts"
-          set_fact:
+          ansible.builtin.set_fact:
             "{{ item.key }}": "{{ hostvars[groups[sap_sid | upper + '_' + item.value][0]][item.key] }}"
           loop:
             - { key: 'subscription_id',         value: 'SCS' }

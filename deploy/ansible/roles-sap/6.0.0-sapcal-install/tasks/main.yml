@@ -6,7 +6,7 @@
     var: sap_cal_product_id
 
 - name:                             "Retrieve SAP-CAL Product Id"
-  set_fact:
+  ansible.builtin.set_fact:
     product_id: "{{ sap_cal_product | selectattr('name', 'equalto', sap_cal_product_id) | map(attribute='id') | first }}"
 
 - name:                             "Print SAP-CAL Product Id"
