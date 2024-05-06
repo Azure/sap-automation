@@ -81,7 +81,7 @@
 
 - name:                                "APP Install: register variables"
   ansible.builtin.set_fact:
-    app_bom_id:                        "{{ bom.product_ids.app }}"
+    app_bom_id:                        "{% if database_high_availability %}{{ bom.product_ids.app_ha | default(bom.product_ids.app) }}{% else %}{{ bom.product_ids.app }}{% endif %}"
 
 - name:                                "APP Install: Check if the DB load balancer port is available and listening"
   ansible.builtin.wait_for:
@@ -182,10 +182,6 @@
         virt_do_not_resolve_hostname:  "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
         # support older app inifile templates where hdb_instance_number was used
         hdb_instance_number:           "{{ db_instance_number }}"
-
-    - name:                            "App Install: register variables"
-      ansible.builtin.set_fact:
-        app_bom_id:                    "{{ bom.product_ids.app }}"
 
     - name:                            "App Install: install variables"
       ansible.builtin.debug:

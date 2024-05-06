@@ -1,7 +1,14 @@
 using AutomationForm.Models;
+using Azure.Core;
+using Azure.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
+using Microsoft.VisualStudio.Services.Client;
+using Microsoft.VisualStudio.Services.Common;
+using Microsoft.VisualStudio.Services.TenantPolicy;
+using Microsoft.VisualStudio.Services.WebApi;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -10,6 +17,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -21,36 +29,58 @@ namespace AutomationForm.Controllers
     private readonly string collectionUri;
     private readonly string project;
     private readonly string repositoryId;
-    private readonly string PAT;
+    // private readonly string PAT;
     private readonly string branch;
     private readonly string sdafGeneralId;
     private readonly string sdafControlPlaneEnvironment;
     private readonly string sdafControlPlaneLocation;
+    private readonly string tenantId;
+    private readonly string managedIdentityClientId;
+
+    private readonly TokenCredential credential;
 
     private readonly string sampleUrl = "https://api.github.com/repos/Azure/SAP-automation-samples";
+
+    
+
     private HttpClient client;
+
     public RestHelper(IConfiguration configuration)
     {
       collectionUri = configuration["CollectionUri"];
       project = configuration["ProjectName"];
       repositoryId = configuration["RepositoryId"];
-      PAT = configuration["PAT"];
+//      PAT = configuration["PAT"];
       branch = configuration["SourceBranch"];
       sdafGeneralId = configuration["SDAF_GENERAL_GROUP_ID"];
       sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
       sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
+      tenantId = configuration["AZURE_TENANT_ID"];
+      managedIdentityClientId = configuration["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"];
+
+      credential =
+            new DefaultAzureCredential(
+                new DefaultAzureCredentialOptions
+                {
+                  TenantId = tenantId,
+                  ManagedIdentityClientId = managedIdentityClientId
+                }); ;
+
+
+      var tokenRequestContext = new TokenRequestContext(VssAadSettings.DefaultScopes);
+      var token = credential.GetToken(tokenRequestContext, CancellationToken.None);
+
+      var accessToken = token.Token;
+      var vssToken = new VssAadToken("Bearer", accessToken);
 
       client = new HttpClient();
-
       client.DefaultRequestHeaders.Accept.Add(
           new MediaTypeWithQualityHeaderValue("application/json"));
-
-      client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
-          Convert.ToBase64String(
-              System.Text.ASCIIEncoding.ASCII.GetBytes(
-                  string.Format("{0}:{1}", "", PAT))));
+      client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+          accessToken);
 
       client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
+
     }
 
     // Get ADO project id
@@ -405,6 +435,11 @@ namespace AutomationForm.Controllers
 
       }
     }
+
+    public static List<ProductInfoHeaderValue> AppUserAgent { get; } = new()
+        {
+            new ProductInfoHeaderValue("SDAF")
+        };
 
   }
 }

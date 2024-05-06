@@ -25,14 +25,14 @@
       tags:
         - always
 
-    - name:                            "0.0 Validations - ensure jmespath is installed in the playbook python"
+    - name:                            "0.0 Validations - Ensure jmespath is installed on the controller"
       ansible.builtin.pip:
         name:                          jmespath
         state:                         present
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - ensure netaddr is installed in the controller"
+    - name:                            "0.0 Validations - Ensure netaddr is installed in the controller"
       ansible.builtin.pip:
         name:                          netaddr
         state:                         present
@@ -417,12 +417,11 @@
 
     - name:                            "0.0 Validations - Check for free disk space on deployer"
       ansible.builtin.assert:
-        that:                          (mnt_free_diskspace | first | int / (1024 * 1024 * 1024) | int) > (40 )
+        that:                          (mnt_free_diskspace | first | int / (1024 * 1024 * 1024) | int) > ( deployer_free_temp_disk_space )
         fail_msg:                      "The deployer needs at least {{ deployer_free_temp_disk_space }} GB of free disk space in /mnt"
       when:
         - mnt_free_diskspace | length > 0
       tags:
-                                       - always
                                        - 0.0-agent-diskspace
 
 
@@ -472,12 +471,6 @@
           - "Distro family:        {{ distro_family }}"
           - "Distribution id:      {{ distribution_id }}"
           - "Distribution full id: {{ distribution_full_id }}"
-      tags:
-                                       - always
-
-    - name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
-      ansible.builtin.set_fact:
-        python_version: "python3"
       tags:
                                        - always
 

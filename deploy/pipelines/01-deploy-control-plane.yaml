@@ -218,8 +218,7 @@ stages:
                                     exit 2
                                 fi
                                 echo 'Deployer Agent Pool found' $POOL_NAME
-                                export TF_VAR_agent_pool=$(POOL)
-                                export TF_VAR_agent_pat=$(PAT)
+
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
                                 pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
@@ -406,8 +405,8 @@ stages:
                           boldred="\e[1;31m"
                           cyan="\e[1;36m"
 
-                          ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment ${ENVIRONMENT}
-                          LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ;    echo Location ${LOCATION}
+                          ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs)
+                          LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs)
                           deployer_environment_file_name=${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
                           file_deployer_tfstate_key=$(deployerfolder).tfstate
                           file_key_vault=""
@@ -415,13 +414,28 @@ stages:
                           file_REMOTE_STATE_RG=$(deployerfolder)
 
                       echo -e "$green--- Information ---$reset"
-                          echo "Agent:        " $(this_agent)
-                          echo "Organization: " $(System.CollectionUri)
-                          echo "Project:      " $(System.TeamProject)
+                          echo "Environment:    ${ENVIRONMENT}"
+                          echo "Location:       ${LOCATION}"
+                          echo "Agent:          $(this_agent)"
+                          echo "Organization:   $(System.CollectionUri)"
+                          echo "Project:        $(System.TeamProject)"
+                          echo "Deployer Folder $(deployerfolder)"
+                          echo "Deployer TFvars $(deployerconfig)"
+                          echo "Library Folder  $(libraryfolder)"
+                          echo "Library TFvars  $(libraryconfig)"
+                          echo ""
+                          echo "Azure CLI version:"
+                          echo "-------------------------------------------------"
                           az --version
                       echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
                           cd $CONFIG_REPO_PATH
                           git checkout -q $(Build.SourceBranchName)
+
+                          deployer_configfile="${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig)"
+                          cat "${deployer_configfile}"
+
+                          library_configfile="${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)"
+                          cat "${library_configfile}"
 
                       echo -e "$green--- Configure devops CLI extension ---$reset"
                           az config set extension.use_dynamic_install=yes_without_prompt
@@ -531,15 +545,16 @@ stages:
                           cd ${CONFIG_REPO_PATH}
                           mkdir -p .sap_deployment_automation
                           echo SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH >.sap_deployment_automation/config
+                          export SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH
 
                       echo -e "$green--- File Validations ---$reset"
-                          if [ ! -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
+                          if [ ! -f DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
                               echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found ---$reset"
                               echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found."
                               exit 2
                           fi
 
-                          if [ ! -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig) ]; then
+                          if [ ! -f LIBRARY/$(libraryfolder)/$(libraryconfig) ]; then
                               echo -e "$boldred--- File ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)  was not found ---$reset"
                               echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig) was not found."
                               exit 2
@@ -630,20 +645,13 @@ stages:
 
                           echo -e "$green--- Deploy the Control Plane ---$reset"
 
-                          if [ -n $(PAT) ]; then
-                              echo 'Deployer Agent PAT is defined'
-                          fi
-
                           if [ -n $(POOL) ]; then
                               echo 'Deployer Agent Pool' $(POOL)
                               POOL_NAME=$(az pipelines pool list --query "[?name=='$(POOL)'].name | [0]")
 
                               if [ ${#POOL_NAME} -eq 0 ]; then
-                                  echo "##vso[task.logissue type=warning]Agent Pool $TF_VAR_agent_pool does not exist."
+                                  echo "##vso[task.logissue type=warning]Agent Pool $(POOL) does not exist."
                               fi
-
-                              export TF_VAR_agent_pool=$(POOL)
-                              export TF_VAR_agent_pat=$(PAT)
 
                           fi
 
@@ -663,19 +671,19 @@ stages:
 
                           if [ "$USE_MSI" = "true" ]; then
                             echo -e "$cyan--- Using MSI ---$reset"
-                            $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                              \
-                              --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
-                              --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
-                              --subscription $STATE_SUBSCRIPTION                                                         \
-                              --auto-approve --ado --msi                                                                 \
+                            $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh  \
+                              --deployer_parameter_file "${deployer_configfile}"             \
+                              --library_parameter_file "${library_configfile}"               \
+                              --subscription $STATE_SUBSCRIPTION                             \
+                              --auto-approve --ado --msi                                     \
                               ${storage_account_parameter} ${keyvault_parameter}
                           else
-                            $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                              \
-                              --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
-                              --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
-                              --subscription $STATE_SUBSCRIPTION  --spn_id $ARM_CLIENT_ID                                \
-                              --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID                                 \
-                              --auto-approve --ado                                                                       \
+                            $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh  \
+                              --deployer_parameter_file "${deployer_configfile}"             \
+                              --library_parameter_file "${library_configfile}"               \
+                              --subscription $STATE_SUBSCRIPTION                             \
+                              --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID     \
+                              --auto-approve --ado                                           \
                               ${storage_account_parameter} ${keyvault_parameter}
                           fi
 
@@ -864,6 +872,8 @@ stages:
                       TF_IN_AUTOMATION:               true
                       TF_LOG:                         $(TF_LOG)
                       TF_VAR_agent_ado_url:           $(System.CollectionUri)
+                      TF_VAR_agent_pat:               $(PAT)
+                      TF_VAR_agent_pool:              $(POOL)
                       TF_VAR_ansible_core_version:    $(ansible_core_version)
                       TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
                       TF_VAR_deployer_kv_user_arm_id: $(Deployer_Key_Vault)
@@ -943,18 +953,43 @@ stages:
                           -CONTROLPLANE_ENV $(ControlPlaneEnvironment)
                           -CONTROLPLANE_LOC $(ControlPlaneLocation)'
                   env:
-                      ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
-                      SYSTEM_PIPELINE_ID:       $(SYSTEM_PIPELINE_ID)
-                      WORKLOADZONE_PIPELINE_ID: $(WORKLOADZONE_PIPELINE_ID)
-                      SAP_INSTALL_PIPELINE_ID:  $(SAP_INSTALL_PIPELINE_ID)
-                      SDAF_GENERAL_GROUP_ID:    $(SDAF_GENERAL_GROUP_ID)
-                      WEBAPP_URL_BASE:          $(WEBAPP_URL_BASE)
-                      WEBAPP_ID:                $(WEBAPP_ID)
-                      AZURE_CONNECTION_NAME:    ${{variables.connection_name}}
+                      ARM_SUBSCRIPTION_ID:       $(CP_ARM_SUBSCRIPTION_ID)
+                      SYSTEM_PIPELINE_ID:        $(SYSTEM_PIPELINE_ID)
+                      WORKLOADZONE_PIPELINE_ID:  $(WORKLOADZONE_PIPELINE_ID)
+                      SAP_INSTALL_PIPELINE_ID:   $(SAP_INSTALL_PIPELINE_ID)
+                      SDAF_GENERAL_GROUP_ID:     $(SDAF_GENERAL_GROUP_ID)
+                      WEBAPP_URL_BASE:           $(WEBAPP_URL_BASE)
+                      WEBAPP_RESOURCE_GROUP:     $(WEBAPP_RESOURCE_GROUP)
+                      WEBAPP_ID:                 $(WEBAPP_ID)
+                      APP_REGISTRATION_APP_ID:   $(APP_REGISTRATION_APP_ID)
+                      APP_REGISTRATION_OBJECTID: $(APP_REGISTRATION_OBJECTID)
+                      APP_TENANT_ID:             $(APP_TENANT_ID)
+                      AZURE_CONNECTION_NAME:     ${{variables.connection_name}}
 
                 - bash: |
                       #!/bin/bash
-                      printf "Configure the Web Application authentication using the following script.\n\`\`\`bash\naz ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\`\`\`\naz role assignment create --assignee %s --role reader --subscription %s --scope /subscriptions/%s\naz role assignment create --assignee %s --role 'Storage Blob Data Contributor' --subscription %s --scope /subscriptions/%s\naz role assignment create --assignee %s --role 'Storage Table Data Contributor' --subscription %s --scope /subscriptions/%s \n\naz webapp restart --ids %s\n\n[Access the Web App](https://%s.azurewebsites.net)"  $(APP_REGISTRATION_APP_ID) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_IDENTITY) $ARM_SUBSCRIPTION_ID $ARM_SUBSCRIPTION_ID  $(WEBAPP_IDENTITY) $ARM_SUBSCRIPTION_ID $ARM_SUBSCRIPTION_ID  $(WEBAPP_IDENTITY) $ARM_SUBSCRIPTION_ID $ARM_SUBSCRIPTION_ID $(WEBAPP_ID) $(WEBAPP_URL_BASE) > "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+                      printf "Configure the Web Application authentication using the following script.\n" > "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+                      printf "\n\n" >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+
+                      printf "az ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\n" $(APP_REGISTRATION_APP_ID) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) $(WEBAPP_URL_BASE) >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+
+                      printf "\n" >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+                      printf "az role assignment create --assignee %s --role reader --subscription %s --scope /subscriptions/%s\n" $(WEBAPP_IDENTITY) $ARM_SUBSCRIPTION_ID $ARM_SUBSCRIPTION_ID >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+                      printf "Run the above command for all subscriptions you want to use in the Web Application\n" >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+
+                      printf "\n" >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+                      printf "az role assignment create --assignee %s --role 'Storage Blob Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s\n" $(WEBAPP_IDENTITY) $ARM_SUBSCRIPTION_ID $ARM_SUBSCRIPTION_ID $(Terraform_Remote_Storage_Resource_Group_Name) >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+                      printf "az role assignment create --assignee %s --role 'Storage Table Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s \n\n" $(WEBAPP_IDENTITY) $ARM_SUBSCRIPTION_ID $ARM_SUBSCRIPTION_ID $(Terraform_Remote_Storage_Resource_Group_Name) >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+
+                      printf "\n" >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+
+                      printf "az rest --method POST --uri \"https://graph.microsoft.com/beta/applications/%s/federatedIdentityCredentials\" --body \"{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/%s/v2.0', 'subject': '%s', 'audiences': [ 'api://AzureADTokenExchange' ]}\"" $(APP_REGISTRATION_OBJECTID)  $(APP_TENANT_ID) $(MSI_ID) >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+                      printf "\n" >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+
+                      printf "az webapp restart --ids %s\n\n" $(WEBAPP_ID) >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+                      printf "\n" >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
+
+                      printf "[Access the Web App](https://%s.azurewebsites.net)"    $(WEBAPP_URL_BASE) >> "$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
                       echo "##vso[task.uploadsummary]$(Build.Repository.LocalPath)/Web Application Configuration.md"
                   displayName: "Documentation"

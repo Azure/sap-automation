@@ -24,7 +24,11 @@ namespace AutomationForm.Services
       string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey).Replace("blob", "table");
       TableServiceClient serviceClient = new(
         new Uri(accountName),
-        new DefaultAzureCredential());
+        new DefaultAzureCredential(new DefaultAzureCredentialOptions
+        {
+          TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID"),
+          ManagedIdentityClientId = Environment.GetEnvironmentVariable("OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID")
+        }));
 
       var tableClient = serviceClient.GetTableClient(table);
       await tableClient.CreateIfNotExistsAsync();
@@ -36,7 +40,11 @@ namespace AutomationForm.Services
       string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey);
       BlobServiceClient serviceClient = new(
         new Uri(accountName),
-        new DefaultAzureCredential());
+        new DefaultAzureCredential(new DefaultAzureCredentialOptions
+        {
+          TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID"),
+          ManagedIdentityClientId = Environment.GetEnvironmentVariable("OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID")
+        }));
 
       var blobClient = serviceClient.GetBlobContainerClient(container);
       await blobClient.CreateIfNotExistsAsync();
