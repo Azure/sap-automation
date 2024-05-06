@@ -28,16 +28,16 @@ if ($IsWindows) { $pathSeparator = "\" } else { $pathSeparator = "/" }
 
 $versionLabel = "v3.11.0.2"
 
-az logout
+# az logout
 
-az account clear
+# az account clear
 
-if ($ARM_TENANT_ID.Length -eq 0) {
-  az login --output none --only-show-errors --scope https://graph.microsoft.com//.default
-}
-else {
-  az login --output none --tenant $ARM_TENANT_ID --only-show-errors --scope https://graph.microsoft.com//.default
-}
+# if ($ARM_TENANT_ID.Length -eq 0) {
+#   az login --output none --only-show-errors --scope https://graph.microsoft.com//.default
+# }
+# else {
+#   az login --output none --tenant $ARM_TENANT_ID --only-show-errors --scope https://graph.microsoft.com//.default
+# }
 
 # Check if access to the Azure DevOps organization is available and prompt for PAT if needed
 # Exact permissions required, to be validated, and included in the Read-Host text.
@@ -811,7 +811,7 @@ if ($WebApp) {
     # $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors --display-name "SDAF")
   }
 
-  $configureAuth = Read-Host "Configuring authentication for the App Registration?" -ForegroundColor Green
+  $configureAuth = Read-Host "Configuring authentication for the App Registration?"
   if ($configureAuth -eq 'y') {
     az rest --method POST --uri "https://graph.microsoft.com/beta/applications/$APP_REGISTRATION_OBJECTID/federatedIdentityCredentials\" --body "{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/$ARM_TENANT_ID/v2.0', 'subject': '$MSI_objectId', 'audiences': [ 'api://AzureADTokenExchange' ]}"
 
@@ -952,10 +952,6 @@ else {
 }
 
 $groups.Add($Control_plane_groupID)
-
-if ($WebApp) {
-  az pipelines variable-group variable update --group-id $Control_plane_groupID --name "WEB_APP_CLIENT_SECRET" --value $WEB_APP_CLIENT_SECRET --secret true --output none --only-show-errors
-}
 
 
 #endregion
