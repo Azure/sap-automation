@@ -115,7 +115,7 @@ stages:
                             echo "$(variable_group) id: ${VARIABLE_GROUP_ID}"
 
                             export ARM_CLIENT_ID=$servicePrincipalId
-                            export ARM_CLIENT_SECRET=$servicePrincipalKey
+                            export ARM_CLIENT_SECRET=$idToken
                             export ARM_TENANT_ID=$tenantId
 
                             echo "${{ parameters.force_reset }}"
