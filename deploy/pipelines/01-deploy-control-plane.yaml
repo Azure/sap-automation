@@ -89,6 +89,15 @@ stages:
                             boldred="\e[1;31m"
                             cyan="\e[1;36m"
 
+                            export ARM_CLIENT_ID=$servicePrincipalId
+
+                            if [ -n "$(servicePrincipalKey)" ]; then
+                                export ARM_CLIENT_SECRET=$servicePrincipalKey
+                            else
+                                export ARM_OIDC_TOKEN=$idToken
+                            fi
+
+                            export ARM_TENANT_ID=$tenantId
                             set -eu
 
                             file_deployer_tfstate_key=$(deployerfolder).tfstate
@@ -114,9 +123,6 @@ stages:
                             export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                             echo "$(variable_group) id: ${VARIABLE_GROUP_ID}"
 
-                            export ARM_CLIENT_ID=$servicePrincipalId
-                            export ARM_CLIENT_SECRET=$idToken
-                            export ARM_TENANT_ID=$tenantId
 
                             echo "${{ parameters.force_reset }}"
                             if [ "${{ parameters.force_reset }}" = "True" ]; then
