@@ -223,12 +223,6 @@ stages:
                             fi
                             if [ -n "$(POOL)" ]; then
                                 echo 'Deployer Agent Pool' $(POOL)
-                                POOL_NAME=$(az pipelines pool list --organization $(System.CollectionUri) --query "[?name=='$(POOL)'].name | [0]")
-                                if [ ${#POOL_NAME} -eq 0 ]; then
-                                    echo "##vso[task.logissue type=warning]Agent Pool $(POOL) does not exist."
-                                    exit 2
-                                fi
-                                echo 'Deployer Agent Pool found' $POOL_NAME
 
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
