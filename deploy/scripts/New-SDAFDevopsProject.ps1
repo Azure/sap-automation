@@ -762,7 +762,7 @@ if ($authenticationMethod -eq "Managed Identity") {
         })
       servicePrincipal    = @{
         origin      = "aad"
-        originId    = $MSI_objectId
+        originId    = $id
         subjectKind = "servicePrincipal"
       }
 
@@ -811,17 +811,18 @@ if ($WebApp) {
     # $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors --display-name "SDAF")
   }
 
-  Write-Host "Configuring authentication for the App Registration" -ForegroundColor Green
-  az rest --method POST --uri "https://graph.microsoft.com/beta/applications/$APP_REGISTRATION_OBJECTID/federatedIdentityCredentials\" --body "{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/$ARM_TENANT_ID/v2.0', 'subject': '$MSI_objectId', 'audiences': [ 'api://AzureADTokenExchange' ]}"
+  $configureAuth = Read-Host "Configuring authentication for the App Registration?" -ForegroundColor Green
+  if ($configureAuth -eq 'y') {
+    az rest --method POST --uri "https://graph.microsoft.com/beta/applications/$APP_REGISTRATION_OBJECTID/federatedIdentityCredentials\" --body "{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/$ARM_TENANT_ID/v2.0', 'subject': '$MSI_objectId', 'audiences': [ 'api://AzureADTokenExchange' ]}"
 
-  $API_URL="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/ProtectAnAPI/appId/$APP_REGISTRATION_ID/isMSAApp~/false"
+    $API_URL = "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/ProtectAnAPI/appId/$APP_REGISTRATION_ID/isMSAApp~/false"
 
-  Write-Host "The browser will now open, Please Add a new scope, by clicking the '+ Add a new scope link', accept the default name and click 'Save and Continue'"
-  Write-Host "In the Add a scope page enter the scope name 'user_impersonation'. Choose 'Admins and Users' in the who can consent section, next provide the Admin consent display name 'Access the SDAF web application' and 'Use SDAF' as the Admin consent description, accept the changes by clicking the 'Add scope' button"
+    Write-Host "The browser will now open, Please Add a new scope, by clicking the '+ Add a new scope link', accept the default name and click 'Save and Continue'"
+    Write-Host "In the Add a scope page enter the scope name 'user_impersonation'. Choose 'Admins and Users' in the who can consent section, next provide the Admin consent display name 'Access the SDAF web application' and 'Use SDAF' as the Admin consent description, accept the changes by clicking the 'Add scope' button"
 
-  Start-Process $API_URL
-  Read-Host -Prompt "Once you have created and validated the scope, Press any key to continue"
-
+    Start-Process $API_URL
+    Read-Host -Prompt "Once you have created and validated the scope, Press any key to continue"
+  }
 
 }
 
