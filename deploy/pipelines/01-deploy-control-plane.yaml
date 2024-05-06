@@ -114,6 +114,10 @@ stages:
                             export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
                             echo "$(variable_group) id: ${VARIABLE_GROUP_ID}"
 
+                            export ARM_CLIENT_ID=$servicePrincipalId
+                            export ARM_CLIENT_SECRET=$servicePrincipalKey
+                            export ARM_TENANT_ID=$tenantId
+
                             echo "${{ parameters.force_reset }}"
                             if [ "${{ parameters.force_reset }}" = "True" ]; then
                               echo "##vso[task.logissue type=warning]Forcing a re-install"
@@ -341,10 +345,10 @@ stages:
 
                   displayName: Prepare control plane
                   env:
-                      ARM_CLIENT_ID:                  $(CP_ARM_CLIENT_ID)
-                      ARM_CLIENT_SECRET:              $(CP_ARM_CLIENT_SECRET)
+                      CP_ARM_CLIENT_ID:               $(CP_ARM_CLIENT_ID)
+                      CP_ARM_CLIENT_SECRET:           $(CP_ARM_CLIENT_SECRET)
                       ARM_SUBSCRIPTION_ID:            $(CP_ARM_SUBSCRIPTION_ID)
-                      ARM_TENANT_ID:                  $(CP_ARM_TENANT_ID)
+                      CP_ARM_TENANT_ID:               $(CP_ARM_TENANT_ID)
                       AZURE_DEVOPS_EXT_PAT:           $(PAT)
                       CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
                       DEPLOYER_RANDOM_ID_SEED:        $(DEPLOYER_RANDOM_ID_SEED)
