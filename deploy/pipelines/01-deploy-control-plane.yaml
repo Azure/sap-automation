@@ -94,6 +94,7 @@ stages:
                             if [ -n "$(servicePrincipalKey)" ]; then
                                 export ARM_CLIENT_SECRET=$servicePrincipalKey
                             else
+                                export ARM_USE_OIDC=true
                                 export ARM_OIDC_TOKEN=$idToken
                             fi
 
