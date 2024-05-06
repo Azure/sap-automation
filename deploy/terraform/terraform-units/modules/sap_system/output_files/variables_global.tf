@@ -211,3 +211,16 @@ variable "ams_resource_id"                      { description = "Resource ID for
 variable "enable_os_monitoring"                 { description = "Enable OS monitoring" }
 variable "enable_ha_monitoring"                 { description = "Enable HA monitoring" }
 
+variable "enable_sap_cal"                       {
+                                                  description = "Enable SAP CAL"
+                                                  default     = false
+                                                  type        = bool
+                                                }
+variable "sap_cal_product_id"                   {
+                                                  description = "Product ID of SAP CAL"
+                                                  default     = ""
+                                                }
+variable "calapi_kv"                            {
+                                                  description = "Keyvault for CAL API"
+                                                  default     = ""
+                                                }

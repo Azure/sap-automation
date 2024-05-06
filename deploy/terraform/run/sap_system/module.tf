@@ -460,4 +460,11 @@ module "output_files" {
   ams_resource_id                               = try(coalesce(var.ams_resource_id, try(data.terraform_remote_state.landscape.outputs.ams_resource_id, "")),"")
   enable_ha_monitoring                          = var.enable_ha_monitoring
   enable_os_monitoring                          = var.enable_os_monitoring
+
+  #########################################################################################
+  #  SAP CAL                                                                              #
+  #########################################################################################
+  sap_cal_product_id                            = var.sap_cal_product_id
+  enable_sap_cal                                = var.enable_sap_cal
+  calapi_kv                                     = var.calapi_kv
 }

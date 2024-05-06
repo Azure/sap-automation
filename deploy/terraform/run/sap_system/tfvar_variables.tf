@@ -1413,3 +1413,21 @@ variable "stand_by_node_count"                  {
                                                   description = "The number of standby nodes"
                                                   default = 0
                                                 }
+#########################################################################################
+#                                                                                       #
+#  SAP CAL Integration variables                                                        #
+#                                                                                       #
+#########################################################################################
+
+variable "enable_sap_cal"                       {
+                                                  description = "If true, will enable the SAP CAL integration"
+                                                  default = false
+                                                }
+variable "sap_cal_product_id"                   {
+                                                  description = "If defined, will use SAP CAL for system installation"
+                                                  default     = ""
+                                                }
+variable "calapi_kv"                            {
+                                                  description = "The SAP CAL API Key Vault"
+                                                  default     = ""
+                                                }
