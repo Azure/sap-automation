@@ -658,12 +658,6 @@ stages:
 
                           if [ -n $(POOL) ]; then
                               echo 'Deployer Agent Pool' $(POOL)
-                              POOL_NAME=$(az pipelines pool list --query "[?name=='$(POOL)'].name | [0]")
-
-                              if [ ${#POOL_NAME} -eq 0 ]; then
-                                  echo "##vso[task.logissue type=warning]Agent Pool $(POOL) does not exist."
-                              fi
-
                           fi
 
                           if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
