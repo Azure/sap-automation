@@ -463,6 +463,7 @@ stages:
                               if [ -f ${deployer_environment_file_name} ] ; then
                                   key_vault=$(cat ${deployer_environment_file_name}  | grep keyvault= | awk -F'=' '{print $2}' | xargs)
                                   echo -e "$cyan 'Deployer Key Vault' ${key_vault} $reset"
+                                  az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${key_vault --output none --only-show-errors
                               fi
                           fi
 
@@ -472,6 +473,7 @@ stages:
                           else
                               if [ -f ${deployer_environment_file_name} ] ; then
                                   STATE_SUBSCRIPTION=$(cat ${deployer_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                                  az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --value ${STATE_SUBSCRIPTION} --output none --only-show-errors
                               fi
                           fi
 
@@ -480,6 +482,7 @@ stages:
                               deployer_random_id="${az_var}"
                           else
                               deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
+                              az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name DEPLOYER_RANDOM_ID_SEED --value ${deployer_random_id} --output none --only-show-errors
                           fi
 
                           az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value"  --output tsv)
@@ -488,6 +491,7 @@ stages:
                           else
                               if [ -f ${deployer_environment_file_name} ] ; then
                                   REMOTE_STATE_SA=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                                  az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --value ${REMOTE_STATE_SA} --output none --only-show-errors
                               fi
                           fi
 
@@ -612,6 +616,7 @@ stages:
                           # export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                           unset ARM_TENANT_ID
                           export ARM_USE_MSI=true
+                          export ARM_USE_AZUREAD=true.
                         fi
                       fi
 
