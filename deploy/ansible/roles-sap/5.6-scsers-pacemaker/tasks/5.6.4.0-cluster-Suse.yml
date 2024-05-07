@@ -192,7 +192,7 @@
     - name:                            "5.6 SCSERS - SUSE - ERS - Create Health Probe"
       ansible.builtin.shell:   >
                                        crm configure group g-{{ sap_sid | upper }}_ERS fs_{{ sap_sid | upper }}_ERS nc_{{ sap_sid | upper }}_ERS \
-                                       vip_{{ sap_sid | upper }}_ERS meta resource-stickiness=3000
+                                       vip_{{ sap_sid | upper }}_ERS
       register:                        ers_hp
       failed_when:                     ers_hp.rc > 1
 
