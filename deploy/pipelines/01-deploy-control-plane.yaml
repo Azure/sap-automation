@@ -227,7 +227,7 @@ stages:
 
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                                pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
+                                pass=$(echo $(System.CollectionId) | sed 's/-//g')
                                 unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                             fi
 
@@ -292,7 +292,7 @@ stages:
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                               sudo apt install zip
-                              pass=$(echo $deployer_random_id | sed 's/-//g')
+                              pass=$(echo $(System.CollectionId) | sed 's/-//g')
                               zip -j -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                               git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                               added=1
@@ -658,7 +658,7 @@ stages:
                       fi
 
                       if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
-                          pass=$(echo $deployer_random_id | sed 's/-//g')
+                          pass=$(echo $(System.CollectionId) | sed 's/-//g')
 
                           echo "Unzipping the library state file"
                           unzip -o -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
@@ -667,7 +667,7 @@ stages:
                       ls -lart ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
 
                       if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
-                          pass=$(echo $deployer_random_id | sed 's/-//g')
+                          pass=$(echo $(System.CollectionId) | sed 's/-//g')
 
                           echo "Unzipping the deployer state file"
                           unzip -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
@@ -750,7 +750,7 @@ stages:
                           if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                               sudo apt install zip
                               echo "Compressing the deployer state file"
-                              pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
+                              pass=$(echo $(System.CollectionId) | sed 's/-//g')
                               zip -j -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                               git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                               added=1
@@ -774,7 +774,7 @@ stages:
                           if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
                               sudo apt install zip
                               echo "Compressing the library state file"
-                              pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
+                              pass=$(echo $(System.CollectionId) | sed 's/-//g')
                               zip -j -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
                               git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip
                               added=1
