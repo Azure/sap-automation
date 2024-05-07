@@ -659,18 +659,18 @@ stages:
 
                       if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
                           pass=$(echo $deployer_random_id | sed 's/-//g')
-                          echo $pass
+
                           echo "Unzipping the library state file"
-                          unzip  -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
+                          unzip -o -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
                       fi
 
                       ls -lart ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
 
                       if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
                           pass=$(echo $deployer_random_id | sed 's/-//g')
-                          echo $pass
+
                           echo "Unzipping the deployer state file"
-                          unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
+                          unzip -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                       fi
 
                       ls -lart ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
