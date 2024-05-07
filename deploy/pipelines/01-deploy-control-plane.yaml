@@ -423,6 +423,18 @@ stages:
 
                           deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
 
+                          validation=$(echo $(DEPLOYER_RANDOM_ID_SEED))
+
+                          if [ '$(DEPLOYER_RANDOM_ID_SEED)' == $validation ]; then
+                              echo "##vso[task.logissue type=error]DEPLOYER_RANDOM_ID_SEED is not defined."
+                              exit 2
+                          fi
+
+                          if [ -z ${validation} ]; then
+                              echo "##vso[task.logissue type=error]DEPLOYER_RANDOM_ID_SEED is not defined."
+                              exit 2
+                          fi
+
                       echo -e "$green--- Information ---$reset"
                           echo "Environment:    ${ENVIRONMENT}"
                           echo "Location:       ${LOCATION}"
