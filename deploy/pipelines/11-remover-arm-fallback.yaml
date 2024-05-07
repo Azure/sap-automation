@@ -330,7 +330,10 @@ stages:
                   rg=$(az group list --subscription $subscription --query "[?name=='$(library_folder)'].name | [0]" | grep $(library_folder))
                   if [ ${#rg} != 0 ]; then
                     echo "Deleting resource group: $(library_folder)"
+                    echo "##vso[task.setprogress value=0;]Progress Indicator"
+
                     az group delete --subscription $subscription --name $(library_folder) --yes --only-show-errors
+                    echo "##vso[task.setprogress value=30;]Progress Indicator"
                     return_code=$?
                   else
                     echo "Resource group $(library_folder) does not exist."
@@ -339,6 +342,7 @@ stages:
                   rg=$(az group list --subscription $subscription --query "[?name=='$(deployer_folder)'].name  | [0]" | grep $(deployer_folder))
                   if [ ${#rg} != 0 ]; then
                     echo "Deleting resource group: $(deployer_folder)"
+                    echo "##vso[task.setprogress value=60;]Progress Indicator"
                     az group delete --subscription $subscription --name $(deployer_folder) --yes --only-show-errors
                     return_code=$?
                   else
@@ -349,6 +353,8 @@ stages:
                 echo -e "$green--- Removing deployment automation configuration from devops repository ---$reset"
                   export  ENVIRONMENT=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
                   export LOCATION=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
+
+                  echo "##vso[task.setprogress value=90;]Progress Indicator"
 
                   if [ 0 == $return_code ] ; then
                     cd $CONFIG_REPO_PATH
@@ -443,6 +449,8 @@ stages:
                       fi
 
                   fi
+
+                  echo "##vso[task.setprogress value=100;]Progress Indicator"
 
                   exit $return_code
 
