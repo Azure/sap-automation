@@ -44,19 +44,6 @@ resource "azurerm_storage_account" "storage_tfstate" {
             choice                      = "MicrosoftRouting"
           }
 
-  network_rules {
-                  default_action = !var.bootstrap && local.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
-                  virtual_network_subnet_ids = local.virtual_additional_network_ids
-                  ip_rules = local.deployer_public_ip_address_used ? (
-                    [
-                      local.deployer_public_ip_address
-                    ]) : compact(
-                    [
-                      try(var.deployer_tfstate.Agent_IP, ""),
-                      try(var.Agent_IP, "")
-                    ]
-                  )
-                }
 
   # lifecycle {
   #             ignore_changes = [tags]
@@ -69,13 +56,35 @@ resource "azurerm_storage_account" "storage_tfstate" {
 
 }
 
-
 // Imports existing storage account to use for tfstate
 data "azurerm_storage_account" "storage_tfstate" {
   provider                             = azurerm.main
   count                                = local.sa_tfstate_exists ? 1 : 0
   name                                 = split("/", var.storage_account_tfstate.arm_id)[8]
   resource_group_name                  = split("/", var.storage_account_tfstate.arm_id)[4]
+}
+
+resource "azurerm_storage_account_network_rules" "storage_tfstate" {
+  provider                             = azurerm.main
+  count                                = local.enable_firewall_for_keyvaults_and_storage && !local.sa_tfstate_exists ? 1 : 0
+  storage_account_id                   = azurerm_storage_account.storage_tfstate[0].id
+  default_action                       = var.bootstrap ? "Allow" : local.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+
+  ip_rules                             = local.deployer_public_ip_address_used ? (
+                                         [
+                                           local.deployer_public_ip_address
+                                         ]) : compact(
+                                         [
+                                           try(var.deployer_tfstate.Agent_IP, ""),
+                                           try(var.Agent_IP, "")
+                                         ]
+                                       )
+
+  virtual_network_subnet_ids           = local.virtual_additional_network_ids
+
+  lifecycle {
+              ignore_changes = [virtual_network_subnet_ids]
+            }
 }
 
 resource "azurerm_role_assignment" "storage_tfstate_contributor" {
@@ -301,24 +310,33 @@ resource "azurerm_storage_account" "storage_sapbits" {
             publish_microsoft_endpoints = true
             choice                      = "MicrosoftRouting"
           }
-  network_rules {
-                  default_action = !var.bootstrap && local.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
-                  virtual_network_subnet_ids = local.virtual_additional_network_ids
-                  ip_rules = local.deployer_public_ip_address_used ? (
-                    [
-                      local.deployer_public_ip_address
-                    ]) : compact(
-                    [
-                      try(var.deployer_tfstate.Agent_IP, ""),
-                      try(var.Agent_IP, "")
-                    ]
-                  )
-                }
-
   lifecycle {
               ignore_changes = [tags]
             }
 }
+
+
+resource "azurerm_storage_account_network_rules" "storage_sapbits" {
+  provider                             = azurerm.main
+  count                                = local.enable_firewall_for_keyvaults_and_storage && !local.sa_tfstate_exists ? 1 : 0
+  storage_account_id                   = azurerm_storage_account.storage_sapbits[0].id
+  default_action                       = var.bootstrap ? "Allow" : local.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+  ip_rules                             = local.deployer_public_ip_address_used ? (
+                                           [
+                                             local.deployer_public_ip_address
+                                           ]) : compact(
+                                           [
+                                             try(var.deployer_tfstate.Agent_IP, ""),
+                                             try(var.Agent_IP, "")
+                                           ]
+                                         )
+  virtual_network_subnet_ids           = local.virtual_additional_network_ids
+
+  lifecycle {
+              ignore_changes = [virtual_network_subnet_ids]
+            }
+}
+
 
 resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" {
   provider                             = azurerm.dnsmanagement
