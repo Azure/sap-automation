@@ -421,6 +421,8 @@ stages:
                           file_REMOTE_STATE_SA=""
                           file_REMOTE_STATE_RG=$(deployerfolder)
 
+                          deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
+
                       echo -e "$green--- Information ---$reset"
                           echo "Environment:    ${ENVIRONMENT}"
                           echo "Location:       ${LOCATION}"
@@ -440,10 +442,7 @@ stages:
                           git checkout -q $(Build.SourceBranchName)
 
                           deployer_configfile="${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig)"
-                          cat "${deployer_configfile}"
-
                           library_configfile="${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)"
-                          cat "${library_configfile}"
 
                       echo -e "$green--- Configure devops CLI extension ---$reset"
                           az config set extension.use_dynamic_install=yes_without_prompt
@@ -659,6 +658,8 @@ stages:
 
                           if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip ]; then
                               pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
+                              echo $pass
+                              echo "Unzipping the library state file"
                               unzip  -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
                           fi
 
@@ -666,6 +667,8 @@ stages:
 
                           if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
                             pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
+                            echo $pass
+                            echo "Unzipping the deployer state file"
                             unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                           fi
 
@@ -854,7 +857,6 @@ stages:
                               else
                                   az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneLocation --value ${LOCATION} --output none --only-show-errors
                               fi
-
 
                           fi
                       exit $return_code
