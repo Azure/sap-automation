@@ -170,9 +170,8 @@ namespace AutomationForm.Controllers
     // Get an array of file names from azure sap-automation region given a directory
     public async Task<string[]> GetTemplateFileNames(string scopePath)
     {
-      HttpClient clientGH = new();
       string getUri = $"{sampleUrl}/contents/{scopePath}?ref=main";
-      using HttpResponseMessage response = clientGH.GetAsync(getUri).Result;
+      using HttpResponseMessage response = client.GetAsync(getUri).Result;
       string responseBody = await response.Content.ReadAsStringAsync();
       HandleResponse(response, responseBody);
 
