@@ -221,7 +221,8 @@ output "deployer_extension_ids"                  {
 
 output "random_id_b64"                           {
                                                    description  = "The random ID used for the naming of resources"
-                                                   value        = format("DEPLOYERY_%s",module.sap_deployer.random_id_b64)
+                                                   sensitive    = true
+                                                   value        = format("DEPLOYER_%s",module.sap_deployer.random_id_b64)
                                                  }
 
 output "Agent_IP"                                {
