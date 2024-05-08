@@ -157,8 +157,9 @@ namespace AutomationForm.Controllers
     // Get an array of file names from azure sap-automation region given a directory
     public async Task<string[]> GetTemplateFileNames(string scopePath)
     {
+      HttpClient clientGH = new();
       string getUri = $"{sampleUrl}/contents/{scopePath}?ref=main";
-      using HttpResponseMessage response = client.GetAsync(getUri).Result;
+      using HttpResponseMessage response = clientGH.GetAsync(getUri).Result;
       string responseBody = await response.Content.ReadAsStringAsync();
       HandleResponse(response, responseBody);
 
@@ -421,7 +422,7 @@ namespace AutomationForm.Controllers
         switch (response.StatusCode)
         {
           case System.Net.HttpStatusCode.Unauthorized:
-            errorMessage = "Unauthorized, please ensure that the Personal Access Token has sufficient permissions and thaat it has not expired.";
+            errorMessage = "Unauthorized, please ensure that the Personal Access Token has sufficient permissions and that it has not expired.";
             break;
           case System.Net.HttpStatusCode.NotFound:
             errorMessage = "Could not find the template.";
