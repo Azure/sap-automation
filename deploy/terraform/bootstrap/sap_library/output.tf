@@ -77,6 +77,6 @@ output "sa_connection_string"                    {
 
 output "random_id_b64"                          {
                                                    description = "Random ID in base64"
-                                                   value      = module.sap_library.random_id_b64
+                                                   value       = format("LIBRARY_%s",module.sap_library.random_id_b64)
                                                  }
 
