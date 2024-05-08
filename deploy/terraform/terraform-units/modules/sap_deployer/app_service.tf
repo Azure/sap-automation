@@ -153,7 +153,6 @@ resource "azurerm_windows_web_app" "webapp" {
 
   lifecycle                                  {
     ignore_changes                              = [
-                                                    app_settings,
                                                     zip_deploy_file,
                                                     tags
                                                   ]
