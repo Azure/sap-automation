@@ -41,16 +41,16 @@ namespace AutomationForm.Controllers
 
     private readonly string sampleUrl = "https://api.github.com/repos/Azure/SAP-automation-samples";
 
-    
+
 
     private HttpClient client;
 
-    public RestHelper(IConfiguration configuration)
+    public RestHelper(IConfiguration configuration, string type = "ADO")
     {
       collectionUri = configuration["CollectionUri"];
       project = configuration["ProjectName"];
       repositoryId = configuration["RepositoryId"];
-//      PAT = configuration["PAT"];
+      //      PAT = configuration["PAT"];
       branch = configuration["SourceBranch"];
       sdafGeneralId = configuration["SDAF_GENERAL_GROUP_ID"];
       sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
@@ -58,28 +58,41 @@ namespace AutomationForm.Controllers
       tenantId = configuration["AZURE_TENANT_ID"];
       managedIdentityClientId = configuration["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"];
 
-      credential =
-            new DefaultAzureCredential(
-                new DefaultAzureCredentialOptions
-                {
-                  TenantId = tenantId,
-                  ManagedIdentityClientId = managedIdentityClientId
-                }); ;
+      if (type == "ADO")
+      {
+        credential =
+              new DefaultAzureCredential(
+                  new DefaultAzureCredentialOptions
+                  {
+                    TenantId = tenantId,
+                    ManagedIdentityClientId = managedIdentityClientId
+                  }); ;
 
 
-      var tokenRequestContext = new TokenRequestContext(VssAadSettings.DefaultScopes);
-      var token = credential.GetToken(tokenRequestContext, CancellationToken.None);
+        var tokenRequestContext = new TokenRequestContext(VssAadSettings.DefaultScopes);
+        var token = credential.GetToken(tokenRequestContext, CancellationToken.None);
 
-      var accessToken = token.Token;
-      var vssToken = new VssAadToken("Bearer", accessToken);
+        var accessToken = token.Token;
+        var vssToken = new VssAadToken("Bearer", accessToken);
 
-      client = new HttpClient();
-      client.DefaultRequestHeaders.Accept.Add(
-          new MediaTypeWithQualityHeaderValue("application/json"));
-      client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
-          accessToken);
+        client = new HttpClient();
+        client.DefaultRequestHeaders.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("application/json"));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+            accessToken);
 
-      client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
+        client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
+      }
+      else
+      {
+        client = new HttpClient();
+
+        client.DefaultRequestHeaders.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("application/json"));
+
+        client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
+      }
+
 
     }
 
