@@ -1094,3 +1094,34 @@ Write-Host "URL: " $wiki_url
 Start-Process $wiki_url
 
 if (Test-Path ".${pathSeparator}start.md") { Write-Host "Removing start.md" ; Remove-Item ".${pathSeparator}start.md" }
+
+Write-Host "Adding the Build Service user to the Build Administrators group for thge Project" -ForegroundColor Green
+$SecurityServiceGroupId = $(az devops security group list --scope organization --query "graphGroups | [?displayName=='Security Service Group'].descriptor | [0]" --output tsv)
+$ProjectBuildAdminGroupId = $(az devops security group list --project $ADO_Project --query "graphGroups | [?displayName=='Build Administrators'].descriptor | [0]" --output tsv)
+$GroupItems = $(az devops security group membership list --id $SecurityServiceGroupId --output table )
+
+$Service_Name = $ADO_Project + " Build Service"
+$Descriptor = ""
+$Name = ""
+$Parts = $GroupItems[1].Split(' ')
+$RealItems = $GroupItems[2..($GroupItems.Length - 2)]
+foreach ($Item in $RealItems) {
+  $Name = $Item.Substring(0, $Parts[0].Length).Trim()
+  if ($Name.StartsWith($Service_Name)) {
+    $Descriptor = $Item.Substring($Parts[0].Length + $Parts[1].Length + $Parts[2].Length).Trim()
+    break
+
+  }
+
+}
+
+if ($Descriptor -eq "") {
+  Write-Host "The Build Service user was not found in the Security Service Group" -ForegroundColor Red
+}
+else {
+  Write-Host "Adding the Build Service user to the Build Administrators group" -ForegroundColor Green
+  az devops security group membership add --member-id $Descriptor --group-id $ProjectBuildAdminGroupId
+}
+
+
+Write-Host "The script has completed" -ForegroundColor Green
