@@ -44,24 +44,11 @@ $versionLabel = "v3.11.0.2"
 
 if ($Env:AZURE_DEVOPS_EXT_PAT.Length -gt 0) {
   Write-Host "Using the provided Personal Access Token (PAT) to authenticate to the Azure DevOps organization $ADO_Organization" -ForegroundColor Yellow
-  try {
-    az devops login --organization $ADO_Organization
-  }
-  catch {
-    $_
-  }
-
 }
 
 $checkPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
 if ($checkPAT.Length -eq 0) {
   $env:AZURE_DEVOPS_EXT_PAT = Read-Host "Please enter your Personal Access Token (PAT) with full access to the Azure DevOps organization $ADO_Organization"
-  try {
-    az devops login --organization $ADO_Organization
-  }
-  catch {
-    $_
-  }
   $verifyPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
   if ($verifyPAT.Length -eq 0) {
     Read-Host -Prompt "Failed to authenticate to the Azure DevOps organization, press <any key> to exit"
