@@ -29,7 +29,7 @@ namespace AutomationForm.Controllers
     private readonly string collectionUri;
     private readonly string project;
     private readonly string repositoryId;
-    // private readonly string PAT;
+    private readonly string PAT;
     private readonly string branch;
     private readonly string sdafGeneralId;
     private readonly string sdafControlPlaneEnvironment;
@@ -50,7 +50,8 @@ namespace AutomationForm.Controllers
       collectionUri = configuration["CollectionUri"];
       project = configuration["ProjectName"];
       repositoryId = configuration["RepositoryId"];
-      //      PAT = configuration["PAT"];
+      PAT = configuration["PAT"];
+      string devops_authentication = configuration["AUTHENTICATION_TYPE"];
       branch = configuration["SourceBranch"];
       sdafGeneralId = configuration["SDAF_GENERAL_GROUP_ID"];
       sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
@@ -60,27 +61,38 @@ namespace AutomationForm.Controllers
 
       if (type == "ADO")
       {
-        credential =
-              new DefaultAzureCredential(
-                  new DefaultAzureCredentialOptions
-                  {
-                    TenantId = tenantId,
-                    ManagedIdentityClientId = managedIdentityClientId
-                  }); ;
+        if (devops_authentication == "MSI")
+        {
+          credential = new DefaultAzureCredential(
+            new DefaultAzureCredentialOptions
+            {
+              TenantId = tenantId,
+              ManagedIdentityClientId = managedIdentityClientId
+            }); ;
 
 
-        var tokenRequestContext = new TokenRequestContext(VssAadSettings.DefaultScopes);
-        var token = credential.GetToken(tokenRequestContext, CancellationToken.None);
+          var tokenRequestContext = new TokenRequestContext(VssAadSettings.DefaultScopes);
+          var token = credential.GetToken(tokenRequestContext, CancellationToken.None);
 
-        var accessToken = token.Token;
-        var vssToken = new VssAadToken("Bearer", accessToken);
+          var accessToken = token.Token;
+          var vssToken = new VssAadToken("Bearer", accessToken);
 
-        client = new HttpClient();
+          client = new HttpClient();
+          client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+              accessToken);
+        }
+        else
+        {
+          client = new HttpClient();
+          client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
+          Convert.ToBase64String(
+              System.Text.ASCIIEncoding.ASCII.GetBytes(
+                  string.Format("{0}:{1}", "", PAT))));
+
+        }
+
         client.DefaultRequestHeaders.Accept.Add(
             new MediaTypeWithQualityHeaderValue("application/json"));
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
-            accessToken);
-
         client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
       }
       else
