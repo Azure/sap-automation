@@ -41,8 +41,6 @@ namespace AutomationForm.Controllers
 
     private readonly string sampleUrl = "https://api.github.com/repos/Azure/SAP-automation-samples";
 
-
-
     private HttpClient client;
 
     public RestHelper(IConfiguration configuration, string type = "ADO")
@@ -61,7 +59,15 @@ namespace AutomationForm.Controllers
 
       if (type == "ADO")
       {
-        if (devops_authentication == "MSI")
+        if (devops_authentication == "PAT")
+        {
+          client = new HttpClient();
+          client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
+          Convert.ToBase64String(
+              System.Text.ASCIIEncoding.ASCII.GetBytes(
+                  string.Format("{0}:{1}", "", PAT))));
+        }
+        else
         {
           credential = new DefaultAzureCredential(
             new DefaultAzureCredentialOptions
@@ -80,14 +86,6 @@ namespace AutomationForm.Controllers
           client = new HttpClient();
           client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
               accessToken);
-        }
-        else
-        {
-          client = new HttpClient();
-          client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
-          Convert.ToBase64String(
-              System.Text.ASCIIEncoding.ASCII.GetBytes(
-                  string.Format("{0}:{1}", "", PAT))));
 
         }
 
