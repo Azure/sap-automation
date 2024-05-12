@@ -1,6 +1,5 @@
 # Write-Host "<Experimental>..............." -ForegroundColor Cyan
 
-
 function Show-Menu($data) {
   Write-Host "================ $Title ================"
   $i = 1
@@ -187,7 +186,7 @@ $Project_ID = (az devops project list --organization $ADO_ORGANIZATION --query "
 
 if ($Project_ID.Length -eq 0) {
   Write-Host "Creating the project: " $ADO_PROJECT -ForegroundColor Green
-  $Project_ID = (az devops project create --name $ADO_PROJECT --description 'SDAF Automation Project' --organization $ADO_ORGANIZATION --visibility private --source-control git --query id).Replace("""", "")
+  $Project_ID = (az devops project create --name $ADO_PROJECT --description 'SDAF Automation Project' --organization $ADO_ORGANIZATION --visibility private --source-control git --query id --output tsv)
 
   Add-Content -Path $fname -Value ""
   Add-Content -Path $fname -Value "Using Azure DevOps Project: $ADO_PROJECT"
@@ -210,14 +209,14 @@ else {
 
   Write-Host "Using an existing project"
 
-  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --out tsv)
-  if ($repo_id.Length -eq 0) {
-    Write-Host "Creating repository '$ADO_Project'" -ForegroundColor Green
-  }
-
   az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
 
-  $repo_size = (az repos list --query "[?name=='$ADO_Project'].size | [0]")
+  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --output tsv)
+  if ($repo_id.Length -ne 0) {
+    Write-Host "Using repository '$ADO_Project'" -ForegroundColor Green
+  }
+
+  $repo_size = (az repos list --query "[?name=='$ADO_Project'].size | [0]" --output tsv)
 
   if ($repo_size -eq 0) {
     Write-Host "Importing the repository from GitHub" -ForegroundColor Green
@@ -225,14 +224,14 @@ else {
     Add-Content -Path $fname -Value ""
     Add-Content -Path $fname -Value "Terraform and Ansible code repository stored in the DevOps project (sap-automation)"
 
-    try {
+    az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output tsv
+    if ($LastExitCode -eq 1) {
+      Write-Host "The repository already exists" -ForegroundColor Yellow
+      Write-Host "Creating repository 'SDAF Configuration'" -ForegroundColor Green
+      $repo_id = (az repos create --name "SDAF Configuration" --query id --output tsv)
       az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
     }
-    catch {
-      {
-        Write-Host "The repository already exists" -ForegroundColor Yellow
-      }
-    }
+
   }
   else {
     $confirmation = Read-Host "The repository already exists, use it? y/n"
@@ -244,7 +243,6 @@ else {
   }
 
   az repos update --repository $repo_id --default-branch main --output none
-
 }
 
 $confirmation = Read-Host "You can optionally import the Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code. Do you want to run the code from GitHub y/n?"
@@ -978,7 +976,7 @@ if (!$AlreadySet -or $ResetPAT ) {
     Write-Host "Creating agent pool" $Pool_Name -ForegroundColor Green
 
     Set-Content -Path pool.json -Value (ConvertTo-Json @{name = $Pool_Name; autoProvision = $true })
-    az devops invoke --area distributedtask --resource pools --http-method POST --api-version "7.1-preview" --in-file ".${pathSeparator}pool.json" --query-parameters authorizePipelines=true --query id --output none --only-show-errors
+    az devops invoke --area distributedtask --resource pools --http-method POST --api-version "7.1-preview" --in-file ".${pathSeparator}pool.json" --query-parameters authorizePipelines=true --query id --output none --only-show-errors --route-parameters project=$ADO_Project
     $POOL_ID = (az pipelines pool list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
     Write-Host "Agent pool" $Pool_Name "created"
     $queue_id = (az pipelines queue list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
