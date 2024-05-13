@@ -444,7 +444,7 @@ namespace AutomationForm.Controllers
         switch (response.StatusCode)
         {
           case System.Net.HttpStatusCode.Unauthorized:
-            errorMessage = "Unauthorized, please ensure that the Personal Access Token has sufficient permissions and that it has not expired.";
+            errorMessage = "Unauthorized, please ensure that the MSI/Personal Access Token has sufficient permissions and that it has not expired.";
             break;
           case System.Net.HttpStatusCode.NotFound:
             errorMessage = "Could not find the template.";
