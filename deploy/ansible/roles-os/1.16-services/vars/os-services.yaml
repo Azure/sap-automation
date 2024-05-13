@@ -78,6 +78,8 @@ services:
   sles_sap15:
     - { tier: 'os',          service: 'fstrim.timer', node_tier: 'all',     state: 'stopped'   }
     - { tier: 'os',          service: 'fstrim.timer', node_tier: 'all',     state: 'disabled'  }
+    - { tier: 'ha',          service: 'logd',         node_tier: 'all',     state: 'enabled'   }
+    - { tier: 'ha',          service: 'logd',         node_tier: 'all',     state: 'started'   }
     # --------------------------- Begin - Packages required for iSCSI -----------------------------------------8
     # https://learn.microsoft.com/en-us/azure/sap/workloads/high-availability-guide-suse-pacemaker#sbd-with-an-iscsi-target-server
     - { tier: 'iscsi',        service: 'targetcli',    node_tier: 'iscsi',   state: 'enabled'   }
