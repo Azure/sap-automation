@@ -664,7 +664,7 @@ stages:
                           unzip -o -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
                       fi
 
-                      ls -lart ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
+                      # ls -lart ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
 
                       if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
                           pass=$(echo $(System.CollectionId) | sed 's/-//g')
@@ -673,7 +673,7 @@ stages:
                           unzip -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                       fi
 
-                      ls -lart ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
+                      # ls -lart ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
 
                       export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 
