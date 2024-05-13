@@ -155,6 +155,52 @@
     - MULTI_SIDS is defined
     - sap_trans is undefined
 
+- name:                                "Exports: Create SAP Trans on PAS and APP Servers"
+  ansible.builtin.file:
+    path:                              '/usr/sap/trans'
+    state:                             directory
+    mode:                              0755
+  when:
+    - node_tier in ['pas','app']
+    - sap_trans is undefined
+
+
+# Mount SAP TransFilesystems
+- name:                                Mount Filesystems block
+  block:
+    - name:                            Mount SAP Transport Filesystems when not using external NFS (all app tier)
+      ansible.builtin.mount:
+        src:                           "{{ item.src }}"
+        path:                          "{{ item.path }}"
+        fstype:                        "{{ item.type }}"
+        opts:                          defaults
+        state:                         mounted
+      loop:
+        - { type: 'nfs4',  src: '{{ nfs_server }}:/usr/sap/trans',  path: '/usr/sap/trans' }
+      when:
+        - tier == 'sapos'
+        - node_tier in ['pas', 'app']
+        - sap_trans is undefined
+        - nfs_server !=  ansible_hostname
+  rescue:
+    - name:                            Re-mount Filesystems when not using external NFS (app & pas)
+      ansible.builtin.debug:
+        msg:                           "Trying to remount sap transport "
+    - name:                            Re-mount Filesystems when not using external NFS (app & pas)
+      ansible.builtin.mount:
+        src:                           "{{ item.src }}"
+        path:                          "{{ item.path }}"
+        fstype:                        "{{ item.type }}"
+        opts:                          defaults
+        state:                         remounted
+      loop:
+        - { type: 'nfs4',  src: '{{ nfs_server }}:/usr/sap/trans',  path: '/usr/sap/trans' }
+      when:
+        - tier == 'sapos'
+        - node_tier in ['pas', 'app']
+        - sap_trans is undefined
+        - nfs_server !=  ansible_hostname
+
 - name:                                "2.6 SAP Mounts: - Debug"
   ansible.builtin.debug:
     var:                               usr_sap_install_mountpoint
