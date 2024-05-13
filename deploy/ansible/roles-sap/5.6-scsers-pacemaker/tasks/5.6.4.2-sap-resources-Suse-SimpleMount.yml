@@ -40,27 +40,18 @@
       ansible.builtin.blockinfile:
         path:                           "/var/tmp/{{ sap_sid | upper }}/crm_sapstartsrv.txt"
         block:                          |
-                                         crm configure primitive rsc_sapstartsrv_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} ocf:suse:SAPStartSrv \
+                                         primitive rsc_sapstartsrv_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} ocf:suse:SAPStartSrv \
                                          params InstanceName={{ instance_name }}
 
-                                         crm configure primitive rsc_sapstartsrv_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} ocf:suse:SAPStartSrv \
+                                         primitive rsc_sapstartsrv_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} ocf:suse:SAPStartSrv \
                                          params InstanceName={{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
         create:                        true
         backup:                        true
+        mode:                          0640
         marker:                        "# {mark} ANSIBLE MANAGED BLOCK - SAP ASCS/SCS/ERS start resources"
 
     - name:                            "5.6 SCSERS - SUSE - ENSA1 - Load the SAP ASCS/SCS/ERS start resources"
       ansible.builtin.shell:           crm configure load update /var/tmp/{{ sap_sid | upper }}/crm_sapstartsrv.txt
-
-    # - name:                            "5.6 SCSERS - SUSE - ENSA1 - Configure SAP ASCS/SCS start resources"
-    #   ansible.builtin.shell:   >
-    #                                    crm configure primitive rsc_sapstartsrv_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} ocf:suse:SAPStartSrv \
-    #                                    params InstanceName={{ instance_name }}
-
-    # - name:                            "5.6 SCSERS - SUSE - ENSA1 - Configure SAP ERS start resources"
-    #   ansible.builtin.shell:   >
-    #                                    crm configure primitive rsc_sapstartsrv_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} ocf:suse:SAPStartSrv \
-    #                                    params InstanceName={{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
 
     - name:                            "5.6 SCSERS - SUSE - ENSA1 - Configure SAP ASCS/SCS resources"
       ansible.builtin.shell:   >
@@ -150,27 +141,18 @@
       ansible.builtin.blockinfile:
         path:                           "/var/tmp/{{ sap_sid | upper }}/crm_sapstartsrv.txt"
         block:                          |
-                                         crm configure primitive rsc_sapstartsrv_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} ocf:suse:SAPStartSrv \
+                                         primitive rsc_sapstartsrv_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} ocf:suse:SAPStartSrv \
                                          params InstanceName={{ instance_name }}
 
-                                         crm configure primitive rsc_sapstartsrv_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} ocf:suse:SAPStartSrv \
+                                         primitive rsc_sapstartsrv_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} ocf:suse:SAPStartSrv \
                                          params InstanceName={{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
         create:                        true
         backup:                        true
+        mode:                          0640
         marker:                        "# {mark} ANSIBLE MANAGED BLOCK - SAP ASCS/SCS/ERS start resources"
 
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Load the SAP ASCS/SCS/ERS start resources"
       ansible.builtin.shell:           crm configure load update /var/tmp/{{ sap_sid | upper }}/crm_sapstartsrv.txt
-
-    # - name:                            "5.6 SCSERS - SUSE - ENSA2 - Configure SAP ASCS/SCS start resources"
-    #   ansible.builtin.shell:   >
-    #                                    crm configure primitive rsc_sapstartsrv_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} ocf:suse:SAPStartSrv \
-    #                                    params InstanceName={{ instance_name }}
-
-    # - name:                            "5.6 SCSERS - SUSE - ENSA2 - Configure SAP ERS start resources"
-    #   ansible.builtin.shell:   >
-    #                                    crm configure primitive rsc_sapstartsrv_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} ocf:suse:SAPStartSrv \
-    #                                    params InstanceName={{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
 
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Configure SAP ASCS/SCS resources"
       ansible.builtin.shell: >
