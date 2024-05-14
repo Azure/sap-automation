@@ -9,6 +9,9 @@
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure maintenance mode is enabled"
       ansible.builtin.command:         crm configure property maintenance-mode=true
 
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Set the priority fencing delay"
+      ansible.builtin.shell:           crm configure property priority-fencing-delay=30
+
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure CIB Bootstrap Options are set"
       when:
                                        - (database_cluster_type == "ASD")   or
@@ -83,6 +86,9 @@
                                        target-role="Started" interleave="true"
       register:                        sap_hana_msl
       failed_when:                     sap_hana_msl.rc > 1
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Set priority for SAP HANA ms resource"
+      ansible.builtin.shell:           crm resource meta msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} set priority 100
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure SAP HANA Virtual IP resource is configured"
       ansible.builtin.shell: >
