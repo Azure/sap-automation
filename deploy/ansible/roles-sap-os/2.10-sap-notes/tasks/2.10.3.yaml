@@ -107,7 +107,7 @@
     saptune_solution_to_apply: >-
                                        {%- if 'scs' in supported_tiers and 'hana' in supported_tiers and database_platform == 'HANA' and bom.product_ids.scs is search(':S4HANA') -%}
                                        'S4HANA-APP+DB'
-                                       {%- if 'scs' in supported_tiers and 'hana' in supported_tiers and database_platform == 'HANA' and bom.product_ids.scs is search(':NW\d{3}') -%}
+                                       {%- elif 'scs' in supported_tiers and 'hana' in supported_tiers and database_platform == 'HANA' and bom.product_ids.scs is search(':NW\d{3}') -%}
                                        'NETWEAVER+HANA'
                                        {%- elif node_tier in ['scs', 'ers','pas','app'] and database_platform == 'HANA' and bom.product_ids.scs is search(':S4HANA') -%}
                                        'S4HANA-APPSERVER'
