@@ -105,23 +105,23 @@
 - name:                                "2.10.3 sap-notes : - set fact for saptune solution to use"
   ansible.builtin.set_fact:
     saptune_solution_to_apply: >-
-                                       {%- if 'scs' in supported_tiers and 'hana' in supported_tiers and database_platform == 'HANA' and bom.product_ids.scs is search(':S4HANA') -%}
+                                       {%- if 'scs' in supported_tiers and 'hana' in supported_tiers and platform == 'HANA' and bom.product_ids.scs is search(':S4HANA') -%}
                                        'S4HANA-APP+DB'
-                                       {%- elif 'scs' in supported_tiers and 'hana' in supported_tiers and database_platform == 'HANA' and bom.product_ids.scs is search(':NW\d{3}') -%}
+                                       {%- elif 'scs' in supported_tiers and 'hana' in supported_tiers and platform == 'HANA' and bom.product_ids.scs is search(':NW\d{3}') -%}
                                        'NETWEAVER+HANA'
-                                       {%- elif node_tier in ['scs', 'ers','pas','app'] and database_platform == 'HANA' and bom.product_ids.scs is search(':S4HANA') -%}
+                                       {%- elif node_tier in ['scs', 'ers','pas','app'] and platform == 'HANA' and bom.product_ids.scs is search(':S4HANA') -%}
                                        'S4HANA-APPSERVER'
-                                       {%- elif node_tier == 'hana' and database_platform == 'HANA' and bom.product_ids.scs is search(':S4HANA') -%}
+                                       {%- elif node_tier == 'hana' and platform == 'HANA' and bom.product_ids.scs is search(':S4HANA') -%}
                                        'S4HANA-DBSERVER'
-                                       {%- elif node_tier in ['scs', 'ers', 'pas', 'app'] and database_platform == 'HANA' and bom.product_ids.scs is search(':BW4HANA') -%}
+                                       {%- elif node_tier in ['scs', 'ers', 'pas', 'app'] and platform == 'HANA' and bom.product_ids.scs is search(':BW4HANA') -%}
                                        'NETWEAVER'
-                                       {%- elif node_tier == 'hana' and database_platform == 'HANA' and bom.product_ids.scs is search(':BW4HANA') -%}
+                                       {%- elif node_tier == 'hana' and platform == 'HANA' and bom.product_ids.scs is search(':BW4HANA') -%}
                                        'HANA'
-                                       {%- elif node_tier in ['scs', 'ers', 'pas', 'app'] and database_platform in ['SYBASE', 'DB2', 'ORACLE', 'ORACLE-ASM', 'SQLSERVER'] and bom.product_ids.scs is search(':NW\d{3}') -%}
+                                       {%- elif node_tier in ['scs', 'ers', 'pas', 'app'] and platform in ['SYBASE', 'DB2', 'ORACLE', 'ORACLE-ASM', 'SQLSERVER'] and bom.product_ids.scs is search(':NW\d{3}') -%}
                                        'NETWEAVER'
-                                       {%- elif node_tier == 'hana' and database_platform == 'HANA' and bom.product_ids.scs is search(':NW\d{3}') -%}
+                                       {%- elif node_tier == 'hana' and platform == 'HANA' and bom.product_ids.scs is search(':NW\d{3}') -%}
                                        'HANA'
-                                       {%- elif node_tier in ['sybase'] and database_platform == 'SYBASE' and bom.product_ids.scs is search(':NW\d{3}') -%}
+                                       {%- elif node_tier in ['sybase'] and platform == 'SYBASE' and bom.product_ids.scs is search(':NW\d{3}') -%}
                                        'SAP-ASE'
                                        {%- else -%}
                                        'NETWEAVER'
