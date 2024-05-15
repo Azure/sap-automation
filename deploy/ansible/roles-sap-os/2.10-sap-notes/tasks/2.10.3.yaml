@@ -1,15 +1,16 @@
 ---
 
 - name:                                "2.10.3 sap-notes: saptune - Register BoM"
+  when:
+                                       - bom is not defined
+                                       - not is_run_with_infraCreate_only
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
     task_prefix:                       "2.10.3 sap-notes : "
-  when:
-    - bom is not defined
-    - not is_run_with_infraCreate_only
+
 
 - name:                                "2.10.3 sap-notes : - Check if saptune package is installed"
   ansible.builtin.package:
@@ -25,6 +26,8 @@
 
 # use ansible.builtin.service to stop and disable services
 - name:                                "2.10.3 sap-notes : - disable services like tuned and sapconf if they exist"
+  when:
+    - saptune_service_takeover.rc != 0
   ansible.builtin.service:
     name:                              "{{ item }}"
     state:                             stopped
@@ -32,8 +35,7 @@
   loop:
     - tuned
     - sapconf
-  when:
-    - saptune_service_takeover.rc != 0
+
 
 # check if saptune_check can run successfully
 # this does not enable saptune but validates if there are any errors.
@@ -59,11 +61,11 @@
     var:                               saptune_solution_enabled
 
 - name:                                "2.10.3 sap-notes : - Backward Compatibility - Check required Database HA variables "
-  ansible.builtin.set_fact:
-    database_high_availability:        "{{ db_high_availability | default(false) }}"
   when:
                                        - db_high_availability is defined
                                        - database_high_availability is not defined
+  ansible.builtin.set_fact:
+    database_high_availability:        "{{ db_high_availability | default(false) }}"
   tags:
                                        - always
 
@@ -83,9 +85,9 @@
 # since this file does not exist by default, we need to create it and add the required values.
 - name:                                "2.10.3 sap-notes : - override sap note 2382421 for saptune when high availability"
   when:
-    - is_high_availability
-    - node_tier in ['scs', 'ers', 'hana', 'db2', 'sybase']
-    - saptune_solution_enabled == 'NONE'
+                                       - is_high_availability
+                                       - node_tier in ['scs', 'ers', 'hana', 'db2', 'sybase']
+                                       - saptune_solution_enabled == 'NONE'
   block:
     - name:                            "2.10.3 sap-notes : - copy sapnote 2382421 to /etc/saptune/override"
       ansible.builtin.blockinfile:
@@ -134,18 +136,26 @@
   failed_when:                         false
 
 - name:                                "2.10.3 sap-notes : - run saptune solution revert during"
-  ansible.builtin.command:             "saptune solution revert {{ saptune_solution_enabled }}"
   when:
-    - saptune_solution_enabled != 'NONE'
-    - saptune_solution_verify.rc != 0
+                                       - saptune_solution_enabled != 'NONE'
+                                       - saptune_solution_verify.rc != 0
+  ansible.builtin.command:             "saptune solution revert {{ saptune_solution_enabled }}"
   register:                            saptune_solution_revert
 
 
 - name:                                "2.10.3 sap-notes : - run saptune solution apply"
-  ansible.builtin.command:             "saptune solution apply {{ saptune_solution_to_apply }}"
   when:
-    - saptune_solution_verify.rc != 0
+                                       - saptune_solution_verify.rc != 0
+  ansible.builtin.command:             "saptune solution apply {{ saptune_solution_to_apply }}"
   register:                            saptune_solution_apply
+
+- name:                                "2.10.3 sap-notes : - run saptune solution apply"
+  when:
+                                       - is_high_availability
+                                       - node_tier in ['scs', 'ers']
+                                       - saptune_solution_apply.rc != 0
+  ansible.builtin.command:             "saptune note apply 2382421"
+  register:                            saptune_note_apply
 
 - name:                                "2.10.3 sap-notes : - run saptune solution verify"
   ansible.builtin.command:             "saptune solution verify {{ saptune_solution_to_apply }}"
