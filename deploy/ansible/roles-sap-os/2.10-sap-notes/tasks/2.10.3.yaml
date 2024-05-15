@@ -149,7 +149,7 @@
   ansible.builtin.command:             "saptune solution apply {{ saptune_solution_to_apply }}"
   register:                            saptune_solution_apply
 
-- name:                                "2.10.3 sap-notes : - run saptune solution apply"
+- name:                                "2.10.3 sap-notes : - run saptune apply note 2382421"
   when:
                                        - is_high_availability
                                        - node_tier in ['scs', 'ers']
