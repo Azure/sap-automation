@@ -78,10 +78,9 @@
                                        false
                                        {%- endif -%}
 
-# If this is a cluster node on Azure, we need to override to disable tcp timestamps, reuse and recycle.
+# For HA deployments on Azure, we need to override to disable tcp timestamps, reuse and recycle.
 # This can be done by copying the sapnote file 2382421 from /usr/share/saptune/notes to /etc/saptune/override
-# The value can then override in the in the new file
-
+# since this file does not exist by default, we need to create it and add the required values.
 - name:                                "2.10.3 sap-notes : - override sap note 2382421 for saptune when high availability"
   when:
     - is_high_availability
@@ -89,43 +88,19 @@
     - saptune_solution_enabled == 'NONE'
   block:
     - name:                            "2.10.3 sap-notes : - copy sapnote 2382421 to /etc/saptune/override"
-      ansible.builtin.copy:
-        src:                           /usr/share/saptune/notes/2382421
-        dest:                          /etc/saptune/override/2382421
+      ansible.builtin.blockinfile:
+        path:                          /etc/saptune/override/2382421
+        create:                        true
+        backup:                        true
         owner:                         root
         group:                         root
-        mode:                          0644
-
-    - name:                            "2.10.3 sap-notes : - override tcp timestamps"
-      ansible.builtin.replace:
-        path:                          /etc/saptune/override/2382421
-        regexp:                        'net.ipv4.tcp_timestamps = 1'
-        replace:                       'net.ipv4.tcp_timestamps = 0'
-        backup:                        true
-
-    - name:                            "2.10.3 sap-notes : - override tcp tw reuse"
-      ansible.builtin.replace:
-        path:                          /etc/saptune/override/2382421
-        regexp:                        'net.ipv4.tcp_tw_reuse ='
-        replace:                       'net.ipv4.tcp_tw_reuse = 0'
-        backup:                        true
-
-    # net.ipv4.tcp_tw_recycle
-    # This parameter reduces the time a connection spends in the TIME_WAIT state.
-    # It is not necessary to set it to 1.
-    #
-    # It has been removed without substitution as of Linux kernel version 4.12.
-    # You can therefore not set it anymore when using kernel versions >= 4.12,
-    # which applies as of SUSE Linux Enterprise Server (SLES) 12 SP4,
-    # SLES 15 GA and RHEL 8.0.
-    - name:                            "2.10.3 sap-notes : - override tcp tw recycle"
-      ansible.builtin.lineinfile:
-        path:                          /etc/saptune/override/2382421
-        line:                          'net.ipv4.tcp_tw_recycle = 0'
-        insertafter:                   '^net.ipv4.tcp_tw_reuse = 0'
-        state:                         present
-        backup:                        true
-
+        mode:                          0640
+        marker:                        "# {mark} ANSIBLE MANAGED BLOCK"
+        block: >-
+                                       [sysctl]
+                                       net.ipv4.tcp_timestamps = 0
+                                       net.ipv4.tcp_tw_reuse = 0
+                                       net.ipv4.tcp_tw_recycle = 0
 # /usr/lib/sysctl.d/99-sysctl.conf
 - name:                                "2.10.3 sap-notes : - set fact for saptune solution to use"
   ansible.builtin.set_fact:
