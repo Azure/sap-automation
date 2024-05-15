@@ -67,7 +67,7 @@
     - {regexp: "systemctl --no-ask-password start SAP{{ sap_sid | upper }}_{{ ers_instance_number }}", lif: "systemctl --no-ask-password start SAP{{ sap_sid | upper }}_{{ ers_instance_number }} # sapstartsrv pf=/usr/sap/{{ sap_sid | upper }}/SYS/profile/{{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}"                         }
   when:
     - ansible_os_family | upper == "SUSE"
-    - ensa2 | default(false)
+    - hostvars[primary_instance_name]['ensa2'] | default(false)
     - systemd_service_names is defined
     - systemd_service_names | length > 0
 
