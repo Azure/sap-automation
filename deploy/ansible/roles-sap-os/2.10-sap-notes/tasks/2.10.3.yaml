@@ -54,12 +54,10 @@
 # output from saptune solution enabled command has an empty line followed by solution name
 - name:                                "2.10.3 sap-notes : - set fact for active saptune solution"
   ansible.builtin.set_fact:
-    saptune_solution_enabled: >-
-                                       {%- if active_saptune_solution.stdout is defined and active_saptune_solution.stdout | length > 0 -%}
-                                         {{ (active_saptune_solution.stdout | trim | regex_search('^\\S+') | first | default('NONE')) }}
-                                       {%- else -%}
-                                         NONE
-                                       {%- endif -%}
+    saptune_solution_enabled:          "{{ (active_saptune_solution.stdout_lines)[1] }}"
+  when:
+    - active_saptune_solution.stdout_lines is defined
+    - active_saptune_solution.stdout_lines | length > 0
 
 - name:                                "2.10.3 sap-notes : - show active saptune solution"
   ansible.builtin.debug:
