@@ -55,11 +55,11 @@
 - name:                                "2.10.3 sap-notes : - set fact for active saptune solution"
   ansible.builtin.set_fact:
     saptune_solution_enabled: >-
-                                       {% if saptune_status.stdout is defined and saptune_status.stdout | length > 0 %}
-                                         {{ active_saptune_solution.stdout | regex_search('^\\S+', '\\1') | first | default('NONE') }}
-                                       {% else %}
+                                       {%- if saptune_status.stdout is defined and saptune_status.stdout | length > 0 -%}
+                                         {{ (active_saptune_solution.stdout_lines)[1] | default('NONE') }}
+                                       {%- else -%}
                                          'NONE'
-                                       {% endif %}
+                                       {%- endif -%}
 
 - name:                                "2.10.3 sap-notes : - show active saptune solution"
   ansible.builtin.debug:
@@ -78,11 +78,11 @@
   ansible.builtin.set_fact:
     is_high_availability: >-
                                        {%- if node_tier in ['scs', 'ers'] and scs_high_availability -%}
-                                       true
+                                         true
                                        {%- elif node_tier == 'hana' and database_high_availability -%}
-                                       true
+                                         true
                                        {%- else -%}
-                                       false
+                                         false
                                        {%- endif -%}
 
 # For HA deployments on Azure, we need to override to disable tcp timestamps, reuse and recycle.
@@ -113,25 +113,25 @@
   ansible.builtin.set_fact:
     saptune_solution_to_apply: >-
                                        {%- if 'scs' in supported_tiers and 'hana' in supported_tiers and platform == 'HANA' and bom.product_ids.scs is search(':S4HANA') -%}
-                                       'S4HANA-APP+DB'
+                                         'S4HANA-APP+DB'
                                        {%- elif 'scs' in supported_tiers and 'hana' in supported_tiers and platform == 'HANA' and bom.product_ids.scs is search(':NW\d{3}') -%}
-                                       'NETWEAVER+HANA'
+                                         'NETWEAVER+HANA'
                                        {%- elif node_tier in ['scs', 'ers','pas','app'] and platform == 'HANA' and bom.product_ids.scs is search(':S4HANA') -%}
-                                       'S4HANA-APPSERVER'
+                                         'S4HANA-APPSERVER'
                                        {%- elif node_tier == 'hana' and platform == 'HANA' and bom.product_ids.scs is search(':S4HANA') -%}
-                                       'S4HANA-DBSERVER'
+                                         'S4HANA-DBSERVER'
                                        {%- elif node_tier in ['scs', 'ers', 'pas', 'app'] and platform == 'HANA' and bom.product_ids.scs is search(':BW4HANA') -%}
-                                       'NETWEAVER'
+                                         'NETWEAVER'
                                        {%- elif node_tier == 'hana' and platform == 'HANA' and bom.product_ids.scs is search(':BW4HANA') -%}
-                                       'HANA'
+                                         'HANA'
                                        {%- elif node_tier in ['scs', 'ers', 'pas', 'app'] and platform in ['SYBASE', 'DB2', 'ORACLE', 'ORACLE-ASM', 'SQLSERVER'] and bom.product_ids.scs is search(':NW\d{3}') -%}
-                                       'NETWEAVER'
+                                         'NETWEAVER'
                                        {%- elif node_tier == 'hana' and platform == 'HANA' and bom.product_ids.scs is search(':NW\d{3}') -%}
-                                       'HANA'
+                                         'HANA'
                                        {%- elif node_tier in ['sybase'] and platform == 'SYBASE' and bom.product_ids.scs is search(':NW\d{3}') -%}
-                                       'SAP-ASE'
+                                         'SAP-ASE'
                                        {%- else -%}
-                                       'NETWEAVER'
+                                         'NETWEAVER'
                                        {%- endif -%}
 
 - name:                                "2.10.3 sap-notes : - run saptune solution verify"
