@@ -56,7 +56,7 @@
   ansible.builtin.set_fact:
     saptune_solution_enabled: >-
                                        {%- if saptune_status.stdout is defined and saptune_status.stdout | length > 0 -%}
-                                         {{ (active_saptune_solution.stdout_lines)[1] | default('NONE') }}
+                                         {{ (active_saptune_solution.stdoutstdout | regex_search('(\\S+)', '\\1'))[0] | default('NONE') }}
                                        {%- else -%}
                                          'NONE'
                                        {%- endif -%}
