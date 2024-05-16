@@ -153,7 +153,6 @@
   when:
                                        - is_high_availability
                                        - node_tier in ['scs', 'ers']
-                                       - saptune_solution_apply.rc != 0
   ansible.builtin.command:             "saptune note apply 2382421"
   register:                            saptune_note_apply
 

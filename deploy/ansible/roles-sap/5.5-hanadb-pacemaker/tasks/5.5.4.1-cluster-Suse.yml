@@ -9,9 +9,6 @@
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure maintenance mode is enabled"
       ansible.builtin.command:         crm configure property maintenance-mode=true
 
-    - name:                            "5.5.4.1 HANA Pacemaker configuration - Set the priority fencing delay"
-      ansible.builtin.shell:           crm configure property priority-fencing-delay=30
-
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure CIB Bootstrap Options are set"
       when:
                                        - (database_cluster_type == "ASD")   or
@@ -142,8 +139,18 @@
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure any required cluster resources are cleaned up"
       ansible.builtin.command:         "crm resource cleanup rsc_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}"
 
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - cleanup cluster resources"
+      ansible.builtin.command:         "crm resource cleanup"
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Set the priority fencing delay"
+      ansible.builtin.shell:           crm configure property priority-fencing-delay=30
+
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure maintenance mode is disabled"
       ansible.builtin.command:         crm configure property maintenance-mode=false
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Wait for a few minutes for the cluster to stabilize"
+      ansible.builtin.wait_for:
+        timeout:                       120
 
   when:                                inventory_hostname == primary_instance_name
 
