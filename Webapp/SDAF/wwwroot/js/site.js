@@ -42,7 +42,11 @@ var hanadb_sizes = [
     {
         "text": "Default",
         "value": "Default"
-    },
+  },
+  {
+    "text": "Custom",
+    "value": "Custom"
+  },
     {
         "text": "S4Demo",
         "value": "S4Demo"

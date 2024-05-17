@@ -12,7 +12,13 @@ variable "environment"                           {
                                                  }
 
 variable "codename"                              {
-                                                   description = "This is the code name name for the deployment"
+                                                   description = "This is the code name for the deployment"
+                                                   type        = string
+                                                   default     = ""
+                                                 }
+
+variable "Description"                           {
+                                                   description = "This is the description for the deployment"
                                                    type        = string
                                                    default     = ""
                                                  }
@@ -263,6 +269,37 @@ variable "web_subnet_nsg_arm_id"                {
                                                 }
 
 
+#########################################################################################
+#                                                                                       #
+#  Storage Subnet variables - Only valid for scale-out configuration                    #
+#                                                                                       #
+#########################################################################################
+
+variable "storage_subnet_name"                  {
+                                                  description = "If provided, the name of the storage subnet"
+                                                  default     = ""
+                                                }
+
+variable "storage_subnet_arm_id"                {
+                                                  description = "If provided, Azure resource id for the storage subnet"
+                                                  default     = ""
+                                                }
+
+variable "storage_subnet_address_prefix"        {
+                                                  description = "The address prefix for the storage subnet"
+                                                  default     = ""
+                                                }
+
+variable "storage_subnet_nsg_name"              {
+                                                  description = "If provided, the name of the storage subnet NSG"
+                                                  default     = ""
+                                                }
+
+variable "storage_subnet_nsg_arm_id"            {
+                                                  description = "If provided, Azure resource id for the storage subnet NSG"
+                                                  default     = ""
+                                                }
+
 
 #########################################################################################
 #                                                                                       #
@@ -379,6 +416,12 @@ variable "database_cluster_disk_size"           {
                                                   description = "The size of the shared disk for the Database cluster"
                                                   default     = 128
                                                 }
+
+variable "database_cluster_disk_type"           {
+                                                  description = "The storage_account_type of the shared disk for the Database cluster"
+                                                  default     = "Premium_ZRS"
+                                                }
+
 
 variable "database_platform"                    {
                                                   description = "Database platform, supported values are HANA, DB2, ORACLE, ORACLE-ASM, ASE, SQLSERVER or NONE (in this case no database tier is deployed)"
@@ -709,6 +752,11 @@ variable "scs_cluster_disk_size"                {
                                                   default     = 128
                                                 }
 
+variable "scs_cluster_disk_type"                {
+                                                  description = "The storage_account_type of the shared disk for the SAP Central Services cluster"
+                                                  default     = "Premium_ZRS"
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  Application Server variables                                                         #
@@ -1020,6 +1068,12 @@ variable "dns_a_records_for_secondary_names"    {
                                                   type        = bool
                                                 }
 
+variable "register_endpoints_with_dns"          {
+                                                  description = "Boolean value indicating if endpoints should be registered to the dns zone"
+                                                  default     = true
+                                                  type        = bool
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  NFS and Shared Filed settings                                                        #
@@ -1324,6 +1378,20 @@ variable "tags"                                 {
                                                   default     = {}
                                                 }
 
+variable "deploy_monitoring_extension"          {
+                                                  description = "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines"
+                                                  default     = true
+                                                }
+
+variable "deploy_defender_extension"            {
+                                                  description = "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines"
+                                                  default     = false
+                                                }
+
+variable "patch_mode"                           {
+                                                  description = "If defined, define the patch mode for the virtual machines"
+                                                  default     = "ImageDefault"
+                                                }
 
 #########################################################################################
 #                                                                                       #
@@ -1333,6 +1401,11 @@ variable "tags"                                 {
 
 variable "database_HANA_use_ANF_scaleout_scenario" {
                                                   description = "If true, the database tier will be configured for scaleout scenario"
+                                                  default = false
+                                                }
+
+variable "database_HANA_no_standby_role"        {
+                                                  description = "If true, the database scale out tier will not have a standby role"
                                                   default = false
                                                 }
 

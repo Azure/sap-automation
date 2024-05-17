@@ -378,7 +378,7 @@ variable "deployer_diagnostics_account_arm_id"        {
 
 variable "tf_version"                                 {
                                                         description = "Terraform version to install on deployer"
-                                                        default     = "1.7.0"
+                                                        default     = "1.7.5"
                                                       }
 
 variable "name_override_file"                         {
@@ -503,6 +503,12 @@ variable "webapp_client_secret"                       {
                                                         type        = string
                                                         default     = ""
                                                       }
+
+variable "app_service_devops_authentication_type"     {
+                                                        description = "The Authentication to use when calling Azure DevOps, MSI/PAT"
+                                                        default     = "MSI"
+                                                      }
+
 
 variable "app_service_SKU_name"                       {
                                                         description = "The SKU of the App Service Plan"

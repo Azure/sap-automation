@@ -22,9 +22,10 @@
     group:                             "{{ item.group }}"
     recurse:                           true
   loop:
-    - { path: '{{ target_media_location }}/SBP',       group: 'oinstall',   owner: 'oracle'}
-    - { path: '{{ target_media_location }}/oraclient', group: 'oinstall',   owner: 'oracle'}
-    - { path: '{{ target_media_location }}/oraserver', group: 'oinstall',   owner: 'oracle'}
+    - { path: '{{ target_media_location }}/SBP',           group: 'oinstall',   owner: 'oracle'}
+    - { path: '{{ target_media_location }}/oraclient',     group: 'oinstall',   owner: 'oracle'}
+    - { path: '{{ target_media_location }}/oraserver',     group: 'oinstall',   owner: 'oracle'}
+    - { path: '{{ target_media_location }}/SBP/GSBP',      group: 'oinstall',   owner: 'oracle'}
   when:
     - node_tier != "observer"
 

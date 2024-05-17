@@ -4,6 +4,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+# Process the first secondary IP configuration available on the primary NIC
 - name:                                "1.10 Networking - Get the IP information from instance meta data service"
   ansible.builtin.uri:
     url:                               http://169.254.169.254/metadata/instance/network/interface/0?api-version=2021-02-01
@@ -94,6 +95,57 @@
 #     name:                              NetworkManager
 #     state:                             restarted
 
+# Get interface data and process network information for all interfaces except the first one
+
+- name:                                "1.10 Networking - Get IMDS data for all interfaces"
+  ansible.builtin.uri:
+    url:                               http://169.254.169.254/metadata/instance/network/interface?api-version=2021-02-01&format=json
+    use_proxy:                         false
+    headers:
+      Metadata:                        true
+  register: azure_network_metadata
+
+# build a list of all the network interfaces
+- name:                                "1.10 Networking - Get the network interfaces"
+  ansible.builtin.set_fact:
+    az_network_interfaces:             "{{ lookup('template', 'azure_interfaces.j2', wantlist=True) | default([]) | flatten(levels=1) }}"
+
+# display the list of azure network interfaces and the expected ethX interface names
+- name:                                "1.10 Networking - Print the network interfaces"
+  ansible.builtin.debug:
+    msg:
+                                       - "ipAddress:     {{ item.ipAddress }} "
+                                       - "Subnet:        {{ item.subnet }}"
+                                       - "interfaceName: {{ item.interfaceName }}"
+    verbosity:                         2
+  loop:                                "{{ az_network_interfaces | list }}"
+
+# for each of the additional ip addresses, add the configuration to the network interface
+# and create a route to the subnet - this is for the storage and application subnets
+# As the IMDS does not return the IPs in the correct order always, we might run into issues
+# this is an old way of doing things, we should be using the nmcli commands anyways.
+# - name:                                "1.10 Networking - Create the file with secondary ip"
+#   ansible.builtin.blockinfile:
+#     create:                            true
+#     path:                              /etc/sysconfig/network-scripts/ifcfg-{{ azif.interfaceName }}
+#     marker_begin:                      "-- BEGIN"
+#     marker_end:                        "-- END"
+#     block: |
+#       DEVICE={{ azif.interfaceName }}
+#       BOOTPROTO=static
+#       ONBOOT=yes
+#       IPADDR={{ azif.ipAddress }}
+#       NETMASK={{ azif.subnet | ipaddr('netmask') }}
+#     mode:                              644
+#   loop:                                "{{ az_network_interfaces | list }}"
+#   loop_control:
+#     loop_var:                          azif
+#   register:                            definition_made
+#   when:
+#     - az_network_interfaces is defined
+#     - az_network_interfaces | length >= 1
+#     - not azif.interfaceName in ['eth0', 'eth0:0']
+
 # Restart Network service (ifup eth0)
 - name:                                "1.10 Networking - Restart Network service"
   ansible.builtin.systemd:
@@ -119,6 +171,90 @@
   when:
     - definition_made.changed
     - distribution_id == 'redhat7'
+
+- name:                                "1.10 Networking - Add routes and restart VM for HANA scaleout"
+  when:
+    - db_scale_out
+    - node_tier == 'hana'
+  block:
+    # display the list of azure network interfaces and the expected ethX interface names
+    - name:                            "1.10 Networking - Print the network configuration details for storage route"
+      ansible.builtin.debug:
+        msg:
+                                       - "IpAddress:       {{ azif.ipAddress }}"
+                                       - "Subnet:          {{ azif.subnet }}"
+                                       - "InterfaceName:   {{ azif.interfaceName }}"
+                                       - "ANF Subnet:      {{ subnet_cidr_anf }}"
+                                       - "Gateway:         {{ subnet_cidr_storage | ansible.utils.ipmath(1) }}"
+        verbosity:                     2
+      loop:                            "{{ az_network_interfaces | list }}"
+      loop_control:
+        loop_var:                      azif
+      when:
+        - az_network_interfaces is defined
+        - subnet_cidr_storage is defined
+        - az_network_interfaces | length >= 1
+        - not azif.interfaceName in ['eth0', 'eth0:0']
+        - subnet_cidr_storage | ansible.utils.network_in_usable( azif.ipAddress )
+
+    # since the storage nic is the 3rd added to the VM we will assume that the device is eth2
+    # and the connection is 'Wired connection 2'
+    - name:                            "1.10 Networking - Add route to the ANF subnet via storage gateway"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.shell:           nmcli connection modify "Wired connection 2" +ipv4.routes "{{ subnet_cidr_anf }} {{ azif.subnet | ansible.utils.ipmath(1) }}"
+      loop:                            "{{ az_network_interfaces | list }}"
+      loop_control:
+        loop_var:                      azif
+      when:
+        - az_network_interfaces is defined
+        - subnet_cidr_storage is defined
+        - az_network_interfaces | length > 2
+        - not azif.interfaceName in ['eth0', 'eth0:0']
+        - subnet_cidr_storage | ansible.utils.network_in_usable( azif.ipAddress )
+
+    - name:                            "1.10 Networking - Print the network configuration details for client route"
+      ansible.builtin.debug:
+        msg:
+                                       - "IpAddress:       {{ azif.ipAddress }}"
+                                       - "Subnet:          {{ azif.subnet }}"
+                                       - "InterfaceName:   {{ azif.interfaceName }}"
+                                       - "App Subnet:      {{ subnet_cidr_app }}"
+                                       - "Gateway:         {{ subnet_cidr_client | ansible.utils.ipmath(1) }}"
+        verbosity:                     2
+      loop:                            "{{ az_network_interfaces | list }}"
+      loop_control:
+        loop_var:                      azif
+      when:
+        - az_network_interfaces is defined
+        - subnet_cidr_client is defined
+        - az_network_interfaces | length > 2
+        - not azif.interfaceName in ['eth0', 'eth0:0']
+        - subnet_cidr_client | ansible.utils.network_in_usable( azif.ipAddress )
+
+    - name:                            "1.10 Networking - Add route to the application subnet via client gateway"
+      ansible.builtin.command:         nmcli connection modify "Wired connection 1" +ipv4.routes "{{ subnet_cidr_app }} {{ azif.subnet | ansible.utils.ipmath(1) }}"
+      loop:                            "{{ az_network_interfaces | list }}"
+      loop_control:
+        loop_var:                      azif
+      when:
+        - az_network_interfaces is defined
+        - subnet_cidr_client is defined
+        - az_network_interfaces | length > 1
+        - not azif.interfaceName in ['eth0', 'eth0:0']
+        - subnet_cidr_client | ansible.utils.network_in_usable( azif.ipAddress )
+
+    # reboot VM after the new routes are added
+    - name:                                "1.10 Networking - Reboot VM and wait for 5 minutes"
+      ansible.builtin.reboot:
+        reboot_timeout:                    300
+      when:
+        - definition_made.changed
+
+    - name:                                "1.10 Networking - Wait for connection to be established after reboot"
+      ansible.builtin.wait_for_connection:
+        delay:                             10
+        timeout:                           300
 
 ...
 # /*----------------------------------------------------------------------------8

@@ -105,6 +105,7 @@ resource "azurerm_linux_virtual_machine" "app" {
                                            local.application_server_count) : (
                                            0
                                          )
+  depends_on                           = [azurerm_virtual_machine_data_disk_attachment.scs]
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.vm,
                                            local.prefix,
@@ -117,13 +118,14 @@ resource "azurerm_linux_virtual_machine" "app" {
   source_image_id                      = var.application_tier.app_os.type == "custom" ? var.application_tier.app_os.source_image_id : null
 
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
-
+  # ToDo Add back later
+# patch_mode                           = var.infrastructure.patch_mode
 
   custom_data                          = var.deployment == "new" ? var.cloudinit_growpart_config : null
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
 
-  proximity_placement_group_id         = length(var.scale_set_id) > 0 ? (
+  proximity_placement_group_id         = var.application_tier.app_use_avset || length(var.scale_set_id) > 0 ? (
                                            null) : (
                                            var.application_tier.app_use_ppg ? (
                                              var.ppg[count.index % max(length(var.ppg), 1)]) : (
@@ -240,6 +242,7 @@ resource "azurerm_linux_virtual_machine" "app" {
   lifecycle {
     ignore_changes = [
       source_image_id,
+      proximity_placement_group_id,
       zone
     ]
   }
@@ -253,6 +256,7 @@ resource "azurerm_windows_virtual_machine" "app" {
                                            local.application_server_count) : (
                                            0
                                          )
+  depends_on                           = [azurerm_virtual_machine_data_disk_attachment.scs]
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.vm,
                                            local.prefix,
@@ -266,7 +270,7 @@ resource "azurerm_windows_virtual_machine" "app" {
   source_image_id                      = var.application_tier.app_os.type == "custom" ? var.application_tier.app_os.source_image_id : null
 
 
-  proximity_placement_group_id         = length(var.scale_set_id) > 0 ? (
+  proximity_placement_group_id         = var.application_tier.app_use_avset || length(var.scale_set_id) > 0 ? (
                                            null) : (
                                            var.application_tier.app_use_ppg ? (
                                              var.ppg[count.index % max(length(var.ppg), 1)]) : (
@@ -303,6 +307,8 @@ resource "azurerm_windows_virtual_machine" "app" {
 
   #ToDo: Remove once feature is GA  patch_mode = "Manual"
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
+  # ToDo Add back later
+# patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(var.application_tier.app_tags, var.tags)
 
@@ -442,7 +448,8 @@ resource "azurerm_virtual_machine_extension" "app_lnx_aem_extension" {
   type_handler_version                 = "1.0"
   settings                             = jsonencode(
                                            {
-                                             "system": "SAP"
+                                             "system": "SAP",
+
                                            }
                                          )
   tags                                 = var.tags
@@ -462,7 +469,8 @@ resource "azurerm_virtual_machine_extension" "app_win_aem_extension" {
   type_handler_version                 = "1.0"
   settings                             = jsonencode(
                                            {
-                                             "system": "SAP"
+                                             "system": "SAP",
+
                                            }
                                          )
   tags                                 = var.tags
@@ -490,3 +498,76 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_app" {
                                          )
   tags                                 = var.tags
 }
+
+
+resource "azurerm_virtual_machine_extension" "monitoring_extension_app_lnx" {
+  provider                             = azurerm.main
+  count                                = local.deploy_monitoring_extension  && upper(var.application_tier.app_os.os_type) == "LINUX" ? (
+                                           local.application_server_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.app[count.index].id
+  name                                 = "Microsoft.Azure.Monitor.AzureMonitorLinuxAgent"
+  publisher                            = "Microsoft.Azure.Monitor"
+  type                                 = "AzureMonitorLinuxAgent"
+  type_handler_version                 = "1.0"
+  auto_upgrade_minor_version           = true
+
+}
+
+
+resource "azurerm_virtual_machine_extension" "monitoring_extension_app_win" {
+  provider                             = azurerm.main
+  count                                = local.deploy_monitoring_extension  && upper(var.application_tier.app_os.os_type) == "WINDOWS" ? (
+                                           local.application_server_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_windows_virtual_machine.app[count.index].id
+  name                                 = "Microsoft.Azure.Monitor.AzureMonitorWindowsAgent"
+  publisher                            = "Microsoft.Azure.Monitor"
+  type                                 = "AzureMonitorWindowsAgent"
+  type_handler_version                 = "1.0"
+  auto_upgrade_minor_version           = true
+
+}
+
+resource "azurerm_virtual_machine_extension" "monitoring_defender_app_lnx" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_defender_extension  && upper(var.application_tier.app_os.os_type) == "LINUX" ? (
+                                           local.application_server_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.app[count.index].id
+  name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityLinuxAgent"
+  publisher                            = "Microsoft.Azure.Security.Monitoring"
+  type                                 = "AzureSecurityLinuxAgent"
+  type_handler_version                 = "2.0"
+  auto_upgrade_minor_version           = true
+
+  settings                             = jsonencode(
+                                            {
+                                              "enableGenevaUpload"  = true,
+                                              "enableAutoConfig"  = true,
+                                              "reportSuccessOnUnsupportedDistro"  = true,
+                                            }
+                                          )
+}
+
+resource "azurerm_virtual_machine_extension" "monitoring_defender_app_win" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_defender_extension  && upper(var.application_tier.app_os.os_type) == "WINDOWS" ? (
+                                           local.application_server_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_windows_virtual_machine.app[count.index].id
+  name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityWindowsAgent"
+  publisher                            = "Microsoft.Azure.Security.Monitoring"
+  type                                 = "AzureSecurityWindowsAgent"
+  type_handler_version                 = "1.0"
+  auto_upgrade_minor_version           = true
+
+  settings                             = jsonencode(
+                                            {
+                                              "enableGenevaUpload"  = true,
+                                              "enableAutoConfig"  = true,
+                                              "reportSuccessOnUnsupportedDistro"  = true,
+                                            }
+                                          )
+}
+

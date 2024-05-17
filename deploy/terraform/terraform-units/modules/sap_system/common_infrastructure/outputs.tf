@@ -103,6 +103,31 @@ output "admin_subnet" {
                                                                  )
                                                  }
 
+output "subnet_cidr_client"                    {
+                                                   description = "Storage subnet prefix"
+                                                   value       = local.enable_db_deployment && local.enable_admin_subnet ? (
+                                                                   local.admin_subnet_exists ? (
+                                                                     data.azurerm_subnet.admin[0].address_prefixes[0]) : (
+                                                                     azurerm_subnet.admin[0].address_prefixes[0]
+                                                                   )) : (
+                                                                   ""
+                                                                 )
+                                                 }
+
+
+output "subnet_cidr_db"                        {
+                                                   description = "DB subnet prefix"
+                                                   value       = local.enable_db_deployment ? (
+                                                                   local.database_subnet_exists ? (
+                                                                      data.azurerm_subnet.db[0].address_prefixes[0]) : (
+                                                                      azurerm_subnet.db[0].address_prefixes[0]
+                                                                    )) : (
+                                                                   ""
+                                                                 )
+                                                 }
+
+
+
 output "db_subnet"                               {
                                                    description = "Admin subnet object"
                                                    value       = local.database_subnet_exists ? (
@@ -122,13 +147,24 @@ output "db_subnet_netmask"                       {
                                                                  )
                                                  }
 output "storage_subnet"                          {
-                                                   description = "Database subnet netmask"
+                                                   description = "Storage subnet"
                                                    value       = local.enable_db_deployment && local.enable_storage_subnet ? (
                                                                    local.sub_storage_exists ? (
                                                                      data.azurerm_subnet.storage[0]) : (
                                                                      azurerm_subnet.storage[0]
                                                                    )) : (
                                                                    null
+                                                                 )
+                                                 }
+
+output "subnet_cidr_storage"                   {
+                                                   description = "Storage subnet prefix"
+                                                   value       = local.enable_db_deployment && local.enable_storage_subnet ? (
+                                                                   local.sub_storage_exists ? (
+                                                                     data.azurerm_subnet.storage[0].address_prefixes[0]) : (
+                                                                     azurerm_subnet.storage[0].address_prefixes[0]
+                                                                   )) : (
+                                                                   ""
                                                                  )
                                                  }
 

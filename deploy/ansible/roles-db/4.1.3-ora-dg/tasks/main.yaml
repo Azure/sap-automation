@@ -15,14 +15,14 @@
     ora_secondary:                     "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
     current_host:                      "{{ ansible_hostname }}"
   when:
-    - node_tier == "oracle" or node_tier == "oracle-asm"
-    - action == 1
+    - node_tier in ["oracle", "oracle-asm"]
+    - action == 'Prepare_and_Restore'
 
 - name:                                "Oracle Data Guard: Prepare secondary node"
   ansible.builtin.include_tasks:       "ora-dg-secondary-preparation.yaml"
   when:
-    - node_tier == "oracle" or node_tier == "oracle-asm"
-    - action == 0
+    - node_tier in ["oracle", "oracle-asm"]
+    - action == 'Prepare_Secondary'
 
 - name:                                "Oracle Data Guard: Prepare and Restore"
   block:
@@ -39,23 +39,31 @@
       when:
         - current_host == ora_secondary
   when:
-    - action == 1
+    - action    == 'Prepare_and_Restore'
     - node_tier == "oracle" or node_tier == "oracle-asm"
     - node_tier != "observer"
 
-- name:                                "Oracle Data Guard: Post processing"
-  ansible.builtin.include_tasks:       "ora-dg-postprocessing.yaml"
+- name:                                "Oracle Data Guard: Post processing on Primary"
+  ansible.builtin.include_tasks:       "ora-dg-postprocessing-primary.yaml"
   when:
     - node_tier == "oracle" or node_tier == "oracle-asm"
     - node_tier != "observer"
-    - action       == 2
+    - action    == 'Post_Processing_Primary'
+
+# Enable Flashback Loggining on the Secondary for FSFO
+- name:                                "Oracle Data Guard: Post processing on Secondary"
+  ansible.builtin.include_tasks:       "ora-dg-postprocessing-secondary.yaml"
+  when:
+    - node_tier == "oracle" or node_tier == "oracle-asm"
+    - node_tier != "observer"
+    - action    == 'Post_Processing_Secondary'
 
 # FSFO is enabled from the Observer.
 - name:                                "Oracle Data Guard: Setup Observer"
   ansible.builtin.include_tasks:       "ora-dg-observer-setup.yaml"
   when:
     - node_tier == "observer"
-    - action    == 3
+    - action    == 'Setup_Observer'
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

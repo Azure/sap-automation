@@ -15,26 +15,32 @@
       ansible.builtin.pip:
         name:                          jmespath
         state:                         present
+      tags:
+        - always
 
     - name:                            "OS configuration playbook: - Create Progress folder"
       ansible.builtin.file:
         path: "{{ _workspace_directory }}/.progress"
         state: directory
         mode: 0755
+      tags:
+        - always
 
     - name:                            "OS configuration playbook: - Remove os-install-done flag"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/os-configuration-done"
         state:                          absent
+      tags:
+        - always
 
     - name:                            "OS configuration playbook: - Read password"
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         tasks_from:                    windows.yaml
-        public:                        true
       when:
         - platform == "SQLSERVER"
       tags:
+        - always
         - 0.1-win-passwords
 
 # /*---------------------------------------------------------------------------8
@@ -72,9 +78,18 @@
       become_user:                     "root"
       block:
 
+        - name:                        "OS configuration playbook: - Set deployment type"
+          ansible.builtin.set_fact:
+            single_server:             true
+          when:                        (ansible_play_hosts_all | length) == 1
+          tags:
+            - always
+
         - name:                        "OS configuration playbook: - Set os fact"
           ansible.builtin.set_fact:
             tier: os
+          tags:
+            - always
 
         - name:                        "OS configuration playbook: - Set sudoers"
           ansible.builtin.include_role:
@@ -107,16 +122,16 @@
             - 1.4-packages
 
         - name:                        "OS configuration playbook: - Configure volume groups and logical volumes"
+          when: node_tier not in ["oracle-multi-sid", "oracle-asm"]
           ansible.builtin.include_role:
             name:                      roles-os/1.5-disk-setup
           tags:
             - 1.5-disk-setup
-          when: node_tier not in ["oracle-multi-sid", "oracle-asm"]
 
         - name:                        "OS configuration playbook: - Configure volume groups and logical volumes (sharedHome)"
+          when: node_tier == "oracle-multi-sid"
           ansible.builtin.include_role:
             name:                      roles-os/1.5.2-disk-setup-ora-multi-sid
-          when: node_tier == "oracle-multi-sid"
           tags:
             - 1.5.2-disk-setup-ora-multi-sid
 
@@ -133,9 +148,9 @@
             - 1.9-kernelparameters
 
         - name:                        "OS configuration playbook: - Configure networking"
+          when: ansible_os_family | upper == "REDHAT"
           ansible.builtin.include_role:
             name:                      roles-os/1.10-networking
-          when: ansible_os_family | upper == "REDHAT"
           tags:
             - 1.10-networking
 
@@ -146,11 +161,11 @@
             - 1.11-accounts
 
         - name:                        "OS configuration playbook: - Configure accounts (Oracle)"
+          when: node_tier in ["oracle", "observer"]
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
           vars:
             tier: ora
-          when: node_tier in ["oracle", "observer"]
 
         - name:                        "OS configuration playbook: - Configure MOTD"
           ansible.builtin.include_role:
@@ -165,11 +180,11 @@
             - 1.16-services
 
         - name:                        "OS configuration playbook: - Configure Prometheus"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.20-prometheus
           when:
             - prometheus
             - ansible_os_family | upper == "SUSE" or ansible_os_family | upper == "REDHAT"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.20-prometheus
           tags:
             - 1.20-prometheus
       when:
@@ -182,6 +197,8 @@
         - name:                        "OS configuration playbook: - Set os fact"
           ansible.builtin.set_fact:
             tier: os
+          tags:
+            - always
 
         - name:                        "OS configuration playbook: - Debug"
           ansible.builtin.debug:
@@ -242,6 +259,8 @@
                 dns_in_AD:              "{{ dns_check_results.stdout_lines[0] }}"
               when:
                 - dns_check_results is defined
+              tags:
+                - always
 
             - name:                    "OS configuration playbook: - Check if required DNS entries match"
               ansible.builtin.assert:
@@ -288,6 +307,8 @@
         - name:                        "OS configuration playbook: - Set os fact"
           ansible.builtin.set_fact:
             tier: issci
+          tags:
+            - always
 
         - name:                        "Create directories"
           become:                      true
@@ -295,6 +316,8 @@
             path:                      '/etc/sap_deployment_automation/{{ sap_sid | upper }}'
             state:                     directory
             mode:                      '0755'
+          tags:
+            - always
 
         - name:                        "OS configuration playbook: - Ensure the packages are registered"
           ansible.builtin.include_role:
@@ -326,6 +349,8 @@
         path: "{{ _workspace_directory }}/.progress/os-configuration-done"
         state: touch
         mode: 0755
+      tags:
+        - always
 
 ...
 # /*----------------------------------------------------------------------------8

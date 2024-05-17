@@ -1,4 +1,4 @@
-﻿@model AutomationForm.Models.FormViewModel<LandscapeModel>;
+@model AutomationForm.Models.FormViewModel<LandscapeModel>;
 @using AutomationForm.Models
 @using System.Text.Json
 
@@ -92,13 +92,33 @@
 
         @await Html.PartialAsync("_FormPartial", Model)
 
-        <fluent-button appearance="accent" style="margin-top: 15px" type="submit" onclick="submitting=true">
-            <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Update
-        </fluent-button>
 
-        <fluent-anchor href="@Url.Action("Index", "Landscape")">
-            Cancel
-        </fluent-anchor>
+
+        <tr>
+            <td>
+                <fluent-button appearance="accent" style="margin-top: 15px" type="submit" onclick="submitting=true">
+                    <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Update
+                </fluent-button>
+            </td>
+
+            <td>
+                <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Index", "Landscape")">
+                    Close
+                </fluent-anchor>
+            </td>
+
+            <td>
+                <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Deploy", "Landscape", new { id = @Model.SapObject.Id, partitionKey = @Model.SapObject.environment })">
+                    Deploy
+                </fluent-anchor>
+            </td>
+            <td>
+                &nbsp
+                <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Download", "Landscape", new { id = @Model.SapObject.Id, partitionKey = @Model.SapObject.environment })">
+                    Download
+                </fluent-anchor>
+            </td>
+        </tr>
 
     </form>
 </div>

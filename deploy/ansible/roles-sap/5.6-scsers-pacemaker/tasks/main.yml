@@ -26,6 +26,53 @@
       become:                          true
       become_user:                     root
 
+- name:                                "Pre SCS HA Install: check if SCS is installed"
+  become:                              true
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
+  register:                            pre_scs_install
+  when:                                ansible_hostname == primary_instance_name
+
+- name:                                "Pre SCS HA Install: set fact if SCS installed"
+  ansible.builtin.set_fact:
+    scs_installed:                     "{{ pre_scs_install.stat.exists | default(false) }}"
+  when:                                ansible_hostname == primary_instance_name
+
+- name:                                "Pre HA Install: check if SAP resources are installed"
+  become:                              true
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_resources_deployment.txt"
+  register:                            pre_sap_install
+
+- name:                                "Pre HA Install: set fact if SAP resources are installed"
+  ansible.builtin.set_fact:
+    sap_resources_installed:           "{{ pre_sap_install.stat.exists | default(false) }}"
+  when:                                ansible_hostname == primary_instance_name
+
+- name:                                "Pre ERS Install: check if ERS is installed"
+  become:                              true
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
+  register:                            pre_ers_install
+  when:                                ansible_hostname == secondary_instance_name
+
+- name:                                "Pre ERS Install: set fact if ERS is installed"
+  ansible.builtin.set_fact:
+    ers_installed:                     "{{ pre_ers_install.stat.exists | default(false) }}"
+  when:                                ansible_hostname == secondary_instance_name
+
+- name:                                "Check if all SAP components are installed"
+  ansible.builtin.set_fact:
+    SAP_installed:                     "{{ hostvars[primary_instance_name]['scs_installed'] | default(false) and hostvars[secondary_instance_name]['ers_installed'] | default(false) and hostvars[primary_instance_name]['sap_resources_installed'] | default(false) }}"
+
+- name:                                "Show if SAP components are installed"
+  ansible.builtin.debug:
+    msg:
+      - "SAP components installed on the cluster: {{ SAP_installed }}"
+      - "SCS installed on the cluster: {{ hostvars[primary_instance_name]['scs_installed'] | default(false) }}"
+      - "ERS installed on the cluster: {{ hostvars[secondary_instance_name]['ers_installed'] | default(false) }}"
+      - "SAP resources installed on the cluster: {{ hostvars[primary_instance_name]['sap_resources_installed'] | default(false) }}"
+
 - name:                                "5.6 SCSERS Pacemaker - provision"
   ansible.builtin.include_tasks:
     file:                              5.6.4-provision.yml
@@ -34,9 +81,8 @@
         - 5.6.4-provision
       become:                          true
       become_user:                     root
-  # when:
-  #   - cluster_existence_check_result is defined
-  #   - not cluster_existence_check_result
+  when:
+    - not SAP_installed
 
 - name:                                "Post SCS HA Install: check if installed"
   become:                              true

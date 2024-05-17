@@ -35,7 +35,7 @@ locals {
   db_zones                             = try(var.database.zones, [])
   scs_zones                            = try(var.application_tier.scs_zones, [])
   web_zones                            = try(var.application_tier.web_zones, [])
-  zones                                = distinct(concat(local.db_zones, local.app_zones, local.scs_zones, local.web_zones))
+  zones                                = var.application_tier.app_use_ppg ? local.db_zones : distinct(concat(local.db_zones, local.app_zones, local.scs_zones, local.web_zones))
   zonal_deployment                     = length(local.zones) > 0 ? true : false
 
   //Flag to control if nsg is creates in virtual network resource group
@@ -114,7 +114,6 @@ locals {
   //ANF support
   use_ANF                              = try(var.database.use_ANF, false)
   //Scalout subnet is needed if ANF is used and there are more than one hana node
-  enable_storage_subnet                = local.use_ANF && local.dbnode_per_site > 1
 
   //Anchor VM
   deploy_anchor                        = try(var.infrastructure.anchor_vms.deploy, false)
@@ -374,7 +373,11 @@ locals {
                                            length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, "")) +
                                            length(try(var.infrastructure.vnets.sap.subnet_storage.prefix, ""))
                                          ) > 0
-  sub_storage_arm_id                   = try(var.infrastructure.vnets.sap.subnet_storage.arm_id, "")
+  sub_storage_arm_id                   = local.sub_storage_defined ? (
+                                           try(var.infrastructure.vnets.sap.subnet_storage.arm_id, "")) : (
+                                           try(var.landscape_tfstate.storage_subnet_id, "")
+                                         )
+
   sub_storage_exists                   = length(local.sub_storage_arm_id) > 0
   sub_storage_name                     = local.sub_storage_exists ? (
                                            try(split("/", local.sub_storage_arm_id)[10], "")) : (
@@ -414,6 +417,9 @@ locals {
                                             )
                                           )
                                         )
+
+  enable_storage_subnet                = (length(local.sub_storage_prefix) + length(local.sub_storage_arm_id)) > 0
+
 
   // If the user specifies arm id of key vaults in input,
   // the key vault will be imported instead of using the landscape key vault

@@ -9,6 +9,9 @@ locals {
                                             codename                         = try(var.codename, try(var.infrastructure.codename, ""))
                                             tags                             = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
                                             use_app_proximityplacementgroups = var.use_app_proximityplacementgroups
+                                            deploy_monitoring_extension      = var.deploy_monitoring_extension
+                                            deploy_defender_extension        = var.deploy_defender_extension
+                                            patch_mode                       = var.patch_mode
                                          }
 
 
@@ -82,6 +85,10 @@ locals {
                                            deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
                                            dual_nics                       = var.database_dual_nics || try(var.databases[0].dual_nics, false)
                                            high_availability               = var.database_high_availability || try(var.databases[0].high_availability, false)
+                                           database_cluster_disk_lun       = var.database_cluster_disk_lun
+                                           database_cluster_disk_size      = var.database_cluster_disk_size
+                                           database_cluster_disk_type      = var.database_cluster_disk_type
+
                                            platform                        = var.database_platform
                                            use_ANF                         = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
                                            use_avset                       = var.database_server_count == 0 || var.use_scalesets_for_deployment || length(var.database_vm_zones) > 0 || var.database_platform == "NONE" ? (
@@ -94,8 +101,9 @@ locals {
                                                                                var.database_use_ppg
                                                                              )
                                            user_assigned_identity_id       = var.user_assigned_identity_id
-                                           zones                           = var.database_vm_zones
+                                           scale_out                       = var.database_HANA_use_ANF_scaleout_scenario
                                            stand_by_node_count             = var.stand_by_node_count
+                                           zones                           = var.database_vm_zones
                                          }
 
   db_os                             = {
@@ -206,12 +214,17 @@ locals {
                                                                             false) : (
                                                                             var.scs_server_use_avset
                                                                           )
+                                        scs_cluster_disk_lun            = var.scs_cluster_disk_lun
+                                        scs_cluster_disk_size           = var.scs_cluster_disk_size
+                                        scs_cluster_disk_type           = var.scs_cluster_disk_type
+
                                         webdispatcher_count             = local.enable_app_tier_deployment ? (
                                                                             max(var.webdispatcher_server_count, try(var.application_tier.webdispatcher_count, 0))
                                                                             ) : (
                                                                             0
                                                                           )
                                         web_instance_number             = var.web_instance_number
+                                        web_sid                         = upper(var.web_sid)
                                         web_sku                         = try(coalesce(var.webdispatcher_server_sku, var.application_tier.web_sku), "")
                                         web_use_ppg                     = (var.webdispatcher_server_count) > 0 ? var.use_scalesets_for_deployment ? (
                                                                             false) : (
@@ -221,6 +234,7 @@ locals {
                                                                             false) : (
                                                                             var.webdispatcher_server_use_avset
                                                                           )
+
                                         deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
                                         user_assigned_identity_id       = var.user_assigned_identity_id
                                       }
@@ -381,6 +395,25 @@ locals {
                                            length(try(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, ""))
                                          ) > 0
 
+  subnet_storage_defined                 = (
+                                           length(var.storage_subnet_address_prefix) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.prefix, "")) +
+                                           length(var.storage_subnet_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, ""))
+                                         ) > 0
+
+  subnet_storage_arm_id_defined          = (
+                                           length(var.storage_subnet_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, ""))
+                                         ) > 0
+
+  subnet_storage_nsg_defined             = (
+                                           length(var.storage_subnet_nsg_name) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.name, "")) +
+                                           length(var.storage_subnet_nsg_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id, ""))
+                                         ) > 0
+
   app_nic_ips                          = distinct(concat(var.application_server_app_nic_ips, try(var.application_tier.app_nic_ips, [])))
   app_nic_secondary_ips                = distinct(var.application_server_app_nic_ips)
   app_admin_nic_ips                    = distinct(concat(var.application_server_admin_nic_ips, try(var.application_tier.app_admin_nic_ips, [])))
@@ -504,6 +537,34 @@ locals {
                                            )
                                          )
 
+  subnet_storage                           = merge(
+                                           (
+                                             {
+                                               "name" = try(var.infrastructure.vnets.sap.subnet_storage.name, var.storage_subnet_name)
+                                             }
+                                             ), (
+                                             local.subnet_storage_arm_id_defined ? (
+                                               {
+                                                 "arm_id" = try(var.infrastructure.vnets.sap.subnet_storage.arm_id, var.storage_subnet_arm_id)
+                                               }
+                                               ) : (
+                                               null
+                                             )), (
+                                             {
+                                               "prefix" = try(var.infrastructure.vnets.sap.subnet_storage.prefix, var.storage_subnet_address_prefix)
+                                             }
+                                             ), (
+                                             local.subnet_storage_nsg_defined ? (
+                                               {
+                                                 "nsg" = {
+                                                           "name"   = try(var.infrastructure.vnets.sap.subnet_storage.nsg.name, var.storage_subnet_nsg_name)
+                                                           "arm_id" = try(var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id, var.storage_subnet_nsg_arm_id)
+                                                         }
+                                               }
+                                             ) : null
+                                           )
+                                         )
+
   all_subnets                          = merge(local.sap, (
                                           local.subnet_admin_defined ? (
                                             {
@@ -533,6 +594,14 @@ locals {
                                             ) : (
                                             null
                                           )
+                                          ), (
+                                            local.subnet_storage_defined ? (
+                                              {
+                                                "subnet_storage" = local.subnet_storage
+                                              }
+                                            ): (
+                                              null
+                                            )
                                           )
                                         )
 

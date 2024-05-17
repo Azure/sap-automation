@@ -86,6 +86,14 @@ resource "azurerm_windows_virtual_machine" "utility_vm" {
                            sku        = var.vm_settings.image.sku
                            version    = var.vm_settings.image.version
                          }
+  dynamic "identity"     {
+                           for_each = range(length(var.infrastructure.user_assigned_identity_id) > 0 ? 1 : 0)
+                           content {
+                                   type         = "UserAssigned"
+                                   identity_ids = [var.infrastructure.user_assigned_identity_id]
+                                 }
+                          }
+
 
   lifecycle {
     ignore_changes = [
@@ -149,8 +157,78 @@ resource "azurerm_linux_virtual_machine" "utility_vm" {
                            offer      = var.vm_settings.image.offer
                            sku        = var.vm_settings.image.sku
                            version    = var.vm_settings.image.version
+
                          }
+  dynamic "identity"     {
+                           for_each = range(length(var.infrastructure.user_assigned_identity_id) > 0 ? 1 : 0)
+                           content {
+                                   type         = "UserAssigned"
+                                   identity_ids = [var.infrastructure.user_assigned_identity_id]
+                                 }
+                          }
 
 
 }
 
+
+resource "azurerm_virtual_machine_extension" "monitoring_extension_utility_lnx" {
+  provider                             = azurerm.main
+  count                                = local.deploy_monitoring_extension && upper(var.vm_settings.image.os_type) == "LINUX" ? var.vm_settings.count : 0
+  virtual_machine_id                   = azurerm_linux_virtual_machine.utility_vm[count.index].id
+  name                                 = "Microsoft.Azure.Monitor.AzureMonitorLinuxAgent"
+  publisher                            = "Microsoft.Azure.Monitor"
+  type                                 = "AzureMonitorLinuxAgent"
+  type_handler_version                 = "1.0"
+  auto_upgrade_minor_version           = true
+}
+
+
+resource "azurerm_virtual_machine_extension" "monitoring_extension_utility_win" {
+  provider                             = azurerm.main
+  count                                = local.deploy_monitoring_extension && upper(var.vm_settings.image.os_type) == "WINDOWS" ? var.vm_settings.count : 0
+
+  virtual_machine_id                   = azurerm_windows_virtual_machine.utility_vm[count.index].id
+  name                                 = "Microsoft.Azure.Monitor.AzureMonitorWindowsAgent"
+  publisher                            = "Microsoft.Azure.Monitor"
+  type                                 = "AzureMonitorWindowsAgent"
+  type_handler_version                 = "1.0"
+  auto_upgrade_minor_version           = true
+}
+
+
+resource "azurerm_virtual_machine_extension" "monitoring_defender_utility_lnx" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_defender_extension && upper(var.vm_settings.image.os_type) == "LINUX" ? var.vm_settings.count : 0
+  virtual_machine_id                   = azurerm_linux_virtual_machine.utility_vm[count.index].id
+  name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityLinuxAgent"
+  publisher                            = "Microsoft.Azure.Security.Monitoring"
+  type                                 = "AzureSecurityLinuxAgent"
+  type_handler_version                 = "2.0"
+  auto_upgrade_minor_version           = true
+
+  settings                             = jsonencode(
+                                            {
+                                              "enableGenevaUpload"  = true,
+                                              "enableAutoConfig"  = true,
+                                              "reportSuccessOnUnsupportedDistro"  = true,
+                                            }
+                                          )
+}
+
+resource "azurerm_virtual_machine_extension" "monitoring_defender_utility_win" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_defender_extension && upper(var.vm_settings.image.os_type) == "WINDOWS" ? var.vm_settings.count : 0
+  virtual_machine_id                   = azurerm_windows_virtual_machine.utility_vm[count.index].id
+  name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityWindowsAgent"
+  publisher                            = "Microsoft.Azure.Security.Monitoring"
+  type                                 = "AzureSecurityWindowsAgent"
+  type_handler_version                 = "1.0"
+  auto_upgrade_minor_version           = true
+  settings                             = jsonencode(
+                                            {
+                                              "enableGenevaUpload"  = true,
+                                              "enableAutoConfig"  = true,
+                                              "reportSuccessOnUnsupportedDistro"  = true,
+                                            }
+                                          )
+}

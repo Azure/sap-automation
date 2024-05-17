@@ -169,7 +169,7 @@
 - name:                                Mount Filesystems block
   block:
     - name:                            Mount SAP Transport Filesystems when not using external NFS (all app tier)
-      ansible.builtin.mount:
+      ansible.posix.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
@@ -187,7 +187,7 @@
       ansible.builtin.debug:
         msg:                           "Trying to remount sap transport "
     - name:                            Re-mount Filesystems when not using external NFS (app & pas)
-      ansible.builtin.mount:
+      ansible.posix.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"

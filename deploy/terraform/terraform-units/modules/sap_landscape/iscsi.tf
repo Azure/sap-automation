@@ -314,3 +314,41 @@ resource "tls_private_key" "iscsi" {
   rsa_bits                             = 2048
 }
 
+
+resource "azurerm_virtual_machine_extension" "monitoring_extension_iscsi_lnx" {
+  provider                             = azurerm.main
+  count                                = local.deploy_monitoring_extension ? (
+                                           local.iscsi_count) : (
+                                           0
+                                         )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.iscsi[count.index].id
+  name                                 = "Microsoft.Azure.Monitor.AzureMonitorLinuxAgent"
+  publisher                            = "Microsoft.Azure.Monitor"
+  type                                 = "AzureMonitorLinuxAgent"
+  type_handler_version                 = "1.0"
+  auto_upgrade_minor_version           = true
+
+}
+
+resource "azurerm_virtual_machine_extension" "monitoring_defender_iscsi_lnx" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_defender_extension ? (
+                                           local.iscsi_count) : (
+                                           0
+                                         )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.iscsi[count.index].id
+  name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityLinuxAgent"
+  publisher                            = "Microsoft.Azure.Security.Monitoring"
+  type                                 = "AzureSecurityLinuxAgent"
+  type_handler_version                 = "2.0"
+  auto_upgrade_minor_version           = true
+
+  settings                             = jsonencode(
+                                            {
+                                              "enableGenevaUpload"  = true,
+                                              "enableAutoConfig"  = true,
+                                              "reportSuccessOnUnsupportedDistro"  = true,
+                                            }
+                                          )
+}
+

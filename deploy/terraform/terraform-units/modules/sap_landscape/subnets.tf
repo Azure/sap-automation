@@ -16,6 +16,15 @@ resource "azurerm_subnet" "admin" {
                                          )
 }
 
+data "azurerm_subnet" "admin" {
+  provider                             = azurerm.main
+  count                                = local.admin_subnet_existing ? 1 : 0
+  name                                 = split("/", local.admin_subnet_arm_id)[10]
+  resource_group_name                  = split("/", local.admin_subnet_arm_id)[4]
+  virtual_network_name                 = split("/", local.admin_subnet_arm_id)[8]
+}
+
+
 // Creates db subnet of SAP VNET
 resource "azurerm_subnet" "db" {
   provider                             = azurerm.main
@@ -31,6 +40,14 @@ resource "azurerm_subnet" "db" {
                                            ) : (
                                            null
                                          )
+}
+
+data "azurerm_subnet" "db" {
+  provider                             = azurerm.main
+  count                                = local.database_subnet_existing ? 1 : 0
+  name                                 = split("/", local.database_subnet_arm_id)[10]
+  resource_group_name                  = split("/", local.database_subnet_arm_id)[4]
+  virtual_network_name                 = split("/", local.database_subnet_arm_id)[8]
 }
 
 // Creates app subnet of SAP VNET
@@ -51,6 +68,15 @@ resource "azurerm_subnet" "app" {
                                          )
 }
 
+data "azurerm_subnet" "app" {
+  provider                             = azurerm.main
+  count                                = local.application_subnet_existing ? 1 : 0
+  name                                 = split("/", local.application_subnet_arm_id)[10]
+  resource_group_name                  = split("/", local.application_subnet_arm_id)[4]
+  virtual_network_name                 = split("/", local.application_subnet_arm_id)[8]
+}
+
+
 // Creates web subnet of SAP VNET
 resource "azurerm_subnet" "web" {
   provider                             = azurerm.main
@@ -68,6 +94,44 @@ resource "azurerm_subnet" "web" {
                                            null
                                          )
 }
+
+data "azurerm_subnet" "web" {
+  provider                             = azurerm.main
+  count                                = local.web_subnet_existing ? 1 : 0
+  name                                 = split("/", local.web_subnet_arm_id)[10]
+  resource_group_name                  = split("/", local.web_subnet_arm_id)[4]
+  virtual_network_name                 = split("/", local.web_subnet_arm_id)[8]
+}
+
+
+
+// Creates storage subnet of SAP VNET
+resource "azurerm_subnet" "storage" {
+  provider                             = azurerm.main
+  count                                = local.storage_subnet_defined && !local.storage_subnet_existing ? 1 : 0
+  name                                 = local.storage_subnet_name
+  resource_group_name                  = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  virtual_network_name                 = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
+  address_prefixes                     = [local.subnet_cidr_storage]
+
+  private_endpoint_network_policies_enabled     = var.use_private_endpoint
+
+  service_endpoints                    = var.use_service_endpoint ? (
+                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
+                                           ) : (
+                                           null
+                                         )
+}
+
+data "azurerm_subnet" "storage" {
+  provider                             = azurerm.main
+  count                                = local.storage_subnet_existing ? 1 : 0
+  name                                 = split("/", local.storage_subnet_arm_id)[10]
+  resource_group_name                  = split("/", local.storage_subnet_arm_id)[4]
+  virtual_network_name                 = split("/", local.storage_subnet_arm_id)[8]
+}
+
+
 
 // Creates anf subnet of SAP VNET
 resource "azurerm_subnet" "anf" {

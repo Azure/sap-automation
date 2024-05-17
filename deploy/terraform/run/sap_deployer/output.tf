@@ -52,6 +52,11 @@ output "deployer_msi_id"                         {
                                                    value = module.sap_deployer.deployer_uai.principal_id
                                                  }
 
+output "deployer_user_assigned_identity"         {
+                                                   description = "The Object ID of the deployer MSI"
+                                                   value = module.sap_deployer.deployer_user_assigned_identity
+                                                 }
+
 output "deployer_public_ip_address"              {
                                                    description = "Public IP address of the deployer"
                                                    value = module.sap_deployer.deployer_public_ip_address
@@ -194,7 +199,7 @@ output "webapp_identity"                         {
 
 output "webapp_id"                               {
                                                    description = "The Azure resource ID of the configuration Web Application"
-                                                   value = var.use_webapp ? module.sap_deployer.webapp_id : ""
+                                                   value       = var.use_webapp ? module.sap_deployer.webapp_id : ""
                                                  }
 
 ###############################################################################
@@ -205,7 +210,7 @@ output "webapp_id"                               {
 
 output "deployer_extension_ids"                  {
                                                    description = "List of extension IDs"
-                                                   value = module.sap_deployer.extension_ids
+                                                   value       = module.sap_deployer.extension_ids
                                                  }
 
 ###############################################################################
@@ -215,11 +220,12 @@ output "deployer_extension_ids"                  {
 ###############################################################################
 
 output "random_id_b64"                           {
-                                                   description = "The random ID used for the naming of resources"
-                                                   value = module.sap_deployer.random_id_b64
+                                                   description  = "The random ID used for the naming of resources"
+                                                   sensitive    = true
+                                                   value        = format("DEPLOYER_%s",module.sap_deployer.random_id_b64)
                                                  }
 
 output "Agent_IP"                                {
                                                     description = "The IP address of the agent"
-                                                    value = var.Agent_IP
+                                                    value       = var.Agent_IP
                                                   }
