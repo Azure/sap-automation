@@ -413,8 +413,6 @@
           register:                    hana_stopped
           environment:
             TMPDIR:                    "{{ tmp_directory }}/{{ db_sid | upper }}"
-          register:                    hana_installation
-          failed_when:                 hana_installation.rc > 0
       rescue:
         - name:                        "Fail if HANA installation failed with rc > 1"
           ansible.builtin.fail:
@@ -525,8 +523,7 @@
         mode:                          0755
   when:
     - not hana_installed.stat.exists
-  when:
-  - database_high_availability
+    - database_high_availability
 
 # /*----------------------------End of setup----------------------------------8
 

@@ -745,25 +745,26 @@ if ($WebApp) {
     Write-Host "Found an existing App Registration:" $ApplicationName
     $ExistingData = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
 
-  $APP_REGISTRATION_ID = $ExistingData.appId
+    $APP_REGISTRATION_ID = $ExistingData.appId
 
-  $confirmation = Read-Host "Reset the app registration secret y/n?"
-  if ($confirmation -eq 'y') {
-    $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors)
+    $confirmation = Read-Host "Reset the app registration secret y/n?"
+    if ($confirmation -eq 'y') {
+      $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors)
+    }
+    else {
+      $WEB_APP_CLIENT_SECRET = Read-Host "Please enter the app registration secret"
+    }
   }
   else {
-    $WEB_APP_CLIENT_SECRET = Read-Host "Please enter the app registration secret"
+    Write-Host "Creating an App Registration for" $ApplicationName -ForegroundColor Green
+    Add-Content -Path manifest.json -Value '[{"resourceAppId":"00000003-0000-0000-c000-000000000000","resourceAccess":[{"id":"e1fe6dd8-ba31-4d61-89e7-88639da4683d","type":"Scope"}]}]'
+
+    $APP_REGISTRATION_ID = (az ad app create --display-name $ApplicationName --enable-id-token-issuance true --sign-in-audience AzureADMyOrg --required-resource-access ".${pathSeparator}manifest.json" --query "appId").Replace('"', "")
+
+    if (Test-Path ".${pathSeparator}manifest.json") { Write-Host "Removing manifest.json" ; Remove-Item ".${pathSeparator}manifest.json" }
+
+    $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors)
   }
-}
-else {
-  Write-Host "Creating an App Registration for" $ApplicationName -ForegroundColor Green
-  Add-Content -Path manifest.json -Value '[{"resourceAppId":"00000003-0000-0000-c000-000000000000","resourceAccess":[{"id":"e1fe6dd8-ba31-4d61-89e7-88639da4683d","type":"Scope"}]}]'
-
-  $APP_REGISTRATION_ID = (az ad app create --display-name $ApplicationName --enable-id-token-issuance true --sign-in-audience AzureADMyOrg --required-resource-access ".${pathSeparator}manifest.json" --query "appId").Replace('"', "")
-
-  if (Test-Path ".${pathSeparator}manifest.json") { Write-Host "Removing manifest.json" ; Remove-Item ".${pathSeparator}manifest.json" }
-
-  $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors)
 }
 
 #endregion
@@ -977,7 +978,7 @@ if (!$AlreadySet -or $ResetPAT ) {
     accessLevel         = @{
       accountLicenseType = "stakeholder"
     }
-    user = @{
+    user                = @{
       origin      = "aad"
       originId    = $MSI_objectId
       subjectKind = "servicePrincipal"

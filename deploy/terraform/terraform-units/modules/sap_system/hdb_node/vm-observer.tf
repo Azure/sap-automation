@@ -47,7 +47,7 @@ resource "azurerm_network_interface" "observer" {
 
 resource "azurerm_linux_virtual_machine" "observer" {
   provider                             = azurerm.main
-  count                                = local.deploy_observer  && upper(local.anydb_ostype) == "LINUX" ? 1 : 0
+  count                                = local.deploy_observer
   depends_on                           = [var.anchor_vm]
   resource_group_name                  = var.resource_group[0].name
   location                             = var.resource_group[0].location

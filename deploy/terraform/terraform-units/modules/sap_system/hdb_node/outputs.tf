@@ -240,7 +240,7 @@ output "observer_ips"                  {
 output "observer_vms"                  {
                                          description = "Resource IDs for observer nodes"
                                          value       = local.enable_deployment ? (
-                                                           azurerm_linux_virtual_machine.observer[*].id,) : (
+                                                           azurerm_linux_virtual_machine.observer[*].id) : (
                                                          [""]
                                                        )
                                        }
