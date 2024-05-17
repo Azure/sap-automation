@@ -136,6 +136,8 @@ locals {
                                           hdb_admin_vm   = 4
                                           hdb_db_vm      = 5
                                           hdb_storage_vm = 4
+                                          observer_db_vm = 8
+
                                         }
 
   // Ports used for specific HANA Versions
@@ -414,7 +416,6 @@ locals {
   use_shared_volumes                   = local.use_avg || var.hana_ANF_volumes.use_for_shared && var.hana_ANF_volumes.use_existing_shared_volume
 
   #If using an existing VM for observer set use_observer to false in .tfvars
-  deploy_observer                      = var.use_observer
   observer_size                        = "Standard_D4s_v3"
   observer_authentication              = local.authentication
   observer_custom_image                = local.hdb_custom_image

@@ -448,11 +448,6 @@ variable "database_cluster_type"                {
                                                   default       = "AFA"
                                                 }
 
-variable "use_observer"                         {
-                                                  description = "If true, an observer virtual machine will be used"
-                                                  default     = true
-                                                }
-
 variable "database_vm_zones"                    {
                                                   description = "If provided, the database tier will be deployed in the specified zones"
                                                   default     = []
@@ -583,6 +578,24 @@ variable "database_use_premium_v2_storage"      {
                                                   description = "If true, the database tier will use premium storage v2"
                                                   default     = false
                                                 }
+
+#########################################################################################
+#                                                                                       #
+#  Observer variables                                                                   #
+#                                                                                       #
+#########################################################################################
+
+
+variable "use_observer"                         {
+                                                  description = "If true, an observer virtual machine will be used"
+                                                  default     = true
+                                                }
+
+variable "observer_nic_ips"                     {
+                                                  description = "If provided, the database tier observer virtual machines will be configured with the specified IPs (db subnet)"
+                                                  default     = [""]
+                                                }
+
 
 #########################################################################################
 #                                                                                       #

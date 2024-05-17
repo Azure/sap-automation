@@ -88,6 +88,7 @@ locals {
                                            database_cluster_disk_lun       = var.database_cluster_disk_lun
                                            database_cluster_disk_size      = var.database_cluster_disk_size
                                            database_cluster_disk_type      = var.database_cluster_disk_type
+                                           observer_vm_ips                 = var.observer_vm_ips
 
                                            platform                        = var.database_platform
                                            use_ANF                         = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)

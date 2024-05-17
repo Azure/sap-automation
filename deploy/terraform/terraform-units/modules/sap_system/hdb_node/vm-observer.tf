@@ -7,7 +7,7 @@
 #######################################4#######################################8
 resource "azurerm_network_interface" "observer" {
   provider                             = azurerm.main
-  count                                = local.deploy_observer ? 1 : 0
+  count                                = var.use_observer ? 1 : 0
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.nic,
                                            local.prefix,
@@ -25,10 +25,10 @@ resource "azurerm_network_interface" "observer" {
                     subnet_id = var.db_subnet.id
                     private_ip_address = var.database.use_DHCP ? (
                       null) : (
-                      try(local.observer.nic_ips[count.index],
+                      try(var.database.observer_vm_ips[count.index],
                         cidrhost(
                           var.db_subnet.address_prefixes[0],
-                          tonumber(count.index) + local.anydb_ip_offsets.observer_db_vm
+                          tonumber(count.index) + local.hdb_ip_offsets.observer_db_vm
                         )
                       )
                     )
@@ -47,7 +47,7 @@ resource "azurerm_network_interface" "observer" {
 
 resource "azurerm_linux_virtual_machine" "observer" {
   provider                             = azurerm.main
-  count                                = local.deploy_observer
+  count                                = var.use_observer ? 1 : 0
   depends_on                           = [var.anchor_vm]
   resource_group_name                  = var.resource_group[0].name
   location                             = var.resource_group[0].location
