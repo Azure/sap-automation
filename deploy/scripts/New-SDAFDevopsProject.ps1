@@ -732,31 +732,6 @@ if ($authenticationMethod -eq "Managed Identity") {
     $id = $(az identity list --query "[?name=='$identity'].id" --subscription $subscription --output tsv)
     $MSI_objectId = $(az identity show --ids $id --query "principalId" --output tsv)
 
-    $postBody = [PSCustomObject]@{
-      accessLevel         = @{
-        accountLicenseType = "stakeholder"
-      }
-      projectEntitlements = @([ordered]@{
-          group      = @{
-            groupType = "projectContributor"
-          }
-          projectRef = @{
-            id = $Project_ID
-          }
-
-        })
-      servicePrincipal    = @{
-        origin      = "aad"
-        originId    = $id
-        subjectKind = "servicePrincipal"
-      }
-
-    }
-
-    Set-Content -Path "user.json" -Value ($postBody | ConvertTo-Json -Depth 6)
-
-    az devops invoke --area MemberEntitlementManagement --resource ServicePrincipalEntitlements  --in-file user.json --api-version "7.1-preview" --http-method POST
-
   }
 }
 
@@ -1025,6 +1000,37 @@ if (!$AlreadySet -or $ResetPAT ) {
       })
   }
 
+  Remove-Item -Path "user.json"
+
+  $postBody = [PSCustomObject]@{
+    accessLevel         = @{
+      accountLicenseType = "stakeholder"
+    }
+    user = @{
+      origin      = "aad"
+      originId    = $MSI_objectId
+      subjectKind = "servicePrincipal"
+    }
+    projectEntitlements = @([ordered]@{
+        group      = @{
+          groupType = "projectContributor"
+        }
+        projectRef = @{
+          id = $Project_ID
+        }
+
+      })
+    servicePrincipal    = @{
+      origin      = "aad"
+      originId    = $MSI_objectId
+      subjectKind = "servicePrincipal"
+    }
+
+  }
+
+  Set-Content -Path "user.json" -Value ($postBody | ConvertTo-Json -Depth 6)
+
+  az devops invoke --area MemberEntitlementManagement --resource ServicePrincipalEntitlements  --in-file user.json --api-version "7.1-preview" --http-method POST
 
   # Read-Host -Prompt "Press any key to continue"
 
