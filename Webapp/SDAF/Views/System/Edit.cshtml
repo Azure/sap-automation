@@ -73,7 +73,7 @@
             </div>
         </div>
     }
-    
+
     <div id="form-sticky-header">
         <div class="filter-checkboxes">
             <fluent-checkbox checked class="parameters-filter" onchange="toggleParams(this, 1)" id="basic-filter">Basic</fluent-checkbox>
@@ -139,20 +139,13 @@
 
             <td>
                 &nbsp
-                <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Install", "System", new { id = @Model.SapObject.Id, partitionKey = @Model.SapObject.environment })">
-                    Install
-                </fluent-anchor>
-            </td>
-
-            <td>
-                &nbsp
                 <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Download", "System", new { id = @Model.SapObject.Id, partitionKey = @Model.SapObject.environment })">
                     Download
                 </fluent-anchor>
             </td>
 
          </tr>
-        
+
 
     </form>
 </div>

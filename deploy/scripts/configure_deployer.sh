@@ -541,18 +541,18 @@ export DOTNET_ROOT=${DOTNET_INSTALL_DIR}
 # Install dotNet
 case "$(get_distro_name)" in
 (ubuntu)
-    sudo snap install dotnet-sdk --classic --channel=7.0
+    sudo snap install dotnet-sdk --classic --channel=8.0
     sudo snap alias dotnet-sdk.dotnet dotnet
     ;;
 (sles)
     sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
     sudo chmod +x "/home/${local_user}/dotnet-install.sh"
-    sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 7.0
+    sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 8.0
     ;;
   (rhel*)
     sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
     sudo chmod +x "/home/${local_user}/dotnet-install.sh"
-    sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 7.0
+    sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 8.0
     ;;
 esac
 

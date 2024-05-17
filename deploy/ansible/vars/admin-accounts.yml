@@ -348,7 +348,7 @@ admin_users:
     node_tier:    oracle
     enabled:      true
 
-  - name:         "oracle"
+  - name:         "{{ oracle_user_name }}"
     comment:      "Oracle Database software Administrator"
     uid:          "{{ oracle_uid }}"
     group:        oinstall
@@ -361,7 +361,7 @@ admin_users:
     node_tier:    oracle
     enabled:      true
 
-  - name:         "oracle"
+  - name:         "{{ oracle_user_name }}"
     comment:      "Oracle Database software Administrator"
     uid:          "{{ oracle_uid }}"
     group:        oinstall
@@ -403,7 +403,7 @@ admin_users:
   #   node_tier:    oracle-multi-sid
   #   enabled:      true
 
-  - name:         "oracle"
+  - name:         "{{ oracle_user_name }}"
     comment:      "Oracle Database software Administrator"
     uid:          "{{ oracle_uid }}"
     group:        oinstall
@@ -431,7 +431,7 @@ admin_users:
     node_tier:    oracle-asm
     enabled:      true
 
-  - name:         "oracle"
+  - name:         "{{ oracle_user_name }}"
     comment:      "Oracle Database software Administrator"
     uid:          "{{ oracle_uid }}"
     group:        oinstall
@@ -460,7 +460,7 @@ admin_users:
     enabled:      true
 
 
-  - name:         "oracle"
+  - name:         "{{ oracle_user_name }}"
     comment:      "Oracle Database software Administrator"
     uid:          "{{ oracle_uid }}"
     group:        oinstall

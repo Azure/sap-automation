@@ -25,6 +25,33 @@ if ($Workload_zone_code.Length -eq 0) {
   $Workload_zone_code = Read-Host "Please provide the workload zone code "
 }
 
+
+if ($Workload_zone_subscriptionID.Length -eq 0) {
+  Write-Host "$Env:ControlPlaneSubscriptionID is not set!" -ForegroundColor Red
+  $Title = "Choose the subscription for the Control Plane"
+  $subscriptions = $(az account list --query "[].{Name:name}" -o table | Sort-Object)
+  Show-Menu($subscriptions[2..($subscriptions.Length - 1)])
+
+  $selection = Read-Host $Title
+
+  $selectionOffset = [convert]::ToInt32($selection, 10) + 1
+
+  $Workload_zoneSubscriptionName = $subscriptions[$selectionOffset]
+
+  az account set --subscription $ControlPlaneSubscriptionName
+  $Workload_zone_subscriptionID = (az account show --query id -o tsv)
+}
+else {
+  az account set --sub $Workload_zone_subscriptionID
+  $Workload_zoneSubscriptionName = (az account show --query name -o tsv)
+}
+
+if ($Workload_zoneSubscriptionName.Length -eq 0) {
+  Write-Host "$Workload_zoneSubscriptionName is not set"
+  exit
+}
+
+
 if ($ADO_Organization.Length -eq 0) {
   Write-Host "Organization is not set"
   $ADO_Organization = Read-Host "Enter your ADO organization URL"
@@ -208,19 +235,13 @@ else {
   $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]" --organization $ADO_ORGANIZATION --project $ADO_Project --only-show-errors )
   if ($GroupID.Length -eq 0) {
     Write-Host "Creating the variable group" $WorkloadZonePrefix -ForegroundColor Green
-    az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID WZ_PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF Logon_Using_SPN=false USE_MSI=true --output none --authorize true  --organization $ADO_ORGANIZATION --project $ADO_Project
+    az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF Logon_Using_SPN=false USE_MSI=true --output none --authorize true  --organization $ADO_ORGANIZATION --project $ADO_Project
     $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]"  --organization $ADO_ORGANIZATION --project $ADO_Project --only-show-errors)
   }
 }
 $idx = $url.IndexOf("_api")
 $pat_url = ($url.Substring(0, $idx) + "_usersSettings/tokens").Replace("""", "")
 
-Write-Host ""
-Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
-Start-Process $pat_url
-
-$PAT = Read-Host -Prompt "Please enter the PAT token: "
-az pipelines variable-group variable update --group-id $GroupID --name "WZ_PAT" --value $PAT --secret true --only-show-errors --organization $ADO_ORGANIZATION --project $ADO_Project --output none
 if ($authenticationMethod -eq "Service Principal") {
 
   $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $ARM_CLIENT_SECRET
