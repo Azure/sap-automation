@@ -504,6 +504,12 @@ variable "webapp_client_secret"                       {
                                                         default     = ""
                                                       }
 
+variable "app_service_devops_authentication_type"     {
+                                                        description = "The Authentication to use when calling Azure DevOps, MSI/PAT"
+                                                        default     = "MSI"
+                                                      }
+
+
 variable "app_service_SKU_name"                       {
                                                         description = "The SKU of the App Service Plan"
                                                         default     = "S1"

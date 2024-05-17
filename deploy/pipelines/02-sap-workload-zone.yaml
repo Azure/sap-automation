@@ -123,10 +123,8 @@ stages:
                 if [ ! -f /etc/profile.d/deploy_server.sh ]; then
                   echo -e "$green --- Install dos2unix ---$reset"
                   sudo apt-get -qq install dos2unix
-                  export AZURE_DEVOPS_EXT_PAT=$PAT
                 else
                   source /etc/profile.d/deploy_server.sh
-                  export AZURE_DEVOPS_EXT_PAT=$PAT
                 fi
 
                 if [ ! -f $CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) ]; then
@@ -261,6 +259,18 @@ stages:
                 echo "Environment(filename): $ENVIRONMENT_IN_FILENAME"
                 echo "Location(filename):    $LOCATION_IN_FILENAME"
                 echo "Network(filename):     $NETWORK_IN_FILENAME"
+                echo "Deployer Environment   $(deployer_environment)"
+                echo "Deployer Region        $(deployer_region)"
+                echo "Workload TFvars        $workload_zone_configuration_file"
+                echo ""
+
+                echo "Agent:                 $(this_agent)"
+                echo "Organization:          $(System.CollectionUri)"
+                echo "Project:               $(System.TeamProject)"
+                echo ""
+                echo "Azure CLI version:"
+                echo "-------------------------------------------------"
+                az --version
 
 
                 if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
@@ -644,13 +654,6 @@ stages:
                     az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name "${NETWORK}"Workload_Zone_State_FileName --value "${landscape_tfstate_key}" --output none --only-show-errors
                   fi
 
-                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query WZ_PAT.isSecret --output table)
-                  if [ -n "${az_var}" ]; then
-                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name WZ_PAT --value $AZURE_DEVOPS_EXT_PAT --output none --only-show-errors --secret true
-                  else
-                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name WZ_PAT --value $AZURE_DEVOPS_EXT_PAT --output none --only-show-errors --secret true
-                  fi
-
                 fi
 
                 if [ 0 != $return_code ]; then
@@ -680,7 +683,7 @@ stages:
               FENCING_SPN_PWD:         $(FENCING_SPN_PWD)
               SAPBITS:                 $(INSTALLATION_MEDIA_ACCOUNT)
               TEST_ONLY:               ${{ parameters.test }}
-              PAT:                     $(WZ_PAT)
+              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
               TF_LOG:                  $(TF_LOG)
               TF_IN_AUTOMATION:        true
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}

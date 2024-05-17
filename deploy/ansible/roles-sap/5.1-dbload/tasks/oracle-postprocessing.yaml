@@ -48,7 +48,7 @@
 
 - name:                                "ORACLE Post Processing: Oracle SGA & PGA: create updatesga.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create: true
     path: /etc/sap_deployment_automation/{{ db_sid | upper }}/updatesga.sql
@@ -65,7 +65,7 @@
 
 - name:                                "ORACLE Post Processing: Oracle Startup: create startup.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create: true
     path: /etc/sap_deployment_automation/{{ db_sid | upper }}/startup.sql
@@ -79,7 +79,7 @@
 
 - name:                                "ORACLE Post Processing: Oracle SGA Change Execution"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        set -o pipefail
                                        sqlplus / as sysdba @updatesga.sql | tee updatesga.log
@@ -105,6 +105,10 @@
   block:
 
     - name:                            "ORACLE Post Processing: Reboot after the Enabling HugePages"
+      ansible.builtin.debug:
+        msg:                           "Reboot after the Enabling HugePages"
+
+    - name:                            "ORACLE Post Processing: Reboot after the Enabling HugePages"
       become:                          true
       ansible.builtin.reboot:
         reboot_timeout:                300
@@ -123,7 +127,7 @@
 
 - name:                                "ORACLE Post Processing: Start Oracle after SGA Change"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        set -o pipefail
                                        sqlplus / as sysdba @startup.sql | tee startup.log
@@ -137,7 +141,7 @@
 # Create a block for starting the oracle listener on primary node
 - name:                                "Oracle Post-Processing - start lsnrctl on Primary"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               lsnrctl start
   register:                            lsnrctl_start_primary_results
   failed_when:                         lsnrctl_start_primary_results.rc > 1
@@ -148,7 +152,7 @@
 
 - name:                                "Oracle Post-Processing: Create lsnrctl_started.txt"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/{{ db_sid | upper }}/lsnrctl_started.txt
     state:                             touch

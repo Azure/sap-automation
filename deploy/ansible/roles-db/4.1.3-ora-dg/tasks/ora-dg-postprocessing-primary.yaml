@@ -12,7 +12,7 @@
   ansible.builtin.stat:
     path:                              /usr/sap/install/downloads/{{ db_sid | upper }}/restore_completed.txt
   register:                            secondary_completed
-  when:                                node_tier == "oracle" or node_tier == "oracle-asm"
+  when:                                node_tier in ["oracle","oracle-asm"]
 
 - name: "Execute Block only if secondary DB restore is completed"
   block:
@@ -20,7 +20,7 @@
     # Restart the LSNRCTL START
     - name:                            "Oracle Data Guard - Post Processing: Restart lsnrctl on Primary"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           lsnrctl reload
       register:                        lsnrctl_start_primary_results
       failed_when:                     lsnrctl_start_primary_results.rc > 0
@@ -44,7 +44,7 @@
 
     - name:                            "Oracle Data Guard - Post Processing: Create lsnrctl_started_sec.txt"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/dgscripts/lsnrctl_started_primary.txt
         state:                         touch
@@ -54,7 +54,7 @@
 
     - name:                            "Oracle Data Guard - Post Processing: Enable DG Broker on Primary"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           sqlplus / as sysdba @enabledgbroker.sql
       register:                        dg_broker_primary_results
       failed_when:                     dg_broker_primary_results.rc > 0
@@ -82,7 +82,7 @@
 
     - name:                            "Oracle Data Guard - Post Processing: Create enable_dg_broker.txt"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/dgscripts/enable_dg_broker.txt
         state:                         touch
@@ -92,7 +92,7 @@
 
     - name:                            "Oracle Data Guard - Post Processing: Create dgmgrl configuration on Primary"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           dgmgrl / as sysdba @dgconfig.dgmgrl
       register:                        dgconfig_results
       failed_when:                     dgconfig_results.rc > 0
@@ -115,7 +115,7 @@
 
     - name:                            "Oracle Data Guard - Post Processing: Create dg_config.txt"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/dgscripts/dg_config.txt
         state:                         touch
@@ -125,7 +125,7 @@
 
     - name:                            "Oracle Data Guard - Post Processing: Enable dgmgrl configuration"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           dgmgrl / as sysdba "ENABLE CONFIGURATION"
       register:                        enable_dgconfig_results
       failed_when:                     enable_dgconfig_results.rc > 0
@@ -148,7 +148,7 @@
 
     - name:                            "Oracle Data Guard - Post Processing: Create dg_enable.txt"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/dgscripts/dg_enable.txt
         state:                         touch
@@ -158,7 +158,7 @@
     # Enable the DB trigger for SAP HA
     - name:                            "Oracle Data Guard - Post Processing: Enable DB Trigger"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           sqlplus / as sysdba @dbtrigger.sql
       register:                        enable_dbtrigger_results
       failed_when:                     enable_dbtrigger_results.rc > 0
@@ -181,7 +181,7 @@
 
     - name:                            "Oracle Data Guard - Post Processing: Create enable_dbtrigger.txt"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/dgscripts/enable_dbtrigger.txt
         state:                         touch

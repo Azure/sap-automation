@@ -55,7 +55,7 @@
     mode:                              '{{ item.mode }}'
   loop:
     - { mode: '0755', path: '{{ dir_params }}' }
-    - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
+    - { mode: '0775', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
 - name:                                "APP Install: reset"
@@ -81,7 +81,7 @@
 
 - name:                                "APP Install: register variables"
   ansible.builtin.set_fact:
-    app_bom_id:                        "{{ bom.product_ids.app }}"
+    app_bom_id:                        "{% if database_high_availability %}{{ bom.product_ids.app_ha | default(bom.product_ids.app) }}{% else %}{{ bom.product_ids.app }}{% endif %}"
 
 - name:                                "APP Install: Check if the DB load balancer port is available and listening"
   ansible.builtin.wait_for:
@@ -183,10 +183,6 @@
         # support older app inifile templates where hdb_instance_number was used
         hdb_instance_number:           "{{ db_instance_number }}"
 
-    - name:                            "App Install: register variables"
-      ansible.builtin.set_fact:
-        app_bom_id:                    "{{ bom.product_ids.app }}"
-
     - name:                            "App Install: install variables"
       ansible.builtin.debug:
         msg:
@@ -213,7 +209,7 @@
       ansible.builtin.import_tasks:    ../../../roles-sap-os/2.10-sap-notes/tasks/2.10.3119751.yaml
       when:
         - ansible_os_family == 'RedHat'
-        - "distribution_id != 'oraclelinux8'"
+        - distribution_id != 'oraclelinux8'
 
     - name:                            "APP Install: progress"
       ansible.builtin.debug:

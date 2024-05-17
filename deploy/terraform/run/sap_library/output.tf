@@ -59,7 +59,7 @@ output "saplibrary_environment"                  {
 
 output "automation_version"                      {
                                                    description = "Version of automation"
-                                                   value = local.version_label
+                                                   value       = local.version_label
                                                  }
 
 output "sa_connection_string"                    {
@@ -77,6 +77,7 @@ output "sa_connection_string"                    {
 
 output "random_id_b64"                          {
                                                    description = "Random ID in base64"
-                                                   value      = module.sap_library.random_id_b64
+                                                   sensitive   = true
+                                                   value       = format("LIBRARY_%s",module.sap_library.random_id_b64)
                                                  }
 

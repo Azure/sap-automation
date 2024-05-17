@@ -33,6 +33,15 @@
             path:                      "{{ _workspace_directory }}/.progress/db-ha-done"
             state:                      absent
 
+        - name:                        "Ensure passlib is installed on the controller"
+          become:                      true
+          become_user:                 root
+          ansible.builtin.pip:
+            name:                      passlib
+            state:                     present
+          tags:
+            - always
+
         # MKD - Fencing is not a tier... it is a misuse to code for that
         #       To detect we should be using:
         #         database_high_availability
@@ -176,9 +185,7 @@
             - name:                    "HANA HA Setup: - run the Pacemaker role"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.5-hanadb-pacemaker
-              when:
-                - database_high_availability
-                - not db_scale_out
+              when:                    db_high_availability
               tags:
                 - 5.5-hanadb-pacemaker
 
@@ -217,11 +224,6 @@
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
-
-    - name:                            "Backward Compatibility - Check required Database HA variables"
-      ansible.builtin.set_fact:
-        primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
-        secondary_instance_name:   "{{ ansible_play_hosts_all[1] | default('N/A') }}"         # Setting up Secondary Instance Name
 
     - name:                            "Oracle Data Guard Setup"
       when:
@@ -349,6 +351,11 @@
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
+
+    - name:                            "Get Instance names"
+      ansible.builtin.set_fact:
+        primary_observer_name :        "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
+        secondary_observer_name:       "{{ ansible_play_hosts_all[1] | default('N/A') }}"         # Setting up Secondary Instance Name
 
     - name:                            "Oracle: Observer setup"
       become:                          true
