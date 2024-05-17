@@ -1,20 +1,35 @@
 ---
 
-- name:                               "Exports: Create SAP Directories"
+- name:                               "Exports: Create SAP Directories - {{ target_media_location }}"
   ansible.builtin.file:
-    path:                             "{{ item.path }}"
+    path:                             "{{ target_media_location }}"
     state:                            directory
     mode:                             0755
-  loop:
-    - { path: '{{ target_media_location }}' }
-    - { path: '/usr/sap/trans' }
-    - { path: '/sapmnt/{{ sap_sid | upper }}' }
+  when:
+    - node_tier == 'scs'
+    - MULTI_SIDS is undefined
+    - usr_sap_install_mountpoint is undefined
+
+- name:                               "Exports: Create SAP Directories - saptrans"
+  ansible.builtin.file:
+    path:                             "/usr/sap/trans"
+    state:                            directory
+    mode:                             0755
+  when:
+    - node_tier == 'scs'
+    - MULTI_SIDS is undefined
+    - sap_trans is undefined
+
+- name:                               "Exports: Create SAP Directories - saptrans"
+  ansible.builtin.file:
+    path:                             "/sapmnt/{{ sap_sid | upper }}"
+    state:                            directory
+    mode:                             0755
   when:
     - node_tier == 'scs'
     - MULTI_SIDS is undefined
     - sap_mnt is undefined
-    - sap_trans is undefined
-    - usr_sap_install_mountpoint is undefined
+
 
 - name:                               "Exports: Create SAP Directories for MSIDs"
   ansible.builtin.file:

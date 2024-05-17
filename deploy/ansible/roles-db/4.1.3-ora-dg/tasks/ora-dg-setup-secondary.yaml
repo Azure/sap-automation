@@ -113,7 +113,7 @@
 
 - name:                                "Oracle Data Guard - Setup Secondary: start lsnrctl on Secondary"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               lsnrctl start
   register:                            lsnrctl_start_secondary_results
   failed_when:                         lsnrctl_start_secondary_results.rc > 0
@@ -153,7 +153,7 @@
 
 - name:                                "Oracle Data Guard - ASM - Setup Secondary: Stop lsnrctl on Secondary"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               lsnrctl stop
   register:                            lsnrctl_stop_secondary_results
   failed_when:                         lsnrctl_stop_secondary_results.rc > 0
@@ -167,7 +167,7 @@
 
 - name:                                "Oracle Data Guard - ASM - Setup Secondary: Create lsnrctl_stopped_sec.txt"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_stopped_sec.txt
     state:                             touch
@@ -180,7 +180,7 @@
 
 - name:                                "Oracle Data Guard - ASM - Setup Secondary: Start lsnrctl on Secondary"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               lsnrctl start
   register:                            lsnrctl_asm_start_secondary_results
   failed_when:                         lsnrctl_asm_start_secondary_results.rc > 0
@@ -207,7 +207,7 @@
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create lsnrctl_started_sec.txt"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_asm_started_sec.txt
     state:                             touch
@@ -224,7 +224,7 @@
 
 - name:                                "Oracle Data Guard - Setup Secondary: Startup secondary DB using pfile"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
       sqlplus / as sysdba @secondarystartup.sql | tee /etc/sap_deployment_automation/dgscripts/secondary_startup.log
@@ -251,7 +251,7 @@
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create secondary_startup.txt"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/secondary_startup.txt
     state:                             touch
@@ -266,10 +266,10 @@
 
     - name:                            "Oracle Data Guard - Setup Secondary: Duplicate Secondary DB from Primary DB using RMAN"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           rman TARGET sys/{{ main_password }}@{{ db_sid | upper }} AUXILIARY sys/{{ main_password }}@{{ db_sid | upper }}_STDBY @rman-restore.rman
       register:                        rman_results
-      failed_when:                     rman_results.rc > 0
+      failed_when:                     rman_results.rc > 1
       args:
         creates:                       /etc/sap_deployment_automation/dgscripts/restore_completed.txt
         chdir:                         /etc/sap_deployment_automation/dgscripts
@@ -287,7 +287,7 @@
 
     - name:                            "Oracle Data Guard - Setup Secondary: Shutdown secondary DB"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           sqlplus / as sysdba @shutdownsecondary.sql
       register:                        secondary_shutdown_results
       failed_when:                     secondary_shutdown_results.rc > 0
@@ -297,11 +297,10 @@
 
     - name:                            "Oracle Data Guard - Setup Secondary: Remove files"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.file:
         path:                          "{{ item.directory_to_empty }}"
         state:                         absent
-        recurse:                       true
       loop:
         - { directory_to_empty: '/oracle/{{ db_sid | upper }}/sapdata1' }
         - { directory_to_empty: '/oracle/{{ db_sid | upper }}/sapdata2' }
@@ -316,7 +315,7 @@
 
     - name:                            "Oracle Data Guard - Setup Secondary: Startup secondary DB"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           sqlplus / as sysdba @secondarystartup.sql
       register:                        secondary_startup_results2
       args:
@@ -338,10 +337,10 @@
 
     - name:                            "Oracle Data Guard - Setup Secondary: Duplicate Secondary DB from Primary DB using RMAN"
       become:                          true
-      become_user:                     "oracle"
+      become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell:           rman TARGET sys/{{ main_password }}@{{ db_sid | upper }} AUXILIARY sys/{{ main_password }}@{{ db_sid | upper }}_STDBY @rman-restore.rman
       register:                        rman_results
-      failed_when:                     rman_results.rc > 0
+      failed_when:                     rman_results.rc > 1
       args:
         chdir:                         /etc/sap_deployment_automation/dgscripts
         executable:                    /bin/csh
@@ -378,7 +377,7 @@
 
 - name:                                "Oracle Data Guard - Oracle Secondary Redo log rename using template"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.template:
    backup:                             true
    src:                                standbyredolog.j2
@@ -390,7 +389,7 @@
 
 - name:                                "Oracle Data Guard - Setup Secondary: Rename the redolog files afer RMAN Restore"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
       sqlplus / as sysdba @standbyredolog.sql | tee /etc/sap_deployment_automation/dgscripts/standbyredolog.log
@@ -432,7 +431,7 @@
 
 - name:                                "Oracle Data Guard - ASM - Create oraarch and parameter folders"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +ARCH/{{ db_sid | upper }}_STDBY/oraarch
                                        /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE
@@ -449,7 +448,7 @@
 
 - name:                                "Oracle Data Guard - ASM - Setup Secondary: Create asm_oraarch_created.txt"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/asm_oraarch_created.txt
     state:                             touch
@@ -463,7 +462,7 @@
 # Create the SPFILE from PFILE on Standby and Start the Standby Database using PFILE for non-ASM.
 - name:                                "Oracle Data Guard - Setup Secondary: Create spfile on non-ASM"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
       sqlplus / as sysdba @createspfile.sql | tee /etc/sap_deployment_automation/dgscripts/create_spfile.log
@@ -540,7 +539,7 @@
 # Stop the Secondary Database.
 - name:                                "Oracle Data Guard - Setup Secondary: Stop secondary DB for  spfile"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
       sqlplus / as sysdba @shutdownsecondary.sql | tee /etc/sap_deployment_automation/dgscripts/ora_secondary_shutdown.log
@@ -588,7 +587,7 @@
 #  Start the Secondary Database with the new SPFILE;
 - name:                                "Oracle Data Guard - Setup Secondary: Start secondary DB with spfile"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
       sqlplus / as sysdba @orasecondarystartup.sql | tee /etc/sap_deployment_automation/dgscripts/ora_secondary_startup_spfile.log
@@ -622,7 +621,7 @@
 # Create the SPFILE from PFILE on Standby and Start the Standby Database using PFILE.
 - name:                                "Oracle Data Guard - Setup Secondary: Create spfile on ASM"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
       sqlplus / as sysdba @createspfilesecondary.sql | tee /etc/sap_deployment_automation/dgscripts/create_spfile.log
@@ -654,7 +653,7 @@
 # Backup the PFILE and Create new PFILE refering to SPFILE.
 - name:                                "Oracle Data Guard - Setup Secondary: Backup and remove pfile"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
       mv init{{ db_sid | upper}}.ora init{{ db_sid | upper}}.ora_backup_after_restore
@@ -687,7 +686,7 @@
 # Stop the Secondary Database.
 - name:                                "Oracle Data Guard - Setup Secondary: Stop secondary DB for  spfile"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
       sqlplus / as sysdba @shutdownsecondary.sql | tee /etc/sap_deployment_automation/dgscripts/asm_secondary_shutdown.log
@@ -719,7 +718,7 @@
 # Create new PFILE with SPFILE Details for ASM.
 - name:                                "Oracle Data Guard for ASM - Preparation: create createspfile"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /oracle/{{ db_sid |upper }}/{{ ora_release}}/dbs/init{{ db_sid | upper }}.ora
@@ -735,7 +734,7 @@
 #  Start the Secondary Database with the new SPFILE;
 - name:                                "Oracle Data Guard - Setup Secondary: Start secondary DB with spfile"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
       set -o pipefail
       sqlplus / as sysdba @asmsecondarystartup.sql | tee /etc/sap_deployment_automation/dgscripts/asm_secondary_startup_spfile.log
@@ -782,7 +781,7 @@
 # Enable the DataGaurd Broker
 - name:                                "Oracle Data Guard - Setup Secondary: startup DG Broker on Secondary"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               sqlplus / as sysdba @enabledgbroker.sql
   register:                            secondary_startup_results
   failed_when:                         secondary_startup_results.rc > 0
@@ -806,7 +805,7 @@
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create enable_dg_broker.txt"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/enable_dg_broker.txt
     state:                             touch

@@ -36,18 +36,25 @@
         get_status_maintenance_mode.stdout is not search('true') or
         get_status_maintenance_mode.stdout is search('false')
 
-    - name:                            "5.6 SCSERS - SUSE - ENSA1 - Configure SAP ASCS/SCS start resources"
-      ansible.builtin.command: >
-                                       crm configure primitive rsc_sapstartsrv_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} ocf:suse:SAPStartSrv \
-                                       params InstanceName={{ instance_name }}
+    - name:                            "5.6 SCSERS - SUSE - ENSA1 - Configure SAP ASCS/SCS/ERS start resources"
+      ansible.builtin.blockinfile:
+        path:                           "/var/tmp/{{ sap_sid | upper }}/crm_sapstartsrv.txt"
+        block:                          |
+                                         primitive rsc_sapstartsrv_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} ocf:suse:SAPStartSrv \
+                                         params InstanceName={{ instance_name }}
 
-    - name:                            "5.6 SCSERS - SUSE - ENSA1 - Configure SAP ERS start resources"
-      ansible.builtin.command: >
-                                       crm configure primitive rsc_sapstartsrv_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} ocf:suse:SAPStartSrv \
-                                       params InstanceName={{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
+                                         primitive rsc_sapstartsrv_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} ocf:suse:SAPStartSrv \
+                                         params InstanceName={{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
+        create:                        true
+        backup:                        true
+        mode:                          0640
+        marker:                        "# {mark} ANSIBLE MANAGED BLOCK - SAP ASCS/SCS/ERS start resources"
+
+    - name:                            "5.6 SCSERS - SUSE - ENSA1 - Load the SAP ASCS/SCS/ERS start resources"
+      ansible.builtin.shell:           crm configure load update /var/tmp/{{ sap_sid | upper }}/crm_sapstartsrv.txt
 
     - name:                            "5.6 SCSERS - SUSE - ENSA1 - Configure SAP ASCS/SCS resources"
-      ansible.builtin.command: >
+      ansible.builtin.shell:   >
                                        crm configure primitive rsc_sap_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
                                        op monitor interval=11 timeout={{ clus_sap_mon_timeout | int }} on-fail=restart \
                                        params InstanceName={{ instance_name }} START_PROFILE="{{ start_profile_path }}" \
@@ -58,7 +65,7 @@
       failed_when:                     ascs_rsc_sap.rc > 1
 
     - name:                            "5.6 SCSERS - SUSE - ENSA1 - Configure SAP ERS resources"
-      ansible.builtin.command: >
+      ansible.builtin.shell:   >
                                        crm configure primitive rsc_sap_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} SAPInstance \
                                        op monitor interval=11 timeout={{ clus_sap_mon_timeout | int }} on-fail=restart \
                                        params InstanceName={{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} \
@@ -86,10 +93,10 @@
       failed_when:                     co_location.rc > 1
 
     - name:                            " Bring primary node online "
-      ansible.builtin.command:         crm node online {{ primary_instance_name }}
+      ansible.builtin.shell:           crm node online {{ primary_instance_name }}
 
     # - name:                            "5.6 SCSERS - SUSE - ENSA1 - Set the Cluster out of maintenance mode"
-    #   ansible.builtin.command:         crm configure property maintenance-mode=false
+    #   ansible.builtin.shell:           crm configure property maintenance-mode=false
 
     # - name:                            "5.6 SCSERS - SUSE - ENSA1 - pause the execution for 2 minutes"
     #   ansible.builtin.pause:
@@ -128,17 +135,24 @@
         get_status_maintenance_mode.stdout is search('false')
 
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Set the priority fencing delay"
-      ansible.builtin.command:         crm configure property priority-fencing-delay=30
+      ansible.builtin.shell:           crm configure property priority-fencing-delay=30
 
-    - name:                            "5.6 SCSERS - SUSE - ENSA2 - Configure SAP ASCS/SCS start resources"
-      ansible.builtin.command: >
-                                       crm configure primitive rsc_sapstartsrv_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} ocf:suse:SAPStartSrv \
-                                       params InstanceName={{ instance_name }}
+    - name:                            "5.6 SCSERS - SUSE - ENSA2 - Configure SAP ASCS/SCS/ERS start resources"
+      ansible.builtin.blockinfile:
+        path:                           "/var/tmp/{{ sap_sid | upper }}/crm_sapstartsrv.txt"
+        block:                          |
+                                         primitive rsc_sapstartsrv_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} ocf:suse:SAPStartSrv \
+                                         params InstanceName={{ instance_name }}
 
-    - name:                            "5.6 SCSERS - SUSE - ENSA2 - Configure SAP ERS start resources"
-      ansible.builtin.command: >
-                                       crm configure primitive rsc_sapstartsrv_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} ocf:suse:SAPStartSrv \
-                                       params InstanceName={{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
+                                         primitive rsc_sapstartsrv_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} ocf:suse:SAPStartSrv \
+                                         params InstanceName={{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}
+        create:                        true
+        backup:                        true
+        mode:                          0640
+        marker:                        "# {mark} ANSIBLE MANAGED BLOCK - SAP ASCS/SCS/ERS start resources"
+
+    - name:                            "5.6 SCSERS - SUSE - ENSA2 - Load the SAP ASCS/SCS/ERS start resources"
+      ansible.builtin.shell:           crm configure load update /var/tmp/{{ sap_sid | upper }}/crm_sapstartsrv.txt
 
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Configure SAP ASCS/SCS resources"
       ansible.builtin.shell: >
@@ -178,10 +192,10 @@
       failed_when:                     co_location.rc > 1
 
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Bring primary node online "
-      ansible.builtin.command:         crm node online {{ primary_instance_name }}
+      ansible.builtin.shell:           crm node online {{ primary_instance_name }}
 
     # - name:                            "5.6 SCSERS - SUSE - ENSA2 - Set the Cluster out of maintenance mode"
-    #   ansible.builtin.command:         crm configure property maintenance-mode=false
+    #   ansible.builtin.shell:           crm configure property maintenance-mode=false
 
     # - name:                           "5.6 SCSERS - SUSE - ENSA2 - pause the execution for 2 minutes"
     #   ansible.builtin.wait_for:
@@ -235,7 +249,7 @@
     post_reboot_delay:                 300
 
 - name:                                "5.6 SCSERS - SUSE - Set the Cluster out of maintenance mode"
-  ansible.builtin.command:             crm configure property maintenance-mode=false
+  ansible.builtin.shell:               crm configure property maintenance-mode=false
 
 - name:                                "5.6 SCSERS - SUSE - cluster group validation"
   ansible.builtin.include_tasks:

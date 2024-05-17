@@ -259,7 +259,7 @@
 
 - name:                                "AFS Mount: usr/sap/{{ sap_sid | upper }}"
   when:
-    - node_tier in ['scs','ers', 'pas', 'app']
+    - node_tier in ['scs','ers', 'pas']
     - sap_mnt is defined
     - use_simple_mount is defined and use_simple_mount
   block:

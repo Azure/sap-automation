@@ -79,12 +79,12 @@ ansible_facts.
 {%   for tier in supported_tiers %}
 {%     if tier == 'scs' %}
 {%       set scs_virtual_host = hostvars[host]['custom_scs_virtual_hostname'] if 'custom_scs_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
-{%       if scs_virtual_host not in virtual_host_names %}
+{%       if scs_virtual_host not in virtual_host_names and not scs_high_availability %}
 {%         set _ = virtual_host_names.append(scs_virtual_host) %}
 {%       endif %}
 {%     elif tier == 'ers' %}
 {%       set ers_virtual_host = hostvars[host]['custom_ers_virtual_hostname'] if 'custom_ers_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
-{%       if ers_virtual_host not in virtual_host_names %}
+{%       if ers_virtual_host not in virtual_host_names and not scs_high_availability %}
 {%         set _ = virtual_host_names.append(ers_virtual_host) %}
 {%       endif %}
 {%     elif tier == 'pas' %}
@@ -104,7 +104,7 @@ ansible_facts.
 {%       endif %}
 {%     elif tier in ['hana', 'oracle', 'oracle-asm', 'db2', 'sybase'] %}
 {%       set db_virtual_host = hostvars[host]['custom_db_virtual_hostname'] if 'custom_db_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
-{%       if db_virtual_host not in virtual_host_names %}
+{%       if db_virtual_host not in virtual_host_names and not database_high_availability %}
 {%         set _ = virtual_host_names.append(db_virtual_host) %}
 {%       endif %}
 {%     endif %}

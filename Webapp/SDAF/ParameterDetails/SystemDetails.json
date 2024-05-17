@@ -288,6 +288,24 @@
         "Display": 2
       },
       {
+        "Name": "deploy_monitoring_extension",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "deploy_defender_extension",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "vm_disk_encryption_set_id",
         "Required": false,
         "Description": "Azure resource identifier for custom encryption key to use for disk encryption.",

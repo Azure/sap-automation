@@ -206,7 +206,7 @@
 
 - name:                                "ORACLE (sharedHome): Permissions"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
     path:                              /oracle/RDBMS/{{ ora_version }}/bin/oracle
     state:                             file
@@ -221,7 +221,7 @@
 
 - name:                                  "ORACLE (sharedHome): Permissions"
   become:                                true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
     path:                               /oracle/RDBMS/{{ ora_version }}/bin/oracle
     state:                             file
@@ -275,7 +275,7 @@
 
 - name:                                 "ORACLE (sharedHome): copy OPatch"
   become:                               true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.copy:
     src:                               "{{ target_media_location }}/SBP/OPATCH/OPatch"
     dest:                               /oracle/RDBMS/{{ ora_version }}
@@ -284,7 +284,7 @@
 
 - name:                                 "ORACLE (sharedHome): copy MOPatch"
   become:                               true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.copy:
     src:                               "{{ mopatch_path }}"
     dest:                               /oracle/RDBMS/{{ ora_version }}
@@ -294,7 +294,7 @@
 
 - name:                                 "ORACLE (sharedHome): Post Processing - SBP Patching"
   become:                               true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}
   environment:
     DB_SID:                             "{{ db_sid }}"
@@ -329,7 +329,7 @@
 
 - name:                                 "ORACLE (sharedHome): Add environment variables to the Bash profile"
   become:                               true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     path:                               /home/oracle/.bashrc
     insertafter:                       'fi '
@@ -346,7 +346,7 @@
 
 - name:                                 "ORACLE (sharedHome): create .cshrc"
   become:                               true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                             true
     path:                               /home/oracle/.cshrc

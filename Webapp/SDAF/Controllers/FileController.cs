@@ -33,7 +33,7 @@ namespace AutomationForm.Controllers
       _appFileService = appFileService;
       _landscapeService = landscapeService;
       _systemService = systemService;
-      restHelper = new RestHelper(configuration);
+      restHelper = new RestHelper(configuration, "GIT");
     }
 
     [ActionName("Index")]

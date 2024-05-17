@@ -337,6 +337,8 @@ output "ANF_pool_settings"                      {
                                                                        var.ANF_settings.pool_name
                                                                      )
 
+                                                                     qos_type = var.ANF_settings.qos_type
+
                                                                      service_level = var.ANF_settings.use_existing_pool ? (
                                                                        data.azurerm_netapp_pool.workload_netapp_pool[0].service_level
                                                                        ) : (

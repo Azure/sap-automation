@@ -25,7 +25,7 @@
 
 - name:                                "Oracle Data Guard - Setup Primary: Enable Archive log on Primary"  # In a typical SWPM installation archive log is always enabled.
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               sqlplus / as sysdba @enablearchivelog.sql
   register:                            enable_archive_log_results
   failed_when:                         enable_archive_log_results.rc >= 2
@@ -51,7 +51,7 @@
 
 - name:                                "Oracle Data Guard - Setup Primary: Create archive_enabled_on_primary.txt"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/archive_enabled_on_primary.txt
     state:                             touch
@@ -68,7 +68,7 @@
 
 - name:                                "Oracle Data Guard - Setup Primary: Enable enable_force_login on Primary"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        set -o pipefail
                                        sqlplus / as sysdba @enableforcelogging.sql | tee
@@ -96,7 +96,7 @@
 
 - name:                                "Oracle Data Guard - Setup Primary: Create enable_force_login.txt"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/enable_force_login.txt
     state:                             touch
@@ -116,7 +116,7 @@
 
 - name:                                "Oracle Data Guard - Setup Primary: Create standby logs for Oracle DG"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               sqlplus / as sysdba @standbyredologs.sql
   register:                            standby_redo_log_results
   failed_when:                         standby_redo_log_results.rc >= 2
@@ -140,7 +140,7 @@
 
 - name:                                "Oracle Data Guard - Setup Primary: Create standby_redo_logs.txt"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/standby_redo_logs.txt
     state:                             touch
@@ -151,7 +151,7 @@
 
 - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               sqlplus / as sysdba @turnonflashback.sql
   register:                            turn_on_flashback_results
   failed_when:                         turn_on_flashback_results.rc > 0
@@ -175,7 +175,7 @@
 
 - name:                                "Oracle Data Guard - Setup Primary: Create turn_on_flashback.txt"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/turn_on_flashback.txt
     state:                             touch
@@ -186,7 +186,7 @@
 
 # - name:                            "Update the Local_Listener Value in primary"
 #   become:                              true
-#   become_user:                         "oracle"
+#   become_user:                         "{{ oracle_user_name }}"
 #   ansible.builtin.shell:               sqlplus / as sysdba @listenerupdate.sql
 #   register:                            local_listener_on_secondary_results
 #   failed_when:                         local_listener_on_secondary_results.rc > 0
@@ -203,7 +203,7 @@
 
 - name:                                "Oracle Data Guard - Setup Primary: Setup DG parameters on Primary DB"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               sqlplus / as sysdba @dbparametersfordg.sql
   register:                            dbparametersfordg_results
   failed_when:                         dbparametersfordg_results.rc > 0
@@ -233,7 +233,7 @@
 
 - name:                                "Oracle Data Guard - Setup Primary: Create dbparametersfordg.txt"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/dbparametersfordg.txt
     state:                             touch

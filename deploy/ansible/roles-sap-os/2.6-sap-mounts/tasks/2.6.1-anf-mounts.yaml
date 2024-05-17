@@ -139,6 +139,11 @@
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
+# 'target_nodes':      ['app','pas'], - will be set to only pas as we do not
+# have the ability to set the different app instance numbers for multiple nodes
+# todo: fix this so that we validate that the app_instance_number is not the
+# same as the pas_instance_number. If it is the same, then we should only
+# mount the pas instance.
 - name:                                "ANF Mount: usr/sap"
   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
   loop:
@@ -149,7 +154,7 @@
       'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
       'path':              '/usr/sap',
       'set_chattr_on_dir': false,
-      'target_nodes':      ['app','pas'],
+      'target_nodes':      ['pas'],
       'create_temp_folders': false
     }
   vars:
@@ -202,7 +207,7 @@
       loop:
         - { path: '/saptmp/sapmnt{{ sap_sid | upper }}'                              }
         - { path: '/saptmp/usrsap{{ sap_sid | upper }}'                              }
-        - { path: '/saptmp/usrsap{{ sap_sid | upper }}ascs{{ scs_instance_number }}' }
+        - { path: '/saptmp/usrsap{{ sap_sid | upper }}{{ instance_type | lower }}{{ scs_instance_number }}' }
         - { path: '/saptmp/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}'  }
         - { path: '/saptmp/usrsap{{ sap_sid | upper }}sys'                           }
 
@@ -227,7 +232,7 @@
       loop:
         - { path: '/saptmp/sapmnt{{ sap_sid | upper }}'                              }
         - { path: '/saptmp/usrsap{{ sap_sid | upper }}'                              }
-        - { path: '/saptmp/usrsap{{ sap_sid | upper }}ascs{{ scs_instance_number }}' }
+        - { path: '/saptmp/usrsap{{ sap_sid | upper }}{{ instance_type | lower }}{{ scs_instance_number }}' }
         - { path: '/saptmp/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}'  }
         - { path: '/saptmp/usrsap{{ sap_sid | upper }}sys'                           }
 

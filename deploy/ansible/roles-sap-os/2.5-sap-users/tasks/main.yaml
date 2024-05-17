@@ -123,7 +123,7 @@
 # Create User assignment for Oracle ASM
 - name:                                "2.5.1 SAP Users: -  Create Oracle ASM Users Assignment"
   ansible.builtin.user:
-    name:                              "oracle"
+    name:                              "{{ oracle_user_name }}"
     group:                             "oinstall"
     groups:                            asmoper,asmadmin,asmdba,asmoper,backupdba,dgdba,kmdba,racdba
     append:                            true

@@ -9,7 +9,7 @@
 
 # - name:                                "Add environment variables to the Bash profile"
 #   become:                              true
-#   become_user:                         "oracle"
+#   become_user:                         "{{ oracle_user_name }}"
 #   ansible.builtin.blockinfile:
 #     path: /home/oracle/.bashrc
 #     insertafter: 'fi '
@@ -34,7 +34,7 @@
 
 - name:                                "Oracle Data Guard - Preparation: create enablearchivelog.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /etc/sap_deployment_automation/dgscripts/enablearchivelog.sql
@@ -51,7 +51,7 @@
 
 - name:                                "Oracle Data Guard - Preparation: create standbyredologs.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /etc/sap_deployment_automation/dgscripts/standbyredologs.sql
@@ -69,7 +69,7 @@
 
 - name:                                "Oracle Data Guard for oracle asm - Preparation: create standbyredologs.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /etc/sap_deployment_automation/dgscripts/standbyredologs.sql
@@ -86,7 +86,7 @@
 
 - name:                                "Oracle Data Guard for oracle asm - Preparation: create fralogs.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /etc/sap_deployment_automation/dgscripts/fralogs.sql
@@ -117,7 +117,7 @@
 
 - name:                                "Oracle Data Guard - Preparation: create turnonflashback.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /etc/sap_deployment_automation/dgscripts/turnonflashback.sql
@@ -131,7 +131,7 @@
 
 - name:                                "Oracle Data Guard - Preparation: create createpfile.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /etc/sap_deployment_automation/dgscripts/createpfile.sql
@@ -144,7 +144,7 @@
 
 - name:                                "Oracle Data Guard - Preparation: create createspfile.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /etc/sap_deployment_automation/dgscripts/createspfile.sql
@@ -160,7 +160,7 @@
 
 - name:                                "Oracle Data Guard for ASM - Preparation: create createspfile.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /etc/sap_deployment_automation/dgscripts/createspfilesecondary.sql
@@ -175,7 +175,7 @@
 
 - name:                                "Oracle Data Guard for ASM - Preparation: create asmsecondarystartup.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /etc/sap_deployment_automation/dgscripts/asmsecondarystartup.sql
@@ -191,7 +191,7 @@
 # orasecondarystartup.sql
 - name:                                "Oracle Data Guard  - Preparation: create orasecondarystartup.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /etc/sap_deployment_automation/dgscripts/orasecondarystartup.sql
@@ -207,7 +207,7 @@
 
 - name:                                "Oracle Data Guard - Preparation: create secondarystartup.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /etc/sap_deployment_automation/dgscripts/secondarystartup.sql
@@ -221,7 +221,7 @@
 
 - name:                                "Oracle Data Guard - Preparation: create asmsecondarystartup.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /etc/sap_deployment_automation/dgscripts/asmsecondarystartup.sql
@@ -234,7 +234,7 @@
 
 - name:                                "Oracle Data Guard - Preparation: create dgstatus.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /etc/sap_deployment_automation/dgscripts/dgstatus.sql
@@ -247,7 +247,7 @@
 
 - name:                                "Oracle Data Guard - Preparation: create enabledgbroker.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create: true
     path: /etc/sap_deployment_automation/dgscripts/enabledgbroker.sql
@@ -478,7 +478,7 @@
 
 - name:                                "Oracle Data Guard - Preparation: create secondarystartup.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create: true
     path: /etc/sap_deployment_automation/dgscripts/secondarystartup.sql
@@ -493,7 +493,7 @@
 #  Update the Local_Listener value for Secondary Node.
 - name:                                "Oracle Local Listener Update - Preparation: create listenerupdate.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create: true
     path: /etc/sap_deployment_automation/dgscripts/listenerupdate.sql
@@ -509,7 +509,7 @@
 #  Update the Local_Listener value for Primary Node.
 - name:                                "Oracle Local Listener Update - Preparation: create listenerupdate.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create: true
     path: /etc/sap_deployment_automation/dgscripts/listenerupdate.sql
@@ -525,7 +525,7 @@
 
 - name:                                "Oracle Local Listener Update - Preparation: create listenerupdate.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create: true
     path: /etc/sap_deployment_automation/dgscripts/secondary_flashback_secondary.sql
@@ -651,7 +651,7 @@
 
 - name:                                "Oracle Data Guard - Rescue create shutdownsecondary.sql"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /etc/sap_deployment_automation/dgscripts/shutdownsecondary.sql

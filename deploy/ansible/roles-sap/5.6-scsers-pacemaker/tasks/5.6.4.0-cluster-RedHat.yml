@@ -22,7 +22,7 @@
                                        pcs resource defaults migration-threshold=3
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Put Secondary host on standby"
-      ansible.builtin.command:         pcs node standby {{ secondary_instance_name }}
+      ansible.builtin.shell:           pcs node standby {{ secondary_instance_name }}
 
     - name:                            "5.6 SCSERS - RHEL - Set fact for ASCS Filesystem"
       when:
@@ -32,7 +32,7 @@
         ascs_filesystem_device:        "{{ sap_mnt }}/usrsap{{ sap_sid | upper }}{{ instance_type | lower }}{{ scs_instance_number }}"
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Configure File system resources"
-      ansible.builtin.command: >
+      ansible.builtin.shell:   >
                                        pcs resource create fs_{{ sap_sid | upper }}_{{ instance_type | upper }} Filesystem \
                                        device='{{ ascs_filesystem_device }}' \
                                        directory='{{ profile_directory }}' fstype='nfs' force_unmount=safe options='sec=sys,vers=4.1' \
@@ -44,7 +44,7 @@
       failed_when:                     ascs_fs_resource.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Create ASCS VIP - This is LB frontend ASCS/SCS IP"
-      ansible.builtin.command: >
+      ansible.builtin.shell:   >
                                        pcs resource create vip_{{ sap_sid | upper }}_{{ instance_type | upper }} IPaddr2 \
                                        ip={{ scs_lb_ip }} cidr_netmask={{ subnet_prefix }} \
                                        --group g-{{ sap_sid | upper }}_{{ instance_type | upper }}
@@ -52,7 +52,7 @@
       failed_when:                     ascs_vip.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - SCS - create Azure LB resource"
-      ansible.builtin.command: >
+      ansible.builtin.shell:   >
                                        pcs resource create nc_{{ sap_sid | upper }}_{{ instance_type | upper }} azure-lb port=620{{ scs_instance_number }} \
                                        --group g-{{ sap_sid | upper }}_{{ instance_type | upper }}
       register:                        ascs_lb
@@ -67,10 +67,10 @@
   throttle:                            1
   block:
     - name:                            "5.6 SCSERS - RHEL - SCS Bring Primary host online "
-      ansible.builtin.command:         pcs node unstandby {{ primary_instance_name }}
+      ansible.builtin.shell:           pcs node unstandby {{ primary_instance_name }}
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Put Secondary host on standby"
-      ansible.builtin.command:         pcs node standby {{ secondary_instance_name }}
+      ansible.builtin.shell:           pcs node standby {{ secondary_instance_name }}
 
     - name:                            "5.6 SCSERS - RHEL - SCS - wait until SCS fs resource has come online"
       ansible.builtin.shell: >-
@@ -162,10 +162,10 @@
   throttle:                            1
   block:
     - name:                            "5.6 SCSERS - RHEL - ERS - Put Secondary host on online"
-      ansible.builtin.command:         pcs node unstandby {{ secondary_instance_name }}
+      ansible.builtin.shell:           pcs node unstandby {{ secondary_instance_name }}
 
     - name:                            "5.6 SCSERS - RHEL - ERS - Put Primary host on standby"
-      ansible.builtin.command:         pcs node standby {{ primary_instance_name }}
+      ansible.builtin.shell:           pcs node standby {{ primary_instance_name }}
 
     - name:                            "5.6 SCSERS - RHEL - ERS - Set fact for ERS Filesystem"
       when:
@@ -175,7 +175,7 @@
         ers_filesystem_device:        "{{ sap_mnt }}/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}"
 
     - name:                            "5.6 SCSERS - RHEL - ERS - Configure File system resources"
-      ansible.builtin.command: >
+      ansible.builtin.shell:   >
                                        pcs resource create fs_{{ sap_sid | upper }}_ERS Filesystem \
                                        device='{{ ers_filesystem_device }}' \
                                        directory='/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' fstype='nfs' force_unmount=safe options='sec=sys,vers=4.1' \
@@ -187,7 +187,7 @@
       failed_when:                     ers_fs_resource.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - ERS - Create ERS VIP - This is LB frontend ERS IP"
-      ansible.builtin.command: >
+      ansible.builtin.shell:   >
                                        pcs resource create vip_{{ sap_sid | upper }}_ERS IPaddr2 \
                                        ip={{ ers_lb_ip }} cidr_netmask={{ subnet_prefix }} \
                                        --group g-{{ sap_sid | upper }}_ERS
@@ -195,7 +195,7 @@
       failed_when:                     ers_vip.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - ERS - create Azure LB resource "
-      ansible.builtin.command: >
+      ansible.builtin.shell:   >
                                        pcs resource create nc_{{ sap_sid | upper }}_ERS azure-lb port=621{{ ers_instance_number }} \
                                        --group g-{{ sap_sid | upper }}_ERS
       register:                        ers_alb
@@ -212,10 +212,10 @@
   block:
 
     - name:                            "5.6 SCSERS - RHEL - ERS - Bring Secondary host online"
-      ansible.builtin.command:         pcs node unstandby {{ secondary_instance_name }}
+      ansible.builtin.shell:           pcs node unstandby {{ secondary_instance_name }}
 
     - name:                            "5.6 SCSERS - RHEL - ERS - Put Primary host on standby"
-      ansible.builtin.command:         pcs node standby {{ primary_instance_name }}
+      ansible.builtin.shell:           pcs node standby {{ primary_instance_name }}
 
     - name:                            "5.6 SCSERS - RHEL - ERS - wait until ERS fs resource has come online"
       ansible.builtin.shell: >-
@@ -241,7 +241,7 @@
 
 
     - name:                            "5.6 SCSERS - RHEL - ERS - List NFS mounts"
-      ansible.builtin.command:         df -kHT
+      ansible.builtin.shell:           df -kHT
       register:                        nfs_instdir_mounted_debug
       changed_when:                    false
 
@@ -251,7 +251,7 @@
         verbosity:                     4
 
     - name:                            "5.6 SCSERS - RHEL - ERS - Check Cluster status"
-      ansible.builtin.command:         pcs status --full
+      ansible.builtin.shell:           pcs status --full
       register:                        cluster_status_debug
       changed_when:                    false
 
@@ -302,7 +302,7 @@
 
   always:
     - name:                            "5.6 SCSERS - RHEL - ERS - Put Primary host on line"
-      ansible.builtin.command:         pcs node unstandby {{ primary_instance_name }}
+      ansible.builtin.shell:           pcs node unstandby {{ primary_instance_name }}
       register:                        primary_online
       changed_when:                    primary_online.rc != 0
 

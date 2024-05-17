@@ -325,26 +325,15 @@ stages:
                   else
                     subscription=$variable_value
                   fi
-                  export ARM_CLIENT_ID=$servicePrincipalId
-                  export ARM_TENANT_ID=$tenantId
-                  export ARM_CLIENT_SECRET=$servicePrincipalKey
-                  export ARM_USE_MSI=false
-                  echo -e "$green--- az login ---$reset"
-                    az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
-                  return_code=$?
-                  if [ 0 != $return_code ]; then
-                    echo -e "$boldred--- Login failed ---$reset"
-                    echo "##vso[task.logissue type=error]az login failed."
-                    exit $return_code
-                  fi
                   echo "Subscription: $subscription"
-
-                  az account set --subscription $subscription
 
                   rg=$(az group list --subscription $subscription --query "[?name=='$(library_folder)'].name | [0]" | grep $(library_folder))
                   if [ ${#rg} != 0 ]; then
                     echo "Deleting resource group: $(library_folder)"
+                    echo "##vso[task.setprogress value=0;]Progress Indicator"
+
                     az group delete --subscription $subscription --name $(library_folder) --yes --only-show-errors
+                    echo "##vso[task.setprogress value=30;]Progress Indicator"
                     return_code=$?
                   else
                     echo "Resource group $(library_folder) does not exist."
@@ -353,6 +342,7 @@ stages:
                   rg=$(az group list --subscription $subscription --query "[?name=='$(deployer_folder)'].name  | [0]" | grep $(deployer_folder))
                   if [ ${#rg} != 0 ]; then
                     echo "Deleting resource group: $(deployer_folder)"
+                    echo "##vso[task.setprogress value=60;]Progress Indicator"
                     az group delete --subscription $subscription --name $(deployer_folder) --yes --only-show-errors
                     return_code=$?
                   else
@@ -363,6 +353,8 @@ stages:
                 echo -e "$green--- Removing deployment automation configuration from devops repository ---$reset"
                   export  ENVIRONMENT=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
                   export LOCATION=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
+
+                  echo "##vso[task.setprogress value=90;]Progress Indicator"
 
                   if [ 0 == $return_code ] ; then
                     cd $CONFIG_REPO_PATH
@@ -458,16 +450,14 @@ stages:
 
                   fi
 
+                  echo "##vso[task.setprogress value=100;]Progress Indicator"
+
                   exit $return_code
 
             displayName:               Remove Control Plane deployment artifacts from WORKSPACES
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              AZURE_DEVOPS_EXT_PAT:    $(PAT)
-              ARM_SUBSCRIPTION_ID:     $(CP_ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:           $(CP_ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(CP_ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:           $(CP_ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
+              AZURE_DEVOPS_EXT_PAT:     $(PAT)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               USE_MSI:                  $(Use_MSI)

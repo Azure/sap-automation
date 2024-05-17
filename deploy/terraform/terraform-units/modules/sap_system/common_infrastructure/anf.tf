@@ -1,4 +1,3 @@
-
 #######################################4#######################################8
 #                                                                              #
 #                             Azure NetApp Volumes                             #
@@ -48,7 +47,7 @@ resource "azurerm_netapp_volume" "sapmnt" {
                      }
 
   storage_quota_in_gb                  = var.hana_ANF_volumes.sapmnt_volume_size
-  throughput_in_mibps                  = var.hana_ANF_volumes.sapmnt_volume_throughput
+  throughput_in_mibps                  = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.sapmnt_volume_throughput
 
   zone                                 = length(local.scs_zones) > 0  && var.hana_ANF_volumes.use_zones ? try(local.scs_zones[0], null) : null
 
@@ -96,7 +95,7 @@ resource "azurerm_netapp_volume" "sapmnt_secondary" {
                      }
 
   storage_quota_in_gb                  = var.hana_ANF_volumes.sapmnt_volume_size
-  throughput_in_mibps                  = var.hana_ANF_volumes.sapmnt_volume_throughput
+  throughput_in_mibps                  = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.sapmnt_volume_throughput
 
   data_protection_replication {
                                 endpoint_type             = "dst"

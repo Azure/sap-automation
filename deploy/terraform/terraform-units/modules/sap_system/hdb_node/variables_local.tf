@@ -122,7 +122,7 @@ locals {
                                           "password" = var.sid_password
                                         }
 
-  enable_db_lb_deployment             = var.database.high_availability || var.use_loadbalancers_for_standalone_deployments
+  enable_db_lb_deployment             = var.database_server_count > 0 ? var.database.high_availability || var.use_loadbalancers_for_standalone_deployments : false
 
   database_sid                        = try(var.database.instance.sid, local.sid) // HANA database sid from the Databases array for use as reference to LB/AS
   database_instance                   = try(var.database.instance.number, "00")

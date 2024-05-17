@@ -53,7 +53,7 @@
 
 - name:                                "Oracle Data Guard - Preparation (Secondary): Create PFILE on Primary DB to COPY it on SECONDARY"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               sqlplus / as sysdba @createpfile.sql
   register:                            createpfile_results
   failed_when:                         createpfile_results.rc >= 2
@@ -65,7 +65,7 @@
 
 - name:                                "Oracle Data Guard - Preparation (Secondary): Create createpfile.txt"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/createpfile.txt
     state:                             touch
@@ -127,7 +127,7 @@
 
 - name:                                "Oracle Data Guard - Preparation (Secondary): Create dbscopied.txt"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/dbscopied.txt
     state:                             touch
@@ -135,7 +135,7 @@
 
 - name:                                "Oracle Data Guard - Post Processing: Restart lsnrctl on Secondary"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               lsnrctl reload
   register:                            lsnrctl_start_secondary_results
   failed_when:                         lsnrctl_start_secondary_results.rc > 0

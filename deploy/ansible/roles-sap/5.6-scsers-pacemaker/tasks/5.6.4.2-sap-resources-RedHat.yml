@@ -12,10 +12,10 @@
     - ensa1 | default(false)
   block:
     - name:                            "5.6 SCSERS - RHEL - ENSA1 - Enable Maintenance mode for the cluster"
-      ansible.builtin.command:         pcs property set maintenance-mode=true
+      ansible.builtin.shell:           pcs property set maintenance-mode=true
 
     - name:                            "5.6 SCSERS - RHEL - ENSA1 - Configure SAP ASCS/SCS resources"
-      ansible.builtin.command: >
+      ansible.builtin.shell:   >
                                        pcs resource create rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
                                        InstanceName={{ instance_name }} START_PROFILE="{{ start_profile_path }}" \
                                        AUTOMATIC_RECOVER=false \
@@ -27,10 +27,10 @@
       failed_when:                     ascs_rsc_sap.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - ENSA1 - Set the ASCS resource stickiness"
-      ansible.builtin.command:         pcs resource meta g-{{ sap_sid | upper }}_{{ instance_type | upper }} resource-stickiness=3000
+      ansible.builtin.shell:           pcs resource meta g-{{ sap_sid | upper }}_{{ instance_type | upper }} resource-stickiness=3000
 
     - name:                            "5.6 SCSERS - RHEL - ENSA1 - Configure SAP ERS resources"
-      ansible.builtin.command: >
+      ansible.builtin.shell:   >
                                        pcs resource create rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} SAPInstance \
                                        InstanceName={{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} START_PROFILE="/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
                                        AUTOMATIC_RECOVER=false IS_ERS=true \
@@ -50,10 +50,10 @@
       failed_when :                    co_location.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - ENSA1 - Bring Primary node online"
-      ansible.builtin.command:         pcs node unstandby {{ primary_instance_name }}
+      ansible.builtin.shell:           pcs node unstandby {{ primary_instance_name }}
 
     # - name:                            "5.6 SCSERS - RHEL - ENSA1 - Set the Cluster out of maintenance mode"
-    #   ansible.builtin.command:         pcs property set maintenance-mode=false
+    #   ansible.builtin.shell:           pcs property set maintenance-mode=false
 
     # - name:                            "5.6 SCSERS - RHEL - ENSA2 - pause the execution for 2 minutes"
     #   ansible.builtin.wait_for:
@@ -66,10 +66,10 @@
     - ensa2 | default(false)
   block:
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Enable Maintenance mode for the cluster"
-      ansible.builtin.command:         pcs property set maintenance-mode=true
+      ansible.builtin.shell:           pcs property set maintenance-mode=true
 
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Configure SAP ASCS/SCS resources"
-      ansible.builtin.command: >
+      ansible.builtin.shell:   >
                                        pcs resource create rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
                                        InstanceName={{ instance_name }} START_PROFILE="{{ start_profile_path }}" \
                                        AUTOMATIC_RECOVER=false \
@@ -81,10 +81,10 @@
       failed_when:                     ascs_rsc_sap.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the ASCS resource stickiness"
-      ansible.builtin.command:         pcs resource meta g-{{ sap_sid | upper }}_{{ instance_type | upper }} resource-stickiness=3000
+      ansible.builtin.shell:           pcs resource meta g-{{ sap_sid | upper }}_{{ instance_type | upper }} resource-stickiness=3000
 
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Configure SAP ERS resources"
-      ansible.builtin.command: >
+      ansible.builtin.shell:   >
                                        pcs resource create rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} SAPInstance \
                                        InstanceName={{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} START_PROFILE="/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
                                        AUTOMATIC_RECOVER=false IS_ERS=true \
@@ -96,7 +96,7 @@
       failed_when:                     ers_rsc_sap.rc > 1
 
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the ERS resource stickiness"
-      ansible.builtin.command:         pcs resource meta rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} resource-stickiness=3000
+      ansible.builtin.shell:           pcs resource meta rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} resource-stickiness=3000
 
     - name:                            "5.6 SCSERS - RHEL - ENSA2 - Configure Co-location Constraints"
       ansible.builtin.shell: |
@@ -107,7 +107,7 @@
       failed_when:                     co_location.rc > 1
 
     # - name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the Cluster out of maintenance mode"
-    #   ansible.builtin.command:         pcs property set maintenance-mode=false
+    #   ansible.builtin.shell:           pcs property set maintenance-mode=false
 
     # - name:                            "5.6 SCSERS - RHEL - ENSA2 - pause the execution for 2 minutes"
     #   ansible.builtin.wait_for:
@@ -144,7 +144,7 @@
 # +------------------------------------+---------------------------------------*|
 
 # - name:                                "5.6 SCSERS - RHEL - Enable Maintenance mode for the cluster"
-#   ansible.builtin.command:             pcs property set maintenance-mode=true
+#   ansible.builtin.shell:               pcs property set maintenance-mode=true
 
 - name:                                "5.6 SCSERS - RHEL - Reboot and wait 5 minutes"
   ansible.builtin.debug:
@@ -156,7 +156,7 @@
     post_reboot_delay:                 300
 
 - name:                                "5.6 SCSERS - RHEL - Set the Cluster out of maintenance mode"
-  ansible.builtin.command:             pcs property set maintenance-mode=false
+  ansible.builtin.shell:               pcs property set maintenance-mode=false
 
 - name:                                "5.6 SCSERS - RHEL - Wait for 120 seconds for the cluster to stabilize"
   ansible.builtin.wait_for:
