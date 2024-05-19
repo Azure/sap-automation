@@ -738,7 +738,7 @@
 - name:                                "ANF Mount: Run tasks for scale out setups"
   when:
     - database_scale_out
-    - not database_high_availability
+    # - not database_high_availability
     - tier == 'sapos'
     - node_tier == 'hana'
   block:
