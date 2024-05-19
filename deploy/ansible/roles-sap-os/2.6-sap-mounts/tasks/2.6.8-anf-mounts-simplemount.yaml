@@ -683,33 +683,33 @@
 # Run this block set when db_Scale_out is true but db_high_availability is false
 - name:                                "ANF Mount: Run tasks for scale out setups"
   block:
-  - name:                                "ANF Mount: Scale Out - Create SAP Directories (usrsap)"
+  - name:                              "ANF Mount: Scale Out - Create SAP Directories (usrsap)"
     ansible.builtin.file:
-      owner:                             "{{ db_sid | lower }}adm"
-      group:                             sapsys
-      mode:                              0755
-      path:                              "/usr/sap/{{ db_sid | upper }}"
-      state:                             directory
+      owner:                           '{{ hdbadm_uid }}'
+      group:                           sapsys
+      mode:                            0755
+      path:                            "/usr/sap/{{ db_sid | upper }}"
+      state:                           directory
     when:
       - tier == 'hana'
 
-  - name:                                "ANF Mount: Scale Out - Create SAP Directories (hana data)"
+  - name:                              "ANF Mount: Scale Out - Create SAP Directories (hana data)"
     ansible.builtin.file:
-      owner:                             "{{ db_sid | lower }}adm"
-      group:                             sapsys
-      mode:                              0755
-      path:                              "/hana/data/{{ db_sid | upper }}"
-      state:                             directory
+      owner:                           '{{ hdbadm_uid }}'
+      group:                           sapsys
+      mode:                            0755
+      path:                            "/hana/data/{{ db_sid | upper }}"
+      state:                           directory
     when:
       - tier == 'hana'
 
   - name:                                "ANF Mount: Scale Out - Create SAP Directories (hana log)"
     ansible.builtin.file:
-      owner:                             "{{ db_sid | lower }}adm"
-      group:                             sapsys
-      mode:                              0755
-      path:                              "/hana/log/{{ db_sid | upper }}"
-      state:                             directory
+      owner:                           '{{ hdbadm_uid }}'
+      group:                           sapsys
+      mode:                            0755
+      path:                            "/hana/log/{{ db_sid | upper }}"
+      state:                           directory
     when:
       - tier == 'hana'
 

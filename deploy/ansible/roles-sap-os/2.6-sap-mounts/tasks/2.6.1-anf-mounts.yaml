@@ -744,7 +744,7 @@
   block:
   - name:                              "ANF Mount: Scale Out - Create SAP Directories (usrsap)"
     ansible.builtin.file:
-      owner:                           "{{ db_sid | lower }}adm"
+      owner:                           '{{ hdbadm_uid }}'
       group:                           sapsys
       mode:                            0755
       path:                            "/usr/sap/{{ db_sid | upper }}"
@@ -752,7 +752,7 @@
 
   - name:                              "ANF Mount: Scale Out - Create SAP Directories (hana data)"
     ansible.builtin.file:
-      owner:                           "{{ db_sid | lower }}adm"
+      owner:                           '{{ hdbadm_uid }}'
       group:                           sapsys
       mode:                            0755
       path:                            "/hana/data/{{ db_sid | upper }}"
@@ -760,7 +760,7 @@
 
   - name:                              "ANF Mount: Scale Out - Create SAP Directories (hana log)"
     ansible.builtin.file:
-      owner:                           "{{ db_sid | lower }}adm"
+      owner:                           '{{ hdbadm_uid }}'
       group:                           sapsys
       mode:                            0755
       path:                            "/hana/log/{{ db_sid | upper }}"
