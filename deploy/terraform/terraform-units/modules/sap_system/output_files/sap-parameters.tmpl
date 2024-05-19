@@ -91,14 +91,14 @@ platform:                       ${platform}
 #############################################################################
 
 # Scale out defines if the database is to be deployed in a scale out configuration
-database_scale_out:                   ${scale_out}
-db_no_standby:                  ${scale_out_no_standby_role}
+database_scale_out:             ${scale_out}
+database_no_standby:            ${scale_out_no_standby_role}
 
-subnet_cidr_storage:          ${subnet_cidr_storage}
+subnet_cidr_storage:            ${subnet_cidr_storage}
 %{~ endif }
-subnet_cidr_anf:              ${subnet_cidr_anf}
-subnet_cidr_app:              ${subnet_cidr_app}
-subnet_cidr_db:               ${subnet_cidr_db}
+subnet_cidr_anf:                ${subnet_cidr_anf}
+subnet_cidr_app:                ${subnet_cidr_app}
+subnet_cidr_db:                 ${subnet_cidr_db}
 
 %{~ if length(subnet_cidr_client) != 0 }
 subnet_cidr_client:           ${subnet_cidr_client}
