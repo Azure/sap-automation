@@ -40,7 +40,7 @@
     seconds:                           "{{ hsr_status_report_wait_in_s }}"
 
 - name:                                "Verify that the hook script is working as expected"
-  when:                                not db_scale_out
+  when:                                not database_scale_out
   block:
     - name:                            "Verify the hook Installation"
       become_user:                     "{{ db_sid | lower }}adm"
@@ -81,7 +81,7 @@
 # Code block is specifically for ScaleOut, SUSE and RedHat
 - name:                                "Verify that the hook script is working as expected (Scale Out) for SUSE "
   when:
-    - db_scale_out
+    - database_scale_out
     - ansible_os_family | upper == 'SUSE'
     - inventory_hostname == primary_instance_name
   block:
@@ -119,7 +119,7 @@
   when:
   - ansible_os_family | upper == "REDHAT"
   - ansible_hostname == primary_instance_name
-  - db_scale_out
+  - database_scale_out
   block:
     - name:                        "Verify the hook Installation (REDHAT)"
       become_user:                 "{{ db_sid | lower }}adm"

@@ -30,7 +30,7 @@
   ansible.builtin.set_fact:
     db_virtualhost_temp:  >-
                                        {%- set _host_name = hostvars[db_server_temp | first]['virtual_host'] -%}
-                                       {%- if db_scale_out and not database_high_availability -%}
+                                       {%- if database_scale_out and not database_high_availability -%}
                                        {%-  set _host_name = sap_sid | lower ~ db_sid | lower ~ 'db' ~ db_instance_number ~ 'so' -%}
                                        {%- endif -%}
                                        {{- _host_name -}}

@@ -27,7 +27,7 @@
 - name:                                "Configure the ANF/AFS file system resources"
   when:
     - database_high_availability
-    - db_scale_out
+    - database_scale_out
     - NFS_provider in ["ANF","AFS"]
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length > 1

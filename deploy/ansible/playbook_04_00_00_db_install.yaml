@@ -81,8 +81,8 @@
       ansible.builtin.set_fact:
         root_password:                 "{{ lookup('ansible.builtin.password', '/dev/null', seed=inventory_hostname) }}"
       when:
-        - db_scale_out is defined
-        - db_scale_out
+        - database_scale_out is defined
+        - database_scale_out
       register:                         root_password_generated
 
     - name:                        "Database Installation Playbook: - Show root password"
@@ -125,7 +125,7 @@
       become:                          true
       when:
         - node_tier == 'hana'
-        - not db_scale_out
+        - not database_scale_out
       block:
         - name:                        "Database Installation Playbook: - Setting the DB facts"
           ansible.builtin.set_fact:
@@ -148,7 +148,7 @@
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.0-hdb-install
               when:
-                - not db_scale_out
+                - not database_scale_out
 
             - name:                    "Database Installation Playbook: - Create db-install-done flag"
               delegate_to:             localhost
@@ -192,7 +192,7 @@
         # - db_high_availability
         - database_high_availability
         - node_tier == 'hana'
-        - not db_scale_out
+        - not database_scale_out
       block:
         - name:                         "Database Installation Playbook: - Setting the facts"
           ansible.builtin.set_fact:
@@ -317,7 +317,7 @@
             name:                          sshd
             state:                         restarted
       when:
-        - db_scale_out
+        - database_scale_out
         - hostvars.localhost.root_password is defined
 
     - name:                            "Database Installation Playbook: - Install HANA Scale Out"
@@ -341,8 +341,8 @@
           ansible.builtin.set_fact:
             root_password:             "{{ hostvars.localhost.root_password }}"
           when:
-            # - db_scale_out is defined
-            - db_scale_out
+            # - database_scale_out is defined
+            - database_scale_out
             # - not db_high_availability
 
         - name:                        "Database Installation Playbook: - Show SAP password"
@@ -356,7 +356,7 @@
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.3-hdb-install-scaleout
               when:
-                - db_scale_out
+                - database_scale_out
 
             - name:                    "Database Installation Playbook: - Create db-install-done flag"
               delegate_to:             localhost
@@ -421,7 +421,7 @@
             name:                          sshd
             state:                         restarted
       when:
-        - db_scale_out
+        - database_scale_out
         - hostvars.localhost.root_password is defined
 
 
@@ -441,7 +441,7 @@
         # - db_high_availability
         - db_high_availability
         - node_tier in ['hana','observer']
-        - db_scale_out
+        - database_scale_out
       block:
         - name:                        "Database Installation Playbook: - Setting the facts"
           ansible.builtin.set_fact:
@@ -506,7 +506,7 @@
               become_user:             root
           when:
             - node_tier in ['hana','observer']
-            - db_scale_out
+            - database_scale_out
 
           tags:
             - 1.18-scaleout-pacemaker

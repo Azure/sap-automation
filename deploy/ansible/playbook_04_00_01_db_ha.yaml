@@ -194,7 +194,7 @@
                 name:                  roles-sap/5.8-hanadb-scaleout-pacemaker
               when:
                 - db_high_availability
-                - db_scale_out
+                - database_scale_out
               tags:
                 - 5.8-hanadb-scaleout-pacemaker
 

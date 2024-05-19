@@ -20,7 +20,7 @@
   when:
     - node_tier in ['observer','hana']
     - platform == 'HANA'
-    - db_scale_out
+    - database_scale_out
     - database_high_availability
     - ansible_os_family | upper == "SUSE"
   block:
@@ -70,7 +70,7 @@
 - name:                                Implement the Scale out Resource Agent hook (REDHAT)
   when:
     - node_tier in ['observer','hana']
-    - db_scale_out
+    - database_scale_out
     - database_high_availability
     - ansible_os_family | upper == "REDHAT"
   block:

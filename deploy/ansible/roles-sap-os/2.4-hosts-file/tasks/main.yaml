@@ -99,7 +99,7 @@
   when:
     - platform == 'HANA'
     - not database_high_availability
-    - db_scale_out
+    - database_scale_out
   block:
 
     - name:                            "2.4 Hosts: - Set the DB Virtual Instance hostname - scale out"

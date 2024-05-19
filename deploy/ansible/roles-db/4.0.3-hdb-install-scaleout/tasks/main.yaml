@@ -381,8 +381,8 @@
     - not (database_high_availability | default(false))
     # Only allowed for the first node. No other node in the scale out - ANF setup is allowed to install hdblcm.
     - ansible_hostname == db_hosts[0]
-    - db_scale_out is defined
-    - db_scale_out
+    - database_scale_out is defined
+    - database_scale_out
 
 
 # Scale our HSR with multi site replication

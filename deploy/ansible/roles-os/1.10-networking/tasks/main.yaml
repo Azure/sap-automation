@@ -174,7 +174,7 @@
 
 - name:                                "1.10 Networking - Add routes and restart VM for HANA scaleout"
   when:
-    - db_scale_out
+    - database_scale_out
     - node_tier == 'hana'
   block:
     # display the list of azure network interfaces and the expected ethX interface names
