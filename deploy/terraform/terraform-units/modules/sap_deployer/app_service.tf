@@ -87,12 +87,17 @@ resource "azurerm_windows_web_app" "webapp" {
   #   unauthenticated_client_action = "RedirectToLoginPage"
   # }
 
+
+
   app_settings = {
     "CollectionUri"                            = var.agent_ado_url
     "IS_PIPELINE_DEPLOYMENT"                   = false
     "OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"   = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].client_id : azurerm_user_assigned_identity.deployer[0].client_id
     "WEBSITE_AUTH_CUSTOM_AUTHORIZATION"        = true
     "WHICH_ENV"                                = length(var.deployer.user_assigned_identity_id) > 0 ? "DATA" : "LOCAL"
+    "AZURE_TENANT_ID"                          = data.azurerm_client_config.deployer.tenant_id
+    "AUTHENTICATION_TYPE"                      = var.deployer.devops_authentication_type
+    "PAT"                                      = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
   }
 
   sticky_settings {
@@ -152,7 +157,6 @@ resource "azurerm_windows_web_app" "webapp" {
 
   lifecycle                                  {
     ignore_changes                              = [
-                                                    app_settings,
                                                     zip_deploy_file,
                                                     tags
                                                   ]

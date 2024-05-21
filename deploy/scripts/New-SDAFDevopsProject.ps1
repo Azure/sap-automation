@@ -1,6 +1,5 @@
 # Write-Host "<Experimental>..............." -ForegroundColor Cyan
 
-
 function Show-Menu($data) {
   Write-Host "================ $Title ================"
   $i = 1
@@ -28,40 +27,27 @@ if ($IsWindows) { $pathSeparator = "\" } else { $pathSeparator = "/" }
 
 $versionLabel = "v3.11.0.2"
 
-az logout
+# az logout
 
-az account clear
+# az account clear
 
-if ($ARM_TENANT_ID.Length -eq 0) {
-  az login --output none --only-show-errors --scope https://graph.microsoft.com//.default
-}
-else {
-  az login --output none --tenant $ARM_TENANT_ID --only-show-errors --scope https://graph.microsoft.com//.default
-}
+# if ($ARM_TENANT_ID.Length -eq 0) {
+#   az login --output none --only-show-errors --scope https://graph.microsoft.com//.default
+# }
+# else {
+#   az login --output none --tenant $ARM_TENANT_ID --only-show-errors --scope https://graph.microsoft.com//.default
+# }
 
 # Check if access to the Azure DevOps organization is available and prompt for PAT if needed
 # Exact permissions required, to be validated, and included in the Read-Host text.
 
 if ($Env:AZURE_DEVOPS_EXT_PAT.Length -gt 0) {
   Write-Host "Using the provided Personal Access Token (PAT) to authenticate to the Azure DevOps organization $ADO_Organization" -ForegroundColor Yellow
-  try {
-    az devops login --organization $ADO_Organization
-  }
-  catch {
-    $_
-  }
-
 }
 
 $checkPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
 if ($checkPAT.Length -eq 0) {
   $env:AZURE_DEVOPS_EXT_PAT = Read-Host "Please enter your Personal Access Token (PAT) with full access to the Azure DevOps organization $ADO_Organization"
-  try {
-    az devops login --organization $ADO_Organization
-  }
-  catch {
-    $_
-  }
   $verifyPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
   if ($verifyPAT.Length -eq 0) {
     Read-Host -Prompt "Failed to authenticate to the Azure DevOps organization, press <any key> to exit"
@@ -200,7 +186,7 @@ $Project_ID = (az devops project list --organization $ADO_ORGANIZATION --query "
 
 if ($Project_ID.Length -eq 0) {
   Write-Host "Creating the project: " $ADO_PROJECT -ForegroundColor Green
-  $Project_ID = (az devops project create --name $ADO_PROJECT --description 'SDAF Automation Project' --organization $ADO_ORGANIZATION --visibility private --source-control git --query id).Replace("""", "")
+  $Project_ID = (az devops project create --name $ADO_PROJECT --description 'SDAF Automation Project' --organization $ADO_ORGANIZATION --visibility private --source-control git --query id --output tsv)
 
   Add-Content -Path $fname -Value ""
   Add-Content -Path $fname -Value "Using Azure DevOps Project: $ADO_PROJECT"
@@ -223,14 +209,14 @@ else {
 
   Write-Host "Using an existing project"
 
-  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --out tsv)
-  if ($repo_id.Length -eq 0) {
-    Write-Host "Creating repository '$ADO_Project'" -ForegroundColor Green
-  }
-
   az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
 
-  $repo_size = (az repos list --query "[?name=='$ADO_Project'].size | [0]")
+  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --output tsv)
+  if ($repo_id.Length -ne 0) {
+    Write-Host "Using repository '$ADO_Project'" -ForegroundColor Green
+  }
+
+  $repo_size = (az repos list --query "[?name=='$ADO_Project'].size | [0]" --output tsv)
 
   if ($repo_size -eq 0) {
     Write-Host "Importing the repository from GitHub" -ForegroundColor Green
@@ -238,14 +224,14 @@ else {
     Add-Content -Path $fname -Value ""
     Add-Content -Path $fname -Value "Terraform and Ansible code repository stored in the DevOps project (sap-automation)"
 
-    try {
+    az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output tsv
+    if ($LastExitCode -eq 1) {
+      Write-Host "The repository already exists" -ForegroundColor Yellow
+      Write-Host "Creating repository 'SDAF Configuration'" -ForegroundColor Green
+      $repo_id = (az repos create --name "SDAF Configuration" --query id --output tsv)
       az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
     }
-    catch {
-      {
-        Write-Host "The repository already exists" -ForegroundColor Yellow
-      }
-    }
+
   }
   else {
     $confirmation = Read-Host "The repository already exists, use it? y/n"
@@ -257,7 +243,6 @@ else {
   }
 
   az repos update --repository $repo_id --default-branch main --output none
-
 }
 
 $confirmation = Read-Host "You can optionally import the Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code. Do you want to run the code from GitHub y/n?"
@@ -759,31 +744,6 @@ if ($authenticationMethod -eq "Managed Identity") {
     $id = $(az identity list --query "[?name=='$identity'].id" --subscription $subscription --output tsv)
     $MSI_objectId = $(az identity show --ids $id --query "principalId" --output tsv)
 
-    $postBody = [PSCustomObject]@{
-      accessLevel         = @{
-        accountLicenseType = "stakeholder"
-      }
-      projectEntitlements = @([ordered]@{
-          group      = @{
-            groupType = "projectContributor"
-          }
-          projectRef = @{
-            id = $Project_ID
-          }
-
-        })
-      servicePrincipal    = @{
-        origin      = "aad"
-        originId    = $id
-        subjectKind = "servicePrincipal"
-      }
-
-    }
-
-    Set-Content -Path "user.json" -Value ($postBody | ConvertTo-Json -Depth 6)
-
-    az devops invoke --area MemberEntitlementManagement --resource ServicePrincipalEntitlements  --in-file user.json --api-version "7.1-preview" --http-method POST
-
   }
 }
 
@@ -823,7 +783,7 @@ if ($WebApp) {
     # $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors --display-name "SDAF")
   }
 
-  $configureAuth = Read-Host "Configuring authentication for the App Registration?" -ForegroundColor Green
+  $configureAuth = Read-Host "Configuring authentication for the App Registration?"
   if ($configureAuth -eq 'y') {
     az rest --method POST --uri "https://graph.microsoft.com/beta/applications/$APP_REGISTRATION_OBJECTID/federatedIdentityCredentials\" --body "{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/$ARM_TENANT_ID/v2.0', 'subject': '$MSI_objectId', 'audiences': [ 'api://AzureADTokenExchange' ]}"
 
@@ -965,10 +925,6 @@ else {
 
 $groups.Add($Control_plane_groupID)
 
-if ($WebApp) {
-  az pipelines variable-group variable update --group-id $Control_plane_groupID --name "WEB_APP_CLIENT_SECRET" --value $WEB_APP_CLIENT_SECRET --secret true --output none --only-show-errors
-}
-
 
 #endregion
 
@@ -1007,7 +963,7 @@ if (!$AlreadySet -or $ResetPAT ) {
     Write-Host "Creating agent pool" $Pool_Name -ForegroundColor Green
 
     Set-Content -Path pool.json -Value (ConvertTo-Json @{name = $Pool_Name; autoProvision = $true })
-    az devops invoke --area distributedtask --resource pools --http-method POST --api-version "7.1-preview" --in-file ".${pathSeparator}pool.json" --query-parameters authorizePipelines=true --query id --output none --only-show-errors
+    az devops invoke --area distributedtask --resource pools --http-method POST --api-version "7.1-preview" --in-file ".${pathSeparator}pool.json" --query-parameters authorizePipelines=true --query id --output none --only-show-errors --route-parameters project=$ADO_Project
     $POOL_ID = (az pipelines pool list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
     Write-Host "Agent pool" $Pool_Name "created"
     $queue_id = (az pipelines queue list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
@@ -1056,6 +1012,37 @@ if (!$AlreadySet -or $ResetPAT ) {
       })
   }
 
+  Remove-Item -Path "user.json"
+
+  $postBody = [PSCustomObject]@{
+    accessLevel         = @{
+      accountLicenseType = "stakeholder"
+    }
+    user = @{
+      origin      = "aad"
+      originId    = $MSI_objectId
+      subjectKind = "servicePrincipal"
+    }
+    projectEntitlements = @([ordered]@{
+        group      = @{
+          groupType = "projectContributor"
+        }
+        projectRef = @{
+          id = $Project_ID
+        }
+
+      })
+    servicePrincipal    = @{
+      origin      = "aad"
+      originId    = $MSI_objectId
+      subjectKind = "servicePrincipal"
+    }
+
+  }
+
+  Set-Content -Path "user.json" -Value ($postBody | ConvertTo-Json -Depth 6)
+
+  az devops invoke --area MemberEntitlementManagement --resource ServicePrincipalEntitlements  --in-file user.json --api-version "7.1-preview" --http-method POST
 
   # Read-Host -Prompt "Press any key to continue"
 
@@ -1110,3 +1097,34 @@ Write-Host "URL: " $wiki_url
 Start-Process $wiki_url
 
 if (Test-Path ".${pathSeparator}start.md") { Write-Host "Removing start.md" ; Remove-Item ".${pathSeparator}start.md" }
+
+Write-Host "Adding the Build Service user to the Build Administrators group for thge Project" -ForegroundColor Green
+$SecurityServiceGroupId = $(az devops security group list --scope organization --query "graphGroups | [?displayName=='Security Service Group'].descriptor | [0]" --output tsv)
+$ProjectBuildAdminGroupId = $(az devops security group list --project $ADO_Project --query "graphGroups | [?displayName=='Build Administrators'].descriptor | [0]" --output tsv)
+$GroupItems = $(az devops security group membership list --id $SecurityServiceGroupId --output table )
+
+$Service_Name = $ADO_Project + " Build Service"
+$Descriptor = ""
+$Name = ""
+$Parts = $GroupItems[1].Split(' ')
+$RealItems = $GroupItems[2..($GroupItems.Length - 2)]
+foreach ($Item in $RealItems) {
+  $Name = $Item.Substring(0, $Parts[0].Length).Trim()
+  if ($Name.StartsWith($Service_Name)) {
+    $Descriptor = $Item.Substring($Parts[0].Length + $Parts[1].Length + $Parts[2].Length).Trim()
+    break
+
+  }
+
+}
+
+if ($Descriptor -eq "") {
+  Write-Host "The Build Service user was not found in the Security Service Group" -ForegroundColor Red
+}
+else {
+  Write-Host "Adding the Build Service user to the Build Administrators group" -ForegroundColor Green
+  az devops security group membership add --member-id $Descriptor --group-id $ProjectBuildAdminGroupId
+}
+
+
+Write-Host "The script has completed" -ForegroundColor Green
