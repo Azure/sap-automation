@@ -828,3 +828,40 @@ variable "ams_laws_arm_id"                        {
                                                     description = "If provided, Azure resource id for the Log analytics workspace in AMS"
                                                     default     = ""
                                                   }
+
+#######################################4#######################################8
+#                                                                              #
+#                             NAT Gateway variables                            #
+#                                                                              #
+#######################################4#######################################8
+
+variable "deploy_nat_gateway"                     {
+                                                    description = "If true, a NAT Gateway will be deployed"
+                                                    type        = bool
+                                                    default     = false
+                                                  }
+
+variable "nat_gateway_name"                       {
+                                                    description = "If provided, the name of the NAT Gateway"
+                                                    default     = ""
+                                                  }
+
+variable "nat_gateway_arm_id"                     {
+                                                    description = "If provided, Azure resource id for the NAT Gateway"
+                                                    default     = ""
+                                                  }
+
+variable "nat_gateway_public_ip_zones"            {
+                                                    description = "If provided, the zones for the NAT Gateway public IP"
+                                                    default     = []
+                                                  }
+
+variable "nat_gateway_public_ip_arm_id"           {
+                                                    description = "If provided, Azure resource id for the NAT Gateway public IP"
+                                                    default     = ""
+                                                  }
+
+variable "nat_gateway_idle_timeout_in_minutes"    {
+                                                    description = "The idle timeout in minutes for the NAT Gateway"
+                                                    default     = 4
+                                                  }
