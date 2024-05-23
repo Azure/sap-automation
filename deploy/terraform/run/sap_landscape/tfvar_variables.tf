@@ -853,6 +853,7 @@ variable "nat_gateway_arm_id"                     {
 
 variable "nat_gateway_public_ip_zones"            {
                                                     description = "If provided, the zones for the NAT Gateway public IP"
+                                                    type        = tuple(string)
                                                     default     = []
                                                   }
 
