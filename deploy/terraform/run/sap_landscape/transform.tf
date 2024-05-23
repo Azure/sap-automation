@@ -578,6 +578,10 @@ locals {
                                           {
                                             "ams_instance" = local.ams_instance
                                           }
+                                          ), (
+                                          {
+                                            "nat_gateway" = local.nat_gateway
+                                          }
                                           ),(
                                           local.iscsi.iscsi_count > 0 ? (
                                             {
