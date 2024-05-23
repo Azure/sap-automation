@@ -863,5 +863,6 @@ variable "nat_gateway_public_ip_arm_id"           {
 
 variable "nat_gateway_idle_timeout_in_minutes"    {
                                                     description = "The idle timeout in minutes for the NAT Gateway"
+                                                    type        = number
                                                     default     = 4
                                                   }

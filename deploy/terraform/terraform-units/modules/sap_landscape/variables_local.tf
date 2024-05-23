@@ -80,8 +80,7 @@ locals {
                                                       var.infrastructure.nat_gateway.public_ip_arm_id) : ""
   nat_gateway_public_ip_zones                     = length(var.infrastructure.nat_gateway.public_ip_zones) > 0 ? (
                                                       var.infrastructure.nat_gateway.public_ip_zones) : []
-  nat_gateway_idle_timeout_in_minutes             = length(var.infrastructure.nat_gateway.idle_timeout_in_minutes) > 0 ? (
-                                                      var.infrastructure.nat_gateway.idle_timeout_in_minutes) : 4
+  nat_gateway_idle_timeout_in_minutes             = var.infrastructure.nat_gateway.idle_timeout_in_minutes
 
   // SAP vnet
   SAP_virtualnetwork_id                           = try(var.infrastructure.vnets.sap.arm_id, "")
