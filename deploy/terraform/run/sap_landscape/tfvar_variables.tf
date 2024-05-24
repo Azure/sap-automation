@@ -867,3 +867,9 @@ variable "nat_gateway_idle_timeout_in_minutes"    {
                                                     type        = number
                                                     default     = 4
                                                   }
+
+variable "nat_gateway_public_ip_tags"             {
+                                                    description = "Tags for the public_ip resource"
+                                                    type        = map(string)
+                                                    default     = null
+                                                  }
