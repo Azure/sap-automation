@@ -843,22 +843,25 @@ variable "deploy_nat_gateway"                     {
 
 variable "nat_gateway_name"                       {
                                                     description = "If provided, the name of the NAT Gateway"
+                                                    type        = string
                                                     default     = ""
                                                   }
 
 variable "nat_gateway_arm_id"                     {
                                                     description = "If provided, Azure resource id for the NAT Gateway"
+                                                    type        = string
                                                     default     = ""
                                                   }
 
 variable "nat_gateway_public_ip_zones"            {
                                                     description = "If provided, the zones for the NAT Gateway public IP"
-                                                    type        = tuple(string)
+                                                    type        = list(string)
                                                     default     = []
                                                   }
 
 variable "nat_gateway_public_ip_arm_id"           {
                                                     description = "If provided, Azure resource id for the NAT Gateway public IP"
+                                                    type        = string
                                                     default     = ""
                                                   }
 
