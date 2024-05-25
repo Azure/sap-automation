@@ -841,12 +841,15 @@
     when:
       - hana_data_mountpoint is defined
 
-  - name:                                "DEBUG:ANF Mount: HANA Data - Scale out - Create mount list"
+  - name:                              "DEBUG:ANF Mount: HANA Data - Scale out - Create mount list"
     ansible.builtin.debug:
-      var:                               hana_data_scaleout_mountpoint
+      var:                             hana_data_scaleout_mountpoint
+      verbosity:                       2
+    when:
+      - hana_data_mountpoint is defined
 
-  - name:                                "ANF Mount: HANA Data - Scale out"
-    ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+  - name:                              "ANF Mount: HANA Data - Scale out"
+    ansible.builtin.include_tasks:     2.6.1.1-anf-mount.yaml
     # Do not change this to loop:. It Breaks. i don't know why but this modification only seems to work with with_items: despite multiple formatting attempts.
     with_items:
       - "{{ hana_data_scaleout_mountpoint | list }}"
@@ -887,6 +890,9 @@
   - name:                                "DEBUG:ANF Mount: HANA Log - Scale out - Create mount list"
     ansible.builtin.debug:
       var:                               hana_log_scaleout_mountpoint
+      verbosity:                       2
+    when:
+      - hana_log_mountpoint is defined
 
   - name:                                "ANF Mount: HANA Log - Scale out"
     ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
