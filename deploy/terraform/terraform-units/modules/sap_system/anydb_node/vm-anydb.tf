@@ -460,7 +460,6 @@ resource "azurerm_virtual_machine_extension" "anydb_lnx_aem_extension" {
   settings                             = jsonencode(
                                            {
                                              "system": "SAP",
-
                                            }
                                          )
   tags                                 = var.tags
@@ -485,7 +484,6 @@ resource "azurerm_virtual_machine_extension" "anydb_win_aem_extension" {
   settings                             = jsonencode(
                                            {
                                              "system": "SAP",
-
                                            }
                                          )
   tags                                 = var.tags
@@ -611,7 +609,7 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
   count                                = (
                                            var.use_msi_for_clusters &&
                                            length(var.fencing_role_name) > 0 &&
-                                           var.database.high_availability && upper(var.database.os.os_type) == "LINUX"
+                                           var.database_server_count > 1
                                            ) ? (
                                            var.database_server_count
                                            ) : (
@@ -627,7 +625,7 @@ resource "azurerm_role_assignment" "role_assignment_msi_ha" {
   count                                = (
                                           var.use_msi_for_clusters &&
                                           length(var.fencing_role_name) > 0 &&
-                                          var.database.high_availability && upper(var.database.os.os_type) == "LINUX"
+                                          var.database_server_count > 1
                                           ) ? (
                                           var.database_server_count
                                           ) : (
