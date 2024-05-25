@@ -243,6 +243,37 @@ resource "azurerm_network_security_rule" "nsr_controlplane_storage" {
 }
 
 // Add SSH network security rule
+resource "azurerm_network_security_rule" "nsr_controlplane_storage" {
+  provider                             = azurerm.main
+
+  count                                = local.storage_subnet_defined ? local.storage_subnet_nsg_exists ? 0 : 1 : 0
+  depends_on                           = [
+                                           azurerm_network_security_group.storage
+                                         ]
+  name                                 = "ConnectivityToSAPApplicationSubnetFromControlPlane-ssh-rdp-winrm-ANF"
+  resource_group_name                  = local.SAP_virtualnetwork_exists ? (
+                                           data.azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                           ) : (
+                                           azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                         )
+  network_security_group_name          = try(azurerm_network_security_group.storage[0].name, azurerm_network_security_group.app[0].name)
+  priority                             = 100
+  direction                            = "Inbound"
+  access                               = "Allow"
+  protocol                             = "*"
+  source_port_range                    = "*"
+  destination_port_ranges              = [22, 443, 3389, 5985, 5986, 111, 635, 2049, 4045, 4046, 4049]
+  source_address_prefixes              = compact(concat(
+                                           var.deployer_tfstate.subnet_mgmt_address_prefixes,
+                                           var.deployer_tfstate.subnet_bastion_address_prefixes,
+                                           local.SAP_virtualnetwork_exists ? (
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : (
+                                             azurerm_virtual_network.vnet_sap[0].address_space
+                                           )))
+  destination_address_prefixes         = local.storage_subnet_existing ? data.azurerm_subnet.storage[0].address_prefixes : azurerm_subnet.storage[0].address_prefixes
+}
+
+// Add SSH network security rule
 resource "azurerm_network_security_rule" "nsr_controlplane_db" {
   provider                             = azurerm.main
   count                                = local.database_subnet_nsg_exists ? 0 : 1

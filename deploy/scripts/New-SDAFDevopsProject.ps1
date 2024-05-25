@@ -38,33 +38,24 @@ $versionLabel = "v3.11.0.3"
 #   az login --output none --tenant $ARM_TENANT_ID --only-show-errors --scope https://graph.microsoft.com//.default
 # }
 
-# Check if access to the Azure DevOps organization is available and prompt for PAT if needed
-# Exact permissions required, to be validated, and included in the Read-Host text.
-
-if ($Env:AZURE_DEVOPS_EXT_PAT.Length -gt 0) {
-  Write-Host "Using the provided Personal Access Token (PAT) to authenticate to the Azure DevOps organization $ADO_Organization" -ForegroundColor Yellow
-}
-
-$checkPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
-if ($checkPAT.Length -eq 0) {
-  $env:AZURE_DEVOPS_EXT_PAT = Read-Host "Please enter your Personal Access Token (PAT) with full access to the Azure DevOps organization $ADO_Organization"
-  $verifyPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
-  if ($verifyPAT.Length -eq 0) {
-    Read-Host -Prompt "Failed to authenticate to the Azure DevOps organization, press <any key> to exit"
-    exit
-  }
-  else {
-    Write-Host "Successfully authenticated to the Azure DevOps organization $ADO_Organization" -ForegroundColor Green
-  }
-}
-else {
-  Write-Host "Successfully authenticated to the Azure DevOps organization $ADO_Organization" -ForegroundColor Green
-}
-
 Write-Host ""
 Write-Host ""
 
 if (Test-Path ".${pathSeparator}start.md") { Write-Host "Removing start.md" ; Remove-Item ".${pathSeparator}start.md" }
+
+if ($Env:SDAF_AuthenticationMethod.Length -eq 0) {
+  $Title = "Select the authentication method to use"
+  $data = @('Service Principal', 'Managed Identity')
+  Show-Menu($data)
+  $selection = Read-Host $Title
+  $authenticationMethod = $data[$selection - 1]
+
+}
+else {
+  $authenticationMethod = $Env:SDAF_AuthenticationMethod
+}
+
+Write-Host "Using authentication method: $authenticationMethod" -ForegroundColor Yellow
 
 if ($Env:SDAF_AuthenticationMethod.Length -eq 0) {
   $Title = "Select the authentication method to use"
@@ -209,6 +200,7 @@ else {
 
   Write-Host "Using an existing project"
 
+  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --out tsv)
   az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
 
   $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --output tsv)
@@ -859,6 +851,8 @@ if ($authenticationMethod -eq "Service Principal") {
 
   az role assignment create --assignee $CP_ARM_CLIENT_ID --role "User Access Administrator" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
 
+}
+else {
   $Control_plane_groupID = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
   if ($Control_plane_groupID.Length -eq 0) {
     Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
@@ -917,7 +911,7 @@ else {
   Write-Host
 
   Write-Host ""
-  Write-Host "The browser will now open, Please create an 'Azure Resource Manager' service connection with the name 'Control_Plane_Service_Connection'."
+  Write-Host "The browser will now open, Please create a service connection with the name 'Control_Plane_Service_Connection'."
   $connections_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
   Write-Host "URL: " $connections_url
 
@@ -1065,7 +1059,7 @@ Write-Host ""
 Write-Host "The browser will now open, Select the '"$ADO_PROJECT "Build Service' user and ensure that it has 'Allow' in the Contribute section."
 
 $permissions_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/repositories?_a=permissions"
-Write-Host "URL: " $permissions_url
+
 
 Start-Process $permissions_url
 Read-Host -Prompt "Once you have verified the permission, Press any key to continue"

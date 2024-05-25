@@ -255,6 +255,16 @@ stages:
                   fi
                 fi
 
+                if [ -z $USE_MSI ]; then
+                  USE_MSI="false"
+                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query USE_MSI.value --output table)
+                  if [ -n "${az_var}" ]; then
+                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name USE_MSI --value false --output none --only-show-errors
+                  else
+                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name USE_MSI --value false --output none --only-show-errors
+                  fi
+                fi
+
                 if [ $USE_MSI != "true" ]; then
                   echo "Using SPN"
 

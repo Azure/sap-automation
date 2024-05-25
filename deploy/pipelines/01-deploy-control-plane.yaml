@@ -574,6 +574,11 @@ stages:
                       echo SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH >.sap_deployment_automation/config
                       export SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH
 
+                          cd DEPLOYER
+                          ls -lart
+                          cd $(deployerfolder)
+                          ls -lart
+
                       echo -e "$green--- File Validations ---$reset"
                       if [ ! -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
                           echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found ---$reset"
