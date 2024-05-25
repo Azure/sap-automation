@@ -132,7 +132,7 @@ ansible_facts.
 {%         if (database_scale_out)  %}
 {%           if (subnet_cidr_storage | ansible.utils.network_in_usable(ip)) %}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-storage.' + sap_fqdn) }}{{ '%-21s' | format(host + '-storage') }}
-{%           elif (subnet_client_cidr | ansible.utils.network_in_usable(ip)) %}
+{%           elif (subnet_cidr_client | ansible.utils.network_in_usable(ip)) %}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-client.' + sap_fqdn) }}{{ '%-21s' | format(host + '-client') }}
 {%           endif %}
 {%         else %}
