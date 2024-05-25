@@ -13,6 +13,15 @@ function Show-Menu($data) {
 
 $rnd = $(Get-Random -Minimum 1 -Maximum 1000).ToString()
 
+if (Test-Path $LogFileDir) {
+  $LogFileName = "SDAF-" + $(Get-Date -Format "yyyyMMdd-HHmm") + ".md"
+  $LogFileName = Join-Path $LogFileDir -ChildPath $LogFileName
+}
+else {
+  Write-Host "The directory does not exist"
+  return
+}
+
 $LogFileDir = $Env:LogFileDir
 if ($null -eq $LogFileDir -or $LogFileDir -eq "") {
   $LogFileDir = Read-Host "Please enter the directory to save the log file"

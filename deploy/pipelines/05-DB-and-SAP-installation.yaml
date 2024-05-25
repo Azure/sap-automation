@@ -283,6 +283,13 @@ stages:
                   new_parameters="$EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS"
                 fi
 
+                if [[ $EXTRA_PARAMETERS = "'$(EXTRA_PARAMETERS)'" ]]; then
+                  new_parameters=$PIPELINE_EXTRA_PARAMETERS
+                else
+                  echo "##vso[task.logissue type=warning]Extra parameters were provided - '$EXTRA_PARAMETERS'"
+                  new_parameters="$EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS"
+                fi
+
                 echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${workload_prefix}-sid-sshkey"
                 echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$workload_key_vault"
                 echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${workload_prefix}-sid-password"
