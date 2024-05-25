@@ -1016,7 +1016,7 @@ if (!$AlreadySet -or $ResetPAT ) {
     accessLevel         = @{
       accountLicenseType = "stakeholder"
     }
-    user = @{
+    user                = @{
       origin      = "aad"
       originId    = $MSI_objectId
       subjectKind = "servicePrincipal"
