@@ -912,10 +912,31 @@
       state:                             directory
       recurse:                           true
     with_items:
-      - "{{ hana_log_scaleout_mountpoint }}"
-      - "{{ hana_data_scaleout_mountpoint }}"
       - { 'path': '/hana/shared' }
       - { 'path': '/usr/sap/{{ db_sid | upper }}' }
 
+  - name:                                "ANF Mount: Set Permissons on HANA Directories ({{ item.path }})"
+    ansible.builtin.file:
+      owner:                             '{{ hdbadm_uid }}'
+      group:                             sapsys
+      path:                              "{{ item.path }}"
+      state:                             directory
+      recurse:                           true
+    with_items:
+      - "{{ hana_log_scaleout_mountpoint }}"
+    when:
+      - hana_log_mountpoint is defined
+
+  - name:                                "ANF Mount: Set Permissons on HANA Directories ({{ item.path }})"
+    ansible.builtin.file:
+      owner:                             '{{ hdbadm_uid }}'
+      group:                             sapsys
+      path:                              "{{ item.path }}"
+      state:                             directory
+      recurse:                           true
+    with_items:
+      - "{{ hana_data_scaleout_mountpoint }}"
+    when:
+      - hana_data_mountpoint is defined
 
 ...
