@@ -45,14 +45,7 @@ ers_instance_number:           "${ers_instance_number}"
 # the SAP Central Services virtual machines
 ers_lb_ip:                     ${ers_server_loadbalancer_ip}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 %{~ if platform == "SQLSERVER" }
-=======
->>>>>>> 6b5d2310 (Fix initramfs image file configuration and update SAP parameters template)
-=======
-%{~ if platform == "SQLSERVER" }
->>>>>>> 44aee32a (Bring in Scale out improvements (#569))
 # IP address of CNO in Windows and takes the form IPAddress/CIDR
 scs_clst_lb_ip:                 ${scs_cluster_loadbalancer_ip}
 %{~ endif }
