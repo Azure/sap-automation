@@ -150,7 +150,6 @@
     - lsnrctl_start_secondary_results.rc == 0
 
 
-
 # Restart the Listener on Secondary node when the node_tier is Oracle-ASM.
 
 - name:                                "Oracle Data Guard - ASM - Setup Secondary: Stop lsnrctl on Secondary"
