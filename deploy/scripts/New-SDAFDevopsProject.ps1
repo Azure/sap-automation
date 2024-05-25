@@ -815,7 +815,9 @@ if ($authenticationMethod -eq "Service Principal") {
 
       $CP_ARM_CLIENT_SECRET = (az ad sp credential reset --id $CP_ARM_CLIENT_ID --append --query "password" --out tsv --only-show-errors).Replace("""", "")
     }
-    else {
+  }
+}
+else {
 
   if ($Env:MSI_OBJECT_ID.Length -ne 0) {
     $MSI_objectId = $Env:MSI_OBJECT_ID
@@ -868,6 +870,7 @@ if ($authenticationMethod -eq "Service Principal") {
 
   }
 }
+
 
 #region App registration
 if ($WebApp) {
@@ -1100,7 +1103,7 @@ if (!$AlreadySet -or $ResetPAT ) {
     accessLevel         = @{
       accountLicenseType = "stakeholder"
     }
-    user = @{
+    user                = @{
       origin      = "aad"
       originId    = $MSI_objectId
       subjectKind = "servicePrincipal"
