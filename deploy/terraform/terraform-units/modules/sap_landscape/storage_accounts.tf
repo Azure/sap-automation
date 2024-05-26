@@ -516,9 +516,26 @@ resource "azurerm_storage_account" "install" {
   tags                                 = var.tags
   shared_access_key_enabled            = false
 
-  network_rules {
-                  default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
-                  virtual_network_subnet_ids  = compact([
+}
+
+resource "azurerm_storage_account_network_rules" "install" {
+  provider                             = azurerm.main
+  count                                = local.use_AFS_for_shared && length(var.install_storage_account_id) == 0 ? 1 : 0
+  depends_on                           = [
+                                            azurerm_storage_account.install,
+                                            azurerm_storage_share.install,
+                                            azurerm_storage_share.install_smb
+                                         ]
+
+  storage_account_id                   = azurerm_storage_account.install[0].id
+  default_action                       = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+
+  ip_rules                             = compact([
+                                                 length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+                                                 length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+                                                ])
+
+  virtual_network_subnet_ids           = compact([
                                                   local.database_subnet_defined ? (
                                                     local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
                                                     null
@@ -529,14 +546,12 @@ resource "azurerm_storage_account" "install" {
                                                   length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null
                                                   ]
                                                 )
-                  ip_rules                   = compact([
-                                                 length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
-                                                 length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                                ])
-                }
 
-
+  lifecycle {
+              ignore_changes = [virtual_network_subnet_ids]
+            }
 }
+
 
 
 resource "azurerm_private_dns_a_record" "install" {
