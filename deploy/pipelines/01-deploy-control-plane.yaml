@@ -678,6 +678,7 @@ stages:
                       export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 
                       sudo chmod +x $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh
+                      export ARM_USE_AZUREAD=true
 
                       if [ "$USE_MSI" = "true" ]; then
                           echo -e "$cyan--- Using MSI ---$reset"

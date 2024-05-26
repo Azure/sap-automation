@@ -292,7 +292,7 @@ resource "azurerm_storage_account" "transport" {
   enable_https_traffic_only            = false
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
-  shared_access_key_enabled            = false
+  # shared_access_key_enabled            = false
 
   public_network_access_enabled        = var.public_network_access_enabled
 
@@ -514,7 +514,7 @@ resource "azurerm_storage_account" "install" {
   min_tls_version                      = "TLS1_2"
   public_network_access_enabled        = var.public_network_access_enabled
   tags                                 = var.tags
-  shared_access_key_enabled            = false
+  # shared_access_key_enabled            = false
 
 }
 
