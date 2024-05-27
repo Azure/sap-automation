@@ -738,7 +738,6 @@
 - name:                                "ANF Mount: Run tasks for scale out setups"
   when:
     - database_scale_out
-    - not database_high_availability
     - tier == 'sapos'
     - node_tier == 'hana'
   block:
@@ -840,6 +839,7 @@
               }
     when:
       - hana_data_mountpoint is defined
+      - not database_high_availability
 
   - name:                              "DEBUG:ANF Mount: HANA Data - Scale out - Create mount list"
     ansible.builtin.debug:
@@ -886,6 +886,7 @@
               }
     when:
       - hana_log_mountpoint is defined
+      - not database_high_availability
 
   - name:                                "DEBUG:ANF Mount: HANA Log - Scale out - Create mount list"
     ansible.builtin.debug:
