@@ -170,20 +170,21 @@ output "hana_log_ANF_volumes"          {
 
 output "hana_shared"                   {
                                          description = "HANA Shared primary volume"
-                                         value       = try(var.hana_ANF_volumes.use_for_shared ? (
-                                                         format("%s:/%s",
-                                                           var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]) : (
-                                                             try(azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0], "")
-                                                           ),
-                                                           var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanashared[0].volume_path) : (
-                                                             try(azurerm_netapp_volume.hanashared[0].volume_path, "")
-                                                           )
-                                                         )
-                                                         ) : (
-                                                         ""
-                                                       ), "")
+                                         value       = local.shared_volume_count > 0 ? flatten([
+                                                           for idx in range(local.shared_volume_count) : [
+                                                           format("%s:/%s",
+                                                             var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanashared[idx].mount_ip_addresses[0]) : (
+                                                               azurerm_netapp_volume.hanashared[idx].mount_ip_addresses[0]
+                                                             ),
+                                                             var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanashared[idx].volume_path) : (
+                                                               azurerm_netapp_volume.hanashared[idx].volume_path
+                                                             )
+                                                             )
+
+                                                           ]
+                                                         ]) : []
                                        }
 
 output "application_volume_group"      {
