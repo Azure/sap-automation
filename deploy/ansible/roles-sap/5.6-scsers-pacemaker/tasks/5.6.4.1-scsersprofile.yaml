@@ -75,7 +75,7 @@
   ansible.builtin.replace:
     backup:                            true
     path:                              /usr/sap/sapservices
-    regexp:                            '^([^#\n].+{{ sapservice }}.+)$'
+    regexp:                            '^(?!#)(.*{{ sapservice }}.*)$'
     replace:                           '# \1'
   loop:
     - "{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
