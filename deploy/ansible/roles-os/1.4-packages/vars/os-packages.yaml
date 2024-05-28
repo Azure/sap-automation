@@ -255,11 +255,21 @@ packages:
   redhat8.1:
   redhat8.2:
   redhat8.4:
-  redhat8.6:
+    redhat8.6:
+    - { tier: 'os',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'present' }
+    - { tier: 'ha',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'absent'  }
   redhat8.8:
+    - { tier: 'os',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'present' }
+    - { tier: 'ha',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'absent'  }
   redhat8.9:
+    - { tier: 'os',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'present' }
+    - { tier: 'ha',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'absent'  }
   redhat9.0:
+    - { tier: 'os',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'present' }
+    - { tier: 'ha',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'absent'  }
   redhat9.2:
+    - { tier: 'os',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'present' }
+    - { tier: 'ha',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'absent'  }
 
   sles_sap12:
     - { tier: 'os',    package: 'chrony',                                       node_tier: 'all',     state: 'present' }

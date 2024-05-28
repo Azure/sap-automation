@@ -14,6 +14,32 @@
     comment:                           "{{ sap_sid | lower }}adm User account"
     groups:                            haclient
 
+# For systemd services the SAP ASCS/SCS and ERS resources are created as systemd services
+# the path for the service file is /etc/systemd/system/SAP<SID>_<InstanceNumber>.service
+- name:                                "5.6 SCSERS - check if the SAP ASCS/SCS and ERS resources are created as systemd services"
+  ansible.builtin.stat:
+    path:                              "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ sap_instance_number }}.service"
+  register:                            systemd_service_file_path
+  loop:
+    - "{{ scs_instance_number }}"
+    - "{{ ers_instance_number }}"
+  loop_control:
+    loop_var:                          sap_instance_number
+
+- name:                                "5.6 SCSERS - Set fact for the systemd services existance"
+  ansible.builtin.debug:
+    var:                               systemd_service_file_path
+    verbosity:                         2
+
+- name:                                "5.6 SCSERS - Set fact for the systemd services existance"
+  ansible.builtin.set_fact:
+    systemd_service_names:             "{{
+                                           systemd_service_file_path.results
+                                           | selectattr('stat.exists', 'equalto', true)
+                                           | map(attribute='stat.path')
+                                           | regex_replace('/etc/systemd/system/', '')
+                                         }}"
+
 - name:                                "5.6 SCSERS - SUSE - Add the ASCS and ERS service definitions from sapservices file"
   ansible.builtin.lineinfile:
     backup:                            true
@@ -26,6 +52,24 @@
     - {regexp: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}/exe", lif: "LD_LIBRARY_PATH=/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}/exe:$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; /usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}/exe/sapstartsrv pf=/usr/sap/{{ sap_sid }}/SYS/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} -D -u {{ sap_sid | lower }}adm"     }
   when:
     - ansible_os_family | upper == "SUSE"
+    - not systemd_service_names is defined
+    - systemd_service_names | length > 0
+
+- name:                                "5.6 SCSERS - SUSE - Add the ASCS and ERS systemd service definitions from sapservices file"
+  ansible.builtin.lineinfile:
+    backup:                            true
+    path:                              /usr/sap/sapservices
+    regexp:                            "{{ item.regexp }}"
+    line:                              "{{ item.lif }}"
+    state:                             present
+  loop:
+    - {regexp: "systemctl --no-ask-password start SAP{{ sap_sid | upper }}_{{ scs_instance_number }}", lif: "systemctl --no-ask-password start SAP{{ sap_sid | upper }}_{{ scs_instance_number }} # sapstartsrv pf=/usr/sap/{{ sap_sid | upper }}/SYS/profile/{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}" }
+    - {regexp: "systemctl --no-ask-password start SAP{{ sap_sid | upper }}_{{ ers_instance_number }}", lif: "systemctl --no-ask-password start SAP{{ sap_sid | upper }}_{{ ers_instance_number }} # sapstartsrv pf=/usr/sap/{{ sap_sid | upper }}/SYS/profile/{{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}"                         }
+  when:
+    - ansible_os_family | upper == "SUSE"
+    - hostvars[primary_instance_name]['ensa2'] | default(false)
+    - systemd_service_names is defined
+    - systemd_service_names | length > 0
 
 - name:                                "5.6 SCSERS - REDHAT - Comment the ASCS and ERS service definitions from sapservices file"
   ansible.builtin.replace:

@@ -64,6 +64,25 @@ locals {
   ams_laws_arm_id                                 = length(var.infrastructure.ams_instance.ams_laws_arm_id) > 0 ? (
                                                       var.infrastructure.ams_instance.ams_laws_arm_id) : ""
 
+  // NAT Gateway
+  create_nat_gateway                              = var.infrastructure.nat_gateway.create_nat_gateway
+  nat_gateway_name                                = length(var.infrastructure.nat_gateway.name) > 0 ? (
+                                                      var.infrastructure.nat_gateway.name) : (
+                                                      format("%s%s%s%s",
+                                                        var.naming.resource_prefixes.nat_gateway,
+                                                        local.prefix,
+                                                        local.resource_suffixes.nat_gateway
+                                                      )
+                                                    )
+  nat_gateway_arm_id                              = length(var.infrastructure.nat_gateway.arm_id) > 0 ? (
+                                                      var.infrastructure.nat_gateway.arm_id) : ""
+  nat_gateway_public_ip_arm_id                    = length(var.infrastructure.nat_gateway.public_ip_arm_id) > 0 ? (
+                                                      var.infrastructure.nat_gateway.public_ip_arm_id) : ""
+  nat_gateway_public_ip_zones                     = length(var.infrastructure.nat_gateway.public_ip_zones) > 0 ? (
+                                                      var.infrastructure.nat_gateway.public_ip_zones) : []
+  nat_gateway_idle_timeout_in_minutes             = var.infrastructure.nat_gateway.idle_timeout_in_minutes
+  nat_gateway_public_ip_tags                      = var.infrastructure.nat_gateway.ip_tags
+
   // SAP vnet
   SAP_virtualnetwork_id                           = try(var.infrastructure.vnets.sap.arm_id, "")
   SAP_virtualnetwork_exists                       = length(local.SAP_virtualnetwork_id) > 0

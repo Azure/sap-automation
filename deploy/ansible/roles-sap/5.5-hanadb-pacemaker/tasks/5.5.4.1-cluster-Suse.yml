@@ -84,6 +84,9 @@
       register:                        sap_hana_msl
       failed_when:                     sap_hana_msl.rc > 1
 
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Set priority for SAP HANA ms resource"
+      ansible.builtin.shell:           crm resource meta msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} set priority 100
+
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure SAP HANA Virtual IP resource is configured"
       ansible.builtin.shell: >
                                        crm configure primitive rsc_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }} ocf:heartbeat:IPaddr2
@@ -136,8 +139,18 @@
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure any required cluster resources are cleaned up"
       ansible.builtin.command:         "crm resource cleanup rsc_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}"
 
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - cleanup cluster resources"
+      ansible.builtin.command:         "crm resource cleanup"
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Set the priority fencing delay"
+      ansible.builtin.shell:           crm configure property priority-fencing-delay=30
+
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure maintenance mode is disabled"
       ansible.builtin.command:         crm configure property maintenance-mode=false
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Wait for a few minutes for the cluster to stabilize"
+      ansible.builtin.wait_for:
+        timeout:                       120
 
   when:                                inventory_hostname == primary_instance_name
 
