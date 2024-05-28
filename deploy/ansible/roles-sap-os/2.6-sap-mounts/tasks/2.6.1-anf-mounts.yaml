@@ -755,7 +755,7 @@
       - { path: '{{ hana_log_basepath }}' }
       - { path: '{{ hana_shared_basepath }}' }
       - { path: '{{ hana_usrsap_basepath }}' }
-      - { path: '{{ hana_data_baasepath }}'}
+      - { path: '{{ hana_data_basepath }}'}
 
 
   # This only runs for HANA Scale out with standby node configuration
