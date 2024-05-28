@@ -123,7 +123,7 @@
 
     - name:                            "5.6 SCSERS - RHEL - set ASCS/SCS default 'priority' to 10"
       ansible.builtin.shell:           pcs resource update rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} meta priority=10
-      register:                        update_priority_saphana
+      register:                        update_priority_sapinstance
 
     - name:                            "5.6 SCSERS - RHEL - set priority-fencing-delay"
       ansible.builtin.shell:           pcs property set priority-fencing-delay=15s
