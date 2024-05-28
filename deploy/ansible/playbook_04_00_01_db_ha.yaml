@@ -318,6 +318,35 @@
             suffix:                   "_DC_ACTION_2"
             tier:                     'oracle'
 
+
+    - name:                            "Oracle Data Guard Setup on Secondary"
+      when:
+        - db_high_availability
+        - platform in ['ORACLE', 'ORACLE-ASM']
+        - inventory_hostname == secondary_instance_name
+      become:                          true
+      block:
+        - name:                        Setting the DB facts
+          ansible.builtin.set_fact:
+            tier:                      ora                                    # Actions for Oracle DB Servers
+            action:                    'Post_Processing_Secondary'
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+          tags:
+            - always
+
+        - name:                        Oracle Data guard
+          ansible.builtin.include_role:
+            name:                      roles-db/4.1.3-ora-dg
+          tags:
+            - 4.1.3-ora-dg
+
+        - name:                       "Observer Playbook: - Run post installation routines"
+          ansible.builtin.include_role:
+            name:                     roles-sap/7.0.0-post-install
+          vars:
+            suffix:                   "_DC_ACTION_2"
+            tier:                     'oracle'
+
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
 # |                         PLAY FOR Observer Node setup                       |
