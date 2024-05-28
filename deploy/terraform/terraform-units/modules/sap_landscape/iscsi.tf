@@ -327,7 +327,6 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_iscsi_lnx" {
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
-
 }
 
 resource "azurerm_virtual_machine_extension" "monitoring_defender_iscsi_lnx" {
@@ -344,11 +343,14 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_iscsi_lnx" {
   auto_upgrade_minor_version           = true
 
   settings                             = jsonencode(
-                                            {
-                                              "enableGenevaUpload"  = true,
-                                              "enableAutoConfig"  = true,
-                                              "reportSuccessOnUnsupportedDistro"  = true,
+                                           {
+                                              "authentication"  =  {
+                                                   "managedIdentity" = {
+                                                        "identifier-name" : "mi_res_id",
+                                                        "identifier-value": var.infrastructure.iscsi.user_assigned_identity_id
+                                                      }
+                                                }
                                             }
-                                          )
+                                            )
 }
 

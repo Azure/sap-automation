@@ -149,6 +149,13 @@
     - db_high_availability is defined
     - database_high_availability is not defined
 
+- name:                            "Backward Compatibility - Check required Database HA variables"
+  ansible.builtin.set_fact:
+    database_high_availability:    "{{ db_high_availability | default(false) }}"
+  when:
+    - db_high_availability is defined
+    - database_high_availability is not defined
+
 # absent_from_fstab
 - name:                                "ANF Mount: RHEL DB high availability configuration"
   when:                                ansible_os_family | upper == "REDHAT" and database_high_availability

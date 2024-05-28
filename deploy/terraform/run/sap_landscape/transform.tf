@@ -162,10 +162,21 @@ locals {
                                          ) > 0
 
   ams_instance                        = {
-                                            name                 = var.ams_instance_name
-                                            create_ams_instance  = var.create_ams_instance
-                                            ams_laws_arm_id      = var.ams_laws_arm_id
+                                           name                    = var.ams_instance_name
+                                           create_ams_instance     = var.create_ams_instance
+                                           ams_laws_arm_id         = var.ams_laws_arm_id
                                         }
+
+  nat_gateway                         = {
+                                           create_nat_gateway      = var.deploy_nat_gateway
+                                           name                    = var.nat_gateway_name
+                                           arm_id                  = try(var.nat_gateway_arm_id, "")
+                                           region                  = lower(coalesce(var.location, try(var.infrastructure.region, "")))
+                                           public_ip_zones         = try(var.nat_gateway_public_ip_zones, ["1", "2", "3"])
+                                           public_ip_arm_id        = try(var.nat_gateway_public_ip_arm_id, "")
+                                           idle_timeout_in_minutes = var.nat_gateway_idle_timeout_in_minutes
+                                           ip_tags                 = try(var.nat_gateway_public_ip_tags, {})
+                                         }
 
   temp_infrastructure                  = {
                                            environment                  = coalesce(var.environment, try(var.infrastructure.environment, ""))
@@ -568,6 +579,10 @@ locals {
                                           {
                                             "ams_instance" = local.ams_instance
                                           }
+                                          ), (
+                                          {
+                                            "nat_gateway" = local.nat_gateway
+                                          }
                                           ),(
                                           local.iscsi.iscsi_count > 0 ? (
                                             {
@@ -608,6 +623,6 @@ locals {
                                           install_volume_throughput   = var.ANF_install_volume_throughput
                                           install_volume_zone         = var.ANF_install_volume_zone[0]
 
-                                       }
+                                         }
 
 }

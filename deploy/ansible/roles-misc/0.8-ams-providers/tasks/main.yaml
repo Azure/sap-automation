@@ -8,34 +8,34 @@
     ers_hosts:                         "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_ERS') }}"
     ha_cluster_port_number:            "{{ 9664 if ansible_os_family | upper == 'SUSE' else 44322 }}"
 
-- name:                           "0.8.1 ams provider creation: - Install [AMS] cli extension"
+- name:                                "0.8.1 ams provider creation: - Install [AMS] cli extension"
   delegate_to:                         localhost
   ansible.builtin.shell: >-
-                                  az extension add --name workloads --yes || exit 1
+                                       az extension add --name workloads --yes || exit 1
   tags:
     - skip_ansible_lint
 
-- name:                            "0.8.1 ams provider creation: - Get Access Token"
+- name:                                "0.8.1 ams provider creation: - Get Access Token"
   delegate_to:                         localhost
   ansible.builtin.shell: >-
-                                    az account get-access-token --resource https://management.azure.com \
-                                    --query accessToken -o tsv
-  register:                        ams_access_token
+                                       az account get-access-token --resource https://management.azure.com \
+                                       --query accessToken -o tsv
+  register:                            ams_access_token
   tags:
     - skip_ansible_lint
 
-- name:                            "0.8.1 ams provider creation: - Generate a guid for the AMS provider instance"
+- name:                                "0.8.1 ams provider creation: - Generate a guid for the AMS provider instance"
   delegate_to:                         localhost
-  ansible.builtin.command:         uuidgen
-  register:                        ams_provider_guid
+  ansible.builtin.command:             uuidgen
+  register:                            ams_provider_guid
   tags:
     - skip_ansible_lint
 
 - name:                                "0.8.1 ams provider creation: - Create PrometheusOS (OS) provider in AMS"
   delegate_to:                         localhost
   when:
-                                      - ansible_os_family | upper == 'SUSE' or ansible_os_family | upper == 'REDHAT'
-                                      - enable_os_monitoring
+                                       - ansible_os_family | upper == 'SUSE' or ansible_os_family | upper == 'REDHAT'
+                                       - enable_os_monitoring
   block:
     - name:                            "0.8.1 ams provider creation: - Create Prometheus OS AMS provider instance"
       ansible.builtin.uri:
