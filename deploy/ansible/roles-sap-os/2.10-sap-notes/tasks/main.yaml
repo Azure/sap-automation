@@ -125,6 +125,10 @@
 # ToDo RHEL7 and also the other SAP nodes
 # -------------------------------------+---------------------------------------8
 
+- name:                                "2.10.3 - saptune for SLES 12 and SLES 15"
+  ansible.builtin.include_tasks:       2.10.3.yaml
+  when:
+    - distribution_id in ['suse12', 'suse15', 'sles_sap12', 'sles_sap15']
 
 # /*----------------------------------------------------------------------------8
 # |                                    END                                      |

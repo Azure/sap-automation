@@ -177,7 +177,9 @@
                                        pcmk_action_limit=3
                                        power_timeout=240
                                        pcmk_reboot_timeout=900
+                                       pcmk_delay_max=15
                                        pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
+                                       op monitor interval=3600 timeout=120
       when:
         - not use_msi_for_clusters or distribution_full_id in ["sles_sap12.4"]
       failed_when:                     crm_configure_result.rc > 1
@@ -192,7 +194,9 @@
                                        pcmk_action_limit=3
                                        power_timeout=240
                                        pcmk_reboot_timeout=900
+                                       pcmk_delay_max=15
                                        pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
+                                       op monitor interval=3600 timeout=120
       failed_when:                     crm_configure_result.rc > 1
       when:
         - use_msi_for_clusters
@@ -346,11 +350,32 @@
     - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode is set"
       ansible.builtin.shell:           crm configure property maintenance-mode=true
 
+    - name:                            "1.17 Generic Pacemaker - Set the pacemaker cluster node health strategy"
+      ansible.builtin.shell:           crm configure property node-health-strategy=custom
+
+    - name:                            "1.17 Generic Pacemaker - Set the pacemaker cluster node health constraint"
+      ansible.builtin.shell: >-
+                                       crm configure location loc_azure_health \
+                                       /'!health-.*'/ rule '#health-azure': defined '#uname'
+
+    - name:                            "1.17 Generic Pacemaker - Set initial value for cluster attributes for {{ primary_instance_name }}"
+      ansible.builtin.shell:           crm_attribute --node {{ primary_instance_name }} --name '#health-azure' --update 0
+
+    - name:                            "1.17 Generic Pacemaker - Set initial value for cluster attributes for {{ secondary_instance_name }}"
+      ansible.builtin.shell:           crm_attribute --node {{ secondary_instance_name }} --name '#health-azure' --update 0
+
     - name:                            "1.17 Generic Pacemaker - Ensure Pacemaker resources for the Azure agent is created"
-      ansible.builtin.shell:           crm configure primitive rsc_azure-events ocf:heartbeat:azure-events op monitor interval=10s
+      ansible.builtin.shell: >-
+                                       crm configure primitive health-azure-events ocf:heartbeat:azure-events-az \
+                                       meta allow-unhealthy-nodes=true failure-timeout=120s \
+                                       op start start-delay=90s \
+                                       op monitor interval=10s
+      register:                        crm_configure_result
+      failed_when:
+        - "crm_configure_result.stderr | lower | regex_search('error|fail')" # Check if the resource is created successfully
 
     - name:                            "1.17 Generic Pacemaker - Ensure clone resource azure-events is configured"
-      ansible.builtin.shell:           crm configure clone cln_azure-events rsc_azure-events
+      ansible.builtin.shell:           crm configure clone health-azure-events-cln health-azure-events
 
     - name:                            "1.17 Generic Pacemaker - Remove false positives"
       ansible.builtin.shell:           crm_resource -C
@@ -361,7 +386,7 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# | Azure scheduled events - BEGIN                                             |
+# | Azure scheduled events - END                                               |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
