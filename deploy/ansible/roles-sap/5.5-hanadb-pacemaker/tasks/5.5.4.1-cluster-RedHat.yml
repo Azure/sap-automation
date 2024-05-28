@@ -26,6 +26,11 @@
         get_status_maintenance_mode.stdout is not search('maintenance-mode') or
         get_status_maintenance_mode.stdout is search('maintenance-mode: false')
 
+    - name:                            "5.5.4.1 HANA Cluster configuration - Check if the pacemaker package version is greater than pacemaker-2.0.4"
+      when:                            ansible_distribution_major_version in ["8", "9"]
+      ansible.builtin.set_fact:
+        is_pcmk_ver_gt_204:            "{{ ansible_facts.packages['pacemaker'] is version('2.0.4', '>') | default(false) }}"
+
     - name:                            "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA Topology resource is created"
       ansible.builtin.shell: >
                                        pcs resource create SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }} SAPHanaTopology
@@ -126,6 +131,27 @@
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
+
+    # for two node clusters set properties
+    - name:                            "5.5.4.1 HANA Cluster configuration - Set the cluster properties for two node clusters"
+      when:
+        - database_high_availability
+        - not db_scale_out
+        - is_pcmk_ver_gt_204
+      block:
+        - name:                        "5.5.4.1 HANA Cluster configuration - set resource defaults 'priority'"
+          ansible.builtin.shell:       pcs resource defaults update priority=1
+          register:                    update_priority
+          failed_when:                 update_priority.rc > 1
+
+        - name:                        "5.5.4.1 HANA Cluster configuration - set SAPHana defaults 'priority' to 10"
+          ansible.builtin.shell:       pcs resource update SAPHana_{{ db_sid | upper }}_{{ db_instance_number }} meta priority=10
+          register:                    update_priority_saphana
+
+        - name:                        "5.5.4.1 HANA Cluster configuration - set priority-fencing-delay"
+          ansible.builtin.shell:       pcs property set priority-fencing-delay=15s
+          register:                    constraint
+          failed_when:                 constraint.rc > 1
 
     - name:                            "5.5.4.1 HANA Cluster configuration - Configure cluster constraints for SAP HANA and ANF"
       when:
