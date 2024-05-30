@@ -177,15 +177,3 @@ output "database_kdump_disks"          {
                                                          )
                                                        )
                                        }
-output "database_kdump_disks"          {
-                                         description = "List of Azure kdump disks"
-                                         value       = distinct(
-                                                         flatten(
-                                                           [for vm in var.naming.virtualmachine_names.ANYDB_VMNAME :
-                                                             [for idx, disk in azurerm_virtual_machine_data_disk_attachment.kdump :
-                                                               format("{ host: '%s', LUN: %d, type: 'kdump' }", vm, disk.lun)
-                                                             ]
-                                                           ]
-                                                         )
-                                                       )
-                                       }
