@@ -92,7 +92,7 @@ stages:
                             export ARM_CLIENT_ID=$servicePrincipalId
 
                             if [ -n "$(servicePrincipalKey)" ]; then
-                                export ARM_CLIENT_SECRET=$servicePrincipalKey
+                                export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
                             else
                                 export ARM_USE_OIDC=true
                                 export ARM_USE_AZUREAD=true
