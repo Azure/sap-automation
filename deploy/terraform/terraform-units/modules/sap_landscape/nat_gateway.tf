@@ -1,14 +1,15 @@
 # https://github.com/hashicorp/terraform-provider-azurerm/issues/18741
 # public IP address for the natGateway
 resource "azurerm_public_ip" "ng_pip" {
-  provider                             = azureng
+  provider                             = azurerm.main
   count                                = local.create_nat_gateway ? 1 : 0
   name                                 = format("%s%s", local.nat_gateway_name, "-pip")
   location                             = local.region
   resource_group_name                  = azurerm_resource_group.resource_group[0].name
   idle_timeout_in_minutes              = local.nat_gateway_idle_timeout_in_minutes
   zones                                = local.nat_gateway_public_ip_zones
-  ip_tags                              = local.nat_gateway_public_ip_tags
+  # ip_tags                              = local.nat_gateway_public_ip_tags
+  tags                                 = local.nat_gateway_public_ip_tags
   allocation_method                    = "Static"
   sku                                  = "Standard"
   lifecycle {
@@ -24,7 +25,7 @@ resource "azurerm_public_ip" "ng_pip" {
 # https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview#availability-zones
 # Only one Availability Zone can be defined. We will not provide a zone for now.
 resource "azurerm_nat_gateway" "ng" {
-  provider                             = azureng
+  provider                             = azurerm.main
   count                                = local.create_nat_gateway ? 1 : 0
   name                                 = local.nat_gateway_name
   location                             = local.region
@@ -39,7 +40,7 @@ resource "azurerm_nat_gateway" "ng" {
 
 # NAT Gateway IP Configuration
 resource "azurerm_nat_gateway_public_ip_association" "ng_pip_assoc" {
-  provider                             = azureng
+  provider                             = azurerm.main
   count                                = local.create_nat_gateway ? 1 : 0
   nat_gateway_id                       = azurerm_nat_gateway.ng[0].id
   public_ip_address_id                 = azurerm_public_ip.ng_pip[0].id
@@ -48,7 +49,7 @@ resource "azurerm_nat_gateway_public_ip_association" "ng_pip_assoc" {
 
 # NAT Gateway subnet association with app subnet
 resource "azurerm_subnet_nat_gateway_association" "ng_subnet_assoc" {
-  provider                             = azureng
+  provider                             = azurerm.main
   count                                = local.create_nat_gateway ? 1 : 0
   nat_gateway_id                       = azurerm_nat_gateway.ng[0].id
   subnet_id                            = azurerm_subnet.app[0].id
@@ -59,7 +60,7 @@ resource "azurerm_subnet_nat_gateway_association" "ng_subnet_assoc" {
 
 # NAT Gateway subnet association with db subnet
 resource "azurerm_subnet_nat_gateway_association" "ng_subnet_assoc_db" {
-  provider                             = azureng
+  provider                             = azurerm.main
   count                                = local.create_nat_gateway ? 1 : 0
   nat_gateway_id                       = azurerm_nat_gateway.ng[0].id
   subnet_id                            = azurerm_subnet.db[0].id
@@ -70,7 +71,7 @@ resource "azurerm_subnet_nat_gateway_association" "ng_subnet_assoc_db" {
 
 # NAT Gateway subnet association with web subnet
 resource "azurerm_subnet_nat_gateway_association" "ng_subnet_assoc_web" {
-  provider                             = azureng
+  provider                             = azurerm.main
   count                                = local.create_nat_gateway ? 1 : 0
   nat_gateway_id                       = azurerm_nat_gateway.ng[0].id
   subnet_id                            = azurerm_subnet.web[0].id
