@@ -165,7 +165,6 @@ output "database_shared_disks"         {
                                                          )
                                                        )
                                        }
-
 output "database_kdump_disks"          {
                                          description = "List of Azure kdump disks"
                                          value       = distinct(

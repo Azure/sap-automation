@@ -40,7 +40,31 @@ $versionLabel = "v3.11.0.2"
 
 Write-Host ""
 Write-Host ""
+# Check if access to the Azure DevOps organization is available and prompt for PAT if needed
+# Exact permissions required, to be validated, and included in the Read-Host text.
 
+if ($Env:AZURE_DEVOPS_EXT_PAT.Length -gt 0) {
+  Write-Host "Using the provided Personal Access Token (PAT) to authenticate to the Azure DevOps organization $ADO_Organization" -ForegroundColor Yellow
+}
+
+$checkPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
+if ($checkPAT.Length -eq 0) {
+  $env:AZURE_DEVOPS_EXT_PAT = Read-Host "Please enter your Personal Access Token (PAT) with full access to the Azure DevOps organization $ADO_Organization"
+  $verifyPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
+  if ($verifyPAT.Length -eq 0) {
+    Read-Host -Prompt "Failed to authenticate to the Azure DevOps organization, press <any key> to exit"
+    exit
+  }
+  else {
+    Write-Host "Successfully authenticated to the Azure DevOps organization $ADO_Organization" -ForegroundColor Green
+  }
+}
+else {
+  Write-Host "Successfully authenticated to the Azure DevOps organization $ADO_Organization" -ForegroundColor Green
+}
+
+Write-Host ""
+Write-Host ""
 if (Test-Path ".${pathSeparator}start.md") { Write-Host "Removing start.md" ; Remove-Item ".${pathSeparator}start.md" }
 
 if ($Env:SDAF_AuthenticationMethod.Length -eq 0) {
@@ -826,11 +850,11 @@ else {
 
     $postBody = [PSCustomObject]@{
       accessLevel         = @{
-        accountLicenseType = "stakeholder"
+        accountLicenseType = "Basic"
       }
       projectEntitlements = @([ordered]@{
           group      = @{
-            groupType = "projectContributor"
+            groupType = "projectAdministrator"
           }
           projectRef = @{
             id = $Project_ID

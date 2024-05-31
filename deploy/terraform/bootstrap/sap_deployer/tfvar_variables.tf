@@ -552,3 +552,20 @@ variable "use_spn"                                   {
                                                        description = "Log in using a service principal when performing the deployment"
                                                        default     = false
                                                      }
+
+#########################################################################################
+#                                                                                       #
+#  Extension variables                                                                  #
+#                                                                                       #
+#########################################################################################
+
+
+variable "deploy_monitoring_extension"          {
+                                                  description = "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines"
+                                                  default     = false
+                                                }
+
+variable "deploy_defender_extension"            {
+                                                  description = "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines"
+                                                  default     = false
+                                                }

@@ -7,7 +7,7 @@ terraform {
     }
 
     azapi = {
-      source                = "Azure/azapi"
+      source                = "azure/azapi"
       configuration_aliases = [azapi.api]
     }
   }
