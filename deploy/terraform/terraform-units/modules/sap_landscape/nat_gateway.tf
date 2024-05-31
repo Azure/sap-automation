@@ -11,6 +11,12 @@ resource "azurerm_public_ip" "ng_pip" {
   ip_tags                              = local.nat_gateway_public_ip_tags
   allocation_method                    = "Static"
   sku                                  = "Standard"
+  lifecycle {
+    ignore_changes = [
+      ip_tags
+    ]
+    create_before_destroy = true
+  }
 }
 
 # NAT Gateway
