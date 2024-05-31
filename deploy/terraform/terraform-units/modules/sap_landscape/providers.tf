@@ -8,7 +8,7 @@ terraform {
 
     azureng = {
       source  = "hashicorp/azurerm"
-      configuration_aliases = [azurerm.ng]
+      configuration_aliases = [azureng.ng]
       version = ">= 3.71.0"
     }
 
