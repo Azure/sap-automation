@@ -57,7 +57,7 @@ data "azurerm_subnet" "webapp" {
 # Create the Windows App Service Plan
 resource "azurerm_service_plan" "appserviceplan" {
   count                                         = var.use_webapp ? 1 : 0
-  name                                          = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.LIBRARY, var.naming.resource_suffixes.app_service_plan, substr(random_id.deployer.hex, 0, 3)))
+  name                                          = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.DEPLOYER, var.naming.resource_suffixes.app_service_plan, substr(random_id.deployer.hex, 0, 3)))
   resource_group_name                           = local.resourcegroup_name
   location                                      = local.rg_appservice_location
   os_type                                       = "Windows"
