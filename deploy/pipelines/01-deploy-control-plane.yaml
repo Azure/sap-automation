@@ -92,7 +92,7 @@ stages:
                             export ARM_CLIENT_ID=$servicePrincipalId
 
                             if [ -n "$(servicePrincipalKey)" ]; then
-                                export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
+                                export ARM_CLIENT_SECRET=$servicePrincipalKey
                             else
                                 export ARM_USE_OIDC=true
                                 export ARM_USE_AZUREAD=true
@@ -251,6 +251,7 @@ stages:
                                 --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
                                 --subscription $ARM_SUBSCRIPTION_ID  --auto-approve --ado --only_deployer --msi
                             else
+                              export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
                               $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
                                 --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                                 --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
