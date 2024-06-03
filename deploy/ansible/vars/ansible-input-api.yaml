@@ -83,6 +83,8 @@ sybase_temp_stripe_size:               128
 oracle_data_stripe_size:               256
 oracle_log_stripe_size:                128
 
+default_stripe_size:                   128
+
 # Custom virtual hostnames
 custom_db_virtual_hostname:            ""
 custom_ers_virtual_hostname:           ""
