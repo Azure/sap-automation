@@ -23,12 +23,9 @@ locals {
                                               ""
                                             )
                                           }
-    tags                               = try(
-                                          coalesce(
-                                            var.resourcegroup_tags,
-                                            try(var.infrastructure.tags, {})
-                                          ),
-                                          {}
+    tags                               = merge(
+                                            var.tags, var.resourcegroup_tags
+
                                         )
 
     vnets                              = {
@@ -127,6 +124,9 @@ locals {
                                               }
                                             }
                                           }
+  deploy_monitoring_extension      = var.deploy_monitoring_extension
+  deploy_defender_extension        = var.deploy_defender_extension
+
                                         }
   deployer                             = {
                                            size = try(

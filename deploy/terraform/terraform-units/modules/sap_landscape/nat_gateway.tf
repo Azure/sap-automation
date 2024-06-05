@@ -3,14 +3,21 @@
 resource "azurerm_public_ip" "ng_pip" {
   provider                             = azurerm.main
   count                                = local.create_nat_gateway ? 1 : 0
-  name                                 = local.nat_gateway_name
+  name                                 = format("%s%s", local.nat_gateway_name, "-pip")
   location                             = local.region
   resource_group_name                  = azurerm_resource_group.resource_group[0].name
   idle_timeout_in_minutes              = local.nat_gateway_idle_timeout_in_minutes
   zones                                = local.nat_gateway_public_ip_zones
-  ip_tags                              = local.nat_gateway_public_ip_tags
+  # ip_tags                              = local.nat_gateway_public_ip_tags
+  tags                                 = local.nat_gateway_public_ip_tags
   allocation_method                    = "Static"
   sku                                  = "Standard"
+  lifecycle {
+    ignore_changes = [
+      ip_tags
+    ]
+    create_before_destroy = true
+  }
 }
 
 # NAT Gateway

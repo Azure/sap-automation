@@ -251,6 +251,7 @@ stages:
                                 --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
                                 --subscription $ARM_SUBSCRIPTION_ID  --auto-approve --ado --only_deployer --msi
                             else
+                              export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
                               $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
                                 --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                                 --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
@@ -572,19 +573,14 @@ stages:
                       echo SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH >.sap_deployment_automation/config
                       export SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH
 
-                          cd DEPLOYER
-                          ls -lart
-                          cd $(deployerfolder)
-                          ls -lart
-
                       echo -e "$green--- File Validations ---$reset"
-                      if [ ! -f DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
+                      if [ ! -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
                           echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found ---$reset"
                           echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found."
                           exit 2
                       fi
 
-                      if [ ! -f LIBRARY/$(libraryfolder)/$(libraryconfig) ]; then
+                      if [ ! -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig) ]; then
                           echo -e "$boldred--- File ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)  was not found ---$reset"
                           echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig) was not found."
                           exit 2
@@ -701,7 +697,6 @@ stages:
                       export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 
                       sudo chmod +x $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh
-                      export ARM_USE_AZUREAD=true
 
                       if [ "$USE_MSI" = "true" ]; then
                           echo -e "$cyan--- Using MSI ---$reset"
@@ -898,7 +893,7 @@ stages:
                       TF_VAR_agent_pool:           $(POOL)
                       TF_VAR_agent_ado_url:        $(System.CollectionUri)
                       TF_VAR_tf_version:           $(tf_version)
-                      AZURE_DEVOPS_EXT_PAT:        $(PAT)
+                      AZURE_DEVOPS_EXT_PAT:        $(System.AccessToken)
                       IS_PIPELINE_DEPLOYMENT:      true
                       WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
                       APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)

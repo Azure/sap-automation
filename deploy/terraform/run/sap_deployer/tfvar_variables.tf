@@ -414,7 +414,10 @@ variable "shared_access_key_enabled"            {
                                                   type        = bool
                                                 }
 
-
+variable "tags"                                 {
+                                                  description = "If provided, tags for all resources"
+                                                  default     = {}
+                                                }
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #
@@ -554,14 +557,31 @@ variable "user_assigned_identity_id"                {
                                                        default     = ""
                                                      }
 
-variable "add_system_assigned_identity"         {
-                                                  description = "Boolean flag indicating if a system assigned identity should be added to the deployer"
-                                                  default     = false
-                                                  type        = bool
-                                                }
+variable "add_system_assigned_identity"              {
+                                                       description = "Boolean flag indicating if a system assigned identity should be added to the deployer"
+                                                       default     = false
+                                                       type        = bool
+                                                     }
 
-variable "use_spn"                              {
-                                                  description = "Log in using a service principal when performing the deployment"
-                                                  default     = true
-                                                }
+variable "use_spn"                                   {
+                                                       description = "Log in using a service principal when performing the deployment"
+                                                       default     = true
+                                                     }
 
+
+#########################################################################################
+#                                                                                       #
+#  Extension variables                                                                  #
+#                                                                                       #
+#########################################################################################
+
+
+variable "deploy_monitoring_extension"              {
+                                                      description = "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines"
+                                                      default     = false
+                                                    }
+
+variable "deploy_defender_extension"                {
+                                                      description = "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines"
+                                                      default     = false
+                                                    }

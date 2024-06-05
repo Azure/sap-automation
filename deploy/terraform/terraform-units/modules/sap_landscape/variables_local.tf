@@ -68,7 +68,7 @@ locals {
   create_nat_gateway                              = var.infrastructure.nat_gateway.create_nat_gateway
   nat_gateway_name                                = length(var.infrastructure.nat_gateway.name) > 0 ? (
                                                       var.infrastructure.nat_gateway.name) : (
-                                                      format("%s%s%s%s",
+                                                      format("%s%s%s",
                                                         var.naming.resource_prefixes.nat_gateway,
                                                         local.prefix,
                                                         local.resource_suffixes.nat_gateway

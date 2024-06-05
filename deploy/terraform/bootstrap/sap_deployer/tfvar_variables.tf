@@ -411,7 +411,10 @@ variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
                                                                   default     = []
                                                                 }
 
-
+variable "tags"                                 {
+                                                  description = "If provided, tags for all resources"
+                                                  default     = {}
+                                                }
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #
@@ -552,3 +555,20 @@ variable "use_spn"                                   {
                                                        description = "Log in using a service principal when performing the deployment"
                                                        default     = false
                                                      }
+
+#########################################################################################
+#                                                                                       #
+#  Extension variables                                                                  #
+#                                                                                       #
+#########################################################################################
+
+
+variable "deploy_monitoring_extension"          {
+                                                  description = "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines"
+                                                  default     = false
+                                                }
+
+variable "deploy_defender_extension"            {
+                                                  description = "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines"
+                                                  default     = false
+                                                }
