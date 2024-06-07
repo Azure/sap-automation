@@ -159,6 +159,7 @@ packages:
     - { tier: 'os',    package: 'mksh',                                         node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'libstdc++.so.6',                               node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'unzip',                                        node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'pam',                                          node_tier: 'db2',     state: 'latest'  }
     - { tier: 'os',    package: 'libpam.so.0',                                  node_tier: 'db2',     state: 'present' }
     - { tier: 'db2',   package: 'acl',                                          node_tier: 'db2',     state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
@@ -262,6 +263,9 @@ packages:
     - { tier: 'os',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'present' }
     - { tier: 'ha',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'absent'  }
   redhat8.9:
+    - { tier: 'os',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'present' }
+    - { tier: 'ha',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'absent'  }
+  redhat8.10:
     - { tier: 'os',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'present' }
     - { tier: 'ha',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'absent'  }
   redhat9.0:

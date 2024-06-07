@@ -109,7 +109,7 @@
 - name:                                "5.6 SCSERS - RHEL - Check if the pacemaker package version is greater than pacemaker-2.0.4"
   when:                                ansible_distribution_major_version in ["8", "9"]
   ansible.builtin.set_fact:
-    is_pcmk_ver_gt_204:                "{{ ansible_facts.packages['pacemaker'] is version('2.0.4', '>') | default(false) }}"
+    is_pcmk_ver_gt_204:                "{{ ansible_facts.packages['pacemaker'][0].version is version('2.0.4', '>') | default(false) }}"
 
 - name:                                "5.6 SCSERS - RHEL - Set properties for two node clusters"
   when:
