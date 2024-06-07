@@ -212,6 +212,7 @@
         - az_network_interfaces | length > 2
         - not azif.interfaceName in ['eth0', 'eth0:0']
         - subnet_cidr_storage | ansible.utils.network_in_usable( azif.ipAddress )
+        - subnet_cidr_anf
 
     - name:                            "1.10 Networking - Print the network configuration details for client route"
       ansible.builtin.debug:
