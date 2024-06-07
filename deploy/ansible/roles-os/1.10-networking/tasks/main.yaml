@@ -196,6 +196,7 @@
         - az_network_interfaces | length >= 1
         - not azif.interfaceName in ['eth0', 'eth0:0']
         - subnet_cidr_storage | ansible.utils.network_in_usable( azif.ipAddress )
+        - subnet_cidr_anf
 
     # since the storage nic is the 3rd added to the VM we will assume that the device is eth2
     # and the connection is 'Wired connection 2'
