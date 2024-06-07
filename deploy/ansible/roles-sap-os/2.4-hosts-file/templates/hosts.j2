@@ -142,6 +142,7 @@ ansible_facts.
 {%              elif (subnet_cidr_client | ansible.utils.network_in_usable(ip)) %}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-client.' + sap_fqdn) }}{{ '%-21s' | format(host + '-hana') }}
 {%              endif %}
+{%            endif %}
 {%         else %}
 {%           for vh_name in virtual_host_names if virtual_host_names | length >= 1 %}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(vh_name + '.' + sap_fqdn) }}{{ '%-21s' | format(vh_name) }}
