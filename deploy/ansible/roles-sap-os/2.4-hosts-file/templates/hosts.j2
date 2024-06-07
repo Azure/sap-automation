@@ -132,15 +132,15 @@ ansible_facts.
 {%         if (database_scale_out) %}
 {%            if (database_high_availability) %}
 {%              if (subnet_cidr_storage | ansible.utils.network_in_usable(ip)) %}
-{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-storage.' + sap_fqdn) }}{{ '%-21s' | format(host + '-hsr') }}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-hsr.' + sap_fqdn) }}{{ '%-21s' | format(host + '-hsr') }}
 {%              elif (subnet_cidr_client | ansible.utils.network_in_usable(ip)) %}
-{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-client.' + sap_fqdn) }}{{ '%-21s' | format(host + '-inter') }}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-inter.' + sap_fqdn) }}{{ '%-21s' | format(host + '-inter') }}
 {%              endif %}
 {%            else %}
 {%              if (subnet_cidr_storage | ansible.utils.network_in_usable(ip)) %}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-storage.' + sap_fqdn) }}{{ '%-21s' | format(host + '-storage') }}
 {%              elif (subnet_cidr_client | ansible.utils.network_in_usable(ip)) %}
-{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-client.' + sap_fqdn) }}{{ '%-21s' | format(host + '-hana') }}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-hana.' + sap_fqdn) }}{{ '%-21s' | format(host + '-hana') }}
 {%              endif %}
 {%            endif %}
 {%         else %}
