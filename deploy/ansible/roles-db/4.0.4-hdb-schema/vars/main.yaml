@@ -1,0 +1,3 @@
+schema_names:
+  - "dbs/hdb/schema" # ABAP schema
+  - "j2ee/dbschema" # JAVA schema
