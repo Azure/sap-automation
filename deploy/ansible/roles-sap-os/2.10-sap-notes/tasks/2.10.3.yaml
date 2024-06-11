@@ -89,6 +89,7 @@
   when:
                                        - is_high_availability
                                        - node_tier in ['scs', 'ers', 'hana', 'db2', 'sybase']
+                                       - saptune_solution_enabled is defined
                                        - saptune_solution_enabled == 'NONE'
   block:
     - name:                            "2.10.3 sap-notes : - Copy sapnote 2382421 to /etc/saptune/override"
