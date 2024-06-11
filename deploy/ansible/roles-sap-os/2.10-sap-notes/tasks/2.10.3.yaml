@@ -140,6 +140,7 @@
 
 - name:                                "2.10.3 sap-notes : - Run saptune solution revert if verify fails"
   when:
+                                       - saptune_solution_enabled is defined
                                        - saptune_solution_enabled != 'NONE'
                                        - saptune_solution_verify.rc != 0
   ansible.builtin.command:             "saptune solution revert {{ saptune_solution_enabled }}"
