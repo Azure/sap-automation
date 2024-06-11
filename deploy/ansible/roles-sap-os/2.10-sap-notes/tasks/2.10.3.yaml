@@ -42,13 +42,12 @@
 - name:                                "2.10.3 sap-notes : - Run saptune_check"
   ansible.builtin.shell:               saptune_check
   register:                            saptune_check_result
-
+  changed_when:                        false
 
 - name:                                "2.10.3 sap-notes : - Interrogate active saptune solution"
   ansible.builtin.shell:               saptune solution enabled
   register:                            active_saptune_solution
-  when:
-    - saptune_check_result.rc == 0
+  changed_when:                        false
 
 # We need to capture the first block of non-whitespace characters
 # output from saptune solution enabled command has an empty line followed by solution name
