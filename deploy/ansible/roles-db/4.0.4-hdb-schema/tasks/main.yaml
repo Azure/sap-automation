@@ -10,16 +10,20 @@
     src: "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
   register: profilefile
 
-- name: "HDB Schema: Get schema name"
+- name: "HDB Schema: Get schema property"
   ansible.builtin.set_fact:
-    schema_name: "{{ profilefile['content'] | b64decode | split('\n') | select('search', property_name ) | first | split('=') | last | trim }}"
+    schema_property: "{{ profilefile['content'] | b64decode | split('\n') | select('search', property_name ) }}"
   loop: "{{ hdb_schema_property_names }}"
   loop_control:
     loop_var: property_name
   when:
-    - schema_name is not defined
-  failed_when: false
-  changed_when: false
+    - (schema_property | default([])) | length <= 0
+
+- name: "HDB Schema: Parse schema name"
+  ansible.builtin.set_fact:
+    schema_name: "{{ schema_property | first | split('=') | last | trim }}"
+  when:
+    - (schema_property | default([])) | length > 0
 
 - name: "HDB Schema: Set default schema"
   ansible.builtin.set_fact:
@@ -29,5 +33,4 @@
 
 - name: "HDB Schema: Show schema name"
   ansible.builtin.debug:
-    msg: "Schema name {{ schema_name }}"
-    verbosity: 2
+    msg: "Schema name: {{ schema_name }}"
