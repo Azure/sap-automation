@@ -612,6 +612,19 @@
               with_items:
                 - "{{ ansible_play_hosts_all[0::2] }}"
 
+            - name:                      "Prepare global.ini for HANA hosts name resolution on replication network"
+              community.general.ini_file:
+                path:                      "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+                section:                   "system_replication_hostname_resolution"
+                mode:                      0644
+                state:                     present
+                option:                    "{{ hostvars[item]['ipadd'] | ansible.utils.ipv4 | ansible.utils.ipaddr(subnet_cidr_storage) }}"
+                value:                     "{{ hostvars[item].virtual_host }}"
+              with_items:
+                - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
+              when:
+                - subnet_cidr_storage is defined
+
         - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Restart HANA"
           block:
           - name:                        "Stop HANA Database"
@@ -658,7 +671,7 @@
     # /*---------------------------------------------------------------------------8
     # |             Secondary site setup with Shared nothing scale out               |
     # +------------------------------------4--------------------------------------*/
-    - name:                                "4.0.3 - SAP HANA SCALE OUT: HANA Install - Scale Out - HSR ( Secondary  Site )"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: HANA Install - Scale Out - HSR ( Secondary  Site )"
       block:
         - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: remove install response file if exists"
           ansible.builtin.file:
@@ -871,6 +884,19 @@
                 value:                     "{{ hostvars[item].virtual_host }}"
               with_items:
                 - "{{ ansible_play_hosts_all[1::2] }}"
+
+            - name:                      "Prepare global.ini for HANA hosts name resolution on replication network"
+              community.general.ini_file:
+                path:                      "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+                section:                   "system_replication_hostname_resolution"
+                mode:                      0644
+                state:                     present
+                option:                    "{{ hostvars[item]['ipadd'] | ansible.utils.ipv4 | ansible.utils.ipaddr(subnet_cidr_storage) }}"
+                value:                     "{{ hostvars[item].virtual_host }}"
+              with_items:
+                - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
+              when:
+                - subnet_cidr_storage is defined
 
         - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Restart HANA"
           block:
