@@ -152,10 +152,10 @@
                 main_password:             "{{ hostvars.localhost.sap_password }}"
 
             - name:                    "Run the db/hdb-hsr role"
-              when:
-                - node_tier == 'hana'
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.1-hdb-hsr
+              when:
+                - node_tier == 'hana'
               tags:
                 - 4.0.1-hdb-hsr
 
