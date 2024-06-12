@@ -11,14 +11,15 @@
   register: profilefile
 
 - name: "HDB Schema: Get schema name"
-  ignore_errors: true
   ansible.builtin.set_fact:
-    schema_name: "{{ profilefile['content'] | b64decode | split('\n') | select('search', {{ property_name }} ) | first | split('=') | last | trim }}"
+    schema_name: "{{ profilefile['content'] | b64decode | split('\n') | select('search', property_name ) | first | split('=') | last | trim }}"
   loop: "{{ hdb_schema_property_names }}"
   loop_control:
     loop_var: property_name
   when:
     - schema_name is not defined
+  failed_when: false
+  changed_when: false
 
 - name: "HDB Schema: Set default schema"
   ansible.builtin.set_fact:
