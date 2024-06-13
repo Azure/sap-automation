@@ -1,0 +1,72 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                 Playbook for SAP on Azure quality checks                   |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- hosts:                               localhost
+  name:                                "SAP on Azure quality checks: - setup deployer"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+
+    - name:                            "SAP on Azure quality checks: - Create Progress folder"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                         directory
+        mode:                          0755
+
+    - name:                            "SAP on Azure quality checks: - Remove sap-on-azure-quality-checks-done flag"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/sap-on-azure-quality-checks-done"
+        state:                          absent
+
+    - name:                            "SAP on Azure quality checks: - setup prerequisites"
+      ansible.builtin.include_role:
+        name:                          "roles-misc/0.9-sap-on-azure-quality-checks"
+        tasks_from:                    "setup"
+
+
+
+- hosts: "{{ sap_sid | upper }}_DB  :
+    {{ sap_sid | upper }}_SCS :
+    {{ sap_sid | upper }}_ERS :
+    {{ sap_sid | upper }}_PAS :
+    {{ sap_sid | upper }}_APP"
+
+  name:                                "SAP on Azure quality checks: - run checks"
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        true # Important to collect hostvars information
+  any_errors_fatal:                    true
+  vars_files:
+    - vars/ansible-input-api.yaml # API Input template with defaults
+
+  tasks:
+
+    - name:                            "SAP on Azure quality checks: - run check"
+      ansible.builtin.include_role:
+        name:                          "roles-misc/0.9-sap-on-azure-quality-checks"
+        tasks_from:                    "run_check"
+
+
+- hosts:                               localhost
+  name:                                "SAP on Azure quality checks: - Done"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                               # API Input template with defaults
+
+  tasks:
+
+    - name:                            "SAP on Azure quality checks: - Create sap-on-azure-quality-checks-done flag"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/sap-on-azure-quality-checks-done"
+        state:                         touch
+        mode:                          0755
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                    END                                     |
+# +------------------------------------4--------------------------------------*/
