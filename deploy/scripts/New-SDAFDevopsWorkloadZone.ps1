@@ -212,7 +212,7 @@ if ($authenticationMethod -eq "Service Principal") {
     Write-Host "Creating the Service Principal" $workload_zone_spn_name -ForegroundColor Green
     $Data = (az ad sp create-for-rbac --role="Contributor" --scopes=$workload_zone_scopes --name=$workload_zone_spn_name --only-show-errors) | ConvertFrom-Json
     $ARM_CLIENT_SECRET = $Data.password
-    $ExistingData = (az ad sp list --all --filter "startswith(displayName,'$workload_zone_spn_name')" --query  "[?displayName=='$workload_zone_spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
+    $ExistingData = (az ad sp list --all --filter "startswith(displayName,'$workload_zone_spn_name')" --query "[?displayName=='$workload_zone_spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
     $ARM_CLIENT_ID = $ExistingData.appId
     $ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
     $ARM_OBJECT_ID = $ExistingData.Id
