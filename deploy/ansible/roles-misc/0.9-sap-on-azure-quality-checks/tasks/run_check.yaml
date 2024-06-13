@@ -1,0 +1,92 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Run quality check                                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- name:                            "SAP on Azure quality checks: - Check required Database HA variables"
+  ansible.builtin.set_fact:
+    database_high_availability:    "{{ db_high_availability | default(false) }}"
+  when:
+    - db_high_availability is defined
+    - database_high_availability is not defined
+
+
+- name:                            "SAP on Azure quality checks: - Retrieve Subscription ID and Resource Group Name"
+  ansible.builtin.uri:
+    url:                           http://169.254.169.254/metadata/instance?api-version=2021-02-01
+    use_proxy:                     false
+    headers:
+      Metadata:                    true
+  register:                        azure_metadata
+
+
+# https://github.com/Azure/SAP-on-Azure-Scripts-and-Utilities/blob/main/QualityCheck/Readme.md#login-with-ssh-keys-no-password-required-for-sudo
+- name:                            "SAP on Azure quality checks: - Set common quality check facts"
+  ansible.builtin.set_fact:
+    qc_subscription_id:            "{{ azure_metadata.json.compute.subscriptionId }}"
+    qc_az_vm_resource_group:       "{{ azure_metadata.json.compute.resourceGroupName }}"
+    qc_az_vm_name:                 "{{ azure_metadata.json.compute.name }}"
+    qc_vm_username:                "{{ ansible_user }}"
+    qc_vm_hostname:                "{{ ansible_hostname }}.{{ sap_fqdn }}"
+    qc_vm_operating_system:        "{{ vm_operating_system_map[ansible_os_family | upper] }}"
+    qc_vm_database:                "{{ vm_database_map[platform | upper] }}"
+    qc_vm_role:                    "{{ vm_role_map[node_tier | upper] }}"
+    qc_sid:                        "{{ db_sid if vm_role_map[node_tier | upper] == 'DB' else sap_sid }}"
+    qc_high_availability:          "{{ (vm_role_map[node_tier | upper] == 'DB' and database_high_availability) or (vm_role_map[node_tier | upper] == 'ASCS' and scs_high_availability) }}"
+
+
+- name:                            "SAP on Azure quality checks: - Debug variables"
+  ansible.builtin.debug:
+    msg:
+                                   - "Subscription ID: {{ qc_subscription_id }}"
+                                   - "Resource Group Name: {{ qc_az_vm_resource_group }}"
+                                   - "VM Name: {{ qc_az_vm_name }}"
+                                   - "VM Username: {{ qc_vm_username }}"
+                                   - "VM Hostname: {{ qc_vm_hostname }}"
+                                   - "VM Operating System: {{ qc_vm_operating_system }}"
+                                   - "VM Database: {{ qc_vm_database }}"
+                                   - "VM Role: {{ qc_vm_role }}"
+                                   - "SSH Key path {{ _workspace_directory }}/sshkey"
+                                   - "Output Directory {{ _workspace_directory }}/quality_checks"
+                                   - "SID: {{ qc_sid }}"
+                                   - "High Availability: {{ qc_high_availability }}"
+    verbosity:                     2
+
+
+- name:                            "SAP on Azure quality checks: - Run quality check"
+  ansible.builtin.shell:
+    cmd: >-
+                                    Connect-AzAccount -AccountId $Env:ARM_CLIENT_ID `
+                                                      -AccessToken (az account get-access-token --subscription {{ qc_subscription_id }} | ConvertFrom-Json).accessToken `
+                                                      -Subscription {{ qc_subscription_id }}
+
+                                    ./QualityCheck.ps1 -LogonWithUserSSHKey `
+                                                        -VMOperatingSystem {{ qc_vm_operating_system }} `
+                                                        -VMDatabase {{ qc_vm_database }} `
+                                                        -VMRole {{ qc_vm_role }} `
+                                                        -AzVMResourceGroup {{ qc_az_vm_resource_group }} `
+                                                        -AzVMName {{ qc_az_vm_name }} `
+                                                        -VMHostname {{ qc_vm_hostname }} `
+                                                        -VMUsername {{ qc_vm_username }} `
+                                                        -VMConnectionPort 22 `
+                                                        -SubscriptionId {{ qc_subscription_id }} `
+                                                        -SSHKey {{ _workspace_directory }}/sshkey `
+                                                        -Hardwaretype VM `
+                                                        -SID {{ qc_sid }} `
+                                                        -HighAvailability {{ '$' ~ qc_high_availability }} `
+                                                        -OutputDirName {{ _workspace_directory }}/quality_checks
+  args:
+    executable:                    "/usr/local/bin/pwsh"
+    chdir:                         "/opt/microsoft/quality_check"
+  no_log:                          true
+  delegate_to:                     localhost
+  register:                        quality_check_result
+
+- name:                            "SAP on Azure quality checks: - Debug quality check result"
+  ansible.builtin.debug:
+    msg:                           "{{ quality_check_result.stdout_lines }}"
+    verbosity:                     2
+
+...
