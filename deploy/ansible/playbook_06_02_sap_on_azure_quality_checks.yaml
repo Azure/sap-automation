@@ -30,7 +30,6 @@
         tasks_from:                    "setup"
 
 
-
 - hosts: "{{ sap_sid | upper }}_DB  :
     {{ sap_sid | upper }}_SCS :
     {{ sap_sid | upper }}_ERS :
