@@ -46,6 +46,7 @@
     url:                           "{{ azure_utility_repo }}/main/QualityCheck/QualityCheck.json"
     dest:                          "/opt/microsoft/quality_check/QualityCheck.json"
     owner:                         "{{ orchestration_ansible_user }}"
+    mode:                          0755
     timeout:                       30
   register:                        qc_json_result
   until:                           qc_json_result is succeeded or not qc_json_result.changed
