@@ -618,7 +618,7 @@
                 section:                   "system_replication_hostname_resolution"
                 mode:                      0644
                 state:                     present
-                option:                    "{{ (ansible_all_ipv4_addresses  | ansible.utils.ipaddr(subnet_cidr_storage))[0] }}"
+                option:                    "{{ hostvars[item].ansible_all_ipv4_addresses | ansible.utils.ipaddr(subnet_cidr_storage) | first | default(hostvars[item].ansible_host ) }}"
                 value:                     "{{ hostvars[item].virtual_host }}"
               with_items:
                 - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
@@ -891,7 +891,7 @@
                 section:                   "system_replication_hostname_resolution"
                 mode:                      0644
                 state:                     present
-                option:                    "{{ (ansible_all_ipv4_addresses  | ansible.utils.ipaddr(subnet_cidr_storage))[0] }}"
+                option:                    "{{ hostvars[item].ansible_all_ipv4_addresses  | ansible.utils.ipaddr(subnet_cidr_storage) | first | default(hostvars[item].ansible_host }}"
                 value:                     "{{ hostvars[item].virtual_host }}"
               with_items:
                 - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
