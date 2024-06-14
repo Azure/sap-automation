@@ -187,7 +187,7 @@
       register: set_immutable_attribute
   when:
     - tier == 'sapos'
-    - node_tier != 'hana'
+    - node_tier not in ['hana','observer']
     - sap_mnt is defined
     - use_simple_mount is defined and use_simple_mount
 
