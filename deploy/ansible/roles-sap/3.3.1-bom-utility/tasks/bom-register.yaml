@@ -223,9 +223,6 @@
 # Step: 05-05-02
 # Description:
 #
-        - name:                         "Debug task"
-          ansible.builtin.debug:
-            msg:                        "Microsoft Supplied BOM Archive: {{ microsoft_supplied_bom_archive }}"
         - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM {{ bom_name }} from archives"
           ansible.builtin.include_vars:
             file:                       "{{ microsoft_supplied_bom_archive.stat.path }}"
