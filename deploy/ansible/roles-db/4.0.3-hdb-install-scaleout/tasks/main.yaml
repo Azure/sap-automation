@@ -1013,7 +1013,7 @@
 
 
 # Scale out Supplementary tasks
-# Create {{ db_sid | lower}}adm account on majority maker VM
+# Create {{ db_sid | lower}}adm account on majority maker VM, onlye required if its going to be added to Pacemaker
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Supplementary tasks"
   block:
     - name:                            "Create Create SAP Groups on Observer VM"
@@ -1049,7 +1049,8 @@
         state:                                present
         shell:                                "/bin/sh"
         home:                                 "/usr/sap/{{ db_sid | upper }}/home"
-
+  when:
+    - database_high_availability
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

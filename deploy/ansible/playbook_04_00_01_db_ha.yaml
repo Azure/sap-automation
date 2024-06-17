@@ -93,8 +93,8 @@
       when:                                     database_high_availability
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ sap_sid | upper }}_DB
-                                        {{ db_sid | upper }}_OBSERVER_DB"
+- hosts:                              "{{ sap_sid | upper }}_DB:
+                                       {{ sap_sid | upper }}_OBSERVER_DB"
   name:                                HANA DB HA Configuration
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true                                    # Important to collect hostvars information
