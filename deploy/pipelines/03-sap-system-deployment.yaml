@@ -71,6 +71,10 @@ stages:
                   source /etc/profile.d/deploy_server.sh
                 fi
 
+                echo -e "$green--- Configure devops CLI extension ---$reset"
+                az config set extension.use_dynamic_install=yes_without_prompt --output none
+                az extension add --name azure-devops --output none
+
                 HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
                 cd $HOME_CONFIG; mkdir -p .sap_deployment_automation
                 if [ ! -f $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) ]; then
