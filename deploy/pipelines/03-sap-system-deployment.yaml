@@ -70,7 +70,6 @@ stages:
                 else
                   source /etc/profile.d/deploy_server.sh
                 fi
-                export AZURE_DEVOPS_EXT_PAT=$PAT
 
                 HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
                 cd $HOME_CONFIG; mkdir -p .sap_deployment_automation
