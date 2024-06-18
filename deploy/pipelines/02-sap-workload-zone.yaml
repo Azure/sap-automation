@@ -558,21 +558,19 @@ stages:
                   export landscape_tfstate_key=$(cat ${workload_environment_file_name} | grep landscape_tfstate_key= | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Zone State File' $landscape_tfstate_key
                 fi
 
-                az logout --output none
-
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "FENCING_SPN_ID.value")
                 if [ -z ${az_var} ]; then
                   echo "##vso[task.logissue type=warning]Variable FENCING_SPN_ID is not set. Required for highly available deployments"
                 else
                   export fencing_id=$(az keyvault secret list --vault-name $workload_key_vault --query [].name -o tsv | grep ${workload_prefix}-fencing-spn-id | xargs)
-                  echo "##vso[task.logissue type=warning]Variable FENCING_SPN_ID is set with value ${fencing_id}"
+                  echo "##vso[task.logissue type=warning  ]Variable FENCING_SPN_ID is set with value ${fencing_id}"
                   if [ -z "$fencing_id" ]; then
                     az keyvault secret set --name ${workload_prefix}-fencing-spn-id --vault-name $workload_key_vault --value $(FENCING_SPN_ID)  --output none
                     az keyvault secret set --name ${workload_prefix}-fencing-spn-pwd --vault-name $workload_key_vault --value=$FENCING_SPN_PWD  --output none
                     az keyvault secret set --name ${workload_prefix}-fencing-spn-tenant --vault-name $workload_key_vault --value $(FENCING_SPN_TENANT)  --output none
                   fi
                 fi
-
+                az logout --output none
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
                 git pull
