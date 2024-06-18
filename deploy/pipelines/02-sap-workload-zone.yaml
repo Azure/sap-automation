@@ -563,7 +563,6 @@ stages:
                   echo "##vso[task.logissue type=warning]Variable FENCING_SPN_ID is not set. Required for highly available deployments"
                 else
                   export fencing_id=$(az keyvault secret list --vault-name $workload_key_vault --query [].name -o tsv | grep ${workload_prefix}-fencing-spn-id | xargs)
-                  echo "##vso[task.logissue type=warning  ]Variable FENCING_SPN_ID is set with value ${fencing_id}"
                   if [ -z "$fencing_id" ]; then
                     az keyvault secret set --name ${workload_prefix}-fencing-spn-id --vault-name $workload_key_vault --value $(FENCING_SPN_ID)  --output none
                     az keyvault secret set --name ${workload_prefix}-fencing-spn-pwd --vault-name $workload_key_vault --value=$FENCING_SPN_PWD  --output none
