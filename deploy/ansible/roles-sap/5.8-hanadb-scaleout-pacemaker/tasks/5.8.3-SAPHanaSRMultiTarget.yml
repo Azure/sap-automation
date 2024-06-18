@@ -142,8 +142,8 @@
         - ansible_hostname == primary_instance_name or ansible_hostname == secondary_instance_name
 
     - name:                            Wait 2 minutes for SAP system to stop
-      ansible.builtin.pause:
-        seconds:                       120
+      ansible.builtin.wait_for:
+        timeout:                       120
 
 # This is not needed any more as we are going to use the default path of the hook script installed by the package.
     # - name:                            copy SAPHanaSR-ScaleOut.py (SUSE)
@@ -265,8 +265,8 @@
       register:                        hana_system_started
 
     - name:                            Wait 5 minutes for SAP system to start
-      ansible.builtin.pause:
-        seconds:                       300
+      ansible.builtin.wait_for:
+        timeout:                       300
 
     # - name:                            Start HANA Database
     #   ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
@@ -277,8 +277,8 @@
     #     awk '/ha_dr_SAPHanaSR-ScaleOut.*crm_attribute/ { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
     # Verify that the SAPHanaSR-ScaleOut hook script is working as expected.
     - name:                            Pause to give HANA replication time to stabilize
-      ansible.builtin.pause:
-        seconds:                       "{{ hsr_status_report_wait_in_s }}"
+      ansible.builtin.wait_for:
+        timeout:                       "{{ hsr_status_report_wait_in_s }}"
 
 # REDHAT only
 # This needs to be run on all the nodes where HANA is deployed.
@@ -302,8 +302,8 @@
           delay:                       30
       rescue:
         - name:                        "[Rescue] - Pause to give HANA replication time to stabilize"
-          ansible.builtin.pause:
-            seconds:                   "{{ rescue_hsr_status_report_wait_in_s }}"
+          ansible.builtin.wait_for:
+            timeout:                   "{{ rescue_hsr_status_report_wait_in_s }}"
 
         - name:                        "[Rescue] - Verify the hook Installation (REDHAT)"
           become_user:                 "{{ db_sid | lower }}adm"
@@ -342,8 +342,8 @@
           # when:                        inventory_hostname == primary_instance_name
       rescue:
         - name:                        "[Rescue] - Pause to give HANA replication time to stabilize"
-          ansible.builtin.pause:
-            seconds:                   "{{ rescue_hsr_status_report_wait_in_s }}"
+          ansible.builtin.wait_for:
+            timeout:                   "{{ rescue_hsr_status_report_wait_in_s }}"
 
         - name:                        "[Rescue] - Verify the hook Installation (SUSE)"
           become_user:                 "{{ db_sid | lower }}adm"
@@ -385,8 +385,8 @@
           # when:                        inventory_hostname == primary_instance_name
       rescue:
         - name:                        "[Rescue] - Pause to give HANA replication time to stabilize"
-          ansible.builtin.pause:
-            seconds:                   "{{ rescue_hsr_status_report_wait_in_s }}"
+          ansible.builtin.wait_for:
+            timeout:                   "{{ rescue_hsr_status_report_wait_in_s }}"
 
         - name:                        "[Rescue] - Verify the hook Installation"
           become_user:                 "{{ db_sid | lower }}adm"
