@@ -90,7 +90,7 @@
                                         op monitor interval="60" role="Master" timeout="700" \
                                         op monitor interval="61" role="Slave" timeout="700" \
                                         params SID="{{ db_sid | upper }}" InstanceNumber="{{ db_instance_number }}" PREFER_SITE_TAKEOVER="true" \
-                                        DUPLICATE_PRIMARY_TIMEOUT="7200" AUTOMATED_REGISTER="false"
+                                        DUPLICATE_PRIMARY_TIMEOUT="7200" AUTOMATED_REGISTER="true"
       register:                         sap_hana_controller
       failed_when:                      sap_hana_controller.rc > 1
 
