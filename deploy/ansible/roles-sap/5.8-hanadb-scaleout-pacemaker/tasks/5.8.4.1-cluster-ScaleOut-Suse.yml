@@ -211,8 +211,8 @@
       register:                        hana_system_stopped
 
     - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Wait 2 minutes for SAP system to stop"
-      ansible.builtin.pause:
-        seconds:                       120
+      ansible.builtin.wait_for:
+        timeout:                       120
 
     - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure maintenance mode is enabled"
       ansible.builtin.command:         crm configure property maintenance-mode=true
@@ -246,8 +246,8 @@
       register:                        hana_system_started
 
     - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Wait 5 minutes for SAP system to start"
-      ansible.builtin.pause:
-        seconds:                       300
+      ansible.builtin.wait_for:
+        timeout:                       300
 
     - name:                            "5.5.4.1 HANA Scale-Out Pacemaker configuration - Ensure maintenance mode is disabled"
       ansible.builtin.command:         crm configure property maintenance-mode=false
