@@ -26,6 +26,7 @@ repos:
 #     - { tier:   'ha', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat8.9:
 #    - { tier:   'ha', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
+  redhat8.10:
   redhat9.0:
   redhat9.2:
   # do not have any repos that are needed for RedHat at the moment.
