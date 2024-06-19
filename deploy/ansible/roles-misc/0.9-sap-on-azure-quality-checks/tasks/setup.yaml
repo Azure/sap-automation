@@ -1,0 +1,89 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Setup quality check prerequisites                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- name:                            "SAP on Azure quality checks: - setup directories"
+  become:                          true
+  become_user:                     root
+  ansible.builtin.file:
+    path:                          "{{ item.path }}"
+    state:                         directory
+    mode:                          0755
+    owner:                         "{{ item.owner }}"
+  loop:
+    - { path: "/opt/microsoft/powershell/v{{ powershell_version }}", owner: "root" }
+    - { path: "/opt/microsoft/quality_check", owner: "{{ orchestration_ansible_user }}" }
+    - { path: "{{ _workspace_directory }}/quality_checks", owner: "{{ orchestration_ansible_user }}" }
+
+
+- name:                            "SAP on Azure quality checks: - extract PowerShell binary"
+  become:                          true
+  become_user:                     root
+  ansible.builtin.unarchive:
+    src:                           "https://github.com/PowerShell/PowerShell/releases/download/v{{ powershell_version }}/powershell-{{ powershell_version }}-linux-x64.tar.gz"
+    dest:                          "/opt/microsoft/powershell/v{{ powershell_version }}"
+    creates:                       "/opt/microsoft/powershell/v{{ powershell_version }}/pwsh"
+    remote_src:                    true
+
+
+- name:                            "SAP on Azure quality checks: - create PowerShell symbolic link"
+  become:                          true
+  become_user:                     root
+  ansible.builtin.file:
+    src:                           "/opt/microsoft/powershell/v{{ powershell_version }}/pwsh"
+    dest:                          "/usr/local/bin/pwsh"
+    state:                         link
+    mode:                          0755
+
+
+- name:                            "SAP on Azure quality checks: - fetch quality check config"
+  become:                          true
+  become_user:                     root
+  ansible.builtin.get_url:
+    url:                           "{{ azure_utility_repo }}/main/QualityCheck/QualityCheck.json"
+    dest:                          "/opt/microsoft/quality_check/QualityCheck.json"
+    owner:                         "{{ orchestration_ansible_user }}"
+    mode:                          0755
+    timeout:                       30
+  register:                        qc_json_result
+  until:                           qc_json_result is succeeded or not qc_json_result.changed
+  retries:                         2
+  delay:                           5
+
+
+- name:                            "SAP on Azure quality checks: - fetch quality check script"
+  become:                          true
+  become_user:                     root
+  ansible.builtin.get_url:
+    url:                           "{{ azure_utility_repo }}/main/QualityCheck/QualityCheck.ps1"
+    dest:                          "/opt/microsoft/quality_check/QualityCheck.ps1"
+    owner:                         "{{ orchestration_ansible_user }}"
+    mode:                          0755
+    timeout:                       30
+  register:                        qc_ps_result
+  until:                           qc_ps_result is succeeded or not qc_ps_result.changed
+  retries:                         2
+  delay:                           5
+
+- name:                            "SAP on Azure quality checks: - run PowerShell setup"
+  become:                          true
+  become_user:                     root
+  ansible.builtin.shell: >-
+                                   Update-AzConfig -EnableLoginByWam $false
+
+                                   $modules = @("Az", "Az.NetAppFiles", "Posh-SSH")
+
+                                   foreach ($module in $modules) {
+                                     if (-not (Get-Module -ListAvailable -Name $module)) {
+                                       Install-Module $module -Force -Scope AllUsers -Confirm:$false
+                                     }
+                                   }
+  register:                        qc_modules_result
+  failed_when:                     qc_modules_result.rc != 0
+  args:
+    chdir:                         "/opt/microsoft/quality_check"
+    executable:                    "/usr/local/bin/pwsh"
+...
