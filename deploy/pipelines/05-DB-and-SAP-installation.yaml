@@ -77,13 +77,13 @@ parameters:
     type:                              boolean
     default:                           false
 
-  - name:                              sap_on_azure_quality_checks
-    displayName:                       SAP on Azure Quality Checks
+  - name:                              post_configuration_actions
+    displayName:                       Post Configuration Actions
     type:                              boolean
     default:                           false
 
-  - name:                              post_configuration_actions
-    displayName:                       Post Configuration Actions
+  - name:                              sap_on_azure_quality_checks
+    displayName:                       SAP on Azure Quality Checks
     type:                              boolean
     default:                           false
 
@@ -530,11 +530,11 @@ stages:
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
-          - ${{ if eq(parameters.sap_on_azure_quality_checks, true) }}:
+          - ${{ if eq(parameters.post_configuration_actions, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
-                  displayName:               SAP on Azure quality checks
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_02_sap_on_azure_quality_checks.yaml
+                  displayName:               Post Configuration Actions
+                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_08_00_00_post_configuration_actions.yaml
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
@@ -548,11 +548,11 @@ stages:
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
-          - ${{ if eq(parameters.post_configuration_actions, true) }}:
+          - ${{ if eq(parameters.sap_on_azure_quality_checks, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
-                  displayName:               Post Configuration Actions
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_08_00_00_post_configuration_actions.yaml
+                  displayName:               SAP on Azure quality checks
+                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_02_sap_on_azure_quality_checks.yaml
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
