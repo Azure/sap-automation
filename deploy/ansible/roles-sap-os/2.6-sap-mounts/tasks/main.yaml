@@ -126,7 +126,7 @@
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana data)"
   ansible.posix.mount:
     src:                               '/dev/vg_hana_data/lv_hana_data'
-    path:                              '/hana/data'
+    path:                              "{{ hana_data_basepath }}"
     fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
@@ -137,7 +137,7 @@
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana log)"
   ansible.posix.mount:
     src:                               '/dev/vg_hana_log/lv_hana_log'
-    path:                              '/hana/log'
+    path:                              "{{ hana_log_basepath }}"
     fstype:                            'xfs'
     opts:                              defaults
     state:                             mounted
@@ -254,7 +254,7 @@
     state:                             directory
     recurse:                           true
   when:
-    - node_tier not in ['oracle-asm', 'hana']
+    - node_tier not in ['oracle-asm', 'hana', 'observer']
 
 - name:                                "2.6 SAP Mounts: - sapmnt"
   block:
@@ -410,6 +410,8 @@
   ansible.builtin.import_tasks:        "2.6.3-oracle-observer.yaml"
   when:
     - node_tier == "observer"
+    - platform != "HANA"
+    # This is to prevent conflict between HANA scaleout-hsr and oracle DB as they both share observer, but only one platform can be deployed at a time
 
 - name:                                "2.6 SAP Mounts: - Import Oracle shared home tasks"
   ansible.builtin.import_tasks:        "2.6.3-oracle-multi-sid.yaml"
@@ -432,13 +434,13 @@
 
 # Update : Deprecated as the scale out anf mount code functionality is now integrated into 2.6.1 and 2.6.8
 # This will be removed in the next release, left here for tracing and documentation
-# Import this task only if db_scale_out is defined. Implies that sap_mnt is defined, i.e. ANF is used
+# Import this task only if database_scale_out is defined. Implies that sap_mnt is defined, i.e. ANF is used
 # - name:                                "2.6 SAP Mounts: - Import ANF tasks for Scale-Out"
 #   ansible.builtin.import_tasks:        2.6.1.2-anf-mounts-scaleout.yaml
 #   when:
 #     - NFS_provider == 'ANF'
-#     - db_scale_out is defined
-#     - db_scale_out
+#     - database_scale_out is defined
+#     - database_scale_out
 #     - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
 
 - name:                                "2.6 SAP Mounts: - Import ANF tasks"
@@ -453,6 +455,8 @@
   ansible.builtin.import_tasks:        "2.6.6-oracle-nfs-mounts.yaml"
   when:
     - node_tier in ['oracle','oracle-asm','observer']
+    - platform != "HANA"
+    # ensure that this is not triggered for HANA scale out with HSR which uses an observer tier VM
 
 
 - name:                                "2.6 SAP Mounts: - Set permissions"
@@ -469,8 +473,8 @@
         path:                          "{{ item.path }}"
         mode:                          '{{ item.mode }}'
       loop:
-        - { mode: '0755', path: '/hana/data' }
-        - { mode: '0755', path: '/hana/log' }
+        - { mode: '0755', path: "{{ hana_data_basepath }}" }
+        - { mode: '0755', path: "{{ hana_log_basepath }}" }
         - { mode: '0755', path: '/hana/shared' }
   rescue:
     - name:                            "2.6 SAP Mounts: - Set permissions on hana folders"
@@ -482,8 +486,8 @@
         path:                          "{{ item.path }}"
         mode:                          '{{ item.mode }}'
       loop:
-        - { mode: '0755', path: '/hana/data' }
-        - { mode: '0755', path: '/hana/log' }
+        - { mode: '0755', path: "{{ hana_data_basepath }}" }
+        - { mode: '0755', path: "{{ hana_log_basepath }}" }
         - { mode: '0755', path: '/hana/shared' }
 
 # Import custom NFS mounts.

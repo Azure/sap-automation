@@ -381,7 +381,7 @@ variable "deployer_diagnostics_account_arm_id"        {
 
 variable "tf_version"                                 {
                                                         description = "Terraform version to install on deployer"
-                                                        default     = "1.7.5"
+                                                        default     = "1.8.0"
                                                       }
 
 variable "name_override_file"                         {
@@ -411,7 +411,10 @@ variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
                                                                   default     = []
                                                                 }
 
-
+variable "tags"                                 {
+                                                  description = "If provided, tags for all resources"
+                                                  default     = {}
+                                                }
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #

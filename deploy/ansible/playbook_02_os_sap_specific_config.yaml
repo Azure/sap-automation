@@ -170,12 +170,12 @@
 
         # we do not need to add the same assertion for subnet_cidr_client as it is
         # calculated for specific deployment scenarios.
-        - name:                        "SAP OS configuration playbook: - Set the subnet_client_cidr fact"
+        - name:                        "SAP OS configuration playbook: - Set the subnet_cidr_client fact"
           ansible.builtin.set_fact:
-            subnet_client_cidr:        "{{ subnet_cidr_client | default(azure_network_metadata.json.interface[0].ipv4.subnet[0].address + '/' + azure_network_metadata.json.interface[0].ipv4.subnet[0].prefix) }}"
+            subnet_cidr_client:        "{{ subnet_cidr_client | default(azure_network_metadata.json.interface[0].ipv4.subnet[0].address + '/' + azure_network_metadata.json.interface[0].ipv4.subnet[0].prefix) }}"
           when:
             - platform == 'HANA'
-            - db_scale_out
+            - database_scale_out
             - not database_high_availability
           tags:
             - always

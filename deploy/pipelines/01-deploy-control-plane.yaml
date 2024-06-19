@@ -897,7 +897,7 @@ stages:
                       TF_VAR_agent_pool:           $(POOL)
                       TF_VAR_agent_ado_url:        $(System.CollectionUri)
                       TF_VAR_tf_version:           $(tf_version)
-                      AZURE_DEVOPS_EXT_PAT:        $(PAT)
+                      AZURE_DEVOPS_EXT_PAT:        $(System.AccessToken)
                       IS_PIPELINE_DEPLOYMENT:      true
                       WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
                       APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)

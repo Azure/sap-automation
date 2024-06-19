@@ -39,6 +39,7 @@ resource "azurerm_storage_account" "sapmnt" {
   allow_nested_items_to_be_public      = false
 
   public_network_access_enabled        = try(var.landscape_tfstate.public_network_access_enabled, true)
+  shared_access_key_enabled            = false
   tags                                 = var.tags
 
   network_rules {

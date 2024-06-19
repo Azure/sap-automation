@@ -64,7 +64,7 @@ export local_user=$USER
 #
 
 if [ -z "${TF_VERSION}" ]; then
-  TF_VERSION="1.7.5"
+  TF_VERSION="1.8.0"
 fi
 
 

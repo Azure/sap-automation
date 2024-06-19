@@ -1,0 +1,90 @@
+---
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |      Set Runtime Paramters - e.g Sub ID , Resource group name              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# ----------------------------------------
+# BEGIN
+# ----------------------------------------
+
+
+- name:                                "5.5 HANA Pacemaker - Retrieve Subscription ID and Resource Group Name"
+  ansible.builtin.uri:
+    url:                               http://169.254.169.254/metadata/instance?api-version=2021-02-01
+    use_proxy:                         false
+    headers:
+      Metadata:                        true
+  register: hanavmmetadata
+
+- name:                                "5.5 HANA Pacemaker - Show IMDS results"
+  ansible.builtin.debug:
+    var:                               hanavmmetadata.json
+    verbosity:                         2
+
+- name:                                "5.5 HANA Pacemaker - Extract Subscription ID"
+  ansible.builtin.set_fact:
+    fencing_spn_subscription_id:       "{{ hanavmmetadata.json.compute.subscriptionId }}"
+  no_log:                              true
+
+- name:                                "5.5 HANA Pacemaker - Extract ResourceGroup Name"
+  ansible.builtin.set_fact:
+    resource_group_name:               "{{ hanavmmetadata.json.compute.resourceGroupName }}"
+  no_log:                              true
+
+- name:                                "5.5 HANA Pacemaker - Set the primary intance nic and secondary instance nic IP"
+  ansible.builtin.set_fact:
+    primary_ip:                        "{{ hanavmmetadata.json.network.interface[0].ipv4.ipAddress[0].privateIpAddress }}"
+    subnet_prefix:                     "{{ hanavmmetadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
+
+- name:                                "5.5 HANA Pacemaker - Extract NIC IPs"
+  ansible.builtin.set_fact:
+    primary_instance_ip_db:            "{{ hostvars[primary_instance_name]['primary_ip'] | string }}"
+    secondary_instance_ip_db:          "{{ hostvars[secondary_instance_name]['primary_ip'] | string }}"
+
+# - name:                                Set the primary intance db nic and admin nic IP
+#   ansible.builtin.set_fact:
+#     primary_instance_ip_db:            "{{ hostvars[primary_instance_name]['ansible_eth0']['ipv4'][0]['address'] }}"
+
+# - name:                                Set the secondary intance db nic and admin nic IP
+#   ansible.builtin.set_fact:
+#     secondary_instance_ip_db:          "{{ hostvars[secondary_instance_name]['ansible_eth0']['ipv4'][0]['address'] }}"
+
+- name:                                "5.5 HANA Pacemaker - Show Subscription ID"
+  ansible.builtin.debug:
+    var:                               fencing_spn_subscription_id
+    verbosity:                         2
+
+- name:                                "5.5 HANA Pacemaker - Show Resource Group Name"
+  ansible.builtin.debug:
+    var:                               resource_group_name
+    verbosity:                         2
+
+- name:                                "5.5 HANA Pacemaker - Ensure HANA DB version is checked and captured"
+  block:
+    - name:                            Check HANA DB Version and register
+      become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
+      ansible.builtin.command:         /hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/HDB version
+      register:                        hdbversion
+      changed_when:                    false
+
+    - name:                            "5.5 HANA Pacemaker - Capture the Hana DB version"
+      ansible.builtin.set_fact:
+        hdb_version:                   "{{ hdbversion.stdout_lines.1.split().1 }}"
+
+    - name:                            "5.5 HANA Pacemaker - Show the HDB version"
+      ansible.builtin.debug:
+        var:                           hdb_version
+
+    - name:                            "5.5 HANA Pacemaker - Show the HDB version prefix"
+      ansible.builtin.debug:
+        var:                           hdb_version[0:2]
+
+# /*---------------------------------------------------------------------------8
+# |                                   END                                     |
+# +------------------------------------4--------------------------------------*/
+
+...
