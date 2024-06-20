@@ -334,5 +334,15 @@ output "iSCSI_servers"                          {
 ###############################################################################
 output ams_resource_id                          {
                                                   description = "AMS resource ID"
-                                                  value = module.sap_landscape.ams_resource_id
+                                                  value       = module.sap_landscape.ams_resource_id
+                                                }
+
+###############################################################################
+#                                                                             #
+#                            NAT Gateway Resource                             #
+#                                                                             #
+###############################################################################
+output ng_resource_id                           {
+                                                  description = "NAT Gateway resource ID"
+                                                  value       = module.sap_landscape.ng_resource_id
                                                 }

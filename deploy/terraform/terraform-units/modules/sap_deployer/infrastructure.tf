@@ -145,3 +145,4 @@ resource "azurerm_role_assignment" "resource_group_acsservice_msi" {
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }
 
+

@@ -159,6 +159,7 @@ packages:
     - { tier: 'os',    package: 'mksh',                                         node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'libstdc++.so.6',                               node_tier: 'db2',     state: 'present' }
     - { tier: 'os',    package: 'unzip',                                        node_tier: 'db2',     state: 'present' }
+    - { tier: 'os',    package: 'pam',                                          node_tier: 'db2',     state: 'latest'  }
     - { tier: 'os',    package: 'libpam.so.0',                                  node_tier: 'db2',     state: 'present' }
     - { tier: 'db2',   package: 'acl',                                          node_tier: 'db2',     state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
@@ -255,11 +256,24 @@ packages:
   redhat8.1:
   redhat8.2:
   redhat8.4:
-  redhat8.6:
+    redhat8.6:
+    - { tier: 'os',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'present' }
+    - { tier: 'ha',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'absent'  }
   redhat8.8:
+    - { tier: 'os',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'present' }
+    - { tier: 'ha',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'absent'  }
   redhat8.9:
+    - { tier: 'os',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'present' }
+    - { tier: 'ha',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'absent'  }
+  redhat8.10:
+    - { tier: 'os',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'present' }
+    - { tier: 'ha',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'absent'  }
   redhat9.0:
+    - { tier: 'os',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'present' }
+    - { tier: 'ha',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'absent'  }
   redhat9.2:
+    - { tier: 'os',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'present' }
+    - { tier: 'ha',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'absent'  }
 
   sles_sap12:
     - { tier: 'os',    package: 'chrony',                                       node_tier: 'all',     state: 'present' }
@@ -361,12 +375,6 @@ packages:
     - { tier: 'ha',    package: 'azure-cli',                                    node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'azure-cli',                                    node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'azure-cli',                                    node_tier: 'ers',     state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'hana',    state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'hana',    state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'ers',     state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'ers',     state: 'present' } # Added as part of documentation update
     - { tier: 'ha',    package: 'sap-suse-cluster-connector',                   node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',    package: 'sap-suse-cluster-connector',                   node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'sap-suse-cluster-connector',                   node_tier: 'ers',     state: 'present' }
@@ -382,12 +390,24 @@ packages:
     # than /usr/bin/python.
     # Required to enable ansible to use /usr/bin/python on SLE 15 SP2
     - { tier: 'os',    package: 'python2-rpm',                                  node_tier: 'all',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'ers',     state: 'present' }
   sles_sap15.2:
     - { tier: 'os',    package: 'python-xml',                                   node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'python2-rpm',                                  node_tier: 'all',     state: 'present' }
     - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
     - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'ers',     state: 'present' }
   sles_sap15.3:
     #  - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
     - { tier: 'os',    package: 'python-xml',                                   node_tier: 'all',     state: 'present' }
@@ -395,6 +415,12 @@ packages:
     - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
     - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'ers',     state: 'present' }
   sles_sap15.4:
     #  - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
     - { tier: 'os',    package: 'python3-xml',                                  node_tier: 'all',     state: 'present' }
@@ -402,6 +428,12 @@ packages:
     - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
     - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'ers',     state: 'present' }
   sles_sap15.5:
     #  - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
     - { tier: 'os',    package: 'python3-xml',                                  node_tier: 'all',     state: 'present' }
@@ -409,6 +441,14 @@ packages:
     - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
     - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',     state: 'present' }
+    # These package cause issues on SLES15 SP5 due to changes to the public cloud SDKs
+    # https://www.suse.com/c/incompatible-changes-ahead-for-public-cloud-sdks/
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'hana',    state: 'absent'  }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'hana',    state: 'absent'  }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'scs',     state: 'absent'  }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'scs',     state: 'absent'  }
+    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'ers',     state: 'absent'  }
+    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'ers',     state: 'absent'  }
 
   # Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL.
   # Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and Upgrade. Need to add the groupinstall command.

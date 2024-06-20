@@ -120,6 +120,11 @@
                                         - scs_cluster_type    == "AFA" or database_cluster_type == "AFA"       # scs_high_availability = true is already assumed
                                         - inventory_hostname  == primary_instance_name
   block:
+    - name:                            "1.17 Generic Pacemaker - Check if the pacemaker package version is greater than pacemaker-2.0.4"
+      when:                            ansible_distribution_major_version in ["8", "9"]
+      ansible.builtin.set_fact:
+        is_pcmk_ver_gt_204:            "{{ ansible_facts.packages['pacemaker'][0].version is version('2.0.4', '>') | default(false) }}"
+
     - name:                            "1.17 Generic Pacemaker - Ensure STONITH timeout is raised"
       ansible.builtin.command:         pcs property set stonith-timeout=900
 
@@ -161,7 +166,7 @@
         - use_msi_for_clusters
 
     - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured"
-      ansible.builtin.command: >
+      ansible.builtin.shell: >
                                        pcs stonith create rsc_st_azure fence_azure_arm
                                          login="{{ fencing_spn_client_id }}"
                                          passwd="{{ fencing_spn_client_pwd }}"
@@ -173,14 +178,14 @@
                                          pcmk_monitor_timeout=120
                                          pcmk_monitor_retries=4
                                          pcmk_action_limit=3
-                                         pcmk_delay_max=15
                                          pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
+                                         {%if not is_pcmk_ver_gt_204%}"pcmk_delay_max=15"{%endif%}
       when:
         - ansible_distribution_major_version in ["8", "9"]
         - not use_msi_for_clusters
 
     - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured (MSI)"
-      ansible.builtin.command: >
+      ansible.builtin.shell: >
                                        pcs stonith create rsc_st_azure fence_azure_arm
                                          msi=true
                                          resourceGroup="{{ resource_group_name }}"
@@ -190,11 +195,19 @@
                                          pcmk_monitor_timeout=120
                                          pcmk_monitor_retries=4
                                          pcmk_action_limit=3
-                                         pcmk_delay_max=15
                                          pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
+                                         {%if not is_pcmk_ver_gt_204%}"pcmk_delay_max=15"{%endif%}
       when:
         - ansible_distribution_major_version in ["8", "9"]
         - use_msi_for_clusters
+
+    # The property priority-fencing-delay is applicable for pacemaker-2.0.4-6.el8 version or higher. If you're setting up priority-fencing-delay on an existing cluster, make sure to unset the pcmk_delay_max option in the fencing device.
+    # to do: add ansible code to create the stonith resource without the pcmk_delay_max option
+    - name:                            "1.17 Generic Pacemaker - set priority-fencing-delay"
+      ansible.builtin.command:         pcs property set priority-fencing-delay=15
+      when:
+        - ansible_distribution_major_version in ["8", "9"]
+        - is_pcmk_ver_gt_204
 
     - name:                            "1.17 Generic Pacemaker - Update Monitor interval"
       ansible.builtin.command:         pcs resource update rsc_st_azure op monitor interval=3600

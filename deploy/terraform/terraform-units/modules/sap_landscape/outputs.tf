@@ -552,3 +552,14 @@ output "ams_resource_id"                        {
                                                   description = "Azure resource identifier for the AMS resource"
                                                   value       = local.create_ams_instance ? azapi_resource.ams_instance[0].id : ""
                                                 }
+
+###############################################################################
+#                                                                             #
+#                        NAT Gateway resource properties                      #
+#                                                                             #
+###############################################################################
+
+output "ng_resource_id"                        {
+                                                  description = "Azure resource identifier for the NAT Gateway"
+                                                  value       = local.create_nat_gateway ? azurerm_nat_gateway.ng[0].id : ""
+                                                }

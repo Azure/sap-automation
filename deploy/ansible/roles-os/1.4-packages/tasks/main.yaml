@@ -50,7 +50,7 @@
 
 
 - name:                                "1.4 Packages: - Force systemd to reread configs {{ distro_name }}"
-  ansible.builtin.systemd_service:
+  ansible.builtin.systemd:
     daemon_reload:                     true
 
 - name:                                "1.4 Packages: - Restart WAAgent on {{ distro_name }}"
