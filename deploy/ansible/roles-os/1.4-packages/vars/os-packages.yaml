@@ -256,7 +256,7 @@ packages:
   redhat8.1:
   redhat8.2:
   redhat8.4:
-    redhat8.6:
+  redhat8.6:
     - { tier: 'os',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'present' }
     - { tier: 'ha',    package: 'NetworkManager-cloud-setup',                   node_tier: 'all',    state: 'absent'  }
   redhat8.8:
