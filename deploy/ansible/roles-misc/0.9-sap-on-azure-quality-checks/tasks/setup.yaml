@@ -16,7 +16,7 @@
   loop:
     - { path: "/opt/microsoft/powershell/v{{ powershell_version }}", owner: "root" }
     - { path: "/opt/microsoft/quality_check", owner: "{{ orchestration_ansible_user }}" }
-    - { path: "{{ _workspace_directory }}/quality_checks", owner: "{{ orchestration_ansible_user }}" }
+    - { path: "{{ _workspace_directory }}/quality_assurance", owner: "{{ orchestration_ansible_user }}" }
 
 
 - name:                            "SAP on Azure quality checks: - extract PowerShell binary"

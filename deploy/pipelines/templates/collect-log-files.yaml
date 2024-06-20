@@ -1,6 +1,6 @@
 parameters:
   logPath: ""
-  qualityCheckPath: ""
+  qualityAssuranceResultsPath: ""
   collectQualityChecks: false
 steps:
   - script: |
@@ -89,12 +89,12 @@ steps:
       # Treat unset variables as an error when substituting.
       set -eu
 
-      echo "Collecting quality check files from ${{ parameters.qualityCheckPath }}"
+      echo "Collecting quality assurance results files from ${{ parameters.qualityAssuranceResultsPath }}"
 
-      if [ -d ${QUALITY_CHECK_PATH} ] && [ $(ls ${QUALITY_CHECK_PATH}/*.html | wc -l ) -gt 0 ]; then
-        echo "Found new quality check files in ${QUALITY_CHECK_PATH}"
+      if [ -d ${QUALITY_ASSURANCE_RESULTS_PATH} ] && [ $(ls ${QUALITY_ASSURANCE_RESULTS_PATH}/*.html | wc -l ) -gt 0 ]; then
+        echo "Found new quality assurance results files in ${QUALITY_ASSURANCE_RESULTS_PATH}"
 
-        cd ${QUALITY_CHECK_PATH}
+        cd ${QUALITY_ASSURANCE_RESULTS_PATH}
         ls -ltr
 
         git config --global user.email "${USER_EMAIL}"
@@ -105,20 +105,20 @@ steps:
         echo "Pulling last changes..."
         git pull
 
-        echo "Adding new quality check files..."
+        echo "Adding new quality assurance files..."
         git add --ignore-errors *.html
         if [ $(git diff --name-only --cached | wc -l) -gt 0 ]; then
             echo "Committing changes..."
-            git commit -m "Adding new quality check files"
+            git commit -m "Adding new quality assurance files"
             echo "Pushing changes..."
             git push
         else
             echo "No changes to commit"
         fi
       else
-        echo No quality check files found in "${QUALITY_CHECK_PATH}"
+        echo No quality assurance files found in "${QUALITY_ASSURANCE_RESULTS_PATH}"
       fi
-    displayName: Store quality check files in repository
+    displayName: Store quality assurance files in repository
     enabled: true
     condition: ${{ eq(parameters.collectQualityChecks, true) }}
     env:
@@ -126,4 +126,4 @@ steps:
       USER_NAME: $(Build.RequestedFor)
       SOURCE_BRANCH: $(Build.SourceBranchName)
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-      QUALITY_CHECK_PATH: ${{ parameters.qualityCheckPath }}
+      QUALITY_ASSURANCE_RESULTS_PATH: ${{ parameters.qualityAssuranceResultsPath }}

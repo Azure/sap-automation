@@ -260,6 +260,10 @@
 # Step: 06
 # Description:  Validate that BoM was found
 #
+
+- name:                                 "{{ task_prefix }} Show BOM object"
+  ansible.builtin.debug:
+    var:                                bom
 - name:                                 "{{ task_prefix }} Validate that a BOM object is created"
   ansible.builtin.fail:
     msg:                                "Unable to find the Bill of materials file for {{ bom_name }}."

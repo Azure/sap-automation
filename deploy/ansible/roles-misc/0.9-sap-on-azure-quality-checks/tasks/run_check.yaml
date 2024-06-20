@@ -49,7 +49,7 @@
                                    - "VM Database: {{ qc_vm_database }}"
                                    - "VM Role: {{ qc_vm_role }}"
                                    - "SSH Key path {{ _workspace_directory }}/sshkey"
-                                   - "Output Directory {{ _workspace_directory }}/quality_checks"
+                                   - "Output Directory {{ _workspace_directory }}/quality_assurance"
                                    - "SID: {{ qc_sid }}"
                                    - "High Availability: {{ qc_high_availability }}"
     verbosity:                     2
@@ -76,7 +76,7 @@
                                                         -Hardwaretype VM `
                                                         -SID {{ qc_sid }} `
                                                         -HighAvailability {{ '$' ~ qc_high_availability }} `
-                                                        -OutputDirName {{ _workspace_directory }}/quality_checks
+                                                        -OutputDirName {{ _workspace_directory }}/quality_assurance
   args:
     executable:                    "/usr/local/bin/pwsh"
     chdir:                         "/opt/microsoft/quality_check"
