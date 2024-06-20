@@ -82,7 +82,6 @@
         - ansible_facts.packages['resource-agents-sap-hana-scaleout'] is not defined
 
 
-
 # Clustering commands are based on the Host OS
 - name:                                "1.17 Generic Pacemaker - Cluster based on {{ ansible_os_family }} on VM {{ ansible_hostname }}"
   ansible.builtin.include_tasks:       "1.17.2.0-cluster-{{ ansible_os_family }}.yml"
