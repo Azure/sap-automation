@@ -189,7 +189,7 @@
 
 #   06) Extract files - UNRAR
 - name:                                "3.3 BoM Processing: - Extract File, UNRAR"
-  ansible.builtin.command:             "{% if (ansible_os_family | upper) == 'REDHAT' %}unar -s{% else %}unrar x{% endif %} {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+  ansible.builtin.command:             "{% if (ansible_os_family | upper) == 'REDHAT' %}unar -s -D{% else %}unrar x{% endif %} {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
   args:
     chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
     creates:                           "{{ target_media_location }}/{{ item.extractDir }}/\
