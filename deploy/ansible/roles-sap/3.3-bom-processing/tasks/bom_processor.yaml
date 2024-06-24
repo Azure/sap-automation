@@ -218,7 +218,8 @@
 
 - name:                                "3.3 BoM Processing: - Extract File, UNRAR"
   ansible.builtin.shell:               |
-                                        {% if (ansible_os_family | upper) == 'REDHAT' %}unar -s -D{% else %}unrar x{% endif %} {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}
+                                        command="{% if (ansible_os_family | upper) == 'REDHAT' %}unar -s -D{% else %}unrar x{% endif %} {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+                                        eval $cmd
                                         # Retrieve contents of current directory
                                         contents=(*)
 
