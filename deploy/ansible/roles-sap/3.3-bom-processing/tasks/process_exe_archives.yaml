@@ -10,7 +10,7 @@
 - name:                                Show extract command
   ansible.builtin.debug:
     msg:
-      - "Extract directory: {{ target_media_location }}/{{ item.extractDir }}"
+      - "Extract directory: {{ tempdir.path }}"
       - "Extract command: {% if (ansible_os_family | upper) == 'REDHAT' %}unar -s -D{% else %}unrar x{% endif %} {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
 
 - name:                                "3.3 BoM Processing: - Extract File, exe file"
