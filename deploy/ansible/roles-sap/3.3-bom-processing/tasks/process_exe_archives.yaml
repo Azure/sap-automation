@@ -2,7 +2,7 @@
 
 - name:                                'Create temporary extract directory {{ item.archive }}'
   ansible.builtin.tempfile:
-    path:                              "\mnt"
+    path:                              "/mnt"
     state:                             directory
     suffix:                            extract
   register:                            tempdir
