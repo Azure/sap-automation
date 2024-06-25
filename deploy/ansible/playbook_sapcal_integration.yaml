@@ -97,7 +97,7 @@
 
         - name:                            "SAP-CAL Integration: - Show the hostvars object"
           ansible.builtin.debug:
-            msg:                           hostvars
+            msg:                           "{{ hostvars }}"
 
         - name:                                "Set facts from other hosts"
           ansible.builtin.set_fact:
