@@ -25,12 +25,12 @@
 
 # - name:                                Wait for file to exist before continuing
 #   ansible.builtin.wait_for:
-#     path:                              '{{ tempdir.path }}{% if item.tempDir is defined %}\{{ item.tempDir }}{% endif %}\{{ item.creates }}'
+#     path:                              '{{ tempdir.path }}{% if item.tempDir is defined %}/{{ item.tempDir }}{% endif %}/{{ item.creates }}'
 
 - name:                                Copy the folder
   ansible.builtin.copy:
-    src:                               '{{ tempdir.path }}{% if item.tempDir is defined %}\{{ item.tempDir }}{% endif %}\'
-    dest:                              '{{ target_media_location }}\{{ item.extractDir }}'
+    src:                               '{{ tempdir.path }}{% if item.tempDir is defined %}/{{ item.tempDir }}{% endif %}/'
+    dest:                              '{{ target_media_location }}/{{ item.extractDir }}'
     remote_src:                        true
 
 - name:                                Remove extract directory
