@@ -194,13 +194,8 @@
 # RHEL does not distibuted unrar anymore https://access.redhat.com/solutions/28959
 # RHEL recommends using unarchiver ( alias : unar ) in EPEL repository from Fedora as unrar from https://www.rarlab.com does not cplies with OpenSource Licenses.
 # This also presents another problem as the archive files will get unpacked into /usr/sap/install/CD_EXPORT/<package_ID>/<files> and will cause setup to fail.
-# the shell script block follows below logic :-
-# 1. retrieve the content of current directory.
-# 2. The content must either be a single folder or a mix of files and folder.
-# 3. If the content is a mix of single folder and mix of files, it must have a single file called CDLABEL.ASC and a folder called DATA_UNITS. In this case, do nothing.
-# 4. if the content is a single folder, check if it contains DATA_UNITS folder and CDLABEL.ASC. If true, move all files one level up.
+# This issue is now being handled by process_exe_archives.yaml 
 
-# The additional logic below will ensure that the folder "DATA_UNITS" will show up within /usr/sap/install/CD_EXPORT
 # - name:                                "3.3 BoM Processing: - Extract File, UNRAR"
 #   ansible.builtin.command:             "{% if (ansible_os_family | upper) == 'REDHAT' %}unar -s -D{% else %}unrar x{% endif %} {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
 #   args:
@@ -215,51 +210,6 @@
 #       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="RAR") ) or
 #       ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="EXE") ) or
 #       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="EXE") )
-
-- name:                                "3.3 BoM Processing: - Extract File, UNRAR"
-  ansible.builtin.shell:               |
-                                        command="{% if (ansible_os_family | upper) == 'REDHAT' %}unar -s -D{% else %}unrar x{% endif %} {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
-                                        eval $cmd
-                                        # Retrieve contents of current directory
-                                        contents=(*)
-
-                                        # Check if the content is a single folder
-                                        if [ ${#contents[@]} -eq 1 ] && [ -d "${contents[0]}" ]; then
-                                            folder="${contents[0]}"
-                                            # Check if the folder contains both DATA_UNITS folder and CDLABEL.ASC
-                                            if [ -d "$folder/DATA_UNITS" ] && [ -f "$folder/CDLABEL.ASC" ]; then
-                                                mv "$folder"/* .
-                                                rmdir "$folder"
-                                            fi
-                                        # Check if content is a mix of files and a single folder
-                                        elif [ ${#contents[@]} -gt 1 ]; then
-                                            folder_count=0
-                                            file_count=0
-                                            for item in "${contents[@]}"; do
-                                                if [ -d "$item" ]; then
-                                                    folder_count=$((folder_count + 1))
-                                                    folder_name="$item"
-                                                else
-                                                    file_count=$((file_count + 1))
-                                                fi
-                                            done
-                                            if [ $folder_count -eq 1 ] && [ $file_count -gt 0 ] && [ -d "$folder_name/DATA_UNITS" ] && [ -f "CDLABEL.ASC" ]; then
-                                                # Do nothing
-                                                :
-                                            fi
-                                        fi
-  args:
-    chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
-    creates:                           "{{ target_media_location }}/{{ item.extractDir }}/\
-                                        {% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
-  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
-  when:
-    - item.extract is not undefined
-    - item.extract
-    - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="RAR") ) or
-      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="RAR") ) or
-      ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="EXE") ) or
-      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="EXE") )
 
 
 #   07) Extract files - UNZIP
@@ -292,6 +242,17 @@
 #     - item.extract
 #     - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="EXE") ) or
 #       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="EXE") )
+
+#   08) Extract files - EXE
+
+- name:                                "3.3 BoM Processing: - Extract File, EXE"
+  ansible.builtin.include_tasks:       "process_exe_archives.yaml"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+  when:
+    - item.extract is defined
+    - item.extract
+    - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="EXE") ) or
+      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="EXE") )
 
 
 # -------------------------------------+---------------------------------------8
