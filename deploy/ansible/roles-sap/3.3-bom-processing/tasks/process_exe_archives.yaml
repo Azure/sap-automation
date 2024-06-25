@@ -1,7 +1,7 @@
 ---
 
 - name:                                'Create temporary extract directory {{ item.archive }}'
-  ansible.windows.win_tempfile:
+  ansible.builtin.tempfile:
     state:                             directory
     suffix:                            extract
   register:                            tempdir
@@ -13,7 +13,7 @@
       - "Extract command: {% if (ansible_os_family | upper) == 'REDHAT' %}unar -s -D{% else %}unrar x{% endif %} {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
 
 - name:                                "3.3 BoM Processing: - Extract File, exe file"
-  ansible.windows.command :            "{% if (ansible_os_family | upper) == 'REDHAT' %}unar -s -D{% else %}unrar x{% endif %} {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+  ansible.builtin.command :            "{% if (ansible_os_family | upper) == 'REDHAT' %}unar -s -D{% else %}unrar x{% endif %} {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
   args:
     chdir:                             '{{ tempdir.path }}'
   register:                            extract_result
@@ -23,17 +23,17 @@
     var:                               extract_result
 
 # - name:                                Wait for file to exist before continuing
-#   ansible.windows.win_wait_for:
+#   ansible.builtin.wait_for:
 #     path:                              '{{ tempdir.path }}{% if item.tempDir is defined %}\{{ item.tempDir }}{% endif %}\{{ item.creates }}'
 
 - name:                                Copy the folder
-  ansible.windows.win_copy:
+  ansible.builtin.copy:
     src:                               '{{ tempdir.path }}{% if item.tempDir is defined %}\{{ item.tempDir }}{% endif %}\'
     dest:                              '{{ target_media_location }}\{{ item.extractDir }}'
     remote_src:                        true
 
 - name:                                Remove extract directory
-  ansible.windows.win_file:
+  ansible.builtin.file:
     path:                              '{{ tempdir.path }}'
     state:                             absent
 
