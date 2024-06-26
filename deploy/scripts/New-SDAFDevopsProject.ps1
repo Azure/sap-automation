@@ -772,7 +772,7 @@ if ($WebApp) {
   }
 
   if ($MSI_objectId -ne $null) {
-    $configureAuth = Read-Host "Configuring authentication for the App Registration?"
+    $configureAuth = Read-Host "Configuring authentication for the App Registration (y/n)?"
     if ($configureAuth -eq 'y') {
       az rest --method POST --uri "https://graph.microsoft.com/beta/applications/$APP_REGISTRATION_OBJECTID/federatedIdentityCredentials\" --body "{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/$ARM_TENANT_ID/v2.0', 'subject': '$MSI_objectId', 'audiences': [ 'api://AzureADTokenExchange' ]}"
 
