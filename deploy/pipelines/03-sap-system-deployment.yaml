@@ -44,7 +44,7 @@ stages:
           clean:                       all
         steps:
           - template:                  templates\download.yaml
-          - task:                      PostBuildCleanup@3
+          - task:                      PostBuildCleanup@4
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"
