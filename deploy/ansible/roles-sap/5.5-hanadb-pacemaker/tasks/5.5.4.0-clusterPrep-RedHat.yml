@@ -147,7 +147,7 @@
         - name:                        "Configure location constraints"
           ansible.builtin.shell: >
                                        pcs constraint location {{ item.group_name }}
-                                       avoids {{ item.node }}
+                                       avoids {{ item.node }} resource-discovery=never
           register:                    nfs_location_constraints
           failed_when:                 false
           ignore_errors:               true

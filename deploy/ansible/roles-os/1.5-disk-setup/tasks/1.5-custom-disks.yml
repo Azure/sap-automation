@@ -47,6 +47,7 @@
     lv:                                "{{ item.lv }}"
     vg:                                "{{ item.vg }}"
     size:                              "{{ item.size }}"
+    opts:                              "{{ lvol_opts_from_lv_item }}"
     active:                            true
     state:                             present
     shrink:                            false

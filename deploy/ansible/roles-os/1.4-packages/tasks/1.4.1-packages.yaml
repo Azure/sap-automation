@@ -48,7 +48,8 @@
         state:                         "{{ item.state }}"
       register:                        package_result
       loop:
-        - { state: 'present' }  # First install required packages
+        - { state: 'latest' }  # Update necessary packages
+        - { state: 'present' }  # Install required packages
         - { state: 'absent' }   # Then remove packages that we don't want
   rescue:
     - name:                            "1.4 Packages: - Show result from packages module"
@@ -71,7 +72,8 @@
             state:                         "{{ item.state }}"
           register:                        package_result
           loop:
-            - { state: 'present' }  # First install required packages
+            - { state: 'latest' }  # Update necessary packages
+            - { state: 'present' }  # Install required packages
             - { state: 'absent' }   # Then remove packages that we don't want
       rescue:
         - name:                           "Print stderr before getting error code"
@@ -93,7 +95,8 @@
         state:                         "{{ item.state }}"
       register:                        package_result
       loop:
-        - { state: 'present' }  # First install required packages
+        - { state: 'latest' }  # Update necessary packages
+        - { state: 'present' }  # Install required packages
         - { state: 'absent' }   # Then remove packages that we don't want
 
   rescue:
@@ -116,7 +119,8 @@
             state:                         "{{ item.state }}"
           register:                         package_result
           loop:
-            - { state: 'present' }  # First install required packages
+            - { state: 'latest' }  # Update necessary packages
+            - { state: 'present' }  # Install required packages
             - { state: 'absent' }   # Then remove packages that we don't want
       rescue:
         - name:                         "Print stderr before getting error code"
@@ -140,7 +144,8 @@
         state:                         "{{ item.state }}"
       register:                        package_result
       loop:
-        - { state: 'present' }  # First install required packages
+        - { state: 'latest' }  # Update necessary packages
+        - { state: 'present' }  # Install required packages
         - { state: 'absent' }   # Then remove packages that we don't want
   rescue:
     - name:                            "1.4 Packages: - Show result from packages module"
@@ -163,7 +168,8 @@
             state:                         "{{ item.state }}"
           register:                        package_result
           loop:
-            - { state: 'present' }  # First install required packages
+            - { state: 'latest' }  # Update necessary packages
+            - { state: 'present' }  # Install required packages
             - { state: 'absent' }   # Then remove packages that we don't want
       rescue:
         - name:                         "Print stderr before getting error code"
@@ -186,7 +192,8 @@
         state:                         "{{ item.state }}"
       register:                        package_result
       loop:
-        - { state: 'present' }  # First install required packages
+        - { state: 'latest' }  # Update necessary packages
+        - { state: 'present' }  # Install required packages
         - { state: 'absent' }   # Then remove packages that we don't want
 
   rescue:
@@ -208,7 +215,8 @@
                                               list }}"
             state:                         "{{ item.state }}"
           loop:
-            - { state: 'present' }  # First install required packages
+            - { state: 'latest' }  # Update necessary packages
+            - { state: 'present' }  # Install required packages
             - { state: 'absent' }   # Then remove packages that we don't want
       rescue:
         - name:                        "Print stderr before getting error code"

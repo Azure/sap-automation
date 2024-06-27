@@ -6,8 +6,8 @@
 # +------------------------------------4--------------------------------------*/
 
 - name:                                Pause to give cluster time to stabilize
-  ansible.builtin.pause:
-    seconds:                           "{{ cluster_status_report_wait_in_s }}"
+  ansible.builtin.wait_for:
+    timeout:                           "{{ cluster_status_report_wait_in_s }}"
 
 - name:                                Check the post-provisioning cluster status
   ansible.builtin.command:             "{{ cluster_status_cmd[ansible_os_family] }}"
@@ -36,8 +36,8 @@
 #     awk '/ha_dr_SAPHanaSR.*crm_attribute/ { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
 # Verify that the hook script is working as expected.
 - name:                                Pause to give HANA replication time to stabilize
-  ansible.builtin.pause:
-    seconds:                           "{{ hsr_status_report_wait_in_s }}"
+  ansible.builtin.wait_for:
+    timeout:                           "{{ hsr_status_report_wait_in_s }}"
 
 - name:                                "Verify that the hook script is working as expected"
   when:                                not database_scale_out
@@ -59,8 +59,8 @@
       when:                            inventory_hostname == primary_instance_name
   rescue:
     - name:                            "[Rescue] - Pause to give HANA replication time to stabilize"
-      ansible.builtin.pause:
-        seconds:                       "{{ rescue_hsr_status_report_wait_in_s }}"
+      ansible.builtin.wait_for:
+        timeout:                       "{{ rescue_hsr_status_report_wait_in_s }}"
 
     - name:                            "[Rescue] - Verify the hook Installation"
       become_user:                     "{{ db_sid | lower }}adm"
@@ -99,8 +99,8 @@
       delay:                       30
   rescue:
     - name:                        "[Rescue] - Pause to give HANA replication time to stabilize"
-      ansible.builtin.pause:
-        seconds:                   "{{ rescue_hsr_status_report_wait_in_s }}"
+      ansible.builtin.wait_for:
+        timeout:                   "{{ rescue_hsr_status_report_wait_in_s }}"
 
     - name:                        "[Rescue] - Verify the hook Installation (SUSE)"
       become_user:                 "{{ db_sid | lower }}adm"
@@ -136,8 +136,8 @@
       delay:                       30
   rescue:
     - name:                        "[Rescue] - Pause to give HANA replication time to stabilize"
-      ansible.builtin.pause:
-        seconds:                   "{{ rescue_hsr_status_report_wait_in_s }}"
+      ansible.builtin.wait_for:
+        timeout:                   "{{ rescue_hsr_status_report_wait_in_s }}"
 
     - name:                        "[Rescue] - Verify the hook Installation (REDHAT)"
       become_user:                 "{{ db_sid | lower }}adm"

@@ -13,7 +13,6 @@
   when:
                                             - (database_cluster_type == 'ISCSI')
 
-
 - name:                                     "1.18 Generic Pacemaker - SBD Devices"
   ansible.builtin.import_tasks:             1.18.1.2-sbd.yaml
   when:

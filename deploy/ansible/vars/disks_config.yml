@@ -418,9 +418,9 @@ vg_stripecount_from_lv_item: >-
 # '-i <num_vg_pvs> -I <stripesize>' only when the LV 'item' has
 # stripesize specified, otherwise it will be an empty string.
 lvol_opts_from_lv_item: >-
-  {{ ('stripesize' in item) |
+  {{ ('stripesize' in item or vg_stripecount_from_lv_item | int > 1) |
      ternary('-i ' ~ vg_stripecount_from_lv_item ~
-             ' -I ' ~ (item.stripesize | default(0)),
+             ' -I ' ~ (item.stripesize | default(default_stripe_size)),
              '') }}
 
 # Define a dynamic expression based upon the 'item' fact that can

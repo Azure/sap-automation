@@ -92,8 +92,6 @@
         - ansible_facts.packages['resource-agents-sap-hana-scaleout'] is not defined
 
 
-
-
 # SSH access between nodes is only required on SUSE for crm_clustering
 - name:                                "1.18.2 Generic Pacemaker - SUSE specific network and SSH configuration"
   when:                                ansible_os_family | upper == "SUSE"

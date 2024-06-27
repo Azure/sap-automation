@@ -93,8 +93,7 @@
       when:                                     database_high_availability
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ sap_sid | upper }}_DB
-                                        {{ db_sid | upper }}_OBSERVER_DB"
+- hosts:                              "{{ sap_sid | upper }}_DB"
   name:                                HANA DB HA Configuration
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true                                    # Important to collect hostvars information
@@ -152,10 +151,10 @@
                 main_password:             "{{ hostvars.localhost.sap_password }}"
 
             - name:                    "Run the db/hdb-hsr role"
-              when:
-                - node_tier == 'hana'
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.1-hdb-hsr
+              when:
+                - node_tier == 'hana'
               tags:
                 - 4.0.1-hdb-hsr
 
@@ -185,7 +184,9 @@
             - name:                    "HANA HA Setup: - run the Pacemaker role"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.5-hanadb-pacemaker
-              when:                    db_high_availability
+              when:
+                - db_high_availability or database_high_availability
+                - not database_scale_out
               tags:
                 - 5.5-hanadb-pacemaker
 
@@ -193,7 +194,7 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/5.8-hanadb-scaleout-pacemaker
               when:
-                - db_high_availability
+                - db_high_availability or database_high_availability
                 - database_scale_out
               tags:
                 - 5.8-hanadb-scaleout-pacemaker
