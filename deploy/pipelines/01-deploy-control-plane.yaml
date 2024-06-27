@@ -400,7 +400,7 @@ stages:
             workspace:
                 clean: all
             steps:
-                - task: PostBuildCleanup@3
+                - task: PostBuildCleanup@4
                 - template: templates\download.yaml
                   parameters:
                     getLatestFromBranch: true
@@ -945,7 +945,7 @@ stages:
                 clean:                 all
             steps:
                 - template:            templates\download.yaml
-                - task:                PostBuildCleanup@3
+                - task:                PostBuildCleanup@4
                 - task:                DotNetCoreCLI@2
                   displayName:         "Build the Configuration Web Application"
                   inputs:
