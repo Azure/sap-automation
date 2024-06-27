@@ -59,7 +59,7 @@ stages:
           clean:                       all
         steps:
           - template:                  templates\download.yaml
-          - task:                      PostBuildCleanup@3
+          - task:                      PostBuildCleanup@4
           - bash: |
               #!/bin/bash
               # Treat unset variables as an error when substituting.
@@ -407,7 +407,7 @@ stages:
           - template:                  templates\download.yaml
             parameters:
               getLatestFromBranch:     true
-          - task:                      PostBuildCleanup@3
+          - task:                      PostBuildCleanup@4
           - task:                      AzureCLI@2
             continueOnError:           false
             inputs:
