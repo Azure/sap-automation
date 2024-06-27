@@ -112,7 +112,7 @@ stages:
           clean:                       all
         steps:
           - template:                  templates\download.yaml
-          - task:                      PostBuildCleanup@3
+          - task:                      PostBuildCleanup@4
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m" ; cyan="\e[1;36m"
