@@ -111,14 +111,14 @@ az extension add --name azure-devops --only-show-errors
 if ($Control_plane_subscriptionID.Length -eq 0) {
   Write-Host "$Env:ControlPlaneSubscriptionID is not set!" -ForegroundColor Red
   $Title = "Choose the subscription for the Control Plane"
-  $subscriptions = $(az account list --query "[].{Name:name}" -o table | Sort-Object)
-  Show-Menu($subscriptions[2..($subscriptions.Length - 1)])
+  $subscriptions = $(az account list --query "[].{Name:name}" --output tsv | Sort-Object)
+  Show-Menu($subscriptions)
 
   $selection = Read-Host $Title
 
-  $selectionOffset = [convert]::ToInt32($selection, 10) + 1
+  #$selectionOffset = [convert]::ToInt32($selection, 10) + 1
 
-  $ControlPlaneSubscriptionName = $subscriptions[$selectionOffset]
+  $ControlPlaneSubscriptionName = $subscriptions[$selection]
 
   az account set --subscription $ControlPlaneSubscriptionName
   $Control_plane_subscriptionID = (az account show --query id -o tsv)
@@ -796,22 +796,19 @@ if ($authenticationMethod -eq "Managed Identity") {
   else {
 
     $Title = "Choose the subscription that contains the Managed Identity"
-    $subscriptions = $(az account list --query "[].{Name:name}" -o table | Sort-Object)
-    Show-Menu($subscriptions[2..($subscriptions.Length - 1)])
+    $subscriptions = $(az account list --query "[].{Name:name}" --output tsv | Sort-Object)
+    Show-Menu($subscriptions)
     $selection = Read-Host $Title
 
-    $selectionOffset = [convert]::ToInt32($selection, 10) + 1
-
-    $subscription = $subscriptions[$selectionOffset]
+    $subscription = $subscriptions[$selection]
     Write-Host "Using subscription:" $subscription
 
     $Title = "Choose the Managed Identity"
-    $identities = $(az identity list --query "[].{Name:name}" --subscription $subscription --output table | Sort-Object)
-    Show-Menu($identities[2..($identities.Length - 1)])
+    $identities = $(az identity list --query "[].{Name:name}" --subscription $subscription --output tsv | Sort-Object)
+    Show-Menu($identities)
     $selection = Read-Host $Title
-    $selectionOffset = [convert]::ToInt32($selection, 10) + 1
 
-    $identity = $identities[$selectionOffset]
+    $identity = $identities[$selection]
     Write-Host "Using Managed Identity:" $identity
 
     $id = $(az identity list --query "[?name=='$identity'].id" --subscription $subscription --output tsv)
