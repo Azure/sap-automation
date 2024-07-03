@@ -5,9 +5,9 @@ terraform {
       configuration_aliases = [azurerm.main, azurerm.deployer, azurerm.dnsmanagement, azurerm.peering]
       version               = ">= 3.23"
     }
-    
+
     azapi = {
-      source                = "Azure/azapi"
+      source                = "azure/azapi"
       configuration_aliases = [azapi.api]
     }
   }
