@@ -148,17 +148,6 @@
     - is_rhel_82_or_newer is defined
     - is_rhel_82_or_newer | default(false)
 
-    # - name:                            "5.6 SCSERS - validate that the drop-in file is active"
-    #   when:
-    #     - is_rhel_82_or_newer is defined
-    #     - is_rhel_82_or_newer
-    #   ansible.builtin.shell: >-
-    #                                    systemd-delta | grep 'SAP{{ sap_sid | upper }}_{{ scs_instance_number }}.service'
-    #   register:                        dropinfile_validation
-    #   changed_when:                    false
-    #   failed_when:                     dropinfile_validation.rc > 0
-
-
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Systemd-Based SAP Startup Framework - END                                  |
@@ -171,9 +160,6 @@
 # | These are common tasks                                                      |
 # +------------------------------------+---------------------------------------*|
 
-# - name:                                "5.6 SCSERS - RHEL - Enable Maintenance mode for the cluster"
-#   ansible.builtin.shell:               pcs property set maintenance-mode=true
-
 - name:                                "5.6 SCSERS - RHEL - Reboot and wait 5 minutes"
   ansible.builtin.debug:
     msg:                               "Reboot and wait 5 minutes"
@@ -185,6 +171,7 @@
 
 - name:                                "5.6 SCSERS - RHEL - Set the Cluster out of maintenance mode"
   ansible.builtin.shell:               pcs property set maintenance-mode=false
+  run_once:                            true
 
 - name:                                "5.6 SCSERS - RHEL - Wait for 120 seconds for the cluster to stabilize"
   ansible.builtin.wait_for:
