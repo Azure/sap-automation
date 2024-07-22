@@ -16,7 +16,7 @@ resource "azurerm_network_interface" "web" {
                                          )
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
-  enable_accelerated_networking        = local.web_sizing.compute.accelerated_networking
+  accelerated_networking_enabled        = local.web_sizing.compute.accelerated_networking
   tags                                 = var.tags
 
   dynamic "ip_configuration" {
@@ -84,7 +84,7 @@ resource "azurerm_network_interface" "web_admin" {
                                          )
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
-  enable_accelerated_networking        = local.web_sizing.compute.accelerated_networking
+  accelerated_networking_enabled        = local.web_sizing.compute.accelerated_networking
 
   ip_configuration {
                      name      = "IPConfig1"

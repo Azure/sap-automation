@@ -17,7 +17,7 @@ resource "azurerm_network_interface" "observer" {
                                          )
   resource_group_name                  = var.resource_group[0].name
   location                             = var.resource_group[0].location
-  enable_accelerated_networking        = false
+  accelerated_networking_enabled        = false
   tags                                 = var.tags
 
   ip_configuration {

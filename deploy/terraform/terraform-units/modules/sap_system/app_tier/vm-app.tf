@@ -17,7 +17,7 @@ resource "azurerm_network_interface" "app" {
                                          )
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
-  enable_accelerated_networking        = local.app_sizing.compute.accelerated_networking
+  accelerated_networking_enabled        = local.app_sizing.compute.accelerated_networking
   tags                                 = var.tags
 
   dynamic "ip_configuration" {
@@ -76,7 +76,7 @@ resource "azurerm_network_interface" "app_admin" {
                                          )
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
-  enable_accelerated_networking        = local.app_sizing.compute.accelerated_networking
+  accelerated_networking_enabled        = local.app_sizing.compute.accelerated_networking
   tags                                 = var.tags
 
   ip_configuration {
