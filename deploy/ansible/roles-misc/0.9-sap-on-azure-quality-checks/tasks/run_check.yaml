@@ -54,6 +54,19 @@
                                    - "High Availability: {{ qc_high_availability }}"
     verbosity:                     2
 
+- name:                            "SAP on Azure quality checks: - get access token in the context of azureadm on deployer"
+  delegate_to:                     localhost
+  no_log:                          true
+  ansible.builtin.command:         az account get-access-token --subscription {{ qc_subscription_id }} --query "accessToken"
+  failed_when:                     qc_access_token_result.stdout == ""
+  register:                        qc_access_token_result
+
+- name:                            "SAP on Azure quality checks: - retrieve client id in the context of azureadm on deployer"
+  delegate_to:                     localhost
+  no_log:                          true
+  ansible.builtin.command:         echo $ARM_CLIENT_ID
+  failed_when:                     gz_arm_client_id_result.stdout == ""
+  register:                        gz_arm_client_id_result
 
 - name:                            "SAP on Azure quality checks: - get access token in the context of azureadm on deployer"
   delegate_to:                     localhost
