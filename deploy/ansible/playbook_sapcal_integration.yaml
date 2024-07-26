@@ -95,7 +95,7 @@
           tags:
             - always
 
-        - name:                                "Set facts from other hosts"
+        - name:                            "Set facts from other hosts"
           ansible.builtin.set_fact:
             "{{ item.key }}": "{{ hostvars[groups[sap_sid | upper + '_' + item.value][0]][item.key] }}"
           loop:
@@ -115,7 +115,6 @@
             - { key: 'app_virtual_hostname',    value: 'APP' }
 
     - name:                                6.0.0-sapcal-install - CALL SAP CAL API
-      become:                              true
       when:                                enable_sap_cal is defined and enable_sap_cal
       block:
         - name:                            Import the 6.0.0-sapcal-install role
