@@ -251,8 +251,8 @@ resource "local_file" "sap-parameters_yml" {
               enable_os_monitoring        = var.enable_os_monitoring
               enable_ha_monitoring        = var.enable_ha_monitoring
               enable_sap_cal              = var.enable_sap_cal
-              sap_cal_product_id          = var.sap_cal_product_id
               calapi_kv                   = var.calapi_kv
+              sap_cal_product_name        = var.sap_cal_product_name
 
     }
   )

@@ -256,8 +256,8 @@ enable_ha_monitoring:                   false
 
 # ------------------- Begin - SAP CAL Integration variables --------------------8
 enable_sap_cal:                         false
-sap_cal_product_id:                     ""
 calapi_kv:                              ""
+sap_cal_product_name:                   ""
 # ------------------- End - SAP CAL Integration variables ----------------------8
 
 python_version:                        "python3"

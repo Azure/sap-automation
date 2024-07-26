@@ -464,7 +464,7 @@ module "output_files" {
   #########################################################################################
   #  SAP CAL                                                                              #
   #########################################################################################
-  sap_cal_product_id                            = var.sap_cal_product_id
   enable_sap_cal                                = var.enable_sap_cal
   calapi_kv                                     = var.calapi_kv
+  sap_cal_product_name                          = var.sap_cal_product_name
 }

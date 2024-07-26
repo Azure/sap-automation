@@ -216,11 +216,11 @@ variable "enable_sap_cal"                       {
                                                   default     = false
                                                   type        = bool
                                                 }
-variable "sap_cal_product_id"                   {
-                                                  description = "Product ID of SAP CAL"
-                                                  default     = ""
-                                                }
 variable "calapi_kv"                            {
                                                   description = "Keyvault for CAL API"
+                                                  default     = ""
+                                                }
+variable "sap_cal_product_name"                 {
+                                                  description = "Product name of SAP CAL"
                                                   default     = ""
                                                 }
