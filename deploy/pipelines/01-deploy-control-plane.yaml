@@ -251,6 +251,11 @@ stages:
                                 --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
                                 --subscription $ARM_SUBSCRIPTION_ID  --auto-approve --ado --only_deployer --msi
                             else
+                              export ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
+                              # Added above line, otherwise ARM_CLIENT_ID is empty if using SPN.
+                              # Optional lines for debugging showing partial string only.
+                              # echo "Debug ARM_CLIENT_SECRET Check: ${ARM_CLIENT_SECRET:0:4}...${ARM_CLIENT_SECRET: -4}"
+                              # echo "Debug ARM_CLIENT_ID Check: ${ARM_CLIENT_ID:0:4}...${ARM_CLIENT_ID: -4}"
                               export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
                               $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
                                 --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
