@@ -353,10 +353,7 @@ resource "local_file" "sap_vms_resource_id" {
     sid                     = var.sap_sid,
     db_sid                  = var.db_sid
     platform                = upper(var.platform)
-    database_server_vms     = var.platform == "HANA" ? azurerm_linux_virtual_machine.vm_dbnode[*].id: coalesce(azurerm_linux_virtual_machine.dbserver[*].id,azurerm_windows_virtual_machine.dbserver[*].id)
-    scs_server_vms          = concat(azurerm_windows_virtual_machine.scs[*].id,azurerm_linux_virtual_machine.scs[*].id)
-    application_server_vms  = concat(azurerm_windows_virtual_machine.app[*].id, azurerm_linux_virtual_machine.app[*].id)
-    webdisp_server_vms      = concat(azurerm_windows_virtual_machine.web[*].id,azurerm_linux_virtual_machine.web[*].id)
+    database_server_vms     = var.database_server_vm_resource_ids
     }
   )
   filename                  = format("%s/%s_virtual_machines.json", path.cwd, var.sap_sid)

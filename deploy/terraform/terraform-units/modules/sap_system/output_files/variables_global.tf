@@ -53,6 +53,7 @@ variable "db_server_count"                      {
                                                   type    = number
                                                 }
 variable "database_server_ips"                  { description = "List of IP addresses for the database servers" }
+variable "database_server_vm_resource_ids"      { description = "List of Virtual Machine resource IDs for the database servers" }
 variable "database_server_secondary_ips"        { description = "List of secondary IP addresses for the database servers" }
 variable "database_shared_disks"                { description = "Database Azure Shared Disk" }
 variable "database_server_vm_names"             { description = "List of VM names for the database servers" }

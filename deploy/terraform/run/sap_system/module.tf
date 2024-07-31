@@ -344,6 +344,10 @@ module "output_files" {
                                                     module.hdb_node.database_server_vm_names) : (
                                                     module.anydb_node.database_server_vm_names
                                                   )
+  database_server_vm_resource_ids                = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.hanadb_vm_ids) : (
+                                                    module.anydb_node.database_server_vm_ids
+                                                  )
   database_server_secondary_ips                 = upper(try(local.database.platform, "HANA")) == "HANA" ? (module.hdb_node.database_server_secondary_ips
                                                   ) : (module.anydb_node.database_server_secondary_ips
                                                   )
