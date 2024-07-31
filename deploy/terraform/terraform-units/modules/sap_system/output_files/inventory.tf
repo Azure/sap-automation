@@ -354,9 +354,9 @@ resource "local_file" "sap_vms_resource_id" {
     db_sid                  = var.db_sid
     platform                = upper(var.platform)
     database_server_vms     = join(",", var.database_server_vm_resource_ids)
-    scs_server_vms          = []
-    application_server_vms  = []
-    webdisp_server_vms      = []
+    scs_server_vms          = ""
+    application_server_vms  = ""
+    webdisp_server_vms      = ""
     }
   )
   filename                  = format("%s/%s_virtual_machines.json", path.cwd, var.sap_sid)
