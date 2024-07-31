@@ -89,7 +89,6 @@
         - scs_high_availability
         - ansible_os_family | upper == 'REDHAT'
       register:                        cluster_group_location
-      failed_when:                     cluster_group_location.stdout != hostvars[ansible_hostname]['scs_running_on'] or cluster_group_location.stdout == ""
       tags:
         - skip_ansible_lint
 
