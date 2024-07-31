@@ -388,6 +388,7 @@ module "output_files" {
   app_tier_os_types                             = module.app_tier.app_tier_os_types
   application_server_ips                        = module.app_tier.application_server_ips
   application_server_secondary_ips              = module.app_tier.application_server_secondary_ips
+  application_server_vm_resource_ids            = module.app_tier.app_vm_ids
   app_vm_names                                  = module.app_tier.app_vm_names
   ers_instance_number                           = var.ers_instance_number
   ers_server_loadbalancer_ip                    = module.app_tier.ers_server_loadbalancer_ip
@@ -400,6 +401,7 @@ module "output_files" {
   scs_instance_number                           = var.scs_instance_number
   scs_server_loadbalancer_ip                    = module.app_tier.scs_server_loadbalancer_ip
   scs_server_ips                                = module.app_tier.scs_server_ips
+  scs_server_vm_resource_ids                    = module.app_tier.scs_vm_ids
   scs_server_secondary_ips                      = module.app_tier.scs_server_secondary_ips
   scs_vm_names                                  = module.app_tier.scs_vm_names
   use_local_credentials                         = module.common_infrastructure.use_local_credentials
@@ -407,6 +409,7 @@ module "output_files" {
   use_secondary_ips                             = var.use_secondary_ips
   webdispatcher_server_ips                      = module.app_tier.webdispatcher_server_ips
   webdispatcher_server_secondary_ips            = module.app_tier.webdispatcher_server_secondary_ips
+  webdispatcher_server_vm_resource_ids          = module.app_tier.webdispatcher_server_vm_ids
   webdispatcher_server_vm_names                 = module.app_tier.webdispatcher_server_vm_names
 
   #########################################################################################
