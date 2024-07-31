@@ -353,7 +353,7 @@ resource "local_file" "sap_vms_resource_id" {
     sid                     = var.sap_sid,
     db_sid                  = var.db_sid
     platform                = upper(var.platform)
-    database_server_vms     = var.database_server_vm_resource_ids
+    database_server_vms     = join(",", var.database_server_vm_resource_ids)
     scs_server_vms          = []
     application_server_vms  = []
     webdisp_server_vms      = []
