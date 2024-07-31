@@ -346,3 +346,20 @@ resource "local_file" "sap_inventory_for_wiki_md" {
   file_permission      = "0660"
   directory_permission = "0770"
 }
+
+
+resource "local_file" "sap_vms_resource_id" {
+  content = templatefile(format("%s/sap-vm-resources.tmpl", path.module), {
+    sid                     = var.sap_sid,
+    db_sid                  = var.db_sid
+    platform                = upper(var.platform)
+    database_server_vms     = var.platform == "HANA" ? azurerm_linux_virtual_machine.vm_dbnode[*].id: coalesce(azurerm_linux_virtual_machine.dbserver[*].id,azurerm_windows_virtual_machine.dbserver[*].id)
+    scs_server_vms          = concat(azurerm_windows_virtual_machine.scs[*].id,azurerm_linux_virtual_machine.scs[*].id)
+    application_server_vms  = concat(azurerm_windows_virtual_machine.app[*].id, azurerm_linux_virtual_machine.app[*].id)
+    webdisp_server_vms      = concat(azurerm_windows_virtual_machine.web[*].id,azurerm_linux_virtual_machine.web[*].id)
+    }
+  )
+  filename                  = format("%s/%s_virtual_machines.json", path.cwd, var.sap_sid)
+  file_permission           = "0660"
+  directory_permission      = "0770"
+}
