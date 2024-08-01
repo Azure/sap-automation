@@ -107,7 +107,7 @@
       delegate_facts:                  true
       delegate_to:                     localhost
       ansible.builtin.command: >-
-              "az extension add --name workloads --yes || exit 1"
+              "az extension add --name workloads --yes"
       tags:
         - skip_ansible_lint
 
