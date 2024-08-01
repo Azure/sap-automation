@@ -106,13 +106,13 @@
     - name:                            "0.5.1 acss registration: - Set variables from Azure IMDS"
       delegate_facts:                  true
       delegate_to:                     localhost
-      ansible.builtin.shell: >-
+      ansible.builtin.command: >-
               "az extension add --name workloads --yes || exit 1"
       tags:
         - skip_ansible_lint
 
     - name:                            "Create [ACSS] virtual instance"
-      ansible.builtin.shell:           "az workloads sap-virtual-instance create --sap-virtual-instance-name {{ acss_sid }} --resource-group {{ acss_resource_group }} --location {{ acss_location }} --environment {{ acss_environment }} --sap-product {{ acss_sap_product }} --configuration {{ acss_configuration }}"
+      ansible.builtin.command:         "az workloads sap-virtual-instance create --sap-virtual-instance-name {{ acss_sid }} --resource-group {{ acss_resource_group }} --location {{ acss_location }} --environment {{ acss_environment }} --sap-product {{ acss_sap_product }} --configuration {{ acss_configuration }}"
       when:
         - ansible_hostname == primary_instance_name
         - cluster_group_location.stdout != ansible_hostname
