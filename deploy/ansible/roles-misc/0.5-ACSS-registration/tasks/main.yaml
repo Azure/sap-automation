@@ -77,7 +77,7 @@
         - scs_high_availability
         - ansible_os_family | upper == 'SUSE'
       register:                        cluster_group_location_suse
-      failed_when:                     cluster_group_location.stdout != hostvars[ansible_hostname]['scs_running_on']
+      failed_when:                     cluster_group_location_suse.stdout != hostvars[ansible_hostname]['scs_running_on']
       tags:
         - skip_ansible_lint
 
