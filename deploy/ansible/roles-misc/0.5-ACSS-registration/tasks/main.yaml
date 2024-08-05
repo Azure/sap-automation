@@ -113,11 +113,12 @@
         - skip_ansible_lint
 
     - name:                            "Create [ACSS] virtual instance"
+      delegate_facts:                  true
+      delegate_to:                     localhost
       ansible.builtin.command:
         chdir:                         "/usr/bin"
         cmd:                           "az workloads sap-virtual-instance create --sap-virtual-instance-name {{ acss_sid }} --resource-group {{ acss_resource_group }} --location {{ acss_location }} --environment {{ acss_environment }} --sap-product {{ acss_sap_product }} --configuration {{ acss_configuration }}"
       when:
-        - ansible_hostname == primary_instance_name
         - cluster_group_location.stdout != ansible_hostname
       tags:
         - skip_ansible_lint
