@@ -111,6 +111,10 @@
         cmd:                           "az extension add --name workloads --yes"
       tags:
         - skip_ansible_lint
+    
+    - name:                            "Debug cluster_group_location"
+      ansible.builtin.debug:
+        var: cluster_group_location
 
     - name:                            "Create [ACSS] virtual instance"
       delegate_facts:                  true
