@@ -92,6 +92,7 @@ resource "azurerm_storage_account" "deployer" {
     default_action                     = "Deny"
     virtual_network_subnet_ids         = [azurerm_subnet.subnet_mgmt[0].id]
   }
+  cross_tenant_replication_enabled     = false
 }
 
 data "azurerm_storage_account" "deployer" {

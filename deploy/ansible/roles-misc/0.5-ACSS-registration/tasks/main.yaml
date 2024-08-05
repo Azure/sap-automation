@@ -124,7 +124,7 @@
       delegate_to:                     localhost
       ansible.builtin.command:
         chdir:                         "/usr/bin"
-        cmd:                           "az workloads sap-virtual-instance create --sap-virtual-instance-name {{ acss_sid }} --resource-group {{ acss_resource_group }} --location {{ acss_location }} --environment {{ acss_environment }} --sap-product {{ acss_sap_product }} --configuration {{ acss_configuration }}"
+        cmd:                           "az workloads sap-virtual-instance create --sap-virtual-instance-name {{ sap_sid | upper }} --resource-group {{ acss_resource_group }} --location {{ acss_location }} --environment {{ acss_environment }} --sap-product {{ acss_sap_product }} --configuration {{ acss_configuration }}"
       tags:
         - skip_ansible_lint
 

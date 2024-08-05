@@ -28,7 +28,7 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   enable_https_traffic_only            = true
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
-
+  cross_tenant_replication_enabled     = false
   tags                                 = var.tags
 
 }
@@ -145,7 +145,7 @@ resource "azurerm_storage_account" "witness_storage" {
   enable_https_traffic_only            = true
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
-
+  cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.public_network_access_enabled
 
   tags                                 = var.tags
@@ -293,6 +293,7 @@ resource "azurerm_storage_account" "transport" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
+  cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.public_network_access_enabled
 
   network_rules {
@@ -511,6 +512,7 @@ resource "azurerm_storage_account" "install" {
   allow_nested_items_to_be_public      = false
   enable_https_traffic_only            = false
   min_tls_version                      = "TLS1_2"
+  cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.public_network_access_enabled
   tags                                 = var.tags
   network_rules {
