@@ -94,7 +94,7 @@
 
     - name:                            "0.5.1 acss registration: - Set cluster group location"
       ansible.builtin.set_fact:
-        cluster_group_location:         "{{ cluster_group_location_suse.stdout | default(cluster_group_location_redhat.stdout) }}"
+        cluster_group_location:        "{{ cluster_group_location_suse.stdout | default(cluster_group_location_redhat.stdout) }}"
       tags:
         - skip_ansible_lint
 
@@ -125,7 +125,7 @@
         chdir:                         "/usr/bin"
         cmd:                           "az workloads sap-virtual-instance create --sap-virtual-instance-name {{ acss_sid }} --resource-group {{ acss_resource_group }} --location {{ acss_location }} --environment {{ acss_environment }} --sap-product {{ acss_sap_product }} --configuration {{ acss_configuration }}"
       when:
-        - cluster_group_location.stdout != ansible_hostname
+        - cluster_group_location != ansible_hostname
       tags:
         - skip_ansible_lint
 
