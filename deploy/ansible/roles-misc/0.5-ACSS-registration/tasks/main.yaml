@@ -76,7 +76,7 @@
       when:
         - scs_high_availability
         - ansible_os_family | upper == 'SUSE'
-      register:                        cluster_group_location
+      register:                        cluster_group_location_suse
       failed_when:                     cluster_group_location.stdout != hostvars[ansible_hostname]['scs_running_on']
       tags:
         - skip_ansible_lint
@@ -88,7 +88,13 @@
       when:
         - scs_high_availability
         - ansible_os_family | upper == 'REDHAT'
-      register:                        cluster_group_location
+      register:                        cluster_group_location_redhat
+      tags:
+        - skip_ansible_lint
+
+    - name:                            "0.5.1 acss registration: - Set cluster group location"
+      ansible.builtin.set_fact:
+        cluster_group_location:         "{{ cluster_group_location_suse.stdout | default(cluster_group_location_redhat.stdout) }}"
       tags:
         - skip_ansible_lint
 
@@ -111,10 +117,6 @@
         cmd:                           "az extension add --name workloads --yes"
       tags:
         - skip_ansible_lint
-    
-    - name:                            "Debug cluster_group_location"
-      ansible.builtin.debug:
-        var: cluster_group_location
 
     - name:                            "Create [ACSS] virtual instance"
       delegate_facts:                  true
