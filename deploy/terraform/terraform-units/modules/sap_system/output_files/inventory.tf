@@ -350,13 +350,7 @@ resource "local_file" "sap_inventory_for_wiki_md" {
 
 resource "local_file" "sap_vms_resource_id" {
   content = templatefile(format("%s/sap-vm-resources.tmpl", path.module), {
-    sid                     = var.sap_sid,
-    db_sid                  = var.db_sid
-    platform                = upper(var.platform)
-    database_server_vms     = length(var.database_server_vm_resource_ids) > 0 ? join(",", var.database_server_vm_resource_ids) : ""
-    scs_server_vms          = length(var.scs_server_vm_resource_ids) > 0 ? join(",", var.scs_server_vm_resource_ids) : ""
-    application_server_vms  = length(var.application_server_vm_resource_ids) > 0 ? join(",", var.application_server_vm_resource_ids) : ""
-    webdisp_server_vms      = length(var.webdispatcher_server_vm_resource_ids) > 0 ? join(",", var.webdispatcher_server_vm_resource_ids) : ""
+      scs_server_vms          = length(var.scs_server_vm_resource_ids) > 0 ? element(var.scs_server_vm_resource_ids, 0) : ""
     }
   )
   filename                  = format("%s/%s_virtual_machines.json", path.cwd, var.sap_sid)

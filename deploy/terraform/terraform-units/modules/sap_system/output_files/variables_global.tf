@@ -16,7 +16,6 @@ variable "app_tier_os_types"                    { description = "Defines the app
 variable "app_vm_names"                         { description = "List of VM names for the Application Servers" }
 variable "application_server_ips"               { description = "List of IP addresses for the Application Servers" }
 variable "application_server_secondary_ips"     { description = "List of secondary IP addresses for the Application Servers" }
-variable "application_server_vm_resource_ids"   { description = "List of Virtual Machine resource IDs for the Application servers" }
 variable "authentication_type"                  {
                                                   description = "VM Authentication type"
                                                   default     = "key"
@@ -54,7 +53,6 @@ variable "db_server_count"                      {
                                                   type    = number
                                                 }
 variable "database_server_ips"                  { description = "List of IP addresses for the database servers" }
-variable "database_server_vm_resource_ids"      { description = "List of Virtual Machine resource IDs for the database servers" }
 variable "database_server_secondary_ips"        { description = "List of secondary IP addresses for the database servers" }
 variable "database_shared_disks"                { description = "Database Azure Shared Disk" }
 variable "database_server_vm_names"             { description = "List of VM names for the database servers" }
@@ -207,7 +205,6 @@ variable "web_sid"                              {
                                                   default     = ""
                                                 }
 variable "webdispatcher_server_ips"             { description = "List of IP addresses for the Web dispatchers" }
-variable "webdispatcher_server_vm_resource_ids" { description = "List of Virtual Machine resource IDs for the Web dispatchers" }
 variable "webdispatcher_server_secondary_ips"   { description = "List of secondary IP addresses for the Web dispatchers" }
 variable "webdispatcher_server_vm_names"        { description = "List of VM names for the Web dispatchers" }
 
