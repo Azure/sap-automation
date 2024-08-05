@@ -148,17 +148,6 @@
     - is_rhel_82_or_newer is defined
     - is_rhel_82_or_newer | default(false)
 
-    # - name:                            "5.6 SCSERS - validate that the drop-in file is active"
-    #   when:
-    #     - is_rhel_82_or_newer is defined
-    #     - is_rhel_82_or_newer
-    #   ansible.builtin.shell: >-
-    #                                    systemd-delta | grep 'SAP{{ sap_sid | upper }}_{{ scs_instance_number }}.service'
-    #   register:                        dropinfile_validation
-    #   changed_when:                    false
-    #   failed_when:                     dropinfile_validation.rc > 0
-
-
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Systemd-Based SAP Startup Framework - END                                  |
