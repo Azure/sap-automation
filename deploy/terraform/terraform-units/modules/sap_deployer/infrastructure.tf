@@ -93,6 +93,7 @@ resource "azurerm_storage_account" "deployer" {
     virtual_network_subnet_ids         = [azurerm_subnet.subnet_mgmt[0].id]
   }
   cross_tenant_replication_enabled     = false
+  depends_on                           = [ azurerm_subnet.subnet_mgmt ]
 }
 
 data "azurerm_storage_account" "deployer" {
