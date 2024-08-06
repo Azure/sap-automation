@@ -195,7 +195,7 @@
           x-ms-rpaas-new-resource:     "true"
           x-ms-client-request-id:      "SDAF-{{ acss_guid.stdout }}"
       register:                        create_vis_response
-      failed_when:                     create_vis_response.json.properties.provisioningState != 'Accepted'
+      failed_when:                     create_vis_response.json.properties.provisioningState != 'Accepted' and create_vis_response.json.properties.provisioningState != 'Succeeded'
       no_log:                          false
 
     - name:                            "0.5.1 acss registration: - Debug [ACSS] virtual instance creation response"
