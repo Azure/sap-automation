@@ -1,4 +1,5 @@
 using AutomationForm.Models;
+using Microsoft.Azure.Pipelines.WebApi;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using static AutomationForm.Models.CustomValidators;
@@ -430,8 +431,32 @@ namespace AutomationForm.Models
 
     public string ams_instance_name { get; set; }
 
-    [AMSIdValidator(ErrorMessage = "Invalid User Assigned id")]
+    [AMSIdValidator(ErrorMessage = "Invalid Workspace id")]
     public string ams_laws_arm_id { get; set; }
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                           NAT Gateway information                          |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public bool? deploy_nat_gateway { get; set; } = false;
+
+    public string nat_gateway_name { get; set; }
+
+    
+    [NATIdValidator(ErrorMessage = "Invalid NAT Gateway id")]
+    public string nat_gateway_arm_id { get; set; }
+
+    public string[] nat_gateway_public_ip_zones { get; set; }
+
+    [PIPIdValidator(ErrorMessage = "Invalid Public IP id")]
+    public string nat_gateway_public_ip_arm_id { get; set; }
+
+    public int? nat_gateway_idle_timeout_in_minutes { get; set; }
+
+    public Tag[] nat_gateway_public_ip_tags { get; set; }
 
   }
 }

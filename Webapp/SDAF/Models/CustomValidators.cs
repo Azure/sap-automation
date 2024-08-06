@@ -242,6 +242,23 @@ namespace AutomationForm.Models
       }
     }
 
+    public class NATIdValidator : ValidationAttribute
+    {
+      public override bool IsValid(object value)
+      {
+        string pattern = @"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Network\/natGateways\/[a-zA-Z0-9-_]+$";
+        return RegexValidation(value, pattern);
+      }
+    }
+
+    public class PIPIdValidator : ValidationAttribute
+    {
+      public override bool IsValid(object value)
+      {
+        string pattern = @"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Network\/publicIPAddresses\/[a-zA-Z0-9-_]+$";
+        return RegexValidation(value, pattern);
+      }
+    }
 
     public class ScaleSetIdValidator : ValidationAttribute
     {
