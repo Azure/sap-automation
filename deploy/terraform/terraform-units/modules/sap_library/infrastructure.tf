@@ -75,7 +75,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
                                            )) : (
                                            var.dns_settings.privatelink_dns_resourcegroup_name
                                          )
-  private_dns_zone_name                = var.dns_zone_names.blob_dns_zone_name
+  private_dns_zone_name                = var.dns_settings.dns_zone_names.blob_dns_zone_name
   virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
   registration_enabled                 = false
 }
