@@ -557,6 +557,13 @@ variable "register_endpoints_with_dns"             {
                                                      type        = bool
                                                    }
 
+variable "register_storage_accounts_keyvaults_with_dns" {
+                                                     description = "Boolean value indicating if storage accounts and key vaults should be registered to the corresponding dns zones"
+                                                     default     = true
+                                                     type        = bool
+                                                   }
+
+
 #########################################################################################
 #                                                                                       #
 #  ANF variables                                                                        #
