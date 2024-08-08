@@ -382,6 +382,11 @@ stages:
                   added=1
                 fi
 
+                if [ -f ${SID}_virtual_machines.json ]; then
+                  git add    ${SID}_virtual_machines.json
+                  added=1
+                fi
+
                 if [ 1 == $added ]; then
                   git config --global user.email "$(Build.RequestedForEmail)"
                   git config --global user.name "$(Build.RequestedFor)"
