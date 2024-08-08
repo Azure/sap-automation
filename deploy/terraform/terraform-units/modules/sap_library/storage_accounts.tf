@@ -111,7 +111,7 @@ resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" 
                                            azurerm_private_dns_zone.blob
                                          ]
   name                                 = lower(azurerm_storage_account.storage_tfstate[0].name)
-  zone_name                            = var.dns_zone_names.blob_dns_zone_name
+  zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,
                                            var.dns_settings.management_dns_resourcegroup_name,
@@ -349,7 +349,7 @@ resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" 
                                          ]
 
   name                                 = lower(azurerm_storage_account.storage_sapbits[0].name)
-  zone_name                            = var.dns_zone_names.blob_dns_zone_name
+  zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,
                                            var.dns_settings.management_dns_resourcegroup_name,
