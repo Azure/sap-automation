@@ -492,7 +492,7 @@ resource "azurerm_role_assignment" "storage_sapbits_contributor_ssi" {
 data "azurerm_private_dns_zone" "storage" {
   provider                             = azurerm.privatelinkdnsmanagement
   count                                = !local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
-  name                                 = var.dns_zone_names.blob_dns_zone_name
+  name                                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,
                                            var.dns_settings.management_dns_resourcegroup_name

@@ -22,7 +22,7 @@ resource "azurerm_private_dns_zone" "blob" {
   depends_on                           = [
                                            azurerm_resource_group.library
                                          ]
-  name                                 = var.dns_zone_names.blob_dns_zone_name
+  name                                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = local.resource_group_exists ? (
                                            split("/", var.infrastructure.resource_group.arm_id)[4]) : (
                                            azurerm_resource_group.library[0].name
@@ -35,7 +35,7 @@ resource "azurerm_private_dns_zone" "table" {
   depends_on                           = [
                                            azurerm_resource_group.library
                                          ]
-  name                                 = var.dns_zone_names.table_dns_zone_name
+  name                                 = var.dns_settings.dns_zone_names.table_dns_zone_name
   resource_group_name                  = local.resource_group_exists ? (
                                            split("/", var.infrastructure.resource_group.arm_id)[4]) : (
                                            azurerm_resource_group.library[0].name
@@ -48,7 +48,7 @@ resource "azurerm_private_dns_zone" "file" {
   depends_on                           = [
                                            azurerm_resource_group.library
                                          ]
-  name                                 = var.dns_zone_names.file_dns_zone_name
+  name                                 = var.dns_settings.dns_zone_names.file_dns_zone_name
   resource_group_name                  = local.resource_group_exists ? (
                                            split("/", var.infrastructure.resource_group.arm_id)[4]) : (
                                            azurerm_resource_group.library[0].name
@@ -61,7 +61,7 @@ resource "azurerm_private_dns_zone" "vault" {
   depends_on                           = [
                                            azurerm_resource_group.library
                                          ]
-  name                                 = var.dns_zone_names.vault_dns_zone_name
+  name                                 = var.dns_settings.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = local.resource_group_exists ? (
                                            split("/", var.infrastructure.resource_group.arm_id)[4]) : (
                                            azurerm_resource_group.library[0].name
@@ -71,7 +71,7 @@ resource "azurerm_private_dns_zone" "vault" {
 data "azurerm_private_dns_zone" "vault" {
   provider                             = azurerm.privatelinkdnsmanagement
   count                                = !local.use_local_private_dns && var.use_private_endpoint && local.use_local_privatelink_dns ? 1 : 0
-  name                                 = var.dns_zone_names.vault_dns_zone_name
+  name                                 = var.dns_settings.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 
