@@ -396,6 +396,7 @@ module "output_files" {
   scs_instance_number                           = var.scs_instance_number
   scs_server_loadbalancer_ip                    = module.app_tier.scs_server_loadbalancer_ip
   scs_server_ips                                = module.app_tier.scs_server_ips
+  scs_server_vm_resource_ids                    = module.app_tier.scs_vm_ids
   scs_server_secondary_ips                      = module.app_tier.scs_server_secondary_ips
   scs_vm_names                                  = module.app_tier.scs_vm_names
   use_local_credentials                         = module.common_infrastructure.use_local_credentials

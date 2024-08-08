@@ -31,6 +31,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
 
   enable_https_traffic_only            = true
 
+  cross_tenant_replication_enabled     = false
   shared_access_key_enabled            = var.storage_account_sapbits.shared_access_key_enabled
 
   blob_properties {
@@ -304,6 +305,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
 
   allow_nested_items_to_be_public      = false
 
+  cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.storage_account_sapbits.public_network_access_enabled
 
   routing {

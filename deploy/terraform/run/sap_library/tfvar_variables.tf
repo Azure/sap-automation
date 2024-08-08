@@ -45,7 +45,7 @@ variable "short_named_endpoints_nics"            {
 
 variable "use_spn"                               {
                                                   description = "Log in using a service principal when performing the deployment"
-                                                  default     = true
+                                                  default     = false
                                                  }
 
 #######################################4#######################################8

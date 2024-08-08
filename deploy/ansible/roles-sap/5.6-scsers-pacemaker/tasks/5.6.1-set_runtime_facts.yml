@@ -79,7 +79,7 @@
     clus_fs_mon_timeout:  >-
                                        {%- set _timeoutvalue = 40 -%}
                                        {%- if (NFS_provider == "ANF") -%}
-                                       {%-    if NFS_version != "NFSv3" -%}
+                                       {%-    if NFS_version == "NFSv3" -%}
                                        {%-      set _timeoutvalue = 40 -%}
                                        {%-    elif NFS_version == "NFSv4.1" -%}
                                        {%-      set _timeoutvalue = 105 -%}
@@ -96,7 +96,7 @@
     clus_sap_mon_timeout:  >-
                                        {%- set _timeoutvalue = 60 -%}
                                        {%- if (NFS_provider == "ANF") -%}
-                                       {%-    if NFS_version != "NFSv3" -%}
+                                       {%-    if NFS_version == "NFSv3" -%}
                                        {%-      set _timeoutvalue = 60 -%}
                                        {%-    elif NFS_version == "NFSv4.1" -%}
                                        {%-      set _timeoutvalue = 105 -%}
