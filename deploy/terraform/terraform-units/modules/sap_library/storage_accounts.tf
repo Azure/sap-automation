@@ -503,7 +503,7 @@ data "azurerm_private_dns_zone" "storage" {
 data "azurerm_private_dns_zone" "table" {
   provider                             = azurerm.privatelinkdnsmanagement
   count                                = !local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
-  name                                 = var.dns_zone_names.table_dns_zone_name
+  name                                 = var.dns_settings.dns_zone_names.table_dns_zone_name
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,
                                            var.dns_settings.management_dns_resourcegroup_name
