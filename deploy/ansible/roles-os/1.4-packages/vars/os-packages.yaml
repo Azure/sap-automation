@@ -434,6 +434,9 @@ packages:
     - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'ers',     state: 'present' }
     - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'hana',    state: 'present' }
   sles_sap15.5:
     #  - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
     - { tier: 'os',    package: 'python3-xml',                                  node_tier: 'all',     state: 'present' }
@@ -449,7 +452,9 @@ packages:
     - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'scs',     state: 'absent'  }
     - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'ers',     state: 'absent'  }
     - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'ers',     state: 'absent'  }
-
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'hana',    state: 'present' }
   # Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL.
   # Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and Upgrade. Need to add the groupinstall command.
   oraclelinux8:
