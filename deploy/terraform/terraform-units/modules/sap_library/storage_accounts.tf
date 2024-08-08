@@ -188,7 +188,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
   dynamic "private_dns_zone_group" {
                                      for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0)
                                      content {
-                                               name                 = var.dns_zone_names.blob_dns_zone_name
+                                               name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
                                                private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.storage[0].id]
                                              }
                                    }
@@ -246,7 +246,7 @@ resource "azurerm_private_endpoint" "table_tfstate" {
   dynamic "private_dns_zone_group" {
                                      for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_webapp ? 1 : 0)
                                      content {
-                                               name                 = var.dns_zone_names.blob_dns_zone_name
+                                               name                 = var..dns_settings.dns_zone_names.blob_dns_zone_name
                                                private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.table[0].id : data.azurerm_private_dns_zone.table[0].id]
                                              }
                                    }
@@ -420,7 +420,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
   dynamic "private_dns_zone_group" {
                                       for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
                                       content {
-                                                name                 = var.dns_zone_names.blob_dns_zone_name
+                                                name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
                                                 private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.storage[0].id]
                                               }
 
