@@ -1652,15 +1652,6 @@
         "Display": 2
       },
       {
-        "Name": "management_dns_subscription_id",
-        "Required": false,
-        "Description": "Subscription for the DNS zone, if different from the management subscription",
-        "Type": "field",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
         "Name": "nat_gateway_idle_timeout_in_minutes",
         "Required": false,
         "Description": "The idle timeout in minutes for the NAT Gateway",
