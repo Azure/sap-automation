@@ -297,11 +297,19 @@ $$storage_subnet_nsg_name$$
 #                                                                                       #
 #########################################################################################
 
-# custom dns resource group name
+
+# Subscription for the resource group containing the Private DNS zone for the compute resources
+$$management_dns_subscription_id$$
+
+# Resource group name for the resource group containing the Private DNS zone for the compute resources
 $$management_dns_resourcegroup_name$$
 
-# custom dns subscription
-$$management_dns_subscription_id$$
+# Subscription for the resource group containing the Private DNS zone for the Privatelink resources
+$$privatelink_dns_subscription_id$$
+
+# Resource group name for the resource group containing the Private DNS zone for the Privatelink resources
+$$privatelink_dns_resourcegroup_name$$
+
 
 # Defines if a custom dns solution is used
 $$use_custom_dns_a_registration$$

@@ -38,7 +38,7 @@ resource "azurerm_private_dns_a_record" "storage_bootdiag" {
   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
   name                                 = lower(local.storageaccount_name)
 
-  zone_name                            = var.dns_zone_names.blob_dns_zone_name
+  zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = local.resource_group_exists ? (
                                            data.azurerm_resource_group.resource_group[0].name) : (
                                            azurerm_resource_group.resource_group[0].name
@@ -110,7 +110,7 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
   dynamic "private_dns_zone_group" {
                                      for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                      content {
-                                       name                 = var.dns_zone_names.blob_dns_zone_name
+                                       name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
                                      }
                                    }
@@ -175,7 +175,7 @@ resource "azurerm_private_dns_a_record" "witness_storage" {
   provider                             = azurerm.dnsmanagement
   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
   name                                 = lower(local.witness_storageaccount_name)
-  zone_name                            = var.dns_zone_names.blob_dns_zone_name
+  zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
   ttl                                  = 3600
   records                              = [data.azurerm_network_interface.witness_storage[count.index].ip_configuration[0].private_ip_address]
@@ -252,7 +252,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
   dynamic "private_dns_zone_group" {
                                      for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                      content {
-                                       name                 = var.dns_zone_names.blob_dns_zone_name
+                                       name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
                                      }
                                    }
@@ -330,7 +330,7 @@ resource "azurerm_private_dns_a_record" "transport" {
                                            "/[^a-z0-9]/",
                                            ""
                                          )
-  zone_name                            = var.dns_zone_names.file_dns_zone_name
+  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
   ttl                                  = 10
   records                              = [
@@ -351,7 +351,7 @@ data "azurerm_private_dns_a_record" "transport" {
                                            "/[^a-z0-9]/",
                                            ""
                                          )
-  zone_name                            = var.dns_zone_names.file_dns_zone_name
+  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 
@@ -450,7 +450,7 @@ resource "azurerm_private_endpoint" "transport" {
   dynamic "private_dns_zone_group" {
                                      for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                      content {
-                                       name                 = var.dns_zone_names.file_dns_zone_name
+                                       name                 = var.dns_settings.dns_zone_names.file_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
                                      }
                                    }
@@ -548,7 +548,7 @@ resource "azurerm_private_dns_a_record" "install" {
                                            "/[^a-z0-9]/",
                                            ""
                                          )
-  zone_name                            = var.dns_zone_names.file_dns_zone_name
+  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
   ttl                                  = 10
   records                              = [
@@ -573,7 +573,7 @@ data "azurerm_private_dns_a_record" "install" {
                                           "/[^a-z0-9]/",
                                           ""
                                         )
-  zone_name                            = var.dns_zone_names.file_dns_zone_name
+  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 
@@ -661,7 +661,7 @@ resource "azurerm_private_endpoint" "install" {
   dynamic "private_dns_zone_group" {
                                      for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                      content {
-                                       name                 = var.dns_zone_names.file_dns_zone_name
+                                       name                 = var.dns_settings.dns_zone_names.file_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
                                      }
                                    }

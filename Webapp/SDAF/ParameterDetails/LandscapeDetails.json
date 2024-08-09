@@ -963,6 +963,24 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "privatelink_dns_subscription_id",
+        "Required": false,
+        "Description": "Subscription for the DNS zone containing the PrivateLink resources, if different from the management subscription",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "privatelink_dns_resourcegroup_name",
+        "Required": false,
+        "Description": "Resource group for the DNS zone containing the PrivateLink resources, if different from the SAP Library resource group",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       }
     ]
   },
