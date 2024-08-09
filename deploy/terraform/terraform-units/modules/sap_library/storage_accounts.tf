@@ -29,7 +29,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
 
   public_network_access_enabled        = true #var.storage_account_sapbits.public_network_access_enabled
 
-  https_traffic_only_enabled            = true
+  enable_https_traffic_only            = true
 
   cross_tenant_replication_enabled     = false
   shared_access_key_enabled            = var.storage_account_sapbits.shared_access_key_enabled
@@ -301,7 +301,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
   account_replication_type             = var.storage_account_sapbits.account_replication_type
   account_tier                         = var.storage_account_sapbits.account_tier
   account_kind                         = var.storage_account_sapbits.account_kind
-  https_traffic_only_enabled            = true
+  enable_https_traffic_only            = true
   min_tls_version                      = "TLS1_2"
 
   allow_nested_items_to_be_public      = false

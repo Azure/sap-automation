@@ -449,6 +449,18 @@ variable "dns_zone_names"                             {
                                                         }
                                                       }
 
+variable "privatelink_dns_subscription_id"            {
+                                                        description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate subscription"
+                                                        default     = ""
+                                                        type        = string
+                                                      }
+
+variable "privatelink_dns_resourcegroup_name"         {
+                                                        description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate resourcegroup"
+                                                        default     = ""
+                                                        type        = string
+                                                      }
+
 
 #########################################################################################
 #                                                                                       #
