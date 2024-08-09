@@ -39,8 +39,6 @@ module "sap_landscape" {
   peer_with_control_plane_vnet                 = var.peer_with_control_plane_vnet
   place_delete_lock_on_resources               = var.place_delete_lock_on_resources
   public_network_access_enabled                = var.public_network_access_enabled
-  register_endpoints_with_dns                  = var.register_endpoints_with_dns
-  register_virtual_network_to_dns              = var.register_virtual_network_to_dns
   service_principal                            = var.use_spn ? local.service_principal : local.account
   soft_delete_retention_days                   = var.soft_delete_retention_days
   storage_account_replication_type             = var.storage_account_replication_type
@@ -50,7 +48,6 @@ module "sap_landscape" {
   transport_storage_account_id                 = var.transport_storage_account_id
   transport_volume_size                        = var.transport_volume_size
   use_AFS_for_shared_storage                   = var.use_AFS_for_shared_storage
-  use_custom_dns_a_registration                = var.use_custom_dns_a_registration
   use_deployer                                 = length(var.deployer_tfstate_key) > 0
   use_private_endpoint                         = var.use_private_endpoint
   use_service_endpoint                         = var.use_service_endpoint
