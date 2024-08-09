@@ -763,6 +763,8 @@ locals {
 
                                            register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
                                            register_endpoints_with_dns                  = var.register_endpoints_with_dns
+
+                                           register_virtual_network_to_dns              = try(data.terraform_remote_state.landscape.outputs.register_virtual_network_to_dns, false)
                                          }
 
 }
