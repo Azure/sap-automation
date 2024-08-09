@@ -70,7 +70,7 @@ resource "azurerm_private_dns_zone" "vault" {
 
 data "azurerm_private_dns_zone" "vault" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = local.use_local_privatelink_dns ? 1 : 0
+  count                                = !local.use_local_privatelink_dns ? 1 : 0
   name                                 = var.dns_settings.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
