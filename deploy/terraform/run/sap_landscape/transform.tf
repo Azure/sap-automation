@@ -625,4 +625,24 @@ locals {
 
                                          }
 
+  dns_settings                         = {
+                                           use_custom_dns_a_registration = var.use_custom_dns_a_registration
+                                           dns_label = var.dns_label
+                                           dns_zone_names = var.dns_zone_names
+                                           dns_server_list = var.dns_server_list
+                                           management_dns_resourcegroup_name = lower(length(var.management_dns_resourcegroup_name) > 0 ? (
+                                                   var.management_dns_resourcegroup_name) : (
+                                                   local.saplib_resource_group_name
+                                                 ))
+                                           management_dns_subscription_id = try(var.management_dns_subscription_id, local.saplib_subscription_id)
+                                           privatelink_dns_subscription_id = trimspace(var.privatelink_dns_subscription_id)
+                                           privatelink_dns_resourcegroup_name = lower(length(var.privatelink_dns_resourcegroup_name) > 0 ? (
+                                                   var.privatelink_dns_resourcegroup_name) : (
+                                                   local.saplib_resource_group_name
+                                                 ))
+
+                                           register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
+                                           register_endpoints_with_dns = var.register_endpoints_with_dns
+                                         }
+
 }

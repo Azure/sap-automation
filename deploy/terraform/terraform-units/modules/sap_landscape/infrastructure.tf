@@ -49,12 +49,12 @@ data "azurerm_virtual_network" "vnet_sap" {
 
 resource "azurerm_virtual_network_dns_servers" "vnet_sap_dns_servers" {
   provider                             = azurerm.main
-  count                                = local.SAP_virtualnetwork_exists && length(var.dns_server_list) > 0 ? 1 : 0
+  count                                = local.SAP_virtualnetwork_exists && length(var.dns_settings.dns_server_list) > 0 ? 1 : 0
   virtual_network_id                   = local.SAP_virtualnetwork_exists ? (
                                            data.azurerm_virtual_network.vnet_sap[0].id) : (
                                            azurerm_virtual_network.vnet_sap[0].id
                                          )
-  dns_servers                          = var.dns_server_list
+  dns_servers                          = var.dns_settings.dns_server_list
 }
 
 # // Peers management VNET to SAP VNET

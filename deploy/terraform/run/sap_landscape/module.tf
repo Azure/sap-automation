@@ -20,9 +20,6 @@ module "sap_landscape" {
   create_transport_storage                     = var.create_transport_storage
   deployer_tfstate                             = try(data.terraform_remote_state.deployer[0].outputs, [])
   diagnostics_storage_account                  = local.diagnostics_storage_account
-  dns_label                                    = var.dns_label
-  dns_server_list                              = var.dns_server_list
-  dns_zone_names                               = var.dns_zone_names
   enable_firewall_for_keyvaults_and_storage    = var.enable_firewall_for_keyvaults_and_storage
   enable_purge_control_for_keyvaults           = var.enable_purge_control_for_keyvaults
   enable_rbac_authorization_for_keyvault       = var.enable_rbac_authorization_for_keyvault
@@ -33,11 +30,6 @@ module "sap_landscape" {
   install_volume_size                          = var.install_volume_size
   key_vault                                    = local.key_vault
   keyvault_private_endpoint_id                 = var.keyvault_private_endpoint_id
-  management_dns_subscription_id               = try(var.management_dns_subscription_id, local.saplib_subscription_id)
-  management_dns_resourcegroup_name            = lower(length(var.management_dns_resourcegroup_name) > 0 ? (
-                                                   var.management_dns_resourcegroup_name) : (
-                                                   local.saplib_resource_group_name
-                                                 ))
   naming                                       = length(var.name_override_file) > 0 ? (
                                                    local.custom_names) : (
                                                    module.sap_namegenerator.naming
@@ -64,6 +56,7 @@ module "sap_landscape" {
   use_service_endpoint                         = var.use_service_endpoint
   vm_settings                                  = local.vm_settings
   witness_storage_account                      = local.witness_storage_account
+  dns_settings                                 = local.dns_settings
 
 }
 
