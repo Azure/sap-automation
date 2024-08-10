@@ -193,6 +193,5 @@ resource "azurerm_windows_virtual_machine" "anchor" {
     ]
   }
 
-  patch_mode                           = "Manual"
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
 }
