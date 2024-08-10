@@ -186,6 +186,8 @@ locals {
                                            deploy_monitoring_extension  = var.deploy_monitoring_extension
                                            deploy_defender_extension    = var.deploy_defender_extension
                                            user_assigned_identity_id    = var.user_assigned_identity_id
+                                           patch_mode                   = var.patch_mode
+                                           patch_assessment_mode        = var.patch_assessment_mode
                                          }
 
   authentication                       = {

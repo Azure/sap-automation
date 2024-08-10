@@ -145,6 +145,10 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
 
   //custom_data = try(data.template_cloudinit_config.config_growpart.rendered, "Cg==")
 
+  patch_mode                                             = var.infrastructure.patch_mode
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+
   os_disk {
             name = format("%s%s%s%s%s",
               var.naming.resource_prefixes.osdisk,

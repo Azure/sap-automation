@@ -67,6 +67,10 @@ resource "azurerm_windows_virtual_machine" "utility_vm" {
   admin_username                       = local.input_sid_username
   admin_password                       = local.input_sid_password
 
+  patch_mode                                             = var.infrastructure.patch_mode
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+
   os_disk {
                  name                 = format("%s%s%s%s%s",
                                           var.naming.resource_prefixes.osdisk,
@@ -129,6 +133,10 @@ resource "azurerm_linux_virtual_machine" "utility_vm" {
   admin_username                       = local.input_sid_username
   admin_password                       = local.input_sid_password
   disable_password_authentication      = true
+
+  patch_mode                                             = var.infrastructure.patch_mode
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
 
   dynamic "admin_ssh_key"              {
                                         for_each = range(1)
