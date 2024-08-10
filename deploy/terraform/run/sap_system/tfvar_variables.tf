@@ -1411,6 +1411,11 @@ variable "patch_mode"                           {
                                                   default     = "ImageDefault"
                                                 }
 
+variable "patch_assessment_mode"                {
+                                                  description = "If defined, define the patch mode for the virtual machines"
+                                                  default     = "ImageDefault"
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  Scaleout variables                                                                   #

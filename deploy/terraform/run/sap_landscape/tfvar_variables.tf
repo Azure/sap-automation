@@ -804,6 +804,7 @@ variable "patch_mode"                           {
                                                   description = "If defined, define the patch mode for the virtual machines"
                                                   default     = "ImageDefault"
                                                 }
+
 variable "patch_assessment_mode"                {
                                                   description = "If defined, define the patch mode for the virtual machines"
                                                   default     = "ImageDefault"

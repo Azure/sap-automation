@@ -148,6 +148,7 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
   patch_mode                                             = var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+  vm_agent_platform_updates_enabled                      = true
 
   os_disk {
             name = format("%s%s%s%s%s",
