@@ -717,6 +717,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_scs_lnx" {
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 }
 
 
@@ -731,6 +732,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_scs_win" {
   type                                 = "AzureMonitorWindowsAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 }
 
 
@@ -745,6 +747,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_scs_lnx" {
   type                                 = "AzureSecurityLinuxAgent"
   type_handler_version                 = "2.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
   settings                             = jsonencode(
                                             {
@@ -766,6 +769,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_scs_win" {
   type                                 = "AzureSecurityWindowsAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
   settings                             = jsonencode(
                                             {
