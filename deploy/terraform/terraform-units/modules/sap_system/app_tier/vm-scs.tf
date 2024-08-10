@@ -367,9 +367,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
   admin_username                     = var.sid_username
   admin_password                     = var.sid_password
 
-  #ToDo: Remove once feature is GA  patch_mode = "Manual"
   license_type                       = length(var.license_type) > 0 ? var.license_type : null
-  patch_mode                         = var.infrastructure.patch_mode
 
   tags                               = merge(var.application_tier.scs_tags, var.tags)
 
