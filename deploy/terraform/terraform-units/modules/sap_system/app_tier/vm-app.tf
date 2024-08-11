@@ -296,8 +296,9 @@ resource "azurerm_windows_virtual_machine" "app" {
 
   virtual_machine_scale_set_id         = length(var.scale_set_id) > 0 ? var.scale_set_id : null
 
-  patch_mode                                             = var.infrastructure.patch_mode
-
+  // ImageDefault = Manual on Windows
+  // https://learn.microsoft.com/en-us/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes
+  patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
   vm_agent_platform_updates_enabled                      = true
@@ -318,10 +319,7 @@ resource "azurerm_windows_virtual_machine" "app" {
   admin_username                       = var.sid_username
   admin_password                       = var.sid_password
 
-  #ToDo: Remove once feature is GA  patch_mode = "Manual"
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
-  # ToDo Add back later
-# patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(var.application_tier.app_tags, var.tags)
 

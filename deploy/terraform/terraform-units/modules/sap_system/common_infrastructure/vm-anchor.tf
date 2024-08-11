@@ -141,8 +141,9 @@ resource "azurerm_windows_virtual_machine" "anchor" {
   proximity_placement_group_id         = local.ppg_exists ? data.azurerm_proximity_placement_group.ppg[count.index].id : azurerm_proximity_placement_group.ppg[count.index].id
   zone                                 = local.zones[count.index]
 
-  patch_mode                                             = var.infrastructure.patch_mode
-
+  // ImageDefault = Manual on Windows
+  // https://learn.microsoft.com/en-us/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes
+  patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
   vm_agent_platform_updates_enabled                      = true

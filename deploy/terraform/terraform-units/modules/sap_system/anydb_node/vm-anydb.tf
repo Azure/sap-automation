@@ -161,8 +161,6 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   size                                 = local.anydb_sku
   source_image_id                      = var.database.os.type == "custom" ? var.database.os.source_image_id : null
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
-  # ToDo Add back later
-# patch_mode                           = var.infrastructure.patch_mode
 
   admin_username                       = var.sid_username
   admin_password                       = local.enable_auth_key ? null : var.sid_password
@@ -307,8 +305,9 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   source_image_id                      = var.database.os.type == "custom" ? var.database.os.source_image_id : null
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
 
-  patch_mode                                             = var.infrastructure.patch_mode
-
+  // ImageDefault = Manual on Windows
+  // https://learn.microsoft.com/en-us/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes
+  patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
   vm_agent_platform_updates_enabled                      = true
