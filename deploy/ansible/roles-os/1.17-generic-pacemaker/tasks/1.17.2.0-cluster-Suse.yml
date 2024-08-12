@@ -11,7 +11,7 @@
     msg:                               "{{ ansible_facts.packages['systemd'][0].version }}"
 
 # Pacemaker can create a large number of processes
-- name:                                "1.17 Generic Pacemaker - Ensure Process limit is raised"
+- name:                                "1.17 Generic Pacemaker - Ensure Process limit is raised (systemd < 234)"
   ansible.builtin.lineinfile:
     path:                              /etc/systemd/system.conf
     state:                             present
@@ -22,7 +22,7 @@
 
 # Create a drop in file for systemd.conf to raise the process limit in the directory
 # /etc/systemd/system.conf.d and update the value of DefaultTasksMax to 4096
-- name:                                "1.17 Generic Pacemaker - Ensure Process limit is raised"
+- name:                                "1.17 Generic Pacemaker - Ensure Process limit is raised  (systemd > 233)"
   ansible.builtin.copy:
     dest:                               /etc/systemd/system.conf.d/99-pacemaker.conf
     content:                            |
