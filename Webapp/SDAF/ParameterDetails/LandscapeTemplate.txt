@@ -36,28 +36,6 @@ $$Description$$
 #If you want to provide a custom naming json use the following parameter.
 $$name_override_file$$
 
-# If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines
-$$deploy_monitoring_extension$$
-
-# If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines
-$$deploy_defender_extension$$
-
-
-#########################################################################################
-#                                                                                       #
-#  Resource group details                                                               #
-#                                                                                       #
-#########################################################################################
-
-# The two resource group name and arm_id can be used to control the naming and the creation of the resource group
-
-# The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
-$$resourcegroup_name$$
-
-# The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
-$$resourcegroup_arm_id$$
-
-
 #########################################################################################
 #                                                                                       #
 #  Networking                                                                           #
@@ -293,6 +271,44 @@ $$storage_subnet_nsg_name$$
 
 #########################################################################################
 #                                                                                       #
+#  Common Virtual Machine settings                                                      #
+#                                                                                       #
+#########################################################################################
+
+# user_assigned_identity_id defines the user assigned identity to be assigned to the Virtual Machines
+$$user_assigned_identity_id$$
+
+# If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the Virtual Machines
+$$deploy_monitoring_extension$$
+
+# If defined, will add the Microsoft.Azure.Security.Monitoring extension to the Virtual Machines
+$$deploy_defender_extension$$
+
+# If defined, defines the patching mode for the Virtual Machines
+$$patch_mode$$
+
+# If defined, defines the mode of VM Guest Patching for the Virtual Machines
+$$patch_assessment_mode$$
+
+
+#########################################################################################
+#                                                                                       #
+#  Resource group details                                                               #
+#                                                                                       #
+#########################################################################################
+
+# The two resource group name and arm_id can be used to control the naming and the creation of the resource group
+
+# The resourcegroup_name value is optional, it can be used to override the name of the resource group that will be provisioned
+$$resourcegroup_name$$
+
+# The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
+$$resourcegroup_arm_id$$
+
+
+
+#########################################################################################
+#                                                                                       #
 #  DNS Settings                                                                         #
 #                                                                                       #
 #########################################################################################
@@ -314,7 +330,7 @@ $$privatelink_dns_resourcegroup_name$$
 # Defines if a custom dns solution is used
 $$use_custom_dns_a_registration$$
 
-# Defines if the Virtual network for the Virtual machines is registered with DNS
+# Defines if the Virtual network for the Virtual Machines is registered with DNS
 # This also controls the creation of DNS entries for the load balancers
 $$register_virtual_network_to_dns$$
 
@@ -534,9 +550,6 @@ $$iscsi_nic_ips$$
 
 # Defines the Availability zones for the iSCSI devices
 $$iscsi_vm_zones$$
-
-# user_assigned_identity_id defines the user assigned identity to be assigned to the Virtual machines
-$$user_assigned_identity_id$$
 
 #########################################################################################
 #                                                                                       #

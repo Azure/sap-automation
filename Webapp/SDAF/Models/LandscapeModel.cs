@@ -360,11 +360,23 @@ namespace AutomationForm.Models
     [PrivateEndpointIdValidator]
     public string install_private_endpoint_id { get; set; }
 
-/*---------------------------------------------------------------------------8
-|                                                                            |
-|                         Utility VM information                             |
-|                                                                            |
-+------------------------------------4--------------------------------------*/
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                             VM patch information                           |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public string patch_mode { get; set; } = "ImageDefault";
+    public string patch_assessment_mode { get; set; } = "ImageDefault";
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                         Utility VM information                             |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     public int? utility_vm_count { get; set; } = 0;
 
