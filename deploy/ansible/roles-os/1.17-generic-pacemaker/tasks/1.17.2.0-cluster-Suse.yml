@@ -8,7 +8,7 @@
 
 - name:                                "1.17 Generic Pacemaker - Debug systemd version"
   ansible.builtin.debug:
-    msg:                               "{{ systemd version: ansible_facts.packages['systemd'][0].version }}"
+    msg:                               "{{ ansible_facts.packages['systemd'][0].version }}"
 
 # Pacemaker can create a large number of processes
 - name:                                "1.17 Generic Pacemaker - Ensure Process limit is raised"
