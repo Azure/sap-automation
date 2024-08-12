@@ -349,3 +349,14 @@ resource "local_file" "sap_inventory_for_wiki_md" {
   file_permission      = "0660"
   directory_permission = "0770"
 }
+
+
+resource "local_file" "sap_vms_resource_id" {
+  content = templatefile(format("%s/sap-vm-resources.tmpl", path.module), {
+      scs_server_vms          = length(var.scs_server_vm_resource_ids) > 0 ? element(var.scs_server_vm_resource_ids, 0) : ""
+    }
+  )
+  filename                  = format("%s/%s_virtual_machines.json", path.cwd, var.sap_sid)
+  file_permission           = "0660"
+  directory_permission      = "0770"
+}
