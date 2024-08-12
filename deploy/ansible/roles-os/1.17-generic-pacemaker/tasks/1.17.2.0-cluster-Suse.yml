@@ -23,6 +23,13 @@
 
 # Create a drop in file for systemd.conf to raise the process limit in the directory
 # /etc/systemd/system.conf.d and update the value of DefaultTasksMax to 4096
+- name:                                "1.17 Generic Pacemaker - Create directory for drop file (systemd > 233)"
+  ansible.builtin.file:
+    path:                              /etc/systemd/system.conf.d
+    state:                             directory
+    mode:                              '0644'
+  when:                                ansible_facts.packages['systemd'][0].version is version('234', '>=')
+
 - name:                                "1.17 Generic Pacemaker - Ensure Process limit is raised  (systemd > 233)"
   ansible.builtin.copy:
     dest:                               /etc/systemd/system.conf.d/99-pacemaker.conf
@@ -42,7 +49,7 @@
     line:                              "CLOUD_NETCONFIG_MANAGE='no'"
   when:
                                        - ansible_facts.packages['cloud-netconfig-azure']
-                                       - (ansible_facts.packages['cloud-netconfig-azure'][0].version | float) < 1.3
+                                       - ansible_facts.packages['cloud-netconfig-azure'][0].version is version('1.3', '<')
 
 - name:                            "1.17 Generic Pacemaker - Stop SBD service"
   ansible.builtin.systemd:
