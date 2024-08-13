@@ -254,5 +254,10 @@ enable_os_monitoring:                   false
 enable_ha_monitoring:                   false
 # ------------------- End - Azure Monitor for SAP (AMS) variables --------------8
 
+# ------------------- Begin - SAP CAL Integration variables --------------------8
+enable_sap_cal:                         false
+calapi_kv:                              ""
+sap_cal_product_name:                   ""
+# ------------------- End - SAP CAL Integration variables ----------------------8
 
 python_version:                        "python3"
