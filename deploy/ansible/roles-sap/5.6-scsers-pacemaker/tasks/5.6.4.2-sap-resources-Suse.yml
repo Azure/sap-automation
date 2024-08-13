@@ -26,7 +26,6 @@
     # - name:                            "5.6 SCSERS - SUSE - ENSA1 - Set the cluster on maintenance mode"
     #   ansible.builtin.shell:           crm configure property maintenance-mode=true
 
-
     - name:                            "5.6 SCSERS - SUSE - ENSA1 - Configure SAP ASCS/SCS resources"
       ansible.builtin.shell: >
                                        crm configure primitive rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
