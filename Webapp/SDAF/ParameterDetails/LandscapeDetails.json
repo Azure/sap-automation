@@ -1371,11 +1371,11 @@
           },
           {
             "Text": "AutomaticByOS (Windows)",
-            "Value": "AutomaticByOS "
+            "Value": "AutomaticByOS"
           },
           {
             "Text": "AutomaticByPlatform (Azure Orchestrated patching)",
-            "Value": "AutomaticByPlatform "
+            "Value": "AutomaticByPlatform"
           }
         ],
         "Overrules": "",
@@ -1397,7 +1397,7 @@
           },
           {
             "Text": "AutomaticByPlatform (Azure Orchestrated patching)",
-            "Value": "AutomaticByPlatform "
+            "Value": "AutomaticByPlatform"
           }
         ],
         "Overrules": "",
