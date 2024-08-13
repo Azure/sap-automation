@@ -247,6 +247,10 @@ packages:
     - { tier: 'ha',    package: 'nmap',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-common',                          node_tier: 'all',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-pip',                                  node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-pip',                                  node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-pip',                                  node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'python3-pip',                                  node_tier: 'db2',     state: 'present' }
     # ------------------------- End - Packages required for Clustering -----------------------------------------8
     # ------------------------- Begin - Packages required for Start/Stop ------------------------------------8
     - { tier: 'ha',    package: 'sap-cluster-connector',                        node_tier: 'hana',    state: 'present' }
