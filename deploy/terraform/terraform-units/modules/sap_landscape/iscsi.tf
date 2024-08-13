@@ -59,6 +59,19 @@ data "azurerm_network_security_group" "iscsi" {
   resource_group_name                  = split("/", local.sub_iscsi_nsg_arm_id)[4]
 }
 
+
+
+resource "azurerm_subnet_route_table_association" "iscsi" {
+  provider                             = azurerm.main
+  count                                = local.enable_iscsi && !local.SAP_virtualnetwork_exists && !sub_iscsi_exists ? 1 : 0
+  depends_on                           = [
+                                           azurerm_route_table.rt,
+                                           azurerm_subnet.iscsi
+                                         ]
+  subnet_id                            = local.sub_iscsi_exists ? var.infrastructure.vnets.sap.sub_iscsi.arm_id : azurerm_subnet.iscsi[0].id
+  route_table_id                       = azurerm_route_table.rt[0].id
+}
+
 // TODO: Add nsr to iSCSI's nsg
 
 /*

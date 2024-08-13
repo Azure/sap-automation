@@ -154,7 +154,6 @@ resource "azurerm_route_table" "rt" {
                                             data.azurerm_virtual_network.vnet_sap[0].location) : (
                                             azurerm_virtual_network.vnet_sap[0].location
                                           )
-  disable_bgp_route_propagation        = false
   tags                                 = var.tags
 }
 
