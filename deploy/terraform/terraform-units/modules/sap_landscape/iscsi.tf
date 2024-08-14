@@ -63,7 +63,7 @@ data "azurerm_network_security_group" "iscsi" {
 
 resource "azurerm_subnet_route_table_association" "iscsi" {
   provider                             = azurerm.main
-  count                                = local.enable_iscsi && !local.SAP_virtualnetwork_exists && !sub_iscsi_exists ? 1 : 0
+  count                                = local.enable_iscsi && !local.SAP_virtualnetwork_exists && !local.sub_iscsi_exists ? 1 : 0
   depends_on                           = [
                                            azurerm_route_table.rt,
                                            azurerm_subnet.iscsi
