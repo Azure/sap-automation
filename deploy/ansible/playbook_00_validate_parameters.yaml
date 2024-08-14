@@ -470,8 +470,8 @@
     - name:                            "0.0 Validations: - Set distro"
       ansible.builtin.set_fact:
         distro_family:                 "{{ ansible_os_family | upper }}"
-        distribution_id:               "{{ ansible_distribution ~ ansible_distribution_major_version }}"
-        distribution_full_id:          "{{ ansible_distribution ~ ansible_distribution_version }}"
+        distribution_id:               "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+        distribution_full_id:          "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
       tags:
                                        - always
 
