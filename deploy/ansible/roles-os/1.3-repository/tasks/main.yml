@@ -52,6 +52,7 @@
 
 - name:                                "1.3 Repository: - Prepare the repositories."
   ansible.builtin.include_tasks:       "1.3.2-custom-repositories-{{ ansible_distribution }}.yaml"
+  when:                                custom_repos is defined
 
 # - name:                                "1.3 Repos: Install EPEL repo"
 #   ansible.builtin.yum_repository:
