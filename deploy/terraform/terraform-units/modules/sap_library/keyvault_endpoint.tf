@@ -41,7 +41,7 @@ resource "azurerm_private_endpoint" "kv_user" {
                                      for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0)
                                      content {
                                                name                 = var.dns_settings.dns_zone_names.vault_dns_zone_name
-                                               private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.vault[0].id : data.azurerm_private_dns_zone.keyvault[0].id]
+                                               private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.vault[0].id : data.azurerm_private_dns_zone.vault[0].id]
                                              }
                                    }
 
