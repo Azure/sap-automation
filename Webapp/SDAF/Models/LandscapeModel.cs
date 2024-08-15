@@ -275,10 +275,6 @@ namespace AutomationForm.Models
 
     public string management_dns_subscription_id { get; set; }
 
-    public string privatelink_dns_resourcegroup_name { get; set; }
-
-    public string privatelink_dns_subscription_id { get; set; }
-
     public bool? use_custom_dns_a_registration { get; set; } = false;
 
     public string dns_label { get; set; }
@@ -360,23 +356,11 @@ namespace AutomationForm.Models
     [PrivateEndpointIdValidator]
     public string install_private_endpoint_id { get; set; }
 
-
-
-    /*---------------------------------------------------------------------------8
-    |                                                                            |
-    |                             VM patch information                           |
-    |                                                                            |
-    +------------------------------------4--------------------------------------*/
-
-    public string patch_mode { get; set; } = "ImageDefault";
-    public string patch_assessment_mode { get; set; } = "ImageDefault";
-
-
-    /*---------------------------------------------------------------------------8
-    |                                                                            |
-    |                         Utility VM information                             |
-    |                                                                            |
-    +------------------------------------4--------------------------------------*/
+/*---------------------------------------------------------------------------8
+|                                                                            |
+|                         Utility VM information                             |
+|                                                                            |
++------------------------------------4--------------------------------------*/
 
     public int? utility_vm_count { get; set; } = 0;
 

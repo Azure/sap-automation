@@ -261,6 +261,51 @@
         "Display": 3
       },
       {
+        "Name": "deploy_v1_monitoring_extension",
+        "Required": false,
+        "Description": "Defines if the Microsoft.AzureCAT.AzureEnhancedMonitoring extension will be deployed.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "deploy_monitoring_extension",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "deploy_defender_extension",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "vm_disk_encryption_set_id",
+        "Required": false,
+        "Description": "Azure resource identifier for custom encryption key to use for disk encryption.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "user_assigned_identity_id",
+        "Required": false,
+        "Description": "Azure resource identifier for User assigned identity.",
+        "Type": "lookup",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
         "Name": "upgrade_packages",
         "Required": false,
         "Description": "Defines if the packages on the Virtual Machine will be upgraded to the latest version",
@@ -1306,112 +1351,6 @@
       }
     ]
   },
-  {
-    "Section": "Common Virtual Machine settings",
-    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone#vm-parameters",
-    "Parameters": [
-      {
-        "Name": "user_assigned_identity_id",
-        "Required": false,
-        "Description": "Azure resource identifier for User assigned identity.",
-        "Type": "lookup",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "deploy_monitoring_extension",
-        "Required": false,
-        "Description": "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 2
-      },
-      {
-        "Name": "deploy_defender_extension",
-        "Required": false,
-        "Description": "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 2
-      },
-      {
-        "Name": "deploy_v1_monitoring_extension",
-        "Required": false,
-        "Description": "Defines if the Microsoft.AzureCAT.AzureEnhancedMonitoring extension will be deployed.",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "vm_disk_encryption_set_id",
-        "Required": false,
-        "Description": "Azure resource identifier for custom encryption key to use for disk encryption.",
-        "Type": "field",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "patch_mode",
-        "Required": false,
-        "Description": "Defines the patching mode for the Virtual Machines.",
-        "Type": "lookup",
-        "Options": [
-          {
-            "Text": "",
-            "Value": ""
-          },
-          {
-            "Text": "ImageDefault (Linux)",
-            "Value": "ImageDefault"
-          },
-          {
-            "Text": "Manual (Windows)",
-            "Value": "Manual"
-          },
-          {
-            "Text": "AutomaticByOS (Windows)",
-            "Value": "AutomaticByOS"
-          },
-          {
-            "Text": "AutomaticByPlatform (Azure Orchestrated patching)",
-            "Value": "AutomaticByPlatform"
-          }
-        ],
-        "Overrules": "",
-        "Display": 2
-      },
-      {
-        "Name": "patch_assessment_mode",
-        "Required": false,
-        "Description": "Specifies the mode of VM Guest Patching for the Virtual Machine.",
-        "Type": "lookup",
-        "Options": [
-          {
-            "Text": "",
-            "Value": ""
-          },
-          {
-            "Text": "ImageDefault",
-            "Value": "ImageDefault"
-          },
-          {
-            "Text": "AutomaticByPlatform (Azure Orchestrated patching)",
-            "Value": "AutomaticByPlatform"
-          }
-        ],
-        "Overrules": "",
-        "Display": 2
-      }
-
-
-    ]
-  },
-
   {
     "Section": "Cluster settings",
     "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system#environment-parameters",
