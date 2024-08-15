@@ -268,12 +268,6 @@ export AZADHOME="/home/$${local_user}"
 #Don't re-run the following if the script is already installed
 #
 
-if [ -f /etc/profile.d/deploy_server.sh ] ; then
-    echo
-    echo ##vso[task.logissue type=warning]Deployer already configured
-
-    exit 0
-else
     #
     # Main body of script
     #
@@ -809,6 +803,7 @@ else
             ;;
         esac
       else
+        echo "NO TOKEN specified"
         echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}":'$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
 
         echo "export SAP_AUTOMATION_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
@@ -816,4 +811,3 @@ else
         echo "export CONFIG_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/WORKSPACES'" | sudo tee -a /etc/profile.d/deploy_server.sh
       fi
     fi
-fi
