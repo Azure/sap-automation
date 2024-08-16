@@ -19,14 +19,22 @@
 # Create a drop in file for systemd.conf to raise the process limit in the directory
 # /etc/systemd/system.conf.d and update the value of DefaultTasksMax to 4096
 - name:                                "1.17 Generic Pacemaker - Ensure Process limit is raised"
-  ansible.builtin.copy:
-    dest:                               /etc/systemd/system.conf.d/99-pacemaker.conf
-    content:                            |
+  when:                                (ansible_facts.packages['systemd'][0].version | float) > 233
+  block:
+    - name:                            "Create directory /etc/systemd/system.conf.d if it does not exist"
+      ansible.builtin.file:
+        path:                          /etc/systemd/system.conf.d
+        state:                         directory
+        mode:                          '0755'
+
+    - name:                            "Create drop in file in /etc/systemd/system.conf.d"
+      ansible.builtin.copy:
+        dest:                          /etc/systemd/system.conf.d/99-pacemaker.conf
+        content:                       |
                                         [Manager]
                                         DefaultTasksMax=4096
-    mode:                               '0644'
-  register:                             raise_process_limit
-  when:                                 (ansible_facts.packages['systemd'][0].version | float) > 233
+        mode:                          '0644'
+      register:                        raise_process_limit
 
 # eth0 is the "db" NIC
 - name:                                "1.17 Generic Pacemaker - Ensure clustering can manage Virtual IPs on the Database Interface"
