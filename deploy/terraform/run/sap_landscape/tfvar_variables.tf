@@ -907,3 +907,25 @@ variable "nat_gateway_public_ip_tags"             {
                                                     type        = map(string)
                                                     default     = null
                                                   }
+
+#######################################4#######################################8
+#                                                                              #
+#                             Terraform variables                              #
+#                                                                              #
+#######################################4#######################################8
+
+variable "tfstate_resource_id"                   {
+                                                    description = "Resource id of tfstate storage account"
+                                                    validation {
+                                                                  condition     = (
+                                                                                    length(split("/", var.tfstate_resource_id)) == 9
+                                                                                  )
+                                                                  error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format."
+                                                                }
+                                                  }
+
+variable "deployer_tfstate_key"                   {
+                                                    description = "The name of deployer's remote tfstate file"
+                                                    type    = string
+                                                    default = ""
+                                                  }
