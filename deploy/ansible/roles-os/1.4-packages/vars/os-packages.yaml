@@ -444,12 +444,6 @@ packages:
     - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',     state: 'present' }
     # These package cause issues on SLES15 SP5 due to changes to the public cloud SDKs
     # https://www.suse.com/c/incompatible-changes-ahead-for-public-cloud-sdks/
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'hana',    state: 'absent'  }
-    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'hana',    state: 'absent'  }
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'scs',     state: 'absent'  }
-    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'scs',     state: 'absent'  }
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'ers',     state: 'absent'  }
-    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'ers',     state: 'absent'  }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'ers',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'hana',    state: 'present' }
