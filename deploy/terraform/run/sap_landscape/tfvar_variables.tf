@@ -404,7 +404,7 @@ variable "automation_path_to_private_key"       {
 
 variable "use_spn"                              {
                                                   description = "Log in using a service principal when performing the deployment"
-                                                  default     = true
+                                                  default     = false
                                                 }
 
 variable "user_assigned_identity_id"            {
@@ -526,6 +526,18 @@ variable "management_dns_resourcegroup_name"       {
                                                      type        = string
                                                    }
 
+variable "privatelink_dns_subscription_id"         {
+                                                     description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate subscription"
+                                                     default     = ""
+                                                     type        = string
+                                                   }
+
+variable "privatelink_dns_resourcegroup_name"      {
+                                                     description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate resourcegroup"
+                                                     default     = ""
+                                                     type        = string
+                                                     }
+
 
 variable "dns_server_list"                         {
                                                      description = "DNS server list"
@@ -556,6 +568,13 @@ variable "register_endpoints_with_dns"             {
                                                      default     = true
                                                      type        = bool
                                                    }
+
+variable "register_storage_accounts_keyvaults_with_dns" {
+                                                     description = "Boolean value indicating if storage accounts and key vaults should be registered to the corresponding dns zones"
+                                                     default     = true
+                                                     type        = bool
+                                                   }
+
 
 #########################################################################################
 #                                                                                       #
@@ -781,6 +800,18 @@ variable "utility_vm_nic_ips"                      {
                                                      default     = []
                                                    }
 
+variable "patch_mode"                           {
+                                                  description = "If defined, define the patch mode for the virtual machines"
+                                                  default     = "ImageDefault"
+                                                }
+
+variable "patch_assessment_mode"                {
+                                                  description = "If defined, define the patch mode for the virtual machines"
+                                                  default     = "ImageDefault"
+                                                }
+
+
+
 #########################################################################################
 #                                                                                       #
 #  Tags                                                                                 #
@@ -827,4 +858,74 @@ variable "ams_instance_name"                      {
 variable "ams_laws_arm_id"                        {
                                                     description = "If provided, Azure resource id for the Log analytics workspace in AMS"
                                                     default     = ""
+                                                  }
+
+#######################################4#######################################8
+#                                                                              #
+#                             NAT Gateway variables                            #
+#                                                                              #
+#######################################4#######################################8
+
+variable "deploy_nat_gateway"                     {
+                                                    description = "If true, a NAT Gateway will be deployed"
+                                                    type        = bool
+                                                    default     = false
+                                                  }
+
+variable "nat_gateway_name"                       {
+                                                    description = "If provided, the name of the NAT Gateway"
+                                                    type        = string
+                                                    default     = ""
+                                                  }
+
+variable "nat_gateway_arm_id"                     {
+                                                    description = "If provided, Azure resource id for the NAT Gateway"
+                                                    type        = string
+                                                    default     = ""
+                                                  }
+
+variable "nat_gateway_public_ip_zones"            {
+                                                    description = "If provided, the zones for the NAT Gateway public IP"
+                                                    type        = list(string)
+                                                    default     = []
+                                                  }
+
+variable "nat_gateway_public_ip_arm_id"           {
+                                                    description = "If provided, Azure resource id for the NAT Gateway public IP"
+                                                    type        = string
+                                                    default     = ""
+                                                  }
+
+variable "nat_gateway_idle_timeout_in_minutes"    {
+                                                    description = "The idle timeout in minutes for the NAT Gateway"
+                                                    type        = number
+                                                    default     = 4
+                                                  }
+
+variable "nat_gateway_public_ip_tags"             {
+                                                    description = "Tags for the public_ip resource"
+                                                    type        = map(string)
+                                                    default     = null
+                                                  }
+
+#######################################4#######################################8
+#                                                                              #
+#                             Terraform variables                              #
+#                                                                              #
+#######################################4#######################################8
+
+variable "tfstate_resource_id"                   {
+                                                    description = "Resource id of tfstate storage account"
+                                                    validation {
+                                                                  condition     = (
+                                                                                    length(split("/", var.tfstate_resource_id)) == 9
+                                                                                  )
+                                                                  error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format."
+                                                                }
+                                                  }
+
+variable "deployer_tfstate_key"                   {
+                                                    description = "The name of deployer's remote tfstate file"
+                                                    type    = string
+                                                    default = ""
                                                   }

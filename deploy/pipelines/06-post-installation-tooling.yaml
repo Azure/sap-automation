@@ -76,7 +76,7 @@ stages:
         workspace:
           clean:                       all
         steps:
-          - task:                      PostBuildCleanup@3
+          - task:                      PostBuildCleanup@4
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
@@ -408,7 +408,7 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
         steps:
-          - task:                      PostBuildCleanup@3
+          - task:                      PostBuildCleanup@4
           - script: |
               #!/bin/bash
               echo "nothing to do here right now"

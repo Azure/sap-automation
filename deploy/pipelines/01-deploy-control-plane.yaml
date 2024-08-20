@@ -71,7 +71,7 @@ stages:
                 clean:                 all
             steps:
                 - template:            templates\download.yaml
-                - task:                PostBuildCleanup@3
+                - task:                PostBuildCleanup@4
                 # Set Variables.
                 - task:                AzureCLI@2
                   continueOnError:     false
@@ -251,6 +251,8 @@ stages:
                                 --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
                                 --subscription $ARM_SUBSCRIPTION_ID  --auto-approve --ado --only_deployer --msi
                             else
+                              export ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
+                              export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
                               $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
                                 --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
                                 --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
@@ -399,7 +401,7 @@ stages:
             workspace:
                 clean: all
             steps:
-                - task: PostBuildCleanup@3
+                - task: PostBuildCleanup@4
                 - template: templates\download.yaml
                   parameters:
                     getLatestFromBranch: true
@@ -438,6 +440,9 @@ stages:
                       echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
                       cd $CONFIG_REPO_PATH
                       git checkout -q $(Build.SourceBranchName)
+
+                      deployer_configfile="${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig)"
+                      library_configfile="${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)"
 
                       deployer_configfile="${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig)"
                       library_configfile="${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)"
@@ -514,10 +519,25 @@ stages:
                           export TF_VAR_ansible_core_version=2.15
                       fi
 
-                      if [ "$USE_WEBAPP" = "true" ]; then
-                          echo "Use WebApp is selected"
-                      fi
-                      bootstrapped=0
+                          if [ "$USE_WEBAPP" = "true" ]; then
+                              echo "Use WebApp is selected"
+
+                              if [ -z ${APP_REGISTRATION_APP_ID} ]; then
+                                  echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
+                                  exit 2
+                              fi
+
+                              if [ -z ${WEB_APP_CLIENT_SECRET} ]; then
+                                  echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
+                                  exit 2
+                              fi
+                              export TF_VAR_app_registration_app_id=$(APP_REGISTRATION_APP_ID); echo 'App Registration App ID' ${TF_VAR_app_registration_app_id}
+                              export TF_VAR_webapp_client_secret=$(WEB_APP_CLIENT_SECRET)
+                              export TF_VAR_use_webapp=true
+
+                          fi
+
+                          bootstrapped=0
 
                       if [ ! -f $deployer_environment_file_name ]; then
                           az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value")
@@ -555,13 +575,13 @@ stages:
                       export SAP_AUTOMATION_REPO_PATH=$SAP_AUTOMATION_REPO_PATH
 
                       echo -e "$green--- File Validations ---$reset"
-                      if [ ! -f DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
+                      if [ ! -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) ]; then
                           echo -e "$boldred--- File ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found ---$reset"
                           echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) was not found."
                           exit 2
                       fi
 
-                      if [ ! -f LIBRARY/$(libraryfolder)/$(libraryconfig) ]; then
+                      if [ ! -f ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig) ]; then
                           echo -e "$boldred--- File ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)  was not found ---$reset"
                           echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig) was not found."
                           exit 2
@@ -600,6 +620,10 @@ stages:
                       else
                           if [ $USE_MSI != "true" ]; then
                               echo -e "$cyan--- Using SPN ---$reset"
+                              export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
+                              export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
+                              export ARM_TENANT_ID=$CP_ARM_TENANT_ID
+                              export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                               export ARM_USE_MSI=false
                               az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
 
@@ -865,35 +889,31 @@ stages:
 
                   displayName:         Deploy control plane
                   env:
-                      CP_ARM_CLIENT_ID:               $(CP_ARM_CLIENT_ID)
-                      CP_ARM_CLIENT_SECRET:           $(CP_ARM_CLIENT_SECRET)
-                      CP_ARM_SUBSCRIPTION_ID:         $(CP_ARM_SUBSCRIPTION_ID)
-                      ARM_TENANT_ID:                  $(APP_TENANT_ID)
-                      AZURE_DEVOPS_EXT_PAT:           $(PAT)
-                      CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-                      DEPLOYER_RANDOM_ID_SEED:        $(DEPLOYER_RANDOM_ID_SEED)
-                      DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
-                      IS_PIPELINE_DEPLOYMENT:         true
-                      LOGON_USING_SPN:                $(Logon_Using_SPN)
-                      POOL:                           $(POOL)
-                      SAP_AUTOMATION_REPO_PATH:       ${{ parameters.sap_automation_repo_path }}
-                      SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                      TF_APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)
-                      TF_IN_AUTOMATION:               true
-                      TF_LOG:                         $(TF_LOG)
-                      TF_VAR_agent_ado_url:           $(System.CollectionUri)
-                      TF_VAR_agent_pat:               $(PAT)
-                      TF_VAR_agent_pool:              $(POOL)
-                      TF_VAR_ansible_core_version:    $(ansible_core_version)
-                      TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
-                      TF_VAR_deployer_kv_user_arm_id: $(Deployer_Key_Vault)
-                      TF_VAR_spn_id:                  $(CP_ARM_OBJECT_ID)
-                      TF_VAR_tf_version:              $(tf_version)
-                      TF_VAR_use_webapp:              ${{ lower(parameters.use_webapp_param) }}
-                      TF_VAR_webapp_client_secret:    $(WEB_APP_CLIENT_SECRET)
-                      USE_MSI:                        $(Use_MSI)
-                      USE_WEBAPP:                     ${{ lower(parameters.use_webapp_param) }}
-                      WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
+                      SYSTEM_ACCESSTOKEN:          $(System.AccessToken)
+                      ARM_SUBSCRIPTION_ID:         $(CP_ARM_SUBSCRIPTION_ID)
+                      CP_ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
+                      CP_ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
+                      CP_ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
+                      TF_VAR_spn_id:               $(CP_ARM_OBJECT_ID)
+                      TF_VAR_agent_pool:           $(POOL)
+                      TF_VAR_agent_ado_url:        $(System.CollectionUri)
+                      TF_VAR_tf_version:           $(tf_version)
+                      TF_VAR_agent_pat:            $(PAT)
+                      AZURE_DEVOPS_EXT_PAT:        $(PAT)
+                      IS_PIPELINE_DEPLOYMENT:      true
+                      WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
+                      APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)
+                      keyvault:                    $(Deployer_Key_Vault)
+                      POOL:                        $(POOL)
+                      SAP_AUTOMATION_REPO_PATH:    ${{ parameters.sap_automation_repo_path }}
+                      CONFIG_REPO_PATH:            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+                      TF_VAR_ansible_core_version: $(ansible_core_version)
+                      TF_LOG:                      $(TF_LOG)
+                      TF_IN_AUTOMATION:            true
+                      DEPLOYER_TFSTATE_KEY:        "${{ parameters.deployer }}.terraform.tfstate"
+                      LOGON_USING_SPN:             $(Logon_Using_SPN)
+                      USE_MSI:                     $(Use_MSI)
+                      DEPLOYER_RANDOM_ID_SEED:     $(DEPLOYER_RANDOM_ID_SEED)
 
                   failOnStderr: false
 
@@ -927,7 +947,7 @@ stages:
                 clean:                 all
             steps:
                 - template:            templates\download.yaml
-                - task:                PostBuildCleanup@3
+                - task:                PostBuildCleanup@4
                 - task:                DotNetCoreCLI@2
                   displayName:         "Build the Configuration Web Application"
                   inputs:

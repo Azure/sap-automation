@@ -120,6 +120,11 @@
               failed_when:                 hana_installation.rc > 0
               when:                        hana_installation.rc == 1
           rescue:
+            - name:                      "Fail if HANA installation failed while importing the delivery unit AHCO_INA_SERVICE"
+              ansible.builtin.fail:
+                msg:                       "INSTALL:0026:Execute hdblcm failed at delivery unit AHCO_INA_SERVICE."
+              when:                        hana_installation.stderr is search(".*Import of delivery units failed.*Cannot import delivery unit.*AHCO_INA_SERVICE.tgz.*")
+
             - name:                        "Fail if HANA installation failed on second attempt."
               ansible.builtin.fail:
                 msg:                       "INSTALL:0022:Execute hdblcm failed."

@@ -31,6 +31,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
 
   enable_https_traffic_only            = true
 
+  cross_tenant_replication_enabled     = false
   shared_access_key_enabled            = var.storage_account_sapbits.shared_access_key_enabled
 
   blob_properties {
@@ -105,14 +106,15 @@ resource "azurerm_role_assignment" "storage_tfstate_contributor_ssi" {
 
 resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.use_private_endpoint && var.use_custom_dns_a_registration && !local.sa_tfstate_exists ? 1 : 0
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_private_endpoint && var.use_custom_dns_a_registration && !local.sa_tfstate_exists ? 1 : 0
   depends_on                           = [
                                            azurerm_private_dns_zone.blob
                                          ]
   name                                 = lower(azurerm_storage_account.storage_tfstate[0].name)
-  zone_name                            = var.dns_zone_names.blob_dns_zone_name
+  zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = coalesce(
-                                           var.management_dns_resourcegroup_name,
+                                           var.dns_settings.privatelink_dns_resourcegroup_name,
+                                           var.dns_settings.management_dns_resourcegroup_name,
                                            local.resource_group_exists ? (
                                              data.azurerm_resource_group.library[0].name
                                              ) : (
@@ -184,9 +186,9 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
                              }
 
   dynamic "private_dns_zone_group" {
-                                     for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
+                                     for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0)
                                      content {
-                                               name                 = var.dns_zone_names.blob_dns_zone_name
+                                               name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
                                                private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.storage[0].id]
                                              }
                                    }
@@ -242,9 +244,9 @@ resource "azurerm_private_endpoint" "table_tfstate" {
                              }
 
   dynamic "private_dns_zone_group" {
-                                     for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration && var.use_webapp ? 1 : 0)
+                                     for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_webapp ? 1 : 0)
                                      content {
-                                               name                 = var.dns_zone_names.blob_dns_zone_name
+                                               name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
                                                private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.table[0].id : data.azurerm_private_dns_zone.table[0].id]
                                              }
                                    }
@@ -304,6 +306,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
 
   allow_nested_items_to_be_public      = false
 
+  cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.storage_account_sapbits.public_network_access_enabled
 
   routing {
@@ -346,9 +349,10 @@ resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" 
                                          ]
 
   name                                 = lower(azurerm_storage_account.storage_sapbits[0].name)
-  zone_name                            = var.dns_zone_names.blob_dns_zone_name
+  zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = coalesce(
-                                            var.management_dns_resourcegroup_name,
+                                           var.dns_settings.privatelink_dns_resourcegroup_name,
+                                           var.dns_settings.management_dns_resourcegroup_name,
                                             local.resource_group_exists ? (
                                               data.azurerm_resource_group.library[0].name) : (
                                               azurerm_resource_group.library[0].name)
@@ -416,7 +420,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
   dynamic "private_dns_zone_group" {
                                       for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
                                       content {
-                                                name                 = var.dns_zone_names.blob_dns_zone_name
+                                                name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
                                                 private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.storage[0].id]
                                               }
 
@@ -486,18 +490,24 @@ resource "azurerm_role_assignment" "storage_sapbits_contributor_ssi" {
 
 
 data "azurerm_private_dns_zone" "storage" {
-  provider                             = azurerm.dnsmanagement
-  count                                = !local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
-  name                                 = var.dns_zone_names.blob_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  provider                             = azurerm.privatelinkdnsmanagement
+  count                                = !local.use_local_private_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  name                                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
+  resource_group_name                  = coalesce(
+                                           var.dns_settings.privatelink_dns_resourcegroup_name,
+                                           var.dns_settings.management_dns_resourcegroup_name
+                                           )
 
 }
 
 data "azurerm_private_dns_zone" "table" {
-  provider                             = azurerm.dnsmanagement
-  count                                = !local.use_local_private_dns && var.use_private_endpoint ? 1 : 0
-  name                                 = var.dns_zone_names.table_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  provider                             = azurerm.privatelinkdnsmanagement
+  count                                = !local.use_local_private_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  name                                 = var.dns_settings.dns_zone_names.table_dns_zone_name
+  resource_group_name                  = coalesce(
+                                           var.dns_settings.privatelink_dns_resourcegroup_name,
+                                           var.dns_settings.management_dns_resourcegroup_name
+                                           )
 
 }
 

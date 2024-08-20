@@ -45,7 +45,7 @@ variable "short_named_endpoints_nics"            {
 
 variable "use_spn"                               {
                                                   description = "Log in using a service principal when performing the deployment"
-                                                  default     = true
+                                                  default     = false
                                                  }
 
 #######################################4#######################################8
@@ -300,3 +300,26 @@ variable "dns_zone_names"                        {
                                                    }
                                                  }
 
+variable "register_storage_accounts_keyvaults_with_dns" {
+                                                     description = "Boolean value indicating if storage accounts and key vaults should be registered to the corresponding dns zones"
+                                                     default     = true
+                                                     type        = bool
+                                                   }
+
+variable "register_endpoints_with_dns"             {
+                                                     description = "Boolean value indicating if endpoints should be registered to the dns zone"
+                                                     default     = true
+                                                     type        = bool
+                                                   }
+
+variable "privatelink_dns_subscription_id"       {
+                                                   description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate subscription"
+                                                   default     = ""
+                                                   type        = string
+                                                 }
+
+variable "privatelink_dns_resourcegroup_name"    {
+                                                   description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate resourcegroup"
+                                                   default     = ""
+                                                   type        = string
+                                                 }

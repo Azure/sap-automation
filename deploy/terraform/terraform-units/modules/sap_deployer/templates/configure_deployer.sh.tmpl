@@ -809,6 +809,7 @@ else
             ;;
         esac
       else
+        echo "NO TOKEN specified"
         echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}":'$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
 
         echo "export SAP_AUTOMATION_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh

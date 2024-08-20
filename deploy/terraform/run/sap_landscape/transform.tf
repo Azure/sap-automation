@@ -162,10 +162,21 @@ locals {
                                          ) > 0
 
   ams_instance                        = {
-                                            name                 = var.ams_instance_name
-                                            create_ams_instance  = var.create_ams_instance
-                                            ams_laws_arm_id      = var.ams_laws_arm_id
+                                           name                    = var.ams_instance_name
+                                           create_ams_instance     = var.create_ams_instance
+                                           ams_laws_arm_id         = var.ams_laws_arm_id
                                         }
+
+  nat_gateway                         = {
+                                           create_nat_gateway      = var.deploy_nat_gateway
+                                           name                    = var.nat_gateway_name
+                                           arm_id                  = try(var.nat_gateway_arm_id, "")
+                                           region                  = lower(coalesce(var.location, try(var.infrastructure.region, "")))
+                                           public_ip_zones         = try(var.nat_gateway_public_ip_zones, ["1", "2", "3"])
+                                           public_ip_arm_id        = try(var.nat_gateway_public_ip_arm_id, "")
+                                           idle_timeout_in_minutes = var.nat_gateway_idle_timeout_in_minutes
+                                           ip_tags                 = try(var.nat_gateway_public_ip_tags, {})
+                                         }
 
   temp_infrastructure                  = {
                                            environment                  = coalesce(var.environment, try(var.infrastructure.environment, ""))
@@ -175,6 +186,8 @@ locals {
                                            deploy_monitoring_extension  = var.deploy_monitoring_extension
                                            deploy_defender_extension    = var.deploy_defender_extension
                                            user_assigned_identity_id    = var.user_assigned_identity_id
+                                           patch_mode                   = var.patch_mode
+                                           patch_assessment_mode        = var.patch_assessment_mode
                                          }
 
   authentication                       = {
@@ -568,6 +581,10 @@ locals {
                                           {
                                             "ams_instance" = local.ams_instance
                                           }
+                                          ), (
+                                          {
+                                            "nat_gateway" = local.nat_gateway
+                                          }
                                           ),(
                                           local.iscsi.iscsi_count > 0 ? (
                                             {
@@ -608,6 +625,23 @@ locals {
                                           install_volume_throughput   = var.ANF_install_volume_throughput
                                           install_volume_zone         = var.ANF_install_volume_zone[0]
 
-                                       }
+                                         }
+
+  dns_settings                         = {
+                                           use_custom_dns_a_registration                = var.use_custom_dns_a_registration
+                                           dns_label                                    = var.dns_label
+                                           dns_zone_names                               = var.dns_zone_names
+                                           dns_server_list                              = var.dns_server_list
+
+                                           management_dns_resourcegroup_name            = coalesce(var.management_dns_resourcegroup_name,local.saplib_resource_group_name)
+                                           management_dns_subscription_id               = coalesce(var.management_dns_subscription_id, local.saplib_subscription_id)
+
+                                           privatelink_dns_subscription_id              = coalesce(var.privatelink_dns_subscription_id,var.management_dns_subscription_id, local.saplib_subscription_id)
+                                           privatelink_dns_resourcegroup_name           = coalesce(var.privatelink_dns_resourcegroup_name,var.management_dns_resourcegroup_name,local.saplib_resource_group_name)
+
+                                           register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
+                                           register_endpoints_with_dns                  = var.register_endpoints_with_dns
+                                           register_virtual_network_to_dns              = var.register_virtual_network_to_dns
+                                         }
 
 }

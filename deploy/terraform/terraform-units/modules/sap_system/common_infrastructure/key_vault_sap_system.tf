@@ -103,12 +103,11 @@ resource "random_password" "password" {
   override_special                     = "_%@"
 }
 
-
 // Store the logon username in KV when authentication type is password
 resource "azurerm_key_vault_secret" "auth_username" {
   provider                             = azurerm.main
   count                                = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
-  name                                 = format("%s-username", local.prefix)
+  name                                 = format("%s-username", try(coalesce(var.naming.resource_prefixes.sdu_secret, local.prefix), ""))
   value                                = local.sid_auth_username
   key_vault_id                         = length(local.user_key_vault_id) > 0 ? data.azurerm_key_vault.sid_keyvault_user[0].id : azurerm_key_vault.sid_keyvault_user[0].id
   tags                                 = var.tags
@@ -118,7 +117,7 @@ resource "azurerm_key_vault_secret" "auth_username" {
 resource "azurerm_key_vault_secret" "auth_password" {
   provider                             = azurerm.main
   count                                = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
-  name                                 = format("%s-password", local.prefix)
+  name                                 = format("%s-password", try(coalesce(var.naming.resource_prefixes.sdu_secret, local.prefix), ""))
   value                                = local.sid_auth_password
   key_vault_id                         = length(local.user_key_vault_id) > 0 ? data.azurerm_key_vault.sid_keyvault_user[0].id : azurerm_key_vault.sid_keyvault_user[0].id
   tags                                 = var.tags
@@ -134,12 +133,11 @@ resource "tls_private_key" "sdu" {
   rsa_bits                             = 2048
 }
 
-
 // By default the SSH keys are stored in landscape key vault. By defining the authenticationb block the SDU keyvault
 resource "azurerm_key_vault_secret" "sdu_private_key" {
   provider                             = azurerm.main
   count                                = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
-  name                                 = format("%s-sshkey", local.prefix)
+  name                                 = format("%s-sshkey", try(coalesce(var.naming.resource_prefixes.sdu_secret, local.prefix), ""))
   value                                = local.sid_private_key
   key_vault_id                         = length(local.user_key_vault_id) > 0 ? data.azurerm_key_vault.sid_keyvault_user[0].id : azurerm_key_vault.sid_keyvault_user[0].id
   tags                                 = var.tags
@@ -148,7 +146,7 @@ resource "azurerm_key_vault_secret" "sdu_private_key" {
 resource "azurerm_key_vault_secret" "sdu_public_key" {
   provider                             = azurerm.main
   count                                = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
-  name                                 = format("%s-sshkey-pub", local.prefix)
+  name                                 = format("%s-sshkey-pub", try(coalesce(var.naming.resource_prefixes.sdu_secret, local.prefix), ""))
   value                                = local.sid_public_key
   key_vault_id                         = length(local.user_key_vault_id) > 0 ? data.azurerm_key_vault.sid_keyvault_user[0].id : azurerm_key_vault.sid_keyvault_user[0].id
   tags                                 = var.tags

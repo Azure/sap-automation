@@ -66,6 +66,9 @@
       register:                       co_location
       failed_when:                    co_location.rc > 1
 
+    - name:                            "5.6 SCSERS - SUSE - ENSA1 - remove priority-fencing-delay attribute"
+      ansible.builtin.shell:           crm_attribute --delete --name priority-fencing-delay
+
     # - name:                           " Bring primary node online "
     #   ansible.builtin.shell:          crm node online {{ primary_instance_name }}
 
@@ -100,6 +103,8 @@
 
     # - name:                            "5.6 SCSERS - SUSE - ENSA2 - Set the cluster on maintenance mode"
     #   ansible.builtin.shell:           crm configure property maintenance-mode=true
+    - name:                            "5.6 SCSERS - SUSE - ENSA2 - Set the priority fencing delay"
+      ansible.builtin.shell:           crm configure property priority-fencing-delay=30
 
     - name:                            "5.6 SCSERS - SUSE - ENSA2 - Configure SAP ASCS/SCS resources"
       ansible.builtin.shell: >
@@ -109,7 +114,7 @@
                                        params InstanceName={{ instance_name }} \
                                        START_PROFILE="{{ start_profile_path }}" \
                                        AUTOMATIC_RECOVER=false \
-                                       meta resource-stickiness=5000
+                                       meta resource-stickiness=5000 priority=100
       register:                        ascs_rsc_sap
       failed_when:                     ascs_rsc_sap.rc > 1
 

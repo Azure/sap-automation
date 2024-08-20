@@ -31,7 +31,6 @@ module "sap_deployer" {
   configure                                     = true
   deployer                                      = local.deployer
   deployer_vm_count                             = var.deployer_count
-  dns_zone_names                                = var.dns_zone_names
   enable_firewall_for_keyvaults_and_storage     = var.enable_firewall_for_keyvaults_and_storage
   enable_purge_control_for_keyvaults            = var.enable_purge_control_for_keyvaults
   firewall_deployment                           = local.firewall_deployment
@@ -39,8 +38,6 @@ module "sap_deployer" {
   firewall_allowed_ipaddresses                  = local.firewall_allowed_ipaddresses
   infrastructure                                = local.infrastructure
   key_vault                                     = local.key_vault
-  management_dns_resourcegroup_name             = var.management_dns_resourcegroup_name
-  management_dns_subscription_id                = var.management_dns_subscription_id
   options                                       = local.options
   place_delete_lock_on_resources                = var.place_delete_lock_on_resources
   public_network_access_enabled                 = var.public_network_access_enabled
@@ -51,11 +48,11 @@ module "sap_deployer" {
   ssh-timeout                                   = var.ssh-timeout
   subnets_to_add                                = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
   tf_version                                    = var.tf_version
-  use_custom_dns_a_registration                 = var.use_custom_dns_a_registration
   use_private_endpoint                          = var.use_private_endpoint
   use_service_endpoint                          = var.use_service_endpoint
   use_webapp                                    = var.use_webapp
   webapp_client_secret                          = var.webapp_client_secret
+  dns_settings                                  = local.dns_settings
 
 }
 

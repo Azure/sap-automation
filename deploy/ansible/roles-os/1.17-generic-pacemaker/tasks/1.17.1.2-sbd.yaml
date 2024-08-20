@@ -270,7 +270,7 @@
 
 # /*------------------------------------
 # |
-# | systemctl enable sbd
+# | systemctl enable sbd, iscsi, iscsid
 # |
 # +------------------------------------4
 # - name:                                   "systemctl enable sbd"
@@ -291,16 +291,23 @@
                                               (scs_cluster_type      == "ASD")   or
                                               (scs_cluster_type      == "ISCSI")       # scs_high_availability = true is already assumed
 
-# you need to restart cluster after enabling sbd
-# - name:                                    "systemctl restart pacemaker"
-#   ansible.builtin.systemd:
-#     name:                                  pacemaker
-#     state:                                 restarted
-#   when:
-#                                             - (database_cluster_type == "ASD")   or
-#                                               (database_cluster_type == "ISCSI") or
-#                                               (scs_cluster_type      == "ASD")   or
-#                                               (scs_cluster_type      == "ISCSI")       # scs_high_availability = true is already assumed
+- name:                                    "systemctl enable iscsi"
+  ansible.builtin.systemd:
+    name:                                  iscsi
+    enabled:                               true
+    daemon_reload:                         true
+  when:
+                                           - (database_cluster_type == "ISCSI") or
+                                             (scs_cluster_type      == "ISCSI")
+
+- name:                                    "systemctl enable iscsid"
+  ansible.builtin.systemd:
+    name:                                  iscsid
+    enabled:                               true
+    daemon_reload:                         true
+  when:
+                                           - (database_cluster_type == "ISCSI") or
+                                             (scs_cluster_type      == "ISCSI")
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

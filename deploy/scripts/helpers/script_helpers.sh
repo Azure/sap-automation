@@ -391,7 +391,10 @@ function validate_dependencies {
         return 2 #No such file or directory
     fi
     # Set Terraform Plug in cache
-    sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
+    if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]
+    then
+        mkdir /opt/terraform/.terraform.d/plugin-cache
+    fi
     sudo chown -R $USER:$USER /opt/terraform
     export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 

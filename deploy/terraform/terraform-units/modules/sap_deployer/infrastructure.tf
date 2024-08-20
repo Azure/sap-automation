@@ -88,6 +88,12 @@ resource "azurerm_storage_account" "deployer" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
   shared_access_key_enabled            = var.deployer.shared_access_key_enabled
+  network_rules {
+    default_action                     = "Deny"
+    virtual_network_subnet_ids         = [azurerm_subnet.subnet_mgmt[0].id]
+  }
+  cross_tenant_replication_enabled     = false
+  depends_on                           = [ azurerm_subnet.subnet_mgmt ]
 }
 
 data "azurerm_storage_account" "deployer" {
@@ -144,4 +150,5 @@ resource "azurerm_role_assignment" "resource_group_acsservice_msi" {
   role_definition_name                 = "Azure Center for SAP solutions administrator"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }
+
 

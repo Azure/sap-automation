@@ -57,7 +57,7 @@ data "azurerm_subnet" "webapp" {
 # Create the Windows App Service Plan
 resource "azurerm_service_plan" "appserviceplan" {
   count                                         = var.use_webapp ? 1 : 0
-  name                                          = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.LIBRARY, var.naming.resource_suffixes.app_service_plan, substr(random_id.deployer.hex, 0, 3)))
+  name                                          = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.DEPLOYER, var.naming.resource_suffixes.app_service_plan, substr(random_id.deployer.hex, 0, 3)))
   resource_group_name                           = local.resourcegroup_name
   location                                      = local.rg_appservice_location
   os_type                                       = "Windows"
@@ -143,10 +143,13 @@ resource "azurerm_windows_web_app" "webapp" {
   key_vault_reference_identity_id = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id
 
   identity                                   {
-    type                                        = length(var.deployer.user_assigned_identity_id) == 0 ? (
-                                                    "SystemAssigned") : (
-                                                    "SystemAssigned, UserAssigned"
-                                                  )
+    # type                                        = length(var.deployer.user_assigned_identity_id) == 0 ? (
+    #                                                 "SystemAssigned") : (
+    #                                                 "SystemAssigned, UserAssigned"
+    #                                               )
+    # for now set the identity type to "SystemAssigned, UserAssigned" as assigning identities
+    # is not supported by the provider when type is "SystemAssigned"
+    type                                        = "SystemAssigned, UserAssigned"
     identity_ids                                = [length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id ]
                                              }
   connection_string                          {

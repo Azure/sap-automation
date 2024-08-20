@@ -219,7 +219,9 @@ resource "azurerm_virtual_machine_extension" "configure" {
   count                                = var.auto_configure_deployer ? var.deployer_vm_count : 0
 
   depends_on                           = [
-                                           time_sleep.wait_for_VM
+                                           time_sleep.wait_for_VM,
+                                           azurerm_virtual_machine_extension.monitoring_extension_deployer_lnx,
+                                           azurerm_virtual_machine_extension.monitoring_defender_deployer_lnx
                                          ]
 
   name                                 = "configure_deployer"
@@ -251,4 +253,39 @@ resource "azurerm_virtual_machine_extension" "configure" {
                                            }
                                          )
 
+}
+
+resource "azurerm_virtual_machine_extension" "monitoring_extension_deployer_lnx" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_monitoring_extension   ? (
+                                           var.deployer_vm_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.deployer[count.index].id
+  name                                 = "Microsoft.Azure.Monitor.AzureMonitorLinuxAgent"
+  publisher                            = "Microsoft.Azure.Monitor"
+  type                                 = "AzureMonitorLinuxAgent"
+  type_handler_version                 = "1.0"
+  auto_upgrade_minor_version           = true
+}
+
+
+resource "azurerm_virtual_machine_extension" "monitoring_defender_deployer_lnx" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_defender_extension ? (
+                                           var.deployer_vm_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.deployer[count.index].id
+  name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityLinuxAgent"
+  publisher                            = "Microsoft.Azure.Security.Monitoring"
+  type                                 = "AzureSecurityLinuxAgent"
+  type_handler_version                 = "2.0"
+  auto_upgrade_minor_version           = true
+
+  settings                             = jsonencode(
+                                            {
+                                              "enableGenevaUpload"  = true,
+                                              "enableAutoConfig"  = true,
+                                              "reportSuccessOnUnsupportedDistro"  = true,
+                                            }
+                                          )
 }

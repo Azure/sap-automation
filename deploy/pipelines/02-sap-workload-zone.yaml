@@ -112,7 +112,7 @@ stages:
           clean:                       all
         steps:
           - template:                  templates\download.yaml
-          - task:                      PostBuildCleanup@3
+          - task:                      PostBuildCleanup@4
           - bash: |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m" ; cyan="\e[1;36m"
@@ -558,8 +558,6 @@ stages:
                   export landscape_tfstate_key=$(cat ${workload_environment_file_name} | grep landscape_tfstate_key= | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Zone State File' $landscape_tfstate_key
                 fi
 
-                az logout --output none
-
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "FENCING_SPN_ID.value")
                 if [ -z ${az_var} ]; then
                   echo "##vso[task.logissue type=warning]Variable FENCING_SPN_ID is not set. Required for highly available deployments"
@@ -571,7 +569,7 @@ stages:
                     az keyvault secret set --name ${workload_prefix}-fencing-spn-tenant --vault-name $workload_key_vault --value $(FENCING_SPN_TENANT)  --output none
                   fi
                 fi
-
+                az logout --output none
               echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
                 cd $(Build.Repository.LocalPath)
                 git pull

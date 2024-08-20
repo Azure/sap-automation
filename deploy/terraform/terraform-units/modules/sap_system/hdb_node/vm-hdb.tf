@@ -35,7 +35,7 @@ resource "azurerm_network_interface" "nics_dbnodes_admin" {
 
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
-  enable_accelerated_networking        = true
+  accelerated_networking_enabled        = true
   tags                                 = var.tags
 
   ip_configuration {
@@ -74,7 +74,7 @@ resource "azurerm_network_interface" "nics_dbnodes_db" {
 
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
-  enable_accelerated_networking        = true
+  accelerated_networking_enabled        = true
   tags                                 = var.tags
   dynamic "ip_configuration" {
                                iterator = pub
@@ -131,7 +131,7 @@ resource "azurerm_network_interface" "nics_dbnodes_storage" {
 
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
-  enable_accelerated_networking        = true
+  accelerated_networking_enabled        = true
   tags                                 = var.tags
 
   ip_configuration {
@@ -186,6 +186,11 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   admin_password                       = local.enable_auth_key ? null : var.sid_password
   disable_password_authentication      = !local.enable_auth_password
   tags                                 = merge(var.tags, local.tags)
+
+  patch_mode                                             = var.infrastructure.patch_mode
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+  vm_agent_platform_updates_enabled                      = true
 
   zone                                 = local.use_avset ? null : try(local.zones[count.index % max(local.db_zone_count, 1)], null)
 
@@ -567,6 +572,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_db_lnx" {
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
 }
 
@@ -583,6 +589,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_db_lnx" {
   type                                 = "AzureSecurityLinuxAgent"
   type_handler_version                 = "2.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
   settings                             = jsonencode(
                                             {

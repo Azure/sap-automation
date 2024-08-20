@@ -29,8 +29,6 @@ variable "network_resource_group"                       { description = "Resourc
 variable "options"                                      { description = "Dictionary of miscallaneous parameters" }
 variable "order_deployment"                             { description = "psuedo condition for ordering deployment" }
 variable "ppg"                                          { description = "Details of the proximity placement group" }
-variable "register_virtual_network_to_dns"              { description = "Boolean value indicating if the vnet should be registered to the dns zone" }
-variable "register_endpoints_with_dns"                  { description = "Boolean value indicating if endpoints should be registered to the dns zone" }
 variable "resource_group"                               { description = "Details of the resource group" }
 variable "route_table_id"                               { description = "Route table (if any) id" }
 variable "sap_sid"                                      { description = "The SID of the application" }
@@ -56,20 +54,8 @@ variable "use_msi_for_clusters"                         { description = "If true
 #                                                                                       #
 #########################################################################################
 
-variable "use_custom_dns_a_registration"                {
-                                                          description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
-                                                          default     = false
-                                                          type        = bool
-                                                        }
-variable "management_dns_subscription_id"               {
-                                                          description = "String value giving the possibility to register custom dns a records in a separate subscription"
-                                                          default     = null
-                                                          type        = string
-                                                        }
-variable "management_dns_resourcegroup_name"            {
-                                                          description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
-                                                          default     = null
-                                                          type        = string
+variable "dns_settings"                                 {
+                                                          description = "DNS Settings"
                                                         }
 
 

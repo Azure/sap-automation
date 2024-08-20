@@ -351,7 +351,7 @@ variable "automation_path_to_private_key"       {
 
 variable "use_spn"                              {
                                                   description = "Log in using a service principal when performing the deployment"
-                                                  default     = true
+                                                  default     = false
                                                 }
 
 
@@ -1050,6 +1050,18 @@ variable "management_dns_resourcegroup_name"    {
                                                   type        = string
                                                 }
 
+variable "privatelink_dns_subscription_id"         {
+                                                     description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate subscription"
+                                                     default     = ""
+                                                     type        = string
+                                                   }
+
+variable "privatelink_dns_resourcegroup_name"      {
+                                                     description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate resourcegroup"
+                                                     default     = ""
+                                                     type        = string
+                                                     }
+
 
 variable "dns_zone_names"                       {
                                                   description = "Private DNS zone names"
@@ -1073,6 +1085,12 @@ variable "register_endpoints_with_dns"          {
                                                   default     = true
                                                   type        = bool
                                                 }
+
+variable "register_storage_accounts_keyvaults_with_dns" {
+                                                     description = "Boolean value indicating if storage accounts and key vaults should be registered to the corresponding dns zones"
+                                                     default     = true
+                                                     type        = bool
+                                                   }
 
 #########################################################################################
 #                                                                                       #
@@ -1393,6 +1411,11 @@ variable "patch_mode"                           {
                                                   default     = "ImageDefault"
                                                 }
 
+variable "patch_assessment_mode"                {
+                                                  description = "If defined, define the patch mode for the virtual machines"
+                                                  default     = "ImageDefault"
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  Scaleout variables                                                                   #
@@ -1412,4 +1435,22 @@ variable "database_HANA_no_standby_role"        {
 variable "stand_by_node_count"                  {
                                                   description = "The number of standby nodes"
                                                   default = 0
+                                                }
+#########################################################################################
+#                                                                                       #
+#  SAP CAL Integration variables                                                        #
+#                                                                                       #
+#########################################################################################
+
+variable "enable_sap_cal"                       {
+                                                  description = "If true, will enable the SAP CAL integration"
+                                                  default = false
+                                                }
+variable "calapi_kv"                            {
+                                                  description = "The SAP CAL API Key Vault"
+                                                  default     = ""
+                                                }
+variable "sap_cal_product_name"                 {
+                                                  description = "If defined, will use SAP CAL for system installation"
+                                                  default     = ""
                                                 }
