@@ -192,6 +192,11 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
   vm_agent_platform_updates_enabled                      = true
 
+  patch_mode                                             = var.infrastructure.patch_mode
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+  vm_agent_platform_updates_enabled                      = true
+
   zone                                 = local.use_avset ? null : try(local.zones[count.index % max(local.db_zone_count, 1)], null)
 
   size                                 = local.hdb_vm_sku
