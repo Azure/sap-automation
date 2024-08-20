@@ -27,7 +27,7 @@
                                        directory='{{ profile_directory }}' fstype='nfs' fast_stop=no options='sec=sys,vers=4.1' \
                                        op start timeout="{{ cluster_sap_scs_timeouts.start }}" interval=0 \
                                        op stop timeout="{{ cluster_sap_scs_timeouts.stop }}"  interval=0 \
-                                       op monitor interval=200 timeout={{ clus_fs_mon_timeout | int }}
+                                       op monitor interval=20 timeout={{ clus_fs_mon_timeout | int }}
       register:                        ascs_fs_resource
       failed_when:                     ascs_fs_resource.rc > 1
 
@@ -172,7 +172,7 @@
                                        directory='/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' fstype='nfs' fast_stop=no options='sec=sys,vers=4.1' \
                                        op start timeout="{{ cluster_sap_scs_timeouts.start }}" interval=0 \
                                        op stop timeout="{{ cluster_sap_scs_timeouts.stop }}"  interval=0 \
-                                       op monitor interval=200 timeout={{ clus_fs_mon_timeout | int }}
+                                       op monitor interval=20 timeout={{ clus_fs_mon_timeout | int }}
       register:                        ers_fs_resource
       failed_when:                     ers_fs_resource.rc > 1
 
