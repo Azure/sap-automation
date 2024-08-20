@@ -172,6 +172,7 @@ variable "scs_server_count"                     {
                                                 }
 variable "scs_server_ips"                       { description = "List of IP addresses for the SCS Servers" }
 variable "scs_server_secondary_ips"             { description = "List of secondary IP addresses for the SCS Servers" }
+variable "scs_server_vm_resource_ids"           { description = "List of Virtual Machine resource IDs for the SCS servers" }
 variable "scs_vm_names"                         { description = "List of VM names for the SCS Servers" }
 variable "shared_home"                          { description = "If defined provides shared-home support" }
 variable "sid_keyvault_user_id"                 { description = "Defines the names for the resources" }
@@ -211,3 +212,16 @@ variable "ams_resource_id"                      { description = "Resource ID for
 variable "enable_os_monitoring"                 { description = "Enable OS monitoring" }
 variable "enable_ha_monitoring"                 { description = "Enable HA monitoring" }
 
+variable "enable_sap_cal"                       {
+                                                  description = "Enable SAP CAL"
+                                                  default     = false
+                                                  type        = bool
+                                                }
+variable "calapi_kv"                            {
+                                                  description = "Keyvault for CAL API"
+                                                  default     = ""
+                                                }
+variable "sap_cal_product_name"                 {
+                                                  description = "Product name of SAP CAL"
+                                                  default     = ""
+                                                }

@@ -129,21 +129,12 @@
     - platform == "HANA"
     - db_port_open.msg is defined
 
-- name:                                "PAS Install: Set schema_name variable for HANA"
-  when: platform == "HANA"
-  block:
-    - name:                            "PAS Install: Get DEFAULT.PFL"
-      ansible.builtin.slurp:
-        src:                           "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
-      register: profilefile
-
-    - name:                            "PAS Install: Get schema name"
-      ansible.builtin.set_fact:
-        schema_name:                   "{{ profilefile['content'] | b64decode | split('\n') | select('search', 'dbs/hdb/schema') | first | split('=') | last | trim | default('{{ hana_schema }}') }}"
-
-    - name:                            "PAS Install: Show schema name"
-      ansible.builtin.debug:
-        msg:                           "Schema name {{ schema_name }}"
+- name:                               "PAS Install: Set Schema Name"
+  when:
+    - platform == "HANA"
+  ansible.builtin.include_role:
+    name:                             "roles-db/4.0.4-hdb-schema"
+    public:                           true
 
 - name:                                "DBLoad Install: register variables (initial)"
   ansible.builtin.set_fact:

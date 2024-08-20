@@ -1,4 +1,3 @@
-using AutomationForm.Models;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using static AutomationForm.Models.CustomValidators;
@@ -263,7 +262,7 @@ namespace AutomationForm.Models
 
     public string[] ANF_install_volume_zone { get; set; }
 
-    
+
     /*---------------------------------------------------------------------------8
     |                                                                            |
     |                              DNS information                               |
@@ -273,6 +272,10 @@ namespace AutomationForm.Models
     public string management_dns_resourcegroup_name { get; set; }
 
     public string management_dns_subscription_id { get; set; }
+
+    public string privatelink_dns_resourcegroup_name { get; set; }
+
+    public string privatelink_dns_subscription_id { get; set; }
 
     public bool? use_custom_dns_a_registration { get; set; } = false;
 
@@ -355,11 +358,23 @@ namespace AutomationForm.Models
     [PrivateEndpointIdValidator]
     public string install_private_endpoint_id { get; set; }
 
-/*---------------------------------------------------------------------------8
-|                                                                            |
-|                         Utility VM information                             |
-|                                                                            |
-+------------------------------------4--------------------------------------*/
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                             VM patch information                           |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public string patch_mode { get; set; } = "ImageDefault";
+    public string patch_assessment_mode { get; set; } = "ImageDefault";
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                         Utility VM information                             |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
 
     public int? utility_vm_count { get; set; } = 0;
 
@@ -368,7 +383,7 @@ namespace AutomationForm.Models
     public string utility_vm_os_disk_size { get; set; } = "128";
 
     public string utility_vm_os_disk_type { get; set; } = "Premium_LRS";
-    
+
     public bool? utility_vm_useDHCP { get; set; } = true;
 
     public Image utility_vm_image { get; set; }
@@ -430,8 +445,32 @@ namespace AutomationForm.Models
 
     public string ams_instance_name { get; set; }
 
-    [AMSIdValidator(ErrorMessage = "Invalid User Assigned id")]
+    [AMSIdValidator(ErrorMessage = "Invalid Workspace id")]
     public string ams_laws_arm_id { get; set; }
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                           NAT Gateway information                          |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public bool? deploy_nat_gateway { get; set; } = false;
+
+    public string nat_gateway_name { get; set; }
+
+
+    [NATIdValidator(ErrorMessage = "Invalid NAT Gateway id")]
+    public string nat_gateway_arm_id { get; set; }
+
+    public string[] nat_gateway_public_ip_zones { get; set; }
+
+    [PIPIdValidator(ErrorMessage = "Invalid Public IP id")]
+    public string nat_gateway_public_ip_arm_id { get; set; }
+
+    public int? nat_gateway_idle_timeout_in_minutes { get; set; }
+
+    public Tag[] nat_gateway_public_ip_tags { get; set; }
 
   }
 }

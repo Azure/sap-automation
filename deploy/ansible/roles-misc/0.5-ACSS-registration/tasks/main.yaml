@@ -3,7 +3,7 @@
 # Validate that the SCS cluster is working as expected
 - name:                                "0.5.1 acss registration: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
-    python_version:                    "python2"
+    python_version: "python3"
   when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
 
 - name:                                "0.5.1 acss registration: - Determine if SCS is running on {{ ansible_hostname }}"
@@ -195,7 +195,7 @@
           x-ms-rpaas-new-resource:     "true"
           x-ms-client-request-id:      "SDAF-{{ acss_guid.stdout }}"
       register:                        create_vis_response
-      failed_when:                     create_vis_response.json.properties.provisioningState != 'Accepted'
+      failed_when:                     create_vis_response.json.properties.provisioningState != 'Accepted' and create_vis_response.json.properties.provisioningState != 'Succeeded'
       no_log:                          false
 
     - name:                            "0.5.1 acss registration: - Debug [ACSS] virtual instance creation response"

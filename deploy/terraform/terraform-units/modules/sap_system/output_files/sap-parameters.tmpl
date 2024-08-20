@@ -210,4 +210,18 @@ ams_resource_id:                      ${ams_resource_id}
 enable_os_monitoring:                 ${enable_os_monitoring}
 enable_ha_monitoring:                 ${enable_ha_monitoring}
 
+%{~ if enable_sap_cal }
+
+#############################################################################
+#                                                                           #
+#                        SAP CAL Integration                                #
+#                                                                           #
+#############################################################################
+
+# Defines if the installation is to be deployed using SAP CAL
+enable_sap_cal:                       ${enable_sap_cal}
+calapi_kv:                            ${calapi_kv}
+sap_cal_product_name:                 ${sap_cal_product_name}
+
+%{~ endif }
 ...

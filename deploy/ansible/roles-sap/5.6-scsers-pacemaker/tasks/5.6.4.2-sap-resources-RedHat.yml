@@ -106,12 +106,29 @@
       register:                        co_location
       failed_when:                     co_location.rc > 1
 
-    # - name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the Cluster out of maintenance mode"
-    #   ansible.builtin.shell:           pcs property set maintenance-mode=false
+- name:                                "5.6 SCSERS - RHEL - Check if the pacemaker package version is greater than pacemaker-2.0.4"
+  when:                                ansible_distribution_major_version in ["8", "9"]
+  ansible.builtin.set_fact:
+    is_pcmk_ver_gt_204:                "{{ ansible_facts.packages['pacemaker'][0].version is version('2.0.4', '>') | default(false) }}"
 
-    # - name:                            "5.6 SCSERS - RHEL - ENSA2 - pause the execution for 2 minutes"
-    #   ansible.builtin.wait_for:
-    #     timeout:                       120
+- name:                                "5.6 SCSERS - RHEL - Set properties for two node clusters"
+  when:
+    - inventory_hostname == primary_instance_name
+    - is_pcmk_ver_gt_204 | default(false)
+  block:
+    - name:                            "5.6 SCSERS - RHEL - set resource defaults 'priority'"
+      ansible.builtin.shell:           pcs resource defaults update priority=1
+      register:                        update_priority
+      failed_when:                     update_priority.rc > 1
+
+    - name:                            "5.6 SCSERS - RHEL - set ASCS/SCS default 'priority' to 10"
+      ansible.builtin.shell:           pcs resource update rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} meta priority=10
+      register:                        update_priority_sapinstance
+
+    - name:                            "5.6 SCSERS - RHEL - set priority-fencing-delay"
+      ansible.builtin.shell:           pcs property set priority-fencing-delay=15s
+      register:                        constraint
+      failed_when:                     constraint.rc > 1
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -143,9 +160,6 @@
 # | These are common tasks                                                      |
 # +------------------------------------+---------------------------------------*|
 
-# - name:                                "5.6 SCSERS - RHEL - Enable Maintenance mode for the cluster"
-#   ansible.builtin.shell:               pcs property set maintenance-mode=true
-
 - name:                                "5.6 SCSERS - RHEL - Reboot and wait 5 minutes"
   ansible.builtin.debug:
     msg:                               "Reboot and wait 5 minutes"
@@ -157,11 +171,18 @@
 
 - name:                                "5.6 SCSERS - RHEL - Set the Cluster out of maintenance mode"
   ansible.builtin.shell:               pcs property set maintenance-mode=false
+  run_once:                            true
 
 - name:                                "5.6 SCSERS - RHEL - Wait for 120 seconds for the cluster to stabilize"
   ansible.builtin.wait_for:
     timeout:                           120
   register:                            wait_for_connection_results
+
+# SCS node has been put on standby and resources have moved. The resource move constraints need to be cleared
+# Warning: Following resources have been moved and their move constraints are still in place: 'g-SID_ASCS'
+- name:                                "5.6 SCSERS - RHEL - Clear move constraints"
+  ansible.builtin.shell:               pcs resource clear g-{{ sap_sid | upper }}_{{ instance_type | upper }}
+  when: inventory_hostname == primary_instance_name
 
 - name:                                "5.6 SCSERS - RHEL ensure SAPInstance resources are started"
   ansible.builtin.shell: |
@@ -174,7 +195,6 @@
   run_once:                            true
   failed_when:                         false
 
-
 - name:                                "5.6 SCSERS - RHEL - SCS cluster group validation"
   ansible.builtin.include_tasks:
     file:                              "5.6.6-validate.yml"
@@ -183,8 +203,7 @@
       become_user:                     root
       tags:
         - "5.6.6-validate"
-  when:
-    - inventory_hostname == primary_instance_name
+  when: inventory_hostname == primary_instance_name
 
 - name:                                "5.6 SCSERS: Set Resources Flag"
   ansible.builtin.file:

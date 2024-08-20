@@ -127,6 +127,9 @@ locals {
                                               }
                                             }
                                           }
+  deploy_monitoring_extension      = var.deploy_monitoring_extension
+  deploy_defender_extension        = var.deploy_defender_extension
+
                                         }
   deployer                             = {
                                            size = try(
@@ -220,6 +223,17 @@ locals {
                                            use = var.use_webapp
                                            app_id = var.app_registration_app_id
                                            client_secret = var.webapp_client_secret
+                                         }
+
+  dns_settings                         = {
+                                           use_custom_dns_a_registration = var.use_custom_dns_a_registration
+                                           dns_zone_names = var.dns_zone_names
+
+                                           management_dns_resourcegroup_name = coalesce(var.management_dns_resourcegroup_name,local.saplib_resource_group_name)
+                                           management_dns_subscription_id = coalesce(var.management_dns_subscription_id, local.saplib_subscription_id)
+
+                                           privatelink_dns_subscription_id = coalesce(var.privatelink_dns_subscription_id,var.management_dns_subscription_id, local.saplib_subscription_id)
+                                           privatelink_dns_resourcegroup_name = coalesce(var.privatelink_dns_resourcegroup_name,var.management_dns_resourcegroup_name,local.saplib_resource_group_name)
                                          }
 
 }

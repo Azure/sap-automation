@@ -59,6 +59,19 @@ data "azurerm_network_security_group" "iscsi" {
   resource_group_name                  = split("/", local.sub_iscsi_nsg_arm_id)[4]
 }
 
+
+
+resource "azurerm_subnet_route_table_association" "iscsi" {
+  provider                             = azurerm.main
+  count                                = local.enable_iscsi && !local.SAP_virtualnetwork_exists && !local.sub_iscsi_exists ? 1 : 0
+  depends_on                           = [
+                                           azurerm_route_table.rt,
+                                           azurerm_subnet.iscsi
+                                         ]
+  subnet_id                            = local.sub_iscsi_exists ? var.infrastructure.vnets.sap.sub_iscsi.arm_id : azurerm_subnet.iscsi[0].id
+  route_table_id                       = azurerm_route_table.rt[0].id
+}
+
 // TODO: Add nsr to iSCSI's nsg
 
 /*
@@ -144,6 +157,11 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
   zone                                 = try(local.iscsi.zones[count.index % max(length(local.iscsi.zones), 1)], null)
 
   //custom_data = try(data.template_cloudinit_config.config_growpart.rendered, "Cg==")
+
+  patch_mode                                             = var.infrastructure.patch_mode
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+  vm_agent_platform_updates_enabled                      = true
 
   os_disk {
             name = format("%s%s%s%s%s",
@@ -327,7 +345,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_iscsi_lnx" {
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
-
+  automatic_upgrade_enabled            = true
 }
 
 resource "azurerm_virtual_machine_extension" "monitoring_defender_iscsi_lnx" {
@@ -342,13 +360,17 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_iscsi_lnx" {
   type                                 = "AzureSecurityLinuxAgent"
   type_handler_version                 = "2.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
   settings                             = jsonencode(
-                                            {
-                                              "enableGenevaUpload"  = true,
-                                              "enableAutoConfig"  = true,
-                                              "reportSuccessOnUnsupportedDistro"  = true,
+                                           {
+                                              "authentication"  =  {
+                                                   "managedIdentity" = {
+                                                        "identifier-name" : "mi_res_id",
+                                                        "identifier-value": var.infrastructure.iscsi.user_assigned_identity_id
+                                                      }
+                                                }
                                             }
-                                          )
+                                            )
 }
 

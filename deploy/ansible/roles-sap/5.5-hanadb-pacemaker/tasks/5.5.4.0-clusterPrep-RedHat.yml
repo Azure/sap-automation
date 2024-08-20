@@ -158,19 +158,19 @@
             loop_var:                  item
           when:                        is_nfs_secondary_configured
 
-        # - name:                        "Configure location constraints"
-        #   ansible.builtin.shell: >
-        #                                pcs constraint location {{ item.group_name }}
-        #                                rule score=-INFINITY resource-discovery=never \#uname eq {{ item.node }}
-        #   register:                    nfs_location_constraints
-        #   failed_when:                 false
-        #   ignore_errors:               true
-        #   loop:
-        #     - { group_name: 'g_hana_{{ db_sid | upper }}_NFS_1', node: '{{ secondary_instance_name }}' }
-        #     - { group_name: 'g_hana_{{ db_sid | upper }}_NFS_2', node: '{{ primary_instance_name }}'   }
-        #   loop_control:
-        #     loop_var:                  item
-        #   when:                        is_nfs_secondary_configured
+        - name:                        "Configure location constraints"
+          ansible.builtin.shell: >
+                                       pcs constraint location {{ item.group_name }}
+                                       rule score=-INFINITY resource-discovery=never \#uname eq {{ item.node }}
+          register:                    nfs_location_constraints
+          failed_when:                 false
+          ignore_errors:               true
+          loop:
+            - { group_name: 'g_hana_{{ db_sid | upper }}_NFS_1', node: '{{ secondary_instance_name }}' }
+            - { group_name: 'g_hana_{{ db_sid | upper }}_NFS_2', node: '{{ primary_instance_name }}'   }
+          loop_control:
+            loop_var:                  item
+          when:                        is_nfs_secondary_configured
 
         - name:                        "Check if location constraints did not error on {{ primary_instance_name }}"
           ansible.builtin.set_fact:

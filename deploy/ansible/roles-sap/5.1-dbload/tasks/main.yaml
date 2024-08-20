@@ -24,7 +24,7 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
-- name:                                "DBLoad: -  reset"
+- name:                                "DBLoad: - reset"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
     state:                             absent
@@ -364,9 +364,9 @@
         - job_result.rc is defined
         - job_result.rc == 0
 
-    - name:                            "DBLoad:  results"
+    - name:                            "DBLoad: results"
       ansible.builtin.debug:
-        msg:                           "DBLoad  succeeded"
+        msg:                           "DBLoad succeeded"
       when:
         - job_result.rc is defined
         - job_result.rc == 0
@@ -375,6 +375,20 @@
     # - import_tasks:                    "oracle-postprocessing.yaml"
     #   when:
     #     - node_tier in ["oracle","oracle-asm"]
+
+    - name:                            "DBLoad Install: Set Schema Name"
+      when:
+        - platform == "HANA"
+      ansible.builtin.include_role:
+        name:                          "roles-db/4.0.4-hdb-schema"
+        public:                        true
+
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
 
     - name:                            "DBLoad: Get hdbuserstore path"
       become:                          true
@@ -469,6 +483,13 @@
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
+
+    - name:                           "DBLoad Install: Set Schema Name"
+      when:
+        - platform == "HANA"
+      ansible.builtin.include_role:
+        name:                         "roles-db/4.0.4-hdb-schema"
+        public:                       true
 
     - name:                            "DBLoad: Get hdbuserstore path"
       become:                          true
