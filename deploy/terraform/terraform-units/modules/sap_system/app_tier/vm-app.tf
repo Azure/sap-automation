@@ -144,6 +144,12 @@ resource "azurerm_linux_virtual_machine" "app" {
 
   virtual_machine_scale_set_id         = length(var.scale_set_id) > 0 ? var.scale_set_id : null
 
+  patch_mode                                             = var.infrastructure.patch_mode
+
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+  vm_agent_platform_updates_enabled                      = true
+
   //If length of zones > 1 distribute servers evenly across zones
   zone                                 = var.application_tier.app_use_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
 
@@ -289,6 +295,15 @@ resource "azurerm_windows_virtual_machine" "app" {
 
 
   virtual_machine_scale_set_id         = length(var.scale_set_id) > 0 ? var.scale_set_id : null
+
+  // ImageDefault = Manual on Windows
+  // https://learn.microsoft.com/en-us/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes
+  patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
+  enable_automatic_updates                               = !(var.infrastructure.patch_mode == "ImageDefault")
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+  vm_agent_platform_updates_enabled                      = true
+
   //If length of zones > 1 distribute servers evenly across zones
   zone                                 = var.application_tier.app_use_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
 
@@ -305,10 +320,7 @@ resource "azurerm_windows_virtual_machine" "app" {
   admin_username                       = var.sid_username
   admin_password                       = var.sid_password
 
-  #ToDo: Remove once feature is GA  patch_mode = "Manual"
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
-  # ToDo Add back later
-# patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(var.application_tier.app_tags, var.tags)
 
@@ -511,6 +523,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_app_lnx" {
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
 }
 
@@ -526,6 +539,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_app_win" {
   type                                 = "AzureMonitorWindowsAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
 }
 
@@ -540,6 +554,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_app_lnx" {
   type                                 = "AzureSecurityLinuxAgent"
   type_handler_version                 = "2.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
   settings                             = jsonencode(
                                             {
@@ -561,6 +576,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_app_win" {
   type                                 = "AzureSecurityWindowsAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
   settings                             = jsonencode(
                                             {

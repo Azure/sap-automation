@@ -429,13 +429,13 @@ variable "use_custom_dns_a_registration"              {
 
 variable "management_dns_subscription_id"             {
                                                         description = "String value giving the possibility to register custom dns a records in a separate subscription"
-                                                        default     = null
+                                                        default     = ""
                                                         type        = string
                                                       }
 
 variable "management_dns_resourcegroup_name"          {
                                                         description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
-                                                        default     = null
+                                                        default     = ""
                                                         type        = string
                                                       }
 variable "dns_zone_names"                             {
@@ -449,6 +449,19 @@ variable "dns_zone_names"                             {
                                                           "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
                                                         }
                                                       }
+
+variable "privatelink_dns_subscription_id"            {
+                                                        description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate subscription"
+                                                        default     = ""
+                                                        type        = string
+                                                      }
+
+variable "privatelink_dns_resourcegroup_name"         {
+                                                        description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate resourcegroup"
+                                                        default     = ""
+                                                        type        = string
+                                                      }
+
 
 #########################################################################################
 #                                                                                       #

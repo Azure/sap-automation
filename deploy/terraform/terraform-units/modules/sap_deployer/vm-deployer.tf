@@ -219,7 +219,9 @@ resource "azurerm_virtual_machine_extension" "configure" {
   count                                = var.auto_configure_deployer ? var.deployer_vm_count : 0
 
   depends_on                           = [
-                                           time_sleep.wait_for_VM
+                                           time_sleep.wait_for_VM,
+                                           azurerm_virtual_machine_extension.monitoring_extension_deployer_lnx,
+                                           azurerm_virtual_machine_extension.monitoring_defender_deployer_lnx
                                          ]
 
   name                                 = "configure_deployer"

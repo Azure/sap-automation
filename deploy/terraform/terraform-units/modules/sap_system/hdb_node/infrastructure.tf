@@ -145,9 +145,9 @@ resource "azurerm_lb_rule" "hdb" {
 
 resource "azurerm_private_dns_a_record" "db" {
   provider                             = azurerm.dnsmanagement
-  count                                = local.enable_db_lb_deployment && length(local.dns_label) > 0 && var.register_virtual_network_to_dns ? 1 : 0
+  count                                = local.enable_db_lb_deployment && length(local.dns_label) > 0 && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
   name                                 = lower(format("%s%sdb%scl", var.sap_sid, local.database_sid, local.database_instance))
-  resource_group_name                  = coalesce(var.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
+  resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
   zone_name                            = local.dns_label
   ttl                                  = 300
   records                              = [try(azurerm_lb.hdb[0].frontend_ip_configuration[0].private_ip_address, "")]

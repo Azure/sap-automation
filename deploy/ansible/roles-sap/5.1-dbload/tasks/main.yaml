@@ -24,7 +24,7 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
-- name:                                "DBLoad: -  reset"
+- name:                                "DBLoad: - reset"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
     state:                             absent
@@ -334,9 +334,9 @@
         - job_result.rc is defined
         - job_result.rc == 0
 
-    - name:                            "DBLoad:  results"
+    - name:                            "DBLoad: results"
       ansible.builtin.debug:
-        msg:                           "DBLoad  succeeded"
+        msg:                           "DBLoad succeeded"
       when:
         - job_result.rc is defined
         - job_result.rc == 0

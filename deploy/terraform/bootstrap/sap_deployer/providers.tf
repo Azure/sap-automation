@@ -57,6 +57,15 @@ provider "azurerm"                     {
                                          alias                      = "dnsmanagement"
                                        }
 
+provider "azurerm"                     {
+                                         features {}
+                                         subscription_id            = try(coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id), null)
+                                         alias                      = "privatelinkdnsmanagement"
+                                         skip_provider_registration = true
+                                         storage_use_azuread        = true
+                                       }
+
+
 terraform                              {
                                          required_version = ">= 1.0"
                                          required_providers {
