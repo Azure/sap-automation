@@ -247,6 +247,10 @@ packages:
     - { tier: 'ha',    package: 'nmap',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-common',                          node_tier: 'all',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-pip',                                  node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-pip',                                  node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'python3-pip',                                  node_tier: 'hana',    state: 'present' }
+    - { tier: 'ha',    package: 'python3-pip',                                  node_tier: 'db2',     state: 'present' }
     # ------------------------- End - Packages required for Clustering -----------------------------------------8
     # ------------------------- Begin - Packages required for Start/Stop ------------------------------------8
     - { tier: 'ha',    package: 'sap-cluster-connector',                        node_tier: 'hana',    state: 'present' }
@@ -428,12 +432,6 @@ packages:
     - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
     - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',     state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'hana',    state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'hana',    state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'scs',     state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'ers',     state: 'present' }
-    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'ers',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'ers',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'hana',    state: 'present' }
@@ -446,12 +444,6 @@ packages:
     - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',     state: 'present' }
     # These package cause issues on SLES15 SP5 due to changes to the public cloud SDKs
     # https://www.suse.com/c/incompatible-changes-ahead-for-public-cloud-sdks/
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'hana',    state: 'absent'  }
-    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'hana',    state: 'absent'  }
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'scs',     state: 'absent'  }
-    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'scs',     state: 'absent'  }
-    - { tier: 'ha',    package: 'python3-azure-mgmt-compute',                   node_tier: 'ers',     state: 'absent'  }
-    - { tier: 'ha',    package: 'python3-azure-identity',                       node_tier: 'ers',     state: 'absent'  }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'ers',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'hana',    state: 'present' }
@@ -553,3 +545,7 @@ packages:
     - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
 #    - { tier: 'os',    package: 'kmod-oracleasm',                               node_tier: 'oracle-asm',     state: 'present' }
 #    - { tier: 'os',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
+
+  oraclelinux8.10:
+    - { tier: 'os',    package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
+    - { tier: 'os',    package: 'gdisk',                                        node_tier: 'all',            state: 'present' }

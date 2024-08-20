@@ -6,19 +6,31 @@
 - name:                                "1.17 Generic Pacemaker - Ensure a list of package version is available for checking the cloud-netconfig-azure version"
   ansible.builtin.package_facts:
 
+- name:                                "1.17 Generic Pacemaker - Debug systemd version"
+  ansible.builtin.debug:
+    msg:                               "SystemD version {{ ansible_facts.packages['systemd'][0].version }}"
+    verbosity:                         2
+
 # Pacemaker can create a large number of processes
-- name:                                "1.17 Generic Pacemaker - Ensure Process limit is raised"
+- name:                                "1.17 Generic Pacemaker - Ensure Process limit is raised (systemd < 234)"
   ansible.builtin.lineinfile:
     path:                              /etc/systemd/system.conf
     state:                             present
     regexp:                            "^#?\\s*DefaultTasksMax="
     line:                              "DefaultTasksMax=4096"
   register:                            raise_process_limit
-  when:                                (ansible_facts.packages['systemd'][0].version | float) < 234
+  when:                                ansible_facts.packages['systemd'][0].version is version('234', '<')
 
 # Create a drop in file for systemd.conf to raise the process limit in the directory
 # /etc/systemd/system.conf.d and update the value of DefaultTasksMax to 4096
-- name:                                "1.17 Generic Pacemaker - Ensure Process limit is raised"
+- name:                                "1.17 Generic Pacemaker - Create directory for drop file (systemd > 233)"
+  ansible.builtin.file:
+    path:                              /etc/systemd/system.conf.d
+    state:                             directory
+    mode:                              '0644'
+  when:                                ansible_facts.packages['systemd'][0].version is version('234', '>=')
+
+- name:                                "1.17 Generic Pacemaker - Ensure Process limit is raised  (systemd > 233)"
   ansible.builtin.copy:
     dest:                               /etc/systemd/system.conf.d/99-pacemaker.conf
     content:                            |
@@ -26,7 +38,7 @@
                                         DefaultTasksMax=4096
     mode:                               '0644'
   register:                             raise_process_limit
-  when:                                 (ansible_facts.packages['systemd'][0].version | float) > 233
+  when:                                 ansible_facts.packages['systemd'][0].version is version('234', '>=')
 
 # eth0 is the "db" NIC
 - name:                                "1.17 Generic Pacemaker - Ensure clustering can manage Virtual IPs on the Database Interface"
@@ -37,7 +49,7 @@
     line:                              "CLOUD_NETCONFIG_MANAGE='no'"
   when:
                                        - ansible_facts.packages['cloud-netconfig-azure']
-                                       - (ansible_facts.packages['cloud-netconfig-azure'][0].version | float) < 1.3
+                                       - ansible_facts.packages['cloud-netconfig-azure'][0].version is version('1.3', '<')
 
 - name:                            "1.17 Generic Pacemaker - Stop SBD service"
   ansible.builtin.systemd:

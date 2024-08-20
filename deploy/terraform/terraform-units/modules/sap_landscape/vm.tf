@@ -67,6 +67,14 @@ resource "azurerm_windows_virtual_machine" "utility_vm" {
   admin_username                       = local.input_sid_username
   admin_password                       = local.input_sid_password
 
+  // ImageDefault = Manual on Windows
+  // https://learn.microsoft.com/en-us/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes
+  patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+  vm_agent_platform_updates_enabled                      = true
+  enable_automatic_updates                               = !(var.infrastructure.patch_mode == "ImageDefault")
+
   os_disk {
                  name                 = format("%s%s%s%s%s",
                                           var.naming.resource_prefixes.osdisk,
@@ -130,6 +138,11 @@ resource "azurerm_linux_virtual_machine" "utility_vm" {
   admin_password                       = local.input_sid_password
   disable_password_authentication      = true
 
+  patch_mode                                             = var.infrastructure.patch_mode
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+  vm_agent_platform_updates_enabled                      = true
+
   dynamic "admin_ssh_key"              {
                                         for_each = range(1)
                                         content {
@@ -180,6 +193,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_utility_lnx" 
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 }
 
 
@@ -193,6 +207,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_utility_win" 
   type                                 = "AzureMonitorWindowsAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 }
 
 
@@ -205,6 +220,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_utility_lnx" {
   type                                 = "AzureSecurityLinuxAgent"
   type_handler_version                 = "2.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
   settings                             = jsonencode(
                                             {
@@ -224,6 +240,8 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_utility_win" {
   type                                 = "AzureSecurityWindowsAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
+
   settings                             = jsonencode(
                                             {
                                               "enableGenevaUpload"  = true,

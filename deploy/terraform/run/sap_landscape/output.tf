@@ -203,6 +203,17 @@ output "management_dns_subscription_id"          {
                                                    value       = var.management_dns_subscription_id
                                                  }
 
+output "privatelink_dns_resourcegroup_name"       {
+                                                   description = "Resource group name for the resource group containing the PrivateLink DNS Zones"
+                                                   value       = coalesce(var.privatelink_dns_resourcegroup_name,var.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+                                                 }
+
+output "privatelink_dns_subscription_id"          {
+                                                   description = "Subscription ID for the PrivateLink Private DNS Zones"
+                                                   value       = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id)
+                                                 }
+
+
 output "privatelink_file_id"                     {
                                                    description = "Azure resource identifier for the zone for the file resources"
                                                    value       = module.sap_landscape.privatelink_file_id
@@ -212,6 +223,11 @@ output "register_virtual_network_to_dns"         {
                                                    description = "Boolean flag to indicate if the SAP virtual network are registered to DNS"
                                                    value       = var.register_virtual_network_to_dns
                                                  }
+
+output "register_storage_accounts_keyvaults_with_dns"         {
+                                                                description = "Boolean flag to indicate if the stor4agte accounts and key vaults are registered to DNS"
+                                                                value       = var.register_storage_accounts_keyvaults_with_dns
+                                                              }
 
 output "use_custom_dns_a_registration"           {
                                                    description = "Defines if custom DNS is used"

@@ -66,6 +66,17 @@ provider "azurerm"                     {
                                          storage_use_azuread        = true
                                        }
 
+provider "azurerm"                     {
+                                         features {}
+                                         subscription_id            = try(coalesce(var.privatelink_dns_subscription_id, local.spn.subscription_id), null)
+                                         client_id                  = local.use_spn ? local.spn.client_id : null
+                                         client_secret              = local.use_spn ? local.spn.client_secret : null
+                                         tenant_id                  = local.use_spn ? local.spn.tenant_id : null
+                                         alias                      = "privatelinkdnsmanagement"
+                                         skip_provider_registration = true
+                                         storage_use_azuread        = true
+                                       }
+
 provider "azuread"                     {
                                          client_id     = local.spn.client_id
                                          client_secret = local.spn.client_secret

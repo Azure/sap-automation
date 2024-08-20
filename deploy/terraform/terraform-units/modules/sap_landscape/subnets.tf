@@ -224,17 +224,6 @@ resource "azurerm_subnet_route_table_association" "web" {
   route_table_id                       = azurerm_route_table.rt[0].id
 }
 
-resource "azurerm_subnet_route_table_association" "ams" {
-  provider                             = azurerm.main
-  count                                = local.create_ams_instance && local.ams_subnet_defined && !local.SAP_virtualnetwork_exists && !local.ams_subnet_existing ? 1 : 0
-  depends_on                           = [
-                                           azurerm_route_table.rt,
-                                           azurerm_subnet.ams
-                                         ]
-  subnet_id                            = local.ams_subnet_existing ? var.infrastructure.vnets.sap.subnet_ams.arm_id : azurerm_subnet.ams[0].id
-  route_table_id                       = azurerm_route_table.rt[0].id
-}
-
 # Creates network security rule to allow internal traffic for SAP db subnet
 resource "azurerm_network_security_rule" "nsr_internal_db" {
   provider                             = azurerm.main

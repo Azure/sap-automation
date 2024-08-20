@@ -668,6 +668,18 @@ namespace AutomationForm.Models
 
     public int? use_fence_kdump_lun_scs { get; set; } = 4;
 
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                             VM patch information                           |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public string patch_mode { get; set; } = "ImageDefault";
+    public string patch_assessment_mode { get; set; } = "ImageDefault";
+
+
+
   }
 
   public class Tag
