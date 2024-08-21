@@ -448,6 +448,25 @@
       # Description:
       #
         - name:                        "BOM: {{ bom_name }} Copy File {{ bom_media_entry.archive }} -> {{ tools_directory }}/{{ bom_media_entry.filename }}"
+          ansible.builtin.file:
+            path:                      "{{ item }}"
+            state:                     directory
+            mode:                      0755
+            owner:                      "{{ orchestration_ansible_user if bom_processing_become else omit }}"
+          delegate_to:                 localhost
+          become:                      "{{ bom_processing_become }}"
+          become_user:                 root
+          loop:
+            - "{{ tools_directory }}"
+            - "{{ tools_directory }}/SWPM10"
+            - "{{ tools_directory }}/SWPM20"
+            - "{{ tools_directory }}/SWPM10WIN"
+            - "{{ tools_directory }}/SWPM20WIN"
+          when:
+            - bom.name | upper == "TOOLS"
+            - bom.maintenance_planner_tools | default(false)
+
+        - name:                        "BOM: {{ bom_name }} Copy File {{ bom_media_entry.archive }} -> {{ tools_directory }}/{{ bom_media_entry.filename }}"
           ansible.builtin.copy:
             src:                       "{{ download_directory }}/files/{{ bom_media_entry.archive }}"
             dest:                      "{{ tools_directory }}/{{ bom_media_entry.filename }}"
