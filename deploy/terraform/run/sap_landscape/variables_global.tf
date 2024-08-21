@@ -14,7 +14,11 @@ variable "tfstate_resource_id"         {
                                                     }
                                        }
 
-variable "deployer_tfstate_key"        { description                          = "The key of deployer's remote tfstate file" }
+variable "deployer_tfstate_key"        {
+                                        description = "The key of deployer's remote tfstate file"
+                                        type = string
+                                        default = ""
+                                      }
 
 variable "NFS_provider"                {
                                          type    = string
