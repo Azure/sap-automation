@@ -217,8 +217,10 @@
   when:
     - item.extract is not undefined
     - item.extract
-    - ( item.filename is undefined and (item.archive | regex_search('[^.]+(?=\\.*$)') | upper=="ZIP") ) or
-      ( item.filename is defined   and (item.filename | regex_search('[^.]+(?=\\.*$)') | upper=="ZIP") )
+    - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") ) or
+      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="ZIP") ) or
+      ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="TGZ") ) or
+      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="TGZ") )
 
 #   07) Extract files - EXE
 # - name:                                "3.3 BoM Processing: - Extract File, UNRAR"
