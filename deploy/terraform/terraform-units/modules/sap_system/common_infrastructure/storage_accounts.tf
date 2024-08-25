@@ -42,7 +42,7 @@ resource "azurerm_storage_account" "sapmnt" {
   tags                                 = var.tags
 
   network_rules {
-                  default_action = "Deny"
+                  default_action = "Allow"
                   virtual_network_subnet_ids = compact(
                     [
                       try(var.landscape_tfstate.admin_subnet_id, ""),

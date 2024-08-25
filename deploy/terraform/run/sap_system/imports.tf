@@ -28,7 +28,7 @@ data "terraform_remote_state" "landscape"            {
                                                                          container_name       = "tfstate"
                                                                          key                  = var.landscape_tfstate_key
                                                                          subscription_id      = local.saplib_subscription_id
-                                                                         use_msi              = var.use_spn ? false : true
+                                                                        #  use_msi              = var.use_spn ? false : true
                                                                        }
                                                      }
 

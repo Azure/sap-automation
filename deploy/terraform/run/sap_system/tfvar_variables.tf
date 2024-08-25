@@ -717,7 +717,7 @@ variable "scs_server_no_avset"                  {
 
 variable "scs_server_use_avset"                 {
                                                   description = "If true, the SAP Central Services tier will be placed in an availability set"
-                                                  default     = null
+                                                  default     = false
                                                   validation {
                                                                condition = (
                                                                  tobool(var.scs_server_use_avset) != null
