@@ -19,17 +19,17 @@
 #
 
 - name:                                   "Get Volume Group information"
-  ansible.builtin.shell:                  "vgdisplay --units g {{ vg_root }} | grep 'Free  PE / Size' | awk '{print $(NF-1)}'"
+  ansible.builtin.shell:                  set -o pipefail && vgdisplay --units g {{ vg_root }} | grep 'Free  PE / Size' | awk '{print $(NF-1)}'
   register:                               vg_info
   changed_when:                           false
 
 - name:                                   "Extract free size of the VG"
-  set_fact:
+  ansible.builtin.set_fact:
     vg_free_size:                         "{{ vg_info.stdout | float }}"
   when: vg_info is defined and vg_info.stdout is defined
 
 - name:                                   "Check if free size is more than 20 GB"
-  set_fact:
+  ansible.builtin.set_fact:
                                           sufficient_vg_space: "{{ vg_free_size | default(0) | float > 20.0 }}"
   when: vg_free_size is defined
   failed_when: sufficient_vg_space is not defined or not sufficient_vg_space
@@ -62,6 +62,7 @@
 # ------------------<DEBUGGING>-------------------
 - name:                                   "Print recent Volume Group size and Logical Volume information"
   ansible.builtin.shell: |
+                                          set -o pipefail
                                           vgdisplay --units g {{ vg_root }} | grep 'Free  PE / Size' | awk '{print $(NF-1)}'
                                           lvdisplay {{ vg_root }}
   register:                               recent_info
