@@ -264,3 +264,8 @@ lv_tmp_size:                            10g
 # ------------------- End - SAP CAL Integration variables ----------------------8
 
 python_version:                        "python3"
+
+
+# ------------------- Begin - SAP Functional Tests variables --------------------8
+sap_functional_test_type:              ""
+# ------------------- End - SAP Functional Tests variables --------------------8

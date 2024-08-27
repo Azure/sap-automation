@@ -14,6 +14,8 @@ parameters:
     sapParams: ''
     passwordSecretName: ''
     userNameSecretName: ''
+    sapFunctionalTestType: ''
+    telemetryDataDestination: ''
 
 steps:
 - bash: |
@@ -102,6 +104,7 @@ steps:
 
     command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey                               \
       -e @$SAP_PARAMS -e 'download_directory=$(Agent.TempDirectory)' -e '_workspace_directory=$PARAMETERS_FOLDER' \
+      -e 'sap_functional_test_type=$SAP_FUNCTIONAL_TEST_TYPE' -e 'telemetry_data_destination=$TELEMETRY_DATA_DESTINATION' \
       -e ansible_ssh_pass='${password_secret}' "$EXTRA_PARAMS" $EXTRA_PARAM_FILE                                   \
        $ANSIBLE_FILE_PATH"
 
@@ -128,6 +131,8 @@ steps:
 
     if [ -f  ${filename} ]; then
 
+      
+      export ANSIBLE_LOG_PATH=/var/log/ansible/ansible.log
       echo "##[group]- postconfiguration"
       redacted_command="ansible-playbook -i "$INVENTORY" -e @"$SAP_PARAMS" "$EXTRA_PARAMS" $EXTRA_PARAM_FILE "${filename}""
       echo "##[section]Executing [$redacted_command]..."
@@ -165,3 +170,5 @@ steps:
     VAULT_NAME:                     ${{ parameters.vaultName }}
     PASSWORD_KEY_NAME:              ${{ parameters.passwordSecretName }}
     USERNAME_KEY_NAME:              ${{ parameters.userNameSecretName }}
+    SAP_FUNCTIONAL_TEST_TYPE:       ${{ parameters.sapFunctionalTestType }}
+    TELEMETRY_DATA_DESTINATION:     ${{ parameters.telemetryDataDestination }}
