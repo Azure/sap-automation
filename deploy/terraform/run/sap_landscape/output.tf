@@ -210,7 +210,7 @@ output "privatelink_dns_resourcegroup_name"       {
 
 output "privatelink_dns_subscription_id"          {
                                                    description = "Subscription ID for the PrivateLink Private DNS Zones"
-                                                   value       = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id)
+                                                   value       = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.saplib_subscription_id)
                                                  }
 
 
