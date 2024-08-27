@@ -200,7 +200,7 @@ output "management_dns_resourcegroup_name"       {
 
 output "management_dns_subscription_id"          {
                                                    description = "Subscription ID for the public Private DNS Zone"
-                                                   value       = coalesce(var.management_dns_subscription_id, local.deployer_subscription_id)
+                                                   value       = coalesce(var.management_dns_subscription_id, local.saplib_subscription_id)
                                                  }
 
 output "privatelink_dns_resourcegroup_name"       {
