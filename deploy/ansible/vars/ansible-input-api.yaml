@@ -267,5 +267,5 @@ python_version:                        "python3"
 
 
 # ------------------- Begin - SAP Functional Tests variables --------------------8
-sap_functional_test_type:              ""
+sap_functional_tests_type:              ""
 # ------------------- End - SAP Functional Tests variables --------------------8
