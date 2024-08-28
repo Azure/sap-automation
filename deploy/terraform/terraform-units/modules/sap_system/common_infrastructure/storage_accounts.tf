@@ -78,7 +78,7 @@ data "azurerm_storage_account" "sapmnt" {
 
 resource "azurerm_private_endpoint" "sapmnt" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "AFS" ? (
+  count                                = var.NFS_provider == "AFS" && var.use_private_endpoint ? (
                                           length(var.sapmnt_private_endpoint_id) > 0 ? (
                                             0) : (
                                             1
