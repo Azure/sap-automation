@@ -18,7 +18,7 @@ resource "azurerm_private_dns_zone" "dns" {
 }
 resource "azurerm_private_dns_zone" "blob" {
   provider                             = azurerm.main
-  count                                = local.use_local_privatelink_dns && var.use_private_endpoint && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  count                                = local.use_local_privatelink_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   depends_on                           = [
                                            azurerm_resource_group.library
                                          ]
@@ -31,7 +31,7 @@ resource "azurerm_private_dns_zone" "blob" {
 
 resource "azurerm_private_dns_zone" "table" {
   provider                             = azurerm.main
-  count                                = local.use_local_privatelink_dns && var.use_private_endpoint && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  count                                = local.use_local_privatelink_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   depends_on                           = [
                                            azurerm_resource_group.library
                                          ]
@@ -44,7 +44,7 @@ resource "azurerm_private_dns_zone" "table" {
 
 resource "azurerm_private_dns_zone" "file" {
   provider                             = azurerm.main
-  count                                = local.use_local_privatelink_dns && var.use_private_endpoint && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  count                                = local.use_local_privatelink_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   depends_on                           = [
                                            azurerm_resource_group.library
                                          ]
@@ -57,7 +57,7 @@ resource "azurerm_private_dns_zone" "file" {
 
 resource "azurerm_private_dns_zone" "vault" {
   provider                             = azurerm.main
-  count                                = local.use_local_privatelink_dns && var.use_private_endpoint && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  count                                = local.use_local_privatelink_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   depends_on                           = [
                                            azurerm_resource_group.library
                                          ]
