@@ -871,6 +871,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "set_secret_expiry",
+        "Required": false,
+        "Description": "Sets expiry date for secrets",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },

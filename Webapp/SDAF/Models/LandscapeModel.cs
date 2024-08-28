@@ -316,6 +316,8 @@ namespace AutomationForm.Models
 
     public int? soft_delete_retention_days { get; set; } = 14;
 
+    public bool? set_secret_expiry { get; set; } = false;
+
     /*---------------------------------------------------------------------------8
     |                                                                            |
     |                                  NFS information                           |
