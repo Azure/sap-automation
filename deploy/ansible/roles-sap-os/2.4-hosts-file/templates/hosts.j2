@@ -104,7 +104,7 @@ ansible_facts.
 {%       endif %}
 {%     elif tier in ['hana', 'oracle', 'oracle-asm', 'db2', 'sybase'] %}
 {%       set db_virtual_host = hostvars[host]['custom_db_virtual_hostname'] if 'custom_db_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
-{%       if db_virtual_host not in virtual_host_names and not database_high_availability %}
+{%       if db_virtual_host not in virtual_host_names %}
 {%         set _ = virtual_host_names.append(db_virtual_host) %}
 {%       endif %}
 {%     endif %}
