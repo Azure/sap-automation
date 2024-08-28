@@ -135,6 +135,10 @@ resource "random_password" "created_password" {
   min_numeric                          = 2
 }
 
+## Add an expiry date to the secrets
+resource "time_offset" "secret_expiry_date" {
+  offset_months = 12
+}
 
 // Key pair/password will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV
 resource "azurerm_key_vault_secret" "sid_ppk" {
