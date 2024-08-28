@@ -61,12 +61,6 @@
   failed_when:                     qc_access_token_result.stdout == ""
   register:                        qc_access_token_result
 
-- name:                            "SAP on Azure quality checks: - retrieve client id in the context of azureadm on deployer"
-  delegate_to:                     localhost
-  no_log:                          true
-  ansible.builtin.command:         echo $ARM_CLIENT_ID
-  failed_when:                     gz_arm_client_id_result.stdout == ""
-  register:                        gz_arm_client_id_result
 
 - name:                            "SAP on Azure quality checks: - Run quality check"
   ansible.builtin.shell:
@@ -90,6 +84,7 @@
                                                       -SID {{ qc_sid }} `
                                                       -HighAvailability {{ '$' ~ qc_high_availability }} `
                                                       -OutputDirName {{ _workspace_directory }}/quality_assurance
+
   args:
     executable:                    "/usr/local/bin/pwsh"
     chdir:                         "/opt/microsoft/quality_check"
