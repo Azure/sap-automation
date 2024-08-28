@@ -136,7 +136,7 @@ resource "azurerm_virtual_network_peering" "peering_sap_management" {
 //Route table
 resource "azurerm_route_table" "rt" {
   provider                             = azurerm.main
-  count                                = local.SAP_virtualnetwork_exists ? 0 : 1
+  count                                = local.SAP_virtualnetwork_exists ? 0 : (local.create_nat_gateway ? 0 : 1)
   depends_on                           = [
                                            azurerm_virtual_network.vnet_sap
                                          ]
@@ -159,7 +159,7 @@ resource "azurerm_route_table" "rt" {
 
 resource "azurerm_route" "admin" {
   provider                             = azurerm.main
-  count                                = length(local.firewall_ip) > 0 ? local.SAP_virtualnetwork_exists ? 0 : 1 : 0
+  count                                = length(local.firewall_ip) > 0 ? local.SAP_virtualnetwork_exists ? 0 : (local.create_nat_gateway ? 0 : 1) : 0
   depends_on                           = [
                                            azurerm_route_table.rt
                                          ]
