@@ -115,6 +115,37 @@ resource "azurerm_network_interface" "iscsi" {
                    }
 }
 
+// Add SSH network security rule
+resource "azurerm_network_security_rule" "nsr_controlplane_iscsi" {
+  provider                             = azurerm.main
+  count                                = local.enable_sub_iscsi ? local.sub_iscsi_nsg_exists ? 0 : 1 : 0
+  depends_on                           = [
+                                           azurerm_network_security_group.iscsi
+                                         ]
+  name                                 = "ConnectivityToSAPApplicationSubnetFromControlPlane-ssh-rdp-winrm"
+  resource_group_name                  = local.SAP_virtualnetwork_exists ? (
+                                           data.azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                           ) : (
+                                           azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                         )
+  network_security_group_name          = try(azurerm_network_security_group.iscsi[0].name, azurerm_network_security_group.app[0].name)
+  priority                             = 100
+  direction                            = "Inbound"
+  access                               = "Allow"
+  protocol                             = "Tcp"
+  source_port_range                    = "*"
+  destination_port_ranges              = [22, 443, 3389, 5985, 5986, 2049, 111]
+  source_address_prefixes              = compact(concat(
+                                           var.deployer_tfstate.subnet_mgmt_address_prefixes,
+                                           var.deployer_tfstate.subnet_bastion_address_prefixes,
+                                           local.SAP_virtualnetwork_exists ? (
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : (
+                                             azurerm_virtual_network.vnet_sap[0].address_space
+                                           )))
+  destination_address_prefixes         = local.sub_iscsi_exists ? data.azurerm_subnet.iscsi[0].address_prefixes : azurerm_subnet.iscsi[0].address_prefixes
+}
+
+
 // Manages the association between NIC and NSG
 resource "azurerm_network_interface_security_group_association" "iscsi" {
   provider                             = azurerm.main
