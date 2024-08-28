@@ -6,6 +6,7 @@ oracle_user_name:                       oracle
 orchestration_ansible_user:             azureadm
 # ------------------- Begin - SDAF Ansible Version ---------------------------8
 SDAF_Version:                   "3.12.0.0"
+
 # ------------------- End - SDAF Ansible Version ---------------------------8
 
 # ------------------- Begin - OS Config Settings variables -------------------8

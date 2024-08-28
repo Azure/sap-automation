@@ -435,6 +435,7 @@ packages:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'ers',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'hana',    state: 'present' }
+
   sles_sap15.5:
     #  - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
     - { tier: 'os',    package: 'python3-xml',                                  node_tier: 'all',     state: 'present' }
