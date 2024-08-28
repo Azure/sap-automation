@@ -196,7 +196,7 @@
   block:
 
     - name:                            "ORACLE ASM: Install RPM Packages"
-      ansible.builtin.yum:
+      ansible.builtin.dnf:
         name:
           - "{{ target_media_location }}/downloads/oracleasmlib-2.0.17-1.el8.x86_64.rpm"
           - "{{ target_media_location }}/downloads/oracleasm-support-2.1.12-1.el8.x86_64.rpm"
