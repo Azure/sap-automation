@@ -177,12 +177,11 @@ resource "azurerm_subnet" "ams" {
              }
 }
 
-
 #Associate the subnets to the route table
 
 resource "azurerm_subnet_route_table_association" "admin" {
   provider                             = azurerm.main
-  count                                = local.admin_subnet_defined && !local.SAP_virtualnetwork_exists && !local.admin_subnet_existing ? 1 : 0
+  count                                = local.admin_subnet_defined && !local.SAP_virtualnetwork_exists && !local.admin_subnet_existing ? (local.create_nat_gateway ? 0 : 1) : 0
   depends_on                           = [
                                           azurerm_route_table.rt,
                                           azurerm_subnet.admin
@@ -193,7 +192,7 @@ resource "azurerm_subnet_route_table_association" "admin" {
 
 resource "azurerm_subnet_route_table_association" "db" {
   provider                             = azurerm.main
-  count                                = local.database_subnet_defined && !local.SAP_virtualnetwork_exists && !local.database_subnet_existing ? 1 : 0
+  count                                = local.database_subnet_defined && !local.SAP_virtualnetwork_exists && !local.database_subnet_existing ? (local.create_nat_gateway ? 0 : 1) : 0
   depends_on                           = [
                                            azurerm_route_table.rt,
                                            azurerm_subnet.db
@@ -204,7 +203,7 @@ resource "azurerm_subnet_route_table_association" "db" {
 
 resource "azurerm_subnet_route_table_association" "app" {
   provider                             = azurerm.main
-  count                                = local.application_subnet_defined && !local.SAP_virtualnetwork_exists && !local.application_subnet_existing ? 1 : 0
+  count                                = local.application_subnet_defined && !local.SAP_virtualnetwork_exists && !local.application_subnet_existing ? (local.create_nat_gateway ? 0 : 1) : 0
   depends_on                           = [
                                            azurerm_route_table.rt,
                                            azurerm_subnet.db
@@ -215,7 +214,7 @@ resource "azurerm_subnet_route_table_association" "app" {
 
 resource "azurerm_subnet_route_table_association" "web" {
   provider                             = azurerm.main
-  count                                = local.web_subnet_defined && !local.SAP_virtualnetwork_exists && !local.web_subnet_existing ? 1 : 0
+  count                                = local.web_subnet_defined && !local.SAP_virtualnetwork_exists && !local.web_subnet_existing ? (local.create_nat_gateway ? 0 : 1) : 0
   depends_on                           = [
                                            azurerm_route_table.rt,
                                            azurerm_subnet.web
