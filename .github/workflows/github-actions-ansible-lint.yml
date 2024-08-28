@@ -16,7 +16,7 @@ jobs:
       - name: Install Ansible and Ansible-Lint
         run: |
           python -m pip install --upgrade pip
-          pip install ansible-core ansible-lint==24.2.0 jmespath netaddr
+          pip install ansible-core ansible-lint==24.7.0 jmespath netaddr
 
       - name: Install Ansible Collections
         run: |
