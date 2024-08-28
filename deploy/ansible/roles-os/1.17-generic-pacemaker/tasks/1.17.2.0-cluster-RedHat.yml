@@ -236,7 +236,7 @@
 - name:                                "1.17 Generic Pacemaker - Install fence-agents-kdump package"
   when:
                                        - kdump_enabled | default("disabled") == "enabled"
-  ansible.builtin.yum:
+  ansible.builtin.dnf:
     name:                              fence-agents-kdump
     state:                             present
   register:                            fence_agents_kdump_package
