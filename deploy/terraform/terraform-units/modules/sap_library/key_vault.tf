@@ -88,7 +88,8 @@ resource "azurerm_private_dns_a_record" "kv_user" {
   zone_name                            = var.dns_settings.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,
-                                           var.dns_settings.management_dns_resourcegroup_name
+                                           var.dns_settings.management_dns_resourcegroup_name,
+                                           local.resource_group_name
                                            )
   ttl                                  = 3600
   records                              = [azurerm_private_endpoint.kv_user[0].private_service_connection[0].private_ip_address]
