@@ -376,6 +376,12 @@ variable "soft_delete_retention_days"           {
                                                   default     = 7
                                                 }
 
+variable "set_secret_expiry"                    {
+                                                  description = "Set expiry date for secrets"
+                                                  default     = false
+                                                  type        = bool
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  Authentication variables                                                             #

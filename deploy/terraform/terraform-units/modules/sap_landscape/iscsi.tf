@@ -264,6 +264,11 @@ resource "azurerm_key_vault_secret" "iscsi_ppk" {
   name                                 = local.iscsi_ppk_name
   value                                = local.iscsi_private_key
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+
 }
 
 resource "azurerm_key_vault_secret" "iscsi_pk" {
@@ -279,6 +284,10 @@ resource "azurerm_key_vault_secret" "iscsi_pk" {
   name                                 = local.iscsi_pk_name
   value                                = local.iscsi_public_key
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
 }
 
 resource "azurerm_key_vault_secret" "iscsi_username" {
@@ -294,6 +303,10 @@ resource "azurerm_key_vault_secret" "iscsi_username" {
   name                                 = local.iscsi_username_name
   value                                = local.iscsi_auth_username
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
 }
 
 resource "azurerm_key_vault_secret" "iscsi_password" {
@@ -309,6 +322,10 @@ resource "azurerm_key_vault_secret" "iscsi_password" {
   name                                 = local.iscsi_pwd_name
   value                                = local.iscsi_auth_password
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
 }
 
 // Generate random password if password is set as authentication type and user doesn't specify a password, and save in KV
