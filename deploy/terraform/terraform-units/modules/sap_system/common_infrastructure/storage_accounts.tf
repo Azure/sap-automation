@@ -37,6 +37,7 @@ resource "azurerm_storage_account" "sapmnt" {
   enable_https_traffic_only            = false
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
+  cross_tenant_replication_enabled     = false
 
   public_network_access_enabled        = try(var.landscape_tfstate.public_network_access_enabled, true)
   tags                                 = var.tags
