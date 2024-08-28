@@ -42,13 +42,12 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt" {
                                            var.naming.resource_suffixes.dns_link
                                          )
 
-  resource_group_name                  = length(var.dns_settings.management_dns_subscription_id) == 0 ? (
+  resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
+                                           var.dns_settings.management_dns_resourcegroup_name,
                                            local.resource_group_exists ? (
                                              split("/", var.infrastructure.resource_group.arm_id)[4]) : (
                                              azurerm_resource_group.library[0].name
-                                           )) : (
-                                           var.dns_settings.management_dns_resourcegroup_name
-                                         )
+                                         ))
   private_dns_zone_name                = var.dns_settings.dns_label
   virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
   registration_enabled                 = true
@@ -68,13 +67,12 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
                                            var.naming.resource_suffixes.dns_link
                                          )
 
-  resource_group_name                  = length(var.dns_settings.privatelink_dns_subscription_id) == 0 ? (
+  resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
+                                           var.dns_settings.management_dns_resourcegroup_name,
                                            local.resource_group_exists ? (
                                              split("/", var.infrastructure.resource_group.arm_id)[4]) : (
                                              azurerm_resource_group.library[0].name
-                                           )) : (
-                                           var.dns_settings.privatelink_dns_resourcegroup_name
-                                         )
+                                         ))
   private_dns_zone_name                = var.dns_settings.dns_zone_names.blob_dns_zone_name
   virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
   registration_enabled                 = false
