@@ -122,7 +122,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_iscsi" {
   depends_on                           = [
                                            azurerm_network_security_group.iscsi
                                          ]
-  name                                 = "ConnectivityToSAPApplicationSubnetFromControlPlane-ssh-rdp-winrm"
+  name                                 = "ConnectivityToISCSISubnetFromControlPlane-ssh-rdp-winrm"
   resource_group_name                  = local.SAP_virtualnetwork_exists ? (
                                            data.azurerm_virtual_network.vnet_sap[0].resource_group_name
                                            ) : (
