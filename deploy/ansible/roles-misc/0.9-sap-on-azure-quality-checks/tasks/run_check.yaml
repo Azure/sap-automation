@@ -54,6 +54,7 @@
                                    - "High Availability: {{ qc_high_availability }}"
     verbosity:                     2
 
+
 - name:                            "SAP on Azure quality checks: - get access token in the context of azureadm on deployer"
   delegate_to:                     localhost
   no_log:                          true
