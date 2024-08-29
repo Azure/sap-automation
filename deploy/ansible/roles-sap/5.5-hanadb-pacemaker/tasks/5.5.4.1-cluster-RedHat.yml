@@ -158,12 +158,9 @@
         - database_high_availability
         - NFS_provider == "ANF"
         - ansible_hostname == primary_instance_name
-        - hana_data_mountpoint is defined
-        - hana_data_mountpoint | length > 1
-        - hana_log_mountpoint is defined
-        - hana_log_mountpoint | length > 1
-        - hana_shared_mountpoint is defined
-        - hana_shared_mountpoint | length > 1
+        - hana_data_mountpoint | default("") | length > 1 or
+        - hana_log_mountpoint  | default("") | length > 1 or
+        - hana_shared_mountpoint  | default("") | length > 1
       block:
         - name:                        "5.5.4.1 HANA Cluster configuration - configure constraints between SAP HANA resources and NFS mounts"
           ansible.builtin.shell:       pcs constraint location SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone rule score=-INFINITY attr_hana_{{ db_sid | upper }}_NFS_1_active ne true and attr_hana_{{ db_sid | upper }}_NFS_2_active ne true
