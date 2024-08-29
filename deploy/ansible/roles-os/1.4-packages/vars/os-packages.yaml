@@ -448,6 +448,18 @@ packages:
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'ers',     state: 'present' }
     - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'hana',    state: 'present' }
+  sles_sap15.6:
+    #  - { tier: 'os',    package: 'sle-module-public-cloud',                                  state: 'present' }
+    - { tier: 'os',    package: 'python3-xml',                                  node_tier: 'all',     state: 'present' }
+    #  SLES15 SP4 has removed python 2, no python2-rpm package. Additionally, python-xml is now part of python-base and referenced as python3-xml
+    - { tier: 'db2',   package: 'system-user-bin',                              node_tier: 'db2',     state: 'present' }
+    - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',     state: 'present' }
+    # These package cause issues on SLES15 SP5 due to changes to the public cloud SDKs
+    # https://www.suse.com/c/incompatible-changes-ahead-for-public-cloud-sdks/
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',    package: 'fence-agents-azure-arm',                       node_tier: 'hana',    state: 'present' }
   # Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL.
   # Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and Upgrade. Need to add the groupinstall command.
   oraclelinux8:

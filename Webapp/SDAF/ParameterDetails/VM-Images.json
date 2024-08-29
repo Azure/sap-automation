@@ -216,6 +216,18 @@
     }
   },
   {
+    "name": "SUSE 15 SP6",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "SUSE",
+      "offer": "sles-sap-15-sp6",
+      "sku": "gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
     "name": "OracleLinux 8.2",
     "data": {
       "os_type": "LINUX",
