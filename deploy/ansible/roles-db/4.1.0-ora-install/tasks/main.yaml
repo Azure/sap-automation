@@ -65,7 +65,7 @@
   register:                            oracle_installed
 
 - name:                                "ORACLE: Install RPM Packages"
-  ansible.builtin.yum:
+  ansible.builtin.dnf:
     name:                              "{{ target_media_location }}/downloads/compat-libcap1-1.10-7.el7.x86_64.rpm"
     state:                             present
     disable_gpg_check:                 true

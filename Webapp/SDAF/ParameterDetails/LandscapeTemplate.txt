@@ -364,6 +364,9 @@ $$additional_users_to_add_to_keyvault_policies$$
 # The number of days that items should be retained in the soft delete period
 $$soft_delete_retention_days$$
 
+# Set expiry date for secrets
+$$set_secret_expiry$$
+
 #########################################################################################
 #                                                                                       #
 #  Credentials                                                                          #

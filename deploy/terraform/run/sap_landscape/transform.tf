@@ -200,9 +200,10 @@ locals {
                                            enable_secure_transfer = true
                                            use_spn                = var.use_spn || try(var.options.use_spn, true)
                                          }
-  key_vault_temp = {
-    exists = length(var.user_keyvault_id) > 0
-  }
+  key_vault_temp =                       {
+                                           exists                 = length(var.user_keyvault_id) > 0
+                                           set_secret_expiry      = var.set_secret_expiry
+                                         }
 
   user_keyvault_specified              = length(var.user_keyvault_id) > 0
 

@@ -135,6 +135,10 @@ resource "random_password" "created_password" {
   min_numeric                          = 2
 }
 
+## Add an expiry date to the secrets
+resource "time_offset" "secret_expiry_date" {
+  offset_months = 12
+}
 
 // Key pair/password will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV
 resource "azurerm_key_vault_secret" "sid_ppk" {
@@ -150,6 +154,10 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
   name                                  = local.sid_ppk_name
   value                                 = local.sid_private_key
   key_vault_id                          = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
 }
 
 data "azurerm_key_vault_secret" "sid_ppk" {
@@ -174,6 +182,10 @@ resource "azurerm_key_vault_secret" "sid_pk" {
   key_vault_id                         = local.user_keyvault_exist ? (
                                            local.user_key_vault_id) : (
                                            azurerm_key_vault.kv_user[0].id
+                                         )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
                                          )
 }
 
@@ -202,6 +214,10 @@ resource "azurerm_key_vault_secret" "sid_username" {
                                            local.user_key_vault_id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
 }
 
 data "azurerm_key_vault_secret" "sid_username" {
@@ -226,6 +242,10 @@ resource "azurerm_key_vault_secret" "sid_password" {
   key_vault_id                         = local.user_keyvault_exist ? (
                                            local.user_key_vault_id) : (
                                            azurerm_key_vault.kv_user[0].id
+                                         )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
                                          )
 }
 
@@ -268,6 +288,10 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
                                            local.user_key_vault_id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
 }
 
 //Witness access key
@@ -300,6 +324,10 @@ resource "azurerm_key_vault_secret" "witness_name" {
   key_vault_id                         = local.user_keyvault_exist ? (
                                            local.user_key_vault_id) : (
                                            azurerm_key_vault.kv_user[0].id
+                                         )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
                                          )
 }
 
@@ -349,6 +377,10 @@ resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
   key_vault_id                         = local.user_keyvault_exist ? (
                                            local.user_key_vault_id) : (
                                            azurerm_key_vault.kv_user[0].id
+                                         )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
                                          )
 }
 
