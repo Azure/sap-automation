@@ -203,7 +203,7 @@ namespace AutomationForm.Models
     public Tag[] configuration_settings { get; set; }
 
     public bool? dns_a_records_for_secondary_names { get; set; } = true;
-    public bool? use_private_endpoint { get; set; }
+    public bool? use_private_endpoint { get; set; } = true;
 
     public bool? use_service_endpoint { get; set; }
 
