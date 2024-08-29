@@ -44,11 +44,3 @@
     var:                               zypresult
     verbosity:                         2
 
-- name:                                "1.3 Repos: Add the HA repositories for RHEL"
-  ansible.builtin.dnf:
-    enablerepo:                        rhel-9-for-x86_64-highavailability-rpms
-    disable_gpg_check:                 true
-  changed_when:                        false
-  when:
-    - distribution_id in ['redhat9']
-    - node_tier == 'ha'
