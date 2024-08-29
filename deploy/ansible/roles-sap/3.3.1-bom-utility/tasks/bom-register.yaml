@@ -264,6 +264,8 @@
 - name:                                 "{{ task_prefix }} Show BOM object"
   ansible.builtin.debug:
     var:                                bom
+    verbosity:                          2
+
 - name:                                 "{{ task_prefix }} Validate that a BOM object is created"
   ansible.builtin.fail:
     msg:                                "Unable to find the Bill of materials file for {{ bom_name }}."
