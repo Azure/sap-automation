@@ -99,7 +99,7 @@
   when:                                updatesga_results.rc == 0
 
 # Wait for creation of HugePages
-# Rebbot the VM to avoid the error "ORA-27102: out of memory"
+# Reboot the VM to avoid the error "ORA-27102: out of memory"
 
 - name:                                "ORACLE Post Processing: DB VM reboot"
   block:
