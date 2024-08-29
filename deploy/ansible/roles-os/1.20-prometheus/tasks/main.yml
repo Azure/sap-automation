@@ -14,7 +14,7 @@
     - ansible_os_family | upper == "REDHAT"
   block:
     - name:                            "1.20 Packages: - Install pcp and pcp-pmda-hacluster package"
-      ansible.builtin.yum:
+      ansible.builtin.dnf:
         name:
           - "pcp"
           - "pcp-pmda-hacluster"

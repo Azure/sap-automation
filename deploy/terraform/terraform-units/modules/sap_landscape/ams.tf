@@ -9,7 +9,7 @@ data "azurerm_subnet" "ams" {
 
 resource "azurerm_subnet_route_table_association" "ams" {
   provider                             = azurerm.main
-  count                                = local.create_ams_instance && local.ams_subnet_defined && !local.SAP_virtualnetwork_exists && !local.ams_subnet_existing ? 1 : 0
+  count                                = local.create_ams_instance && local.ams_subnet_defined && !local.SAP_virtualnetwork_exists && !local.ams_subnet_existing ?  (local.create_nat_gateway ? 0 : 1)  : 0
   depends_on                           = [
                                            azurerm_route_table.rt,
                                            azurerm_subnet.ams

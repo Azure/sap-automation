@@ -1,20 +1,25 @@
 ---
 
-- name:                                   "SAP CAL Integration"
-  hosts:                                  "{{ sap_sid | upper }}_DB  :
-                                           {{ sap_sid | upper }}_SCS :
-                                           {{ sap_sid | upper }}_PAS :
-                                           {{ sap_sid | upper }}_APP"
+- name:                                    "SAP CAL Integration"
+  hosts:                                   "{{ sap_sid | upper }}_DB  :
+                                            {{ sap_sid | upper }}_SCS :
+                                            {{ sap_sid | upper }}_PAS :
+                                            {{ sap_sid | upper }}_APP"
   become:                                  true
   gather_facts:                            true
   vars_files:                              vars/ansible-input-api.yaml
   tasks:
-    - name:                                6.0.0-sapcal-install - Retrieve Resourced Data
+    - name:                                "SAP-CAL Integration"
       become:                              true
       when:
         - ansible_os_family | upper == "SUSE" or ansible_os_family | upper == "REDHAT"
         - enable_sap_cal is defined and enable_sap_cal
       block:
+        - name:                            "6.0.0-sapcal-install - Extend logical volumes"
+          when: ansible_os_family | upper == "REDHAT"
+          ansible.builtin.include_role:
+            name:                          roles-os/1.5.3-disk-setup-sapcal
+
         - name:                            "Retrieve Resource Group Name and ResourceID"
           ansible.builtin.uri:
             url:                           http://169.254.169.254/metadata/instance?api-version=2021-02-01
@@ -114,9 +119,9 @@
             - { key: 'app_physical_hostname',   value: 'APP' }
             - { key: 'app_virtual_hostname',    value: 'APP' }
 
-    - name:                                6.0.0-sapcal-install - CALL SAP CAL API
+    - name:                                "6.0.0-sapcal-install - CALL SAP CAL API"
       when:                                enable_sap_cal is defined and enable_sap_cal
       block:
-        - name:                            Import the 6.0.0-sapcal-install role
+        - name:                            "Import the 6.0.0-sapcal-install role"
           ansible.builtin.import_role:
             name:                          "roles-sap/6.0.0-sapcal-install"

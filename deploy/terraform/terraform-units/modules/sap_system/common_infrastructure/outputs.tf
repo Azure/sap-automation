@@ -238,7 +238,7 @@ output "sapmnt_path"                             {
                                                                    format("%s:/%s/%s",
                                                                      length(var.sapmnt_private_endpoint_id) == 0 ? (
                                                                        try(azurerm_private_endpoint.sapmnt[0].private_dns_zone_configs[0].record_sets[0].fqdn,
-                                                                         azurerm_private_endpoint.sapmnt[0].private_service_connection[0].private_ip_address
+                                                                         try(azurerm_private_endpoint.sapmnt[0].private_service_connection[0].private_ip_address,"")
                                                                        )) : (
                                                                        data.azurerm_private_endpoint_connection.sapmnt[0].private_service_connection[0].private_ip_address
                                                                      ),

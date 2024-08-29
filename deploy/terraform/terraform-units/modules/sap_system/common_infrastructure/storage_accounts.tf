@@ -37,6 +37,7 @@ resource "azurerm_storage_account" "sapmnt" {
   enable_https_traffic_only            = false
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
+  cross_tenant_replication_enabled     = false
 
   public_network_access_enabled        = try(var.landscape_tfstate.public_network_access_enabled, true)
   tags                                 = var.tags
@@ -77,7 +78,7 @@ data "azurerm_storage_account" "sapmnt" {
 
 resource "azurerm_private_endpoint" "sapmnt" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "AFS" ? (
+  count                                = var.NFS_provider == "AFS" && var.use_private_endpoint ? (
                                           length(var.sapmnt_private_endpoint_id) > 0 ? (
                                             0) : (
                                             1

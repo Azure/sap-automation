@@ -172,7 +172,7 @@
 
 
 - name:                                "ORACLE ASM: Install RPM Packages"
-  ansible.builtin.yum:
+  ansible.builtin.dnf:
     name:
       - "/oracle/GRID/{{ ora_version }}/cv/rpm/cvuqdisk-1.0.10-1.rpm"
     state:                             present

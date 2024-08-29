@@ -200,17 +200,16 @@ output "management_dns_resourcegroup_name"       {
 
 output "management_dns_subscription_id"          {
                                                    description = "Subscription ID for the public Private DNS Zone"
-                                                   value       = var.management_dns_subscription_id
+                                                   value       = coalesce(var.management_dns_subscription_id, local.saplib_subscription_id)
                                                  }
 
 output "privatelink_dns_resourcegroup_name"       {
-                                                   description = "Resource group name for the resource group containing the PrivateLink DNS Zones"
                                                    value       = coalesce(var.privatelink_dns_resourcegroup_name,var.management_dns_resourcegroup_name, local.saplib_resource_group_name)
                                                  }
 
 output "privatelink_dns_subscription_id"          {
                                                    description = "Subscription ID for the PrivateLink Private DNS Zones"
-                                                   value       = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id)
+                                                   value       = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.saplib_subscription_id)
                                                  }
 
 

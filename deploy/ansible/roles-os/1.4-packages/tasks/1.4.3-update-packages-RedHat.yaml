@@ -9,7 +9,7 @@
 
 - name:                                "1.4 Packages: - Update packages"
   become:                              true
-  ansible.builtin.yum:
+  ansible.builtin.dnf:
     name:                              '*'
     state:                             latest
     skip_broken:                       true
@@ -22,7 +22,7 @@
 # packages assigned to the active tier or 'all'.
 # - name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }}"  # noqa package-latest
 #   become:                              true
-#   ansible.builtin.yum:
+#   ansible.builtin.dnf:
 #     name:                              '*'
 #     state:                             latest
 #     skip_broken:                       true

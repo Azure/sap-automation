@@ -27,10 +27,12 @@ locals {
                                            "")
                                          )
 
-  deployer_subscription_id             = length(local.spn_key_vault_arm_id) > 0 ? (
-                                           split("/", local.spn_key_vault_arm_id)[2]) : (
-                                           ""
-                                         )
+  deployer_subscription_id             = coalesce(
+                                           try(data.terraform_remote_state.deployer[0].outputs.created_resource_group_subscription_id,""),
+                                           length(local.spn_key_vault_arm_id) > 0 ? (
+                                             split("/", local.spn_key_vault_arm_id)[2]) : (
+                                             ""
+                                         ))
 
   spn                                  = {
                                            subscription_id = data.azurerm_key_vault_secret.subscription_id.value,
