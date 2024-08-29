@@ -246,6 +246,8 @@
 
     # reboot VM after the new routes are added
     - name:                                "1.10 Networking - Reboot VM and wait for 5 minutes"
+      become:                              true
+      become_user:                         root
       ansible.builtin.reboot:
         reboot_timeout:                    300
       when:

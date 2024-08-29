@@ -110,6 +110,7 @@
 
     - name:                            "ORACLE Post Processing: Reboot after the Enabling HugePages"
       become:                          true
+      become_user:                     root
       ansible.builtin.reboot:
         reboot_timeout:                300
       failed_when:                     false
