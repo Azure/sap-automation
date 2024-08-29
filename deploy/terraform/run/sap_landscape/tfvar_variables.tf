@@ -33,6 +33,16 @@ variable "place_delete_lock_on_resources"       {
                                                   default     = false
                                                 }
 
+variable "provider_subscription_id"             {
+                                                  description = "Provider subscription id"
+                                                  default     = ""
+                                                }
+
+variable "spn_key_vault_arm_id"                 {
+                                                  description = "landscape key vault user arm id"
+                                                  default     = ""
+                                                }
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitioms                          #
@@ -157,7 +167,7 @@ variable "db_subnet_name"                       {
 
 variable "db_subnet_arm_id"                     {
                                                   description = "If provided, Azure resource id for the db subnet"
-                                                  default     = "/subscriptions/8d52cb5d-c5bb-4273-b81d-bb0da5ff6e8e/resourceGroups/MGMT-WEEU-SAP_LIBRARY1/providers/Microsoft.Network/virtualNetworks/vnet-mgmt-dev01/subnets/db"
+                                                  default     = ""
                                                 }
 
 variable "db_subnet_address_prefix"             {
@@ -172,7 +182,7 @@ variable "db_subnet_nsg_name"                   {
 
 variable "db_subnet_nsg_arm_id"                 {
                                                   description = "If provided, Azure resource id for the db subnet NSG"
-                                                  default     = "/subscriptions/8d52cb5d-c5bb-4273-b81d-bb0da5ff6e8e/resourceGroups/MGMT-WEEU-SAP_LIBRARY1/providers/Microsoft.Network/networkSecurityGroups/NSG-vnet-app"
+                                                  default     = ""
                                                 }
 
 
@@ -190,7 +200,7 @@ variable "app_subnet_name"                      {
 
 variable "app_subnet_arm_id"                    {
                                                   description = "If provided, Azure resource id for the app subnet"
-                                                  default     = "/subscriptions/8d52cb5d-c5bb-4273-b81d-bb0da5ff6e8e/resourceGroups/MGMT-WEEU-SAP_LIBRARY1/providers/Microsoft.Network/virtualNetworks/vnet-mgmt-dev01/subnets/app"
+                                                  default     = ""
                                                 }
 
 variable "app_subnet_address_prefix"            {
@@ -205,7 +215,7 @@ variable "app_subnet_nsg_name"                  {
 
 variable "app_subnet_nsg_arm_id"                {
                                                   description = "If provided, Azure resource id for the app subnet NSG"
-                                                  default     = "/subscriptions/8d52cb5d-c5bb-4273-b81d-bb0da5ff6e8e/resourceGroups/MGMT-WEEU-SAP_LIBRARY1/providers/Microsoft.Network/networkSecurityGroups/NSG-vnet-app"
+                                                  default     = ""
                                                 }
 
 

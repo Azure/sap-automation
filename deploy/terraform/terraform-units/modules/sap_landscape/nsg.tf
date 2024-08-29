@@ -174,8 +174,8 @@ resource "azurerm_network_security_rule" "nsr_controlplane_app" {
   source_address_prefixes              = compact(concat(
                                            try(var.deployer_tfstate.subnet_mgmt_address_prefixes, []),
                                            try(var.deployer_tfstate.subnet_bastion_address_prefixes, []),
-                                           local.SAP_virtualnetwork_exists ? (
-                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : (
+                                           local.SAP_virtualnetwork_exists ? tolist(
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : tolist(
                                              azurerm_virtual_network.vnet_sap[0].address_space
                                            )))
   destination_address_prefixes         = local.application_subnet_existing ? data.azurerm_subnet.app[0].address_prefixes : azurerm_subnet.app[0].address_prefixes
@@ -204,8 +204,8 @@ resource "azurerm_network_security_rule" "nsr_controlplane_web" {
   source_address_prefixes              = compact(concat(
                                            try(var.deployer_tfstate.subnet_mgmt_address_prefixes, []),
                                            try(var.deployer_tfstate.subnet_bastion_address_prefixes, []),
-                                           local.SAP_virtualnetwork_exists ? (
-                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : (
+                                           local.SAP_virtualnetwork_exists ? tolist(
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : tolist(
                                              azurerm_virtual_network.vnet_sap[0].address_space
                                            )))
   destination_address_prefixes         = local.web_subnet_existing ? data.azurerm_subnet.web[0].address_prefixes : azurerm_subnet.web[0].address_prefixes
@@ -265,8 +265,8 @@ resource "azurerm_network_security_rule" "nsr_controlplane_db" {
   source_address_prefixes              = compact(concat(
                                            try(var.deployer_tfstate.subnet_mgmt_address_prefixes, []),
                                            try(var.deployer_tfstate.subnet_bastion_address_prefixes, []),
-                                           local.SAP_virtualnetwork_exists ? (
-                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : (
+                                           local.SAP_virtualnetwork_exists ? tolist(
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : tolist(
                                              azurerm_virtual_network.vnet_sap[0].address_space
                                            )))
   destination_address_prefixes         = local.database_subnet_existing ? data.azurerm_subnet.db[0].address_prefixes : azurerm_subnet.db[0].address_prefixes
@@ -295,8 +295,8 @@ resource "azurerm_network_security_rule" "nsr_controlplane_admin" {
   source_address_prefixes              = compact(concat(
                                            try(var.deployer_tfstate.subnet_mgmt_address_prefixes, []),
                                            try(var.deployer_tfstate.subnet_bastion_address_prefixes, []),
-                                           local.SAP_virtualnetwork_exists ? (
-                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : (
+                                           local.SAP_virtualnetwork_exists ? tolist(
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : tolist(
                                              azurerm_virtual_network.vnet_sap[0].address_space
                                            )))
   destination_address_prefixes         = local.admin_subnet_existing ? data.azurerm_subnet.admin[0].address_prefixes : azurerm_subnet.admin[0].address_prefixes
