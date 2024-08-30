@@ -34,7 +34,6 @@
   when:
     - vg_free_size is defined
     - node_tier not in ['oracle', 'oracle-asm', 'ase', 'hana', 'db2']
-  failed_when: sufficient_vg_space is not defined or not sufficient_vg_space
 
 - name:                                   "Check if free size is more than 30 GB"
   ansible.builtin.set_fact:
@@ -42,7 +41,7 @@
   when:
     - vg_free_size is defined
     - node_tier in ['oracle', 'oracle-asm', 'ase', 'hana', 'db2']
-  failed_when: sufficient_vg_space_db is not defined or not sufficient_vg_space_db
+
 
 # ------------------<DEBUGGING>-------------------
 - name:                                   "Print volume group details"
@@ -51,6 +50,7 @@
       - "vg_info:                         {{ vg_info }}"
       - "vg_free_size:                    {{ vg_free_size }}"
       - "sufficient_vg_space:             {{ sufficient_vg_space }}"
+      - "sufficient_vg_space_db:          {{ sufficient_vg_space_db }}"
     verbosity:                            2
 # ------------------</DEBUGGING>------------------
 
