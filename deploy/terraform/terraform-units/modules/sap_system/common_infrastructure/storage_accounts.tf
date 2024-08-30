@@ -34,7 +34,7 @@ resource "azurerm_storage_account" "sapmnt" {
   account_tier                         = "Premium"
   account_replication_type             = "ZRS"
   account_kind                         = "FileStorage"
-  enable_https_traffic_only            = false
+  https_traffic_only_enabled            = false
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
@@ -42,7 +42,7 @@ resource "azurerm_storage_account" "sapmnt" {
   tags                                 = var.tags
 
   network_rules {
-                  default_action = "Deny"
+                  default_action = "Allow"
                   virtual_network_subnet_ids = compact(
                     [
                       try(var.landscape_tfstate.admin_subnet_id, ""),

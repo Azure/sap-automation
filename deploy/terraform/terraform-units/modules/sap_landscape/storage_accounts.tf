@@ -25,7 +25,7 @@ resource "azurerm_storage_account" "storage_bootdiag" {
 
   account_replication_type             = "LRS"
   account_tier                         = "Standard"
-  enable_https_traffic_only            = true
+  https_traffic_only_enabled            = true
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
@@ -38,7 +38,7 @@ resource "azurerm_private_dns_a_record" "storage_bootdiag" {
   count                                = var.use_custom_dns_a_registration ? 0 : 0
   name                                 = lower(local.storageaccount_name)
 
-  zone_name                            = var.dns_zone_names.blob_dns_zone_name
+  zone_name                            = try(var.dns_zone_names.blob_dns_zone_name, "")
   resource_group_name                  = local.resource_group_exists ? (
                                            data.azurerm_resource_group.resource_group[0].name) : (
                                            azurerm_resource_group.resource_group[0].name
@@ -110,7 +110,7 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
   dynamic "private_dns_zone_group" {
                                      for_each = range(var.register_endpoints_with_dns ? 1 : 0)
                                      content {
-                                       name                 = var.dns_zone_names.blob_dns_zone_name
+                                       name                 = try(var.dns_zone_names.blob_dns_zone_name, "")
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
                                      }
                                    }
@@ -142,7 +142,7 @@ resource "azurerm_storage_account" "witness_storage" {
 
   account_replication_type             = "LRS"
   account_tier                         = "Standard"
-  enable_https_traffic_only            = true
+  https_traffic_only_enabled            = true
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
@@ -150,7 +150,7 @@ resource "azurerm_storage_account" "witness_storage" {
 
   tags                                 = var.tags
   network_rules {
-                  default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+                  default_action              = try(var.enable_firewall_for_keyvaults_and_storage, "") ? "Deny" : "Allow"
                   virtual_network_subnet_ids  = compact([
                                                   local.database_subnet_defined ? (
                                                     local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
@@ -175,8 +175,8 @@ resource "azurerm_private_dns_a_record" "witness_storage" {
   provider                             = azurerm.dnsmanagement
   count                                = var.use_custom_dns_a_registration ? 0 : 0
   name                                 = lower(local.witness_storageaccount_name)
-  zone_name                            = var.dns_zone_names.blob_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = try(var.dns_zone_names.blob_dns_zone_name, "")
+  resource_group_name                  = try(var.management_dns_resourcegroup_name, "")
   ttl                                  = 3600
   records                              = [data.azurerm_network_interface.witness_storage[count.index].ip_configuration[0].private_ip_address]
 
@@ -252,7 +252,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
   dynamic "private_dns_zone_group" {
                                      for_each = range(var.register_endpoints_with_dns ? 1 : 0)
                                      content {
-                                       name                 = var.dns_zone_names.blob_dns_zone_name
+                                       name                 = try(var.dns_zone_names.blob_dns_zone_name, "")
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
                                      }
                                    }
@@ -289,14 +289,14 @@ resource "azurerm_storage_account" "transport" {
   account_tier                         = "Premium"
   account_replication_type             = "ZRS"
   account_kind                         = "FileStorage"
-  enable_https_traffic_only            = false
+  https_traffic_only_enabled            = false
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
   public_network_access_enabled        = var.public_network_access_enabled
 
   network_rules {
-                  default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+                  default_action              = try(var.enable_firewall_for_keyvaults_and_storage, "") ? "Deny" : "Allow"
                   virtual_network_subnet_ids  = compact([
                                                   local.database_subnet_defined ? (
                                                     local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
@@ -329,8 +329,8 @@ resource "azurerm_private_dns_a_record" "transport" {
                                            "/[^a-z0-9]/",
                                            ""
                                          )
-  zone_name                            = var.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = try(var.dns_zone_names.file_dns_zone_name, "")
+  resource_group_name                  = try(var.management_dns_resourcegroup_name, "")
   ttl                                  = 10
   records                              = [
                                            length(var.transport_private_endpoint_id) > 0 ? (
@@ -350,8 +350,8 @@ data "azurerm_private_dns_a_record" "transport" {
                                            "/[^a-z0-9]/",
                                            ""
                                          )
-  zone_name                            = var.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = try(var.dns_zone_names.file_dns_zone_name, "")
+  resource_group_name                  = try(var.management_dns_resourcegroup_name, "")
 }
 
 
@@ -449,7 +449,7 @@ resource "azurerm_private_endpoint" "transport" {
   dynamic "private_dns_zone_group" {
                                      for_each = range(var.register_endpoints_with_dns ? 1 : 0)
                                      content {
-                                       name                 = var.dns_zone_names.file_dns_zone_name
+                                       name                 = try(var.dns_zone_names.file_dns_zone_name, "")
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
                                      }
                                    }
@@ -509,12 +509,12 @@ resource "azurerm_storage_account" "install" {
   account_replication_type             = var.storage_account_replication_type
   account_tier                         = "Premium"
   allow_nested_items_to_be_public      = false
-  enable_https_traffic_only            = false
+  https_traffic_only_enabled            = false
   min_tls_version                      = "TLS1_2"
   public_network_access_enabled        = var.public_network_access_enabled
   tags                                 = var.tags
   network_rules {
-                  default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+                  default_action              = try(var.enable_firewall_for_keyvaults_and_storage, "") ? "Deny" : "Allow"
                   virtual_network_subnet_ids  = compact([
                                                   local.database_subnet_defined ? (
                                                     local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
@@ -546,8 +546,8 @@ resource "azurerm_private_dns_a_record" "install" {
                                            "/[^a-z0-9]/",
                                            ""
                                          )
-  zone_name                            = var.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = try(var.dns_zone_names.file_dns_zone_name, "")
+  resource_group_name                  = try(var.management_dns_resourcegroup_name, "")
   ttl                                  = 10
   records                              = [
                                            length(var.install_private_endpoint_id) > 0 ? (
@@ -571,8 +571,8 @@ data "azurerm_private_dns_a_record" "install" {
                                           "/[^a-z0-9]/",
                                           ""
                                         )
-  zone_name                            = var.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = try(var.dns_zone_names.file_dns_zone_name, "")
+  resource_group_name                  = try(var.management_dns_resourcegroup_name, "")
 }
 
 
@@ -659,7 +659,7 @@ resource "azurerm_private_endpoint" "install" {
   dynamic "private_dns_zone_group" {
                                      for_each = range(var.register_endpoints_with_dns ? 1 : 0)
                                      content {
-                                       name                 = var.dns_zone_names.file_dns_zone_name
+                                       name                 = try(var.dns_zone_names.file_dns_zone_name, "")
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
                                      }
                                    }

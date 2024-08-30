@@ -33,6 +33,16 @@ variable "place_delete_lock_on_resources"       {
                                                   default     = false
                                                 }
 
+variable "provider_subscription_id"             {
+                                                  description = "Provider subscription id"
+                                                  default     = ""
+                                                }
+
+variable "spn_key_vault_arm_id"                 {
+                                                  description = "landscape key vault user arm id"
+                                                  default     = ""
+                                                }
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitioms                          #
@@ -181,6 +191,7 @@ variable "db_subnet_nsg_arm_id"                 {
 #               Application Subnet variables                                   #
 #                                                                              #
 #######################################4#######################################8
+
 
 variable "app_subnet_name"                      {
                                                   description = "If provided, the name of the app subnet"

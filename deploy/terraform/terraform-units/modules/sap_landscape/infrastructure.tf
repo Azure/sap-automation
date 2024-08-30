@@ -154,7 +154,7 @@ resource "azurerm_route_table" "rt" {
                                             data.azurerm_virtual_network.vnet_sap[0].location) : (
                                             azurerm_virtual_network.vnet_sap[0].location
                                           )
-  disable_bgp_route_propagation        = false
+  # disable_bgp_route_propagation        = false
   tags                                 = var.tags
 }
 
@@ -214,18 +214,18 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
                                            var.naming.resource_suffixes.dns_link
                                          )
 
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  resource_group_name                  = try(var.management_dns_resourcegroup_name, "")
 
-  private_dns_zone_name                = var.dns_zone_names.file_dns_zone_name
+  private_dns_zone_name                = try(var.dns_zone_names.file_dns_zone_name, "")
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
 }
 
 data "azurerm_private_dns_zone" "file" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.use_private_endpoint ? 1 : 0
-  name                                 = var.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  count                                = try(var.use_private_endpoint ? 1 : 0, 1)
+  name                                 = try(var.dns_zone_names.file_dns_zone_name, "")
+  resource_group_name                  = try(var.management_dns_resourcegroup_name, "")
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
@@ -241,16 +241,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
                                            var.naming.resource_suffixes.dns_link
                                          )
 
-  resource_group_name                  = var.management_dns_resourcegroup_name
-  private_dns_zone_name                = var.dns_zone_names.blob_dns_zone_name
+  resource_group_name                  = try(var.management_dns_resourcegroup_name, "")
+  private_dns_zone_name                = try(var.dns_zone_names.blob_dns_zone_name, "")
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
 }
 
 data "azurerm_private_dns_zone" "storage" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.use_private_endpoint ? 1 : 0
-  name                                 = var.dns_zone_names.blob_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  count                                = try(var.use_private_endpoint ? 1 : 0, 1)
+  name                                 = try(var.dns_zone_names.blob_dns_zone_name, "")
+  resource_group_name                  = try(var.management_dns_resourcegroup_name, "")
 }
 
 resource "azurerm_management_lock" "vnet_sap" {

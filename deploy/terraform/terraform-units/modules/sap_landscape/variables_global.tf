@@ -233,6 +233,7 @@ variable "register_virtual_network_to_dns"               {
 variable "register_endpoints_with_dns"                   {
                                                            description = "Boolean value indicating if endpoints should be registered to the dns zone"
                                                            type        = bool
+                                                           default     = false
                                                          }
 
 variable "use_custom_dns_a_registration"                 {

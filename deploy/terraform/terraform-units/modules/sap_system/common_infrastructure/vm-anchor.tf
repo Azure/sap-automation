@@ -12,7 +12,7 @@ resource "azurerm_network_interface" "anchor" {
                                          )
   resource_group_name                  = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].name : azurerm_resource_group.resource_group[0].name
   location                             = local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location
-  enable_accelerated_networking        = var.infrastructure.anchor_vms.accelerated_networking
+  accelerated_networking_enabled        = var.infrastructure.anchor_vms.accelerated_networking
 
   ip_configuration {
                      name      = "IPConfig1"
