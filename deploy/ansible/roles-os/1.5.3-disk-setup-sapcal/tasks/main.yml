@@ -28,7 +28,7 @@
     vg_free_size:                         "{{ vg_info.stdout | float }}"
   when: vg_info is defined and vg_info.stdout is defined
 
-- name:                                   "Check if free size is more than 20 GB"
+- name:                                   "Check if free size is more than 10 GB"
   ansible.builtin.set_fact:
                                           sufficient_vg_space: "{{ vg_free_size | default(0) | float > 10.0 }}"
   when: vg_free_size is defined
