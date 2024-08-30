@@ -58,6 +58,23 @@
     - { vg: '{{ vg_root }}',    lv: 'tmplv',     size: '{{ lv_tmp_size }}'  }
   when:
     - sufficient_vg_space is defined and sufficient_vg_space
+    - node_tier not in ['oracle', 'oracle-asm', 'ase', 'hana', 'db2']
+
+- name:                                   "Extend the logical volumes and resize the FS"
+  community.general.lvol:
+    vg:                                   "{{ item.vg }}"
+    lv:                                   "{{ item.lv }}"
+    size:                                 "{{ item.size }}"
+    active:                               true
+    state:                                present
+    shrink:                               false
+    resizefs:                             true
+  loop:
+    - { vg: '{{ vg_root }}',    lv: 'rootlv',    size: '{{ lv_root_size_db }}' }
+    - { vg: '{{ vg_root }}',    lv: 'tmplv',     size: '{{ lv_tmp_size }}'  }
+  when:
+    - sufficient_vg_space is defined and sufficient_vg_space
+    - node_tier in ['oracle', 'oracle-asm', 'ase', 'hana', 'db2']
 
 # ------------------<DEBUGGING>-------------------
 - name:                                   "Print recent Volume Group size and Logical Volume information"
