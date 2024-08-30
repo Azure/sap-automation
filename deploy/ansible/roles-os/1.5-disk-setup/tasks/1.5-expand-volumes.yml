@@ -49,8 +49,9 @@
     msg:
       - "vg_info:                         {{ vg_info }}"
       - "vg_free_size:                    {{ vg_free_size }}"
-      - "sufficient_vg_space:             {{ sufficient_vg_space }}"
-      - "sufficient_vg_space_db:          {{ sufficient_vg_space_db }}"
+      - "sufficient_vg_space:             {{ sufficient_vg_space | default(false)}}"
+      - "sufficient_vg_space_db:          {{ sufficient_vg_space_db | default(false)}}"
+      - "host:                            {{ inventory_hostname }}"
     verbosity:                            2
 # ------------------</DEBUGGING>------------------
 
