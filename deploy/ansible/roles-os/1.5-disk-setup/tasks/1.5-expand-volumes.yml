@@ -30,9 +30,19 @@
 
 - name:                                   "Check if free size is more than 20 GB"
   ansible.builtin.set_fact:
-                                          sufficient_vg_space: "{{ vg_free_size | default(0) | float > 20.0 }}"
-  when: vg_free_size is defined
+    sufficient_vg_space:                  "{{ vg_free_size | default(0) | float > 20.0 }}"
+  when:
+    - vg_free_size is defined
+    - node_tier not in ['oracle', 'oracle-asm', 'ase', 'hana', 'db2']
   failed_when: sufficient_vg_space is not defined or not sufficient_vg_space
+
+- name:                                   "Check if free size is more than 30 GB"
+  ansible.builtin.set_fact:
+    sufficient_vg_space_db:               "{{ vg_free_size | default(0) | float > 30.0 }}"
+  when:
+    - vg_free_size is defined
+    - node_tier in ['oracle', 'oracle-asm', 'ase', 'hana', 'db2']
+  failed_when: sufficient_vg_space_db is not defined or not sufficient_vg_space_db
 
 # ------------------<DEBUGGING>-------------------
 - name:                                   "Print volume group details"
@@ -57,7 +67,7 @@
     - { vg: '{{ vg_root }}',    lv: 'rootlv',    size: '{{ lv_root_size }}' }
     - { vg: '{{ vg_root }}',    lv: 'tmplv',     size: '{{ lv_tmp_size }}'  }
   when:
-    - sufficient_vg_space is defined and sufficient_vg_space
+    - sufficient_vg_space | default(false)
     - node_tier not in ['oracle', 'oracle-asm', 'ase', 'hana', 'db2']
 
 - name:                                   "Extend the logical volumes and resize the FS"
@@ -73,7 +83,7 @@
     - { vg: '{{ vg_root }}',    lv: 'rootlv',    size: '{{ lv_root_size_db }}' }
     - { vg: '{{ vg_root }}',    lv: 'tmplv',     size: '{{ lv_tmp_size }}'  }
   when:
-    - sufficient_vg_space is defined and sufficient_vg_space
+    - sufficient_vg_space_db | default(false)
     - node_tier in ['oracle', 'oracle-asm', 'ase', 'hana', 'db2']
 
 # ------------------<DEBUGGING>-------------------
