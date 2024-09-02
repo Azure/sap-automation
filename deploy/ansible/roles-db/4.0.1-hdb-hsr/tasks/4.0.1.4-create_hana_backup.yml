@@ -43,12 +43,13 @@
     - name:                            "HANA HSR: - Backup SYSTEMDB database for System Identifier {{ db_sid }}"
       ansible.builtin.shell: >
                                        {{ hdbsql_systemdb_command }} "{{ backup_cmd_for_systemdb }}"
+      register:                        backup_systemdb_result
       when:                            backup_systemdb
 
     - name:                            "HANA HSR: - Backup completed SYSTEMDB database for System Identifier: {{ db_sid }}"
       ansible.builtin.debug:
         msg:
-          - "Backup results:  {{ backup_systemdb.stdout }}"
+          - "Backup results:  {{ backup_systemdb_result.stdout }}"
 
     - name:                            "HANA HSR: - Check if there is a tenant db needing backup"
       block:
@@ -71,12 +72,13 @@
         - name:                        "HANA HSR: - Backup {{ hana_tenant_database_name }} database for System Identifier {{ db_sid }}"
           ansible.builtin.shell: >
                                        {{ hdbsql_tenant_command }} "{{ backup_cmd_for_tenant }}"
+          register:                    backup_tenantdb_result
           when:                        backup_tenantdb
 
         - name:                        "HANA HSR: - Backup completed {{ hana_tenant_database_name }} database for System Identifier: {{ db_sid }}"
           ansible.builtin.debug:
             msg:
-              - "Backup results:  {{ backup_tenantdb.stdout }}"
+              - "Backup results:  {{ backup_tenantdb_result.stdout }}"
 
       when:
         - hana_has_tenant_db is defined
