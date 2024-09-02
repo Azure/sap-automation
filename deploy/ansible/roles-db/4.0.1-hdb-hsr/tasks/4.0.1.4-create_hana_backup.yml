@@ -49,7 +49,7 @@
     - name:                            "HANA HSR: - Backup completed SYSTEMDB database for System Identifier: {{ db_sid }}"
       ansible.builtin.debug:
         msg:
-          - "Backup results:  {{ backup_systemdb_result.stdout }}"
+          - "Backup results:  {{ backup_systemdb_result }}"
         when:
          - backup_systemdb
          - backup_systemdb_result.stdout is defined
@@ -81,7 +81,7 @@
         - name:                        "HANA HSR: - Backup completed {{ hana_tenant_database_name }} database for System Identifier: {{ db_sid }}"
           ansible.builtin.debug:
             msg:
-              - "Backup results:  {{ backup_tenantdb_result.stdout }}"
+              - "Backup results:  {{ backup_tenantdb_result }}"
           when:
             - backup_tenantdb
             - backup_tenantdb_result.stdout is defined
