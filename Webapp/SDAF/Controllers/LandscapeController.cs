@@ -187,7 +187,9 @@ namespace AutomationForm.Controllers
             await UnsetDefault(landscape.Id);
           }
           landscape.Id = Helper.GenerateId(landscape);
-          landscape.LastModified = String.Format("%s %s", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString());
+          DateTime currentDateAndTime = DateTime.Now;
+          landscape.LastModified = string.Format("%s %s", currentDateAndTime.ToShortDateString(), currentDateAndTime.ToShortTimeString());
+
           await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
           TempData["success"] = "Successfully created workload zone " + landscape.Id;
           string id = landscape.Id;
@@ -221,7 +223,7 @@ namespace AutomationForm.Controllers
 
         List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
         ViewBag.Environments = environments;
-        
+
 
         return View(landscapeView);
       }
@@ -352,7 +354,7 @@ namespace AutomationForm.Controllers
 
             await _landscapeService.CreateTFVarsAsync(file);
 
-            return RedirectToAction("Edit", "Landscape", new { @id = landscape.Id, @partitionKey = landscape.environment });  //RedirectToAction("Index"); 
+            return RedirectToAction("Edit", "Landscape", new { @id = landscape.Id, @partitionKey = landscape.environment });  //RedirectToAction("Index");
           }
           else
           {
@@ -360,7 +362,9 @@ namespace AutomationForm.Controllers
             {
               await UnsetDefault(landscape.Id);
             }
-            landscape.LastModified = String.Format("%s %s", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString());
+            DateTime currentDateAndTime = DateTime.Now;
+            landscape.LastModified = string.Format("%s %s", currentDateAndTime.ToShortDateString(), currentDateAndTime.ToShortTimeString());
+
             await _landscapeService.UpdateAsync(new LandscapeEntity(landscape));
             TempData["success"] = "Successfully updated workload zone " + landscape.Id;
 
@@ -380,7 +384,7 @@ namespace AutomationForm.Controllers
 
             await _landscapeService.CreateTFVarsAsync(file);
 
-            return RedirectToAction("Edit", "Landscape", new { @id = landscape.Id, @partitionKey = landscape.environment });  //RedirectToAction("Index"); 
+            return RedirectToAction("Edit", "Landscape", new { @id = landscape.Id, @partitionKey = landscape.environment });  //RedirectToAction("Index");
           }
         }
         catch (Exception e)
@@ -410,7 +414,9 @@ namespace AutomationForm.Controllers
             await UnsetDefault(landscape.Id);
           }
           landscape.Id = Helper.GenerateId(landscape);
-          landscape.LastModified = String.Format("%s %s", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString());
+          DateTime currentDateAndTime = DateTime.Now;
+          landscape.LastModified = string.Format("%s %s", currentDateAndTime.ToShortDateString(), currentDateAndTime.ToShortTimeString());
+
           await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
           TempData["success"] = "Successfully created workload zone " + landscape.Id;
           string id = landscape.Id;
