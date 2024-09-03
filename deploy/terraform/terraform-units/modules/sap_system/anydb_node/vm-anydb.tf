@@ -623,9 +623,29 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
                                            ) : (
                                            0
                                          )
-  scope                                = azurerm_linux_virtual_machine.dbserver[count.index].id
+  scope                                = (upper(var.database.os.os_type) == "LINUX"                                # If Linux
+                                         ) ? (
+                                           azurerm_linux_virtual_machine.dbserver[count.index].id
+                                         ) : (
+                                           (upper(var.database.os.os_type) == "WINDOWS"                            # If Windows
+                                           ) ? (
+                                             azurerm_windows_virtual_machine.dbserver[count.index].id
+                                           ) : (
+                                             null                                                                  # If Other
+                                           )
+                                         )
   role_definition_name                 = var.fencing_role_name
-  principal_id                         = azurerm_linux_virtual_machine.dbserver[count.index].identity[0].principal_id
+  principal_id                         = (upper(var.database.os.os_type) == "LINUX"                                # If Linux
+                                         ) ? (
+                                           azurerm_linux_virtual_machine.dbserver[count.index].identity[0].principal_id
+                                         ) : (
+                                           (upper(var.database.os.os_type) == "WINDOWS"                            # If Windows
+                                           ) ? (
+                                             azurerm_windows_virtual_machine.dbserver[count.index].identity[0].principal_id
+                                           ) : (
+                                             null                                                                  # If Other
+                                           )
+                                         )
 }
 
 resource "azurerm_role_assignment" "role_assignment_msi_ha" {
@@ -639,9 +659,30 @@ resource "azurerm_role_assignment" "role_assignment_msi_ha" {
                                           ) : (
                                           0
                                         )
-  scope                                = azurerm_linux_virtual_machine.dbserver[count.index].id
+  scope                                = (upper(var.database.os.os_type) == "LINUX"                                # If Linux
+                                         ) ? (
+                                           azurerm_linux_virtual_machine.dbserver[count.index].id
+                                         ) : (
+                                           (upper(var.database.os.os_type) == "WINDOWS"                            # If Windows
+                                           ) ? (
+                                             azurerm_windows_virtual_machine.dbserver[count.index].id
+                                           ) : (
+                                             null                                                                  # If Other
+                                           )
+                                         )
   role_definition_name                 = var.fencing_role_name
-  principal_id                         = azurerm_linux_virtual_machine.dbserver[(count.index +1) % var.database_server_count].identity[0].principal_id
+  principal_id                         = (upper(var.database.os.os_type) == "LINUX"                                # If Linux
+                                         ) ? (
+                                           azurerm_linux_virtual_machine.dbserver[(count.index +1) % var.database_server_count].identity[0].principal_id
+                                         ) : (
+                                           (upper(var.database.os.os_type) == "WINDOWS"                            # If Windows
+                                           ) ? (
+                                             azurerm_windows_virtual_machine.dbserver[(count.index +1) % var.database_server_count].identity[0].principal_id
+                                           ) : (
+                                             null                                                                  # If Other
+                                           )
+                                         )
+
 }
 
 
