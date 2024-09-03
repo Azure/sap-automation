@@ -110,7 +110,7 @@
         acss_environment:              "{{ acssEnvironment }}"
         acss_sap_product:              "{{ acssSapProduct }}"
         acss_access_token:             "{{ hostvars.localhost.access_token }}"
-        acss_guid:                     "{{ string | to_uuid }}"
+        acss_guid:                     "{{ ansible_hostname | to_uuid }}"
       loop:                            "{{ all_sids }}"
       loop_control:
         loop_var:                      sid_to_be_deployed
