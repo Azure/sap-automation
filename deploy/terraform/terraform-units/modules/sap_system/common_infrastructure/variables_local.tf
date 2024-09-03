@@ -468,7 +468,7 @@ locals {
   sid_private_key                      = local.use_local_credentials ? (
                                            try(
                                              file(var.authentication.path_to_private_key),
-                                             tls_private_key.sdu[0].private_key_pem
+                                             try(tls_private_key.sdu[0].private_key_pem, "")
                                            )) : (
                                            ""
                                          )

@@ -250,6 +250,9 @@ resource "local_file" "sap-parameters_yml" {
               ams_resource_id             = var.ams_resource_id
               enable_os_monitoring        = var.enable_os_monitoring
               enable_ha_monitoring        = var.enable_ha_monitoring
+              enable_sap_cal              = var.enable_sap_cal
+              calapi_kv                   = var.calapi_kv
+              sap_cal_product_name        = var.sap_cal_product_name
 
     }
   )
@@ -345,4 +348,15 @@ resource "local_file" "sap_inventory_for_wiki_md" {
   filename             = format("%s/%s_inventory.md", path.cwd, var.sap_sid)
   file_permission      = "0660"
   directory_permission = "0770"
+}
+
+
+resource "local_file" "sap_vms_resource_id" {
+  content = templatefile(format("%s/sap-vm-resources.tmpl", path.module), {
+      scs_server_vms          = length(var.scs_server_vm_resource_ids) > 0 ? element(var.scs_server_vm_resource_ids, 0) : ""
+    }
+  )
+  filename                  = format("%s/%s_virtual_machines.json", path.cwd, var.sap_sid)
+  file_permission           = "0660"
+  directory_permission      = "0770"
 }

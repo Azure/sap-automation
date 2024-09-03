@@ -142,7 +142,7 @@ stages:
           - template: templates\download.yaml
             parameters:
               getLatestFromBranch: true
-          - task:                      PostBuildCleanup@3
+          - task:                      PostBuildCleanup@4
           - bash: |
               #!/bin/bash
               # Exit immediately if a command exits with a non-zero status.

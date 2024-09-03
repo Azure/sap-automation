@@ -71,7 +71,7 @@ stages:
                 clean:                 all
             steps:
                 - template:            templates\download.yaml
-                - task:                PostBuildCleanup@3
+                - task:                PostBuildCleanup@4
                 # Set Variables.
                 - task:                AzureCLI@2
                   continueOnError:     false
@@ -251,6 +251,7 @@ stages:
                                 --library_parameter_file ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/$(libraryconfig)     \
                                 --subscription $ARM_SUBSCRIPTION_ID  --auto-approve --ado --only_deployer --msi
                             else
+                              export ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
                               export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
                               $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
                                 --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \
@@ -400,7 +401,7 @@ stages:
             workspace:
                 clean: all
             steps:
-                - task: PostBuildCleanup@3
+                - task: PostBuildCleanup@4
                 - template: templates\download.yaml
                   parameters:
                     getLatestFromBranch: true
@@ -897,6 +898,7 @@ stages:
                       TF_VAR_agent_pool:           $(POOL)
                       TF_VAR_agent_ado_url:        $(System.CollectionUri)
                       TF_VAR_tf_version:           $(tf_version)
+                      TF_VAR_agent_pat:            $(PAT)
                       AZURE_DEVOPS_EXT_PAT:        $(PAT)
                       IS_PIPELINE_DEPLOYMENT:      true
                       WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
@@ -945,7 +947,7 @@ stages:
                 clean:                 all
             steps:
                 - template:            templates\download.yaml
-                - task:                PostBuildCleanup@3
+                - task:                PostBuildCleanup@4
                 - task:                DotNetCoreCLI@2
                   displayName:         "Build the Configuration Web Application"
                   inputs:

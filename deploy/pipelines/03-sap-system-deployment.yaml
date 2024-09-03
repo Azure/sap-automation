@@ -44,7 +44,7 @@ stages:
           clean:                       all
         steps:
           - template:                  templates\download.yaml
-          - task:                      PostBuildCleanup@3
+          - task:                      PostBuildCleanup@4
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"
@@ -379,6 +379,11 @@ stages:
 
                 if [ -f $(sap_system_configuration) ]; then
                   git add    $(sap_system_configuration)
+                  added=1
+                fi
+
+                if [ -f ${SID}_virtual_machines.json ]; then
+                  git add    ${SID}_virtual_machines.json
                   added=1
                 fi
 

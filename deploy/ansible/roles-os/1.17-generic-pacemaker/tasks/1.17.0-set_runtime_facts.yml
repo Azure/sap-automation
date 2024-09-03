@@ -135,7 +135,7 @@
   when:                                           ansible_hostname == secondary_instance_name
   ansible.builtin.set_fact:
     is_primIP_defined_on_primaryNode:             "{{ hostvars[primary_instance_name].primary_ip is defined }}"
-  retries:                                        30
+  retries:                                        5
   delay:                                          60
   until:                                          is_primIP_defined_on_primaryNode
 
@@ -143,7 +143,7 @@
   when:                                           ansible_hostname == primary_instance_name
   ansible.builtin.set_fact:
     is_primIP_defined_on_secondaryNode:           "{{ hostvars[secondary_instance_name].primary_ip is defined }}"
-  retries:                                        30
+  retries:                                        5
   delay:                                          60
   until:                                          is_primIP_defined_on_secondaryNode
 

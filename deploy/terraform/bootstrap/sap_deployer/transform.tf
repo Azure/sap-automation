@@ -227,4 +227,14 @@ locals {
                                            app_id = var.app_registration_app_id
                                            client_secret = var.webapp_client_secret
                                          }
+
+  dns_settings                         = {
+                                           use_custom_dns_a_registration = var.use_custom_dns_a_registration
+                                           dns_zone_names = var.dns_zone_names
+                                           management_dns_resourcegroup_name = trimspace(var.management_dns_resourcegroup_name)
+                                           management_dns_subscription_id = trimspace(var.management_dns_subscription_id)
+                                           privatelink_dns_subscription_id = trimspace(coalesce(var.management_dns_subscription_id,var.privatelink_dns_subscription_id, " "))
+                                           privatelink_dns_resourcegroup_name = trimspace(coalesce(var.management_dns_resourcegroup_name, var.privatelink_dns_resourcegroup_name, " "))
+                                         }
+
 }

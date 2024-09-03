@@ -38,6 +38,7 @@ repos:
   sles_sap15.3:
   sles_sap15.4:
   sles_sap15.5:
+  sles_sap15.6:
   sles15.3:
   sles15.4:
   sles15.5:
@@ -54,3 +55,4 @@ repos:
   oraclelinux8.7:
   oraclelinux8.8:
   oraclelinux8.9:
+  oraclelinux8.10:

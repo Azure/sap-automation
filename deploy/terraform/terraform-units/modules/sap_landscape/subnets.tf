@@ -7,7 +7,7 @@ resource "azurerm_subnet" "admin" {
   virtual_network_name                 = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [local.admin_subnet_prefix]
 
-  private_endpoint_network_policies_enabled     = var.use_private_endpoint
+  enforce_private_link_endpoint_network_policies     = var.use_private_endpoint
 
   service_endpoints                    = var.use_service_endpoint ? (
                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -34,7 +34,7 @@ resource "azurerm_subnet" "db" {
   virtual_network_name                 = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [local.database_subnet_prefix]
 
-  private_endpoint_network_policies_enabled     = var.use_private_endpoint
+  enforce_private_link_endpoint_network_policies       = var.use_private_endpoint
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
                                            ) : (
@@ -59,7 +59,7 @@ resource "azurerm_subnet" "app" {
   virtual_network_name                 = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [local.application_subnet_prefix]
 
-  private_endpoint_network_policies_enabled     = var.use_private_endpoint
+  enforce_private_link_endpoint_network_policies     = var.use_private_endpoint
 
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -86,7 +86,7 @@ resource "azurerm_subnet" "web" {
   virtual_network_name                 = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [local.web_subnet_prefix]
 
-  private_endpoint_network_policies_enabled     = var.use_private_endpoint
+  enforce_private_link_endpoint_network_policies     = var.use_private_endpoint
 
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -114,7 +114,7 @@ resource "azurerm_subnet" "storage" {
   virtual_network_name                 = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [local.subnet_cidr_storage]
 
-  private_endpoint_network_policies_enabled     = var.use_private_endpoint
+  enforce_private_link_endpoint_network_policies     = var.use_private_endpoint
 
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -177,12 +177,11 @@ resource "azurerm_subnet" "ams" {
              }
 }
 
-
 #Associate the subnets to the route table
 
 resource "azurerm_subnet_route_table_association" "admin" {
   provider                             = azurerm.main
-  count                                = local.admin_subnet_defined && !local.SAP_virtualnetwork_exists && !local.admin_subnet_existing ? 1 : 0
+  count                                = local.admin_subnet_defined && !local.SAP_virtualnetwork_exists && !local.admin_subnet_existing ? (local.create_nat_gateway ? 0 : 1) : 0
   depends_on                           = [
                                           azurerm_route_table.rt,
                                           azurerm_subnet.admin
@@ -193,7 +192,7 @@ resource "azurerm_subnet_route_table_association" "admin" {
 
 resource "azurerm_subnet_route_table_association" "db" {
   provider                             = azurerm.main
-  count                                = local.database_subnet_defined && !local.SAP_virtualnetwork_exists && !local.database_subnet_existing ? 1 : 0
+  count                                = local.database_subnet_defined && !local.SAP_virtualnetwork_exists && !local.database_subnet_existing ? (local.create_nat_gateway ? 0 : 1) : 0
   depends_on                           = [
                                            azurerm_route_table.rt,
                                            azurerm_subnet.db
@@ -204,7 +203,7 @@ resource "azurerm_subnet_route_table_association" "db" {
 
 resource "azurerm_subnet_route_table_association" "app" {
   provider                             = azurerm.main
-  count                                = local.application_subnet_defined && !local.SAP_virtualnetwork_exists && !local.application_subnet_existing ? 1 : 0
+  count                                = local.application_subnet_defined && !local.SAP_virtualnetwork_exists && !local.application_subnet_existing ? (local.create_nat_gateway ? 0 : 1) : 0
   depends_on                           = [
                                            azurerm_route_table.rt,
                                            azurerm_subnet.db
@@ -215,23 +214,12 @@ resource "azurerm_subnet_route_table_association" "app" {
 
 resource "azurerm_subnet_route_table_association" "web" {
   provider                             = azurerm.main
-  count                                = local.web_subnet_defined && !local.SAP_virtualnetwork_exists && !local.web_subnet_existing ? 1 : 0
+  count                                = local.web_subnet_defined && !local.SAP_virtualnetwork_exists && !local.web_subnet_existing ? (local.create_nat_gateway ? 0 : 1) : 0
   depends_on                           = [
                                            azurerm_route_table.rt,
                                            azurerm_subnet.web
                                          ]
   subnet_id                            = local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id
-  route_table_id                       = azurerm_route_table.rt[0].id
-}
-
-resource "azurerm_subnet_route_table_association" "ams" {
-  provider                             = azurerm.main
-  count                                = local.create_ams_instance && local.ams_subnet_defined && !local.SAP_virtualnetwork_exists && !local.ams_subnet_existing ? 1 : 0
-  depends_on                           = [
-                                           azurerm_route_table.rt,
-                                           azurerm_subnet.ams
-                                         ]
-  subnet_id                            = local.ams_subnet_existing ? var.infrastructure.vnets.sap.subnet_ams.arm_id : azurerm_subnet.ams[0].id
   route_table_id                       = azurerm_route_table.rt[0].id
 }
 

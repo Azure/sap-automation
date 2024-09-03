@@ -7,6 +7,18 @@ data "azurerm_subnet" "ams" {
   resource_group_name                  = split("/", local.ams_subnet_arm_id)[4]    # Get RG name from actual arm_id
 }
 
+resource "azurerm_subnet_route_table_association" "ams" {
+  provider                             = azurerm.main
+  count                                = local.create_ams_instance && local.ams_subnet_defined && !local.SAP_virtualnetwork_exists && !local.ams_subnet_existing ?  (local.create_nat_gateway ? 0 : 1)  : 0
+  depends_on                           = [
+                                           azurerm_route_table.rt,
+                                           azurerm_subnet.ams
+                                         ]
+  subnet_id                            = local.ams_subnet_existing ? var.infrastructure.vnets.sap.subnet_ams.arm_id : azurerm_subnet.ams[0].id
+  route_table_id                       = azurerm_route_table.rt[0].id
+}
+
+
 # Created AMS instance if log analytics workspace is NOT defined
 resource "azapi_resource" "ams_instance" {
   type                                  = "Microsoft.Workloads/monitors@2023-04-01"

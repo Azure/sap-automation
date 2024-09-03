@@ -55,33 +55,49 @@
     verbosity:                     2
 
 
+- name:                            "SAP on Azure quality checks: - get access token in the context of azureadm on deployer"
+  delegate_to:                     localhost
+  no_log:                          true
+  ansible.builtin.command:         az account get-access-token --subscription {{ qc_subscription_id }} --query "accessToken"
+  failed_when:                     qc_access_token_result.stdout == ""
+  register:                        qc_access_token_result
+
+- name:                            "SAP on Azure quality checks: - retrieve client id in the context of azureadm on deployer"
+  delegate_to:                     localhost
+  no_log:                          true
+  ansible.builtin.command:         echo $ARM_CLIENT_ID
+  failed_when:                     gz_arm_client_id_result.stdout == ""
+  register:                        gz_arm_client_id_result
+
 - name:                            "SAP on Azure quality checks: - Run quality check"
   ansible.builtin.shell:
     cmd: >-
-                                    Connect-AzAccount -AccountId $Env:ARM_CLIENT_ID `
-                                                      -AccessToken (az account get-access-token --subscription {{ qc_subscription_id }} | ConvertFrom-Json).accessToken `
-                                                      -Subscription {{ qc_subscription_id }}
+                                   Connect-AzAccount -AccountId {{ gz_arm_client_id_result.stdout }} `
+                                                     -AccessToken {{ qc_access_token_result.stdout }} `
+                                                     -Subscription {{ qc_subscription_id }}
 
-                                    ./QualityCheck.ps1 -LogonWithUserSSHKey `
-                                                        -VMOperatingSystem {{ qc_vm_operating_system }} `
-                                                        -VMDatabase {{ qc_vm_database }} `
-                                                        -VMRole {{ qc_vm_role }} `
-                                                        -AzVMResourceGroup {{ qc_az_vm_resource_group }} `
-                                                        -AzVMName {{ qc_az_vm_name }} `
-                                                        -VMHostname {{ qc_vm_hostname }} `
-                                                        -VMUsername {{ qc_vm_username }} `
-                                                        -VMConnectionPort 22 `
-                                                        -SubscriptionId {{ qc_subscription_id }} `
-                                                        -SSHKey {{ _workspace_directory }}/sshkey `
-                                                        -Hardwaretype VM `
-                                                        -SID {{ qc_sid }} `
-                                                        -HighAvailability {{ '$' ~ qc_high_availability }} `
-                                                        -OutputDirName {{ _workspace_directory }}/quality_assurance
+                                   ./QualityCheck.ps1 -LogonWithUserSSHKey `
+                                                      -VMOperatingSystem {{ qc_vm_operating_system }} `
+                                                      -VMDatabase {{ qc_vm_database }} `
+                                                      -VMRole {{ qc_vm_role }} `
+                                                      -AzVMResourceGroup {{ qc_az_vm_resource_group }} `
+                                                      -AzVMName {{ qc_az_vm_name }} `
+                                                      -VMHostname {{ qc_vm_hostname }} `
+                                                      -VMUsername {{ qc_vm_username }} `
+                                                      -VMConnectionPort 22 `
+                                                      -SubscriptionId {{ qc_subscription_id }} `
+                                                      -SSHKey {{ _workspace_directory }}/sshkey `
+                                                      -Hardwaretype VM `
+                                                      -SID {{ qc_sid }} `
+                                                      -HighAvailability {{ '$' ~ qc_high_availability }} `
+                                                      -OutputDirName {{ _workspace_directory }}/quality_assurance
   args:
     executable:                    "/usr/local/bin/pwsh"
     chdir:                         "/opt/microsoft/quality_check"
   no_log:                          true
   delegate_to:                     localhost
+  become_user:                     root
+  become:                          true
   register:                        quality_check_result
 
 - name:                            "SAP on Azure quality checks: - Debug quality check result"

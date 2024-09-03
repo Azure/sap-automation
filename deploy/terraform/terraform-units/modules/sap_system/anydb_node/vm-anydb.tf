@@ -18,7 +18,7 @@ resource "azurerm_network_interface" "anydb_db" {
 
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
-  enable_accelerated_networking        = true
+  accelerated_networking_enabled        = true
   tags                                 = var.tags
   dynamic "ip_configuration" {
                                iterator             = pub
@@ -77,7 +77,7 @@ resource "azurerm_network_interface" "anydb_admin" {
                                          )
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
-  enable_accelerated_networking        = true
+  accelerated_networking_enabled        = true
   tags                                 = var.tags
 
   ip_configuration {
@@ -161,14 +161,17 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   size                                 = local.anydb_sku
   source_image_id                      = var.database.os.type == "custom" ? var.database.os.source_image_id : null
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
-  # ToDo Add back later
-# patch_mode                           = var.infrastructure.patch_mode
 
   admin_username                       = var.sid_username
   admin_password                       = local.enable_auth_key ? null : var.sid_password
   disable_password_authentication      = !local.enable_auth_password
 
   custom_data                          = var.deployment == "new" ? var.cloudinit_growpart_config : null
+
+  patch_mode                                             = var.infrastructure.patch_mode
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+  vm_agent_platform_updates_enabled                      = true
 
   tags                                 = merge(local.tags, var.tags)
 
@@ -301,9 +304,14 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   size                                 = local.anydb_sku
   source_image_id                      = var.database.os.type == "custom" ? var.database.os.source_image_id : null
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
-  # ToDo Add back later
-# patch_mode                           = var.infrastructure.patch_mode
 
+  // ImageDefault = Manual on Windows
+  // https://learn.microsoft.com/en-us/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes
+  patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+  vm_agent_platform_updates_enabled                      = true
+  enable_automatic_updates                               = !(var.infrastructure.patch_mode == "ImageDefault")
 
   admin_username                       = var.sid_username
   admin_password                       = var.sid_password
@@ -714,6 +722,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_db_lnx" {
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
 }
 
@@ -729,6 +738,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_db_win" {
   type                                 = "AzureMonitorWindowsAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
 }
 
@@ -745,6 +755,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_db_lnx" {
   type                                 = "AzureSecurityLinuxAgent"
   type_handler_version                 = "2.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
   settings                             = jsonencode(
                                             {
@@ -767,6 +778,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_db_win" {
   type                                 = "AzureSecurityWindowsAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
   settings                             = jsonencode(
                                             {

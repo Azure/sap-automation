@@ -4,10 +4,6 @@
 - name:                                "0.5.1 acss registration: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version: "python3"
-
-- name:                                "0.0 Validations: - Set Python version {{ distribution_id }}"
-  ansible.builtin.set_fact:
-    python_version: "python2"
   when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
 
 - name:                                "0.5.1 acss registration: - Determine if SCS is running on {{ ansible_hostname }}"
@@ -112,11 +108,35 @@
       tags:
         - skip_ansible_lint
 
-    - name:                            "Create [ACSS] virtual instance"
-      ansible.builtin.command:         "az workloads sap-virtual-instance create --sap-virtual-instance-name {{ acss_sid }} --resource-group {{ acss_resource_group }} --location {{ acss_location }} --environment {{ acss_environment }} --sap-product {{ acss_sap_product }} --configuration {{ acss_configuration }}"
-      when:
-        - ansible_hostname == primary_instance_name
-        - cluster_group_location.stdout != ansible_hostname
+    - name:                            "0.5.1 acss registration: - Create [ACSS] virtual instance"
+      ansible.builtin.uri:
+        url:                           "https://management.azure.com/subscriptions/{{ acss_subscription_id }}/resourceGroups/{{ acss_resource_group }}/providers/Microsoft.Workloads/sapVirtualInstances/{{ acss_sid }}?api-version=2023-04-01"
+        method:                        PUT
+        body_format:                   json
+        body: |
+                                       {
+                                         "properties": {
+                                           "environment": "{{ acss_environment }}",
+                                           "sapProduct": "{{ acss_sap_product }}",
+                                           "configuration": {
+                                             "configurationType": "Discovery",
+                                             "centralServerVmId": "{{ acss_resource_id }}"
+                                           }
+                                         },
+                                         "location": "{{ acss_location }}"
+                                       }
+        # status_code:                   [200, 201]
+        headers:
+          Authorization:               "Bearer {{ acss_access_token.stdout }}"
+          x-ms-rpaas-new-resource:     "true"
+          x-ms-client-request-id:      "SDAF-{{ acss_guid.stdout }}"
+      register:                        create_vis_response
+      failed_when:                     create_vis_response.json.properties.provisioningState != 'Accepted' and create_vis_response.json.properties.provisioningState != 'Succeeded'
+      no_log:                          false
+
+    - name:                            "0.5.1 acss registration: - Debug [ACSS] virtual instance creation response"
+      ansible.builtin.debug:
+        msg:                           "{{ create_vis_response }}"
       tags:
         - skip_ansible_lint
 

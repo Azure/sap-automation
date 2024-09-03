@@ -28,17 +28,17 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   enable_https_traffic_only            = true
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
-
+  cross_tenant_replication_enabled     = false
   tags                                 = var.tags
 
 }
 
 resource "azurerm_private_dns_a_record" "storage_bootdiag" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.use_custom_dns_a_registration ? 0 : 0
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
   name                                 = lower(local.storageaccount_name)
 
-  zone_name                            = var.dns_zone_names.blob_dns_zone_name
+  zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = local.resource_group_exists ? (
                                            data.azurerm_resource_group.resource_group[0].name) : (
                                            azurerm_resource_group.resource_group[0].name
@@ -108,9 +108,9 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
             }
 
   dynamic "private_dns_zone_group" {
-                                     for_each = range(var.register_endpoints_with_dns ? 1 : 0)
+                                     for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                      content {
-                                       name                 = var.dns_zone_names.blob_dns_zone_name
+                                       name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
                                      }
                                    }
@@ -145,7 +145,7 @@ resource "azurerm_storage_account" "witness_storage" {
   enable_https_traffic_only            = true
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
-
+  cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.public_network_access_enabled
 
   tags                                 = var.tags
@@ -173,10 +173,10 @@ resource "azurerm_storage_account" "witness_storage" {
 
 resource "azurerm_private_dns_a_record" "witness_storage" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.use_custom_dns_a_registration ? 0 : 0
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
   name                                 = lower(local.witness_storageaccount_name)
-  zone_name                            = var.dns_zone_names.blob_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
   ttl                                  = 3600
   records                              = [data.azurerm_network_interface.witness_storage[count.index].ip_configuration[0].private_ip_address]
 
@@ -250,9 +250,9 @@ resource "azurerm_private_endpoint" "witness_storage" {
             }
 
   dynamic "private_dns_zone_group" {
-                                     for_each = range(var.register_endpoints_with_dns ? 1 : 0)
+                                     for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                      content {
-                                       name                 = var.dns_zone_names.blob_dns_zone_name
+                                       name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
                                      }
                                    }
@@ -293,6 +293,7 @@ resource "azurerm_storage_account" "transport" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
+  cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.public_network_access_enabled
 
   network_rules {
@@ -321,7 +322,7 @@ resource "azurerm_storage_account" "transport" {
 
 resource "azurerm_private_dns_a_record" "transport" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.use_private_endpoint && var.create_transport_storage && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
+  count                                = var.create_transport_storage && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
   name                                 = replace(
                                            lower(
                                              format("%s", local.landscape_shared_transport_storage_account_name)
@@ -329,8 +330,8 @@ resource "azurerm_private_dns_a_record" "transport" {
                                            "/[^a-z0-9]/",
                                            ""
                                          )
-  zone_name                            = var.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
   ttl                                  = 10
   records                              = [
                                            length(var.transport_private_endpoint_id) > 0 ? (
@@ -350,8 +351,8 @@ data "azurerm_private_dns_a_record" "transport" {
                                            "/[^a-z0-9]/",
                                            ""
                                          )
-  zone_name                            = var.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 
 
@@ -447,9 +448,9 @@ resource "azurerm_private_endpoint" "transport" {
                                ]
                              }
   dynamic "private_dns_zone_group" {
-                                     for_each = range(var.register_endpoints_with_dns ? 1 : 0)
+                                     for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                      content {
-                                       name                 = var.dns_zone_names.file_dns_zone_name
+                                       name                 = var.dns_settings.dns_zone_names.file_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
                                      }
                                    }
@@ -511,6 +512,7 @@ resource "azurerm_storage_account" "install" {
   allow_nested_items_to_be_public      = false
   enable_https_traffic_only            = false
   min_tls_version                      = "TLS1_2"
+  cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.public_network_access_enabled
   tags                                 = var.tags
   network_rules {
@@ -546,8 +548,8 @@ resource "azurerm_private_dns_a_record" "install" {
                                            "/[^a-z0-9]/",
                                            ""
                                          )
-  zone_name                            = var.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
   ttl                                  = 10
   records                              = [
                                            length(var.install_private_endpoint_id) > 0 ? (
@@ -571,8 +573,8 @@ data "azurerm_private_dns_a_record" "install" {
                                           "/[^a-z0-9]/",
                                           ""
                                         )
-  zone_name                            = var.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 
 
@@ -657,9 +659,9 @@ resource "azurerm_private_endpoint" "install" {
                              }
 
   dynamic "private_dns_zone_group" {
-                                     for_each = range(var.register_endpoints_with_dns ? 1 : 0)
+                                     for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                      content {
-                                       name                 = var.dns_zone_names.file_dns_zone_name
+                                       name                 = var.dns_settings.dns_zone_names.file_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
                                      }
                                    }

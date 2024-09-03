@@ -4,6 +4,8 @@
   when:
                                        - bom is not defined
                                        - not is_run_with_infraCreate_only
+                                       - enable_sap_cal is not defined or not enable_sap_cal
+
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
@@ -179,3 +181,4 @@
 - name:                                "2.10.3 sap-notes : - Run saptune solution verify"
   ansible.builtin.command:             "saptune solution verify {{ saptune_solution_to_apply }}"
   changed_when:                        false
+  failed_when:                         false

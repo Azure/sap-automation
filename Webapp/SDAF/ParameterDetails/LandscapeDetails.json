@@ -119,24 +119,6 @@
     "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#environment-parameters",
     "Parameters": [
       {
-        "Name": "deploy_monitoring_extension",
-        "Required": false,
-        "Description": "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 2
-      },
-      {
-        "Name": "deploy_defender_extension",
-        "Required": false,
-        "Description": "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 2
-      },
-      {
         "Name": "place_delete_lock_on_resources",
         "Required": false,
         "Description": "If defined, a delete lock will be placed on the key resources (virtual network and key vault)",
@@ -889,6 +871,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "set_secret_expiry",
+        "Required": false,
+        "Description": "Sets expiry date for secrets",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },
@@ -908,7 +899,7 @@
       {
         "Name": "dns_server_list",
         "Required": false,
-        "Description": "Boolean value indicating if a custom dns record should be created for the storage account",
+        "Description": "List of IP addresses to add as DNS servers",
         "Type": "list",
         "Options": [
           {
@@ -959,6 +950,24 @@
         "Name": "management_dns_resourcegroup_name",
         "Required": false,
         "Description": "Resource group for the DNS zone, if different from the SAP Library resource group",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "privatelink_dns_subscription_id",
+        "Required": false,
+        "Description": "Subscription for the DNS zone containing the PrivateLink resources, if different from the management subscription",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "privatelink_dns_resourcegroup_name",
+        "Required": false,
+        "Description": "Resource group for the DNS zone containing the PrivateLink resources, if different from the SAP Library resource group",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -1317,7 +1326,13 @@
         ],
         "Overrules": "",
         "Display": 3
-      },
+      }
+    ]
+  },
+  {
+    "Section": "Common Virtual Machine settings",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone#vm-parameters",
+    "Parameters": [
       {
         "Name": "user_assigned_identity_id",
         "Required": false,
@@ -1326,7 +1341,79 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "deploy_monitoring_extension",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "deploy_defender_extension",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "patch_mode",
+        "Required": false,
+        "Description": "Defines the patching mode for the Virtual Machines.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "ImageDefault (Linux)",
+            "Value": "ImageDefault"
+          },
+          {
+            "Text": "Manual (Windows)",
+            "Value": "Manual"
+          },
+          {
+            "Text": "AutomaticByOS (Windows)",
+            "Value": "AutomaticByOS"
+          },
+          {
+            "Text": "AutomaticByPlatform (Azure Orchestrated patching)",
+            "Value": "AutomaticByPlatform"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "patch_assessment_mode",
+        "Required": false,
+        "Description": "Specifies the mode of VM Guest Patching for the Virtual Machine.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "ImageDefault",
+            "Value": "ImageDefault"
+          },
+          {
+            "Text": "AutomaticByPlatform (Azure Orchestrated patching)",
+            "Value": "AutomaticByPlatform"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
       }
+
+
     ]
   },
   {
@@ -1566,5 +1653,92 @@
         "Display": 2
       }
     ]
+  },
+  {
+    "Section": "NAT Gateway",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone#dns-support",
+    "Parameters": [
+      {
+        "Name": "deploy_nat_gateway",
+        "Required": false,
+        "Description": "Defines if a NAT gateway will be created.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "nat_gateway_name",
+        "Required": false,
+        "Description": "The name of the NAT Gateway",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "nat_gateway_arm_id",
+        "Required": false,
+        "Description": "Defines the Azure resource id for the NAT gateway",
+        "Type": "lookup",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "nat_gateway_public_ip_zones",
+        "Required": false,
+        "Description": "Defines the zones for the NAT Gateway public IP",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "nat_gateway_public_ip_arm_id",
+        "Required": false,
+        "Description": "Azure resource id for the NAT Gateway public IP",
+        "Type": "lookup",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "nat_gateway_idle_timeout_in_minutes",
+        "Required": false,
+        "Description": "The idle timeout in minutes for the NAT Gateway",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "nat_gateway_public_ip_tags",
+        "Required": false,
+        "Description": "Defines a list of tags for the NAT Gateway public IP",
+        "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
   }
+
 ]
