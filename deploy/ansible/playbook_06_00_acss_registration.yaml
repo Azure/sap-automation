@@ -87,6 +87,7 @@
       when:
         - acssEnvironment is defined
         - acssSapProduct is defined
+        - ansible_os_family != "Windows"
       ansible.builtin.include_role:
         name:                          "roles-misc/0.5-ACSS-registration"
       vars:
