@@ -187,6 +187,10 @@
   when:
     - custom_logical_volumes is defined
 
+- name:                                "1.5 Disk setup: - Expand Volumes"
+  ansible.builtin.include_tasks:       "1.5-expand-volumes.yml"
+  when:
+    - ansible_os_family | upper == 'REDHAT'
 
 ...
 # /*---------------------------------------------------------------------------8

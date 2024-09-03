@@ -457,7 +457,7 @@ if [ 2 == $step ]; then
         echo "#########################################################################################"
         terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
         TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
-        az keyvault secret set --vault-name "${keyvault}" --name "sa-connection-string" --value "${TF_VAR_sa_connection_string}"
+        az keyvault secret set --vault-name "${keyvault}" --name "sa-connection-string" --value "${TF_VAR_sa_connection_string}  --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)"
     fi
 
     cd "${curdir}" || exit

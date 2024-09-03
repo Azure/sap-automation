@@ -1264,6 +1264,11 @@ variable "ANF_usr_sap_throughput"               {
 # /sapmnt
 
 
+variable "ANF_sapmnt"                           {
+                                                  description = "If defined, will create ANF volumes for /sapmnt"
+                                                  default     = false
+                                                }
+
 variable "ANF_sapmnt_use_existing"              {
                                                   description = "Use existing sapmnt volume"
                                                   default     = false
@@ -1271,11 +1276,6 @@ variable "ANF_sapmnt_use_existing"              {
 
 variable "ANF_sapmnt_use_clone_in_secondary_zone" {
                                                   description = "Create a clone in the secondary region"
-                                                  default     = false
-                                                }
-
-variable "ANF_sapmnt"                           {
-                                                  description = "Use existing sapmnt volume"
                                                   default     = false
                                                 }
 

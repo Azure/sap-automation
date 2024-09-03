@@ -320,7 +320,7 @@ if [ "${deleted}" == "${secretname}"  ]; then
     v=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query [].name | tee grep "${secretname}")
 
     if [ "${v}" != "${subscription}" ] ; then
-        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${subscription}" --only-show-errors --output none
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${subscription}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --only-show-errors --output none
     fi
 else
     exists=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" -o tsv)
@@ -328,10 +328,10 @@ else
       v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query value -o tsv)
       if [ "${v}" != "${subscription}" ] ; then
           echo -e "\t $cyan Setting secret ${secretname} in keyvault ${keyvault} $resetformatting \n"
-          az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${subscription}" >stdout.az 2>&1
+          az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${subscription}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" >stdout.az 2>&1
       fi
     else
-      az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${subscription}" >stdout.az 2>&1
+      az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${subscription}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" >stdout.az 2>&1
     fi
 fi
 
@@ -385,10 +385,10 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
   then
       v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query value -o tsv)
       if [ "${v}" != "${client_id}" ] ; then
-          az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${client_id}" --only-show-errors --output none
+          az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${client_id}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --only-show-errors --output none
       fi
   else
-      az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${client_id}" --only-show-errors --output none
+      az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${client_id}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --only-show-errors --output none
   fi
 
   secretname="${environment}"-tenant-id
@@ -404,10 +404,10 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
   then
       v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query value -o tsv)
       if [ "${v}" != "${tenant_id}" ] ; then
-          az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${tenant_id}" --only-show-errors --output none
+          az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${tenant_id}"  --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --only-show-errors --output none
       fi
   else
-      az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${tenant_id}" --only-show-errors --output none
+      az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value "${tenant_id}"  --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --only-show-errors --output none
   fi
 
   secretname="${environment}"-client-secret
@@ -424,10 +424,10 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
   then
       v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --query value -o tsv)
       if [ "${v}" != "${client_secret}" ] ; then
-          az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value="${client_secret}" --only-show-errors --output none
+          az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value="${client_secret}"  --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --only-show-errors --output none
       fi
   else
-      az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value="${client_secret}" --only-show-errors --output none
+      az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --value="${client_secret}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --only-show-errors --output none
   fi
 fi
 exit $return_code

@@ -13,20 +13,10 @@ function Show-Menu($data) {
 
 $rnd = $(Get-Random -Minimum 1 -Maximum 1000).ToString()
 
-if (Test-Path $LogFileDir) {
-  $LogFileName = "SDAF-" + $(Get-Date -Format "yyyyMMdd-HHmm") + ".md"
-  $LogFileName = Join-Path $LogFileDir -ChildPath $LogFileName
-}
-else {
-  Write-Host "The directory does not exist"
-  return
-}
-
 $LogFileDir = $Env:LogFileDir
 if ($null -eq $LogFileDir -or $LogFileDir -eq "") {
   $LogFileDir = Read-Host "Please enter the directory to save the log file"
 }
-
 
 if (Test-Path $LogFileDir) {
   $LogFileName = "SDAF-" + $(Get-Date -Format "yyyyMMdd-HHmm") + ".md"
@@ -70,7 +60,8 @@ else {
   }
 
   if ($null -eq $ARM_CLIENT_SECRET -or $ARM_CLIENT_SECRET -eq "") {
-    $ARM_CLIENT_SECRET = Read-Host "Please enter the Service Principals App ID Password" -AsSecureString
+    $SecureString = Read-Host "Please enter the Service Principals App ID Password" -AsSecureString
+    $ARM_CLIENT_SECRET = ConvertFrom-SecureString $SecureString
   }
 
   $VM_password = $ARM_CLIENT_SECRET
@@ -260,9 +251,9 @@ if ($selection.ToUpper() -eq "Y") {
   $OutputString = "Creating Key vault: " + $kvName
   Write-Host $OutputString -foregroundcolor Yellow
   Add-Content -Path $LogFileName $OutputString
-  az vault create --name $kvName --resource-group $resourceGroupName --location $Location --query "provisioningState" --enable-purge-protection false --retention-days 7
+  az keyvault create --name $kvName --resource-group $resourceGroupName --location $Location --query "provisioningState" --enable-purge-protection false --retention-days 7
 
-  az vault secret set --vault-name $kvName --name "sdaftestsecret" --value "sdaftestsecretvalue" --query "id"
+  az keyvault secret set --vault-name $kvName --name "sdaftestsecret" --value "sdaftestsecretvalue" --query "id"
 }
 $vmssName = "SDAF-VmssFlex"
 

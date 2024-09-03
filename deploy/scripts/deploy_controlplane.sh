@@ -547,10 +547,10 @@ if [ 2 == $step ]; then
     then
         v=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
         if [ "${v}" != "${TF_VAR_sa_connection_string}" ] ; then
-            az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${TF_VAR_sa_connection_string}" --only-show-errors --output none
+            az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${TF_VAR_sa_connection_string}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --only-show-errors --output none
         fi
     else
-        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${TF_VAR_sa_connection_string}" --only-show-errors --output none
+        az keyvault secret set --name "${secretname}" --vault-name "${keyvault}" --value "${TF_VAR_sa_connection_string}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --only-show-errors --output none
     fi
 
     cd "${curdir}" || exit

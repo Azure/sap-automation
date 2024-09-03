@@ -201,6 +201,9 @@
               when:
                 - not db_scale_out
 
+            - name:                        "Database Installation Playbook: - Clear the failed state of hosts"
+              ansible.builtin.meta:        clear_host_errors
+
             # - name:                    "Database installation Playbook: - run HANA Scale-Out mounts"
             #   ansible.builtin.include_role:
             #     name:                   roles-sap-os/2.6-sap-mounts
