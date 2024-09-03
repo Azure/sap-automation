@@ -100,6 +100,14 @@
         - hostvars[ansible_hostname]['scs_running_on'] is defined
         - ansible_hostname == hostvars[ansible_hostname]['scs_running_on']
 
+
+    - name:                               "Set information"
+      ansible.builtin.set_fact:
+        acss_resource_group:              "{{ vm_data.json.compute.resourceGroupName }}"
+        acss_resource_id:                 "{{ vm_data.json.compute.resourceId }}"
+        acss_subscription_id:             "{{ vm_data.json.compute.subscriptionId }}"
+        acss_location:                    "{{ vm_data.json.compute.location }}"
+
     # - name:                            "0.5.1 acss registration: - Set variables from Azure IMDS"
     #   delegate_facts:                  true
     #   delegate_to:                     localhost
@@ -110,7 +118,7 @@
 
     - name:                            "0.5.1 acss registration: - Create [ACSS] virtual instance"
       ansible.builtin.uri:
-        url:                           "https://management.azure.com/subscriptions/{{ acss_subscription_id }}/resourceGroups/{{ acss_resource_group }}/providers/Microsoft.Workloads/sapVirtualInstances/{{ acss_sid }}?api-version=2023-04-01"
+        url:                           "https://management.azure.com/subscriptions/{{ acss_subscription_id }}/resourceGroups/{{ acss_resource_group }}/providers/Microsoft.Workloads/sapVirtualInstances/{{ sap_sid | upper }}?api-version=2023-04-01"
         method:                        PUT
         body_format:                   json
         body: |
