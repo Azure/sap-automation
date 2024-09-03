@@ -100,13 +100,13 @@
         - hostvars[ansible_hostname]['scs_running_on'] is defined
         - ansible_hostname == hostvars[ansible_hostname]['scs_running_on']
 
-    - name:                            "0.5.1 acss registration: - Set variables from Azure IMDS"
-      delegate_facts:                  true
-      delegate_to:                     localhost
-      ansible.builtin.command: >-
-              "az extension add --name workloads --yes || exit 1"
-      tags:
-        - skip_ansible_lint
+    # - name:                            "0.5.1 acss registration: - Set variables from Azure IMDS"
+    #   delegate_facts:                  true
+    #   delegate_to:                     localhost
+    #   ansible.builtin.command: >-
+    #           "az extension add --name workloads --yes || exit 1"
+    #   tags:
+    #     - skip_ansible_lint
 
     - name:                            "0.5.1 acss registration: - Create [ACSS] virtual instance"
       ansible.builtin.uri:
