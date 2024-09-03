@@ -10,7 +10,7 @@
   become_user:                         "{{ sap_sid | lower }}adm"
   become:                              true
   when:
-    - "'scs' in supported_tiers"
+    - "'scs' in supported_tiers or 'ers' in supported_tiers"
   block:
     - name:                            "0.5.1 acss registration: - Get sapcontrol path"
       ansible.builtin.find:
@@ -50,7 +50,7 @@
 
     - name:                            "0.5.1 acss registration: - Show if SCS is running on {{ ansible_hostname }}"
       ansible.builtin.debug:
-        var: is_running
+        var:                           is_running
 
     - name:                            "0.5.1 acss registration: - Validate that SCS is running on {{ ansible_hostname }}"
       ansible.builtin.set_fact:
