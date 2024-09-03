@@ -102,10 +102,10 @@
 
     - name:                               "Set information"
       ansible.builtin.set_fact:
-        acss_resource_group:              "{{ vm_data.json.compute.resourceGroupName }}"
-        acss_resource_id:                 "{{ vm_data.json.compute.resourceId }}"
-        acss_subscription_id:             "{{ vm_data.json.compute.subscriptionId }}"
-        acss_location:                    "{{ vm_data.json.compute.location }}"
+        acss_resource_group:              "{{ azure_metadata.json.compute.resourceGroupName }}"
+        acss_resource_id:                 "{{ azure_metadata.json.compute.resourceId }}"
+        acss_subscription_id:             "{{ azure_metadata.json.compute.subscriptionId }}"
+        acss_location:                    "{{ azure_metadata.json.compute.location }}"
 
     # - name:                            "0.5.1 acss registration: - Set variables from Azure IMDS"
     #   delegate_facts:                  true
