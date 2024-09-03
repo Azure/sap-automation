@@ -41,7 +41,7 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |                 Playbook for SAP Web Dispatcher Install                    |
+# |                 Playbook for ASCS Registration                             |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -54,7 +54,6 @@
 
   name:                                ACSS Registration
   remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
