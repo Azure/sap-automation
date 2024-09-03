@@ -188,7 +188,7 @@ namespace AutomationForm.Controllers
           }
           landscape.Id = Helper.GenerateId(landscape);
           DateTime currentDateAndTime = DateTime.Now;
-          landscape.LastModified = string.Format("%s %s", currentDateAndTime.ToShortDateString(), currentDateAndTime.ToShortTimeString());
+          landscape.LastModified = currentDateAndTime.ToShortDateString();
 
           await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
           TempData["success"] = "Successfully created workload zone " + landscape.Id;
@@ -363,7 +363,7 @@ namespace AutomationForm.Controllers
               await UnsetDefault(landscape.Id);
             }
             DateTime currentDateAndTime = DateTime.Now;
-            landscape.LastModified = string.Format("%s %s", currentDateAndTime.ToShortDateString(), currentDateAndTime.ToShortTimeString());
+            landscape.LastModified = currentDateAndTime.ToShortDateString();
 
             await _landscapeService.UpdateAsync(new LandscapeEntity(landscape));
             TempData["success"] = "Successfully updated workload zone " + landscape.Id;
@@ -415,7 +415,7 @@ namespace AutomationForm.Controllers
           }
           landscape.Id = Helper.GenerateId(landscape);
           DateTime currentDateAndTime = DateTime.Now;
-          landscape.LastModified = string.Format("%s %s", currentDateAndTime.ToShortDateString(), currentDateAndTime.ToShortTimeString());
+          landscape.LastModified = currentDateAndTime.ToShortDateString();
 
           await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
           TempData["success"] = "Successfully created workload zone " + landscape.Id;

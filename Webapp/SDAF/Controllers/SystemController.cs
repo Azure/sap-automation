@@ -198,7 +198,7 @@ namespace AutomationForm.Controllers
           }
           system.Id = Helper.GenerateId(system);
           DateTime currentDateAndTime = DateTime.Now;
-          system.LastModified = string.Format("%s %s", currentDateAndTime.ToShortDateString(), currentDateAndTime.ToShortTimeString());
+          system.LastModified = currentDateAndTime.ToShortDateString();
           SystemEntity systemEntity = new(system);
           await _systemService.CreateAsync(systemEntity);
           TempData["success"] = "Successfully created system " + system.Id;
@@ -482,7 +482,7 @@ namespace AutomationForm.Controllers
               }
             }
             DateTime currentDateAndTime = DateTime.Now;
-            system.LastModified = string.Format("%s %s", currentDateAndTime.ToShortDateString(), currentDateAndTime.ToShortTimeString());
+            system.LastModified = currentDateAndTime.ToShortDateString();
             await _systemService.UpdateAsync(new SystemEntity(system));
 
             TempData["success"] = "Successfully updated system " + system.Id;
@@ -533,7 +533,7 @@ namespace AutomationForm.Controllers
           }
           system.Id = Helper.GenerateId(system);
           DateTime currentDateAndTime = DateTime.Now;
-          system.LastModified = string.Format("%s %s", currentDateAndTime.ToShortDateString(), currentDateAndTime.ToShortTimeString());
+          system.LastModified = currentDateAndTime.ToShortDateString();
 
           await _systemService.CreateAsync(new SystemEntity(system));
           TempData["success"] = "Successfully created system " + system.Id;
