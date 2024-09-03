@@ -99,7 +99,7 @@
   when:                                updatesga_results.rc == 0
 
 # Wait for creation of HugePages
-# Rebbot the VM to avoid the error "ORA-27102: out of memory"
+# Reboot the VM to avoid the error "ORA-27102: out of memory"
 
 - name:                                "ORACLE Post Processing: DB VM reboot"
   block:
@@ -110,6 +110,7 @@
 
     - name:                            "ORACLE Post Processing: Reboot after the Enabling HugePages"
       become:                          true
+      become_user:                     root
       ansible.builtin.reboot:
         reboot_timeout:                300
       failed_when:                     false

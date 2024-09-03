@@ -176,9 +176,12 @@
     msg:                               "Reboot and wait 5 minutes"
 
 - name:                                "5.6 SCSERS - RHEL - Reboot the primary/secondary instance"
+  become:                              true
+  become_user:                         root
   ansible.builtin.reboot:
-    reboot_timeout:                    300
-    post_reboot_delay:                 300
+    reboot_timeout:                    180
+    post_reboot_delay:                 180
+  failed_when:                         false
 
 - name:                                "5.6 SCSERS - RHEL - Set the Cluster out of maintenance mode"
   ansible.builtin.shell:               pcs property set maintenance-mode=false

@@ -203,6 +203,7 @@ namespace AutomationForm.Models
     public Tag[] configuration_settings { get; set; }
 
     public bool? dns_a_records_for_secondary_names { get; set; } = true;
+
     public bool? use_private_endpoint { get; set; } = true;
 
     public bool? use_service_endpoint { get; set; }
@@ -574,6 +575,8 @@ namespace AutomationForm.Models
     public bool? ANF_sapmnt { get; set; }
 
     public string ANF_sapmnt_volume_name { get; set; }
+
+    public bool? ANF_sapmnt_use_existing { get; set; }
 
     public int? ANF_sapmnt_volume_size { get; set; }
 

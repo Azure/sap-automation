@@ -56,6 +56,7 @@
 
     - name:                            "2.10.1 sap-notes: Reboot app VMs after selinux is configured"
       become:                          true
+      become_user:                     root
       ansible.builtin.reboot:
         reboot_timeout:                300
         post_reboot_delay:             60

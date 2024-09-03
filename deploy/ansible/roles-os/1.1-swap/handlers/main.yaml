@@ -6,6 +6,8 @@
     state:                             restarted
 
 - name:                                "Swap reboot"
+  become:                              true
+  become_user:                         root
   ansible.builtin.reboot:
     reboot_timeout:                    300
     post_reboot_delay:                 10
