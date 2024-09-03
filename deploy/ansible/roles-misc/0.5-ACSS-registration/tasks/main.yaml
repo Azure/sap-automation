@@ -97,8 +97,6 @@
         headers:
           Metadata:                    true
       register:                        azure_metadata
-      when:
-
 
     - name:                               "Set information"
       ansible.builtin.set_fact:
