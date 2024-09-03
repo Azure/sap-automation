@@ -102,17 +102,21 @@
 
         @Html.EditorForModel("Checkbox", new { ParameterName = "database_install", DisplayName = "Database Installation", IsChecked = true })
 
-        @Html.EditorForModel("Checkbox", new { ParameterName = "scs_installation", DisplayName = "SCS Installation", IsChecked = true })
+        @Html.EditorForModel("Checkbox", new { ParameterName = "scs_installation", DisplayName = "SCS Installation & High Availability Configuration", IsChecked = true })
 
         @Html.EditorForModel("Checkbox", new { ParameterName = "db_load", DisplayName = "Database Load", IsChecked = true })
 
-        @Html.EditorForModel("Checkbox", new { ParameterName = "high_availability_configuration", DisplayName = "SAP & DB High Availability Setup", IsChecked = true })
+        @Html.EditorForModel("Checkbox", new { ParameterName = "high_availability_configuration", DisplayName = "Database High Availability Configuration", IsChecked = true })
 
-        @Html.EditorForModel("Checkbox", new { ParameterName = "pas_installation", DisplayName = "PAS Installation", IsChecked = true })
+        @Html.EditorForModel("Checkbox", new { ParameterName = "pas_installation", DisplayName = "Primary Application Server Installation", IsChecked = true })
 
-        @Html.EditorForModel("Checkbox", new { ParameterName = "application_server_installation", DisplayName = "APP Installation", IsChecked = true })
+        @Html.EditorForModel("Checkbox", new { ParameterName = "application_server_installation", DisplayName = "Application Server Installation", IsChecked = true })
 
-        @Html.EditorForModel("Checkbox", new { ParameterName = "webdispatcher_installation", DisplayName = "WebDispatcher Installation", IsChecked = false })
+        @Html.EditorForModel("Checkbox", new { ParameterName = "webdispatcher_installation", DisplayName = "Web Dispatcher Installation", IsChecked = false })
+
+        @Html.EditorForModel("Checkbox", new { ParameterName = "post_configuration_actions", DisplayName = "Post Configuration Actions", IsChecked = false })
+
+        @Html.EditorForModel("Checkbox", new { ParameterName = "ams_provider", DisplayName = "Configure AMS Provider", IsChecked = false })
 
         @Html.EditorForModel("Checkbox", new { ParameterName = "acss_registration", DisplayName = "Register System in ACSS", IsChecked = true })
 

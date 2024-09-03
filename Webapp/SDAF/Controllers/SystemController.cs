@@ -197,6 +197,7 @@ namespace AutomationForm.Controllers
             await UnsetDefault(system.Id);
           }
           system.Id = Helper.GenerateId(system);
+          system.LastModified = String.Format("%s %s", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString());
           SystemEntity systemEntity = new(system);
           await _systemService.CreateAsync(systemEntity);
           TempData["success"] = "Successfully created system " + system.Id;
@@ -479,7 +480,9 @@ namespace AutomationForm.Controllers
                 system.Description = system.database_platform + " distributed system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
               }
             }
+            system.LastModified = String.Format("%s %s", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString());
             await _systemService.UpdateAsync(new SystemEntity(system));
+
             TempData["success"] = "Successfully updated system " + system.Id;
             string id = system.Id;
             string path = $"/SYSTEM/{id}/{id}.tfvars";
@@ -527,6 +530,8 @@ namespace AutomationForm.Controllers
             await UnsetDefault(system.Id);
           }
           system.Id = Helper.GenerateId(system);
+          system.LastModified = String.Format("%s %s", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString());
+
           await _systemService.CreateAsync(new SystemEntity(system));
           TempData["success"] = "Successfully created system " + system.Id;
           return RedirectToAction("Index");

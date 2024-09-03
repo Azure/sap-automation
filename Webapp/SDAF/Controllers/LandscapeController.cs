@@ -187,6 +187,7 @@ namespace AutomationForm.Controllers
             await UnsetDefault(landscape.Id);
           }
           landscape.Id = Helper.GenerateId(landscape);
+          landscape.LastModified = String.Format("%s %s", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString());
           await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
           TempData["success"] = "Successfully created workload zone " + landscape.Id;
           string id = landscape.Id;
@@ -359,6 +360,7 @@ namespace AutomationForm.Controllers
             {
               await UnsetDefault(landscape.Id);
             }
+            landscape.LastModified = String.Format("%s %s", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString());
             await _landscapeService.UpdateAsync(new LandscapeEntity(landscape));
             TempData["success"] = "Successfully updated workload zone " + landscape.Id;
 
@@ -408,6 +410,7 @@ namespace AutomationForm.Controllers
             await UnsetDefault(landscape.Id);
           }
           landscape.Id = Helper.GenerateId(landscape);
+          landscape.LastModified = String.Format("%s %s", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString());
           await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
           TempData["success"] = "Successfully created workload zone " + landscape.Id;
           string id = landscape.Id;
