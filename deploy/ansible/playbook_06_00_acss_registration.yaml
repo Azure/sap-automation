@@ -39,6 +39,22 @@
       tags:
         - 0.1-passwords
 
+    - name:                            "0.0 Validations - Get Access Token"
+      ansible.builtin.command: >-
+        az account get-access-token --query accessToken -o tsv
+      changed_when:                    false
+      register:                        access_token_data
+      no_log: true
+      tags:
+                                       - always
+
+    - name:                            "0.0 Validations - Save the access token"
+      ansible.builtin.set_fact:
+        access_token:                  "{{ access_token_data.stdout }}"
+      no_log: true
+      tags:
+
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                 Playbook for ASCS Registration                             |
@@ -92,6 +108,8 @@
       vars:
         acss_environment:              "{{ acssEnvironment }}"
         acss_sap_product:              "{{ acssSapProduct }}"
+        acss_access_token:             "{{ hostvars.localhost.access_token }}"
+        acss_guid:                     "{{ string | to_uuid }}"
       loop:                            "{{ all_sids }}"
       loop_control:
         loop_var:                      sid_to_be_deployed

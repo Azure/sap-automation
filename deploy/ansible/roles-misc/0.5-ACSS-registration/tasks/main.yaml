@@ -64,6 +64,7 @@
   become_user:                         root
   when:
     - hostvars[ansible_hostname]['scs_running_on'] is defined
+    - ansible_hostname == hostvars[ansible_hostname]['scs_running_on']
   block:
     # - name:                            "0.5.1 acss registration: - Check where the cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is running"
     #   ansible.builtin.shell: >-
@@ -97,8 +98,6 @@
           Metadata:                    true
       register:                        azure_metadata
       when:
-        - hostvars[ansible_hostname]['scs_running_on'] is defined
-        - ansible_hostname == hostvars[ansible_hostname]['scs_running_on']
 
 
     - name:                               "Set information"
@@ -135,9 +134,9 @@
                                        }
         # status_code:                   [200, 201]
         headers:
-          Authorization:               "Bearer {{ acss_access_token.stdout }}"
+          Authorization:               "Bearer {{ acss_access_token }}"
           x-ms-rpaas-new-resource:     "true"
-          x-ms-client-request-id:      "SDAF-{{ acss_guid.stdout }}"
+          x-ms-client-request-id:      "SDAF-{{ acss_guid }}"
       register:                        create_vis_response
       failed_when:                     create_vis_response.json.properties.provisioningState != 'Accepted' and create_vis_response.json.properties.provisioningState != 'Succeeded'
       no_log:                          false
