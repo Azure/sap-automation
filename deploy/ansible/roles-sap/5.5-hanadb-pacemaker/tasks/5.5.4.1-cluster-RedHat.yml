@@ -341,7 +341,8 @@
 # | Systemd-Based SAP Startup Framework - BEGIN                                |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-# Follow steps described in https://access.redhat.com/articles/6884531
+# Follow steps described in https://access.redhat.com/articles/6093611
+
 
 - name:                                "5.5.4.1 HANA Cluster configuration - check if the OS version is RHEL 8.2 or newer"
   ansible.builtin.set_fact:

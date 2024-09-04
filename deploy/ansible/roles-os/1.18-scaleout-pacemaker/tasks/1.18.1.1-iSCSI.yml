@@ -1,0 +1,148 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# Ref: https://learn.microsoft.com/en-us/azure/sap/workloads/high-availability-guide-suse-pacemaker#set-up-the-iscsi-target-server-sbd-device
+# Note: This needs to be done on majority maker as well if the cluster type is Scale out - shared nothing.
+
+- name:                                "1.18.1 iSCSI packages"
+  community.general.zypper:
+    name:                              "{{ item }}"
+    state:                             present
+  loop:
+    - open-iscsi
+    - sbd
+
+- name:                                "1.18.1 iSCSI packages"
+  ansible.builtin.systemd:
+    name:                              "{{ item }}"
+    enabled:                           true
+  loop:
+    - iscsid
+    - iscsi
+    - sbd
+
+  # Forcing this to 'db' as the parent task 1.18 is only applicable for HANA scale out clusters
+- name:                                "1.18.1 iSCSI packages - Get node type on which we will operate"
+  ansible.builtin.set_fact:
+    iscsi_node_type:                   'db'
+
+- name:                                "1.18.1 iSCSI packages - Get initiator name"
+  ansible.builtin.set_fact:
+    iscsi_initiator_name:              "{{ iscsi_servers |
+                                           selectattr('type', 'equalto', iscsi_node_type) |
+                                           map(attribute='iqn') | list | unique | first }}"
+
+- name:                                "1.18.1 iSCSI packages - print iSCSI node type and initiator name"
+  when:                                 iscsi_node_type is defined and iscsi_initiator_name is defined
+  ansible.builtin.debug:
+    msg:                               "iSCSI node type: {{ iscsi_node_type }}, initiator name: {{ iscsi_initiator_name }}"
+    verbosity:                         2
+
+- name:                              "1.18.1 iSCSI packages - Get hostname index"
+  ansible.builtin.set_fact:
+        hostname_index:                    "{{ ansible_play_hosts_all.index(ansible_hostname) }}"
+
+- name:                                "1.18.1 iSCSI packages - Set the acl names"
+  ansible.builtin.set_fact:
+    acl_name_db_{{ hostname_index }}:  "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-{{ hostname_index }}"
+
+- name:                                "1.18.1 iSCSI packages - print acl names"
+  ansible.builtin.debug:
+    msg:                               " acl_name_db_{{ hostname_index }}: vars['acl_name_db_'+hostname_index] }}"
+    verbosity:                         2
+
+- name:                                "1.18.1 iSCSI configuration - replace InitiatorName - DB"
+  when:
+    - iscsi_node_type == 'db'
+  block:
+    - name:                            "1.18.1 iSCSI configuration - replace InitiatorName - {{ ansible_hostname }}"
+      ansible.builtin.replace:
+        path:                          /etc/iscsi/initiatorname.iscsi
+        regexp:                        '^InitiatorName=.*$'
+        replace:                       "InitiatorName={{ vars['acl_name_db_'+hostname_index] }}"
+        backup:                        true
+
+- name:                                "1.18.1 iSCSI configuration - restart iSCSI services"
+  ansible.builtin.systemd:
+    name:                              "{{ item }}"
+    state:                             restarted
+  loop:
+    - iscsid
+    - iscsi
+
+- name:                                "1.18.1 iSCSI configuration block - iterate through the available iSCSI servers"
+  when:
+    - iscsi_node_type is defined
+    - iscsi_node_type in ['db']
+    - iscsi_initiator_name is defined
+  block:
+    # - name:                            "1.18.1 iSCSI configuration - discovery, login and update node.startup"
+    #   when:
+    #     - iscsi_node_type == item.type
+    #     - iscsi_initiator_name == item.iqn
+    #   ansible.builtin.shell:
+    #     cmd: >-
+    #                                    iscsiadm -m discovery --type=st --portal={{ item.host }}:3260;
+    #                                    iscsiadm -m node -T {{ item.iqn }} --login --portal={{ item.host }}:3260;
+    #                                    iscsiadm -m node -T {{ item.iqn }} -p {{ item.host }}:3260 --op=update \
+    #                                              --name=node.startup --value=automatic
+    #   loop:                            "{{ iscsi_servers }}"
+
+    - name:                            "1.18.1 iSCSI configuration - discovery, login and update node.startup using community.general.open_iscsi"
+      community.general.open_iscsi:
+        login:                         true
+        portal:                        "{{ item.host }}"
+        auto_portal_startup:           true
+        discover:                      true
+        target:                        "{{ item.iqn }}"
+      loop:                            "{{ iscsi_servers }}"
+      register:                        iscsi_configuration_result
+      when:
+        - iscsi_node_type == item.type
+        - iscsi_initiator_name == item.iqn
+
+- name:                                "1.18.1 reload iSCSI"
+  ansible.builtin.systemd:
+    name:                              "{{ item }}"
+    enabled:                           true
+    daemon_reload:                     true
+  loop:
+    - iscsid
+    - iscsi
+
+- name:                                "1.18.1 iSCSI packages - print iSCSI configuration result"
+  when:
+    - iscsi_node_type is defined
+    - iscsi_node_type in ['db']
+    - iscsi_initiator_name is defined
+  ansible.builtin.debug:
+    msg:                               "{{ iscsi_configuration_result }}"
+    verbosity:                         2
+
+- name:                                "1.18.1 iSCSI packages - product of vms in group and iscsi_configuration_result devicenodes attribute"
+  ansible.builtin.set_fact:
+    iscsi_devices_on_client:           "{{ iscsi_configuration_result.results | selectattr('devicenodes', 'defined') |
+                                           map(attribute='devicenodes') | select() | flatten(levels=1) |
+                                           default([]) | unique | list }}"
+  when:
+    - iscsi_configuration_result is defined
+
+- name:                                "1.18.1 iSCSI packages - product of ansible_play_hosts_all in group and iscsi_configuration_result devices on client"
+  ansible.builtin.set_fact:
+    iscsi_device_map:                  "{{ [ansible_hostname] | product(iscsi_devices_on_client) |
+                                           default([]) | unique | list }}"
+  when:
+    - iscsi_configuration_result is defined
+
+- name:                                "1.18.1 iSCSI packages - product of vms in group and iscsi_configuration_result devicenodes attribute"
+  ansible.builtin.debug:
+    msg:
+      - "iscsi_devices_on_client:      {{ iscsi_devices_on_client }}"
+      - "iscsi_device_map:             {{ iscsi_device_map }}"
+    verbosity:                         2
+  when:
+    - iscsi_configuration_result is defined
+
+
+...

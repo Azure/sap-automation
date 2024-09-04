@@ -152,6 +152,7 @@ module "hdb_node" {
   terraform_template_version                    = var.terraform_template_version
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
   use_msi_for_clusters                          = var.use_msi_for_clusters
+  use_observer                                  = var.database_HANA_use_ANF_scaleout_scenario && local.database.high_availability
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
   dns_settings                                  = local.dns_settings
@@ -353,8 +354,15 @@ module "output_files" {
   #########################################################################################
   bom_name                                      = var.bom_name
   db_sid                                        = local.db_sid
-  observer_ips                                  = module.anydb_node.observer_ips
-  observer_vms                                  = module.anydb_node.observer_vms
+  observer_ips                                  = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.observer_ips) : (
+                                                    module.anydb_node.observer_ips
+                                                  )
+  observer_vms                                  = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.observer_vms) : (
+                                                    module.anydb_node.observer_vms
+                                                  )
+
   platform                                      = upper(try(local.database.platform, "HANA"))
   sap_sid                                       = local.sap_sid
   web_sid                                       = var.web_sid
@@ -400,7 +408,7 @@ module "output_files" {
   shared_home                                   = var.shared_home
   hana_data                                     = module.hdb_node.hana_data_ANF_volumes
   hana_log                                      = module.hdb_node.hana_log_ANF_volumes
-  hana_shared                                   = [module.hdb_node.hana_shared]
+  hana_shared                                   = module.hdb_node.hana_shared
   usr_sap                                       = module.common_infrastructure.usrsap_path
 
   #########################################################################################

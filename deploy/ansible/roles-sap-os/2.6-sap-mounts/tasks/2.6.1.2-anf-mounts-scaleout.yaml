@@ -760,8 +760,8 @@
 #   when:
 #     - tier == 'hana'
 #     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
-#     - db_scale_out is defined
-#     - db_scale_out
+#     - database_scale_out is defined
+#     - database_scale_out
 
 # - name:                                "ANF Mount: Scale Out - Create SAP Directories (hana data)"
 #   ansible.builtin.file:
@@ -773,8 +773,8 @@
 #   when:
 #     - tier == 'hana'
 #     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
-#     - db_scale_out is defined
-#     - db_scale_out
+#     - database_scale_out is defined
+#     - database_scale_out
 
 
 # - name:                                "ANF Mount: Scale Out - Create SAP Directories (hana log)"
@@ -787,8 +787,8 @@
 #   when:
 #     - tier == 'hana'
 #     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
-#     - db_scale_out is defined
-#     - db_scale_out
+#     - database_scale_out is defined
+#     - database_scale_out
 
 # - name:                                "ANF Mount: HANA shared - Scale out"
 #   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
@@ -814,8 +814,8 @@
 #     - hana_shared_mountpoint is defined
 #     - hana_shared_mountpoint | length > 0
 #     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
-#     - db_scale_out is defined
-#     - db_scale_out
+#     - database_scale_out is defined
+#     - database_scale_out
 
 # # This runs for unique share per node
 # - name:                                "ANF Mount: usrsap - Scale out"
@@ -840,8 +840,8 @@
 #     - hana_shared_mountpoint is defined
 #     - hana_shared_mountpoint | length == 1
 #     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
-#     - db_scale_out is defined
-#     - db_scale_out
+#     - database_scale_out is defined
+#     - database_scale_out
 
 # - name:                                "ANF Mount: HANA Data - Scale out - Create mount list"
 #   block:
@@ -874,8 +874,8 @@
 #     - hana_data_mountpoint is defined
 #     # - hana_data_mountpoint | length == db_hosts | length
 #     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
-#     - db_scale_out is defined
-#     - db_scale_out
+#     - database_scale_out is defined
+#     - database_scale_out
 
 # - name:                                "DEBUG:ANF Mount: HANA Data - Scale out - Create mount list"
 #   ansible.builtin.debug:
@@ -893,8 +893,8 @@
 #     - hana_data_mountpoint is defined
 #     # - hana_data_mountpoint | length == db_hosts | length
 #     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
-#     - db_scale_out is defined
-#     - db_scale_out
+#     - database_scale_out is defined
+#     - database_scale_out
 
 
 # - name:                                "ANF Mount: HANA Log - Scale out - Create mount list"
@@ -928,8 +928,8 @@
 #     - hana_log_mountpoint is defined
 #     # - hana_log_mountpoint | length == db_hosts | length
 #     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
-#     - db_scale_out is defined
-#     - db_scale_out
+#     - database_scale_out is defined
+#     - database_scale_out
 
 # - name:                                "DEBUG:ANF Mount: HANA Log - Scale out - Create mount list"
 #   ansible.builtin.debug:
@@ -947,8 +947,8 @@
 #     - hana_log_mountpoint is defined
 #     # - hana_log_mountpoint | length == db_hosts | length
 #     # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
-#     - db_scale_out is defined
-#     - db_scale_out
+#     - database_scale_out is defined
+#     - database_scale_out
 
 
 # - name:                                "ANF Mount: Set Permissons on HANA (HSR) Directories ({{ item.path }})"
@@ -985,6 +985,6 @@
 #     - tier == 'sapos'
 #     - node_tier == 'hana'
 #     - not (db_high_availability | default(false))
-#     - db_scale_out
+#     - database_scale_out
 
 # ...

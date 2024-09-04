@@ -7,6 +7,7 @@
 # |  Begin: configuration for SAPHanaSR python hook                            |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+# Note: Refer to https://access.redhat.com/articles/3004101 for RHEL hook installation for HSR ( scale up and scale out ) setups
 
 - name:                                HANA 2.0 only - Implement the Python system replication hook SAPHanaSR
   when:

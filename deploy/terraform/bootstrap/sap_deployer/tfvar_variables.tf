@@ -411,7 +411,10 @@ variable "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
                                                                   default     = []
                                                                 }
 
-
+variable "tags"                                 {
+                                                  description = "If provided, tags for all resources"
+                                                  default     = {}
+                                                }
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #

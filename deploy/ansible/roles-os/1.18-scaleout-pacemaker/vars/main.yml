@@ -1,0 +1,110 @@
+---
+
+# /*---------------------------------------------------------------------------8
+# |  Variables in this file are required by the role,                         |
+# |  but are computed from default variables (e.g. sid),                       |
+# |  from the playbook/environment (e.g. hana_database),                       |
+# |  or are "SAP standard" values.                                             |
+# |                                                                           |
+# |  They may be overridden, if required, but normally are not                 |
+# |                                                                           |
+# +------------------------------------4--------------------------------------*/
+
+db_hosts:                   "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+mm_hosts:                   "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_OBSERVER_DB') }}"
+
+cluster_totem:
+  token:                               30000
+  retransmits:                         10
+  join:                                 60
+  consensus:                           36000
+  max_messages:                         20
+
+cluster_quorum:
+  # expected_votes:                       "{{ (( ansible_play_hosts_all | length ) / 2 ) | int + 1 }}"
+  expected_votes:                       "{{ ansible_play_hosts_all | length }}"
+  two_node:                             0
+
+# /*---------------------------------------------------------------------------8
+# | These are the default timeouts used for the SAP HANA OS clustering.        |
+# | Depending on the SAP HANA System, these may need to be adjusted            |
+# | if the operation takes longer than expected.                               |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+cluster_sap_hana_timeouts:
+  start:                              3600
+  stop:                               3600
+  monitor_master:                     700
+  monitor_slave:                      700
+  promote:                            3600
+  demote:                             3600
+
+cluster_status_cmd:
+  RedHat:                             "pcs status --full"
+  Suse:                               "crm status full"
+
+cluster_status_report_wait_in_s:      60
+cluster_name:                         db{{ sid | lower }}
+
+# /*---------------------------------------------------------------------------8
+# |                      HANA utility commands                                 |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+sapcontrol_command:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe/sapcontrol -nr {{ db_instance_number }}"
+
+sbdMap: []
+
+# https://docs.ansible.com/ansible/latest/collections/ansible/builtin/version_test.html
+# version_type is one of "loose" ← (default), "strict", "semver", "semantic", "pep440"
+# compare_operator is one of ">=" ← (default), "==", "!=", "<", "<=", ">", ">="
+# RHEL
+# RHEL 8.4: resource-agents-4.1.1-90.13
+# RHEL 8.6: resource-agents-4.9.0-16.9
+# RHEL 8.8 and newer: resource-agents-4.9.0-40.1
+# RHEL 9.0 and newer: resource-agents-cloud-4.10.0-34.2
+# SLES
+# SLES 12 SP5: resource-agents-4.3.018.a7fb5035-3.98.1
+# SLES 15 SP1: resource-agents-4.3.0184.6ee15eb2-150100.4.72.1
+# SLES 15 SP2: resource-agents-4.4.0+git57.70549516-150200.3.56.1
+# SLES 15 SP3: resource-agents-4.8.0+git30.d0077df0-150300.8.31.1
+# SLES 15 SP4 and newer: resource-agents-4.10.0+git40.0f4de473-150400.3.19.1
+# todo: Figure out a way to get the release information from the package manager
+package_versions:
+  redhat8.4:
+    - {name: "pacemaker",               version: "2.0.5",   compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents",         version: "4.1.1",   compare_operator: ">=", version_type: "loose"}
+  redhat8.6:
+    - {name: "pacemaker",               version: "2.0.5",   compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents",         version: "4.9.0",   compare_operator: ">=", version_type: "loose"}
+  redhat8.8:
+    - {name: "pacemaker",               version: "2.0.5",   compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents",         version: "4.9.0",   compare_operator: ">=", version_type: "loose"}
+  redhat8.9:
+    - {name: "pacemaker",               version: "2.0.5",   compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents",         version: "4.9.0",   compare_operator: ">=", version_type: "loose"}
+  redhat9.0:
+    - {name: "pacemaker",               version: "2.0.5",   compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents-cloud",   version: "4.10.0",  compare_operator: ">=", version_type: "loose"}
+  redhat9.2:
+    - {name: "pacemaker",               version: "2.0.5",   compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents-cloud",   version: "4.10.0",  compare_operator: ">=", version_type: "loose"}
+  sles_sap12.5:
+    - {name: "pacemaker",               version: "1.1.23",  compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents",         version: "4.3.018", compare_operator: ">=", version_type: "loose"}
+  sles_sap15.1:
+    - {name: "pacemaker",               version: "1.1.23",  compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents",         version: "4.3.018", compare_operator: ">=", version_type: "semver"}
+  sles_sap15.2:
+    - {name: "pacemaker",               version: "1.1.23",  compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents",         version: "4.4.0",   compare_operator: ">=", version_type: "semver"}
+  sles_sap15.3:
+    - {name: "pacemaker",               version: "1.1.23",  compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents",         version: "4.8.0",   compare_operator: ">=", version_type: "semver"}
+  sles_sap15.4:
+    - {name: "pacemaker",               version: "1.1.23",  compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents",         version: "4.10.0",  compare_operator: ">=", version_type: "semver"}
+  sles_sap15.5:
+    - {name: "pacemaker",               version: "1.1.23",  compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents",         version: "4.10.0",  compare_operator: ">=", version_type: "semver"}

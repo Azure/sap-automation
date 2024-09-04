@@ -40,6 +40,7 @@ resource "azurerm_storage_account" "sapmnt" {
   cross_tenant_replication_enabled     = false
 
   public_network_access_enabled        = try(var.landscape_tfstate.public_network_access_enabled, true)
+  shared_access_key_enabled            = false
   tags                                 = var.tags
 
   network_rules {

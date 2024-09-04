@@ -1,0 +1,4 @@
+[persistence]
+basepath_shared = {{ _rsp_basepath_shared }}
+basepath_datavolumes = {{ _rsp_hana_data_basepath }}
+basepath_logvolumes = {{ _rsp_hana_log_basepath }}
