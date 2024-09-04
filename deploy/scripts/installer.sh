@@ -167,7 +167,7 @@ fi
 #Plugins
 if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]
 then
-    mkdir /opt/terraform/.terraform.d/plugin-cache
+    mkdir -p /opt/terraform/.terraform.d/plugin-cache
 fi
 sudo chown -R $USER:$USER /opt/terraform
 
