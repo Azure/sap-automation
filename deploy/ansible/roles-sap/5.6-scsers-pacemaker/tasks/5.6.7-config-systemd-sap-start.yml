@@ -21,7 +21,7 @@
     var:                               systemd_service_file_path
     verbosity:                         2
 
-- name:                                "5.6 SCSERS - Set fact for the systemd services existance"
+- name:                                "5.6 SCSERS - Set facts for the systemd services and files"
   ansible.builtin.set_fact:
     systemd_service_names:             "{{
                                            systemd_service_file_path.results
@@ -29,6 +29,12 @@
                                            | map(attribute='stat.path')
                                            | regex_replace('/etc/systemd/system/', '')
                                          }}"
+    scs_systemd_files:
+      - { file: "SAP{{ sap_sid | upper }}_{{ scs_instance_number }}.service", directory: /etc/systemd/system }
+      - { file: "10-SAP{{ sap_sid | upper }}-{{ scs_instance_number }}.rules", directory: /etc/polkit-1/rules.d }
+    ers_systemd_files:
+      - { file: "SAP{{ sap_sid | upper }}_{{ ers_instance_number }}.service", directory: /etc/systemd/system }
+      - { file: "10-SAP{{ sap_sid | upper }}-{{ ers_instance_number }}.rules", directory: /etc/polkit-1/rules.d }
 
 - name:                                "5.6 SCSERS - Show fact for the systemd services existance"
   ansible.builtin.debug:
@@ -40,77 +46,83 @@
     - systemd_service_names is defined
     - systemd_service_names | length > 0
   block:
-    # - name:                            "5.6 SCSERS - Disable the services if they exist"
-    #   ansible.builtin.systemd:
-    #     name:                          "{{ service_name }}"
-    #     enabled:                       false
-    #   failed_when:                     false
-    #   loop:                            "{{ systemd_service_names }}"
-    #   loop_control:
-    #     loop_var:                      service_name
 
-    - name:                            "5.6 SCSERS - Disable and Stop the services if they exist"
-      become:                          true
-      become_user:                     root
+    - name:                            "5.6 SCSERS - Fetch systemd files from (A)SCS node"
+      when: node_tier == 'scs'
+      ansible.builtin.fetch:
+        src:                           "{{ item.directory }}/{{ item.file }}"
+        dest:                          /tmp/{{ sap_sid }}/
+        flat:                          true
+      loop: "{{ scs_systemd_files }}"
+
+    - name:                            "5.6 SCSERS - Fetch systemd files from ERS node"
+      when: node_tier == 'ers'
+      ansible.builtin.fetch:
+        src:                           "{{ item.directory }}/{{ item.file }}"
+        dest:                          /tmp/{{ sap_sid }}/
+        flat:                          true
+      loop: "{{ ers_systemd_files }}"
+
+    - name:                            "5.6 SCSERS - Copy ERS systemd files on (A)SCS node"
+      when: node_tier == 'scs'
+      ansible.builtin.copy:
+        src:                           /tmp/{{ sap_sid }}/{{ item.file }}
+        dest:                          "{{ item.directory }}"
+        mode:                          '0644'
+        owner:                         root
+        group:                         sapinst
+      loop: "{{ ers_systemd_files }}"
+
+    - name:                            "5.6 SCSERS - Copy (A)SCS systemd files on ERS node"
+      when: node_tier == 'ers'
+      ansible.builtin.copy:
+        src:                           /tmp/{{ sap_sid }}/{{ item.file }}
+        dest:                          "{{ item.directory }}"
+        mode:                          '0644'
+        owner:                         root
+        group:                         sapinst
+      loop: "{{ scs_systemd_files }}"
+
+    - name:                            "5.6 SCSERS Pacemaker - Create systemd service override directory"
+      ansible.builtin.file:
+        path:                          "{{ override_dir }}"
+        state:                          directory
+        owner:                         root
+        group:                         root
+        mode:                          '0755'
+      loop:
+        - /etc/systemd/system/SAP{{ sap_sid | upper }}_{{ scs_instance_number }}.service.d
+        - /etc/systemd/system/SAP{{ sap_sid | upper }}_{{ ers_instance_number }}.service.d
+      loop_control:
+        loop_var:                      override_dir
+
+    - name:                            "5.6 SCSERS Pacemaker - Create systemd HA override files"
+      ansible.builtin.copy:
+        content: |-
+          [Service]
+          Restart=no
+        dest:                          "{{ dropfile }}"
+        owner:                         root
+        group:                         root
+        mode:                          '0644'
+      loop:
+        - /etc/systemd/system/SAP{{ sap_sid | upper }}_{{ scs_instance_number }}.service.d/HA.conf
+        - /etc/systemd/system/SAP{{ sap_sid | upper }}_{{ ers_instance_number }}.service.d/HA.conf
+      loop_control:
+        loop_var:                      dropfile
+
+    - name:                            "5.6 SCSERS - Disable and Stop services"
       ansible.builtin.systemd:
         name:                          "{{ service_name }}"
+        daemon_reload:                 true
         enabled:                       false
-        state:                         "stopped"
+        state:                         stopped
       failed_when:                     false
-      loop:                            "{{ systemd_service_names }}"
+      loop:
+        - SAP{{ sap_sid | upper }}_{{ scs_instance_number }}
+        - SAP{{ sap_sid | upper }}_{{ ers_instance_number }}
       loop_control:
         loop_var:                      service_name
-
-    - name:                            "5.6 SCSERS Pacemaker - (systemd) Create drop-in file"
-      become:                          true
-      become_user:                     root
-      ansible.builtin.lineinfile:
-        path:                          '{{ dropfile }}'
-        create:                        true
-        backup:                        true
-        owner:                         root
-        group:                         root
-        mode:                          '0644'
-        line:                          "[Service]"
-      loop:
-        - "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ scs_instance_number }}.service.d/HA.conf"
-        - "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ ers_instance_number }}.service.d/HA.conf"
-      loop_control:
-        loop_var:                      dropfile
-
-    - name:                            "5.6 SCSERS Pacemaker - (systemd) Update drop-in file"
-      become:                          true
-      become_user:                     root
-      ansible.builtin.lineinfile:
-        path:                          '{{ dropfile }}'
-        create:                        true
-        backup:                        true
-        owner:                         root
-        group:                         root
-        mode:                          '0644'
-        insertafter:                   '^[Service]$'
-        line:                          "Restart=no"
-      loop:
-        - "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ scs_instance_number }}.service.d/HA.conf"
-        - "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ ers_instance_number }}.service.d/HA.conf"
-      loop_control:
-        loop_var:                      dropfile
-      register:                        dropinfile
-
-    - name:                            "5.6 SCSERS - systemd reload"
-      ansible.builtin.systemd:
-        daemon_reload:                 true
-      when:
-        - dropinfile.changed
-
-    # - name:                            "5.6 SCSERS - validate that the drop-in file is active"
-    #   when:
-    #   ansible.builtin.shell: >-
-    #                                    systemd-delta | grep 'SAP{{ sap_sid | upper }}_{{ scs_instance_number }}.service'
-    #   register:                        dropinfile_validation
-    #   changed_when:                    false
-    #   failed_when:                     dropinfile_validation.rc > 0
-
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |

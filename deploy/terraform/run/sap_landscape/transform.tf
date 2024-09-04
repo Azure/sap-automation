@@ -186,6 +186,8 @@ locals {
                                            deploy_monitoring_extension  = var.deploy_monitoring_extension
                                            deploy_defender_extension    = var.deploy_defender_extension
                                            user_assigned_identity_id    = var.user_assigned_identity_id
+                                           patch_mode                   = var.patch_mode
+                                           patch_assessment_mode        = var.patch_assessment_mode
                                          }
 
   authentication                       = {
@@ -198,9 +200,10 @@ locals {
                                            enable_secure_transfer = true
                                            use_spn                = var.use_spn || try(var.options.use_spn, true)
                                          }
-  key_vault_temp = {
-    exists = length(var.user_keyvault_id) > 0
-  }
+  key_vault_temp =                       {
+                                           exists                 = length(var.user_keyvault_id) > 0
+                                           set_secret_expiry      = var.set_secret_expiry
+                                         }
 
   user_keyvault_specified              = length(var.user_keyvault_id) > 0
 
@@ -623,6 +626,23 @@ locals {
                                           install_volume_throughput   = var.ANF_install_volume_throughput
                                           install_volume_zone         = var.ANF_install_volume_zone[0]
 
+                                         }
+
+  dns_settings                         = {
+                                           use_custom_dns_a_registration                = var.use_custom_dns_a_registration
+                                           dns_label                                    = var.dns_label
+                                           dns_zone_names                               = var.dns_zone_names
+                                           dns_server_list                              = var.dns_server_list
+
+                                           management_dns_resourcegroup_name            = coalesce(var.management_dns_resourcegroup_name,local.saplib_resource_group_name)
+                                           management_dns_subscription_id               = coalesce(var.management_dns_subscription_id, local.saplib_subscription_id)
+
+                                           privatelink_dns_subscription_id              = coalesce(var.privatelink_dns_subscription_id,var.management_dns_subscription_id, local.saplib_subscription_id)
+                                           privatelink_dns_resourcegroup_name           = coalesce(var.privatelink_dns_resourcegroup_name,var.management_dns_resourcegroup_name,local.saplib_resource_group_name)
+
+                                           register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
+                                           register_endpoints_with_dns                  = var.register_endpoints_with_dns
+                                           register_virtual_network_to_dns              = var.register_virtual_network_to_dns
                                          }
 
 }

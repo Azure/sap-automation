@@ -434,7 +434,7 @@ stages:
                     --region "${LOCATION}" --subscription $WL_ARM_SUBSCRIPTION_ID --spn_id $WL_ARM_CLIENT_ID --spn_secret "${WL_ARM_CLIENT_SECRET}"      \
                     --tenant_id $WL_ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
                   secrets_set=$? ; echo -e "$cyan Set Secrets returned $secrets_set $reset"
-                  az keyvault set-policy --name "${key_vault}" --object-id $WL_ARM_OBJECT_ID --secret-permissions get list  --output none
+                  az keyvault set-policy --name "${key_vault}" --object-id $WL_ARM_OBJECT_ID --secret-permissions get list  --subscription $STATE_SUBSCRIPTION --output none
                 fi
               fi
 
@@ -558,15 +558,18 @@ stages:
                   export landscape_tfstate_key=$(cat ${workload_environment_file_name} | grep landscape_tfstate_key= | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Zone State File' $landscape_tfstate_key
                 fi
 
+                expiry_date=$(date -d "+365 days" +%Y-%m-%d)
+
+
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "FENCING_SPN_ID.value")
                 if [ -z ${az_var} ]; then
                   echo "##vso[task.logissue type=warning]Variable FENCING_SPN_ID is not set. Required for highly available deployments"
                 else
-                  export fencing_id=$(az keyvault secret list --vault-name $workload_key_vault --query [].name -o tsv | grep ${workload_prefix}-fencing-spn-id | xargs)
+                  export fencing_id=$(az keyvault secret list --vault-name $workload_key_vault --subscription $STATE_SUBSCRIPTION --query [].name -o tsv | grep ${workload_prefix}-fencing-spn-id | xargs)
                   if [ -z "$fencing_id" ]; then
-                    az keyvault secret set --name ${workload_prefix}-fencing-spn-id --vault-name $workload_key_vault --value $(FENCING_SPN_ID)  --output none
-                    az keyvault secret set --name ${workload_prefix}-fencing-spn-pwd --vault-name $workload_key_vault --value=$FENCING_SPN_PWD  --output none
-                    az keyvault secret set --name ${workload_prefix}-fencing-spn-tenant --vault-name $workload_key_vault --value $(FENCING_SPN_TENANT)  --output none
+                    az keyvault secret set --name ${workload_prefix}-fencing-spn-id --vault-name $workload_key_vault --value $(FENCING_SPN_ID) --subscription $STATE_SUBSCRIPTION --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none
+                    az keyvault secret set --name ${workload_prefix}-fencing-spn-pwd --vault-name $workload_key_vault --value=$FENCING_SPN_PWD --subscription $STATE_SUBSCRIPTION --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none
+                    az keyvault secret set --name ${workload_prefix}-fencing-spn-tenant --vault-name $workload_key_vault --value $(FENCING_SPN_TENANT) --subscription $STATE_SUBSCRIPTION --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none
                   fi
                 fi
                 az logout --output none

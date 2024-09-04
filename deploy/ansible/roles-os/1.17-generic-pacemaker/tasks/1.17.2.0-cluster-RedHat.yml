@@ -167,18 +167,18 @@
 
     - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured"
       ansible.builtin.shell: >
-                                       pcs stonith create rsc_st_azure fence_azure_arm
-                                         login="{{ fencing_spn_client_id }}"
-                                         passwd="{{ fencing_spn_client_pwd }}"
-                                         resourceGroup="{{ resource_group_name }}"
-                                         tenantId="{{ fencing_spn_tenant_id }}"
-                                         subscriptionId="{{ fencing_spn_subscription_id }}"
-                                         power_timeout=240
-                                         pcmk_reboot_timeout=900
-                                         pcmk_monitor_timeout=120
-                                         pcmk_monitor_retries=4
-                                         pcmk_action_limit=3
-                                         pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
+                                       pcs stonith create rsc_st_azure fence_azure_arm \
+                                         username="{{ fencing_spn_client_id }}" \
+                                         password="{{ fencing_spn_client_pwd }}" \
+                                         resourceGroup="{{ resource_group_name }}" \
+                                         tenantId="{{ fencing_spn_tenant_id }}" \
+                                         subscriptionId="{{ fencing_spn_subscription_id }}" \
+                                         power_timeout=240 \
+                                         pcmk_reboot_timeout=900 \
+                                         pcmk_monitor_timeout=120 \
+                                         pcmk_monitor_retries=4 \
+                                         pcmk_action_limit=3 \
+                                         pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}" \
                                          {%if not is_pcmk_ver_gt_204%}"pcmk_delay_max=15"{%endif%}
       when:
         - ansible_distribution_major_version in ["8", "9"]
@@ -186,16 +186,16 @@
 
     - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured (MSI)"
       ansible.builtin.shell: >
-                                       pcs stonith create rsc_st_azure fence_azure_arm
-                                         msi=true
-                                         resourceGroup="{{ resource_group_name }}"
-                                         subscriptionId="{{ fencing_spn_subscription_id }}"
-                                         power_timeout=240
-                                         pcmk_reboot_timeout=900
-                                         pcmk_monitor_timeout=120
-                                         pcmk_monitor_retries=4
-                                         pcmk_action_limit=3
-                                         pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}"
+                                       pcs stonith create rsc_st_azure fence_azure_arm \
+                                         msi=true \
+                                         resourceGroup="{{ resource_group_name }}" \
+                                         subscriptionId="{{ fencing_spn_subscription_id }}" \
+                                         power_timeout=240 \
+                                         pcmk_reboot_timeout=900 \
+                                         pcmk_monitor_timeout=120 \
+                                         pcmk_monitor_retries=4 \
+                                         pcmk_action_limit=3 \
+                                         pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}" \
                                          {%if not is_pcmk_ver_gt_204%}"pcmk_delay_max=15"{%endif%}
       when:
         - ansible_distribution_major_version in ["8", "9"]
@@ -236,7 +236,7 @@
 - name:                                "1.17 Generic Pacemaker - Install fence-agents-kdump package"
   when:
                                        - kdump_enabled | default("disabled") == "enabled"
-  ansible.builtin.yum:
+  ansible.builtin.dnf:
     name:                              fence-agents-kdump
     state:                             present
   register:                            fence_agents_kdump_package
@@ -388,10 +388,10 @@
         - "{{ secondary_instance_name }}"
 
     - name:                            "1.17 Generic Pacemaker - Configure the resources in Pacemaker"
-      ansible.builtin.command:         pcs resource create health-azure-events ocf:heartbeat:azure-events-az op monitor interval=10s
+      ansible.builtin.command:         pcs resource create health-azure-events ocf:heartbeat:azure-events-az op monitor interval=10s timeout=240s op start timeout=10s start-delay=90s
 
     - name:                            "1.17 Generic Pacemaker - Ensure clone resource azure-events is configured"
-      ansible.builtin.command:         pcs resource clone health-azure-events allow-unhealthy-nodes=true
+      ansible.builtin.command:         pcs resource clone health-azure-events allow-unhealthy-nodes=true failure-timeout=120s
 
     - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode is disabled"
       ansible.builtin.command:         pcs property set maintenance-mode=false

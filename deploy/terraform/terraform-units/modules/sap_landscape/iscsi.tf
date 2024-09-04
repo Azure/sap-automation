@@ -59,6 +59,19 @@ data "azurerm_network_security_group" "iscsi" {
   resource_group_name                  = split("/", local.sub_iscsi_nsg_arm_id)[4]
 }
 
+
+
+resource "azurerm_subnet_route_table_association" "iscsi" {
+  provider                             = azurerm.main
+  count                                = local.enable_iscsi && !local.SAP_virtualnetwork_exists && !local.sub_iscsi_exists ?  (local.create_nat_gateway ? 0 : 1)  : 0
+  depends_on                           = [
+                                           azurerm_route_table.rt,
+                                           azurerm_subnet.iscsi
+                                         ]
+  subnet_id                            = local.sub_iscsi_exists ? var.infrastructure.vnets.sap.sub_iscsi.arm_id : azurerm_subnet.iscsi[0].id
+  route_table_id                       = azurerm_route_table.rt[0].id
+}
+
 // TODO: Add nsr to iSCSI's nsg
 
 /*
@@ -102,6 +115,37 @@ resource "azurerm_network_interface" "iscsi" {
                    }
 }
 
+// Add SSH network security rule
+resource "azurerm_network_security_rule" "nsr_controlplane_iscsi" {
+  provider                             = azurerm.main
+  count                                = local.enable_sub_iscsi ? local.sub_iscsi_nsg_exists ? 0 : 1 : 0
+  depends_on                           = [
+                                           azurerm_network_security_group.iscsi
+                                         ]
+  name                                 = "ConnectivityToISCSISubnetFromControlPlane-ssh-rdp-winrm"
+  resource_group_name                  = local.SAP_virtualnetwork_exists ? (
+                                           data.azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                           ) : (
+                                           azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                         )
+  network_security_group_name          = try(azurerm_network_security_group.iscsi[0].name, azurerm_network_security_group.app[0].name)
+  priority                             = 100
+  direction                            = "Inbound"
+  access                               = "Allow"
+  protocol                             = "Tcp"
+  source_port_range                    = "*"
+  destination_port_ranges              = [22, 443, 3389, 5985, 5986, 2049, 111]
+  source_address_prefixes              = compact(concat(
+                                           var.deployer_tfstate.subnet_mgmt_address_prefixes,
+                                           var.deployer_tfstate.subnet_bastion_address_prefixes,
+                                           local.SAP_virtualnetwork_exists ? (
+                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : (
+                                             azurerm_virtual_network.vnet_sap[0].address_space
+                                           )))
+  destination_address_prefixes         = local.sub_iscsi_exists ? data.azurerm_subnet.iscsi[0].address_prefixes : azurerm_subnet.iscsi[0].address_prefixes
+}
+
+
 // Manages the association between NIC and NSG
 resource "azurerm_network_interface_security_group_association" "iscsi" {
   provider                             = azurerm.main
@@ -144,6 +188,11 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
   zone                                 = try(local.iscsi.zones[count.index % max(length(local.iscsi.zones), 1)], null)
 
   //custom_data = try(data.template_cloudinit_config.config_growpart.rendered, "Cg==")
+
+  patch_mode                                             = var.infrastructure.patch_mode
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+  vm_agent_platform_updates_enabled                      = true
 
   os_disk {
             name = format("%s%s%s%s%s",
@@ -215,6 +264,11 @@ resource "azurerm_key_vault_secret" "iscsi_ppk" {
   name                                 = local.iscsi_ppk_name
   value                                = local.iscsi_private_key
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+
 }
 
 resource "azurerm_key_vault_secret" "iscsi_pk" {
@@ -230,6 +284,10 @@ resource "azurerm_key_vault_secret" "iscsi_pk" {
   name                                 = local.iscsi_pk_name
   value                                = local.iscsi_public_key
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
 }
 
 resource "azurerm_key_vault_secret" "iscsi_username" {
@@ -245,6 +303,10 @@ resource "azurerm_key_vault_secret" "iscsi_username" {
   name                                 = local.iscsi_username_name
   value                                = local.iscsi_auth_username
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
 }
 
 resource "azurerm_key_vault_secret" "iscsi_password" {
@@ -260,6 +322,10 @@ resource "azurerm_key_vault_secret" "iscsi_password" {
   name                                 = local.iscsi_pwd_name
   value                                = local.iscsi_auth_password
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
 }
 
 // Generate random password if password is set as authentication type and user doesn't specify a password, and save in KV
@@ -327,6 +393,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_iscsi_lnx" {
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 }
 
 resource "azurerm_virtual_machine_extension" "monitoring_defender_iscsi_lnx" {
@@ -341,6 +408,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_iscsi_lnx" {
   type                                 = "AzureSecurityLinuxAgent"
   type_handler_version                 = "2.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
   settings                             = jsonencode(
                                            {

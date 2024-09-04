@@ -16,6 +16,7 @@
     - { node_tier: 'hana', path: '/hana', mode: '0755', owner: 'root', group: 'root',   state: 'directory' }
     - { node_tier: 'pas', path: '/sapmnt', mode: '0755', owner: 'root', group: 'sapsys', state: 'directory' }
     - { node_tier: 'app', path: '/sapmnt', mode: '0755', owner: 'root', group: 'sapsys', state: 'directory' }
+    - { node_tier: 'scs', path: '/sapmnt', mode: '0755', owner: 'root', group: 'sapsys', state: 'directory' }
   when:
     - item.node_tier == "all" or item.node_tier == node_tier
     - not users_created.stat.exists

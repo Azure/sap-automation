@@ -19,6 +19,10 @@ variable "infrastructure"              {
 
 variable "storage_account_sapbits"     {}
 variable "storage_account_tfstate"     {}
+variable "dns_settings"                {
+                                         description = "DNS details for the deployment"
+                                         default     = {}
+                                       }
 variable "deployer"                    {
                                          description = "Details of deployer"
                                          default     = {}
@@ -59,24 +63,6 @@ variable "key_vault"                   {
 
                                        }
 
-variable "dns_label"                   {
-                                          description = "DNS label for the deployment"
-                                          default     = ""
-
-                                       }
-
-variable "dns_zone_names"              {
-                                         description = "Private DNS zone names"
-                                         type        = map(string)
-                                         default = {
-                                                      "file_dns_zone_name"   = "privatelink.file.core.windows.net"
-                                                      "blob_dns_zone_name"   = "privatelink.blob.core.windows.net"
-                                                      "table_dns_zone_name"  = "privatelink.table.core.windows.net"
-                                                      "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
-                                                   }
-                                       }
-
-
 variable "naming"                     {
                                         description = "naming convention data structure"
                                       }
@@ -100,18 +86,6 @@ variable "use_custom_dns_a_registration" {
                                            default     = false
                                            type        = bool
                                          }
-
-variable "management_dns_subscription_id" {
-                                            description = "String value giving the possibility to register custom dns a records in a separate subscription"
-                                            default     = null
-                                            type        = string
-                                          }
-
-variable "management_dns_resourcegroup_name" {
-                                               description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
-                                               default     = null
-                                               type        = string
-                                             }
 
 variable "enable_purge_control_for_keyvaults" {
                                                 description = "Allow the deployment to control the purge protection"

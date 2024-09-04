@@ -31,7 +31,7 @@ data "azurerm_resource_group" "library" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt" {
   provider                             = azurerm.dnsmanagement
-  count                                = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
+  count                                = length(var.dns_settings.dns_label) > 0 && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
   depends_on                           = [
                                            azurerm_private_dns_zone.dns
                                          ]
@@ -42,21 +42,19 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt" {
                                            var.naming.resource_suffixes.dns_link
                                          )
 
-  resource_group_name                  = length(var.management_dns_subscription_id) == 0 ? (
+  resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name,
                                            local.resource_group_exists ? (
                                              split("/", var.infrastructure.resource_group.arm_id)[4]) : (
                                              azurerm_resource_group.library[0].name
-                                           )) : (
-                                           var.management_dns_resourcegroup_name
-                                         )
-  private_dns_zone_name                = var.dns_label
+                                         ))
+  private_dns_zone_name                = var.dns_settings.dns_label
   virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
   registration_enabled                 = true
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
   provider                             = azurerm.dnsmanagement
-  count                                = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
   depends_on                           = [
                                            azurerm_storage_account.storage_tfstate,
                                            azurerm_private_dns_zone.blob
@@ -68,14 +66,13 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
                                            var.naming.resource_suffixes.dns_link
                                          )
 
-  resource_group_name                  = length(var.management_dns_subscription_id) == 0 ? (
+  resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
+                                           var.dns_settings.management_dns_resourcegroup_name,
                                            local.resource_group_exists ? (
                                              split("/", var.infrastructure.resource_group.arm_id)[4]) : (
                                              azurerm_resource_group.library[0].name
-                                           )) : (
-                                           var.management_dns_resourcegroup_name
-                                         )
-  private_dns_zone_name                = var.dns_zone_names.blob_dns_zone_name
+                                         ))
+  private_dns_zone_name                = var.dns_settings.dns_zone_names.blob_dns_zone_name
   virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
   registration_enabled                 = false
 }

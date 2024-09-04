@@ -203,7 +203,8 @@ namespace AutomationForm.Models
     public Tag[] configuration_settings { get; set; }
 
     public bool? dns_a_records_for_secondary_names { get; set; } = true;
-    public bool? use_private_endpoint { get; set; }
+
+    public bool? use_private_endpoint { get; set; } = true;
 
     public bool? use_service_endpoint { get; set; }
 
@@ -575,6 +576,8 @@ namespace AutomationForm.Models
 
     public string ANF_sapmnt_volume_name { get; set; }
 
+    public bool? ANF_sapmnt_use_existing { get; set; }
+
     public int? ANF_sapmnt_volume_size { get; set; }
 
     public int? ANF_sapmnt_volume_throughput { get; set; }
@@ -667,6 +670,18 @@ namespace AutomationForm.Models
     public int? use_fence_kdump_size_gb_scs { get; set; } = 64;
 
     public int? use_fence_kdump_lun_scs { get; set; } = 4;
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                             VM patch information                           |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public string patch_mode { get; set; } = "ImageDefault";
+    public string patch_assessment_mode { get; set; } = "ImageDefault";
+
+
 
   }
 
