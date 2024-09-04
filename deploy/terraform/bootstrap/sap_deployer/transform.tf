@@ -233,9 +233,9 @@ locals {
                                            dns_zone_names = var.dns_zone_names
 
                                            management_dns_resourcegroup_name = trimspace(var.management_dns_resourcegroup_name)
-                                           management_dns_subscription_id = trimspace(coalesce(var.management_dns_subscription_id,local.spn.subscription_id))
+                                           management_dns_subscription_id = trimspace(var.management_dns_subscription_id)
 
-                                           privatelink_dns_subscription_id = trimspace(coalesce(var.privatelink_dns_subscription_id,var.management_dns_subscription_id, local.spn.subscription_id, " "))
+                                           privatelink_dns_subscription_id = trimspace(coalesce(var.privatelink_dns_subscription_id,var.management_dns_subscription_id, " "))
                                            privatelink_dns_resourcegroup_name = trimspace(coalesce(var.management_dns_resourcegroup_name, var.privatelink_dns_resourcegroup_name, " "))
                                          }
 
