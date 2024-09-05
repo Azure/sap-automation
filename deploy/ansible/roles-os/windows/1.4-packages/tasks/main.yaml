@@ -48,13 +48,6 @@
     reboot:                            true
   register:                            win_updates
 
-- name:                                "1.4-Packages: Install Nuget"
-  ansible.windows.win_shell: |
-                                       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                                       Install-PackageProvider -Name NuGet -Force
-                                       Register-PSRepository -Default -Force
-  register:                            repository_registered
-
 
 - name:                                "1.4-Packages: Register-PSRepository"
   ansible.windows.win_shell: |
@@ -62,6 +55,11 @@
                                        Register-PSRepository -Default -ErrorAction SilentlyContinue
   register:                            repository_registered
 
+- name:                                "1.4-Packages: Install Nuget"
+  ansible.windows.win_shell: |
+                                       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                                       Install-PackageProvider -Name NuGet -Force
+  register:                            nuget_installed
 
 - name:                                "1.4-Packages: Nuget || Flag File"
   when:
