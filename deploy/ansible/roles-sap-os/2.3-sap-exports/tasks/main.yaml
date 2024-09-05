@@ -69,7 +69,7 @@
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
       when:
-        - distribution_id == "redhat8"
+        - distribution_id in ["redhat8", "redhat9"]
 
 - name:                                "2.3 Exports: - Create SAP trans export"
   when:
@@ -105,7 +105,7 @@
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.1=',                  line: ' vers4.1=y'                                                      }
         - { path: '/etc/nfs.conf',      regexp: '^# vers4.2=',                  line: ' vers4.2=y'                                                      }
       when:
-        - distribution_id == "redhat8"
+        - distribution_id in ["redhat8", "redhat9"]
 
 - name:                                "Exports: NFS Server Config on Oracle Linux 8"
   ansible.builtin.lineinfile:
