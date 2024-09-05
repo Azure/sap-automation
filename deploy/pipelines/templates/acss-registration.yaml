@@ -25,24 +25,23 @@ steps:
     #Stage could be executed on a different machine by default, need to login again for ansible
     #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
 
-    # deployer_file=/etc/profile.d/deploy_server.sh
-    # if [ -f "$deployer_file" ]; then
-    #   echo "##[section]Running on a deployer..."
-    #   az login --identity --allow-no-subscriptions --output none
-    #   noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
+    deployer_file=/etc/profile.d/deploy_server.sh
 
-    #   if [ -z "$noAccess" ]; then
-    #     az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
-    #   fi
-    # else
-    #   echo "##[section]Running on an Azure DevOps agent..."
-    #   az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
-    #   az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
+    if [ $USE_MSI == "true" ]; then
+      echo "##[section]Running on a deployer..."
+      source /etc/profile.d/deploy_server.sh
+      noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
 
-    # fi
+      if [ -z "$noAccess" ]; then
+        az account set --subscription $ARM_SUBSCRIPTION_ID --output none
+      fi
+    else
+      echo "##[section]Running on an Azure DevOps agent..."
+      az login --service-principal -u $AZURE_CLIENT_ID -p=$AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID --output none
+      az account set --subscription $AZURE_SUBSCRIPTION_ID --output none
 
-    az login --service-principal -u "${AZURE_CLIENT_ID}" -p="$AZURE_CLIENT_SECRET" --tenant "$AZURE_TENANT_ID" --output none
-    az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
+    fi
+
     set -eu
 
     if [ ! -f $PARAMETERS_FOLDER/sshkey ]; then

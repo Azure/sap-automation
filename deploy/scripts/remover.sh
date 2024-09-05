@@ -227,7 +227,7 @@ key=$(echo "${parameterfile_name}" | cut -d. -f1)
 #Plugins
 if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]
 then
-    mkdir /opt/terraform/.terraform.d/plugin-cache
+    mkdir -p /opt/terraform/.terraform.d/plugin-cache
 fi
 export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 

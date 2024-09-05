@@ -10,7 +10,7 @@
   become_user:                         "{{ sap_sid | lower }}adm"
   become:                              true
   when:
-    - "'scs' in supported_tiers"
+    - "'scs' in supported_tiers or 'ers' in supported_tiers"
   block:
     - name:                            "0.5.1 acss registration: - Get sapcontrol path"
       ansible.builtin.find:
@@ -50,7 +50,7 @@
 
     - name:                            "0.5.1 acss registration: - Show if SCS is running on {{ ansible_hostname }}"
       ansible.builtin.debug:
-        var: is_running
+        var:                           is_running
 
     - name:                            "0.5.1 acss registration: - Validate that SCS is running on {{ ansible_hostname }}"
       ansible.builtin.set_fact:
@@ -64,30 +64,31 @@
   become_user:                         root
   when:
     - hostvars[ansible_hostname]['scs_running_on'] is defined
+    - ansible_hostname == hostvars[ansible_hostname]['scs_running_on']
   block:
-    - name:                            "0.5.1 acss registration: - Check where the cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is running"
-      ansible.builtin.shell: >-
-        set -o pipefail;
-        crm_resource --resource g-{{ sap_sid | upper }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2| cut -d " " -f 2
-      when:
-        - scs_high_availability
-        - ansible_os_family | upper == 'SUSE'
-      register:                        cluster_group_location
-      failed_when:                     cluster_group_location.stdout != hostvars[ansible_hostname]['scs_running_on']
-      tags:
-        - skip_ansible_lint
+    # - name:                            "0.5.1 acss registration: - Check where the cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is running"
+    #   ansible.builtin.shell: >-
+    #     set -o pipefail;
+    #     crm_resource --resource g-{{ sap_sid | upper }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2| cut -d " " -f 2
+    #   when:
+    #     - scs_high_availability
+    #     - ansible_os_family | upper == 'SUSE'
+    #   register:                        cluster_group_location
+    #   failed_when:                     cluster_group_location.stdout != hostvars[ansible_hostname]['scs_running_on']
+    #   tags:
+    #     - skip_ansible_lint
 
-    - name:                            "0.5.1 acss registration: - Check where the cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is running"
-      ansible.builtin.shell: >-
-        set -o pipefail;
-        pcs constraint location show resources g-{{ sap_sid | upper }}_{{ instance_type | upper }} | grep "Node" | awk '{print $2}'
-      when:
-        - scs_high_availability
-        - ansible_os_family | upper == 'REDHAT'
-      register:                        cluster_group_location
-      failed_when:                     cluster_group_location.stdout != hostvars[ansible_hostname]['scs_running_on']
-      tags:
-        - skip_ansible_lint
+    # - name:                            "0.5.1 acss registration: - Check where the cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is running"
+    #   ansible.builtin.shell: >-
+    #     set -o pipefail;
+    #     pcs constraint location show resources g-{{ sap_sid | upper }}_{{ instance_type | upper }} | grep "Node" | awk '{print $2}'
+    #   when:
+    #     - scs_high_availability
+    #     - ansible_os_family | upper == 'REDHAT'
+    #   register:                        cluster_group_location
+    #   failed_when:                     cluster_group_location.stdout != hostvars[ansible_hostname]['scs_running_on']
+    #   tags:
+    #     - skip_ansible_lint
 
     - name:                            "0.5.1 acss registration: - Get Azure instance metadata"
       ansible.builtin.uri:
@@ -96,21 +97,25 @@
         headers:
           Metadata:                    true
       register:                        azure_metadata
-      when:
-        - hostvars[ansible_hostname]['scs_running_on'] is defined
-        - ansible_hostname == hostvars[ansible_hostname]['scs_running_on']
 
-    - name:                            "0.5.1 acss registration: - Set variables from Azure IMDS"
-      delegate_facts:                  true
-      delegate_to:                     localhost
-      ansible.builtin.command: >-
-              "az extension add --name workloads --yes || exit 1"
-      tags:
-        - skip_ansible_lint
+    - name:                               "Set information"
+      ansible.builtin.set_fact:
+        acss_resource_group:              "{{ azure_metadata.json.compute.resourceGroupName }}"
+        acss_resource_id:                 "{{ azure_metadata.json.compute.resourceId }}"
+        acss_subscription_id:             "{{ azure_metadata.json.compute.subscriptionId }}"
+        acss_location:                    "{{ azure_metadata.json.compute.location }}"
+
+    # - name:                            "0.5.1 acss registration: - Set variables from Azure IMDS"
+    #   delegate_facts:                  true
+    #   delegate_to:                     localhost
+    #   ansible.builtin.command: >-
+    #           "az extension add --name workloads --yes || exit 1"
+    #   tags:
+    #     - skip_ansible_lint
 
     - name:                            "0.5.1 acss registration: - Create [ACSS] virtual instance"
       ansible.builtin.uri:
-        url:                           "https://management.azure.com/subscriptions/{{ acss_subscription_id }}/resourceGroups/{{ acss_resource_group }}/providers/Microsoft.Workloads/sapVirtualInstances/{{ acss_sid }}?api-version=2023-04-01"
+        url:                           "https://management.azure.com/subscriptions/{{ acss_subscription_id }}/resourceGroups/{{ acss_resource_group }}/providers/Microsoft.Workloads/sapVirtualInstances/{{ sap_sid | upper }}?api-version=2023-04-01"
         method:                        PUT
         body_format:                   json
         body: |
@@ -127,9 +132,9 @@
                                        }
         # status_code:                   [200, 201]
         headers:
-          Authorization:               "Bearer {{ acss_access_token.stdout }}"
+          Authorization:               "Bearer {{ acss_access_token }}"
           x-ms-rpaas-new-resource:     "true"
-          x-ms-client-request-id:      "SDAF-{{ acss_guid.stdout }}"
+          x-ms-client-request-id:      "SDAF-{{ acss_guid }}"
       register:                        create_vis_response
       failed_when:                     create_vis_response.json.properties.provisioningState != 'Accepted' and create_vis_response.json.properties.provisioningState != 'Succeeded'
       no_log:                          false

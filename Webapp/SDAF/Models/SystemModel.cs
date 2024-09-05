@@ -18,6 +18,7 @@ namespace AutomationForm.Models
 
     [DisplayName("System ID")]
     public string Id { get; set; }
+    public string LastModified { get; set; }
 
     // BASIC
 
