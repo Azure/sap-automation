@@ -170,6 +170,7 @@
         - sap_trans is undefined
         - nfs_server != ansible_hostname
 
+
 - name:                                "2.6 SAP Mounts: - Debug"
   ansible.builtin.debug:
     var:                               usr_sap_install_mountpoint
@@ -181,9 +182,10 @@
     fstype:                            xfs
     opts:                              defaults
     state:                             mounted
-  when:
-    - "'scs' in supported_tiers"
-    - usr_sap_install_mountpoint is undefined
+    when:
+      - "'scs' in supported_tiers"
+      - usr_sap_install_mountpoint is undefined
+      - not is_executed_by_acss or (is_executed_by_acss and single_server)
 
 - name:                                "1.5 Disk setup - Check if installation root directory exists"
   ansible.builtin.stat:
