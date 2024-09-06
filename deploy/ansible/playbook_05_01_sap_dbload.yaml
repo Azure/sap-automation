@@ -93,8 +93,7 @@
 
         - name:                        "DBLoad Playbook: - Set deployment type"
           ansible.builtin.set_fact:
-            single_server:             true
-          when:                        (ansible_play_hosts_all | length) == 1
+            single_server:              "{{ (ansible_play_hosts_all | length) == 1 }}"
           tags:
             - always
 
