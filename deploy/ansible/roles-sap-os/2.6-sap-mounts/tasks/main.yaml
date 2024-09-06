@@ -182,10 +182,10 @@
     fstype:                            xfs
     opts:                              defaults
     state:                             mounted
-    when:
-      - "'scs' in supported_tiers"
-      - usr_sap_install_mountpoint is undefined
-      - not is_executed_by_acss or (is_executed_by_acss and single_server)
+  when:
+    - "'scs' in supported_tiers"
+    - usr_sap_install_mountpoint is undefined
+    - not is_executed_by_acss or (is_executed_by_acss and single_server)
 
 - name:                                "1.5 Disk setup - Check if installation root directory exists"
   ansible.builtin.stat:
