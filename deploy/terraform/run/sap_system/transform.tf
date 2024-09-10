@@ -753,19 +753,30 @@ locals {
 
                                           }
 
-  dns_settings                         = {
-                                           use_custom_dns_a_registration                = var.use_custom_dns_a_registration
-                                           dns_zone_names                               = var.dns_zone_names
-                                           management_dns_resourcegroup_name            = coalesce(var.management_dns_resourcegroup_name, try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name))
-                                           management_dns_subscription_id               = coalesce(var.management_dns_subscription_id, try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null))
+    dns_settings                         = {
+                                            use_custom_dns_a_registration                = var.use_custom_dns_a_registration
+                                            dns_zone_names                               = var.dns_zone_names
+                                            management_dns_resourcegroup_name            = trimspace(coalesce(var.management_dns_resourcegroup_name, try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)," "))
+                                            management_dns_subscription_id               = trimspace(coalesce(var.management_dns_subscription_id, try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, " ")," "))
 
-                                           privatelink_dns_resourcegroup_name           = coalesce(var.privatelink_dns_resourcegroup_name, try(data.terraform_remote_state.landscape.outputs.privatelink_dns_resourcegroup_name, try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)))
-                                           privatelink_dns_subscription_id              = coalesce(var.privatelink_dns_subscription_id, try(data.terraform_remote_state.landscape.outputs.privatelink_dns_subscription_id, try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)))
 
-                                           register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
-                                           register_endpoints_with_dns                  = var.register_endpoints_with_dns
+                                            privatelink_dns_resourcegroup_name           = trimspace(coalesce(var.privatelink_dns_resourcegroup_name,
+                                                                                             try(data.terraform_remote_state.landscape.outputs.privatelink_dns_resourcegroup_name,
+                                                                                               try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+                                                                                             ),
+                                                                                             " "
+                                                                                           ))
+                                            privatelink_dns_subscription_id              = trimspace(coalesce(var.privatelink_dns_subscription_id,
+                                                                                              try(data.terraform_remote_state.landscape.outputs.privatelink_dns_subscription_id,
+                                                                                                try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, ""),
+                                                                                                " "
+                                                                                              )
+                                                                                            ))
 
-                                           register_virtual_network_to_dns              = try(data.terraform_remote_state.landscape.outputs.register_virtual_network_to_dns, false)
-                                         }
+                                            register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
+                                            register_endpoints_with_dns                  = var.register_endpoints_with_dns
+
+                                            register_virtual_network_to_dns              = try(data.terraform_remote_state.landscape.outputs.register_virtual_network_to_dns, false)
+                                          }
 
 }
