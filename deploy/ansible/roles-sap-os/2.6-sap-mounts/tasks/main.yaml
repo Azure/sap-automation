@@ -269,6 +269,7 @@
     - node_tier != 'scs'
     - "'scs' not in supported_tiers"
     - usr_sap_install_mountpoint is not defined
+    - not is_executed_by_acss or (is_executed_by_acss and single_server)
 
 # Mount File systems for SCS server in Multi-SID installations
 - name:                                "2.6 SAP Mounts: - Mount local sapmnt (scs) for oracle shared home installation"
