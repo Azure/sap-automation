@@ -83,10 +83,14 @@ resource "azurerm_key_vault_secret" "tfstate" {
 
 resource "azurerm_private_dns_a_record" "kv_user" {
   provider                             = azurerm.deployer
-  count                                = var.use_private_endpoint && var.use_custom_dns_a_registration ? 1 : 0
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   name                                 = lower(split("/", var.key_vault.kv_spn_id)[8])
-  zone_name                            = var.dns_zone_names.vault_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = var.dns_settings.dns_zone_names.vault_dns_zone_name
+  resource_group_name                  = coalesce(
+                                           var.dns_settings.privatelink_dns_resourcegroup_name,
+                                           var.dns_settings.management_dns_resourcegroup_name,
+                                           local.resource_group_name
+                                           )
   ttl                                  = 3600
   records                              = [azurerm_private_endpoint.kv_user[0].private_service_connection[0].private_ip_address]
 

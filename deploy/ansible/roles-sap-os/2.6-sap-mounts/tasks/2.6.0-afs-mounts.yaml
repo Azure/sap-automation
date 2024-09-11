@@ -196,7 +196,7 @@
       register: set_immutable_attribute
   when:
     - tier == 'sapos'
-    - node_tier != 'hana'
+    - node_tier not in ['hana' , 'observer']
     - sap_mnt is defined
 
 # /*---------------------------------------------------------------------------8

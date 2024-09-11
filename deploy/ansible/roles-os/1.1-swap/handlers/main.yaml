@@ -6,7 +6,20 @@
     state:                             restarted
 
 - name:                                "Swap reboot"
+  become:                              true
+  become_user:                         root
   ansible.builtin.reboot:
+    reboot_timeout:                    300
+    post_reboot_delay:                 10
+  failed_when:                         false
+#
+- name:                                "1.1 Swap: - Clear the failed state of hosts"
+  ansible.builtin.meta:                clear_host_errors
 
+# Wait for Connection after reboot
+- name:                                "1.1 Swap: - Wait for system to become reachable"
+  ansible.builtin.wait_for_connection:
+    delay:                             10
+    timeout:                           300
 
 # ...

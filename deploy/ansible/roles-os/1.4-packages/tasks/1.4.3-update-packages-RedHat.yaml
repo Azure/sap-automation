@@ -2,6 +2,14 @@
 # |                             Update packages                                 |
 # +------------------------------------4---------------------------------------*/
 
+# Note: in some rare cases, RHEL update task will fail because it expects the directory to exist before it can even check for presence of file.
+- name:                                "1.4 Packages: - check if path /etc/sap_deployment_automation{{ sap_sid | upper }} exists"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
+    state:                             directory
+    mode:                              '0755'
+
+
 - name:                                "1.4 Packages: - check if {{ sap_sid }} is updated"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/packages_installed.txt"
@@ -9,7 +17,7 @@
 
 - name:                                "1.4 Packages: - Update packages"
   become:                              true
-  ansible.builtin.yum:
+  ansible.builtin.dnf:
     name:                              '*'
     state:                             latest
     skip_broken:                       true
@@ -17,11 +25,12 @@
   register:                            reboot_output
   when:
     - tier == 'os'
+    - ansible_distribution != "OracleLinux"
 # Analyse the package list for this distribution selecting only those
 # packages assigned to the active tier or 'all'.
 # - name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }}"  # noqa package-latest
 #   become:                              true
-#   ansible.builtin.yum:
+#   ansible.builtin.dnf:
 #     name:                              '*'
 #     state:                             latest
 #     skip_broken:                       true

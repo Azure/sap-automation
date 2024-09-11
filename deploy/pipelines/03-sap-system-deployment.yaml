@@ -44,7 +44,7 @@ stages:
           clean:                       all
         steps:
           - template:                  templates\download.yaml
-          - task:                      PostBuildCleanup@3
+          - task:                      PostBuildCleanup@4
           - script: |
               #!/bin/bash
               echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $(sap_system_folder)"
@@ -70,7 +70,6 @@ stages:
                 else
                   source /etc/profile.d/deploy_server.sh
                 fi
-                export AZURE_DEVOPS_EXT_PAT=$PAT
 
                 HOME_CONFIG=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
                 cd $HOME_CONFIG; mkdir -p .sap_deployment_automation
@@ -256,16 +255,6 @@ stages:
                   fi
                 fi
 
-                if [ -z $USE_MSI ]; then
-                  USE_MSI="false"
-                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query USE_MSI.value --output table)
-                  if [ -n "${az_var}" ]; then
-                    az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name USE_MSI --value false --output none --only-show-errors
-                  else
-                    az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name USE_MSI --value false --output none --only-show-errors
-                  fi
-                fi
-
                 if [ $USE_MSI != "true" ]; then
                   echo "Using SPN"
 
@@ -390,6 +379,11 @@ stages:
 
                 if [ -f $(sap_system_configuration) ]; then
                   git add    $(sap_system_configuration)
+                  added=1
+                fi
+
+                if [ -f ${SID}_virtual_machines.json ]; then
+                  git add    ${SID}_virtual_machines.json
                   added=1
                 fi
 

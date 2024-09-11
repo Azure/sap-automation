@@ -51,8 +51,8 @@
           when:                            ansible_hostname in ["{{ primary_instance_name }}","{{ secondary_instance_name }}"]
 
     - name:                            Wait 2 minutes for SAP system to stop
-      ansible.builtin.pause:
-        seconds:                       120
+      ansible.builtin.wait_for:
+        timeout:                       120
 
     - name:                            Unmount /hana/shared from all cluster participating nodes
       block:
@@ -213,8 +213,8 @@
         - ansible_hostname in ["{{ primary_instance_name }}","{{ secondary_instance_name }}"]
 
     - name:                            Wait 5 minutes for SAP system to stablize
-      ansible.builtin.pause:
-        seconds:                       300
+      ansible.builtin.wait_for:
+        timeout:                       300
 # End of HANA filesystem clustering resources
 
   # Ref : https://access.redhat.com/articles/3004101 - 4.3 Configure general cluster properties

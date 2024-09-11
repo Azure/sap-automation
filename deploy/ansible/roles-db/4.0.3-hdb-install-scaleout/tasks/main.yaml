@@ -612,6 +612,19 @@
               with_items:
                 - "{{ ansible_play_hosts_all[0::2] }}"
 
+            - name:                      "Prepare global.ini for HANA hosts name resolution on replication network"
+              community.general.ini_file:
+                path:                      "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+                section:                   "system_replication_hostname_resolution"
+                mode:                      0644
+                state:                     present
+                option:                    "{{ hostvars[item].ansible_all_ipv4_addresses | ansible.utils.ipaddr(subnet_cidr_storage) | first | default(hostvars[item].ansible_host ) }}"
+                value:                     "{{ hostvars[item].virtual_host }}"
+              with_items:
+                - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
+              when:
+                - subnet_cidr_storage is defined
+
         - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Restart HANA"
           block:
           - name:                        "Stop HANA Database"
@@ -658,7 +671,7 @@
     # /*---------------------------------------------------------------------------8
     # |             Secondary site setup with Shared nothing scale out               |
     # +------------------------------------4--------------------------------------*/
-    - name:                                "4.0.3 - SAP HANA SCALE OUT: HANA Install - Scale Out - HSR ( Secondary  Site )"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: HANA Install - Scale Out - HSR ( Secondary  Site )"
       block:
         - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: remove install response file if exists"
           ansible.builtin.file:
@@ -872,6 +885,19 @@
               with_items:
                 - "{{ ansible_play_hosts_all[1::2] }}"
 
+            - name:                      "Prepare global.ini for HANA hosts name resolution on replication network"
+              community.general.ini_file:
+                path:                      "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+                section:                   "system_replication_hostname_resolution"
+                mode:                      0644
+                state:                     present
+                option:                    "{{ hostvars[item].ansible_all_ipv4_addresses  | ansible.utils.ipaddr(subnet_cidr_storage) | first | default(hostvars[item].ansible_host) }}"
+                value:                     "{{ hostvars[item].virtual_host }}"
+              with_items:
+                - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
+              when:
+                - subnet_cidr_storage is defined
+
         - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Restart HANA"
           block:
           - name:                        "Stop HANA Database"
@@ -919,7 +945,6 @@
       - not hana_installed.stat.exists
 
 # /*----------------------------End of setup----------------------------------8
-
 
 
 - name:                                "HANA Install status"
@@ -987,7 +1012,7 @@
 
 
 # Scale out Supplementary tasks
-# Create {{ db_sid | lower}}adm account on majority maker VM
+# Create {{ db_sid | lower}}adm account on majority maker VM, onlye required if its going to be added to Pacemaker
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Supplementary tasks"
   block:
     - name:                            "Create Create SAP Groups on Observer VM"
@@ -1023,7 +1048,8 @@
         state:                                present
         shell:                                "/bin/sh"
         home:                                 "/usr/sap/{{ db_sid | upper }}/home"
-
+  when:
+    - database_high_availability
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

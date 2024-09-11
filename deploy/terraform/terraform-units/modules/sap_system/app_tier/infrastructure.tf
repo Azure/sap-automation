@@ -198,7 +198,7 @@ resource "azurerm_lb_rule" "scs" {
   backend_address_pool_ids             = [azurerm_lb_backend_address_pool.scs[0].id]
   probe_id                             = azurerm_lb_probe.scs[0].id
   enable_floating_ip                   = true
-  enable_tcp_reset                     = true
+  enable_tcp_reset                     = false
   idle_timeout_in_minutes              = var.idle_timeout_scs_ers
 }
 
@@ -230,7 +230,7 @@ resource "azurerm_lb_rule" "ers" {
   backend_address_pool_ids             = [azurerm_lb_backend_address_pool.scs[0].id]
   probe_id                             = azurerm_lb_probe.scs[1].id
   enable_floating_ip                   = true
-  enable_tcp_reset                     = true
+  enable_tcp_reset                     = false
   idle_timeout_in_minutes              = var.idle_timeout_scs_ers
 }
 
@@ -431,12 +431,12 @@ resource "azurerm_subnet_route_table_association" "subnet_sap_web" {
 
 resource "azurerm_private_dns_a_record" "scs" {
   provider                             = azurerm.dnsmanagement
-  count                                = local.enable_scs_lb_deployment && length(local.dns_label) > 0  && var.register_virtual_network_to_dns ? 1 : 0
+  count                                = local.enable_scs_lb_deployment && length(local.dns_label) > 0  && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
   name                                 = lower(format("%sscs%scl1",
                                            local.sid,
                                            var.application_tier.scs_instance_number
                                          ))
-  resource_group_name                  = coalesce(var.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
+  resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
   zone_name                            = var.landscape_tfstate.dns_label
   ttl                                  = 300
   records                              = [azurerm_lb.scs[0].frontend_ip_configuration[0].private_ip_address]
@@ -444,12 +444,12 @@ resource "azurerm_private_dns_a_record" "scs" {
 
 resource "azurerm_private_dns_a_record" "ers" {
   provider                             = azurerm.dnsmanagement
-  count                                = local.enable_scs_lb_deployment && length(local.dns_label) > 0 && var.register_virtual_network_to_dns ? 1 : 0
+  count                                = local.enable_scs_lb_deployment && length(local.dns_label) > 0 && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
   name                                 = lower(format("%sers%scl2",
                                             local.sid,
                                             local.ers_instance_number
                                           ))
-  resource_group_name                  = coalesce(var.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
+  resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
   zone_name                            = local.dns_label
   ttl                                  = 300
   records                              = [azurerm_lb.scs[0].frontend_ip_configuration[1].private_ip_address]
@@ -457,11 +457,11 @@ resource "azurerm_private_dns_a_record" "ers" {
 
 resource "azurerm_private_dns_a_record" "web" {
   provider                             = azurerm.dnsmanagement
-  count                                = local.enable_web_lb_deployment && length(local.dns_label) > 0 && var.register_virtual_network_to_dns ? 1 : 0
+  count                                = local.enable_web_lb_deployment && length(local.dns_label) > 0 && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
   name                                 = lower(format("%sweb%s",
                                            local.sid, var.application_tier.web_instance_number
                                          ))
-  resource_group_name                  = coalesce(var.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
+  resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
   zone_name                            = local.dns_label
   ttl                                  = 300
   records                              = [azurerm_lb.web[0].frontend_ip_configuration[0].private_ip_address]

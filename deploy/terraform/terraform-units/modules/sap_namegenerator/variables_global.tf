@@ -352,6 +352,7 @@ variable "resource_prefixes" {
     "scs_fs_rule"                    = ""
     "scs_scs_rule"                   = ""
     "sdu_rg"                         = ""
+    "sdu_secret"                     = ""
     "tfstate"                        = ""
     "transport_volume"               = ""
     "vm"                             = ""
@@ -372,6 +373,7 @@ variable "resource_prefixes" {
     "witness_accesskey"              = ""
     "witness_name"                   = ""
     "ams_subnet"                     = ""
+    "nat_gateway"                    = ""
   }
 }
 
@@ -484,6 +486,7 @@ variable "resource_suffixes" {
     "scs_fs_rule"                    = "scsFs-rule"
     "scs_scs_rule"                   = "scsScs-rule"
     "sdu_rg"                         = ""
+    "sdu_secret"                     = ""
     "tfstate"                        = "tfstate"
     "transport_volume"               = "transport"
     "usrsap"                         = "usrsap"
@@ -506,6 +509,7 @@ variable "resource_suffixes" {
     "witness_name"                   = "-witness-name"
     "ams_subnet"                     = "ams-subnet"
     "ams_instance"                   = "-AMS"
+    "nat_gateway"                    = "-nat-gateway"
   }
 }
 

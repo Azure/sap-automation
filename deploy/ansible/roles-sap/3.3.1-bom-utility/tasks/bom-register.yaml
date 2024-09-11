@@ -225,7 +225,7 @@
 #
         - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM {{ bom_name }} from archives"
           ansible.builtin.include_vars:
-            file:                       "{{ microsoft_supplied_bom_archive.path }}"
+            file:                       "{{ microsoft_supplied_bom_archive.stat.path }}"
             name:                       bom_temp
           when:                         microsoft_supplied_bom_archive.stat.exists
 # Step: 05-05-02 - END
@@ -260,6 +260,12 @@
 # Step: 06
 # Description:  Validate that BoM was found
 #
+
+- name:                                 "{{ task_prefix }} Show BOM object"
+  ansible.builtin.debug:
+    var:                                bom
+    verbosity:                          2
+
 - name:                                 "{{ task_prefix }} Validate that a BOM object is created"
   ansible.builtin.fail:
     msg:                                "Unable to find the Bill of materials file for {{ bom_name }}."

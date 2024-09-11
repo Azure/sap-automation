@@ -135,6 +135,10 @@ resource "random_password" "created_password" {
   min_numeric                          = 2
 }
 
+## Add an expiry date to the secrets
+resource "time_offset" "secret_expiry_date" {
+  offset_months = 12
+}
 
 // Key pair/password will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV
 resource "azurerm_key_vault_secret" "sid_ppk" {
@@ -150,6 +154,10 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
   name                                  = local.sid_ppk_name
   value                                 = local.sid_private_key
   key_vault_id                          = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
 }
 
 data "azurerm_key_vault_secret" "sid_ppk" {
@@ -174,6 +182,10 @@ resource "azurerm_key_vault_secret" "sid_pk" {
   key_vault_id                         = local.user_keyvault_exist ? (
                                            local.user_key_vault_id) : (
                                            azurerm_key_vault.kv_user[0].id
+                                         )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
                                          )
 }
 
@@ -202,6 +214,10 @@ resource "azurerm_key_vault_secret" "sid_username" {
                                            local.user_key_vault_id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
 }
 
 data "azurerm_key_vault_secret" "sid_username" {
@@ -226,6 +242,10 @@ resource "azurerm_key_vault_secret" "sid_password" {
   key_vault_id                         = local.user_keyvault_exist ? (
                                            local.user_key_vault_id) : (
                                            azurerm_key_vault.kv_user[0].id
+                                         )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
                                          )
 }
 
@@ -268,6 +288,10 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
                                            local.user_key_vault_id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
 }
 
 //Witness access key
@@ -300,6 +324,10 @@ resource "azurerm_key_vault_secret" "witness_name" {
   key_vault_id                         = local.user_keyvault_exist ? (
                                            local.user_key_vault_id) : (
                                            azurerm_key_vault.kv_user[0].id
+                                         )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
                                          )
 }
 
@@ -349,6 +377,10 @@ resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
   key_vault_id                         = local.user_keyvault_exist ? (
                                            local.user_key_vault_id) : (
                                            azurerm_key_vault.kv_user[0].id
+                                         )
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
                                          )
 }
 
@@ -439,9 +471,9 @@ resource "azurerm_private_endpoint" "kv_user" {
                              }
 
   dynamic "private_dns_zone_group" {
-                                      for_each = range(var.register_endpoints_with_dns ? 1 : 0)
+                                      for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                       content {
-                                        name                 = var.dns_zone_names.vault_dns_zone_name
+                                        name                 = var.dns_settings.dns_zone_names.vault_dns_zone_name
                                         private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault[0].id]
                                       }
                                     }
@@ -450,9 +482,9 @@ resource "azurerm_private_endpoint" "kv_user" {
 
 data "azurerm_private_dns_zone" "keyvault" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0
-  name                                 = var.dns_zone_names.vault_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  name                                 = var.dns_settings.dns_zone_names.vault_dns_zone_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 
 resource "azurerm_private_dns_a_record" "keyvault" {
@@ -461,8 +493,8 @@ resource "azurerm_private_dns_a_record" "keyvault" {
   name                                 = lower(
                                            format("%s", local.user_keyvault_name)
                                          )
-  zone_name                            = var.dns_zone_names.vault_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = var.dns_settings.dns_zone_names.vault_dns_zone_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
   ttl                                  = 10
   records                              = [
                                            length(var.keyvault_private_endpoint_id) > 0 ? (
@@ -487,17 +519,10 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
                                            var.naming.separator,
                                            "vault"
                                          )
-  resource_group_name                  = var.management_dns_resourcegroup_name
-  private_dns_zone_name                = var.dns_zone_names.vault_dns_zone_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
+  private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
-}
-
-data "azurerm_private_dns_zone" "vault" {
-  provider                             = azurerm.dnsmanagement
-  count                                = var.use_private_endpoint && var.register_endpoints_with_dns ? 1 : 0
-  name                                 = var.dns_zone_names.vault_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
 }
 
 

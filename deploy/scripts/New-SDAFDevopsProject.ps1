@@ -25,7 +25,7 @@ $ControlPlaneSubscriptionName = $Env:SDAF_ControlPlaneSubscriptionName
 if ($IsWindows) { $pathSeparator = "\" } else { $pathSeparator = "/" }
 #endregion
 
-$versionLabel = "v3.11.0.2"
+$versionLabel = "v3.11.0.3"
 
 # az logout
 
@@ -38,8 +38,6 @@ $versionLabel = "v3.11.0.2"
 #   az login --output none --tenant $ARM_TENANT_ID --only-show-errors --scope https://graph.microsoft.com//.default
 # }
 
-Write-Host ""
-Write-Host ""
 # Check if access to the Azure DevOps organization is available and prompt for PAT if needed
 # Exact permissions required, to be validated, and included in the Read-Host text.
 
@@ -65,21 +63,8 @@ else {
 
 Write-Host ""
 Write-Host ""
+
 if (Test-Path ".${pathSeparator}start.md") { Write-Host "Removing start.md" ; Remove-Item ".${pathSeparator}start.md" }
-
-if ($Env:SDAF_AuthenticationMethod.Length -eq 0) {
-  $Title = "Select the authentication method to use"
-  $data = @('Service Principal', 'Managed Identity')
-  Show-Menu($data)
-  $selection = Read-Host $Title
-  $authenticationMethod = $data[$selection - 1]
-
-}
-else {
-  $authenticationMethod = $Env:SDAF_AuthenticationMethod
-}
-
-Write-Host "Using authentication method: $authenticationMethod" -ForegroundColor Yellow
 
 if ($Env:SDAF_AuthenticationMethod.Length -eq 0) {
   $Title = "Select the authentication method to use"
@@ -224,7 +209,6 @@ else {
 
   Write-Host "Using an existing project"
 
-  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --out tsv)
   az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
 
   $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --output tsv)
@@ -557,7 +541,7 @@ Write-Host "Creating the variable group SDAF-General" -ForegroundColor Green
 
 $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 if ($general_group_id.Length -eq 0) {
-  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.7.4" ansible_core_version="2.15" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
+  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.9.5" ansible_core_version="2.15" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
   $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
   az pipelines variable-group variable update --group-id $general_group_id --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
 }
@@ -640,6 +624,18 @@ if ($installation_pipeline_id.Length -eq 0) {
 $pipelines.Add($installation_pipeline_id)
 
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $installation_pipeline_id
+$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
+Add-Content -Path $fname -Value $log
+
+$pipeline_name = 'SAP installation using SAP-CAL'
+$sapcal_installation_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
+if ($sapcal_installation_pipeline_id.Length -eq 0) {
+  az pipelines create --name $pipeline_name --branch main --description 'Configures the Operating System and installs the SAP application using SAP CAL' --skip-run --yaml-path "/pipelines/07-sap-cal-installation.yml" --repository $repo_id --repository-type tfsgit --output none --only-show-errors
+  $sapcal_installation_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
+}
+$pipelines.Add($sapcal_installation_pipeline_id)
+
+$this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $sapcal_installation_pipeline_id
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
 Add-Content -Path $fname -Value $log
 
@@ -762,25 +758,47 @@ if ($WebApp) {
     $ExistingData = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
 
     $APP_REGISTRATION_ID = $ExistingData.appId
+    $APP_REGISTRATION_OBJECTID = $ExistingData.id
 
-    $confirmation = Read-Host "Reset the app registration secret y/n?"
-    if ($confirmation -eq 'y') {
-      $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors)
-    }
-    else {
-      $WEB_APP_CLIENT_SECRET = Read-Host "Please enter the app registration secret"
-    }
+    # $confirmation = Read-Host "Reset the app registration secret y/n?"
+    # if ($confirmation -eq 'y') {
+    #   $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors --display-name "SDAF")
+    # }
+    # else {
+    #   $WEB_APP_CLIENT_SECRET = Read-Host "Please enter the app registration secret"
+    # }
   }
   else {
     Write-Host "Creating an App Registration for" $ApplicationName -ForegroundColor Green
+    if ($IsWindows) { $manifestPath = ".\manifest.json" } else { $manifestPath = "./manifest.json" }
     Add-Content -Path manifest.json -Value '[{"resourceAppId":"00000003-0000-0000-c000-000000000000","resourceAccess":[{"id":"e1fe6dd8-ba31-4d61-89e7-88639da4683d","type":"Scope"}]}]'
 
-    $APP_REGISTRATION_ID = (az ad app create --display-name $ApplicationName --enable-id-token-issuance true --sign-in-audience AzureADMyOrg --required-resource-access ".${pathSeparator}manifest.json" --query "appId").Replace('"', "")
+    $APP_REGISTRATION_ID = (az ad app create --display-name $ApplicationName --enable-id-token-issuance true --sign-in-audience AzureADMyOrg --required-resource-access $manifestPath --query "appId" --output tsv)
+    $ExistingData = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
+    $APP_REGISTRATION_OBJECTID = $ExistingData.id
 
-    if (Test-Path ".${pathSeparator}manifest.json") { Write-Host "Removing manifest.json" ; Remove-Item ".${pathSeparator}manifest.json" }
+    if (Test-Path $manifestPath) { Write-Host "Removing manifest.json" ; Remove-Item $manifestPath }
 
-    $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors)
+
+    # $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors --display-name "SDAF")
   }
+
+  if ($MSI_objectId -ne $null) {
+    $configureAuth = Read-Host "Configuring authentication for the App Registration (y/n)?"
+    if ($configureAuth -eq 'y') {
+      az rest --method POST --uri "https://graph.microsoft.com/beta/applications/$APP_REGISTRATION_OBJECTID/federatedIdentityCredentials\" --body "{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/$ARM_TENANT_ID/v2.0', 'subject': '$MSI_objectId', 'audiences': [ 'api://AzureADTokenExchange' ]}"
+
+      $API_URL = "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/ProtectAnAPI/appId/$APP_REGISTRATION_ID/isMSAApp~/false"
+
+      Write-Host "The browser will now open, Please Add a new scope, by clicking the '+ Add a new scope link', accept the default name and click 'Save and Continue'"
+      Write-Host "In the Add a scope page enter the scope name 'user_impersonation'. Choose 'Admins and Users' in the who can consent section, next provide the Admin consent display name 'Access the SDAF web application' and 'Use SDAF' as the Admin consent description, accept the changes by clicking the 'Add scope' button"
+
+      Start-Process $API_URL
+      Read-Host -Prompt "Once you have created and validated the scope, Press any key to continue"
+    }
+
+  }
+
 }
 
 #endregion
@@ -815,117 +833,14 @@ if ($authenticationMethod -eq "Service Principal") {
     $CP_ARM_OBJECT_ID = $ExistingData.Id
     $CP_ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
 
-    $confirmation = Read-Host "Reset the Control Plane Service Principal password y/n?"
-    if ($confirmation -eq 'y') {
-
-      $CP_ARM_CLIENT_SECRET = (az ad sp credential reset --id $CP_ARM_CLIENT_ID --append --query "password" --out tsv --only-show-errors).Replace("""", "")
-    }
-  }
-}
-else {
-
-  if ($Env:MSI_OBJECT_ID.Length -ne 0) {
-    $MSI_objectId = $Env:MSI_OBJECT_ID
-  }
-  else {
-
-    $Title = "Choose the subscription that contains the Managed Identity"
-    $subscriptions = $(az account list --query "[].{Name:name}" -o table | Sort-Object)
-    Show-Menu($subscriptions[2..($subscriptions.Length - 1)])
-    $selection = Read-Host $Title
-
-    $subscription = $subscriptions[$selection - 1]
-
-    $Title = "Choose the Managed Identity"
-    $identities = $(az identity list --query "[].{Name:name}" --subscription $subscription --output table | Sort-Object)
-    Show-Menu($identities[2..($identities.Length - 1)])
-    $selection = Read-Host $Title
-    $selectionOffset = [convert]::ToInt32($selection, 10) + 1
-
-    $identity = $identities[$selectionOffset]
-    Write-Host "Using Managed Identity:" $identity
-
-    $id = $(az identity list --query "[?name=='$identity'].id" --subscription $subscription --output tsv)
-    $MSI_objectId = $(az identity show --ids $id --query "principalId" --output tsv)
-
-    $postBody = [PSCustomObject]@{
-      accessLevel         = @{
-        accountLicenseType = "Basic"
-      }
-      projectEntitlements = @([ordered]@{
-          group      = @{
-            groupType = "projectAdministrator"
-          }
-          projectRef = @{
-            id = $Project_ID
-          }
-
-        })
-      servicePrincipal    = @{
-        origin      = "aad"
-        originId    = $id
-        subjectKind = "servicePrincipal"
-      }
-
-    }
-
-    Set-Content -Path "user.json" -Value ($postBody | ConvertTo-Json -Depth 6)
-
-    az devops invoke --area MemberEntitlementManagement --resource ServicePrincipalEntitlements  --in-file user.json --api-version "7.1-preview" --http-method POST
-
-  }
-}
-
-
-#region App registration
-if ($WebApp) {
-  Write-Host "Creating the App registration in Azure Active Directory" -ForegroundColor Green
-
-  $found_appRegistration = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName'].displayName | [0]" --only-show-errors)
-
-  if ($found_appRegistration.Length -ne 0) {
-    Write-Host "Found an existing App Registration:" $ApplicationName
-    $ExistingData = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
-
-    $APP_REGISTRATION_ID = $ExistingData.appId
-    $APP_REGISTRATION_OBJECTID = $ExistingData.id
-
-    # $confirmation = Read-Host "Reset the app registration secret y/n?"
+    #$confirmation = Read-Host "Reset the Control Plane Service Principal password y/n?"
     # if ($confirmation -eq 'y') {
-    #   $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors --display-name "SDAF")
+
+    #   $CP_ARM_CLIENT_SECRET = (az ad sp credential reset --id $CP_ARM_CLIENT_ID --append --query "password" --out tsv --only-show-errors).Replace("""", "")
     # }
     # else {
-    #   $WEB_APP_CLIENT_SECRET = Read-Host "Please enter the app registration secret"
+    $CP_ARM_CLIENT_SECRET = Read-Host "Please enter the Control Plane Service Principal $spn_name password"
     # }
-  }
-  else {
-    Write-Host "Creating an App Registration for" $ApplicationName -ForegroundColor Green
-    if ($IsWindows) { $manifestPath = ".\manifest.json" } else { $manifestPath = "./manifest.json" }
-    Add-Content -Path manifest.json -Value '[{"resourceAppId":"00000003-0000-0000-c000-000000000000","resourceAccess":[{"id":"e1fe6dd8-ba31-4d61-89e7-88639da4683d","type":"Scope"}]}]'
-
-    $APP_REGISTRATION_ID = (az ad app create --display-name $ApplicationName --enable-id-token-issuance true --sign-in-audience AzureADMyOrg --required-resource-access $manifestPath --query "appId" --output tsv)
-    $ExistingData = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
-    $APP_REGISTRATION_OBJECTID = $ExistingData.id
-
-    if (Test-Path $manifestPath) { Write-Host "Removing manifest.json" ; Remove-Item $manifestPath }
-
-
-    # $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors --display-name "SDAF")
-  }
-
-  az role assignment create --assignee $CP_ARM_CLIENT_ID --role "Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
-
-  az role assignment create --assignee $CP_ARM_CLIENT_ID --role "User Access Administrator" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
-
-  $Control_plane_groupID = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
-  if ($Control_plane_groupID.Length -eq 0) {
-    Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
-    if ($WebApp) {
-      az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID APP_REGISTRATION_OBJECTID=$APP_REGISTRATION_OBJECTID APP_TENANT_ID=$ARM_TENANT_ID CP_ARM_CLIENT_ID=$CP_ARM_CLIENT_ID CP_ARM_OBJECT_ID=$CP_ARM_OBJECT_ID CP_ARM_CLIENT_SECRET='Enter your SPN password here' CP_ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID CP_ARM_TENANT_ID=$CP_ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF --output none --authorize true
-    }
-    else {
-      $CP_ARM_CLIENT_SECRET = Read-Host "Please enter the Control Plane Service Principal password"
-    }
 
   }
   else {
@@ -944,13 +859,12 @@ if ($WebApp) {
 
   az role assignment create --assignee $CP_ARM_CLIENT_ID --role "User Access Administrator" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
 
-}
-else {
   $Control_plane_groupID = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
   if ($Control_plane_groupID.Length -eq 0) {
     Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
+
     if ($WebApp) {
-      az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID APP_REGISTRATION_OBJECTID=$APP_REGISTRATION_OBJECTID APP_TENANT_ID=$ARM_TENANT_ID CP_ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID  PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF USE_MSI=true --output none --authorize true
+      az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID APP_REGISTRATION_OBJECTID=$APP_REGISTRATION_OBJECTID APP_TENANT_ID=$ARM_TENANT_ID CP_ARM_CLIENT_ID=$CP_ARM_CLIENT_ID CP_ARM_OBJECT_ID=$CP_ARM_OBJECT_ID CP_ARM_CLIENT_SECRET='Enter your SPN password here' PAT='Enter your personal access token here' CP_ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID CP_ARM_TENANT_ID=$CP_ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF --output none --authorize true
     }
     else {
       az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' CP_ARM_CLIENT_ID=$CP_ARM_CLIENT_ID CP_ARM_OBJECT_ID=$CP_ARM_OBJECT_ID CP_ARM_CLIENT_SECRET='Enter your SPN password here' CP_ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID CP_ARM_TENANT_ID=$CP_ARM_TENANT_ID PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF --output none --authorize true
@@ -990,14 +904,20 @@ else {
   $Control_plane_groupID = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
   if ($Control_plane_groupID.Length -eq 0) {
     Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
-    az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID  CP_ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID  WEB_APP_CLIENT_SECRET=$WEB_APP_CLIENT_SECRET PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF USE_MSI=true --output none --authorize true
+    if ($WebApp) {
+      az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID APP_REGISTRATION_OBJECTID=$APP_REGISTRATION_OBJECTID APP_TENANT_ID=$ARM_TENANT_ID CP_ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF USE_MSI=true --output none --authorize true
+    }
+    else {
+      az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' CP_ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF USE_MSI=true --output none --authorize true
+    }
+
     $Control_plane_groupID = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
   }
 
   Write-Host
 
   Write-Host ""
-  Write-Host "The browser will now open, Please create a service connection with the name 'Control_Plane_Service_Connection'."
+  Write-Host "The browser will now open, Please create an 'Azure Resource Manager' service connection with the name 'Control_Plane_Service_Connection'."
   $connections_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
   Write-Host "URL: " $connections_url
 
@@ -1008,8 +928,6 @@ else {
 }
 
 $groups.Add($Control_plane_groupID)
-
-az pipelines variable-group variable update --group-id $Control_plane_groupID --name "WEB_APP_CLIENT_SECRET" --value $WEB_APP_CLIENT_SECRET --secret true --output none --only-show-errors
 
 
 #endregion
@@ -1104,7 +1022,7 @@ if (!$AlreadySet -or $ResetPAT ) {
     accessLevel         = @{
       accountLicenseType = "stakeholder"
     }
-    user                = @{
+    user = @{
       origin      = "aad"
       originId    = $MSI_objectId
       subjectKind = "servicePrincipal"
@@ -1147,7 +1065,7 @@ Write-Host ""
 Write-Host "The browser will now open, Select the '"$ADO_PROJECT "Build Service' user and ensure that it has 'Allow' in the Contribute section."
 
 $permissions_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/repositories?_a=permissions"
-
+Write-Host "URL: " $permissions_url
 
 Start-Process $permissions_url
 Read-Host -Prompt "Once you have verified the permission, Press any key to continue"

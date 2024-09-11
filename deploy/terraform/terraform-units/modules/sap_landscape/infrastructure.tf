@@ -49,12 +49,12 @@ data "azurerm_virtual_network" "vnet_sap" {
 
 resource "azurerm_virtual_network_dns_servers" "vnet_sap_dns_servers" {
   provider                             = azurerm.main
-  count                                = local.SAP_virtualnetwork_exists && length(var.dns_server_list) > 0 ? 1 : 0
+  count                                = local.SAP_virtualnetwork_exists && length(var.dns_settings.dns_server_list) > 0 ? 1 : 0
   virtual_network_id                   = local.SAP_virtualnetwork_exists ? (
                                            data.azurerm_virtual_network.vnet_sap[0].id) : (
                                            azurerm_virtual_network.vnet_sap[0].id
                                          )
-  dns_servers                          = var.dns_server_list
+  dns_servers                          = var.dns_settings.dns_server_list
 }
 
 # // Peers management VNET to SAP VNET
@@ -136,7 +136,7 @@ resource "azurerm_virtual_network_peering" "peering_sap_management" {
 //Route table
 resource "azurerm_route_table" "rt" {
   provider                             = azurerm.main
-  count                                = local.SAP_virtualnetwork_exists ? 0 : 1
+  count                                = local.SAP_virtualnetwork_exists ? 0 : (local.create_nat_gateway ? 0 : 1)
   depends_on                           = [
                                            azurerm_virtual_network.vnet_sap
                                          ]
@@ -154,13 +154,12 @@ resource "azurerm_route_table" "rt" {
                                             data.azurerm_virtual_network.vnet_sap[0].location) : (
                                             azurerm_virtual_network.vnet_sap[0].location
                                           )
-  disable_bgp_route_propagation        = false
   tags                                 = var.tags
 }
 
 resource "azurerm_route" "admin" {
   provider                             = azurerm.main
-  count                                = length(local.firewall_ip) > 0 ? local.SAP_virtualnetwork_exists ? 0 : 1 : 0
+  count                                = length(local.firewall_ip) > 0 ? local.SAP_virtualnetwork_exists ? 0 : (local.create_nat_gateway ? 0 : 1) : 0
   depends_on                           = [
                                            azurerm_route_table.rt
                                          ]
@@ -183,7 +182,7 @@ resource "azurerm_route" "admin" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
   provider                             = azurerm.dnsmanagement
-  count                                = local.use_Azure_native_DNS && var.use_private_endpoint && var.register_virtual_network_to_dns ? 1 : 0
+  count                                = local.use_Azure_native_DNS && var.use_private_endpoint && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
   depends_on                           = [
                                            azurerm_virtual_network.vnet_sap
                                          ]
@@ -194,9 +193,9 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
                                            var.naming.resource_suffixes.dns_link
                                          )
 
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  resource_group_name                  = var.dns_settings.management_dns_resourcegroup_name
 
-  private_dns_zone_name                = var.dns_label
+  private_dns_zone_name                = var.dns_settings.dns_label
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = true
 }
@@ -214,18 +213,18 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
                                            var.naming.resource_suffixes.dns_link
                                          )
 
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 
-  private_dns_zone_name                = var.dns_zone_names.file_dns_zone_name
+  private_dns_zone_name                = var.dns_settings.dns_zone_names.file_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
 }
 
 data "azurerm_private_dns_zone" "file" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.use_private_endpoint ? 1 : 0
-  name                                 = var.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  name                                 = var.dns_settings.dns_zone_names.file_dns_zone_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
@@ -241,16 +240,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
                                            var.naming.resource_suffixes.dns_link
                                          )
 
-  resource_group_name                  = var.management_dns_resourcegroup_name
-  private_dns_zone_name                = var.dns_zone_names.blob_dns_zone_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
+  private_dns_zone_name                = var.dns_settings.dns_zone_names.blob_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
 }
 
 data "azurerm_private_dns_zone" "storage" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.use_private_endpoint ? 1 : 0
-  name                                 = var.dns_zone_names.blob_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  name                                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 
 resource "azurerm_management_lock" "vnet_sap" {

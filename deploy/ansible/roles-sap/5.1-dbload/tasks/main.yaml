@@ -24,7 +24,7 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
-- name:                                "DBLoad: -  reset"
+- name:                                "DBLoad: - reset"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
     state:                             absent
@@ -334,9 +334,9 @@
         - job_result.rc is defined
         - job_result.rc == 0
 
-    - name:                            "DBLoad:  results"
+    - name:                            "DBLoad: results"
       ansible.builtin.debug:
-        msg:                           "DBLoad  succeeded"
+        msg:                           "DBLoad succeeded"
       when:
         - job_result.rc is defined
         - job_result.rc == 0
@@ -346,22 +346,12 @@
     #   when:
     #     - node_tier in ["oracle","oracle-asm"]
 
-    - name:                            "DBLoad Install: Get DEFAULT.PFL"
-      ansible.builtin.slurp:
-        src:                           "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
-      register: profilefile
-
-    - name:                            "DBLoad Install: Get schema name"
-      ansible.builtin.set_fact:
-        schema_name:                   "{{ profilefile['content'] | b64decode | split('\n') | select('search', 'dbs/hdb/schema') | first | split('=') | last | trim | default('{{ hana_schema }}') }}"
+    - name:                            "DBLoad Install: Set Schema Name"
       when:
-        - platform == 'HANA'
-
-    - name:                            "DBLoad Install: Installation results"
-      ansible.builtin.debug:
-        msg:                           "Schema name {{ schema_name }}"
-      when:
-        - platform == 'HANA'
+        - platform == "HANA"
+      ansible.builtin.include_role:
+        name:                          "roles-db/4.0.4-hdb-schema"
+        public:                        true
 
     - name:                            "Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
@@ -464,22 +454,12 @@
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                            "DBLoad Install: Get DEFAULT.PFL"
-      ansible.builtin.slurp:
-        src:                           "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
-      register: profilefile
-
-    - name:                            "DBLoad Install: Get schema name"
-      ansible.builtin.set_fact:
-        schema_name:                   "{{ profilefile['content'] | b64decode | split('\n') | select('search', 'dbs/hdb/schema') | first | split('=') | last | trim | default('{{ hana_schema }}') }}"
+    - name:                           "DBLoad Install: Set Schema Name"
       when:
-        - platform == 'HANA'
-
-    - name:                            "DBLoad Install: Installation results"
-      ansible.builtin.debug:
-        msg:                           "Schema name {{ schema_name }}"
-      when:
-        - platform == 'HANA'
+        - platform == "HANA"
+      ansible.builtin.include_role:
+        name:                         "roles-db/4.0.4-hdb-schema"
+        public:                       true
 
     - name:                            "DBLoad: Get hdbuserstore path"
       become:                          true

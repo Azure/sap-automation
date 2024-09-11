@@ -224,41 +224,9 @@ variable "use_private_endpoint"                  {
 #########################################################################################
 
 
-variable "use_custom_dns_a_registration"         {
-                                                    description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
-                                                    default     = false
-                                                    type        = bool
-                                                 }
-
-variable "management_dns_subscription_id"        {
-                                                    description = "String value giving the possibility to register custom dns a records in a separate subscription"
-                                                    default     = null
-                                                    type        = string
-                                                 }
-
-variable "management_dns_resourcegroup_name"     {
-                                                    description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
-                                                    default     = null
-                                                    type        = string
-                                                 }
-
-variable "register_endpoints_with_dns"           {
-                                                   description = "Boolean value indicating if endpoints should be registered to the dns zone"
-                                                   type        = bool
-                                                 }
-
-variable "dns_zone_names"                        {
-                                                  description = "Private DNS zone names"
-                                                  type        = map(string)
-
-                                                  default = {
-                                                              "file_dns_zone_name"   = "privatelink.file.core.windows.net"
-                                                              "blob_dns_zone_name"   = "privatelink.blob.core.windows.net"
-                                                              "table_dns_zone_name"  = "privatelink.table.core.windows.net"
-                                                              "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
-                                                            }
-                                                }
-
+variable "dns_settings"                                 {
+                                                          description = "DNS Settings"
+                                                        }
 variable "sapmnt_private_endpoint_id"            {
                                                     description = "Azure Resource Identifier for an private endpoint connection"
                                                     type        = string

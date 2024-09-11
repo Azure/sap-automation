@@ -48,7 +48,7 @@
         - name:                             Ensure the SAP HANA instance resource is created
           ansible.builtin.shell:  >
                                             pcs resource create SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} SAPHanaController \
-                                            SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }} PREFER_SITE_TAKEOVER=true DUPLICATE_PRIMARY_TIMEOUT=7200 AUTOMATED_REGISTER=false \
+                                            SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }} PREFER_SITE_TAKEOVER=true DUPLICATE_PRIMARY_TIMEOUT=7200 AUTOMATED_REGISTER=true \
                                             op start interval=0 timeout=3600 op stop interval=0 timeout=3600 op promote interval=0 timeout=3600 \
                                             op monitor interval=60 role="Master" timeout=700 op monitor interval=61 role="Slave" timeout=700
           register:                         sap_hana
@@ -126,7 +126,7 @@
         - name:                             Ensure the SAP HANA instance is created
           ansible.builtin.shell:  >
                                             pcs resource create SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} SAPHanaController \
-                                            SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }} PREFER_SITE_TAKEOVER=true DUPLICATE_PRIMARY_TIMEOUT=7200 AUTOMATED_REGISTER=false \
+                                            SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }} PREFER_SITE_TAKEOVER=true DUPLICATE_PRIMARY_TIMEOUT=7200 AUTOMATED_REGISTER=true \
                                             op demote interval=0s timeout=320 op methods interval=0s timeout=5 \
                                             op start interval=0 timeout=3600 op stop interval=0 timeout=3600 op promote interval=0 timeout=3600 \
                                             op monitor interval=60 role="Master" timeout=700 op monitor interval=61 role="Slave" timeout=700

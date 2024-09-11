@@ -29,7 +29,7 @@
     - name:                            "5.5.4.1 HANA Cluster configuration - Check if the pacemaker package version is greater than pacemaker-2.0.4"
       when:                            ansible_distribution_major_version in ["8", "9"]
       ansible.builtin.set_fact:
-        is_pcmk_ver_gt_204:            "{{ ansible_facts.packages['pacemaker'] is version('2.0.4', '>') | default(false) }}"
+        is_pcmk_ver_gt_204:            "{{ ansible_facts.packages['pacemaker'][0].version is version('2.0.4', '>') | default(false) }}"
 
     - name:                            "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA Topology resource is created"
       ansible.builtin.shell: >
@@ -158,6 +158,12 @@
         - database_high_availability
         - NFS_provider == "ANF"
         - ansible_hostname == primary_instance_name
+        - hana_data_mountpoint is defined
+        - hana_data_mountpoint | length > 1
+        - hana_log_mountpoint is defined
+        - hana_log_mountpoint | length > 1
+        - hana_shared_mountpoint is defined
+        - hana_shared_mountpoint | length > 1
       block:
         - name:                        "5.5.4.1 HANA Cluster configuration - configure constraints between SAP HANA resources and NFS mounts"
           ansible.builtin.shell:       pcs constraint location SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone rule score=-INFINITY attr_hana_{{ db_sid | upper }}_NFS_1_active ne true and attr_hana_{{ db_sid | upper }}_NFS_2_active ne true
@@ -168,18 +174,16 @@
           ansible.builtin.shell:       pcs constraint location SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-master rule score=-INFINITY attr_hana_{{ db_sid | upper }}_NFS_1_active ne true and attr_hana_{{ db_sid | upper }}_NFS_2_active ne true
           register:                    constraint
           failed_when:                 constraint.rc > 1
-          when:
-            - ansible_distribution_major_version == "7"
+          when: ansible_distribution_major_version == "7"
 
         - name:                        "5.5.4.1 HANA Cluster configuration - configure constraints on RHEL 8.x or 9.x"
-          when:
-            - ansible_distribution_major_version in ["8", "9"]
+          when: ansible_distribution_major_version in ["8", "9"]
           block:
             - name:                    "5.5.4.1 HANA Cluster configuration - configure location constraints on RHEL 8.x or 9.x"
               ansible.builtin.shell: >
                                        pcs constraint location SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone rule score=-INFINITY attr_hana_{{ db_sid | upper }}_NFS_1_active ne true and attr_hana_{{ db_sid | upper }}_NFS_2_active ne true
-              register:                    constraint
-              failed_when:                 constraint.rc > 1
+              register:                constraint
+              failed_when:             constraint.rc > 1
 
             - name:                    "5.5.4.1 HANA Cluster configuration - configure ordering constraints for SAPHana clone RHEL 8.x or 9.x"
               ansible.builtin.shell: >
@@ -337,7 +341,8 @@
 # | Systemd-Based SAP Startup Framework - BEGIN                                |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-# Follow steps described in https://access.redhat.com/articles/6884531
+# Follow steps described in https://access.redhat.com/articles/6093611
+
 
 - name:                                "5.5.4.1 HANA Cluster configuration - check if the OS version is RHEL 8.2 or newer"
   ansible.builtin.set_fact:
