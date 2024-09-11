@@ -201,7 +201,7 @@ resource "azurerm_netapp_volume" "hanashared" {
 
 data "azurerm_netapp_volume" "hanashared" {
   provider                             = azurerm.main
-  depends_on                           = [azurerm_netapp_volume_group_sap_hana.avg_HANA]
+  depends_on                           = [azurerm_netapp_volume_group_sap_hana.avg_HANA_full]
 
   count                                = length(local.ANF_pool_settings.pool_name) > 0 ? var.hana_ANF_volumes.use_for_shared ? (
                                            var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
