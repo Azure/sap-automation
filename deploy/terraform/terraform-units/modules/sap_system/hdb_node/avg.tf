@@ -6,7 +6,7 @@
 
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
   provider                             = azurerm.main
-  count                                = local.use_avg  ? length(var.database.zones) : 0
+  count                                = local.use_avg ? length(var.database.zones) : 0
   name                                 = format("%s%s%s%s%d",
                                            var.naming.resource_prefixes.hana_avg,
                                            local.prefix,
@@ -36,7 +36,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = var.ppg[count.index % max(length(var.database.zones), 1)]
+                               proximity_placement_group_id = var.ppg[0]
                                volume_spec_name             = "data"
                                storage_quota_in_gb          = var.hana_ANF_volumes.data_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.data_volume_throughput
@@ -72,7 +72,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = var.ppg[count.index % max(length(var.database.zones), 1)]
+                               proximity_placement_group_id = var.ppg[0]
                                volume_spec_name             = "log"
                                storage_quota_in_gb          = var.hana_ANF_volumes.log_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.log_volume_throughput
@@ -111,7 +111,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = var.ppg[count.index % max(length(var.database.zones), 1)]
+                               proximity_placement_group_id = var.ppg[0]
                                volume_spec_name             = "shared"
                                storage_quota_in_gb          = var.hana_ANF_volumes.shared_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.shared_volume_throughput
@@ -166,7 +166,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = var.ppg[count.index % max(length(var.database.zones), 1)]
+                               proximity_placement_group_id = var.ppg[0]
                                volume_spec_name             = "data"
                                storage_quota_in_gb          = var.hana_ANF_volumes.data_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.data_volume_throughput
@@ -202,7 +202,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = var.ppg[count.index % max(length(var.database.zones), 1)]
+                               proximity_placement_group_id = var.ppg[0]
                                volume_spec_name             = "log"
                                storage_quota_in_gb          = var.hana_ANF_volumes.log_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.log_volume_throughput
@@ -258,7 +258,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = var.ppg[count.index % max(length(var.database.zones), 1)]
+                               proximity_placement_group_id = var.ppg[0]
                                volume_spec_name             = "data"
                                storage_quota_in_gb          = var.hana_ANF_volumes.data_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.data_volume_throughput
@@ -294,7 +294,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = var.ppg[count.index % max(length(var.database.zones), 1)]
+                               proximity_placement_group_id = var.ppg[0]
                                volume_spec_name             = "log"
                                storage_quota_in_gb          = var.hana_ANF_volumes.log_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.log_volume_throughput
