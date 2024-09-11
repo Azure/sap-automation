@@ -205,7 +205,7 @@ data "azurerm_netapp_volume" "hanashared" {
 
   count                                = length(local.ANF_pool_settings.pool_name) > 0 ? var.hana_ANF_volumes.use_for_shared ? (
                                            var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
-                                             var.database_server_count
+                                             local.db_zone_count
                                              ) : (
                                              0
                                            )) : (
