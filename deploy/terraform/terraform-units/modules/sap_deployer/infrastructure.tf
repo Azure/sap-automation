@@ -136,3 +136,4 @@ resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" 
 }
 
 
+

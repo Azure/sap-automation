@@ -30,9 +30,8 @@ repos:
   redhat8.8:
     - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat8.9:
-    - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
+#    - { tier:   'ha', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat8.10:
-    - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm', state: 'present' }
   redhat9.0:
     - { tier:   'os', repo: 'epel', url: 'https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm', state: 'present' }
   redhat9.2:

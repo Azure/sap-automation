@@ -123,8 +123,8 @@
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana data)"
   ansible.posix.mount:
-    src:                               '/dev/vg_hana_data/lv_hana_data'
-    path:                              "{{ hana_data_basepath }}"
+    src:                               /dev/vg_hana_data/lv_hana_data
+    path:                              /hana/data
     fstype:                            xfs
     opts:                              defaults
     state:                             mounted
@@ -134,8 +134,8 @@
 
 - name:                                "2.6 SAP Mounts: - Mount local file systems (hana log)"
   ansible.posix.mount:
-    src:                               '/dev/vg_hana_log/lv_hana_log'
-    path:                              "{{ hana_log_basepath }}"
+    src:                               /dev/vg_hana_log/lv_hana_log
+    path:                              /hana/log
     fstype:                            xfs
     opts:                              defaults
     state:                             mounted
@@ -184,6 +184,7 @@
   when:
     - "'scs' in supported_tiers"
     - usr_sap_install_mountpoint is undefined
+    - not is_executed_by_acss or (is_executed_by_acss and single_server)
 
 - name:                                "1.5 Disk setup - Check if installation root directory exists"
   ansible.builtin.stat:
@@ -267,6 +268,7 @@
     - node_tier != 'scs'
     - "'scs' not in supported_tiers"
     - usr_sap_install_mountpoint is not defined
+    - not is_executed_by_acss or (is_executed_by_acss and single_server)
 
 # Mount File systems for SCS server in Multi-SID installations
 - name:                                "2.6 SAP Mounts: - Mount local sapmnt (scs) for oracle shared home installation"
@@ -366,6 +368,53 @@
 
 - name:                                "2.6 SAP Mounts: - Import Oracle observer tasks"
   ansible.builtin.import_tasks:        "2.6.3-oracle-observer.yaml"
+  when: node_tier == "observer"
+
+- name:                                "2.6 SAP Mounts: - Import Oracle shared home tasks"
+  ansible.builtin.import_tasks:        "2.6.3-oracle-multi-sid.yaml"
+  when:
+    - node_tier == "oracle-multi-sid"
+    - node_tier != "oracle-asm"
+
+# Import this task only if the node_tier is db2.
+- name:                                "2.6 SAP Mounts: - Import DB2 tasks"
+  ansible.builtin.import_tasks:        "2.6.4-db2-mounts.yaml"
+  when: node_tier == "db2"
+
+# Import this task only if the node_tier is ase.
+- name:                                "2.6 SAP Mounts: - Import SYBASE tasks"
+  ansible.builtin.import_tasks:        "2.6.6-sybase-mounts.yaml"
+  when: node_tier == "sybase"
+
+
+# Update : Deprecated as the scale out anf mount code functionality is now integrated into 2.6.1 and 2.6.8
+# This will be removed in the next release, left here for tracing and documentation
+# Import this task only if db_scale_out is defined. Implies that sap_mnt is defined, i.e. ANF is used
+# - name:                                "2.6 SAP Mounts: - Import ANF tasks for Scale-Out"
+#   ansible.builtin.import_tasks:        2.6.1.2-anf-mounts-scaleout.yaml
+#   when:
+#     - NFS_provider == 'ANF'
+#     - db_scale_out is defined
+#     - db_scale_out
+#     - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
+
+# Import this task only if the tier is ora.
+- name:                                "2.6 SAP Mounts: - Import Oracle tasks"
+  ansible.builtin.import_tasks:        "2.6.2-oracle-mounts.yaml"
+  when: node_tier == "oracle"
+
+# Import this task only if the tier is ora for oracle-asm.
+- name:                                "2.6 SAP Mounts: - Import Oracle ASM pre-requisite tasks"
+  ansible.builtin.import_tasks:        "2.6.3-oracle-asm-prereq.yaml"
+  when: node_tier == "oracle-asm"
+
+# Import this task only if the tier is ora for oracle-asm.
+- name:                                "2.6 SAP Mounts: - Import Oracle ASM tasks"
+  ansible.builtin.import_tasks:        "2.6.3-oracle-asm-mounts.yaml"
+  when: node_tier == "oracle-asm"
+
+- name:                                "2.6 SAP Mounts: - Import Oracle observer tasks"
+  ansible.builtin.import_tasks:        "2.6.3-oracle-observer.yaml"
   when:
     - node_tier == "observer"
     - platform != "HANA"
@@ -411,8 +460,6 @@
   ansible.builtin.import_tasks:        "2.6.6-oracle-nfs-mounts.yaml"
   when:
     - node_tier in ['oracle','oracle-asm','observer']
-    - platform != "HANA"
-    # ensure that this is not triggered for HANA scale out with HSR which uses an observer tier VM
 
 - name:                                "2.6 SAP Mounts: - Set permissions"
   when:                                 node_tier == "hana"
