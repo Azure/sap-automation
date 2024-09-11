@@ -157,7 +157,7 @@ resource "azurerm_netapp_volume" "hanashared" {
                                            var.hana_ANF_volumes.use_existing_shared_volume ? (
                                              0
                                              ) : (
-                                             var.database_server_count
+                                             local.db_zone_count
                                            )) : (
                                            0
                                          ) : 0
