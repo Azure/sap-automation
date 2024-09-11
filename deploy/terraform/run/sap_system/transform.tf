@@ -177,6 +177,7 @@ locals {
                                         use_DHCP                        = var.app_tier_use_DHCP || try(var.application_tier.use_DHCP, false)
                                         dual_nics                       = var.app_tier_dual_nics || try(var.application_tier.dual_nics, false)
                                         vm_sizing_dictionary_key        = try(coalesce(var.app_tier_sizing_dictionary_key, var.app_tier_vm_sizing, try(var.application_tier.vm_sizing, "")), "Optimized")
+                                        app_instance_number             = coalesce(var.app_instance_number, try(var.application_tier.app_instance_number, "00"))
                                         application_server_count        = local.enable_app_tier_deployment ? (
                                                                             max(var.application_server_count, try(var.application_tier.application_server_count, 0))
                                                                             ) : (
