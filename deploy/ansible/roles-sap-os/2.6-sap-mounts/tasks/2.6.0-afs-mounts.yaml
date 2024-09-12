@@ -16,7 +16,7 @@
     scs_instance_number: "{{ scs_instance_number }}"
     pas_instance_number: "{{ pas_instance_number }}"
     app_instance_number: "{{ app_instance_number }}"
-    list_of_servers: "{{ list_of_servers }}"
+    list_of_servers: ['SCS','DB']
   tags:
     - test
   register: check
