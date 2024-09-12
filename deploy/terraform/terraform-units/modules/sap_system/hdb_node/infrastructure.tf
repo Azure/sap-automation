@@ -60,13 +60,13 @@ resource "azurerm_lb" "hdb" {
                                 var.naming.separator,
                                 local.resource_suffixes.db_alb_feip
                               )
-                              subnet_id = var.db_subnet.id
+                              subnet_id = var.database.scale_out ? var.admin_subnet.id :  var.db_subnet.id
                               private_ip_address = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? (
                                 var.database.loadbalancer.frontend_ips[0]) : (
                                 var.database.use_DHCP ? (
                                   null) : (
                                   cidrhost(
-                                    var.db_subnet.address_prefixes[0],
+                                    var.database.scale_out ? var.admin_subnet.address_prefixes[0] :  var.db_subnet.address_prefixes[0],
                                     tonumber(count.index) + local.hdb_ip_offsets.hdb_lb
                                 ))
                               )
