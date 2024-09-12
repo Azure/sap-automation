@@ -31,7 +31,7 @@
       - " list output: {{ setting_vars_output }}"
 #      - "List of all the SAP mounts: {{ setting_vars_output.all_sap_mounts }}"
 #      - "First server: {{ setting_vars_output.first_server_temp }}"
-    verbosity:                         2
+    verbosity:                         4
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
