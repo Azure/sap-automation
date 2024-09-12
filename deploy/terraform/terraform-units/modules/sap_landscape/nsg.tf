@@ -175,8 +175,8 @@ resource "azurerm_network_security_rule" "nsr_controlplane_app" {
                                            var.deployer_tfstate.subnet_mgmt_address_prefixes,
                                            var.deployer_tfstate.subnet_bastion_address_prefixes,
                                            local.SAP_virtualnetwork_exists ? (
-                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : (
-                                             azurerm_virtual_network.vnet_sap[0].address_space
+                                             concat(data.azurerm_virtual_network.vnet_sap[0].address_space)) : (
+                                             concat(azurerm_virtual_network.vnet_sap[0].address_space)
                                            )))
   destination_address_prefixes         = local.application_subnet_existing ? data.azurerm_subnet.app[0].address_prefixes : azurerm_subnet.app[0].address_prefixes
 }
