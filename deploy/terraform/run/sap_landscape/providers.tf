@@ -89,11 +89,12 @@ provider "azuread"                     {
                                        }
 
 provider "azapi"                       {
-                                          alias           = "api"
-                                          subscription_id = local.spn.subscription_id
-                                          client_id       = local.spn.client_id
-                                          client_secret   = local.spn.client_secret
-                                          tenant_id       = local.spn.tenant_id
+                                          alias                      = "api"
+                                          subscription_id            = local.spn.subscription_id
+                                          client_id                  = var.use_spn ? local.spn.client_id : null
+                                          client_secret              = var.use_spn ? local.spn.client_secret : null
+                                          tenant_id                  = local.spn.tenant_id
+                                          use_msi                    = var.use_spn ? false : true
                                       }
 
 terraform                              {
@@ -120,7 +121,7 @@ terraform                              {
                                                                            version = ">= 4.0"
                                                                          }
                                                               azapi =    {
-                                                                           source  = "azure/azapi"
+                                                                           source  = "Azure/azapi"
                                                                          }
                                                             }
                                        }
