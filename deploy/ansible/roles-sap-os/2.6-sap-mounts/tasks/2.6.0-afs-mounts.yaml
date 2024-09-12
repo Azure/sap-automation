@@ -7,7 +7,7 @@
 
 - name:                                "calling setting variables python script" 
   setting_vars: 
-    sap_id: "{{ sap_id }}"
+    sap_sid: "{{ sap_sid }}"
     hdbadm_uid: "{{ hdbadm_uid }}"
     platform: "{{ platform }}"
     sidadm_uid: "{{ sidadm_uid }}"
@@ -20,7 +20,7 @@
   tags:
     - test
   register: check
-  
+
 - name:                                "AFS Mount: Create list of all_sap_mounts to support"
   ansible.builtin.debug:
     msg:

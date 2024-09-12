@@ -1,19 +1,9 @@
 from ansible.module_utils.basic import AnsibleModule
-#afs mount: Define this SID
-#sap_id = 'rh6'
-#hdbadm_uid = 'testing'
-#platform = 'SYSBASE'
-#sidadm_uid = 'testing2'
-#asesidadm_uid = 'testing3'
-#scs_instance_number = '1'
-#pas_instance_number = '2'
-#app_instance_number = '3'
-#list_of_servers = ['SCS','DB']
 first_server_temp = []
 
 def run_module():
     module_args = dict(
-        sap_id=dict(type="str", required=True),
+        sap_sid=dict(type="str", required=True),
         hdbadm_uid=dict(type="str", required=True),
         platform=dict(type="str", required=True),
         sidadm_uid=dict(type="str", required=True),
@@ -35,7 +25,7 @@ def run_module():
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
     result['this_sid'] = {
-        'sid': module.params['sap_id'].upper(),
+        'sid': module.params['sap_sid'].upper(),
         'dbsid_uid': module.params['hdbadm_uid'],
         'sidadm_uid': module.params['asesidadm_uid'] if module.params['platform'] == 'SYSBASE' else module.params['sidadm_uid'],
         'ascs_inst_no': module.params['scs_instance_number'],
@@ -48,7 +38,7 @@ def run_module():
         result['all_sap_mounts'] = dict(result['all_sap_mounts'], result['this_sid'])
 
     for server in module.params['list_of_servers']:
-        first_server = query(module.params['sap_id'].upper()+'_'+server)
+        first_server = query(module.params['sap_sid'].upper()+'_'+server)
         result['first_server_temp'].append(first_server)
 
     result['mnt_options'] = {
