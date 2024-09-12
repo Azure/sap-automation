@@ -139,8 +139,8 @@ resource "azurerm_network_security_rule" "nsr_controlplane_iscsi" {
                                            var.deployer_tfstate.subnet_mgmt_address_prefixes,
                                            var.deployer_tfstate.subnet_bastion_address_prefixes,
                                            local.SAP_virtualnetwork_exists ? (
-                                             data.azurerm_virtual_network.vnet_sap[0].address_space) : (
-                                             azurerm_virtual_network.vnet_sap[0].address_space
+                                             flatten(data.azurerm_virtual_network.vnet_sap[0].address_space)) : (
+                                             flatten(azurerm_virtual_network.vnet_sap[0].address_space)
                                            )))
   destination_address_prefixes         = local.sub_iscsi_exists ? data.azurerm_subnet.iscsi[0].address_prefixes : azurerm_subnet.iscsi[0].address_prefixes
 }
