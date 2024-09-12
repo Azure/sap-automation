@@ -6,7 +6,7 @@
 
 resource "local_file" "ansible_inventory_new_yml" {
   content       = templatefile(format("%s%s", path.module, "/ansible_inventory.tmpl"), {
-                    ips_dbnodes         = var.database_server_ips
+                    ips_dbnodes         = var.scale_out ? var.database_admin_ips : var.database_server_ips
                     dbnodes             = var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
                     db_vmnodes          = var.database_server_vm_names
                     virt_dbnodes        = var.use_secondary_ips ? (
