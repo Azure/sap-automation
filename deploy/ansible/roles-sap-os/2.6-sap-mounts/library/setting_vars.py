@@ -12,7 +12,7 @@ def run_module():
         scs_instance_number=dict(type="str", required=True),
         pas_instance_number=dict(type="str", required=True),
         app_instance_number=dict(type="str", required=True),
-        list_of_servers=dict(type="list", required=True),
+        server_name=dict(type="str", required=True),
     )
         
     result = {
@@ -37,22 +37,13 @@ def run_module():
     except:
         result['all_sap_mounts'] = dict(result['all_sap_mounts'], result['this_sid'])
 
-    for server in module.params['list_of_servers']:
-        first_server = query(module.params['sap_sid'].upper()+'_'+server)
-        result['first_server_temp'].append(first_server)
+    result['first_server_temp'].append(module.params['server_name'])
 
     result['mnt_options'] = {
         'afs_mnt_options': 'noresvport,vers=4,minorversion=1,sec=sys',
         'anf_mnt_options': 'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys'
     }
     module.exit_json(**result)
-
-def query(full_hostname):
-    with open('/etc/ansible/hosts', 'r') as file:
-        lines = file.readlines()
-        for line in lines:
-            if full_hostname in line: 
-                return full_hostname
 
 if __name__ == "__main__":
     run_module()
