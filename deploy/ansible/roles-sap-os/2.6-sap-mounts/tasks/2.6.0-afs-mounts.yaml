@@ -17,12 +17,10 @@
     pas_instance_number: "{{ pas_instance_number }}"
     app_instance_number: "{{ app_instance_number }}"
     server_name: "{{ item }}"
-  tags:
-    - test
-  register: setting_vars_output
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+  register: setting_vars_output
 
 
 - name:                                "AFS Mount: Create list of all_sap_mounts to support"
