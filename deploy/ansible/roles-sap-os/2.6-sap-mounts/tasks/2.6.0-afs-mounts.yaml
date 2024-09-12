@@ -19,7 +19,7 @@
     server_name: "{{ item }}"
   tags:
     - test
-  register: check
+  register: setting_vars_output
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
@@ -28,8 +28,8 @@
 - name:                                "AFS Mount: Create list of all_sap_mounts to support"
   ansible.builtin.debug:
     msg:
-      - "List of all the SAP mounts: {{ all_sap_mounts }}"
-      - "First server: {{ first_server_temp }}"
+      - "List of all the SAP mounts: {{ setting_vars_output.all_sap_mounts }}"
+      - "First server: {{ setting_vars_output.first_server_temp }}"
     verbosity:                         2
 
 # /*---------------------------------------------------------------------------8
