@@ -136,7 +136,7 @@
     - name:                            "5.5.4.1 HANA Cluster configuration - Set the cluster properties for two node clusters"
       when:
         - database_high_availability
-        - not db_scale_out
+        - not database_scale_out
         - is_pcmk_ver_gt_204
       block:
         - name:                        "5.5.4.1 HANA Cluster configuration - set resource defaults 'priority'"
