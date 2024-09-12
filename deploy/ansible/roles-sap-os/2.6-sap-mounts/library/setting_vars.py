@@ -1,7 +1,7 @@
 from ansible.module_utils.basic import AnsibleModule
-first_server_temp = []
-
 def run_module():
+    first_server_temp = []
+    all_sap_mounts = {}
     module_args = dict(
         sap_sid=dict(type="str", required=True),
         hdbadm_uid=dict(type="str", required=True),
