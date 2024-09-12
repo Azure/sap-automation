@@ -20,7 +20,7 @@ data "azurerm_client_config" "current" {
 provider "azurerm"                     {
                                          features {
                                                   }
-                                         skip_provider_registration = true
+
                                          use_msi                    = var.use_spn ? false : true
                                          storage_use_azuread        = !var.shared_access_key_enabled
 
