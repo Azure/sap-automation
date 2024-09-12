@@ -206,7 +206,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_web" {
                                            var.deployer_tfstate.subnet_bastion_address_prefixes,
                                            local.SAP_virtualnetwork_exists ? (
                                              data.azurerm_virtual_network.vnet_sap[0].address_space) : (
-                                             azurerm_virtual_network.vnet_sap[0].address_space
+                                             flatten(azurerm_virtual_network.vnet_sap[0].address_space)
                                            )))
   destination_address_prefixes         = local.web_subnet_existing ? data.azurerm_subnet.web[0].address_prefixes : azurerm_subnet.web[0].address_prefixes
 }
