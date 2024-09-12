@@ -35,30 +35,26 @@ def run_module():
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
     result['this_sid'] = {
-        'sid': sap_id.upper(),
-        'dbsid_uid': hdbadm_uid,
-        'sidadm_uid': asesidadm_uid if platform == 'SYSBASE' else sidadm_uid,
-        'ascs_inst_no': scs_instance_number,
-        'pas_inst_no': pas_instance_number,
-        'app_inst_no': app_instance_number 
+        'sid': module.params['sap_id'].upper(),
+        'dbsid_uid': module.params['hdbadm_uid'],
+        'sidadm_uid': module.params['asesidadm_uid'] if module.params['platform'] == 'SYSBASE' else module.params['sidadm_uid'],
+        'ascs_inst_no': module.params['scs_instance_number'],
+        'pas_inst_no': module.params['pas_instance_number'],
+        'app_inst_no': module.params['app_instance_number'] 
     }
     try: 
-        result['all_sap_mounts'] =  multi_sids 
+        result['all_sap_mounts'] = module.params['multi_sids'] 
     except:
-        result['all_sap_mounts'] = dict(**all_sap_mounts, **this_sid)
+        result['all_sap_mounts'] = dict(result['all_sap_mounts'], result['this_sid'])
 
-    for server in list_of_servers:
-        first_server = query(sap_id.upper()+'_'+server)
+    for server in module.params['list_of_servers']:
+        first_server = query(module.params['sap_id'].upper()+'_'+server)
         result['first_server_temp'].append(first_server)
 
     result['mnt_options'] = {
         'afs_mnt_options': 'noresvport,vers=4,minorversion=1,sec=sys',
         'anf_mnt_options': 'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys'
     }
-
-    print(this_sid)
-    print(all_sap_mounts)
-    print(first_server_temp)
     module.exit_json(**result)
 
 def query(full_hostname):
