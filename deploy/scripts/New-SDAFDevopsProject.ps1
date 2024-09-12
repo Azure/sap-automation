@@ -25,7 +25,7 @@ $ControlPlaneSubscriptionName = $Env:SDAF_ControlPlaneSubscriptionName
 if ($IsWindows) { $pathSeparator = "\" } else { $pathSeparator = "/" }
 #endregion
 
-$versionLabel = "v3.11.0.3"
+$versionLabel = "v3.13.0.0"
 
 # az logout
 
