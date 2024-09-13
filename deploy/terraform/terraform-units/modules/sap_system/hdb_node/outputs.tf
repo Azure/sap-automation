@@ -245,3 +245,11 @@ output "observer_vms"                  {
                                                          [""]
                                                        )
                                        }
+
+output "site_information"              {
+                                         description = "Site information"
+                                         value       = local.enable_deployment ? (
+                                                         local.site_information) : (
+                                                         null
+                                                       )
+                                       }

@@ -158,6 +158,8 @@ resource "local_file" "ansible_inventory_new_yml" {
                     iscsi_servers       = var.iSCSI_server_names
                     iscsi_server_list   = var.iSCSI_servers
 
+                    site                = var.site_information
+
     }
   )
   filename             = format("%s/%s_hosts.yaml", path.cwd, var.sap_sid)

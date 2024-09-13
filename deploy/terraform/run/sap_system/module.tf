@@ -460,4 +460,6 @@ module "output_files" {
   enable_sap_cal                                = var.enable_sap_cal
   calapi_kv                                     = var.calapi_kv
   sap_cal_product_name                          = var.sap_cal_product_name
+
+  site_information                              = module.hdb_node.site_information
 }

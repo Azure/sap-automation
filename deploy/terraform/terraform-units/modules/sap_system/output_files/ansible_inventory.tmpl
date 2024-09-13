@@ -10,6 +10,10 @@ ${sid}_DB:
       become_user         : ${db_become_user}
       os_type             : ${db_os_type}
       vm_name             : ${db_vmnodes[idx]}
+%{~ if scale_out }
+      site                : ${site[idx]}
+%{~ endif }
+
 %{~ if db_connectiontype == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
