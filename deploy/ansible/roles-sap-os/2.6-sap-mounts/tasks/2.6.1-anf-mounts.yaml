@@ -386,6 +386,14 @@
     - node_tier != 'hana'
     - sap_mnt is defined
 
+- name:                                "ANF Mount: Set Permissons on /sapmnt directory"
+  ansible.builtin.file:
+    owner:                             '{{ sidadm_uid }}'
+    group:                             sapsys
+    path:                              "/sapmnt/{{ sap_sid | upper }}"
+    state:                             directory
+    recurse:                           true
+
 - name:                                "ANF Mount: usr/sap/{{ sap_sid | upper }}/SYS"
   ansible.posix.mount:
     src:                               "{{ item.src }}"

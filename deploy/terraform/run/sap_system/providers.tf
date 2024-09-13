@@ -37,7 +37,7 @@ provider "azurerm"                     {
 
                                          partner_id = "3179cd51-f54b-4c73-ac10-8e99417efce7"
                                          alias      = "system"
-                                         skip_provider_registration = true
+
                                        }
 
 provider "azurerm"                     {
@@ -48,7 +48,6 @@ provider "azurerm"                     {
                                          client_secret              = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.cp_spn.client_secret : null
                                          tenant_id                  = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.cp_spn.tenant_id : null
                                          use_msi                    = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? false : true
-                                         skip_provider_registration = true
                                        }
 
 
@@ -80,7 +79,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = ">=3.3"
+                                                                           version = ">=4.0"
                                                                          }
                                                             }
                                        }

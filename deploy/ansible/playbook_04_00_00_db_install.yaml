@@ -356,7 +356,7 @@
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.0-hdb-install
               when:
-                - not db_scale_out
+                - not database_scale_out
 
             - name:                        "Database Installation Playbook: - Clear the failed state of hosts"
               ansible.builtin.meta:        clear_host_errors
@@ -365,7 +365,7 @@
             #   ansible.builtin.include_role:
             #     name:                   roles-sap-os/2.6-sap-mounts
             #   when:
-            #     - db_scale_out | default(false) == true
+            #     - database_scale_out | default(false) == true
 
             - name:                    "Database Installation Playbook: - run HANA Scale-Out installation"
               ansible.builtin.include_role:

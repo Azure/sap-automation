@@ -225,3 +225,5 @@ variable "sap_cal_product_name"                 {
                                                   description = "Product name of SAP CAL"
                                                   default     = ""
                                                 }
+
+variable "site_information"                     { description = "Site information" }

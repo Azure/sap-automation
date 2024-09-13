@@ -189,7 +189,7 @@ output "hana_shared"                   {
 
 output "application_volume_group"      {
                                          description = "Application volume group"
-                                         value       = azurerm_netapp_volume_group_sap_hana.avg_HANA
+                                         value       = azurerm_netapp_volume_group_sap_hana.avg_HANA_full
                                        }
 
 
@@ -243,5 +243,13 @@ output "observer_vms"                  {
                                          value       = local.enable_deployment && var.use_observer ? (
                                                          azurerm_linux_virtual_machine.observer[*].id) : (
                                                          [""]
+                                                       )
+                                       }
+
+output "site_information"              {
+                                         description = "Site information"
+                                         value       = local.enable_deployment ? (
+                                                         local.site_information) : (
+                                                         null
                                                        )
                                        }
