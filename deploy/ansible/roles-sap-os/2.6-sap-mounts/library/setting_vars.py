@@ -43,6 +43,8 @@ def run_module():
         'afs_mnt_options': 'noresvport,vers=4,minorversion=1,sec=sys',
         'anf_mnt_options': 'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys'
     }
+
+    print(result)
     module.exit_json(**result)
 
 if __name__ == "__main__":
