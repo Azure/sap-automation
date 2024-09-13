@@ -372,7 +372,7 @@
       'type':              'trans',
       'temppath':          'saptrans',
       'mount':             '{{ sap_trans }}',
-      'opts':              '{{ setting_vars_output.results[0]['mnt_options']['afs_mnt_options'] }}',
+      'opts':              '{{ setting_vars_output.results[0]["mnt_options"]["afs_mnt_options"] }}',
       'path':              '/usr/sap/trans',
       'permissions':       '0775',
       'set_chattr_on_dir': false,
