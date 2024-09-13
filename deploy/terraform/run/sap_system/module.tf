@@ -39,6 +39,7 @@ module "sap_namegenerator" {
   scs_high_availability                         = local.application_tier.scs_high_availability
   scs_cluster_type                              = local.application_tier.scs_cluster_type
   use_zonal_markers                             = var.use_zonal_markers
+  scale_out                                     = var.database_HANA_use_ANF_scaleout_scenario
 }
 
 #########################################################################################
