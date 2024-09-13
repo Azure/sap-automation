@@ -28,7 +28,6 @@
     msg: "TESTING list output: {{ setting_vars_output.mnt_options }}"
 #      - "List of all the SAP mounts: {{ setting_vars_output.all_sap_mounts }}"
 #      - "First server: {{ setting_vars_output.first_server_temp }}"
-    verbosity:                         4
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
