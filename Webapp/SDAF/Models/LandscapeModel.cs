@@ -18,6 +18,8 @@ namespace AutomationForm.Models
     [DisplayName("Workload zone ID")]
     public string Id { get; set; }
 
+    public string LastModified { get; set; }
+
     // BASIC
 
     public bool IsDefault { get; set; } = false;
