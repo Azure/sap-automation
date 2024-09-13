@@ -33,9 +33,14 @@ def run_module():
         'app_inst_no': module.params['app_instance_number'] 
     }
     try: 
-        result['all_sap_mounts'] = module.params['multi_sids'] 
-    except:
-        result['all_sap_mounts'] = dict(result['all_sap_mounts'], result['this_sid'])
+        if module.params['multi_sids'] is not None:
+            result['all_sap_mounts'] = module.params['multi_sids']
+        
+        else:
+            result['all_sap_mounts'] = result['all_sap_mounts'] + module.params['this_sid']
+    
+    except Exception as e:
+        return(e)
 
     result['first_server_temp'].append(module.params['server_name'])
 
