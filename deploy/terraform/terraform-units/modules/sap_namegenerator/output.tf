@@ -61,9 +61,9 @@ output "naming" {
                            ANCHOR_COMPUTERNAME      = local.anchor_computer_names
                            ANCHOR_SECONDARY_DNSNAME = local.anchor_secondary_dnsnames
                            ANCHOR_VMNAME            = local.anchor_vm_names
-                           ANYDB_COMPUTERNAME       = var.database_high_availability ? concat(local.anydb_computer_names, local.anydb_computer_names_ha) : local.anydb_computer_names
-                           ANYDB_SECONDARY_DNSNAME  = concat(local.anydb_secondary_dnsnames, local.anydb_secondary_dnsnames_ha)
-                           ANYDB_VMNAME             = var.database_high_availability ? concat(local.anydb_vm_names, local.anydb_vm_names_ha) : local.anydb_vm_names
+                           ANYDB_COMPUTERNAME       = var.database_high_availability ? local.anydb_computer_names_ha : local.anydb_computer_names
+                           ANYDB_SECONDARY_DNSNAME  = var.database_high_availability ? local.anydb_secondary_dnsnames_ha : local.anydb_secondary_dnsnames
+                           ANYDB_VMNAME             = var.database_high_availability ? local.anydb_vm_names_ha : local.anydb_vm_names
                            DEPLOYER                 = local.deployer_vm_names
                            HANA_COMPUTERNAME        = var.database_high_availability ? local.hana_computer_names_ha : local.hana_computer_names
                            HANA_SECONDARY_DNSNAME   = var.database_high_availability ? local.hana_secondary_dnsnames_ha : local.hana_secondary_dnsnames
