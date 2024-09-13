@@ -64,7 +64,7 @@
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
                 fstype:                "nfs4"
-                opts:                  "{{ afs_mnt_options }}"
+                opts:                  "{{ setting_vars_output }}"
                 state:                 mounted
 
           rescue:
