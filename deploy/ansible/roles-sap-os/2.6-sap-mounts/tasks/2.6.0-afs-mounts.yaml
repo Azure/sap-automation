@@ -102,7 +102,7 @@
             owner:                     '{{ item.sidadm_uid }}'
             group:                     sapsys
             mode:                      0755
-          loop:                        "{{ all_sap_mounts }}"
+          loop:                        "{{ setting_vars_output.results[0]['all_sap_mounts'] }}"
 
         - name:                        "AFS Mount: Unmount file systems (sapmnt)"
           ansible.posix.mount:
@@ -124,7 +124,7 @@
           ansible.builtin.file:
             path:                      "/saptmp/sapmnt{{ item.sid | upper }}"
             state:                     absent
-          loop:                        "{{ all_sap_mounts }}"
+          loop:                        "{{ setting_vars_output.results[0]['all_sap_mounts'] }}"
 
         - name:                        "AFS Mount: Cleanup fstab and directory (sapmnt)"
           ansible.posix.mount:
@@ -172,7 +172,7 @@
         path:                          "/sapmnt/{{ item.sid }}"
         state:                         directory
       register:                        is_created_now
-      loop:                            "{{ all_sap_mounts }}"
+      loop:                            "{{ setting_vars_output.results[0]['all_sap_mounts'] }}"
 
     - name:                            "AFS Mount: Change attribute only when we create SAP Directories (sapmnt)"
       ansible.builtin.file:
