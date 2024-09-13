@@ -126,11 +126,7 @@ locals {
                                               }
                                             }
                                           }
-  deploy_monitoring_extension      = var.deploy_monitoring_extension
-  deploy_defender_extension        = var.deploy_defender_extension
-
-
-                                         }
+                                        }
   deployer                             = {
                                            size = try(
                                              coalesce(
