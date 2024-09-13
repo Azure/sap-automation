@@ -260,7 +260,7 @@ tf_base="/opt/terraform"
 tf_dir="$${tf_base}/terraform_$${tfversion}"
 tf_bin="$${tf_base}/bin"
 tf_zip="terraform_$${tfversion}_linux_amd64.zip"
-
+tf_cache="$${tf_base}/.terraform.d/plugin-cache"
 export AZADHOME="/home/$${local_user}"
 
 
@@ -453,7 +453,9 @@ else
     #
     sudo mkdir -p \
         "$${tf_dir}" \
-        "$${tf_bin}"
+        "$${tf_bin}" \
+        "$${tf_cache}"
+
     wget -nv -O "/tmp/$${tf_zip}" "https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip}"
     sudo unzip -o "/tmp/$${tf_zip}" -d "$${tf_dir}"
     sudo ln -vfs "../$(basename "$${tf_dir}")/terraform" "$${tf_bin}/terraform"

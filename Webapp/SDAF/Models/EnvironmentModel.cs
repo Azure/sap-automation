@@ -25,6 +25,8 @@ namespace AutomationForm.Models
     public Variable ARM_TENANT_ID { get; set; }
     public Variable sap_fqdn { get; set; }
     public Variable POOL { get; set; }
+
+    public Variable Use_MSI { get; set; }
     public Variable Terraform_Remote_Storage_Account_Name { get; set; }
 
     public Variable Terraform_Remote_Storage_Subscription { get; set; }
@@ -40,7 +42,7 @@ namespace AutomationForm.Models
 
   public class Variable
   {
-    public string value { get; set; }
+    public string? value { get; set; }
     [JsonIgnore]
     public bool? isSecret { get; set; }
     [JsonIgnore]
