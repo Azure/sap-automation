@@ -33,7 +33,7 @@ def run_module():
         'app_inst_no': module.params['app_instance_number'] 
     }
     try: 
-        if module.params['multi_sids'] is not None:
+        if module.params['multi_sids'] in locals():
             result['all_sap_mounts'] = module.params['multi_sids']
         
         else:
