@@ -159,6 +159,7 @@ resource "local_file" "ansible_inventory_new_yml" {
                     iscsi_server_list   = var.iSCSI_servers
 
                     site                = var.site_information
+                    scale_out           = var.scale_out
 
     }
   )
