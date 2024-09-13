@@ -64,7 +64,7 @@
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
                 fstype:                "nfs4"
-                opts:                  "{{ setting_vars_output }}"
+                opts:                  "{{ setting_vars_output.mnt_options.afs_mnt_options }}"
                 state:                 mounted
 
           rescue:
@@ -81,7 +81,7 @@
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
                 fstype:                "nfs4"
-                opts:                  "{{ afs_mnt_options }}"
+                opts:                  "{{ setting_vars_output.mnt_options.afs_mnt_options }}"
                 state:                 mounted
 
         - name:                        "AFS Mount: Create SAP Directories (AFS)"
@@ -133,7 +133,7 @@
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
             fstype:                    "nfs4"
-            opts:                      "{{ afs_mnt_options }}"
+            opts:                      "{{ setting_vars_output.mnt_options.afs_mnt_options }}"
             state:                     absent
       when:
         - sap_mnt is defined
@@ -246,7 +246,7 @@
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
-        opts:                          "{{ afs_mnt_options }}"
+        opts:                          "{{ setting_vars_output.mnt_options.afs_mnt_options }}"
         state:                         mounted
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
@@ -256,7 +256,7 @@
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
-        opts:                          "{{ afs_mnt_options }}"
+        opts:                          "{{ setting_vars_output.mnt_options.afs_mnt_options }}"
         state:                         unmounted
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
@@ -273,7 +273,7 @@
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
-        opts:                          "{{ afs_mnt_options }}"
+        opts:                          "{{ setting_vars_output.mnt_options.afs_mnt_options }}"
         state:                         mounted
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
@@ -290,7 +290,7 @@
     src:                               "{{ sap_mnt }}/sapmnt{{ item.sid }}"
     path:                              "/sapmnt/{{ item.sid }}"
     fstype:                            'nfs4'
-    opts:                              "{{ afs_mnt_options }}"
+    opts:                              "{{ setting_vars_output.mnt_options.afs_mnt_options }}"
     state:                             mounted
   loop:                                "{{ MULTI_SIDS }}"
   when:
@@ -305,7 +305,7 @@
         src:                           "{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}"
         path:                          "/sapmnt/{{ sap_sid | upper }}"
         fstype:                        nfs4
-        opts:                          "{{ afs_mnt_options }}"
+        opts:                          "{{ setting_vars_output.mnt_options.afs_mnt_options }}"
         state:                         mounted
   rescue:
     - name:                            "AFS Mount: Pause for 15 seconds"
@@ -316,7 +316,7 @@
         src:                           "{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}"
         path:                          "/sapmnt/{{ sap_sid | upper }}"
         fstype:                        nfs4
-        opts:                          "{{ afs_mnt_options }}"
+        opts:                          "{{ setting_vars_output.mnt_options.afs_mnt_options }}"
         state:                         mounted
 
   when:
@@ -354,7 +354,7 @@
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
-        opts:                          "{{ afs_mnt_options }}"
+        opts:                          "{{ setting_vars_output.mnt_options.afs_mnt_options }}"
         state:                         mounted
 
       loop:
@@ -374,7 +374,7 @@
       'type':              'trans',
       'temppath':          'saptrans',
       'mount':             '{{ sap_trans }}',
-      'opts':              '{{ afs_mnt_options }}',
+      'opts':              '{{ setting_vars_output.mnt_options.afs_mnt_options }}',
       'path':              '/usr/sap/trans',
       'permissions':       '0775',
       'set_chattr_on_dir': false,

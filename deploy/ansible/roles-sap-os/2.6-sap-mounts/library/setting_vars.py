@@ -44,7 +44,6 @@ def run_module():
         'anf_mnt_options': 'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys'
     }
 
-    print(result['mnt_options']['anf_mnt_options'])
     module.exit_json(result)
 
 if __name__ == "__main__":
