@@ -40,7 +40,7 @@ def run_module():
             result['all_sap_mounts'] = result['all_sap_mounts'] + module.params['this_sid']
     
     except Exception as e:
-        return(e)
+        module.exit_json(e)
 
     result['first_server_temp'].append(module.params['server_name'])
 
