@@ -37,8 +37,8 @@ def run_module():
             result['all_sap_mounts'] = module.params['multi_sids']
         
         else:
-            result['all_sap_mounts'] = result['all_sap_mounts'] + module.params['this_sid']
-    
+            result['all_sap_mounts'] = result['all_sap_mounts'] + result['this_sid']
+
     except Exception as e:
         module.fail_json(msg=str(e),**result)
 
