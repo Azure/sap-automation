@@ -72,7 +72,7 @@ locals {
 
   hana_server_vm_names_ha = [for idx in range(var.db_server_count * 2) :
     length(var.db_zones) > 0 && var.use_zonal_markers ? (
-        format("%sd%s%sz%s%s%02dl%d%s,", lower(var.sap_sid), lower(var.db_sid), local.separator, var.db_zones[idx % max(length(var.db_zones), 1)], local.separator, idx + var.resource_offset, idx % 2, local.random_id_vm_verified),
+        format("%sd%s%sz%s%s%02dl%d%s,", lower(var.sap_sid), lower(var.db_sid), local.separator, var.db_zones[idx % max(length(var.db_zones), 1)], local.separator, idx + var.resource_offset, idx % 2, local.random_id_vm_verified)
       ) : (
         format("%sd%s%02dl%d%s,", lower(var.sap_sid), lower(var.db_sid), idx + var.resource_offset, idx % 2, local.random_id_vm_verified)
       )
