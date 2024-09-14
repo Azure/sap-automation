@@ -654,7 +654,7 @@
     when:
       - hana_shared_mountpoint is defined
       - hana_shared_mountpoint | length > 0
-      - ansible_hostname == db_hosts[0]
+      - not database_scale_out
 
   - name:                                "ANF Mount: HANA data (secondary)"
     ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
@@ -722,8 +722,7 @@
     when:
       - hana_shared_mountpoint is defined
       - hana_shared_mountpoint | length > 1
-      - db_hosts | length == 2
-      - ansible_hostname == db_hosts[1]
+      - not database_scale_out
 
   - name:                                "ANF Mount: Set Permissons on HANA Directories ({{ item.path }})"
     ansible.builtin.file:
@@ -802,7 +801,8 @@
         # change folder to match the mount folder within the share
         'folder':            'shared',
         # Logic : hana_shared_mountpoint[0] goes on odd numbered HANA hosts and hana_shared_mountpoint[1] goes on even numbered HANA hosts.
-        'mount':             "{% if ansible_hostname in query('inventory_hostnames', '{{ sap_sid | upper }}_DB')[0::2] %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
+#        'mount':             "{% if ansible_hostname in query('inventory_hostnames', '{{ sap_sid | upper }}_DB')[0::2] %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
+        'mount':             "{% if site | default('SITE1') == 'SITE1' %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
         'opts':              '{{ mnt_options }}',
         'path':              '{{ hana_shared_basepath }}',
         'permissions':       '0775',
