@@ -559,3 +559,8 @@ variable "utility_vm_count" {
   type    = number
   default = 0
 }
+
+variable "scale_out" {
+  type    = bool
+  default = false
+}

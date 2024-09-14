@@ -168,24 +168,61 @@ output "hana_log_ANF_volumes"          {
                                                          ]) : []
                                        }
 
+# Order the list so that the zonal information is in the correct order
+
 output "hana_shared"                   {
-                                         description = "HANA Shared primary volume"
-                                         value       = local.shared_volume_count > 0 ? flatten([
-                                                           for idx in range(local.shared_volume_count) : [
+                                         description = "HANA Shared volumes"
+                                         value       = local.shared_volume_count == 0 ? (
+                                                         []
+                                                         ) : ((
+                                                         var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? data.azurerm_netapp_volume.hanashared[0].zone : azurerm_netapp_volume.hanashared[0].zone)) == var.database.zones[0] ? (
+                                                         [
                                                            format("%s:/%s",
                                                              var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
-                                                               data.azurerm_netapp_volume.hanashared[idx].mount_ip_addresses[0]) : (
-                                                               azurerm_netapp_volume.hanashared[idx].mount_ip_addresses[0]
+                                                               data.azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]) : (
+                                                               azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]
                                                              ),
                                                              var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
-                                                               data.azurerm_netapp_volume.hanashared[idx].volume_path) : (
-                                                               azurerm_netapp_volume.hanashared[idx].volume_path
+                                                               data.azurerm_netapp_volume.hanashared[0].volume_path) : (
+                                                               azurerm_netapp_volume.hanashared[0].volume_path
                                                              )
+                                                           ),
+                                                           format("%s:/%s",
+                                                             var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]) : (
+                                                               azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]
+                                                             ),
+                                                             var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanashared[1].volume_path) : (
+                                                               azurerm_netapp_volume.hanashared[1].volume_path
                                                              )
-
-                                                           ]
-                                                         ]) : []
-                                       }
+                                                           )
+                                                         ]
+                                                         ) : (
+                                                         [
+                                                           format("%s:/%s",
+                                                             var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]) : (
+                                                               azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]
+                                                             ),
+                                                             var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanashared[1].volume_path) : (
+                                                               azurerm_netapp_volume.hanashared[1].volume_path
+                                                             )
+                                                           ),
+                                                           format("%s:/%s",
+                                                             var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]) : (
+                                                               azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]
+                                                             ),
+                                                             var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanashared[0].volume_path) : (
+                                                               azurerm_netapp_volume.hanashared[0].volume_path
+                                                             )
+                                                           )
+                                                         ]
+                                                       )
+                                                     }
 
 output "application_volume_group"      {
                                          description = "Application volume group"
