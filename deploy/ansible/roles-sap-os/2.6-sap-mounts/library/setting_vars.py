@@ -1,7 +1,7 @@
 from ansible.module_utils.basic import AnsibleModule
 def run_module():
     first_server_temp = []
-    all_sap_mounts = {}
+    all_sap_mounts = []
     module_args = dict(
         sap_sid=dict(type="str", required=True),
         hdbadm_uid=dict(type="str", required=True),
@@ -37,7 +37,7 @@ def run_module():
             result['all_sap_mounts'] = module.params['multi_sids']
         
         else:
-            result['all_sap_mounts'] = result['this_sid']
+            result['all_sap_mounts'].update(result['this_sid'])
 
     except Exception as e:
         module.fail_json(msg=str(e),**result)
