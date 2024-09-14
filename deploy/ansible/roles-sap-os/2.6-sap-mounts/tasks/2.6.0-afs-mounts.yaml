@@ -102,7 +102,7 @@
             owner:                     '{{ item.sidadm_uid }}'
             group:                     sapsys
             mode:                      0755
-          loop:                        "{{ setting_vars_output.results[0]['all_sap_mounts'] | wantlist }}"
+          loop:                        "{{ setting_vars_output.results[0]['all_sap_mounts']}}"
 
         - name:                        "AFS Mount: Unmount file systems (sapmnt)"
           ansible.posix.mount:
