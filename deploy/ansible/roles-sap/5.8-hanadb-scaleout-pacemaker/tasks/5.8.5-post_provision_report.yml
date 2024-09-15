@@ -154,10 +154,8 @@
       delay:                       30
 
 
-
 # SUSE only
 # Check on all nodes, status of susTkOver Hook
-
 
 - name:                                "Log that the hook script is working as expected"
   block:

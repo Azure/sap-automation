@@ -33,6 +33,7 @@
     src:                               '{{ tempdir.path }}{% if item.tempDir is defined %}/{{ item.tempDir }}{% endif %}/'
     dest:                              '{{ target_media_location }}/{{ item.extractDir }}'
     remote_src:                        true
+    mode:                              0755
 
 - name:                                Remove extract directory
   ansible.builtin.file:

@@ -80,7 +80,7 @@
                                        crm configure property stonith-enabled=true
                                        crm configure property concurrent-fencing=true
 
-#<TODO> templatize the pcmk_host_map from all entries in ansible_play_hosts_all and mm_hosts
+# <TODO> templatize the pcmk_host_map from all entries in ansible_play_hosts_all and mm_hosts
     - name:                            "1.18.2.0 Generic Pacemaker - Create Azure Fencing Agent"
       ansible.builtin.command: >
                                        crm configure primitive rsc_st_azure stonith:fence_azure_arm params
