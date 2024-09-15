@@ -29,6 +29,10 @@
 #      - "List of all the SAP mounts: {{ setting_vars_output.all_sap_mounts }}"
 #      - "First server: {{ setting_vars_output.first_server_temp }}"
 
+- name: Set first_server_temp to the value from setting_vars_output
+  ansible.builtin.set_fact:
+    first_server_temp: "{{ setting_vars_output.results[0]['first_server_temp'] }}"
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |         Prepare for the sap_mnt mounts                                     |
