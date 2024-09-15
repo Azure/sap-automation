@@ -25,7 +25,7 @@
 
 - name:                                "AFS Mount: Create list of all_sap_mounts to support"
   ansible.builtin.debug:
-    msg: "TESTING list output: {{ setting_vars_output.results[0]['mnt_options']['afs_mnt_options'] }}"
+    msg: "TESTING list output: {{ setting_vars_output.results[0]['all_sap_mounts'] }}"
 #      - "List of all the SAP mounts: {{ setting_vars_output.all_sap_mounts }}"
 #      - "First server: {{ setting_vars_output.first_server_temp }}"
 
