@@ -140,7 +140,7 @@
 
     - name:                            "4.0.3 - SAP HANA SCALE OUT: Progress"
       ansible.builtin.debug:
-        msg:                           "Start HANA Installation"
+        msg:                           "Start HANA Installation on primary node"
 
     - name:                            "4.0.3 - SAP HANA SCALE OUT: installation"
       block:
@@ -164,7 +164,7 @@
 
         - name:                        "4.0.3 - SAP HANA SCALE OUT: Progress"
           ansible.builtin.debug:
-            msg:                       "Restarting the HANA Installation"
+            msg:                       "Restarting the HANA Installation on primary node"
           when:                        hana_installation.rc == 1
 
 
@@ -191,7 +191,7 @@
     - name:                            "4.0.3 - SAP HANA SCALE OUT: Installation results"
       ansible.builtin.debug:
         msg:
-          - "HANA Installation failed"
+          - "HANA Installation failed on primary node"
           - "HDBLCM output: {{ hana_installation }}"
       when:
         - hana_installation.rc is defined
@@ -209,7 +209,7 @@
 
         - name:                        "4.0.3 - SAP HANA SCALE OUT: Installation results"
           ansible.builtin.debug:
-            msg:                       "HANA Installation succeeded"
+            msg:                       "HANA Installation succeeded on primary node"
 
         - name:                        "4.0.3 - SAP HANA SCALE OUT: HANA Install: flag"
           ansible.builtin.file:
@@ -380,7 +380,7 @@
     - not hana_installed.stat.exists
     - not (database_high_availability | default(false))
     # Only allowed for the first node. No other node in the scale out - ANF setup is allowed to install hdblcm.
-    - ansible_hostname == db_hosts[0]
+    - ansible_hostname == primary_instance_name
     - database_scale_out is defined
     - database_scale_out
 
@@ -447,7 +447,7 @@
 
         - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Progress"
           ansible.builtin.debug:
-            msg:                         "Start HANA Installation"
+            msg:                         "Start HANA Installation on primary node"
 
         - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: installation"
           block:
@@ -471,7 +471,7 @@
 
             - name:                      "SAP HANA SCALE OUT-HSR: Progress"
               ansible.builtin.debug:
-                msg:                     "Restarting the HANA Installation"
+                msg:                     "Restarting the HANA Installation on primary node"
               when:                      hana_installation.rc == 1
 
             - name:                      "SAP HANA SCALE OUT-HSR: Re-execute hdblcm on {{ virtual_host }} and rescue"
@@ -492,12 +492,12 @@
               rescue:
                 - name:                  "Fail if HANA installation failed on second attempt."
                   ansible.builtin.fail:
-                    msg:                 "INSTALL:0022:Execute hdblcm failed."
+                    msg:                 "INSTALL:0022:Execute hdblcm failed on primary node."
 
         - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Installation results"
           ansible.builtin.debug:
             msg:
-              - "HANA Installation failed"
+              - "HANA Installation failed on primary node"
               - "HDBLCM output: {{ hana_installation }}"
           when:
             - hana_installation.rc is defined
@@ -515,7 +515,7 @@
 
             - name:                      "SAP HANA SCALE OUT-HSR: Installation results"
               ansible.builtin.debug:
-                msg:                     "HANA Installation succeeded"
+                msg:                     "HANA Installation succeeded on primary node"
 
             - name:                      "SAP HANA SCALE OUT-HSR: HANA Install: flag"
               ansible.builtin.file:
@@ -673,7 +673,7 @@
     # /*---------------------------------------------------------------------------8
     # |             Secondary site setup with Shared nothing scale out               |
     # +------------------------------------4--------------------------------------*/
-    - name:                            "4.0.3 - SAP HANA SCALE OUT: HANA Install - Scale Out - HSR ( Secondary  Site )"
+    - name:                                "4.0.3 - SAP HANA SCALE OUT: HANA Install - Scale Out - HSR ( Secondary Site )"
       block:
         - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: remove install response file if exists"
           ansible.builtin.file:
@@ -722,7 +722,7 @@
 
         - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Progress"
           ansible.builtin.debug:
-            msg:                           "Start HANA Installation"
+            msg:                           "Start HANA Installation on secondary node"
 
         - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: installation"
           block:
@@ -746,7 +746,7 @@
 
             - name:                        "SAP HANA: Progress"
               ansible.builtin.debug:
-                msg:                       "Restarting the HANA Installation"
+                msg:                       "Restarting the HANA Installation on secondary node"
               when:                        hana_installation.rc == 1
 
             - name:                        "SAP HANA: Re-execute hdblcm on {{ virtual_host }} and rescue"
@@ -767,12 +767,12 @@
               rescue:
                 - name:                    "Fail if HANA installation failed on second attempt."
                   ansible.builtin.fail:
-                    msg:                   "INSTALL:0022:Execute hdblcm failed."
+                    msg:                   "INSTALL:0022:Execute hdblcm failed on secondary node."
 
         - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Installation results"
           ansible.builtin.debug:
             msg:
-              - "HANA Installation failed"
+              - "HANA Installation failed on secondary node"
               - "HDBLCM output: {{ hana_installation }}"
           when:
             - hana_installation.rc is defined
@@ -790,7 +790,7 @@
 
             - name:                        "SAP HANA SCALE OUT-HSR: Installation results"
               ansible.builtin.debug:
-                msg:                       "HANA Installation succeeded"
+                msg:                       "HANA Installation succeeded on secondary node"
 
             - name:                        "SAP HANA SCALE OUT-HSR: HANA Install: flag"
               ansible.builtin.file:
@@ -925,7 +925,7 @@
             ansible.builtin.wait_for:
               timeout:                   120
 
-          - name:                        "Start HANA Database"
+          - name:                        "Start HANA Database on secondary node"
             become_user:                 "{{ db_sid | lower }}adm"
             become:                      true
             ansible.builtin.shell: |
