@@ -600,6 +600,8 @@
                 mode:                    0644
                 option:                  basepath_shared
                 value:                   no
+              tags:
+               - skip_ansible_lint
 
             - name:                      "Prepare global.ini for site hosts name resolution (Primary Site)"
               community.general.ini_file:
@@ -873,6 +875,8 @@
                 mode:                      0644
                 option:                    basepath_shared
                 value:                     no
+              tags:
+               - skip_ansible_lint
 
             - name:                        "Prepare global.ini for site hosts name resolution (Secondary Site)"
               community.general.ini_file:
