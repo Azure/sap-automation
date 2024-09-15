@@ -254,8 +254,6 @@
       when:
         - ansible_os_family | upper == "REDHAT"
 
-
-
     - name:                            Start HANA System on both nodes
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
@@ -367,7 +365,7 @@
       # - inventory_hostname == primary_instance_name
       - ansible_os_family | upper == "SUSE"
       - is_susTkOver_ready is defined
-      - is_susTkOver_ready == true
+      - is_susTkOver_ready
       block:
         - name:                        "Verify the hook Installation (SUSE)"
           become_user:                 "{{ db_sid | lower }}adm"

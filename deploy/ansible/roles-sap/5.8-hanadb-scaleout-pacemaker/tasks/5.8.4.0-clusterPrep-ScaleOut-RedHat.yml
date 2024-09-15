@@ -32,8 +32,8 @@
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length > 1
   block:
-    #Notes :
-    # 1. keep cluster out of  maintenance mode
+    # Notes :
+    # 1. keep cluster out of maintenance mode
     # 2. Stopping HANA is fine, but do not kill any sap services locking /hana/shared especially if you have configured replication between sites.
     # 3. mask the /hana/shared in /etc/fstab and configure filesystem role in pacemaker. Let pacemaker handle share mount.
     # 4. Do not kill existing processes and attempt to unmount /hana/shared. Bad things will happen.
@@ -48,7 +48,7 @@
           failed_when:                     false
           changed_when:                    false
           register:                        hana_system_stopped
-          when:                            ansible_hostname in ["{{ primary_instance_name }}","{{ secondary_instance_name }}"]
+          when:                            ansible_hostname in [ primary_instance_name , secondary_instance_name ]
 
     - name:                            Wait 2 minutes for SAP system to stop
       ansible.builtin.wait_for:
@@ -210,7 +210,7 @@
       changed_when:                    false
       register:                        hana_system_started
       when:
-        - ansible_hostname in ["{{ primary_instance_name }}","{{ secondary_instance_name }}"]
+        - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
 
     - name:                            Wait 5 minutes for SAP system to stablize
       ansible.builtin.wait_for:

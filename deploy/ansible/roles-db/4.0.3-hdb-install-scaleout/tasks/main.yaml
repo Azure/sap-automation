@@ -1035,7 +1035,7 @@
         mode:                               '0755'
         owner:                              root
         group:                              root
-        force:                              yes
+        force:                              true
 
     - name:                            "Create {{ db_sid | lower }}adm account for Observer "
       when:
