@@ -17,7 +17,7 @@ def run_module():
         
     result = {
         "this_sid": {},
-        "all_sap_mounts": {},
+        "all_sap_mounts": [],
         "first_server_temp": [],
         "mnt_options": {}
     }
