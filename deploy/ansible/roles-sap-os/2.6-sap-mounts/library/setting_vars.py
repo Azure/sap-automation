@@ -37,13 +37,10 @@ def run_module():
             result['all_sap_mounts'] = module.params['multi_sids']
         
         else:
-            print("HELLLOOOOOOOO")
-            result['all_sap_mounts'].update(result['this_sid'])
+            result['all_sap_mounts'] += (result['this_sid'])
 
     except Exception as e:
         module.fail_json(msg=str(e),**result)
-
-    print(result['all_sap_mounts'])
 
     result['first_server_temp'].append(module.params['server_name'])
 
