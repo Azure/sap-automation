@@ -599,7 +599,7 @@
                 state:                   present
                 mode:                    0644
                 option:                  basepath_shared
-                value:                   no
+                value:                   "{{ _rsp_basepath_shared }}"
               tags:
                - skip_ansible_lint
 
@@ -874,7 +874,7 @@
                 state:                     present
                 mode:                      0644
                 option:                    basepath_shared
-                value:                     no
+                value:                     "{{ _rsp_basepath_shared }}"
               tags:
                - skip_ansible_lint
 
