@@ -107,8 +107,6 @@
           register:                         nfs_constraint
           failed_when:                      nfs_constraint.rc > 0
 
-
-
     - name:                                 "5.5.4.1 HANA cluster resource configuration - RHEL 8/9"
       when:
         - ansible_distribution_major_version in ["8", "9"]
