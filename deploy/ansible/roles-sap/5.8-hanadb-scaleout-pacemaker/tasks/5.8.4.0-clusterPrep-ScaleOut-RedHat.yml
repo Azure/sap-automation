@@ -81,8 +81,8 @@
           failed_when:                 false
           ignore_errors:               true
           loop:
-            - { fs_name: 'fs_hana_shared_s1',fs_mount: '{{ hana_shared_mountpoint[0] }}', fs_dir: '/hana/shared' }
-            - { fs_name: 'fs_hana_shared_s2',fs_mount: '{{ hana_shared_mountpoint[1] }}', fs_dir: '/hana/shared' }
+            - { fs_name: 'fs_hana_shared_s1',fs_mount: '{{ hana_shared_mountpoint[0] }}/shared', fs_dir: '/hana/shared' }
+            - { fs_name: 'fs_hana_shared_s2',fs_mount: '{{ hana_shared_mountpoint[1] }}/shared', fs_dir: '/hana/shared' }
           loop_control:
             loop_var:                  item
 

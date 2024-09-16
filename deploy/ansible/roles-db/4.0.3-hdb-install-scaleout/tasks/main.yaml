@@ -625,7 +625,7 @@
               with_items:
                 - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
               when:
-                - subnet_cidr_storage is defined
+                - subnet_cidr_db is defined
 
         - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Restart HANA"
           block:
@@ -895,12 +895,12 @@
                 section:                   "system_replication_hostname_resolution"
                 mode:                      0644
                 state:                     present
-                option:                    "{{ hostvars[item].ansible_all_ipv4_addresses  | ansible.utils.ipaddr(subnet_cidr_storage) | first | default(hostvars[item].ansible_host) }}"
+                option:                    "{{ hostvars[item].ansible_all_ipv4_addresses  | ansible.utils.ipaddr(subnet_cidr_db) | first | default(hostvars[item].ansible_host) }}"
                 value:                     "{{ hostvars[item].virtual_host }}"
               with_items:
                 - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
               when:
-                - subnet_cidr_storage is defined
+                - subnet_cidr_db is defined
 
         - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Restart HANA"
           block:
