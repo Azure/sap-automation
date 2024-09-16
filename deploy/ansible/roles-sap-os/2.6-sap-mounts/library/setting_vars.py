@@ -49,17 +49,15 @@ def run_module():
 
     result['first_server_temp'].append(module.params['server_name'])
 
-    result['mnt_options'] = {
-        'afs_mnt_options': 'noresvport,vers=4,minorversion=1,sec=sys',
-    }
-
     if distribution_full_id in distro_versions:
         result['mnt_options'] = {
-            'anf_mnt_options': 'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys,nconnect=8'
+            'afs_mnt_options': 'noresvport,vers=4,minorversion=1,sec=sys',
+            'anf_mnt_options': 'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys,nconnect=8',
         }
     else:
         result['mnt_options'] = {
-            'anf_mnt_options': 'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys'
+            'afs_mnt_options': 'noresvport,vers=4,minorversion=1,sec=sys',
+            'anf_mnt_options': 'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys',
         }
 
     if distribution_full_id in ['redhat8', 'redhat9']:
