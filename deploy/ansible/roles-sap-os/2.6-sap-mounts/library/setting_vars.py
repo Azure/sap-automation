@@ -1,7 +1,5 @@
 from ansible.module_utils.basic import AnsibleModule
 def run_module():
-    first_server_temp = []
-    all_sap_mounts = []
     distro_versions = ['redhat8.4', 'redhat8.6', 'redhat8.8', 'redhat9.0', 'redhat9.2', 'sles_sap15.2', 'sles_sap15.3', 'sles_sap15.4', 'sles_sap15.5']
     module_args = dict(
         sap_sid=dict(type="str", required=True),
