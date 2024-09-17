@@ -145,12 +145,13 @@ locals {
     format("v%sd%s%02dl%01d%s", lower(var.sap_sid), lower(var.db_sid), floor(idx/2) + var.resource_offset, tonumber((idx % 2)), substr(local.random_id_vm_verified, 0, 2))
   ]
 
-  hana_secondary_dnsnames = [for idx in range(var.db_server_count ) :
+
+  hana_secondary_dnsnames = [for idx in range(var.db_server_count) :
     format("v%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx + var.resource_offset, 0, substr(local.random_id_vm_verified, 0, 2))
   ]
 
-  hana_secondary_dnsnames_ha = [for idx in range(var.db_server_count * 2) :
-    format("v%sd%s%02dl%01d%s", lower(var.sap_sid), lower(var.db_sid), floor(idx/2) + var.resource_offset, tonumber((idx % 2)), local.random_id_virt_vm_verified)
+  hana_secondary_dnsnames_ha = [for idx in range(var.db_server_count) :
+    format("v%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx + var.resource_offset, 1, local.random_id_virt_vm_verified)
   ]
 
   hana_secondary_dnsnames_scaleout = [for idx in range(var.db_server_count * 2) :
