@@ -84,9 +84,7 @@
         var:                           hdb_version[0:2]
 
 
-- name:                                "HANA Pacemaker: - HSR Create helper variables"
-  ansible.builtin.set_fact:
-    DB:                                "{{ db_sid | upper }}/HDB{{ db_instance_number }}"
+
 # /*---------------------------------------------------------------------------8
 # |                                   END                                     |
 # +------------------------------------4--------------------------------------*/
