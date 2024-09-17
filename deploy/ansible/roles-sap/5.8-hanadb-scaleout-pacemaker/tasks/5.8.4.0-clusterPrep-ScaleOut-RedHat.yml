@@ -202,7 +202,7 @@
               register:                hdb_start
 
             - name:                    "HANA HSR: - Start HANA on {{ virtual_host }}"
-              ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+              ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
           when:
            - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
 
