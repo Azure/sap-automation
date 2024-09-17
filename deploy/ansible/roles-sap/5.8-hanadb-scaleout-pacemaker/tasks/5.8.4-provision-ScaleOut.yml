@@ -6,6 +6,7 @@
 - name:                                "HANA Pacemaker: - HSR Create helper variables"
   ansible.builtin.set_fact:
     DB:                                "{{ db_sid | upper }}/HDB{{ db_instance_number }}"
+    db_sid_admin_user:                 "{{ db_sid | lower }}adm"
 
 # Clustering commands are based on the Host OS
 - name:                                "5.8 HANADB Pacemaker - configure pre-requisites"
