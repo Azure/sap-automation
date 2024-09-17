@@ -197,7 +197,7 @@
           ansible.builtin.shell: |
                                        set -o pipefail
                                        awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
-                                       { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_* | tail -n 1
+                                       { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
           args:
             chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
           register:                    saphanasr
@@ -216,7 +216,7 @@
           ansible.builtin.shell: |
                                        set -o pipefail
                                        awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
-                                       { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_* | tail -n 1
+                                       { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
           args:
             chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
           register:                    saphanasr

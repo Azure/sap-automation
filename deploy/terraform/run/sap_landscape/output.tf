@@ -204,7 +204,7 @@ output "management_dns_subscription_id"          {
                                                  }
 
 output "privatelink_dns_resourcegroup_name"       {
-                                                   value       = coalesce(var.privatelink_dns_resourcegroup_name,var.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+                                                   value       = coalesce(var.privatelink_dns_resourcegroup_name, var.management_dns_resourcegroup_name, local.saplib_resource_group_name)
                                                  }
 
 output "privatelink_dns_subscription_id"          {

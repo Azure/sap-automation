@@ -261,6 +261,7 @@ calapi_kv:                              ""
 sap_cal_product_name:                   ""
 vg_root:                                "rootvg"
 lv_root_size:                           10g
+lv_root_size_db:                        20g
 lv_tmp_size:                            10g
 # ------------------- End - SAP CAL Integration variables ----------------------8
 

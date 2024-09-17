@@ -115,6 +115,15 @@
         "Display": 1
       },
       {
+        "Name": "LastModified",
+        "Required": false,
+        "Description": "System definition was modified on.",
+        "Type": "textbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
         "Name": "network_logical_name",
         "Required": true,
         "Description": "Used in the naming convention and should map to the workload virtual network logical name.",
@@ -2290,6 +2299,15 @@
     "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#azure-netapp-files-support",
     "Parameters": [
       {
+        "Name": "ANF_sapmnt",
+        "Required": false,
+        "Description": "If defined, will create ANF volumes for /sapmnt",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
         "Name": "ANF_sapmnt_volume_size",
         "Required": false,
         "Description": "If defined, provides the size for the sapmnt volume in GB.",
@@ -2308,18 +2326,9 @@
         "Display": 2
       },
       {
-        "Name": "ANF_sapmnt",
+        "Name": "ANF_sapmnt_use_existing",
         "Required": false,
         "Description": "Use existing sapmnt volume",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "ANF_sapmnt_use_clone_in_secondary_zone",
-        "Required": false,
-        "Description": "Use clone in secondary region for sapmnt volume",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -2330,6 +2339,15 @@
         "Required": false,
         "Description": "Azure NetApp volumes name(s) for existing HANA /sapmnt volume(s)",
         "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "ANF_sapmnt_use_clone_in_secondary_zone",
+        "Required": false,
+        "Description": "Use clone in secondary region for sapmnt volume",
+        "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 3

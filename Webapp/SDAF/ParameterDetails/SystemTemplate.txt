@@ -588,17 +588,22 @@ $$ANF_usr_sap_volume_name$$
 # ANF_sapmnt, if defined, will create Azure NetApp Files volume for /sapmnt
 $$ANF_sapmnt$$
 
-# ANF_sapmnt_use_clone_in_secondary_zone, if defined, uses clone in secondary region for sapmnt volume.
-$$ANF_sapmnt_use_clone_in_secondary_zone$$
-
 # ANF_sapmnt_volume_size, if defined, provides the size of the /sapmnt volume.
 $$ANF_sapmnt_volume_size$$
 
 # ANF_sapmnt_volume_throughput, if defined, provides the throughput of the /sapmnt volume.
 $$ANF_sapmnt_volume_throughput$$
 
+# Use existing Azure NetApp volumes for /sapmnt.
+$$ANF_sapmnt_use_existing$$
+
+
 # ANF_sapmnt_volume_name, if defined, provides the name of the /sapmnt volume.
 $$ANF_sapmnt_volume_name$$
+
+# ANF_sapmnt_use_clone_in_secondary_zone, if defined, uses clone in secondary region for sapmnt volume.
+$$ANF_sapmnt_use_clone_in_secondary_zone$$
+
 
 
 #########################################################################################
