@@ -153,7 +153,7 @@
         pas_virtualhost_from_inventory: "{{ pas_server_temp | first }}"
         pas_virtual_hostname:           "{{ custom_pas_virtual_hostname | default( pas_server_temp | first , true) }}"
       when:
-        - pas_server_temp | length > 0
+        - pas_server_temp | default([]) | length > 0
 
     - name:                            "2.4 Hosts: - Display the variables being used"
       ansible.builtin.debug:
@@ -162,7 +162,7 @@
           - "custom_pas_hostname:      {{ custom_pas_virtual_hostname }} "
           - "virtualhost_in_inventory: {{ pas_virtualhost_from_inventory }}"
       when:
-        - pas_server_temp | length > 0
+        - pas_server_temp | default([]) | length > 0
 
     - name:                            "2.4 Hosts: - Get the line from /etc/hosts with virtual_host"
       ansible.builtin.slurp:
