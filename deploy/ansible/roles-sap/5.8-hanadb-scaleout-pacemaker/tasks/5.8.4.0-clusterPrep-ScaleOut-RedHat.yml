@@ -21,7 +21,7 @@
 # We set this to prevent code overflow. Since pacemaker code for both AFS and ANF are the same barring NFS mount options, we parameterize this parameter.
 - name:                            "NFS Compatibility - set mount options based on NFS source"
   ansible.builtin.set_fact:
-    nfs_mount_options:             "{% if NFS_provider == 'ANF' %}bind,defaults,rw,hard,rsize=262144,wsize=262144,proto=tcp,noatime,_netdev,nfsvers=4.1,lock,sec=sys{% else %}noresvport,defaults,rw,hard,proto=tcp,noatime,nfsvers=4.1,lock{% endif %}"
+    nfs_mount_options:             "{% if NFS_provider == 'ANF' %}defaults,rw,hard,rsize=262144,wsize=262144,proto=tcp,noatime,_netdev,nfsvers=4.1,lock,sec=sys{% else %}noresvport,defaults,rw,hard,proto=tcp,noatime,nfsvers=4.1,lock{% endif %}"
 
   # Ref : https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-scale-out-hsr-rhel?tabs=lb-portal#create-file-system-resources
 - name:                                "Configure the ANF/AFS file system resources"
