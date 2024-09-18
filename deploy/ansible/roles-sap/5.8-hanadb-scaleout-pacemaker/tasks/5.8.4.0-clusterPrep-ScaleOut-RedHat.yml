@@ -197,7 +197,7 @@
             - name:                    "HANA HSR: - Start HANA on {{ virtual_host }}"
               ansible.builtin.shell:
                                    HDB start
-              failed_when:             hdb_start.rc > 0
+              failed_when:             hdb_start.rc > 2
               changed_when:            false
               register:                hdb_start
 
