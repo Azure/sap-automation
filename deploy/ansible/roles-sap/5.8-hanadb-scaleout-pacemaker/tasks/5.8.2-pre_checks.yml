@@ -52,7 +52,7 @@
     path:                              /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
   register:                            hana_pacemaker
 
-- name:                                "5.8 HANA Pacemaker Scaleout - Check if a cluster has already been prepared (save)
+- name:                                "5.8 HANA Pacemaker Scaleout - Check if a cluster has already been prepared (save)"
   ansible.builtin.set_fact:
     hana_cluster_existence_check:      "{{ hana_pacemaker.stat.exists }}"
 
