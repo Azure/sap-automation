@@ -47,7 +47,7 @@
       # ha-cluster-join is not supported in SLES 15 SP4 anymore, crm syntax required
       ansible.builtin.command:         "sudo crm cluster join -y -c {{ ansible_hostname }} --interface eth0"
   when:
-    - ansible_hostname != ansible_play_hosts_all[0]
+    - ansible_hostname == ansible_play_hosts_all[0]
 
 - name:                                "1.18.2.0 Generic Pacemaker - Ensure HA Cluster password is set to something secure"
   ansible.builtin.user:
