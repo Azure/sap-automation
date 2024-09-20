@@ -427,7 +427,7 @@
             _rsp_internal_network:       "{{ (subnet_address + '/' + subnet_prefix) }}"
             _rsp_root_password:          "{{ root_password }}"
             _rsp_additional_hosts:       "{% for item in ansible_play_hosts_all[2::2] %}
-                                          {% if loop.index == ansible_play_hosts_all | length -1 %}
+                                          {% if loop.index == ansible_play_hosts_all | length - 1 %}
                                           {{ item | trim }}:role=worker:group=default:workergroup=default
                                           {% else %}
                                           {{ item | trim }}:role=worker:group=default:workergroup=default,
@@ -702,7 +702,7 @@
             _rsp_internal_network:         "{{ (subnet_address + '/' + subnet_prefix) }}"
             _rsp_root_password:            "{{ root_password }}"
             _rsp_additional_hosts:         "{% for item in ansible_play_hosts_all[3::2] %}
-                                            {% if loop.index == ansible_play_hosts_all | length -1 %}
+                                            {% if loop.index == ansible_play_hosts_all | length - 1 %}
                                             {{ item | trim }}:role=worker:group=default:workergroup=default
                                             {% else %}
                                             {{ item | trim }}:role=worker:group=default:workergroup=default,
