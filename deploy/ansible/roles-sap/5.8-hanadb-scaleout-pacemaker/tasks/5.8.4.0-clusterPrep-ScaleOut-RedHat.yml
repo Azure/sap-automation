@@ -78,7 +78,7 @@
           ansible.builtin.fail:
             msg:                       "Failed to create NFS hana mounts on {{ primary_instance_name }}"
           when:
-            - chk_nfs_mount_sites | length > 0
+            - chk_nfs_mount_sites[0] | length > 0 or chk_nfs_mount_sites[1] | length > 0
 
         - name:                        "5.8 HANA Pacemaker Scaleout - Configure node attributes for primary site on {{ primary_instance_name }}"
           ansible.builtin.shell: >
