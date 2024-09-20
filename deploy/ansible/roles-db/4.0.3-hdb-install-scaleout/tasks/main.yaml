@@ -428,9 +428,9 @@
             _rsp_root_password:          "{{ root_password }}"
             _rsp_additional_hosts:       "{% for item in ansible_play_hosts_all[2::2] %}
                                           {% if loop.index == ansible_play_hosts_all | length -1 %}
-                                          {{ item }}:role=worker:group=default:workergroup=default
+                                          {{ item | trim }}:role=worker:group=default:workergroup=default
                                           {% else %}
-                                          {{ item }}:role=worker:group=default:workergroup=default,
+                                          {{ item | trim }}:role=worker:group=default:workergroup=default,
                                           {% endif %}
                                           {% endfor %}"
 
@@ -703,9 +703,9 @@
             _rsp_root_password:            "{{ root_password }}"
             _rsp_additional_hosts:         "{% for item in ansible_play_hosts_all[3::2] %}
                                             {% if loop.index == ansible_play_hosts_all | length -1 %}
-                                            {{ item }}:role=worker:group=default:workergroup=default
+                                            {{ item | trim }}:role=worker:group=default:workergroup=default
                                             {% else %}
-                                            {{ item }}:role=worker:group=default:workergroup=default,
+                                            {{ item | trim }}:role=worker:group=default:workergroup=default,
                                             {% endif %}
                                             {% endfor %}"
 
