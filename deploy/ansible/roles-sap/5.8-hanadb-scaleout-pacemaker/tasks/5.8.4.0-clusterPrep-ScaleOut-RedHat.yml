@@ -62,6 +62,8 @@
 
     - name:                            "5.8 HANA Pacemaker Scaleout - Configure pacemaker hana shared filesystem resources on {{ primary_instance_name }}"
       when:                            ansible_hostname == primary_instance_name
+      become:                          true
+      become_user:                     root
       block:
         - name:                        "5.8 HANA Pacemaker Scaleout - Configure NFS filesystem resource in Pacemaker for HSR sites"
           ansible.builtin.shell: >
@@ -234,6 +236,8 @@
 
   # Ref : https://access.redhat.com/articles/3004101 - 4.3 Configure general cluster properties
 - name:                                "5.8 HANA Pacemaker Scaleout - Configure general cluster properties"
+  become:                              true
+  become_user:                         root
   when:
     - ansible_hostname == primary_instance_name
   block:
