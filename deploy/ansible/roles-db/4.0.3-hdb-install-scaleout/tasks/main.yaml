@@ -129,12 +129,12 @@
         _rsp_additional_hosts:         "{% for item in db_hosts[1:] %}
                                         {% if loop.index == db_hosts | length -1 %}
                                         {% if database_no_standby %}
-                                        {{ item }}:role=worker:group=default:workergroup=default
+                                        {{ item | trim }}:role=worker:group=default:workergroup=default
                                         {% else %}
-                                        {{ item }}:role=standby:group=default:workergroup=default
+                                        {{ item | trim }}:role=standby:group=default:workergroup=default
                                         {% endif %}
                                         {% else %}
-                                        {{ item }}:role=worker:group=default:workergroup=default,
+                                        {{ item | trim }}:role=worker:group=default:workergroup=default,
                                         {% endif %}
                                         {% endfor %}"
 
@@ -148,7 +148,7 @@
           ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        chmod 755 /usr/sap;
-                                       ./hdblcm --batch --action=install --hostname {{ virtual_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
+                                       ./hdblcm --batch --action=install --hostname {{ virtual_host | trim }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
           args:
             chdir:                     "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
             creates:                   "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
@@ -455,7 +455,7 @@
               ansible.builtin.shell: |
                                         umask {{ custom_umask | default('022') }} ;
                                         chmod 755 /usr/sap;
-                                        ./hdblcm --batch --action=install --hostname {{ virtual_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}' --custom_cfg='{{ dir_params }}'
+                                        ./hdblcm --batch --action=install --hostname {{ virtual_host | trim }} --configfile='{{ dir_params }}/{{ sap_inifile }}' --custom_cfg='{{ dir_params }}'
               args:
                 chdir:                   "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
                 creates:                 "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
@@ -480,7 +480,7 @@
                   ansible.builtin.shell: |
                                           umask {{ custom_umask | default('022') }} ;
                                           chmod 755 /usr/sap;
-                                          ./hdblcm --batch --action=install --hostname {{ virtual_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
+                                          ./hdblcm --batch --action=install --hostname {{ virtual_host | trim }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
                   args:
                     chdir:               "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
                     creates:             "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
@@ -730,7 +730,7 @@
               ansible.builtin.shell: |
                                           umask {{ custom_umask | default('022') }} ;
                                           chmod 755 /usr/sap;
-                                          ./hdblcm --batch --action=install --hostname {{ virtual_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}' --custom_cfg='{{ dir_params }}'
+                                          ./hdblcm --batch --action=install --hostname {{ virtual_host | trim }} --configfile='{{ dir_params }}/{{ sap_inifile }}' --custom_cfg='{{ dir_params }}'
               args:
                 chdir:                     "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
                 creates:                   "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
@@ -755,7 +755,7 @@
                   ansible.builtin.shell: |
                                           umask {{ custom_umask | default('022') }} ;
                                           chmod 755 /usr/sap;
-                                          ./hdblcm --batch --action=install --hostname {{ virtual_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
+                                          ./hdblcm --batch --action=install --hostname {{ virtual_host | trim }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
                   args:
                     chdir:                 "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
                     creates:               "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
