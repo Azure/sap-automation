@@ -126,18 +126,18 @@
         # Note : Default configuration involves placing the last node in DB List as standby.
         # Note : This behavior can be overridden via property 'database_no_standby' to force all remaining nodes as workers
         # Note : This configuration is not recommended as it leaves your distributed system without a standby
-        _rsp_additional_hosts:         "{% for item in db_hosts[1:] %}
-                                        {% if loop.index == db_hosts | length -1 %}
-                                        {% if database_no_standby %}
-                                        {{ item | trim }}:role=worker:group=default:workergroup=default
-                                        {% else %}
-                                        {{ item | trim }}:role=standby:group=default:workergroup=default
-                                        {% endif %}
-                                        {% else %}
-                                        {{ item | trim }}:role=worker:group=default:workergroup=default,
-                                        {% endif %}
-                                        {% endfor %}"
-
+        # NOTE: DO NOT ALTER FORMATTING OR SPACING. THIS BREAKS THE JINJA2 CODE.
+        _rsp_additional_hosts:         "{% for item in db_hosts[1:] -%}
+                  {%- if loop.index == db_hosts | length - 1 -%}
+                  {%- if database_no_standby -%}
+                  {{ item | trim }}:role=worker:group=default:workergroup=default
+                  {%- else -%}
+                  {{ item | trim }}:role=standby:group=default:workergroup=default
+                  {%- endif -%}
+                  {%- else -%}
+                  {{ item | trim }}:role=worker:group=default:workergroup=default,
+                  {%- endif -%}
+                  {%- endfor %}"
     - name:                            "4.0.3 - SAP HANA SCALE OUT: Progress"
       ansible.builtin.debug:
         msg:                           "Start HANA Installation on primary node"
@@ -426,13 +426,14 @@
             password_copy:               "{% if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
             _rsp_internal_network:       "{{ (subnet_address + '/' + subnet_prefix) }}"
             _rsp_root_password:          "{{ root_password }}"
+            # NOTE: DO NOT ALTER FORMATTING OR SPACING. THIS BREAKS THE JINJA2 CODE.
             _rsp_additional_hosts:       "{% for item in db_hosts[2::2] %}
-                                          {% if loop.index == db_hosts | length - 1 %}
-                                          {{ item | trim }}:role=worker:group=default:workergroup=default
-                                          {% else %}
-                                          {{ item | trim }}:role=worker:group=default:workergroup=default,
-                                          {% endif %}
-                                          {% endfor %}"
+              {% if loop.index == db_hosts | length - 1 %}
+              {{ item | trim }}:role=worker:group=default:workergroup=default
+              {% else %}
+              {{ item | trim }}:role=worker:group=default:workergroup=default,
+              {% endif %}
+              {% endfor %}"
 
         - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Template processing: Create custom ini file {{ sap_custom_config }} from {{ HANA_2_00_customconfig.rsp }}"
           ansible.builtin.template:
@@ -701,13 +702,14 @@
             password_copy:                 "{% if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
             _rsp_internal_network:         "{{ (subnet_address + '/' + subnet_prefix) }}"
             _rsp_root_password:            "{{ root_password }}"
+            # NOTE: DO NOT ALTER FORMATTING OR SPACING. THIS BREAKS THE JINJA2 CODE.
             _rsp_additional_hosts:         "{% for item in db_hosts[3::2] %}
-                                            {% if loop.index == db_hosts | length - 1 %}
-                                            {{ item | trim }}:role=worker:group=default:workergroup=default
-                                            {% else %}
-                                            {{ item | trim }}:role=worker:group=default:workergroup=default,
-                                            {% endif %}
-                                            {% endfor %}"
+              % if loop.index == db_hosts | length - 1 %}
+              {{ item | trim }}:role=worker:group=default:workergroup=default
+              {% else %}
+              {{ item | trim }}:role=worker:group=default:workergroup=default,
+              {% endif %}
+              {% endfor %}"
 
         - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Template processing: Create custom ini file {{ sap_custom_config }} from {{ HANA_2_00_customconfig.rsp }}"
           ansible.builtin.template:
