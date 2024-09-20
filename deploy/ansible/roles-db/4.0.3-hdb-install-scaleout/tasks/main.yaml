@@ -119,7 +119,7 @@
         _rsp_number:                   "{{ db_instance_number }}"
         _rsp_system_usage:             "custom"
         use_master_password:           "{{ hana_use_master_password }}"
-        password_copy:                 "{%if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
+        password_copy:                 "{% if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
         _rsp_internal_network:         "{{ subnet_cidr_db | default((subnet_address + '/' + subnet_prefix), true) }}"
         # This comes in from the main ansible playbook. It is the password for the root user. Must be randomized after the installation.
         _rsp_root_password:            "{{ root_password }}"
@@ -423,7 +423,7 @@
             use_master_password:         "{{ hana_use_master_password }}"
             _rsp_hana_data_basepath:     "{{ hana_data_basepath }}"
             _rsp_hana_log_basepath:      "{{ hana_log_basepath }}"
-            password_copy:               "{%if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
+            password_copy:               "{% if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
             _rsp_internal_network:       "{{ (subnet_address + '/' + subnet_prefix) }}"
             _rsp_root_password:          "{{ root_password }}"
             _rsp_additional_hosts:       "{% for item in ansible_play_hosts_all[2::2] %}
@@ -698,7 +698,7 @@
             use_master_password:           "{{ hana_use_master_password }}"
             _rsp_hana_data_basepath:       "{{ hana_data_basepath }}"
             _rsp_hana_log_basepath:        "{{ hana_log_basepath }}"
-            password_copy:                 "{%if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
+            password_copy:                 "{% if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
             _rsp_internal_network:         "{{ (subnet_address + '/' + subnet_prefix) }}"
             _rsp_root_password:            "{{ root_password }}"
             _rsp_additional_hosts:         "{% for item in ansible_play_hosts_all[3::2] %}
