@@ -145,7 +145,7 @@
       ansible.builtin.shell: |
                                     set -o pipefail
                                     awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
-                                    { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_* | tail -n 1
+                                    { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
       args:
         chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ primary_instance_name }}/trace
       register:                        saphanasr
@@ -185,7 +185,7 @@
     var:                               saphanasr
     verbosity:                         2
 
-- name:                                "5.8 HANA Pacemaker Scaleout - reset"
+- name:                                "5.8 HANA Pacemaker Scaleout - flag"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
     state:                             touch
