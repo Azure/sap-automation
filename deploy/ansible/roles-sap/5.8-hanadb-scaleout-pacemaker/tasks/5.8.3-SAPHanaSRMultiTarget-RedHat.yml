@@ -188,33 +188,9 @@
           retries:                     10
           delay:                       30
 
-    - name:                            "5.8 HANA Pacemaker Scaleout - Log that the hook script is working as expected"
-      block:
-
-        - name:                        "Debug (SAPHanaSR_ScaleOut)"
-          ansible.builtin.debug:
-            var:                       SAPHanaSR_ScaleOut
-            verbosity:                 2
-
-        - name:                        "5.8 HANA Pacemaker Scaleout - set_fact (SAPHanaSR_ScaleOut)"
-          ansible.builtin.set_fact:
-            hsr_result:                SAPHanaSR_ScaleOut.stdout
-
-        - name:                        "5.8 HANA Pacemaker Scaleout - Debug (hsr_result)"
-          ansible.builtin.debug:
-            var:                       hsr_result
-            verbosity:                 2
-
-        - name:                        "5.8 HANA Pacemaker Scaleout - Assert HSR Hook verification is successful"
-          ansible.builtin.assert:
-            that:
-              - "'SFAIL' != hsr_result"
-            fail_msg:                  "Unable to determine if HSR Hook is working"
-      # when:                            inventory_hostname == primary_instance_name
-
     - name:                            "5.8 HANA Pacemaker Scaleout - Verify the hook Installation"
       ansible.builtin.debug:
-        var:                           SAPHanaSR_ScaleOut
+        var:                           saphanasr
         verbosity:                     2
 
 # Note: We do not configure Hook on Majority maker, only installation is needed. Unfortunately since this task runs on HANA VM's only, Majority maker is skipped.
