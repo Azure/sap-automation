@@ -191,19 +191,7 @@
           when:                        hana_shared_mounted.rc > 0
 
         - name:                        "5.8 HANA Pacemaker Scaleout - Start HANA on both nodes"
-          become_user:                 "{{ db_sid_admin_user }}"
-          become:                      true
-          block:
-
-            - name:                    "5.8 HANA Pacemaker Scaleout - Start HANA on {{ virtual_host }} using HDB start"
-              ansible.builtin.shell:
-                                   HDB start
-              failed_when:             hdb_start.rc > 2
-              changed_when:            false
-              register:                hdb_start
-
-            - name:                    "5.8 HANA Pacemaker Scaleout - Start HANA on {{ virtual_host }}"
-              ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+          ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
           when:
            - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
 
