@@ -141,9 +141,13 @@
       when:
         - ansible_hostname == primary_instance_name or ansible_hostname == secondary_instance_name
 
-    - name:                            "5.8 HANA Pacemaker Scaleout - Wait 2 minutes for SAP system to stop"
+    - name:                            "5.8 HANA Pacemaker Scaleout - Wait for SAP system to stop"
+      ansible.builtin.debug:
+        msg:                           "5.8 HANA Pacemaker Scaleout - Wait {{ hana_wait_for_stop_in_sec }} seconds for SAP system to stop"
+
+    - name:                            "5.8 HANA Pacemaker Scaleout - Wait for SAP system to stop"
       ansible.builtin.wait_for:
-        timeout:                       120
+        timeout:                       "{{ hana_wait_for_stop_in_sec }}"
 
 # This is not needed any more as we are going to use the default path of the hook script installed by the package.
     # - name:                            copy SAPHanaSR-ScaleOut.py (SUSE)
@@ -262,13 +266,13 @@
       changed_when:                    false
       register:                        hana_system_started
 
-    - name:                            "5.8 HANA Pacemaker Scaleout - Wait 5 minutes for SAP system to start"
+    - name:                            "5.8 HANA Pacemaker Scaleout - Wait for SAP system to start"
       ansible.builtin.debug:
-        msg:                           "5.8 HANA Pacemaker Scaleout - Wait 5 minutes for SAP system to start"
+        msg:                           "5.8 HANA Pacemaker Scaleout - Wait {{ hana_scaleout_wait_for_start_in_sec }} seconds for SAP system to start"
 
-    - name:                            "5.8 HANA Pacemaker Scaleout - Wait 5 minutes for SAP system to start"
+    - name:                            "5.8 HANA Pacemaker Scaleout - Wait for SAP system to start"
       ansible.builtin.wait_for:
-        timeout:                       300
+        timeout:                       "{{ hana_scaleout_wait_for_start_in_sec }}"
 
     # - name:                            Start HANA Database
     #   ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
