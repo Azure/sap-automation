@@ -236,17 +236,18 @@
   block:
     - name:                             "5.8 HANA Pacemaker Scaleout - Set resource stickiness value to 1000"
       ansible.builtin.shell: >
-                                        pcs resource defaults resource-stickiness=1000
+                                        pcs resource defaults update resource-stickiness=1000
       register:                         res_stickiness
       failed_when:                      res_stickiness.rc > 0
       changed_when:                     false
 
     - name:                             "5.8 HANA Pacemaker Scaleout - Set migration threshold value to 5000"
       ansible.builtin.shell: >
-                                        pcs resource defaults migration-threshold=5000
+                                        pcs resource defaults update migration-threshold=5000
       register:                         mig_threshold
       failed_when:                      mig_threshold.rc > 0
       changed_when:                     false
+
 
 
 # ⠀⠀⠀⠀⠀⠀⣠⡤⠶⠒⢛⢻⠛⠛⠛⠛⠛⠛⢿⣛⡓⠶⢦⣤⠀⠀⠀⠀⠀⠀
