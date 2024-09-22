@@ -27,5 +27,8 @@ hana_stop_start_delay_in_seconds:      10
 # TODO: Maybe move these to a group_vars/all/distro file so that they
 # can be shared by all playbooks/tasks automatically, and extend with
 # standardised versions of all similar patterns used in the playbooks.
-distro_name:    "{{ ansible_os_family | upper }}-{{ ansible_distribution_major_version }}"
-distro_id:      "{{ ansible_os_family | lower ~ ansible_distribution_major_version }}"
+distro_name:                           "{{ ansible_os_family | upper }}-{{ ansible_distribution_major_version }}"
+distro_id:                             "{{ ansible_os_family | lower ~ ansible_distribution_major_version }}"
+
+DB:                                    "{{ db_sid | upper }}/HDB{{ db_instance_number }}"
+db_sid_admin_user:                     "{{ db_sid | lower }}adm"
