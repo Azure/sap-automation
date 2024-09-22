@@ -6,7 +6,7 @@
   ansible.builtin.import_tasks: 5.8.2-pre_checks.yml
 
 - name: "5.8 HANADB Pacemaker - import - SAP HanaSR"
-  ansible.builtin.import_tasks: 5.8.3-SAPHanaSRMultiTarget.yml
+  ansible.builtin.import_tasks: 5.8.3-SAPHanaSRMultiTarget-{{ ansible_os_family }}.yml
   when:
     - node_tier in ['hana','observer']
 
