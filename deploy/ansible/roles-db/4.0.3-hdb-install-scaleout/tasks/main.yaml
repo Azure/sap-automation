@@ -127,7 +127,7 @@
         # Note : This behavior can be overridden via property 'database_no_standby' to force all remaining nodes as workers
         # Note : This configuration is not recommended as it leaves your distributed system without a standby
         # NOTE: DO NOT ALTER FORMATTING OR SPACING. THIS BREAKS THE JINJA2 CODE.
-        _rsp_additional_hosts:         "{% for item in db_hosts[1:] -%}{%- if loop.index == db_hosts | length - 1 -%}{%- if database_no_standby -%}{{ item | trim }}:role=worker:group=default:workergroup=default{%- else -%}{{ item | trim }}:role=standby:group=default:workergroup=default{%- endif -%}{%- else -%}{{ item | trim }}:role=worker:group=default:workergroup=default,{%- endif -%}{%- endfor %}"
+        _rsp_additional_hosts:         "{% for item in db_hosts[1:] %}{% if loop.index == db_hosts | length - 1 %}{% if database_no_standby %}{{ item | trim }}:role=worker:group=default:workergroup=default{% else %}{{ item | trim }}:role=standby:group=default:workergroup=default{% endif %}{% else %}{{ item | trim }}:role=worker:group=default:workergroup=default,{% endif %}{% endfor %}"
     - name:                            "4.0.3 - SAP HANA SCALE OUT: Progress"
       ansible.builtin.debug:
         msg:                           "Start HANA Installation on primary node"
