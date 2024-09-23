@@ -9,6 +9,7 @@
 # SAP HANA Cluster resources prep for ANF
 # https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-netapp-files-red-hat
 
+# Additonal steps inherited from  https://access.redhat.com/articles/6093611
 
 # +------------------------------------4--------------------------------------*/
 - name:                            "Backward Compatibility - Check required Database HA variables"
