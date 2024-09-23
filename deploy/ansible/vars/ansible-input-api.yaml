@@ -70,6 +70,8 @@ dbload_retry_count:                    120
 single_server:                         false
 
 hana_scaleout_wait_for_start_in_sec:   300
+scs_wait_for_start_in_sec:             300
+hana_wait_for_start_in_sec:            300
 hana_wait_for_stop_in_sec:             120
 
 # Default sizes for volumes
