@@ -112,8 +112,8 @@
 
 - name:                                           "1.18.0 Generic Pacemaker - Extract NIC IPs"
   ansible.builtin.set_fact:
-    "{{ host_var }}_instance_ip":                 "{{ hostvars[ansible_hostname]['primary_ip'] | string }}"
-
+    # "{{ host_var }}_instance_ip":                 "{{ hostvars[ansible_hostname]['primary_ip'] | string }}"
+    "instance_ip":                                "{{ hostvars[ansible_hostname]['primary_ip'] | string }}"
 - name:                                           "1.18.0 Generic Pacemaker - Show Details"
   ansible.builtin.debug:
     msg:
@@ -159,10 +159,12 @@
   block:
     - name:                                       "Wait for cluster_public_ssh_key check on nodes to finish"
       ansible.builtin.set_fact:
-        "is_ssh_defined_on_{{ host_var }}":       "{{ hostvars[ansible_hostname].cluster_public_ssh_key is defined }}"
+        # "is_ssh_defined_on_{{ host_var }}":       "{{ hostvars[ansible_hostname].cluster_public_ssh_key is defined }}"
+        "is_ssh_defined":                        "{{ hostvars[ansible_hostname].cluster_public_ssh_key is defined }}"
       retries:                                    30
       delay:                                      60
-      until:                                      is_ssh_defined_on_{{ host_var }}
+      # until:                                      is_ssh_defined_on_{{ host_var }}
+      until:                                      is_ssh_defined
 
 
 # /*---------------------------------------------------------------------------8

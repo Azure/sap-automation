@@ -22,12 +22,12 @@ resource "azurerm_network_interface" "observer" {
 
   ip_configuration {
                     name      = "IPConfig1"
-                    subnet_id = var.db_subnet.id
+                    subnet_id = var.admin_subnet.id
                     private_ip_address = var.database.use_DHCP ? (
                       null) : (
                       try(var.database.observer_vm_ips[count.index],
                         cidrhost(
-                          var.db_subnet.address_prefixes[0],
+                          var.admin_subnet.address_prefixes[0],
                           tonumber(count.index) + local.hdb_ip_offsets.observer_db_vm
                         )
                       )
@@ -78,6 +78,11 @@ resource "azurerm_linux_virtual_machine" "observer" {
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
 
   tags                                 = merge(local.tags, var.tags)
+
+  patch_mode                                             = var.infrastructure.patch_mode
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+  vm_agent_platform_updates_enabled                      = true
 
   dynamic "admin_ssh_key" {
                             for_each = range(var.deployment == "new" ? 1 : (local.enable_auth_password ? 0 : 1))

@@ -119,7 +119,7 @@
 - name:                                           "1.18.1 Generic Pacemaker - Show if a cluster has already been prepared"
   ansible.builtin.debug:
     msg:
-                                                  - "CLUSTER VALIDATION : {{ cluster_existence_check }}"
+                                                  - "Is the cluster configured : {{ cluster_existence_check }}"
 
 ...
 # /*---------------------------------------------------------------------------8

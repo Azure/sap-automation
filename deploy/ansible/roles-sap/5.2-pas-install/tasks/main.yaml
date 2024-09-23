@@ -102,7 +102,7 @@
 - name:                                "PAS Install: Check if the DB load balancer port is available and listening"
   ansible.builtin.wait_for:
     host:                              "{{ db_lb_virtual_host }}"
-    port:                              "3{{ db_instance_number }}13"
+    port:                              "625{{ db_instance_number }}"
     state:                             started
     timeout:                           30
     msg:                               'INSTALL:0026:PAS Install failed, database is unreachable.'

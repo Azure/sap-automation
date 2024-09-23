@@ -121,17 +121,17 @@
       #                                  or cluster_group_moved.stderr is not search('is already active on')
       #                                  )
 
-    - name:                            "5.6 SCS/ERS Validation: Wait 300 seconds for the StartService {{ sap_sid | upper }} to finish"
+    - name:                            "5.6 SCS/ERS Validation: Wait {{ scs_wait_for_start_in_sec }} seconds for the StartService {{ sap_sid | upper }} to finish"
       ansible.builtin.debug:
-        msg:                           "Wait for 300 seconds for the StartService {{ sap_sid | upper }} to finish"
+        msg:                           "Wait for {{ scs_wait_for_start_in_sec }} seconds for the StartService {{ sap_sid | upper }} to finish"
       when:
         - ansible_hostname == primary_instance_name
         - cluster_group_location.stdout_lines != primary_instance_name
         - scs_running_on is not defined
 
-    - name:                            "5.6 SCS/ERS Validation: Wait 300 seconds for the StartService {{ sap_sid | upper }} to finish"
+    - name:                            "5.6 SCS/ERS Validation: Wait {{ scs_wait_for_start_in_sec }} seconds for the StartService {{ sap_sid | upper }} to finish"
       ansible.builtin.wait_for:
-        timeout:                       300
+        timeout:                       "{{ scs_wait_for_start_in_sec }}"
       when:
         - ansible_hostname == primary_instance_name
         - cluster_group_location.stdout_lines != primary_instance_name

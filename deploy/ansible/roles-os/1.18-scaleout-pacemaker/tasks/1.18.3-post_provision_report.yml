@@ -4,11 +4,21 @@
   ansible.builtin.pause:
     seconds:                           "{{ cluster_status_report_wait_in_s }}"
 
-- name:                                "1.18.3 Generic Pacemaker - Cleanup resource status"
+- name:                                "1.18.3 Generic Pacemaker - Cleanup resource status ( REDHAT )"
   ansible.builtin.shell: >
                                        pcs resource cleanup
   register:                            cluster_cleanup
   failed_when:                         cluster_cleanup.rc > 0
+  when:
+    ansible_os_family | upper == "REDHAT"
+
+- name:                                "1.18.3 Generic Pacemaker - Cleanup resource status ( SUSE )"
+  ansible.builtin.shell: >
+                                       crm resource cleanup
+  register:                            cluster_cleanup
+  failed_when:                         cluster_cleanup.rc > 0
+  when:
+    ansible_os_family | upper == "SUSE"
 
 - name:                                "1.18.3 Generic Pacemaker - Check the post-provisioning cluster status"
   ansible.builtin.command:             "{{ cluster_status_cmd[ansible_os_family] }}"

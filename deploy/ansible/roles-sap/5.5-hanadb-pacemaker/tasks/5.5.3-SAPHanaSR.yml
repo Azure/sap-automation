@@ -175,10 +175,6 @@
       changed_when:                    false
       register:                        hana_system_started
 
-    - name:                            Wait 5 minutes for SAP system to start
-      ansible.builtin.pause:
-        seconds:                       300
-
     - name:                           Start HANA Database
       ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
