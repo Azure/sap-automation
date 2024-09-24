@@ -522,7 +522,7 @@
           - "scs_instance_number != db_instance_number"
         fail_msg:                      "Please ensure that the scs_instance_number is different from the db_instance_number when performing a standalone installation"
       when:
-        - (ansible_play_hosts_all | length) == 1
+        - single_server
         - platform == "HANA"
       tags:
                                        - always
@@ -530,7 +530,7 @@
 
     - name:                            "0.0 Validations - Validate SCS and HDB SIDs"
       when:
-        - (ansible_play_hosts_all | length) == 1
+        - single_server
         - platform != "ORACLE"
       ansible.builtin.assert:
         that:
@@ -554,7 +554,7 @@
         that:
           - scs_instance_number != pas_instance_number
         fail_msg:                      "Please ensure that the pas_instance_number is different from the scs_instance_number on standalone installation"
-      when:                            (ansible_play_hosts_all | length) == 1
+      when:                            single_server
       tags:
                                        - always
                                        - 0.0-scs-pas-single
@@ -564,7 +564,7 @@
         that:
           - db_instance_number != pas_instance_number
         fail_msg:                      "Please ensure that the pas_instance_number is different from the db_instance_number on standalone installation"
-      when:                            (ansible_play_hosts_all | length) == 1
+      when:                            single_server
       tags:
                                        - always
                                        - 0.0-scs-pas-db-single

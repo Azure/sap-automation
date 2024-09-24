@@ -95,11 +95,13 @@
           tags:
             - always
 
+
         - name:                        "DBLoad Playbook: - Set deployment type"
           ansible.builtin.set_fact:
             single_server:              "{{ (ansible_play_hosts_all | length) == 1 }}"
           tags:
             - always
+
 
         - name:                        "DBLoad Playbook: Define this SID"
           ansible.builtin.set_fact:
