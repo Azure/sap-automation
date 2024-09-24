@@ -627,6 +627,24 @@ variable "observer_nic_ips"                     {
 
 #########################################################################################
 #                                                                                       #
+#  Observer variables                                                                   #
+#                                                                                       #
+#########################################################################################
+
+
+variable "use_observer"                         {
+                                                  description = "If true, an observer virtual machine will be used"
+                                                  default     = true
+                                                }
+
+variable "observer_nic_ips"                     {
+                                                  description = "If provided, the database tier observer virtual machines will be configured with the specified IPs (db subnet)"
+                                                  default     = [""]
+                                                }
+
+
+#########################################################################################
+#                                                                                       #
 #  Application tier variables                                                           #
 #                                                                                       #
 #########################################################################################
