@@ -52,7 +52,7 @@
                                         {%- endif -%}
                                         {{- _path -}}
     fstype:                            "{{ item.fstype }}"
-    opts:                              defaults
+    opts:                              "{{ item.mntopts | default('defaults') }}"
     state:                             mounted
   loop:                                "{{ logical_volumes | sort(attribute='lv') }}"
   register:  db2fsmounts

@@ -71,7 +71,7 @@
     src:                               /dev/vg_sap/lv_usrsap
     path:                              /usr/sap
     fstype:                            xfs
-    opts:                              defaults
+    opts:                              "{{ logical_volumes | selectattr('lv', 'equalto', 'lv_usrsap') | map(attribute='mntopts') | first | default('defaults') }}"
     state:                             mounted
   when:
     - sap_disk_exists == '1'
@@ -95,7 +95,7 @@
     src:                               "{{ sharedpath }}"
     path:                              /hana/shared
     fstype:                            xfs
-    opts:                              defaults
+    opts:                              "{{ logical_volumes | selectattr('lv', 'equalto', 'lv_hana_shared') | map(attribute='mntopts') | first | default('defaults') }}"
     state:                             mounted
   when:
     - node_tier == 'hana'
@@ -106,7 +106,7 @@
     src:                               /dev/vg_hana_backup/lv_hana_backup
     path:                              '{{ hana_backup_path }}'
     fstype:                            xfs
-    opts:                              defaults
+    opts:                              "{{ logical_volumes | selectattr('lv', 'equalto', 'lv_hana_backup') | map(attribute='mntopts') | first | default('defaults') }}"
     state:                             mounted
   when:
     - node_tier == 'hana'
@@ -126,7 +126,7 @@
     src:                               /dev/vg_hana_data/lv_hana_data
     path:                              /hana/data
     fstype:                            xfs
-    opts:                              defaults
+    opts:                              "{{ logical_volumes | selectattr('lv', 'equalto', 'lv_hana_data') | map(attribute='mntopts') | first | default('defaults') }}"
     state:                             mounted
   when:
     - node_tier == 'hana'
@@ -137,7 +137,7 @@
     src:                               /dev/vg_hana_log/lv_hana_log
     path:                              /hana/log
     fstype:                            xfs
-    opts:                              defaults
+    opts:                              "{{ logical_volumes | selectattr('lv', 'equalto', 'lv_hana_log') | map(attribute='mntopts') | first | default('defaults') }}"
     state:                             mounted
   when:
     - node_tier == 'hana'
