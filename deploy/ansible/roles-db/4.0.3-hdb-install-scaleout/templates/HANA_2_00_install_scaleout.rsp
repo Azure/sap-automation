@@ -39,7 +39,7 @@ skip_modify_sudoers=n
 use_pmem=n
 
 # Enable the installation or upgrade of the SAP Host Agent ( Default: y )
-install_hostagent=n
+install_hostagent=y
 
 # Database Isolation ( Default: low; Valid values: low | high )
 db_isolation=low
@@ -96,10 +96,10 @@ lss_trust_unsigned_server=n
 volume_encryption=n
 
 # Location of Data Volumes ( Default: /hana/data/${sid} )
-datapath=/hana/data/${sid}
+datapath={{ _rsp_hana_data_basepath }}
 
 # Location of Log Volumes ( Default: /hana/log/${sid} )
-logpath=/hana/log/${sid}
+logpath={{ _rsp_hana_log_basepath }}
 
 # Location of Persistent Memory Volumes ( Default: /hana/pmem/${sid} )
 pmempath=/hana/pmem/${sid}

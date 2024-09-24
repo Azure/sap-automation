@@ -18,7 +18,7 @@ locals {
     lower(format("%s%s%sdeploy%02d", local.env_verified, local.location_short, local.dep_vnet_verified, idx + var.resource_offset))
   ]
 
-  anydb_computer_names = [for idx in range(var.db_server_count) :
+ anydb_computer_names = [for idx in range(var.db_server_count) :
     format("%sdb%02d%s%d%s", lower(var.sap_sid), idx + var.resource_offset, local.db_oscode, 0, local.random_id_vm_verified)
   ]
 
@@ -36,6 +36,13 @@ locals {
   anydb_vm_names_ha = [for idx in range(var.db_server_count) :
     length(var.db_zones) > 0 && var.use_zonal_markers ? (
       format("%sdb%sz%s%s%02d%s%d%s", lower(var.sap_sid), local.separator, local.ha_zones[idx % max(length(local.ha_zones), 1)], local.separator, idx + var.resource_offset, local.db_oscode, 1, local.random_id_vm_verified)) : (
+      format("%sdb%02d%s%d%s", lower(var.sap_sid), idx + var.resource_offset, local.db_oscode, 1, local.random_id_vm_verified)
+    )
+  ]
+
+  anydb_vm_names_scaleout = [for idx in range(var.db_server_count * 2) :
+    length(var.db_zones) > 0 && var.use_zonal_markers ? (
+      format("%sdb%sz%s%s%02d%s%d%s", lower(var.sap_sid), local.separator, var.db_zones[idx % max(length(var.db_zones), 1)], local.separator, idx + var.resource_offset, local.db_oscode, 1, local.random_id_vm_verified)) : (
       format("%sdb%02d%s%d%s", lower(var.sap_sid), idx + var.resource_offset, local.db_oscode, 1, local.random_id_vm_verified)
     )
   ]
@@ -74,6 +81,17 @@ locals {
     length(var.db_zones) > 0 && var.use_zonal_markers ? (
       format("%sd%s%sz%s%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), local.separator, local.ha_zones[idx % max(length(local.ha_zones), 1)], local.separator, idx + var.resource_offset, 1, local.random_id_vm_verified)) : (
       format("%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx + var.resource_offset, 1, local.random_id_vm_verified)
+    )
+  ]
+
+  hana_computer_names_scaleout = [for idx in range(var.db_server_count * 2) :
+    format("%sd%s%02dl%01d%s", lower(var.sap_sid), lower(var.db_sid), floor(idx/2) + var.resource_offset, tonumber((( idx ) % 2)), substr(local.random_id_vm_verified, 0, 2))
+  ]
+
+  hana_server_vm_names_scaleout = [for idx in range(var.db_server_count * 2) :
+    length(var.db_zones) > 0 && var.use_zonal_markers ? (
+      format("%sd%s%sz%s%s%02dl%01d%s", lower(var.sap_sid), lower(var.db_sid), local.separator, var.db_zones[idx % max(length(var.db_zones), 1)], local.separator, floor(idx/2) + var.resource_offset, tonumber(( idx  % 2)), local.random_id_vm_verified)) : (
+      format("%sd%s%02dl%01d%s", lower(var.sap_sid), lower(var.db_sid), floor(idx/2) + var.resource_offset, tonumber(( idx % 2)), local.random_id_vm_verified)
     )
   ]
 
@@ -123,9 +141,10 @@ locals {
     format("v%sd%02dl%d%s", lower(var.sap_sid), idx + var.resource_offset, 0, substr(local.random_id_vm_verified, 0, 2))
   ]
 
-  anydb_secondary_dnsnames_ha = [for idx in range(var.db_server_count) :
-    format("v%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx + var.resource_offset, 1, substr(local.random_id_vm_verified, 0, 2))
+  anydb_secondary_dnsnames_ha = [for idx in range(var.db_server_count * 2) :
+    format("v%sd%s%02dl%01d%s", lower(var.sap_sid), lower(var.db_sid), floor(idx/2) + var.resource_offset, tonumber((idx % 2)), substr(local.random_id_vm_verified, 0, 2))
   ]
+
 
   hana_secondary_dnsnames = [for idx in range(var.db_server_count) :
     format("v%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx + var.resource_offset, 0, substr(local.random_id_vm_verified, 0, 2))
@@ -135,6 +154,9 @@ locals {
     format("v%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), idx + var.resource_offset, 1, local.random_id_virt_vm_verified)
   ]
 
+  hana_secondary_dnsnames_scaleout = [for idx in range(var.db_server_count * 2) :
+    format("v%sd%s%02dl%d%s", lower(var.sap_sid), lower(var.db_sid), floor(idx/2) + var.resource_offset, tonumber((( idx + 1 ) % 2)), local.random_id_vm_verified)
+  ]
   scs_secondary_dnsnames = [for idx in range(var.scs_server_count) :
     format("v%ss%02d%s%s", lower(var.sap_sid), idx + var.resource_offset, local.app_oscode, local.random_id_virt_vm_verified)
   ]

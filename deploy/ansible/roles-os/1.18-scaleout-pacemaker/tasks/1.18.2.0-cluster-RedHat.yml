@@ -1,0 +1,391 @@
+---
+
+
+# @TODO Subscribe to subscriptions/repos if required
+# This code assumes the deployment is using RHEL SAP image
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | RHEL Clustering                                                            |
+# | ref: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-pacemaker
+# |                                                                            |
+# RHEL 8.4: resource-agents-4.1.1-90.13
+# RHEL 8.6: resource-agents-4.9.0-16.9
+# RHEL 8.8 and newer: resource-agents-4.9.0-40.1
+# RHEL 9.0 and newer: resource-agents-cloud-4.10.0-34.2
+
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "1.18.2.0 Generic Pacemaker - Check if we are on RHEL 9 or newer"
+  ansible.builtin.set_fact:
+    is_rhel_9_or_newer:                "{{ ansible_distribution_major_version | int >= 9 }}"
+
+- name:                                "1.18.2.0 Generic Pacemaker - Check if we are on RHEL 8.4 or newer"
+  ansible.builtin.set_fact:
+    is_rhel_84_or_newer:               "{{ ansible_distribution_version is version('8.4', '>=') }}"
+
+- name:                                "1.18.2.0 Generic Pacemaker - Ensure HA Cluster password is set to something secure"
+  ansible.builtin.user:
+    name:                             hacluster
+    password:                         "{{ password_ha_db_cluster | password_hash('sha512', 65534 | random(seed=None) | string) }}"
+
+- name:                                "1.18.2.0 Generic Pacemaker - Ensure the firewall service is configured to allow High Availability traffic"
+  ansible.posix.firewalld:
+    service:                          high-availability
+    state:                            enabled
+    permanent:                        true
+
+- name:                                "1.18.2.0 Generic Pacemaker - Ensure the basic cluster services are enabled and running"
+  ansible.builtin.systemd:
+    name:                             pcsd.service
+    state:                            started
+    enabled:                          true
+
+# Basic Pacemaker cluster configuration:
+# https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-pacemaker
+- name:                                "1.18.2.0 Generic Pacemaker - Create the cluster on the primary node: {{ primary_instance_name }}"
+  when:                                ansible_hostname == primary_instance_name
+  block:
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the cluster can authenticate nodes as hacluster"
+      ansible.builtin.command:         "pcs cluster auth {{ ansible_play_hosts_all | join (' ') }} -u hacluster -p {{ password_ha_db_cluster }}"
+      when:                            ansible_distribution_major_version == "7"
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the cluster can authenticate nodes as hacluster"
+      ansible.builtin.command:         "pcs host auth {{ ansible_play_hosts_all | join (' ') }} -u hacluster -p {{ password_ha_db_cluster }}"
+      when:                            ansible_distribution_major_version in  ["8", "9"]
+
+    # Ref https://docs.microsoft.com/en-us/azure/virtual-machines/maintenance-and-updates#maintenance-that-doesnt-require-a-reboot
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the cluster is created with a token large enough to allow memory preserving maintenance"
+      ansible.builtin.command:         "pcs cluster setup --name {{ db_sid | upper }}_cluster {{ ansible_play_hosts_all | join (' ') }} --token {{ cluster_totem.token }}"
+      when:                            ansible_distribution_major_version == "7" and node_tier == 'hana'
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the cluster is created with a token large enough to allow memory preserving maintenance"
+      ansible.builtin.command:         "pcs cluster setup {{ db_sid | upper }}_cluster {{ ansible_play_hosts_all | join (' ') }} totem token={{ cluster_totem.token }}"
+      when:                            ansible_distribution_major_version in  ["8", "9"] and node_tier == 'hana'
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the cluster is starting on all nodes"
+      ansible.builtin.command:         pcs cluster start --all
+      changed_when:                    false
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Enable cluster to auto-start after reboot"
+      ansible.builtin.command:         pcs cluster enable --all
+      changed_when:                    false
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Allow Concurrent Fencing"
+      ansible.builtin.command:         pcs property set concurrent-fencing=true
+      changed_when:                    false
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Wait until cluster has stabilized"
+      ansible.builtin.shell:           set -o pipefail && pcs status | grep '^Online:'
+      register:                        cluster_stable_check
+      retries:                         12
+      delay:                           10
+      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
+      when:                            ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9"
+
+    # '*' is a special character in regexp and needs to be escaped for literal matching
+    # if we are worried about character spacing across distros we can match for '\* Online:'
+    - name:                            "1.18.2.0 Generic Pacemaker - Wait until cluster has stabilized"
+      ansible.builtin.shell:           set -o pipefail && pcs status | grep '^  \* Online:'
+      register:                        cluster_stable_check
+      retries:                         12
+      delay:                           10
+      until:                           "primary_instance_name in cluster_stable_check.stdout and secondary_instance_name in cluster_stable_check.stdout"
+      when:                            ansible_distribution_major_version in ["8", "9"]
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the expected quorum votes is set for the cluster"
+      ansible.builtin.command:         pcs quorum expected-votes "{{ cluster_quorum.expected_votes }}"
+      register:                        quorum
+      changed_when:                    quorum.rc == 0
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Fencing - BEGIN                                                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# Currently
+- name:                                "1.18.2.0 Generic Pacemaker - Configure the cluster STONITH device on the primary node"
+  when:
+                                        - database_cluster_type == "AFA"
+                                        - inventory_hostname  == primary_instance_name
+  block:
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure STONITH timeout is raised"
+      ansible.builtin.command:         pcs property set stonith-timeout=900
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the STONTIH device is configured"
+      ansible.builtin.command: >
+                                       pcs stonith create rsc_st_azure fence_azure_arm
+                                         login="{{ fencing_spn_client_id }}"
+                                         passwd="{{ fencing_spn_client_pwd }}"
+                                         resourceGroup="{{ resource_group_name }}"
+                                         tenantId="{{ fencing_spn_tenant_id }}"
+                                         subscriptionId="{{ fencing_spn_subscription_id }}"
+                                         power_timeout=240
+                                         pcmk_reboot_timeout=900
+                                         pcmk_monitor_timeout=120
+                                         pcmk_monitor_retries=4
+                                         pcmk_action_limit=3
+                                         pcmk_delay_max=15
+                                         pcmk_host_map="{% for item in ansible_play_hosts_all %}{{ item }}:{{ hostvars[item]['vm_name'] }}{{ ';' if not loop.last }}{% endfor %}"
+      when:
+        - ansible_distribution_major_version == "7"
+        - not use_msi_for_clusters
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the STONTIH device is configured"
+      ansible.builtin.command: >
+                                       pcs stonith create rsc_st_azure fence_azure_arm
+                                         msi=true
+                                         passwd="{{ fencing_spn_client_pwd }}"
+                                         resourceGroup="{{ resource_group_name }}"
+                                         subscriptionId="{{ fencing_spn_subscription_id }}"
+                                         power_timeout=240
+                                         pcmk_reboot_timeout=900
+                                         pcmk_monitor_timeout=120
+                                         pcmk_monitor_retries=4
+                                         pcmk_action_limit=3
+                                         pcmk_delay_max=15
+                                         pcmk_host_map="{% for item in ansible_play_hosts_all %}{{ item }}:{{ hostvars[item]['vm_name'] }}{{ ';' if not loop.last }}{% endfor %}"
+      when:
+        - ansible_distribution_major_version == "7"
+        - use_msi_for_clusters
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the STONTIH device is configured"
+      ansible.builtin.command: >
+                                       pcs stonith create rsc_st_azure fence_azure_arm
+                                         login="{{ fencing_spn_client_id }}"
+                                         passwd="{{ fencing_spn_client_pwd }}"
+                                         resourceGroup="{{ resource_group_name }}"
+                                         tenantId="{{ fencing_spn_tenant_id }}"
+                                         subscriptionId="{{ fencing_spn_subscription_id }}"
+                                         power_timeout=240
+                                         pcmk_reboot_timeout=900
+                                         pcmk_monitor_timeout=120
+                                         pcmk_monitor_retries=4
+                                         pcmk_action_limit=3
+                                         pcmk_delay_max=15
+                                         pcmk_host_map="{% for item in ansible_play_hosts_all %}{{ item }}:{{ hostvars[item]['vm_name'] }}{{ ';' if not loop.last }}{% endfor %}"
+      when:
+        - ansible_distribution_major_version in ["8", "9"]
+        - not use_msi_for_clusters
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the STONTIH device is configured (MSI)"
+      ansible.builtin.command: >
+                                       pcs stonith create rsc_st_azure fence_azure_arm
+                                         msi=true
+                                         resourceGroup="{{ resource_group_name }}"
+                                         subscriptionId="{{ fencing_spn_subscription_id }}"
+                                         power_timeout=240
+                                         pcmk_reboot_timeout=900
+                                         pcmk_monitor_timeout=120
+                                         pcmk_monitor_retries=4
+                                         pcmk_action_limit=3
+                                         pcmk_delay_max=15
+                                         pcmk_host_map="{% for item in ansible_play_hosts_all %}{{ item }}:{{ hostvars[item]['vm_name'] }}{{ ';' if not loop.last }}{% endfor %}"
+      when:
+        - ansible_distribution_major_version in ["8", "9"]
+        - use_msi_for_clusters
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Update Monitor interval"
+      ansible.builtin.command:         pcs resource update rsc_st_azure op monitor interval=3600
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the STONITH action is set to reboot"
+      ansible.builtin.command:         pcs property set stonith-action=reboot
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the STONITH device is enabled"
+      ansible.builtin.command:         pcs property set stonith-enabled=true
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Clear any errors during enablement of STONITH device"
+      ansible.builtin.command:         pcs resource cleanup
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Fencing - END                                                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | kdump stonith - BEGIN                                                      |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# <TODO> fix the kdump code to include all the DB hosts.
+
+- name:                                "1.18.2.0 Generic Pacemaker - Install fence-agents-kdump package"
+  when:
+                                       - kdump_enabled | default("disabled") == "enabled"
+  ansible.builtin.dnf:
+    name:                              fence-agents-kdump
+    state:                             present
+  register:                            fence_agents_kdump_package
+  changed_when:                        fence_agents_kdump_package.changed
+
+- name:                                 "1.18.2.0 Generic Pacemaker - configure the special fencing device fence_kdump"
+  when:
+                                      - inventory_hostname == primary_instance_name
+                                      - kdump_enabled | default("disabled") == "enabled"
+  block:
+
+    # we can assume that the stonith:fence_azure_rm is already configured
+    # if we need to check we can use either pcs stonith show or pcs stonith status
+    # create fence_kdump fencing device in the cluster
+    - name:                            "1.18.2.0 Generic Pacemaker - Create a fence_kdump fencing device in the cluster"
+      ansible.builtin.command: >
+                                       pcs stonith create rsc_st_kdump fence_kdump
+                                       pcmk_reboot_action="off"
+                                       pcmk_host_list="{% for item in ansible_play_hosts_all %}{{ item }}{% endfor %}"
+                                       pcmk_host_map="{% for item in ansible_play_hosts_all %}{{ item }}:{{ hostvars[item]['vm_name'] }}{{ ';' if not loop.last }}{% endfor %}"
+                                       timeout=30
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Update Monitor interval"
+      ansible.builtin.command:         pcs resource update rsc_st_kdump op monitor interval=3600
+
+    # for each node in the play, set the fence_kdump fencing device as the first fencing device to be used
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the fence_kdump fencing device as the first for cluster nodes"
+      ansible.builtin.command:         pcs stonith level add 1 {{ ansible_hostname }} rsc_st_kdump
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the fence_azure_arm fencing device as the second for cluster nodes"
+      ansible.builtin.command:         pcs stonith level add 2 {{ ansible_hostname }} rsc_st_azure
+
+- name:                               "1.18.2.0 Generic Pacemaker - Ensure that the kdump service is enabled"
+  when:
+                                      - kdump_enabled | default("disabled") == "enabled"
+  block:
+
+    # Perform the fence_kdump_nodes configuration in /etc/kdump.conf
+    - name:                            "1.18.2.0 Generic Pacemaker - Perform the fence_kdump_nodes configuration in /etc/kdump.conf"
+      ansible.builtin.replace:
+        path:                          /etc/kdump.conf
+        regexp:                        '^#fence_kdump_nodes(.*)$'
+        replace:                       "fence_kdump_nodes {{ secondary_instance_name }}"
+        backup:                        true
+      register:                        kdump_conf_file
+      failed_when:                     kdump_conf_file.rc != 0
+      when:
+                                       - kdump_enabled | default("disabled") == "enabled"
+                                       - inventory_hostname == primary_instance_name
+
+    # Perform the fence_kdump_nodes configuration in /etc/kdump.conf
+    - name:                            "1.18.2.0 Generic Pacemaker - Perform the fence_kdump_nodes configuration in /etc/kdump.conf"
+      ansible.builtin.replace:
+        path:                          /etc/kdump.conf
+        regexp:                        '^#fence_kdump_nodes(.*)$'
+        replace:                       "fence_kdump_nodes {{ primary_instance_name }}"
+        backup:                        true
+      register:                        kdump_conf_file
+      failed_when:                     kdump_conf_file.rc != 0
+      when:
+                                       - kdump_enabled | default("disabled") == "enabled"
+                                       - inventory_hostname == secondary_instance_name
+
+    # set the kdump path to /usr/crash in /etc/kdump.conf
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the kdump path to /usr/crash in /etc/kdump.conf"
+      ansible.builtin.replace:
+        path:                          /etc/kdump.conf
+        regexp:                        '^path(.*)$'
+        replace:                       "path /usr/crash"
+        backup:                        true
+      register:                        kdump_conf_file_path
+      failed_when:                     kdump_conf_file_path.rc != 0
+      when:
+                                       - kdump_enabled | default("disabled") == "enabled"
+
+    # restart kdump service as we made changes to the configuration
+    - name:                            "1.18.2.0 Generic Pacemaker - Restart kdump service"
+      ansible.builtin.service:
+        name:                          kdump
+        state:                         restarted
+
+    # Ensure that the initramfs image file contains the fence_kdump and hosts files
+    - name:                            "1.18.2.0 Generic Pacemaker - Check that the initramfs image file contains the fence_kdump and hosts files"
+      ansible.builtin.shell:           set -o pipefail && lsinitrd /boot/initramfs-$(uname -r)kdump.img | egrep "fence|hosts"
+      register:                        initramfs_image_file
+      changed_when:                    false
+      failed_when:                     false
+
+    # Ensure that the initramfs image file contains the fence_kdump and hosts files
+    - name:                            "1.18.2.0 Generic Pacemaker - Check that the initramfs image file contains the fence_kdump and hosts files"
+      ansible.builtin.shell:           set -o pipefail && lsinitrd /boot/initramfs-$(uname -r)kdump.img | egrep "fence|hosts"
+      register:                        initramfs_image_check
+      changed_when:                    false
+      failed_when:                     initramfs_image_check.rc != 0
+
+    # print debug on the validation of initramfs
+    - name:                            "1.18.2.0 Generic Pacemaker - debug initramfs output"
+      ansible.builtin.debug:
+        msg:                           "initramfs check: {{ initramfs_image_check.stdout }}"
+      when:                            initramfs_image_check.rc == 0
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | kdump stonith - END                                                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Azure scheduled events - BEGIN                                             |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "1.18.2.0 Generic Pacemaker - check if the OS version is RHEL 8.4 or newer"
+  ansible.builtin.set_fact:
+    is_rhel_84_or_newer:               "{{ ansible_distribution_version is version('8.4', '>=') }}"
+  when:                                ansible_distribution_major_version in ["8", "9"]
+
+- name:                                "1.18.2.0 Generic Pacemaker - Ensure Azure scheduled events is configured"
+  when:
+                                      - inventory_hostname == primary_instance_name
+                                      - is_rhel_84_or_newer
+  block:
+  # After configuring the Pacemaker resources for azure-events agent,
+  # when you place the cluster in or out of maintenance mode, you may get warning messages like:
+  #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
+  #   WARNING: cib-bootstrap-options: unknown attribute 'azure-events_globalPullState'
+  #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
+  # These warning messages can be ignored.
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure maintenance mode is set"
+      ansible.builtin.command:         pcs property set maintenance-mode=true
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the node-health-strategy"
+      ansible.builtin.command:         pcs property set node-health-strategy=custom
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the cluster health-node-strategy constraint"
+      ansible.builtin.command:         pcs constraint location 'regexp%!health-.*' rule score-attribute='#health-azure' defined '#uname'
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Set the initial value of the cluster attributes"
+      ansible.builtin.shell:
+        cmd:                           crm_attribute --node {{ item }} --name '#health-azure' --update 0
+      with_items:
+        - "{{ ansible_play_hosts_all }}"
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Configure the resources in Pacemaker"
+      ansible.builtin.command:         pcs resource create health-azure-events ocf:heartbeat:azure-events-az op monitor interval=10s
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure clone resource azure-events is configured"
+      ansible.builtin.command:         pcs resource clone health-azure-events allow-unhealthy-nodes=true
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure maintenance mode is disabled"
+      ansible.builtin.command:         pcs property set maintenance-mode=false
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Clear any errors during enablement of the Azure scheduled events"
+      ansible.builtin.command:         pcs resource cleanup
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure the Azure scheduled events resource is started"
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       pcs status --full | grep health-azure-events | grep Started | wc -l
+      register:                        azure_scheduled_events_status
+      retries:                         12
+      delay:                           10
+      until:                           azure_scheduled_events_status.stdout | int == ansible_play_hosts_all | length
+      when:                            inventory_hostname == primary_instance_name
+      failed_when:                     false
+
+    - name:                            "1.18.2.0 Generic Pacemaker - display output of Azure scheduled events"
+      when:                            inventory_hostname == primary_instance_name
+      ansible.builtin.debug:
+        msg:
+          - "output lines:             {{ azure_scheduled_events_status.stdout_lines }}"
+          - "output:                   {{ azure_scheduled_events_status.stdout | int }}"
+          - "output_truthiness:        {{ azure_scheduled_events_status.stdout | int == ansible_play_hosts_all | length }}"
+        verbosity:                     2

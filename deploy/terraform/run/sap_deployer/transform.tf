@@ -23,12 +23,9 @@ locals {
                                               ""
                                             )
                                           }
-    tags                               = try(
-                                          coalesce(
-                                            var.resourcegroup_tags,
-                                            try(var.infrastructure.tags, {})
-                                          ),
-                                          {}
+    tags                               = merge(
+                                            var.tags, var.resourcegroup_tags
+
                                         )
 
     vnets                              = {

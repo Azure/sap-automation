@@ -32,7 +32,7 @@ variable "db_subnet"                                    { description = "Informa
 variable "deploy_application_security_groups"           { description = "Defines if application security groups should be deployed" }
 variable "deployment"                                   { description = "The type of deployment" }
 variable "fencing_role_name"                            { description = "If specified the role name to use for the fencing" }
-variable "infrastructure"                               {}
+variable "infrastructure"                               { description = "Dictionary with infrastructure settings" }
 variable "landscape_tfstate"                            { description = "Landscape remote tfstate file" }
 variable "license_type"                                 {
                                                           description = "Specifies the license type for the OS"
@@ -59,6 +59,7 @@ variable "use_loadbalancers_for_standalone_deployments" {
                                                           default     = true
                                                         }
 variable "use_msi_for_clusters"                         { description = "If true, the Pacemaker cluser will use a managed identity" }
+variable "use_observer"                                 { description = "Use Observer VM" }
 variable "use_secondary_ips"                            {
                                                           description = "Use secondary IPs for the SAP System"
                                                           default     = false

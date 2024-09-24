@@ -10,10 +10,16 @@ ${sid}_DB:
       become_user         : ${db_become_user}
       os_type             : ${db_os_type}
       vm_name             : ${db_vmnodes[idx]}
+%{~ if scale_out }
+      site                : ${site[idx]}
+%{~ endif }
+
+%{~ if db_connectiontype == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
       ${winrm_transport}
+%{~ endif }
 
 %{~ endfor }
   vars:
@@ -32,10 +38,12 @@ ${sid}_SCS:
       become_user         : ${scs_become_user}
       os_type             : ${scs_os_type}
       vm_name             : ${scs_vmnodes[idx]}
+%{~ if scs_connectiontype == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
       ${winrm_transport}
+%{~ endif }
 
 %{~ endfor }
   vars:
@@ -54,10 +62,12 @@ ${sid}_ERS:
       become_user         : ${scs_become_user}
       os_type             : ${scs_os_type}
       vm_name             : ${ers_vmnodes[idx]}
+%{~ if ers_connectiontype == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
       ${winrm_transport}
+%{~ endif }
 
 %{~ endfor }
   vars:
@@ -71,16 +81,18 @@ ${sid}_PAS:
     ${pas_servers[idx]}:
       ansible_host        : ${ip_pas}
       ansible_user        : ${ansible_user}
-      ansible_connection  : ${scs_connection}
-      connection_type     : ${scs_connectiontype}
+      ansible_connection  : ${app_connection}
+      connection_type     : ${app_connectiontype}
       virtual_host        : ${virt_pas_servers[idx]}
       become_user         : ${app_become_user}
       os_type             : ${app_os_type}
       vm_name             : ${pas_vmnodes[idx]}
+%{~ if app_connectiontype == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
       ${winrm_transport}
+%{~ endif }
 
 %{~ endfor }
   vars:
@@ -99,10 +111,12 @@ ${sid}_APP:
       become_user         : ${app_become_user}
       os_type             : ${app_os_type}
       vm_name             : ${app_vmnodes[idx]}
+%{~ if app_connectiontype == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
       ${winrm_transport}
+%{~ endif }
 
 %{~ endfor }
   vars:
@@ -121,10 +135,12 @@ ${sid}_WEB:
       become_user         : ${web_become_user}
       os_type             : ${web_os_type}
       vm_name             : ${web_vmnodes[idx]}
+%{~ if web_connectiontype == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
       ${winrm_transport}
+%{~ endif }
 
 %{~ endfor }
   vars:
@@ -142,10 +158,12 @@ ${sid}_OBSERVER_DB:
       virtual_host        : ${observers[idx]}
       become_user         : ${db_become_user}
       os_type             : ${db_os_type}
+%{~ if db_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
       ${winrm_transport}
+%{~ endif }
 
 %{~ endfor }
   vars:

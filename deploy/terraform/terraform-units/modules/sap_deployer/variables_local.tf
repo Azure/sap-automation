@@ -262,6 +262,6 @@ locals {
   # automation_keyvault_resourcegroup_name = local.automation_keyvault_exist ? split("/", local.prvt_key_vault_id)[4] : ""
 
   // Tags
-  tags                                 = try(var.deployer.tags, { "Role" = "Deployer" })
+  tags                                 = merge(var.infrastructure.tags,try(var.deployer.tags, { "Role" = "Deployer" }))
 
 }

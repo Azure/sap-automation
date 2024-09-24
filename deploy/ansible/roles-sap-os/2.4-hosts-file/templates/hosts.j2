@@ -129,16 +129,23 @@ ansible_facts.
 {%     else %}
 {# Loop through remaining IPs for the virtual host #}
 {%       for ip in host_ips[1:] %}
-{%         if (db_scale_out)  %}
-{%           if (subnet_cidr_storage | ansible.utils.network_in_usable(ip)) %}
+{%         if (database_scale_out) %}
+{%            if (database_high_availability) %}
+{%              if (subnet_cidr_db | ansible.utils.network_in_usable(ip)) %}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-hsr.' + sap_fqdn) }}{{ '%-21s' | format(host + '-hsr') }}
+{%              elif (subnet_cidr_storage | ansible.utils.network_in_usable(ip)) %}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-inter.' + sap_fqdn) }}{{ '%-21s' | format(host + '-inter') }}
+{%              endif %}
+{%            else %}
+{%              if (subnet_cidr_db | ansible.utils.network_in_usable(ip)) %}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-storage.' + sap_fqdn) }}{{ '%-21s' | format(host + '-storage') }}
-{%           elif (subnet_client_cidr | ansible.utils.network_in_usable(ip)) %}
-{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-client.' + sap_fqdn) }}{{ '%-21s' | format(host + '-client') }}
-{%           endif %}
+{%              elif (subnet_cidr_storage | ansible.utils.network_in_usable(ip)) %}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-hana.' + sap_fqdn) }}{{ '%-21s' | format(host + '-hana') }}
+{%              endif %}
+{%            endif %}
 {%         else %}
 {%           for vh_name in virtual_host_names if virtual_host_names | length >= 1 %}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(vh_name + '.' + sap_fqdn) }}{{ '%-21s' | format(vh_name) }}
-
 {%           endfor %}
 {%         endif %}
 {%       endfor %}

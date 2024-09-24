@@ -142,21 +142,7 @@
       when:
         - node_tier in item.target_nodes or item.target_nodes == ['all']
 
-- name:                            "Backward Compatibility - Check required Database HA variables"
-  ansible.builtin.set_fact:
-    database_high_availability:    "{{ db_high_availability | default(false) }}"
-  when:
-    - db_high_availability is defined
-    - database_high_availability is not defined
-
-- name:                            "Backward Compatibility - Check required Database HA variables"
-  ansible.builtin.set_fact:
-    database_high_availability:    "{{ db_high_availability | default(false) }}"
-  when:
-    - db_high_availability is defined
-    - database_high_availability is not defined
-
-# absent_from_fstab
+# Remove entries from fstab
 - name:                                "ANF Mount: RHEL DB high availability configuration"
   when:                                ansible_os_family | upper == "REDHAT" and database_high_availability
   block:
@@ -171,6 +157,7 @@
         - item.target_nodes == ['hana']
         - item.type in ['data','log','shared']
         - database_high_availability
+        - not database_scale_out
 
     - name:                            "ANF Mount: make mount for {{ item.path }} ephemeral when DB high availability"
       ansible.posix.mount:
@@ -183,6 +170,7 @@
         - item.target_nodes == ['hana']
         - item.type in ['data','log','shared']
         - database_high_availability
+        - not database_scale_out
 
 # https://www.suse.com/support/kb/doc/?id=000019904
 # - name:                                "ANF Mount: SLES DB high availability configuration"

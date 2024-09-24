@@ -1,0 +1,46 @@
+---
+
+- name:                                "1.18.3 Generic Pacemaker - Pause to give cluster time to stabilize"
+  ansible.builtin.pause:
+    seconds:                           "{{ cluster_status_report_wait_in_s }}"
+
+- name:                                "1.18.3 Generic Pacemaker - Cleanup resource status ( REDHAT )"
+  ansible.builtin.shell: >
+                                       pcs resource cleanup
+  register:                            cluster_cleanup
+  failed_when:                         cluster_cleanup.rc > 0
+  when:
+    ansible_os_family | upper == "REDHAT"
+
+- name:                                "1.18.3 Generic Pacemaker - Cleanup resource status ( SUSE )"
+  ansible.builtin.shell: >
+                                       crm resource cleanup
+  register:                            cluster_cleanup
+  failed_when:                         cluster_cleanup.rc > 0
+  when:
+    ansible_os_family | upper == "SUSE"
+
+- name:                                "1.18.3 Generic Pacemaker - Check the post-provisioning cluster status"
+  ansible.builtin.command:             "{{ cluster_status_cmd[ansible_os_family] }}"
+  register:                            cluster_status_report
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "1.18.3 Generic Pacemaker - Output cluster status"
+  ansible.builtin.debug:
+    msg:                               "{{ cluster_status_report.stdout }}"
+    verbosity:                         2
+
+# - name:                                Check the SBD devices status
+#   ansible.builtin.shell:              >
+#                                        set -o pipefail
+#                                        crm_mon -1 | grep sbd
+#   register:                            sbd_status_report
+#   changed_when:                        false
+#   failed_when:                         false
+#   when:                                ansible_os_family | upper == "SUSE"
+
+# - name:                                Output SBD status
+#   ansible.builtin.debug:
+#     msg:                               "{{ sbd_status_report.stdout }}"
+#   when:                                ansible_os_family | upper == "SUSE"

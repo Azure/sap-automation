@@ -1,0 +1,127 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | This file runs common pre-check tasks before the                           |
+# | OS specific clustering is performed                                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Fencing Specific                                                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+- name:                                           "Cluster Type: Fencing"
+  block:
+
+    - name:                                       "BEGIN: Fencing specific..."
+      ansible.builtin.debug:
+        msg:                                      # Best method for formatting output with Azure Devops Logs
+                                                  - "BEGIN: Fencing specific..."
+
+    - name:                                       "1.18.1 Generic Pacemaker - Check the fencing agent configuration variables are set"
+      ansible.builtin.assert:
+        that:
+                                                  - "fencing_spn_subscription_id  is defined"
+                                                  - "fencing_spn_subscription_id  | trim | length > 0"
+                                                  - "fencing_spn_tenant_id        is defined"
+                                                  - "fencing_spn_tenant_id        | trim | length > 0"
+                                                  - "fencing_spn_client_id        is defined"
+                                                  - "fencing_spn_client_id        | trim | length > 0"
+                                                  - "fencing_spn_client_pwd       is defined"
+                                                  - "fencing_spn_client_pwd       | trim | length > 0"
+        fail_msg:                                 "A highly available deployment requires that an SPN is defined for the fencing agent"
+      when:
+                                                  - not use_msi_for_clusters
+
+    - name:                                       "END  : Fencing specific..."
+      ansible.builtin.debug:
+        msg:                                      # Best method for formatting output with Azure Devops Logs
+                                                  - "END  : Fencing specific..."
+
+  when:
+                                                  - (database_cluster_type == "AFA")
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Fencing Specific - END                                                     |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | SBD Specific                                                               |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+- name:                                           "Cluster Type: SBD"
+  block:
+
+    - name:                                       "BEGIN: SBD specific..."
+      ansible.builtin.debug:
+        msg:                                      # Best method for formatting output with Azure Devops Logs
+                                                  - "BEGIN: SBD specific..."
+
+
+    - name:                                       "END  : SBD specific..."
+      ansible.builtin.debug:
+        msg:                                      # Best method for formatting output with Azure Devops Logs
+                                                  - "END  : SBD specific..."
+
+  when:
+                                                  - (database_cluster_type == "ASD")   or
+                                                    (database_cluster_type == "ISCSI")
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | SBD Specific - END                                                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | SUSE Specific                                                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+- name:                                           "SUSE specific"
+  block:
+
+    - name:                                       "1.18.1 Generic Pacemaker - Check the required Clustering scripts are available"
+      ansible.builtin.stat:
+        path:                                     "/usr/sbin/crm"
+      register:                                   cluster_scripts_status_results
+      failed_when:                                not cluster_scripts_status_results.stat.exists
+
+  when:
+                                                  - ansible_os_family | upper == "SUSE"
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | SUSE Specific - END                                                        |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                           "1.18.1 Generic Pacemaker - Check the required cluster password is set"
+  ansible.builtin.assert:
+    that:
+                                                  - "password_ha_db_cluster is defined"
+                                                  - "password_ha_db_cluster | trim | length > 0"
+    fail_msg:                                     "A highly available SCS deployment requires that an cluster password is set"
+
+- name:                                           "1.18.1 Generic Pacemaker - Check if a cluster has already been prepared"
+  ansible.builtin.command:                        "{{ cluster_status_cmd[ansible_os_family] }}"
+  register:                                       cluster_existence_check_result
+  changed_when:                                   false
+  failed_when:                                    false
+
+- name:                                           "1.18.1 Generic Pacemaker - Save settings"
+  ansible.builtin.set_fact:
+    cluster_existence_check:                      "{{ cluster_existence_check_result.rc | int }}"
+
+- name:                                           "1.18.1 Generic Pacemaker - Show if a cluster has already been prepared"
+  ansible.builtin.debug:
+    msg:
+                                                  - "Is the cluster configured : {{ cluster_existence_check }}"
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

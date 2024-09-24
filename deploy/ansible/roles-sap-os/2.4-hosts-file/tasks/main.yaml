@@ -99,7 +99,7 @@
   when:
     - platform == 'HANA'
     - not database_high_availability
-    - db_scale_out
+    - database_scale_out
   block:
 
     - name:                            "2.4 Hosts: - Set the DB Virtual Instance hostname - scale out"
@@ -108,7 +108,7 @@
 
     - name:                            "2.4 Hosts: - Calculate host name - DB - Scale Out - Standby"
       ansible.builtin.set_fact:
-        db_so_virtualhost_ip:          "{{ hostvars[item].ansible_all_ipv4_addresses | ansible.utils.ipaddr(hostvars[item]['subnet_client_cidr']) | first | default(hostvars[item].ansible_host) }}"
+        db_so_virtualhost_ip:          "{{ hostvars[item].ansible_all_ipv4_addresses | ansible.utils.ipaddr(hostvars[item]['subnet_cidr_client']) | first | default(hostvars[item].ansible_host) }}"
       with_items:
         - "{{ groups[(sap_sid | upper)~'_DB' ][0] }}"
 
