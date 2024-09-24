@@ -239,7 +239,7 @@
                   - "scs_instance_number != db_instance_number"
                 fail_msg:              "Please ensure that the scs_instance_number is different from the db_instance_number"
           when:
-            - (ansible_play_hosts_all | length) == 1
+            - single_server
             - platform == "HANA"
 
         - name:                        "SCS Installation Playbook: - Set 'scs' tier facts"
