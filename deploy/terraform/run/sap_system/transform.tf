@@ -92,7 +92,7 @@ locals {
                                            observer_vm_ips                 = var.observer_nic_ips
 
                                            platform                        = var.database_platform
-                                           use_ANF                         = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
+                                           use_ANF                         = var.database_HANA_use_scaleout_scenario || try(var.databases[0].use_ANF, false)
                                            use_avset                       = var.database_server_count == 0 || var.use_scalesets_for_deployment || length(var.database_vm_zones) > 0 || var.database_platform == "NONE" ? (
                                                                                false) : (
                                                                                var.database_use_avset
@@ -103,7 +103,7 @@ locals {
                                                                                var.database_use_ppg
                                                                              )
                                            user_assigned_identity_id       = var.user_assigned_identity_id
-                                           scale_out                       = var.database_HANA_use_ANF_scaleout_scenario
+                                           scale_out                       = var.database_HANA_use_scaleout_scenario
                                            stand_by_node_count             = var.stand_by_node_count
                                            zones                           = var.database_vm_zones
                                          }
