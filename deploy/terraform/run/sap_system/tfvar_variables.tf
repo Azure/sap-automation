@@ -1435,7 +1435,7 @@ variable "patch_assessment_mode"                {
 #                                                                                       #
 #########################################################################################
 
-variable "database_HANA_use_ANF_scaleout_scenario" {
+variable "database_HANA_use_scaleout_scenario" {
                                                   description = "If true, the database tier will be configured for scaleout scenario"
                                                   default = false
                                                 }

@@ -39,7 +39,7 @@ module "sap_namegenerator" {
   scs_high_availability                         = local.application_tier.scs_high_availability
   scs_cluster_type                              = local.application_tier.scs_cluster_type
   use_zonal_markers                             = var.use_zonal_markers
-  scale_out                                     = var.database_HANA_use_ANF_scaleout_scenario
+  scale_out                                     = var.database_HANA_use_scaleout_scenario
 }
 
 #########################################################################################
@@ -153,10 +153,12 @@ module "hdb_node" {
   terraform_template_version                    = var.terraform_template_version
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
   use_msi_for_clusters                          = var.use_msi_for_clusters
-  use_observer                                  = var.database_HANA_use_ANF_scaleout_scenario && local.database.high_availability
+  use_observer                                  = var.database_HANA_use_scaleout_scenario && local.database.high_availability
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
   dns_settings                                  = local.dns_settings
+  use_private_endpoint                          = var.use_private_endpoint
+  hanashared_private_endpoint_id                = var.hanashared_private_endpoint_id
 }
 
 #########################################################################################
@@ -438,7 +440,7 @@ module "output_files" {
   #########################################################################################
   use_simple_mount                              = local.validated_use_simple_mount
   upgrade_packages                              = var.upgrade_packages
-  scale_out                                     = var.database_HANA_use_ANF_scaleout_scenario
+  scale_out                                     = var.database_HANA_use_scaleout_scenario
   scale_out_no_standby_role                     = var.database_HANA_no_standby_role
 
   #########################################################################################
