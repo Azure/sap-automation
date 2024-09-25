@@ -110,6 +110,7 @@ module "hdb_node" {
                                                   }
 
   admin_subnet                                  = module.common_infrastructure.admin_subnet
+  Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
   anchor_vm                                     = module.common_infrastructure.anchor_vm // Workaround to create dependency from anchor to db to app
   cloudinit_growpart_config                     = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")

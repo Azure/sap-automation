@@ -1449,6 +1449,11 @@ variable "stand_by_node_count"                  {
                                                   description = "The number of standby nodes"
                                                   default = 0
                                                 }
+
+variable "hanashared_private_endpoint_id"       {
+                                                  description = "The Azure Resource identifier for the private endpoint connection to the HANA shared volume"
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  SAP CAL Integration variables                                                        #
