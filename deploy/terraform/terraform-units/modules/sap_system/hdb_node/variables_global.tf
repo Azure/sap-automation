@@ -132,3 +132,8 @@ variable "hanashared_private_endpoint_id"            {
                                                        description = "Azure Resource Identifier for an private endpoint connection"
                                                        default     = [""]
                                                      }
+
+variable "Agent_IP"                                  {
+                                                       description = "The IP address of the agent"
+                                                       default     = [""]
+                                                     }
