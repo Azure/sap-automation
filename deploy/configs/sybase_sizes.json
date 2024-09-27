@@ -10,7 +10,7 @@
             "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
-            "size_gb"                              : 64,
+            "size_gb"                              : 128,
             "caching"                              : "ReadWrite"
             },
           {
@@ -97,7 +97,7 @@
       },
       "512": {
         "compute": {
-          "vm_size"                                : "Standard_E8ds_v4"
+          "vm_size"                                : "Standard_E16ds_v4"
         },
         "storage": [
           {
@@ -105,7 +105,7 @@
             "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
-            "size_gb"                              : 64,
+            "size_gb"                              : 128,
             "caching"                              : "ReadWrite",
             "write_accelerator"                    : false
           },
@@ -191,7 +191,7 @@
             "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
-            "size_gb"                              : 64,
+            "size_gb"                              : 128,
             "caching"                              : "ReadWrite",
             "write_accelerator"                    : false
           },
@@ -297,7 +297,7 @@
             "fullname"                             : "",
             "count"                                : 1,
             "disk_type"                            : "Premium_LRS",
-            "size_gb"                              : 64,
+            "size_gb"                              : 128,
             "caching"                              : "ReadWrite",
             "write_accelerator"                    : false
           },

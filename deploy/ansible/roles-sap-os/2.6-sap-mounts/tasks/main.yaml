@@ -5,6 +5,11 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+- name:                                "1.5 Disk setup - Load the disk configuration settings"
+  ansible.builtin.include_vars:        disks_config.yml
+  when:                                logical_volumes is not defined
+
+
 - name:                                "2.6 SAP Mounts: - Show MULTI_SIDS"
   ansible.builtin.debug:
     var:                               MULTI_SIDS
