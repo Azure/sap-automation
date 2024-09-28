@@ -249,7 +249,7 @@ locals {
   app_os = {
     source_image_id                 = try(var.application_server_image.source_image_id, "")
     publisher                       = try(var.application_server_image.publisher,       "SUSE")
-    offer                           = try(var.application_server_image.offer,           "sles-sap-15-sp3")
+    offer                           = try(var.application_server_image.offer,           "sles-sap-15-sp5")
     sku                             = try(var.application_server_image.sku,             "gen2")
     version                         = try(var.application_server_image.version,         "latest")
     type                            = try(var.database_vm_image.type,                   "marketplace")
@@ -286,7 +286,7 @@ locals {
                                         os_type         = try(coalesce(var.scs_server_image.os_type, var.application_server_image.os_type, "LINUX"), "LINUX")
                                         source_image_id = try(coalesce(var.scs_server_image.source_image_id, try(var.application_tier.scs_os.source_image_id, "")), "")
                                         publisher       = try(coalesce(var.scs_server_image.publisher, try(var.application_tier.scs_os.publisher, "SUSE")), "SUSE")
-                                        offer           = try(coalesce(var.scs_server_image.offer, try(var.application_tier.scs_os.offer, "sles-sap-15-sp3")), "sles-sap-15-sp3")
+                                        offer           = try(coalesce(var.scs_server_image.offer, try(var.application_tier.scs_os.offer, "sles-sap-15-sp5")), "sles-sap-15-sp5")
                                         sku             = try(coalesce(var.scs_server_image.sku, try(var.application_tier.scs_os.sku, "gen2")), "gen2")
                                         version         = try(coalesce(var.scs_server_image.version, try(var.application_tier.scs_os.version, "latest")), "latest")
                                         type            = try(var.database_vm_image.type, "marketplace")
@@ -297,7 +297,7 @@ locals {
   validated_use_simple_mount        = var.use_simple_mount ? (
                                         upper(local.scs_os.publisher) != "SUSE" || !(var.scs_high_availability) ? (
                                          false) : (
-                                         contains(["sles-sap-15-sp3", "sles-sap-15-sp4", "sles-sap-15-sp5"], local.scs_os.offer) ? (
+                                         contains(["sles-sap-15-sp3", "sles-sap-15-sp4", "sles-sap-15-sp5", "sles-sap-15-sp6"], local.scs_os.offer) ? (
                                            var.use_simple_mount) : (
                                            false
                                          )
@@ -309,7 +309,7 @@ locals {
                                         os_type         = try(coalesce(var.webdispatcher_server_image.os_type, var.application_server_image.os_type, "LINUX"), "LINUX")
                                         source_image_id = try(coalesce(var.webdispatcher_server_image.source_image_id, try(var.application_tier.web_os.source_image_id, "")), "")
                                         publisher       = try(coalesce(var.webdispatcher_server_image.publisher, try(var.application_tier.web_os.publisher, "SUSE")), "SUSE")
-                                        offer           = try(coalesce(var.webdispatcher_server_image.offer, try(var.application_tier.web_os.offer, "sles-sap-15-sp3")), "sles-sap-15-sp3")
+                                        offer           = try(coalesce(var.webdispatcher_server_image.offer, try(var.application_tier.web_os.offer, "sles-sap-15-sp5")), "sles-sap-15-sp5")
                                         sku             = try(coalesce(var.webdispatcher_server_image.sku, try(var.application_tier.web_os.sku, "gen2")), "gen2")
                                         version         = try(coalesce(var.webdispatcher_server_image.version, try(var.application_tier.web_os.version, "latest")), "latest")
                                         type            = try(var.database_vm_image.type, "marketplace")
@@ -659,7 +659,7 @@ locals {
                                            length(local.scs_nic_ips) > 0                          ? { scs_nic_ips = local.scs_nic_ips } : null), (
                                            length(var.scs_server_nic_secondary_ips) > 0           ? { scs_nic_secondary_ips = var.scs_server_nic_secondary_ips } : null), (
                                            length(local.scs_admin_nic_ips) > 0                    ? { scs_admin_nic_ips = local.scs_admin_nic_ips } : null), (
-                                           length(local.scs_server_loadbalancer_ips) > 0                           ? { scs_server_loadbalancer_ips = local.scs_server_loadbalancer_ips } : null), (
+                                           length(local.scs_server_loadbalancer_ips) > 0          ? { scs_server_loadbalancer_ips = local.scs_server_loadbalancer_ips } : null), (
                                            length(local.web_nic_ips) > 0                          ? { web_nic_ips = local.web_nic_ips } : null), (
                                            length(var.webdispatcher_server_nic_secondary_ips) > 0 ? { web_nic_secondary_ips = var.webdispatcher_server_nic_secondary_ips } : null), (
                                            length(local.web_admin_nic_ips) > 0                    ? { web_admin_nic_ips = local.web_admin_nic_ips } : null), (

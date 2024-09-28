@@ -86,7 +86,7 @@ locals {
                                              "") : (
                                              length(try(var.database.os.offer, "")) > 0 ? (
                                                var.database.os.offer) : (
-                                               "sles-sap-15-sp3"
+                                               "sles-sap-15-sp5"
                                              )
                                            )
                                            sku = local.hdb_custom_image ? (

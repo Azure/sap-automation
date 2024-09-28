@@ -1335,7 +1335,7 @@ variable "anchor_vm_image" {
                                                               "os_type"         = "LINUX"
                                                               "source_image_id" = ""
                                                               "publisher"       = "SUSE"
-                                                              "offer"           = "sles-sap-15-sp3"
+                                                              "offer"           = "sles-sap-15-sp5"
                                                               "sku"             = "gen2"
                                                               "version"         = "latest"
                                                             }
