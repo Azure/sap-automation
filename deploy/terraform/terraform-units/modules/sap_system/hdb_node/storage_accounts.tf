@@ -107,7 +107,7 @@ resource "azurerm_private_endpoint" "hanashared" {
   count                                = var.NFS_provider == "AFS" && var.use_private_endpoint && var.database.scale_out ? (
                                           length(var.hanashared_private_endpoint_id) > 0 ? (
                                             0) : (
-                                            1
+                                            length(var.database.zones)
                                           )) : (
                                           0
                                         )
@@ -172,4 +172,18 @@ resource "time_sleep" "wait_for_private_endpoints" {
   create_duration                      = "120s"
 
   depends_on                           = [ azurerm_private_endpoint.hanashared ]
+}
+
+data "azurerm_private_endpoint_connection" "hanashared" {
+  provider                             = azurerm.main
+  count                                = var.NFS_provider == "AFS" ? (
+                                           length(var.hanashared_private_endpoint_id) > 0 ? (
+                                             length(var.database.zones)) : (
+                                             0
+                                           )) : (
+                                           0
+                                         )
+  name                                 = split("/", var.hanashared_private_endpoint_id[count.index])[8]
+  resource_group_name                  = split("/", var.hanashared_private_endpoint_id[count.index])[4]
+
 }
