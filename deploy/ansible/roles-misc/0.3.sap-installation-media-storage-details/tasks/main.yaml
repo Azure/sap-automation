@@ -229,9 +229,9 @@
       ansible.builtin.command:          "date +'%Y-%m-%d' -d '+3 days'"
       register:                         expiry
 
-    - name:                            "0.4 Installation Media: - Create SAP Binaries Storage Account SAS in Control Plane subscription"
+    - name:                            "0.4 Installation Media: - Create USer delegation SAP Binaries Storage Account SAS in Control Plane subscription"
       ansible.builtin.command: >-
-                                       az storage account generate-sas \
+                                       az storage container generate-sas \
                                          --account-name {{ account_name }} \
                                          --name {{ container_name }} \
                                          --expiry {{ expiry.stdout }} \
