@@ -136,3 +136,5 @@ variable "Agent_IP"                                  {
                                                        description = "The IP address of the agent"
                                                        default     = [""]
                                                      }
+
+variable "random_id"                                 { description = "Random hex string" }

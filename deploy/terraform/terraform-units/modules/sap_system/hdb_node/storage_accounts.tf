@@ -20,11 +20,8 @@ resource "azurerm_storage_account" "hanashared" {
                                          ), 0, 24)
 
 
-  resource_group_name                  = local.resource_group_exists ? (
-                                          data.azurerm_resource_group.resource_group[0].name) : (
-                                          azurerm_resource_group.resource_group[0].name
-                                        )
-  location                             = var.infrastructure.region
+  resource_group_name                  = var.resource_group[0].name
+  location                             = var.resource_group[0].location
   account_tier                         = "Premium"
   account_replication_type             = "ZRS"
   account_kind                         = "FileStorage"
@@ -107,7 +104,7 @@ resource "azurerm_storage_share" "hanashared" {
 
 resource "azurerm_private_endpoint" "hanashared" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "AFS" && var.use_private_endpoint ? (
+  count                                = var.NFS_provider == "AFS" && var.use_private_endpoint && var.database.scale_out ? (
                                           length(var.hanashared_private_endpoint_id) > 0 ? (
                                             0) : (
                                             1
@@ -120,11 +117,8 @@ resource "azurerm_private_endpoint" "hanashared" {
                                            local.resource_suffixes.storage_privatelink_hanashared
                                          )
 
-  resource_group_name                  = local.resourcegroup_name
-  location                             = local.resource_group_exists ? (
-                                           data.azurerm_resource_group.resource_group[0].location) : (
-                                           azurerm_resource_group.resource_group[0].location
-                                         )
+  resource_group_name                  = var.resource_group[0].name
+  location                             = var.resource_group[0].location
 
   subnet_id                            = var.landscape_tfstate.admin_subnet_id
   tags                                 = var.tags
