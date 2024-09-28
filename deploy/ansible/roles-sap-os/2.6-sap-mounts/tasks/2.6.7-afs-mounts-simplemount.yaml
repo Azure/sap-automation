@@ -308,6 +308,7 @@
       'type':              'trans',
       'temppath':          'saptrans',
       'mount':             '{{ sap_trans }}',
+      'owner':             'root',
       'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
       'path':              '/usr/sap/trans',
       'permissions':       '0775',

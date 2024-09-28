@@ -31,14 +31,14 @@
   when:                                rootvg_exists | default(false)
   block:
 
-    - name:                            "1.5 Expand Volumes - Get Volume Group information"
+    - name:                            "1.5 Expand Volumes - Extract free size of the VG"
       ansible.builtin.shell:           set -o pipefail && vgdisplay --units g {{ vg_root }} | grep 'Free  PE / Size' | awk '{print $(NF-1)}'
       register:                        vg_info
       changed_when:                    false
 
     - name:                            "1.5 Expand Volumes - Extract free size of the VG"
       ansible.builtin.set_fact:
-        vg_free_size:                  "{{ vg_info.stdout | float }}"
+        vg_free_size:                         "{{ vg_info.stdout | float }}"
       when:
         - vg_info is defined
         - vg_info.stdout is defined
@@ -50,12 +50,12 @@
         - vg_free_size is defined
         - node_tier not in ['oracle', 'oracle-asm', 'ase', 'hana', 'db2']
 
-    - name:                            "1.5 Expand Volumes - Check if free size is more than 30 GB"
+    - name:                            "1.5 Expand Volumes - Check if free size is more than 30 GB (DB)"
       ansible.builtin.set_fact:
         sufficient_vg_space_db:        "{{ vg_free_size | default(0) | float > 30.0 }}"
       when:
         - vg_free_size is defined
-        - node_tier in ['oracle', 'oracle-asm', 'ase', 'hana', 'db2']
+        - node_tier in ['oracle', 'oracle-asm', 'sybase', 'hana', 'db2']
 
 
     # ------------------<DEBUGGING>-------------------
@@ -70,44 +70,45 @@
         verbosity:                     2
     # ------------------</DEBUGGING>------------------
 
-    - name:                            "1.5 Expand Volumes - Extend the logical volumes and resize the FS"
+    - name:                        "1.5 Expand Volumes - Extend the logical volumes and resize the FS"
       community.general.lvol:
-        vg:                            "{{ item.vg }}"
-        lv:                            "{{ item.lv }}"
-        size:                          "{{ item.size }}"
-        active:                        true
-        state:                         present
-        shrink:                        false
-        resizefs:                      true
+        vg:                        "{{ item.vg }}"
+        lv:                        "{{ item.lv }}"
+        size:                      "{{ item.size }}"
+        active:                    true
+        state:                     present
+        shrink:                    false
+        resizefs:                  true
       loop:
         - { vg: '{{ vg_root }}',    lv: 'rootlv',    size: '{{ lv_root_size }}' }
         - { vg: '{{ vg_root }}',    lv: 'tmplv',     size: '{{ lv_tmp_size }}'  }
       when:
         - sufficient_vg_space | default(false)
-        - node_tier not in ['oracle', 'oracle-asm', 'ase', 'hana', 'db2']
+        - node_tier not in ['oracle', 'oracle-asm', 'sybase', 'hana', 'db2']
 
-    - name:                            "1.5 Expand Volumes - Extend the logical volumes and resize the FS"
+    - name:                        "1.5 Expand Volumes - Extend the logical volumes and resize the FS (DB)"
       community.general.lvol:
-        vg:                            "{{ item.vg }}"
-        lv:                            "{{ item.lv }}"
-        size:                          "{{ item.size }}"
-        active:                        true
-        state:                         present
-        shrink:                        false
-        resizefs:                      true
+        vg:                        "{{ item.vg }}"
+        lv:                        "{{ item.lv }}"
+        size:                      "{{ item.size }}"
+        active:                    true
+        state:                     present
+        shrink:                    false
+        resizefs:                  true
       loop:
         - { vg: '{{ vg_root }}',    lv: 'rootlv',    size: '{{ lv_root_size_db }}' }
         - { vg: '{{ vg_root }}',    lv: 'tmplv',     size: '{{ lv_tmp_size }}'  }
       when:
         - sufficient_vg_space_db | default(false)
-        - node_tier in ['oracle', 'oracle-asm', 'ase', 'hana', 'db2']
+        - node_tier in ['oracle', 'oracle-asm', 'sybase', 'hana', 'db2']
+
 
     # ------------------<DEBUGGING>-------------------
     - name:                            "1.5 Expand Volumes - Print recent Volume Group size and Logical Volume information"
       ansible.builtin.shell: |
-                                       set -o pipefail
-                                       vgdisplay --units g {{ vg_root }} | grep 'Free  PE / Size' | awk '{print $(NF-1)}'
-                                       lvdisplay {{ vg_root }}
+                                        set -o pipefail
+                                        vgdisplay --units g {{ vg_root }} | grep 'Free  PE / Size' | awk '{print $(NF-1)}'
+                                        lvdisplay {{ vg_root }}
       register:                        recent_info
 
     - name:                            "1.5 Expand Volumes - Print volume group details"

@@ -221,7 +221,17 @@
           tags:
             - 1.4-packages
           vars:
-            tier:                     ha
+            tier:                      ha
+
+        - name:                        "SAP OS configuration playbook: - Ensure the packages required for SYBASE are registered"
+          when:
+            - platform == 'SYBASE'
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+          tags:
+            - 1.4-packages
+          vars:
+            tier:                      sybase
 
         - name:                        "SAP OS configuration playbook: - Configure volume groups, logical volumes and file systems"
           ansible.builtin.include_role:
@@ -272,7 +282,7 @@
           tags:
             - 1.16-services
           vars:
-            tier:                     ha
+            tier:                      ha
 
         - name:                        "SAP OS configuration playbook: - directory permissions"
           ansible.builtin.include_role:

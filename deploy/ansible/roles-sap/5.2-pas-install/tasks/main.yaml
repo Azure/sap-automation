@@ -184,7 +184,7 @@
         sap_installSAPHostAgent:       "false"
         sap_profile_dir:               /sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile
         sap_scs_hostname:              "{{ custom_scs_virtual_hostname | default(scs_server, true) }}"
-        sap_db_hostname:               "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
+        sap_db_hostname:               "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) | first }}"
         sap_ciVirtualHostname:         "{{ pas_virtual_hostname | default(virtual_host, true) }}"
         sap_appVirtualHostname:
         param_directory:               "{{ dir_params }}"
