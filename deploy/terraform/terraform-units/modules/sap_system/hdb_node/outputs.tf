@@ -302,7 +302,7 @@ output "hana_shared_afs_path"          {
                                                                )) : (
                                                                data.azurerm_private_endpoint_connection.hanashared[0].private_service_connection[0].private_ip_address
                                                              ),
-                                                             length(var.hanashared_id[0]) > 0 ? (
+                                                             length(var.hanashared_id) > 0 ? (
                                                                split("/", var.hanashared_id[0])[8]
                                                                ) : (
                                                                azurerm_storage_account.hanashared[0].name
@@ -317,7 +317,7 @@ output "hana_shared_afs_path"          {
                                                                )) : (
                                                                data.azurerm_private_endpoint_connection.hanashared[1].private_service_connection[0].private_ip_address
                                                              ),
-                                                             length(var.hanashared_id[1]) > 0 ? (
+                                                             length(var.hanashared_id) > 0 ? (
                                                                split("/", var.hanashared_id[1])[8]
                                                                ) : (
                                                                azurerm_storage_account.hanashared[1].name
