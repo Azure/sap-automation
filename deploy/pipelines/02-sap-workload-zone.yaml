@@ -123,6 +123,16 @@ stages:
                 if [ ! -f /etc/profile.d/deploy_server.sh ]; then
                   echo -e "$green --- Install dos2unix ---$reset"
                   sudo apt-get -qq install dos2unix
+                  echo -e "$green --- Install terraform ---$reset"
+
+                  wget -q $(tf_url)
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                    echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
+                    exit 2
+                  fi
+                  unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
+                  rm -f terraform_$(tf_version)_linux_amd64.zip
                 else
                   source /etc/profile.d/deploy_server.sh
                 fi
@@ -190,9 +200,18 @@ stages:
                 ENVIRONMENT=$(grep "^environment" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs)
                    LOCATION=$(grep "^location" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
                     NETWORK=$(grep "^network_logical_name" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs)
-                echo Environment: ${ENVIRONMENT}
-                echo Location:    ${LOCATION}
-                echo Network:     ${NETWORK}
+                echo Environment:     ${ENVIRONMENT}
+                echo Location:        ${LOCATION}
+                echo Network:         ${NETWORK}
+                echo "TFvars          $workload_zone_configuration_file"
+                echo ""
+                echo "Agent:          $(this_agent)"
+                echo "Organization:   $(System.CollectionUri)"
+                echo "Project:        $(System.TeamProject)"
+                echo ""
+                echo "Azure CLI version:"
+                echo "-------------------------------------------------"
+                az --version
 
                 ENVIRONMENT_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs )
                           LOCATION_CODE=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs )
@@ -381,61 +400,35 @@ stages:
                 fi
 
               secrets_set=1
-              if [ ! -f /etc/profile.d/deploy_server.sh ]; then
-                echo -e "$green --- Install terraform ---$reset"
+              echo -e "$green--- az login ---$reset"
 
-                wget -q $(tf_url)
+                if [ $LOGON_USING_SPN == "true" ]; then
+                  echo "Using SPN"
+                  az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+                else
+                  echo "Using MSI"
+                  export ARM_USE_MSI=true
+                  export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
+                  unset ARM_TENANT_ID
+
+                  az login --identity --allow-no-subscriptions --output none
+                fi
+
                 return_code=$?
                 if [ 0 != $return_code ]; then
-                  echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
-                  exit 2
+                  echo -e "$boldred--- Login failed ---$reset"
+                  echo "##vso[task.logissue type=error]az login failed."
+                  exit $return_code
                 fi
-                unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
-                rm -f terraform_$(tf_version)_linux_amd64.zip
 
-                if [ $USE_MSI != "true" ]; then
-                  export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
-                  export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
-                  export ARM_TENANT_ID=$WL_ARM_TENANT_ID
-                  export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
-                  export ARM_USE_MSI=false
+              if [ $USE_MSI != "true" ]; then
+                echo -e "$green --- Set secrets ---$reset"
 
-                  echo -e "$green--- az login ---$reset"
-                    az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
-                    return_code=$?
-                    if [ 0 != $return_code ]; then
-                      echo -e "$boldred--- Login failed ---$reset"
-                      echo "##vso[task.logissue type=error]az login failed."
-                      exit $return_code
-                    fi
-                  fi
-
-              else
-                echo -e "$green--- az login ---$reset"
-
-                  if [ $LOGON_USING_SPN == "true" ]; then
-                    echo "Using SPN"
-                    az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
-                  else
-                    az login --identity --allow-no-subscriptions --output none
-                  fi
-
-                  return_code=$?
-                  if [ 0 != $return_code ]; then
-                    echo -e "$boldred--- Login failed ---$reset"
-                    echo "##vso[task.logissue type=error]az login failed."
-                    exit $return_code
-                  fi
-
-                if [ $USE_MSI != "true" ]; then
-                  echo -e "$green --- Set secrets ---$reset"
-
-                  $SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh --workload --vault "${key_vault}" --environment "${ENVIRONMENT}"  \
-                    --region "${LOCATION}" --subscription $WL_ARM_SUBSCRIPTION_ID --spn_id $WL_ARM_CLIENT_ID --spn_secret "${WL_ARM_CLIENT_SECRET}"      \
-                    --tenant_id $WL_ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
-                  secrets_set=$? ; echo -e "$cyan Set Secrets returned $secrets_set $reset"
-                  az keyvault set-policy --name "${key_vault}" --object-id $WL_ARM_OBJECT_ID --secret-permissions get list  --subscription $STATE_SUBSCRIPTION --output none
-                fi
+                $SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh --workload --vault "${key_vault}" --environment "${ENVIRONMENT}"  \
+                  --region "${LOCATION}" --subscription $WL_ARM_SUBSCRIPTION_ID --spn_id $WL_ARM_CLIENT_ID --spn_secret "${WL_ARM_CLIENT_SECRET}"      \
+                  --tenant_id $WL_ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
+                secrets_set=$? ; echo -e "$cyan Set Secrets returned $secrets_set $reset"
+                az keyvault set-policy --name "${key_vault}" --object-id $WL_ARM_OBJECT_ID --secret-permissions get list  --subscription $STATE_SUBSCRIPTION --output none
               fi
 
               debug_variable='--output none'
