@@ -402,34 +402,33 @@ stages:
               secrets_set=1
               echo -e "$green--- az login ---$reset"
 
-                  if [ $LOGON_USING_SPN == "true" ]; then
-                    echo "Using SPN"
-                    az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
-                  else
-                    echo "Using MSI"
-                    export ARM_USE_MSI=true
-                    export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
-                    unset ARM_TENANT_ID
+                if [ $LOGON_USING_SPN == "true" ]; then
+                  echo "Using SPN"
+                  az login --service-principal --username $CP_ARM_CLIENT_ID --password=$CP_ARM_CLIENT_SECRET --tenant $CP_ARM_TENANT_ID --output none
+                else
+                  echo "Using MSI"
+                  export ARM_USE_MSI=true
+                  export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
+                  unset ARM_TENANT_ID
 
-                    az login --identity --allow-no-subscriptions --output none
-                  fi
-
-                  return_code=$?
-                  if [ 0 != $return_code ]; then
-                    echo -e "$boldred--- Login failed ---$reset"
-                    echo "##vso[task.logissue type=error]az login failed."
-                    exit $return_code
-                  fi
-
-                if [ $USE_MSI != "true" ]; then
-                  echo -e "$green --- Set secrets ---$reset"
-
-                  $SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh --workload --vault "${key_vault}" --environment "${ENVIRONMENT}"  \
-                    --region "${LOCATION}" --subscription $WL_ARM_SUBSCRIPTION_ID --spn_id $WL_ARM_CLIENT_ID --spn_secret "${WL_ARM_CLIENT_SECRET}"      \
-                    --tenant_id $WL_ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
-                  secrets_set=$? ; echo -e "$cyan Set Secrets returned $secrets_set $reset"
-                  az keyvault set-policy --name "${key_vault}" --object-id $WL_ARM_OBJECT_ID --secret-permissions get list  --subscription $STATE_SUBSCRIPTION --output none
+                  az login --identity --allow-no-subscriptions --output none
                 fi
+
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo -e "$boldred--- Login failed ---$reset"
+                  echo "##vso[task.logissue type=error]az login failed."
+                  exit $return_code
+                fi
+
+              if [ $USE_MSI != "true" ]; then
+                echo -e "$green --- Set secrets ---$reset"
+
+                $SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh --workload --vault "${key_vault}" --environment "${ENVIRONMENT}"  \
+                  --region "${LOCATION}" --subscription $WL_ARM_SUBSCRIPTION_ID --spn_id $WL_ARM_CLIENT_ID --spn_secret "${WL_ARM_CLIENT_SECRET}"      \
+                  --tenant_id $WL_ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
+                secrets_set=$? ; echo -e "$cyan Set Secrets returned $secrets_set $reset"
+                az keyvault set-policy --name "${key_vault}" --object-id $WL_ARM_OBJECT_ID --secret-permissions get list  --subscription $STATE_SUBSCRIPTION --output none
               fi
 
               debug_variable='--output none'
