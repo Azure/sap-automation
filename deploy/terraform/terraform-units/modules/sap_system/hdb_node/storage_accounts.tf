@@ -12,7 +12,7 @@ resource "azurerm_storage_account" "hanashared" {
                                            lower(
                                              format("%s%s%01d%s",
                                                local.prefix,
-                                               local.resource_suffixes.hanasharedafs, count.index,substr(random_id.random_id.hex, 0, 2)
+                                               local.resource_suffixes.hanasharedafs, count.index,substr(var.random_id, 0, 2)
                                              )
                                            ),
                                            "/[^a-z0-9]/",
