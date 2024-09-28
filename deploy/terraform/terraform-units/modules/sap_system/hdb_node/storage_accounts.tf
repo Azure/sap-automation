@@ -94,6 +94,7 @@ resource "azurerm_storage_share" "hanashared" {
   name                                 = format("%s-%s-%01d", local.sid,local.resource_suffixes.hanasharedafs, count.index)
   storage_account_name                 = var.NFS_provider == "AFS" ? (
 <<<<<<< HEAD
+<<<<<<< HEAD
                                            length(var.hanashared_id[count.index]) > 0 ? (
                                              data.azurerm_storage_account.hanashared[count.index].name) : (
                                              azurerm_storage_account.hanashared[count.index].name
@@ -102,6 +103,11 @@ resource "azurerm_storage_share" "hanashared" {
                                              data.azurerm_storage_account.hanashared{count.index].name) : (
                                              azurerm_storage_account.hanashared{count.index].name
 >>>>>>> ee5cd3cf (Add AFS support for HANA shared)
+=======
+                                           length(var.hanashared_id[count.index]) > 0 ? (
+                                             data.azurerm_storage_account.hanashared[count.index].name) : (
+                                             azurerm_storage_account.hanashared[count.index].name
+>>>>>>> b7d24db8 (ScaleOut variables)
                                            )
                                            ) : (
                                            ""

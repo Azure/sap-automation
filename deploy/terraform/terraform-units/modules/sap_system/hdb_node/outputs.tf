@@ -293,6 +293,9 @@ output "site_information"              {
 
 output "hana_shared_afs_path"          {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b7d24db8 (ScaleOut variables)
                                           description = "Defines the hanashared mount path"
                                           value       = compact(
                                                           [
@@ -327,6 +330,7 @@ output "hana_shared_afs_path"          {
                                                            ) : ""
                                                          ])
                                         }
+<<<<<<< HEAD
 =======
                                                    description = "Defines the hanashared mount path"
                                                    value       = compact(
@@ -363,3 +367,5 @@ output "hana_shared_afs_path"          {
                                                                   ])
                                                  }
 >>>>>>> ee5cd3cf (Add AFS support for HANA shared)
+=======
+>>>>>>> b7d24db8 (ScaleOut variables)
