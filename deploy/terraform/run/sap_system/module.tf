@@ -160,6 +160,7 @@ module "hdb_node" {
   dns_settings                                  = local.dns_settings
   use_private_endpoint                          = var.use_private_endpoint
   hanashared_private_endpoint_id                = var.hanashared_private_endpoint_id
+  hanashared_id                                 = var.hanashared_id
 }
 
 #########################################################################################

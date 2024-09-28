@@ -1452,7 +1452,15 @@ variable "stand_by_node_count"                  {
 
 variable "hanashared_private_endpoint_id"       {
                                                   description = "The Azure Resource identifier for the private endpoint connection to the HANA shared volume"
+                                                  default     = [""]
                                                 }
+
+
+variable "hanashared_id"                        {
+                                                  description = "The Azure Resource identifier for the HANA shared volume storage account"
+                                                  default     = [""]
+                                                }
+
 
 #########################################################################################
 #                                                                                       #
