@@ -414,7 +414,7 @@ module "output_files" {
   shared_home                                   = var.shared_home
   hana_data                                     = module.hdb_node.hana_data_ANF_volumes
   hana_log                                      = module.hdb_node.hana_log_ANF_volumes
-  hana_shared                                   = module.hdb_node.hana_shared
+  hana_shared                                   = var.NFS_provider == "ANF" ? module.hdb_node.hana_shared : module.hdb_node.hana_shared_afs_path
   usr_sap                                       = module.common_infrastructure.usrsap_path
 
   #########################################################################################
