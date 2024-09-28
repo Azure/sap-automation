@@ -416,6 +416,16 @@ else
     fi
 fi
 
+useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
+
+echo "Use SAS: " $useSAS
+
+if [ "$useSAS" = "true" ] ; then
+  export ARM_USE_AZUREAD=false
+else
+  export ARM_USE_AZUREAD=true
+fi
+
 if [ 1 = "${deploy_using_msi_only:-}" ]; then
   if [ -n "${keyvault}" ]
   then

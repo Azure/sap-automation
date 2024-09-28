@@ -68,7 +68,7 @@ provider "azurerm"                     {
                                          client_secret              = var.use_spn ? local.cp_spn.client_secret : null
                                          tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
                                          use_msi                    = var.use_spn ? false : true
-                                         storage_use_azuread = true
+                                         storage_use_azuread        = true
 
                                        }
 
@@ -80,7 +80,7 @@ provider "azurerm"                     {
                                          client_secret              = var.use_spn ? local.cp_spn.client_secret : null
                                          tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
                                          alias                      = "peering"
-                                         storage_use_azuread = true
+                                         storage_use_azuread        = true
 
                                        }
 
