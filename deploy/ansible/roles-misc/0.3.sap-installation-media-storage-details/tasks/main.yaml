@@ -80,6 +80,7 @@
 - name:                                "0.4 Installation Media: - Save SAP Binaries Storage Account information"
   ansible.builtin.set_fact:
     account_name:                      "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
+    container_name:                    "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}"
   when:                                sapbits_location_base_path is defined
 
 - name:                                "0.4 Installation Media: - Extract Shared Key Access token flag"
@@ -232,6 +233,7 @@
       ansible.builtin.command: >-
                                        az storage account generate-sas \
                                          --account-name {{ account_name }} \
+                                         --name {{ container_name }} \
                                          --expiry {{ expiry.stdout }} \
                                          --permissions lr \
                                          --auth-mode login \
