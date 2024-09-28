@@ -296,7 +296,7 @@ output "hana_shared_afs_path"          {
                                           value       = compact(
                                                           [
                                                            format("%s:/%s/%s",
-                                                             length(var.hanashared_private_endpoint_id[0]) == 0 ? (
+                                                             length(var.hanashared_private_endpoint_id) == 1 ? (
                                                                try(azurerm_private_endpoint.hanashared[0].private_dns_zone_configs[0].record_sets[0].fqdn,
                                                                  try(azurerm_private_endpoint.hanashared[0].private_service_connection[0].private_ip_address,"")
                                                                )) : (
@@ -311,7 +311,7 @@ output "hana_shared_afs_path"          {
                                                            ),
                                                            length(var.database.zones) > 1 ?
                                                            format("%s:/%s/%s",
-                                                             length(var.hanashared_private_endpoint_id[1]) == 0 ? (
+                                                             length(var.hanashared_private_endpoint_id) == 2 ? (
                                                                try(azurerm_private_endpoint.hanashared[1].private_dns_zone_configs[0].record_sets[0].fqdn,
                                                                  try(azurerm_private_endpoint.hanashared[1].private_service_connection[0].private_ip_address,"")
                                                                )) : (
