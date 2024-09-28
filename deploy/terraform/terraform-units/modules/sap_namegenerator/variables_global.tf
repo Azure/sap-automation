@@ -453,7 +453,7 @@ variable "resource_suffixes" {
     "sapbits"                        = "sapbits"
     "sapmnt"                         = "sapmnt"
     "sapmnt_smb"                     = "sapmnt-smb"
-    "storage_privatelink_hanashared" = "-sapmnt-storage-private-endpoint"
+    "storage_privatelink_hanashared" = "-hanashared-storage-private-endpoint"
     "storage_private_link_diag"      = "-diag-storage-private-endpoint"
     "storage_private_svc_diag"       = "-diag-storage-private-service"
     "storage_private_link_install"   = "-install-storage-private-endpoint"

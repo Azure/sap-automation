@@ -404,7 +404,7 @@
     - {
       'type':              'shared',
       'temppath':          'shared',
-      'mount':             "{% if ansible_hostname in query('inventory_hostnames', '{{ sap_sid | upper }}_DB')[0::2] %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
+      'mount':             "{% if site | default('SITE1') == 'SITE1' %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
       'opts':              'vers=4,minorversion=1,sec=sys',
       'path':              '/hana/shared',
       'owner':             '{{ sidadm_uid }}',
@@ -417,7 +417,7 @@
     primary_host:                      "{{ ansible_hostname }}"
   when:
     - database_scale_out
-    - db_high_availability
+    - database_high_availability
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length == 2
 
