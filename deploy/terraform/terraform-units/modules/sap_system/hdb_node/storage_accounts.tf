@@ -11,7 +11,7 @@ resource "azurerm_storage_account" "hanashared" {
   name                                 = substr(replace(
                                            lower(
                                              format("%s%s%01d%s",
-                                               local.prefix,
+                                               lower(local.prefix),
                                                local.resource_suffixes.hanasharedafs, count.index,substr(var.random_id, 0, 2)
                                              )
                                            ),
