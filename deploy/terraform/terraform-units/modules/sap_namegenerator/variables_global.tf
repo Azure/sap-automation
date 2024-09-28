@@ -432,7 +432,7 @@ variable "resource_suffixes" {
     "hanadata"                       = "hanadata"
     "hanalog"                        = "hanalog"
     "hanashared"                     = "hanashared"
-    "hanasharedafs"                  = "hanashrd"
+    "hanasharedafs"                  = "hanashared"
     "install_volume"                 = "install"
     "install_volume_smb"             = "install-smb"
     "iscsi_subnet"                   = "iscsi-subnet"
