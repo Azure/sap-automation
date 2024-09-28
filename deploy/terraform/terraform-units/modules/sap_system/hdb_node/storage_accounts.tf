@@ -143,8 +143,8 @@ resource "azurerm_private_endpoint" "hanashared" {
                                 local.resource_suffixes.storage_privatelink_hanashared
                               )
                               is_manual_connection = false
-                              private_connection_resource_id = length(var.hanashared_private_endpoint_id[count.index]) > 0 ? (
-                                var.hanashared_private_endpoint_id[count.index]) : (
+                              private_connection_resource_id = length(var.hanashared_id[count.index]) > 0 ? (
+                                var.hanashared_id[count.index]) : (
                                 azurerm_storage_account.hanashared[count.index].id
                               )
                               subresource_names = [
