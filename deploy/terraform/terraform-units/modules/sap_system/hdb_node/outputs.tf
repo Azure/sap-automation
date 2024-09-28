@@ -305,9 +305,9 @@ output "hana_shared_afs_path"          {
                                                              length(var.hanashared_id[0]) > 0 ? (
                                                                split("/", var.hanashared_id[0])[8]
                                                                ) : (
-                                                               azurerm_storage_account.hanashared_id[0].name
+                                                               azurerm_storage_account.hanashared[0].name
                                                              ),
-                                                             azurerm_storage_share.hanashared_id[0].name
+                                                             azurerm_storage_share.hanashared[0].name
                                                            ),
                                                            length(var.database.zones) > 1 ?
                                                            format("%s:/%s/%s",
@@ -320,9 +320,9 @@ output "hana_shared_afs_path"          {
                                                              length(var.hanashared_id[1]) > 0 ? (
                                                                split("/", var.hanashared_id[1])[8]
                                                                ) : (
-                                                               azurerm_storage_account.hanashared_id[1].name
+                                                               azurerm_storage_account.hanashared[1].name
                                                              ),
-                                                             azurerm_storage_share.hanashared_id[1].name
+                                                             azurerm_storage_share.hanashared[1].name
                                                            ) : ""
                                                          ])
                                         }

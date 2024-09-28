@@ -171,5 +171,5 @@ resource "azurerm_private_endpoint" "hanashared" {
 resource "time_sleep" "wait_for_private_endpoints" {
   create_duration                      = "120s"
 
-  depends_on                           = [ azurerm_private_endpoint.sapmnt ]
+  depends_on                           = [ azurerm_private_endpoint.hanashared ]
 }
