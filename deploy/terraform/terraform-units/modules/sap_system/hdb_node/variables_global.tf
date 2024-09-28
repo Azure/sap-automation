@@ -132,8 +132,11 @@ variable "hanashared_private_endpoint_id"            {
                                                        description = "Azure Resource Identifier for an private endpoint connection"
                                                        default     = [""]
                                                      }
+<<<<<<< HEAD
 
 variable "Agent_IP"                                  {
                                                        description = "The IP address of the agent"
                                                        default     = [""]
                                                      }
+=======
+>>>>>>> ee5cd3cf (Add AFS support for HANA shared)
