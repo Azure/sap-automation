@@ -88,7 +88,7 @@ resource "azurerm_storage_share" "hanashared" {
                                            time_sleep.wait_for_private_endpoints
                                          ]
 
-  name                                 = format("%s-%s-%01d", lower(local.sid),local.resource_suffixes.hanasharedafs, count.index)
+  name                                 = format("%s-%s-%01d", lower(local.sid),local.resource_suffixes.hanasharedafs, count.index+1)
   storage_account_name                 = var.NFS_provider == "AFS" ? (
                                            length(var.hanashared_id) > 0 ? (
                                              data.azurerm_storage_account.hanashared[count.index].name) : (
