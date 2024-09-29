@@ -141,7 +141,7 @@ packages:
     - { tier: 'os',     package: 'net-tools',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'nfs-utils',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'numad',                                        node_tier: 'all',     state: 'present' }
-    - { tier: 'os',     package: 'pssmisc',                                      node_tier: 'all',     state: 'present' }
+    - { tier: 'os',     package: 'psmisc',                                      node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'sg3_utils',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'sudo',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'tcsh',                                         node_tier: 'all',     state: 'present' }
