@@ -102,3 +102,39 @@ variable "tags"                                       { description = "If provid
 variable "use_scalesets_for_deployment"               { description = "Use Flexible Virtual Machine Scale Sets for the deployment" }
 
 variable "scale_set_id"                               { description = "Azure resource identifier for scale set" }
+
+
+#########################################################################################
+#                                                                                       #
+#  Scale Out                                                                            #
+#                                                                                       #
+#########################################################################################
+
+
+variable "hanashared_volume_size"                     {
+                                                        description = "The volume size in GB for hana shared"
+                                                        default     = 128
+                                                      }
+
+variable "hanashared_id"                             {
+                                                       description = "Azure Resource Identifier for an storage account"
+                                                       default     = [""]
+                                                     }
+
+
+variable "use_private_endpoint"                       {
+                                                         description = "Boolean value indicating if private endpoint should be used for the deployment"
+                                                         default     = false
+                                                         type        = bool
+                                                      }
+
+variable "hanashared_private_endpoint_id"            {
+                                                       description = "Azure Resource Identifier for an private endpoint connection"
+                                                       default     = [""]
+                                                     }
+variable "Agent_IP"                                  {
+                                                       description = "The IP address of the agent"
+                                                       default     = [""]
+                                                     }
+
+variable "random_id"                                 { description = "Random hex string" }

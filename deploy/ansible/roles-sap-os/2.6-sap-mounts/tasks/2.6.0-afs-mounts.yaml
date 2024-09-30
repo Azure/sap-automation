@@ -39,6 +39,23 @@
       - "First server: {{ first_server_temp }}"
     verbosity:                         2
 
+- name:                                "AFS Mount: Create configuration file
+                                        with additional optimization settings"
+  ansible.builtin.blockinfile:
+    path:                              /etc/sysctl.d/ms-az.conf
+    backup:                            true
+    create:                            true
+    mode:                              0644
+    marker:                            "# {mark} HANA AFS optimizations"
+    block: |
+      net.ipv6.conf.all.disable_ipv6 = 1
+      net.ipv4.tcp_max_syn_backlog = 16348
+      net.ipv4.conf.all.rp_filter = 0
+      sunrpc.tcp_slot_table_entries = 128
+      vm.swappiness=10
+  when:
+    - node_tier == 'hana'
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |         Prepare for the sap_mnt mounts                                     |
@@ -404,7 +421,7 @@
     - {
       'type':              'shared',
       'temppath':          'shared',
-      'mount':             "{% if ansible_hostname in query('inventory_hostnames', '{{ sap_sid | upper }}_DB')[0::2] %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
+      'mount':             "{% if site | default('SITE1') == 'SITE1' %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
       'opts':              'vers=4,minorversion=1,sec=sys',
       'path':              '/hana/shared',
       'owner':             '{{ sidadm_uid }}',
@@ -417,7 +434,7 @@
     primary_host:                      "{{ ansible_hostname }}"
   when:
     - database_scale_out
-    - db_high_availability
+    - database_high_availability
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length == 2
 

@@ -290,3 +290,33 @@ output "site_information"              {
                                                          null
                                                        )
                                        }
+
+output "hana_shared_afs_path"          {
+                                          description = "Defines the hanashared mount path"
+                                          value       = compact(
+                                                          [
+                                                           format("%s:/%s/%s",
+                                                               try(azurerm_private_endpoint.hanashared[0].private_dns_zone_configs[0].record_sets[0].fqdn,
+                                                                 try(azurerm_private_endpoint.hanashared[0].private_service_connection[0].private_ip_address,"")
+                                                               ),
+                                                             length(var.hanashared_id) > 0 ? (
+                                                               split("/", var.hanashared_id[0])[8]
+                                                               ) : (
+                                                               azurerm_storage_account.hanashared[0].name
+                                                             ),
+                                                             azurerm_storage_share.hanashared[0].name
+                                                           ),
+                                                           length(var.database.zones) > 1 ?
+                                                           format("%s:/%s/%s",
+                                                               try(azurerm_private_endpoint.hanashared[1].private_dns_zone_configs[0].record_sets[0].fqdn,
+                                                                 try(azurerm_private_endpoint.hanashared[1].private_service_connection[0].private_ip_address,"")
+                                                               ),
+                                                             length(var.hanashared_id) > 0 ? (
+                                                               split("/", var.hanashared_id[1])[8]
+                                                               ) : (
+                                                               azurerm_storage_account.hanashared[1].name
+                                                             ),
+                                                             azurerm_storage_share.hanashared[1].name
+                                                           ) : ""
+                                                         ])
+                                        }

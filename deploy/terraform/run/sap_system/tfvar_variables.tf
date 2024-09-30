@@ -1335,7 +1335,7 @@ variable "anchor_vm_image" {
                                                               "os_type"         = "LINUX"
                                                               "source_image_id" = ""
                                                               "publisher"       = "SUSE"
-                                                              "offer"           = "sles-sap-15-sp3"
+                                                              "offer"           = "sles-sap-15-sp5"
                                                               "sku"             = "gen2"
                                                               "version"         = "latest"
                                                             }
@@ -1435,7 +1435,7 @@ variable "patch_assessment_mode"                {
 #                                                                                       #
 #########################################################################################
 
-variable "database_HANA_use_ANF_scaleout_scenario" {
+variable "database_HANA_use_scaleout_scenario" {
                                                   description = "If true, the database tier will be configured for scaleout scenario"
                                                   default = false
                                                 }
@@ -1449,6 +1449,19 @@ variable "stand_by_node_count"                  {
                                                   description = "The number of standby nodes"
                                                   default = 0
                                                 }
+
+variable "hanashared_private_endpoint_id"       {
+                                                  description = "The Azure Resource identifier for the private endpoint connection to the HANA shared volume"
+                                                  default     = []
+                                                }
+
+
+variable "hanashared_id"                        {
+                                                  description = "The Azure Resource identifier for the HANA shared volume storage account"
+                                                  default     = []
+                                                }
+
+
 #########################################################################################
 #                                                                                       #
 #  SAP CAL Integration variables                                                        #

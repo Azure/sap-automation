@@ -485,6 +485,7 @@ namespace AutomationForm.Models
 
     public int? sapmnt_volume_size { get; set; }
 
+    [StorageAccountIdValidator]
     public string azure_files_sapmnt_id { get; set; }
 
     public bool? use_random_id_for_storageaccounts { get; set; } = true;
@@ -636,12 +637,17 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
 
-    public bool? database_HANA_use_ANF_scaleout_scenario { get; set; } = false;
+    public bool? database_HANA_use_scaleout_scenario { get; set; } = false;
 
     public bool? database_HANA_no_standby_role { get; set; } = false;
 
     public int? stand_by_node_count { get; set; } = 0;
 
+    [StorageAccountIdValidator]
+    public string[] hanashared_id { get; set; }
+
+    [PrivateEndpointIdValidator]
+    public string[] hanashared_private_endpoint_id { get; set; }
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
