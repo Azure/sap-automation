@@ -16,6 +16,7 @@
 - name:                                "5.8 HANA Pacemaker Scaleout - NFS Compatibility - set mount options based on NFS source"
   ansible.builtin.set_fact:
     nfs_mount_options:                 "{% if NFS_provider == 'ANF' %}defaults,rw,hard,rsize=262144,wsize=262144,proto=tcp,noatime,_netdev,nfsvers=4.1,lock,sec=sys{% else %}noresvport,defaults,rw,hard,proto=tcp,noatime,nfsvers=4.1,lock{% endif %}"
+    directory_path:                    "{% if NFS_provider == 'ANF' %}/shared{% else %}{% endif %}"
 
   # Ref : https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-scale-out-hsr-rhel?tabs=lb-portal#create-file-system-resources
 - name:                                "5.8 HANA Pacemaker Scaleout - Configure the ANF/AFS file system resources"
@@ -65,8 +66,8 @@
           failed_when:                 false
           ignore_errors:               true
           loop:
-            - { fs_name: 'fs_hana_shared_s1',fs_mount: '{{ hana_shared_mountpoint[0] }}/shared', fs_dir: '/hana/shared' }
-            - { fs_name: 'fs_hana_shared_s2',fs_mount: '{{ hana_shared_mountpoint[1] }}/shared', fs_dir: '/hana/shared' }
+            - { fs_name: 'fs_hana_shared_s1',fs_mount: '{{ hana_shared_mountpoint[0] }}{{ directory_path }}', fs_dir: '/hana/shared' }
+            - { fs_name: 'fs_hana_shared_s2',fs_mount: '{{ hana_shared_mountpoint[1] }}{{ directory_path }}', fs_dir: '/hana/shared' }
           loop_control:
             loop_var:                  item
 
