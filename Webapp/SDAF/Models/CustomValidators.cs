@@ -153,7 +153,14 @@ namespace AutomationForm.Models
           string[] values = (string[])value;
           foreach (string v in values)
           {
-            if (!RegexValidation(v, pattern)) return false;
+            if (v.Length == 0)
+            {
+              return true;
+            }
+            else
+            {
+              if (!RegexValidation(v, pattern)) return false;
+            }
           }
           return true;
         }
