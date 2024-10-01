@@ -146,7 +146,7 @@ if ($Workload_zoneSubscriptionName.Length -eq 0) {
 }
 
 
-az devops configure --defaults organization=$ADO_Organization project=$ADO_Project --output none
+az devops configure --defaults organization=$ADO_Organization project='$ADO_Project' --output none
 
 if ($Workload_zone_code.Length -eq 0) {
   Write-Host "Workload zone code is not set (DEV, etc)"

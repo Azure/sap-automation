@@ -191,14 +191,14 @@ if ($Project_ID.Length -eq 0) {
   Add-Content -Path $fname -Value ""
   Add-Content -Path $fname -Value "Using Azure DevOps Project: $ADO_PROJECT"
 
-  az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
+  az devops configure --defaults organization=$ADO_ORGANIZATION project='$ADO_PROJECT'
 
-  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --out tsv)
+  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --project '$ADO_PROJECT' --out tsv)
 
   Write-Host "Importing the content from GitHub" -ForegroundColor Green
-  az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
+  az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id  --project '$ADO_PROJECT' --output none
 
-  az repos update --repository $repo_id --default-branch main --output none
+  az repos update --repository $repo_id --default-branch main --project '$ADO_PROJECT' --output none
 
 }
 
@@ -209,14 +209,14 @@ else {
 
   Write-Host "Using an existing project"
 
-  az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
+  az devops configure --defaults organization=$ADO_ORGANIZATION project='$ADO_PROJECT'
 
-  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --output tsv)
+  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --project '$ADO_PROJECT' --output tsv)
   if ($repo_id.Length -ne 0) {
     Write-Host "Using repository '$ADO_Project'" -ForegroundColor Green
   }
 
-  $repo_size = (az repos list --query "[?name=='$ADO_Project'].size | [0]" --output tsv)
+  $repo_size = (az repos list --query "[?name=='$ADO_Project'].size | [0]" --project '$ADO_PROJECT' --output tsv)
 
   if ($repo_size -eq 0) {
     Write-Host "Importing the repository from GitHub" -ForegroundColor Green
@@ -224,12 +224,12 @@ else {
     Add-Content -Path $fname -Value ""
     Add-Content -Path $fname -Value "Terraform and Ansible code repository stored in the DevOps project (sap-automation)"
 
-    az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output tsv
+    az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id  --project '$ADO_PROJECT' --output tsv
     if ($LastExitCode -eq 1) {
       Write-Host "The repository already exists" -ForegroundColor Yellow
       Write-Host "Creating repository 'SDAF Configuration'" -ForegroundColor Green
       $repo_id = (az repos create --name "SDAF Configuration" --query id --output tsv)
-      az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
+      az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --project '$ADO_PROJECT' --output none
     }
 
   }
@@ -237,12 +237,12 @@ else {
     $confirmation = Read-Host "The repository already exists, use it? y/n"
     if ($confirmation -ne 'y') {
       Write-Host "Creating repository 'SDAF Configuration'" -ForegroundColor Green
-      $repo_id = (az repos create --name "SDAF Configuration" --query id --output tsv)
-      az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --output none
+      $repo_id = (az repos create --name "SDAF Configuration" --query id --project '$ADO_PROJECT' --output tsv)
+      az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --project '$ADO_PROJECT' --output none
     }
   }
 
-  az repos update --repository $repo_id --default-branch main --output none
+  az repos update --repository $repo_id --default-branch main --project '$ADO_PROJECT' --output none
 }
 
 $confirmation = Read-Host "You can optionally import the Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code. Do you want to run the code from GitHub y/n?"
@@ -253,24 +253,24 @@ if ($confirmation -ne 'y') {
   $import_code = $true
   $repo_name = "sap-automation"
   Write-Host "Creating $repo_name repository" -ForegroundColor Green
-  az repos create --name $repo_name --query id --output none
-  $code_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]" --out tsv)
-  az repos import create --git-url https://github.com/Azure/SAP-automation --repository $code_repo_id --output none
-  az repos update --repository $code_repo_id --default-branch main --output none
+  az repos create --name $repo_name --query id --project '$ADO_PROJECT' --output none
+  $code_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]" --project '$ADO_PROJECT' --out tsv)
+  az repos import create --git-url https://github.com/Azure/SAP-automation --repository $code_repo_id --project '$ADO_PROJECT' --output none
+  az repos update --repository $code_repo_id --default-branch main --project '$ADO_PROJECT' --output none
 
   $import_code = $true
   $repo_name = "sap-samples"
   Write-Host "Creating $repo_name repository" -ForegroundColor Green
-  az repos create --name $repo_name --query id --output none
-  $sample_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]" --out tsv)
-  az repos import create --git-url https://github.com/Azure/SAP-automation-samples --repository $sample_repo_id --output none
-  az repos update --repository $sample_repo_id --default-branch main --output none
+  az repos create --name $repo_name --query id --project '$ADO_PROJECT' --output none
+  $sample_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]" --project '$ADO_PROJECT' --out tsv)
+  az repos import create --git-url https://github.com/Azure/SAP-automation-samples --repository $sample_repo_id --project '$ADO_PROJECT' --output none
+  az repos update --repository $sample_repo_id --default-branch main --project '$ADO_PROJECT' --output none
 
   if ($ADO_Project -ne "SAP Deployment Automation Framework") {
 
     Write-Host "Using a non standard DevOps project name, need to update some of the parameter files" -ForegroundColor Green
 
-    $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
+    $objectId = (az devops invoke --area git --resource refs --route-parameters project='$ADO_Project' repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
 
     $templatename = "resources.yml"
@@ -321,8 +321,8 @@ if ($confirmation -ne 'y') {
 
     az devops invoke `
       --area git --resource pushes `
-      --route-parameters project=$ADO_Project repositoryId=$repo_id `
-      --http-method POST --in-file "SDAF.json" `
+      --route-parameters project='$ADO_Project' repositoryId=$repo_id `
+      --http-method POST --in-file $inputfile `
       --api-version "6.0" --output none
 
     Remove-Item $templatename
@@ -348,7 +348,7 @@ if ($confirmation -ne 'y') {
     Add-Content -Path $templatename "      name: $ADO_Project/sap-samples"
     Add-Content -Path $templatename "      ref: refs/heads/main"
 
-    $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
+    $objectId = (az devops invoke --area git --resource refs --route-parameters project='$ADO_Project' repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
     Remove-Item "sdaf.json"
     $cont = Get-Content -Path $templatename -Raw
@@ -375,14 +375,14 @@ if ($confirmation -ne 'y') {
 
     az devops invoke `
       --area git --resource pushes `
-      --route-parameters project=$ADO_Project repositoryId=$repo_id `
-      --http-method POST --in-file "SDAF.json" `
+      --route-parameters project='$ADO_Project' repositoryId=$repo_id `
+      --http-method POST --in-file $inputfile `
       --api-version "6.0" --output none
 
     Remove-Item $templatename
   }
 
-  $code_repo_id = (az repos list --query "[?name=='sap-automation'].id | [0]" --out tsv)
+  $code_repo_id = (az repos list --query "[?name=='sap-automation'].id | [0]" --project '$ADO_PROJECT' --out tsv)
 
   $queryString = "?api-version=6.0-preview"
   $pipeline_permission_url = "$ADO_ORGANIZATION/$projectID/_apis/pipelines/pipelinePermissions/repository/$projectID.$code_repo_id$queryString"
@@ -402,9 +402,9 @@ else {
   Start-Process $gh_connection_url
   Read-Host "Please press enter when you have created the connection"
 
-  $ghConn = (az devops service-endpoint list --query "[?type=='github'].name | [0]" --out tsv)
+  $ghConn = (az devops service-endpoint list --query "[?type=='github'].name | [0]" --project '$ADO_PROJECT' --out tsv)
 
-  $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
+  $objectId = (az devops invoke --area git --resource refs --route-parameters project='$ADO_Project' repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
   $templatename = "resources.yml"
   if (Test-Path $templatename) {
@@ -455,7 +455,7 @@ else {
 
   az devops invoke `
     --area git --resource pushes `
-    --route-parameters project=$ADO_Project repositoryId=$repo_id `
+    --route-parameters project='$ADO_Project' repositoryId=$repo_id `
     --http-method POST --in-file $inputfile `
     --api-version "6.0" --output none
 
@@ -485,7 +485,7 @@ else {
 
   $cont2 = Get-Content -Path $templatename -Raw
 
-  $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
+  $objectId = (az devops invoke --area git --resource refs --route-parameters project='$ADO_Project' repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
   Remove-Item "sdaf.json"
 
@@ -511,7 +511,7 @@ else {
 
   az devops invoke `
     --area git --resource pushes `
-    --route-parameters project=$ADO_Project repositoryId=$repo_id `
+    --route-parameters project='$ADO_Project' repositoryId=$repo_id `
     --http-method POST --in-file $inputfile `
     --api-version "6.0" --output none
 
@@ -522,8 +522,8 @@ else {
 
 #endregion
 
-$repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --out tsv)
-$repo_name = (az repos list --query "[?name=='$ADO_Project'].name | [0]" --out tsv)
+$repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --project '$ADO_PROJECT' --out tsv)
+$repo_name = (az repos list --query "[?name=='$ADO_Project'].name | [0]" --project '$ADO_PROJECT' --out tsv)
 
 $SUserName = 'Enter your S User'
 $SPassword = 'Enter your S user password'
