@@ -145,6 +145,8 @@ namespace AutomationForm.Models
     {
       public override bool IsValid(object value)
       {
+
+        if (value == null) return true;
         string pattern = @"^\/subscriptions\/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\/resourceGroups\/[a-zA-Z0-9-_]+\/providers\/Microsoft.Storage\/storageAccounts\/[a-zA-Z0-9-_]+$";
         if (value.GetType().IsArray)
         {
