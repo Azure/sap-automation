@@ -32,7 +32,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
   https_traffic_only_enabled            = true
 
   cross_tenant_replication_enabled     = false
-  shared_access_key_enabled            = var.storage_account_sapbits.shared_access_key_enabled
+  shared_access_key_enabled            = var.use_webapp ? true : var.storage_account_sapbits.shared_access_key_enabled
 
   blob_properties {
                     delete_retention_policy {
