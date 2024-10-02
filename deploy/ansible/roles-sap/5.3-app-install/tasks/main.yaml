@@ -288,7 +288,7 @@
 
     - name:                            "APP Install: Get hdbuserstore path"
       become:                          true
-      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      become_user:                     "root"
       ansible.builtin.find:
         paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/,/usr/sap/{{ sid_to_be_deployed.sid }}/hdbclient"
         file_type:                     file
@@ -360,7 +360,7 @@
 
     - name:                            "APP Install: Get hdbuserstore path"
       become:                          true
-      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      become_user:                     "root"
       ansible.builtin.find:
         paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/,/usr/sap/{{ sid_to_be_deployed.sid }}/hdbclient"
         file_type:                     file

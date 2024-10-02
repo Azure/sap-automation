@@ -362,7 +362,7 @@
 
     - name:                            "DBLoad: Get hdbuserstore path"
       become:                          true
-      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      become_user:                     "root"
       when:
         - database_high_availability
         - platform == 'HANA'
@@ -465,7 +465,7 @@
 
     - name:                            "DBLoad: Get hdbuserstore path"
       become:                          true
-      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      become_user:                     "root"
       when:
         - database_high_availability
         - platform == 'HANA'
