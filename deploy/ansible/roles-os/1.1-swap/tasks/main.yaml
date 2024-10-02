@@ -23,6 +23,7 @@
   ansible.builtin.dnf:
     name:                              WALinuxAgent
     state:                             latest
+
   when:
     - ansible_os_family == 'RedHat'
   tags:

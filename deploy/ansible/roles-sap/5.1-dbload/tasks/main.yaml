@@ -374,6 +374,8 @@
       register:                        hdbuserstore_file
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+      vars:
+        allow_world_readable_tmpfiles:     true
 
     - name:                            "DBLoad: Set hdbuserstore path"
       when:
