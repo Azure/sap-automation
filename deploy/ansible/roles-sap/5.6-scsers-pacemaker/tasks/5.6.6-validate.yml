@@ -16,6 +16,11 @@
     follow:                            true
   register:                            sapcontrol_file
 
+- name:                                "5.6 SCS/ERS Validation: Set sapcontrol path"
+  ansible.builtin.set_fact:
+    sapcontrol_path:                   "{{ sapcontrol_file.files[0].path }}"
+  when: sapcontrol_file | length > 0
+
 - name:                                "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"
   become_user:                         "{{ sap_sid | lower }}adm"
   become:                              true
@@ -23,13 +28,10 @@
     - ansible_hostname == primary_instance_name
   block:
 
-    - name:                            "5.6 SCS/ERS Validation: Set sapcontrol path"
-      ansible.builtin.set_fact:
-        sapcontrol_path:               "{{ sapcontrol_file.files[0].path }}"
-      when: sapcontrol_file | length > 0
-
     # {{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
     - name:                            "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"
+      become:                          true
+      become_user:                     root
       ansible.builtin.shell:           "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList"
       changed_when:                    false
       failed_when:                     false
