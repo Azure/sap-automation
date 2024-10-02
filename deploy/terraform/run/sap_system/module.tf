@@ -27,9 +27,9 @@ module "sap_namegenerator" {
                                                     local.application_tier.scs_server_count
                                                   ) : 0
 
-  app_zones                                     = local.enable_app_tier_deployment ? try(local.application_tier.app_zones, []) : []
-  scs_zones                                     = local.enable_app_tier_deployment ? try(local.application_tier.scs_zones, []) : []
-  web_zones                                     = local.enable_app_tier_deployment ? try(local.application_tier.web_zones, []) : []
+  app_zones                                     = local.enable_app_tier_deployment && var.application_server_count > 0 ? try(local.application_tier.app_zones, []) : []
+  scs_zones                                     = local.enable_app_tier_deployment && var.scs_server_count > 0 ? try(local.application_tier.scs_zones, []) : []
+  web_zones                                     = local.enable_app_tier_deployment && var.webdispatcher_server_count > 0 ? try(local.application_tier.web_zones, []) : []
   db_zones                                      = try(local.database.zones, [])
 
   resource_offset                               = try(var.resource_offset, 0)
