@@ -287,11 +287,11 @@ locals {
 
   scs_os                            = {
                                         os_type         = coalesce(var.scs_server_image.os_type, var.application_server_image.os_type, "LINUX")
-                                        source_image_id = trimspace(coalesce(var.scs_server_image.source_image_id, var.application_tier.scs_os.source_image_id, " "))
-                                        publisher       = coalesce(var.scs_server_image.publisher, var.application_tier.scs_os.publisher, "SUSE")
-                                        offer           = coalesce(var.scs_server_image.offer, var.application_tier.scs_os.offer, "sles-sap-15-sp5")
-                                        sku             = coalesce(var.scs_server_image.sku, var.application_tier.scs_os.sku, "gen2")
-                                        version         = coalesce(var.scs_server_image.version, var.application_tier.scs_os.version, "latest")
+                                        source_image_id = trimspace(coalesce(var.scs_server_image.source_image_id, var.application_server_image.source_image_id, " "))
+                                        publisher       = coalesce(var.scs_server_image.publisher, var.application_server_image.publisher, "SUSE")
+                                        offer           = coalesce(var.scs_server_image.offer, var.application_server_image.offer, "sles-sap-15-sp5")
+                                        sku             = coalesce(var.scs_server_image.sku, var.application_server_image.sku, "gen2")
+                                        version         = coalesce(var.scs_server_image.version, var.application_server_image.version, "latest")
                                         type            = coalesce(var.database_vm_image.type, "marketplace")
                                       }
 
@@ -310,11 +310,11 @@ locals {
 
   web_os                            = {
                                         os_type         = coalesce(var.webdispatcher_server_image.os_type, var.application_server_image.os_type, "LINUX")
-                                        source_image_id = coalesce(var.webdispatcher_server_image.source_image_id, var.application_tier.web_os.source_image_id, " ")
-                                        publisher       = coalesce(var.webdispatcher_server_image.publisher, var.application_tier.web_os.publisher, "SUSE")
-                                        offer           = coalesce(var.webdispatcher_server_image.offer, var.application_tier.web_os.offer, "sles-sap-15-sp5")
-                                        sku             = coalesce(var.webdispatcher_server_image.sku, var.application_tier.web_os.sku, "gen2")
-                                        version         = coalesce(var.webdispatcher_server_image.version, var.application_tier.web_os.version, "latest")
+                                        source_image_id = coalesce(var.webdispatcher_server_image.source_image_id, var.application_server_image.source_image_id, " ")
+                                        publisher       = coalesce(var.webdispatcher_server_image.publisher, var.application_server_image.publisher, "SUSE")
+                                        offer           = coalesce(var.webdispatcher_server_image.offer, var.application_server_image.offer, "sles-sap-15-sp5")
+                                        sku             = coalesce(var.webdispatcher_server_image.sku, var.application_server_image.sku, "gen2")
+                                        version         = coalesce(var.webdispatcher_server_image.version, var.application_server_image.version, "latest")
                                         type            = coalesce(var.database_vm_image.type, "marketplace")
                                       }
   web_os_specified                     = (length(local.web_os.source_image_id) + length(local.web_os.publisher)) > 0
