@@ -148,9 +148,14 @@ else {
   $WebApp = $false
 }
 
-$confirmation = Read-Host "Use Agent pool with name '$Pool_Name' y/n?"
-if ($confirmation -ne 'y') {
-  $Pool_Name = Read-Host "Enter the name of the agent pool"
+if ($Env:SDAF_AGENT_POOL_NAME.Length -ne 0) {
+  $Pool_Name = $Env:SDAF_AGENT_POOL_NAME
+}
+else {
+  $confirmation = Read-Host "Use Agent pool with name '$Pool_Name' y/n?"
+  if ($confirmation -ne 'y') {
+    $Pool_Name = Read-Host "Enter the name of the agent pool"
+  }
 }
 
 $pipeline_permission_url = ""
@@ -528,12 +533,21 @@ $repo_name = (az repos list --query "[?name=='$ADO_Project'].name | [0]" --proje
 $SUserName = 'Enter your S User'
 $SPassword = 'Enter your S user password'
 
-$provideSUser = Read-Host "Do you want to provide the S user details y/n?"
-if ($provideSUser -eq 'y') {
-  $SUserName = Read-Host "Enter your S User ID"
-  $SPassword = Read-Host "Enter your S user password"
+if ($Env:SUserName.Length -ne 0) {
+  $SUserName = $Env:SUserName
+}
+if ($Env:SPassword.Length -ne 0) {
+  $SPassword = $Env:SPassword
 }
 
+if ($Env:SUserName.Length -eq 0 -and $Env:SPassword.Length -eq 0) {
+
+  $provideSUser = Read-Host "Do you want to provide the S user details y/n?"
+  if ($provideSUser -eq 'y') {
+    $SUserName = Read-Host "Enter your S User ID"
+    $SPassword = Read-Host "Enter your S user password"
+  }
+}
 $groups = New-Object System.Collections.Generic.List[System.Object]
 $pipelines = New-Object System.Collections.Generic.List[System.Object]
 
@@ -1022,7 +1036,7 @@ if (!$AlreadySet -or $ResetPAT ) {
     accessLevel         = @{
       accountLicenseType = "stakeholder"
     }
-    user = @{
+    user                = @{
       origin      = "aad"
       originId    = $MSI_objectId
       subjectKind = "servicePrincipal"
