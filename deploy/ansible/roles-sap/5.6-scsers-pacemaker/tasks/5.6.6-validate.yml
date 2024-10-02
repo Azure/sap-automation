@@ -22,7 +22,7 @@
   when: sapcontrol_file | length > 0
 
 - name:                                "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"
-  become_user:                         "{{ sap_sid | lower }}adm"
+  become_user:                         "root"
   become:                              true
   when:
     - ansible_hostname == primary_instance_name
@@ -30,8 +30,6 @@
 
     # {{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
     - name:                            "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"
-      become:                          true
-      become_user:                     root
       ansible.builtin.shell:           "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList"
       changed_when:                    false
       failed_when:                     false
@@ -65,8 +63,6 @@
         - is_running.stdout | regex_search('MessageServer')
 
     - name:                            "Check where the cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is running"
-      become:                          true
-      become_user:                     root
       vars:
         allow_world_readable_tmpfiles: true
         ansible_python_interpreter:    "{{ python_version }}"
@@ -89,8 +85,6 @@
 
     # move cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} to primary_instance_name
     - name:                            "5.6 SCS/ERS Validation: Move cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} to {{ primary_instance_name }}"
-      become:                          true
-      become_user:                     root
       ansible.builtin.shell:           "crm resource move g-{{ sap_sid | upper }}_{{ instance_type | upper }} {{ primary_instance_name }}"
       vars:
         allow_world_readable_tmpfiles: true
@@ -105,8 +99,6 @@
 
     # move cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} to primary_instance_name
     - name:                            "5.6 SCS/ERS Validation: Move cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} to {{ primary_instance_name }}"
-      become:                          true
-      become_user:                     root
       ansible.builtin.shell:           "pcs resource move g-{{ sap_sid | upper }}_{{ instance_type | upper }} {{ primary_instance_name }}"
       vars:
         allow_world_readable_tmpfiles: true
@@ -143,8 +135,6 @@
     - name:                            "5.6 SCS/ERS Validation: Validate Cluster resource move and SAP start when the group g-{{ sap_sid | upper }}_{{ instance_type | upper }} has moved"
       block:
         - name:                        "Check if cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is running on {{ primary_instance_name }}"
-          become:                      true
-          become_user:                 root
           ansible.builtin.shell: >-
             set -o pipefail;
             crm_resource --resource g-{{ sap_sid | upper }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2 | cut -d " " -f 2
