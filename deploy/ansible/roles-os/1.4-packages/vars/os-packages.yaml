@@ -44,7 +44,7 @@ packages:
     - { tier: 'os',     package: 'lvm2',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'numad',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'cifs-utils',                                   node_tier: 'all',     state: 'present' }
-    - { tier: 'os',     package: 'unar',                                         node_tier: 'scs',     state: 'present' }
+#    - { tier: 'os',     package: 'unar',                                         node_tier: 'scs',     state: 'present' }
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
     - { tier: 'os',     package: 'libaio',                                       node_tier: 'db2',     state: 'present' }
@@ -145,7 +145,7 @@ packages:
     - { tier: 'os',     package: 'sg3_utils',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'sudo',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'tcsh',                                         node_tier: 'all',     state: 'present' }
-    - { tier: 'os',     package: 'unar',                                         node_tier: 'scs',     state: 'present' }
+#    - { tier: 'os',     package: 'unar',                                         node_tier: 'scs',     state: 'present' }
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
     - { tier: 'os',     package: 'libaio',                                       node_tier: 'db2',     state: 'present' }
@@ -217,7 +217,7 @@ packages:
     - { tier: 'os',     package: 'sg3_utils',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'sudo',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'tcsh',                                         node_tier: 'all',     state: 'present' }
-    - { tier: 'os',     package: 'unar',                                         node_tier: 'scs',     state: 'present' }
+#    - { tier: 'os',     package: 'unar',                                         node_tier: 'scs',     state: 'present' }
     - { tier: 'os',     package: 'xfsprogs',                                     node_tier: 'all',     state: 'present' }
 
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
