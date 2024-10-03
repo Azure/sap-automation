@@ -478,7 +478,6 @@
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
 
-
     - name:                            "DBLoad: Set hdbuserstore path"
       when:
         - database_high_availability
@@ -489,7 +488,6 @@
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
         db_lb_virtual_host:            "{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}"
 
-
     - name:                            "DBLoad: show hdbuserstore path"
       when:
         - database_high_availability
@@ -498,10 +496,9 @@
         var:                           hdbuserstore_path
         verbosity:                     2
 
-
     - name:                            "DBLoad: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
       become:                          true
-      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      become_user:                     "root"
       when:
         - database_high_availability
         - platform == 'HANA'
