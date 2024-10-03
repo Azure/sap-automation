@@ -103,6 +103,15 @@
 
     - name:                            "Wait until cluster has stabilized"
       ansible.builtin.shell:           set -o pipefail && pcs status | grep '^Online:'
+      register:                        cluster_stable_check_debug
+
+    - name:                            "Wait until cluster has stabilized"
+      ansible.builtin.debug:
+        var:                           cluster_stable_check_debug
+
+
+    - name:                            "Wait until cluster has stabilized"
+      ansible.builtin.shell:           set -o pipefail && pcs status | grep '^Online:'
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
