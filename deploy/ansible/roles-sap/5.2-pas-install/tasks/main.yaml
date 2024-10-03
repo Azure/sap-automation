@@ -269,10 +269,6 @@
         - database_high_availability
         - platform == 'HANA'
 
-    - name:                            "PAS Install: progress"
-      ansible.builtin.debug:
-        msg:                           "Starting PAS installation ({{ sid_to_be_deployed.sid | upper }})"
-
     - name:                            "Starting PAS installation"
       block:
 
@@ -319,7 +315,11 @@
             - { path: '/sapmnt/{{ sap_sid | upper }}' }
             - { path: '/usr/sap/{{ sap_sid | upper }}' }
 
-        - name:                        "PAS Install"
+        - name:                            "PAS Install: progress"
+          ansible.builtin.debug:
+            msg:                           "Starting PAS installation ({{ sid_to_be_deployed.sid | upper }})"
+
+        - name:                            "PAS Install"
           ansible.builtin.shell: |
                                           umask {{ custom_umask | default('022') }} ;
                                           ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
