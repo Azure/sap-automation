@@ -308,6 +308,17 @@
             - platform == 'HANA'
             - hdbuserstore_path | length > 0
 
+        - name:                            "PAS Install: Ensure ownership"
+          ansible.builtin.file:
+            path:                          "{{ item.path }}"
+            owner:                         '{{ sid_to_be_deployed.sidadm_uid }}'
+            group:                         sapsys
+            recurse:                       true
+            state:                         directory
+          loop:
+            - { path: '/sapmnt/{{ sap_sid | upper }}' }
+            - { path: '/usr/sap/{{ sap_sid | upper }}' }
+
         - name:                        "PAS Install"
           ansible.builtin.shell: |
                                           umask {{ custom_umask | default('022') }} ;
