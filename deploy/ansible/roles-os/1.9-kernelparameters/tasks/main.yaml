@@ -179,7 +179,12 @@
 
 - name:                                "1.9 Kernel parameters - Gather list of custom defined parameters which need to be applied"
   ansible.builtin.set_fact:
-    get_custom_parameters_to_apply:    '{{ ((custom_parameters[distribution_id] | default([]))) | unique }}'
+    get_custom_parameters_to_apply:    '{{
+                                           (
+                                             custom_parameters[distribution_id] | default([]) +
+                                             custom_parameters["common"] | default([])
+                                           ) | unique(attribute="name") | list
+                                        }}'
   when:
     - custom_parameters is defined
 
