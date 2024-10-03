@@ -422,7 +422,7 @@
         recurse:                       true
       register:                        hdbuserstore_file
       vars:
-         allow_world_readable_tmpfiles:true
+        allow_world_readable_tmpfiles: true
       when:
         - database_high_availability
         - platform == 'HANA'
