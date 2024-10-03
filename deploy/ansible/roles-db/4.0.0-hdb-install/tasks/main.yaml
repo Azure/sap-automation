@@ -72,7 +72,7 @@
         _rsp_number:                   "{{ db_instance_number }}"
         _rsp_system_usage:             "custom"
         use_master_password:           "{{ hana_use_master_password }}"
-        password_copy:                 "{%if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{{ main_password }}{% endif %}"
+        password_copy:                 "{%if hana_use_master_password == 'n' %}{{ main_password }}{% else %}omit{% endif %}"
 
     - name:                            "SAP HANA: Progress"
       ansible.builtin.debug:
