@@ -123,7 +123,8 @@ certificates_hostmap=
 master_password={{ main_password }}
 
 # System Administrator Password
-password={{ password_copy }}
+password=
+#{{ password_copy }}
 
 # System Administrator Home Directory ( Default: /usr/sap/${sid}/home )
 home=/usr/sap/${sid}/home
@@ -138,7 +139,8 @@ userid={{ hdbadm_uid }}
 groupid={{ sapsys_gid }}
 
 # Database User (SYSTEM) Password
-system_user_password={{ password_copy }}
+system_user_password=
+#{{ password_copy }}
 
 # Restart system after machine reboot? ( Default: n )
 autostart=n
