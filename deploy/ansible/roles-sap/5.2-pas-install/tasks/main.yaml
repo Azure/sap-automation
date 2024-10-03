@@ -274,7 +274,7 @@
 
         - name:                            "PAS Install: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
           become:                          true
-          become_user:                     "root"
+          become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
           ansible.builtin.shell: |
                                            {{ hdbuserstore_path }} -H {{ pas_virtual_hostname }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
           environment:
@@ -290,7 +290,7 @@
 
         - name:                            "PAS Install: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
           become:                          true
-          become_user:                     "root"
+          become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
           ansible.builtin.shell: |
                                            {{ hdbuserstore_path }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
           environment:
