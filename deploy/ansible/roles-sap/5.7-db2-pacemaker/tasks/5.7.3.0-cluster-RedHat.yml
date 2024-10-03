@@ -117,7 +117,7 @@
       retries:                         12
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
-      when:                            ansible_distribution_major_version != "8"
+      when:                            ansible_distribution_major_version not in ["8", "9"]
 
     # '*' is a special character in regexp and needs to be escaped for literal matching
     # if we are worried about character spacing across distros we can match for '\* Online:'
@@ -135,7 +135,7 @@
       retries:                         12
       delay:                           10
       until:                           "'{{ primary_instance_name }} {{ secondary_instance_name }}' in db2_cluster_resource_check.stdout or '{{ secondary_instance_name }} {{ primary_instance_name }}' in db2_cluster_resource_check.stdout"
-      when:                            ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9"
+      when:                            ansible_distribution_major_version not in ["8", "9"]
 
     - name:                            "DB2 Cluster: Ensure Cluster resources are started - RHEL 8.x"
       ansible.builtin.shell:           set -o pipefail && pcs resource status | grep 'Started'
