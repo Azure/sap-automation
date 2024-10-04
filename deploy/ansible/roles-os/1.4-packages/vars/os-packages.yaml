@@ -59,13 +59,13 @@ packages:
     - { tier: 'os',     package: 'glibc.i686',                                  node_tier: 'sybase',   state: 'present' }
     - { tier: 'sybase', package: 'libnsl',                                      node_tier: 'sybase',   state: 'present' }
     # --------------------------- End - Packages required for SYBASE -------------------------------------------8
-    - { tier: sapos',  package: 'autofs',                                       node_tier: 'all',     state: 'present' }
-    - { tier: sapos',  package: 'nfs4-acl-tools',                               node_tier: 'all',     state: 'present' }
-    - { tier: sapos',  package: 'tuned-profiles-sap*',                          node_tier: 'all',     state: 'present' }
-    - { tier: sapos',  package: 'compat-sap-c++-*',                             node_tier: 'all',     state: 'present' }
-    - { tier: sapos',  package: 'libatomic',                                    node_tier: 'all',     state: 'present' }
-    - { tier: sapos',  package: 'uuidd',                                        node_tier: 'all',     state: 'present' }
-    - { tier: sapos',  package: 'csh',                                          node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'autofs',                                       node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'nfs4-acl-tools',                               node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'tuned-profiles-sap*',                          node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'compat-sap-c++-*',                             node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'libatomic',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'uuidd',                                        node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'csh',                                          node_tier: 'all',     state: 'present' }
     # ------------------------- Begin - Packages required for Clustering ---------------------------------------8
     - { tier: 'ha',     package: 'pcs',                                          node_tier: 'all',     state: 'present' }
     - { tier: 'ha',     package: 'pacemaker',                                    node_tier: 'all',     state: 'present' }
@@ -161,9 +161,9 @@ packages:
     - { tier: 'os',     package: 'glibc.i686',                                   node_tier: 'sybase',  state: 'present' }
     # --------------------------- End - Packages required for SYBASE -------------------------------------------8
     # --------------------------- Begin - Packages required for HANA ----------------------------------------8
-    - { tier: sapos',   package: 'chkconfig',                                    node_tier: 'hana',    state: 'present' }
-    - { tier: sapos',   package: 'tuned',                                        node_tier: 'hana',    state: 'present' }
-    - { tier: sapos',   package: 'tuned-profiles-sap-hana',                      node_tier: 'hana',    state: 'present' }
+    - { tier: 'sapos',  package: 'chkconfig',                                    node_tier: 'hana',    state: 'present' }
+    - { tier: 'sapos',  package: 'tuned',                                        node_tier: 'hana',    state: 'present' }
+    - { tier: 'sapos',  package: 'tuned-profiles-sap-hana',                      node_tier: 'hana',    state: 'present' }
     # --------------------------- End - Packages required for HANA ------------------------------------------8
     - { tier: 'sapos',  package: 'autofs',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'sapos',  package: 'compat-sap-c++-*',                             node_tier: 'all',     state: 'present' }
@@ -239,9 +239,9 @@ packages:
     - { tier: 'os',     package: 'glibc.i686',                                   node_tier: 'sybase',  state: 'present' }
     # --------------------------- End - Packages required for SYBASE -------------------------------------------8
     # --------------------------- Begin - Packages required for HANA ----------------------------------------8
-    - { tier: sapos',   package: 'chkconfig',                                    node_tier: 'hana',    state: 'present' }
-    - { tier: sapos',   package: 'tuned',                                        node_tier: 'hana',    state: 'present' }
-    - { tier: sapos',   package: 'tuned-profiles-sap-hana',                      node_tier: 'hana',    state: 'present' }
+    - { tier: 'sapos',  package: 'chkconfig',                                    node_tier: 'hana',    state: 'present' }
+    - { tier: 'sapos',  package: 'tuned',                                        node_tier: 'hana',    state: 'present' }
+    - { tier: 'sapos',  package: 'tuned-profiles-sap-hana',                      node_tier: 'hana',    state: 'present' }
     # --------------------------- End - Packages required for HANA ------------------------------------------8
     - { tier: 'sapos',  package: 'autofs',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'sapos',  package: 'compat-openssl11',                             node_tier: 'all',     state: 'present' }
@@ -324,15 +324,15 @@ packages:
     - { tier: 'os',     package: 'libpam.so.0',                                  node_tier: 'db2',     state: 'present' }
     - { tier: 'db2',    package: 'acl',                                          node_tier: 'db2',     state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
-    - { tier: sapos',   package: 'autofs',                                       node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'nfs-utils',                                    node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'nfs-client',                                   node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'nfs4-acl-tools',                               node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'saptune',                                      node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'libgcc_s1',                                    node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'libstdc++6',                                   node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'libatomic1',                                   node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'uuidd',                                        node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'autofs',                                       node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'nfs-utils',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'nfs-client',                                   node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'nfs4-acl-tools',                               node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'saptune',                                      node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'libgcc_s1',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'libstdc++6',                                   node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'libatomic1',                                   node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'uuidd',                                        node_tier: 'all',     state: 'present' }
   # ------------------------- Begin - Packages required for Clustering ------------------------------------8
     - { tier: 'ha',     package: 'socat',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'ha',     package: 'corosync',                                     node_tier: 'all',     state: 'present' }
@@ -379,15 +379,15 @@ packages:
     - { tier: 'os',     package: 'cloud-regionsrv-client-plugin-azure',          node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'regionServiceClientConfigAzure',               node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'regionServiceCertsAzure',                      node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'autofs',                                       node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'nfs-utils',                                    node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'nfs4-acl-tools',                               node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'saptune',                                      node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'libgcc_s1',                                    node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'libstdc++6',                                   node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'libatomic1',                                   node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'uuidd',                                        node_tier: 'all',     state: 'present' }
-    - { tier: sapos',   package: 'acl',                                          node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'autofs',                                       node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'nfs-utils',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'nfs4-acl-tools',                               node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'saptune',                                      node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'libgcc_s1',                                    node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'libstdc++6',                                   node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'libatomic1',                                   node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'uuidd',                                        node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'acl',                                          node_tier: 'all',     state: 'present' }
     # ----------------------- Begin - Packages required for Clustering -------------------------------------8
     - { tier: 'ha',     package: 'acl',                                          node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',     package: 'socat',                                        node_tier: 'all' ,    state: 'present' }
