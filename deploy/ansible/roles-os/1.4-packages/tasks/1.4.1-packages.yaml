@@ -1,6 +1,11 @@
 - name:                                "1.4 Packages: - Import package list"
   ansible.builtin.include_vars:        os-packages.yaml
 
+- name:                                "1.4 Packages: - Installing packages for tier"
+  ansible.builtin.debug:
+    msg:                               "Installing packages for tier {{ tier }} on {{ distribution_id }}"
+
+
 # Analyse the package list for this distribution selecting only those
 # packages assigned to the active tier or 'all'.
 - name:                                "1.4 Packages: - Determine packages appropriate for tier on: {{ distribution_id }}"
