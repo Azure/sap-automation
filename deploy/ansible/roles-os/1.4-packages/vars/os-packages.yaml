@@ -191,6 +191,7 @@ packages:
     - { tier: 'ha',     package: 'pacemaker',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'ha',     package: 'nmap',                                         node_tier: 'all',     state: 'present' }
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'all',     state: 'present' }
+    - { tier: 'ha',     package: 'resource-agents-sap-hana',                     node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'ers',     state: 'present' }
   # ------------------------- End - Packages required for Clustering -----------------------------------------8
@@ -276,6 +277,7 @@ packages:
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'db2',     state: 'present' }
+    - { tier: 'ha',     package: 'resource-agents-sap-hana',                     node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'ers',     state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'scs',     state: 'present' }
     # ------------------------- End - Packages required for Clustering -----------------------------------------8
