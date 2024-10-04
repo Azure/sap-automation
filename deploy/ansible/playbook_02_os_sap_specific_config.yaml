@@ -284,12 +284,6 @@
           vars:
             tier:                      ha
 
-        - name:                        "SAP OS configuration playbook: - directory permissions"
-          ansible.builtin.include_role:
-            name:                      roles-sap-os/2.2-sapPermissions
-          tags:
-            - 2.2-sapPermissions
-
         - name:                        "SAP OS configuration playbook: - Configurations according to SAP Notes"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.10-sap-notes
@@ -307,6 +301,12 @@
             name:                      roles-sap-os/2.6-sap-mounts
           tags:
             - 2.6-sap-mounts
+
+        - name:                        "SAP OS configuration playbook: - directory permissions"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.2-sapPermissions
+          tags:
+            - 2.2-sapPermissions
 
       when:
         - ansible_os_family != "Windows"
