@@ -9,7 +9,13 @@
   ansible.builtin.include_tasks:       5.5.3-SAPHanaSR.yml
 
 - name:                                "5.5 HANADB Pacemaker - import - SAP HanaSR"
-  ansible.builtin.include_tasks:       5.5.4-provision.yml
+  ansible.builtin.include_tasks:
+    file:                              5.5.4-provision.yml
+    apply:
+      tags:
+        - 5.5.4-provision
+      become:                          true
+      become_user:                     root
 
 - name:                                "5.5 HANADB Pacemaker - import - post_provision_report"
   ansible.builtin.include_tasks:        5.5.5-post_provision_report.yml
