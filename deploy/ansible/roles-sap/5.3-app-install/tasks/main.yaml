@@ -395,7 +395,7 @@
         ssfs_connect:                  "1"
       register:                        hdbuserstore
       become:                          true
-      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      become_user:                     "root"
       vars:
         allow_world_readable_tmpfiles: true
       when:
@@ -409,7 +409,7 @@
         ssfs_connect:                  "1"
       register:                        hdbuserstore
       become:                          true
-      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      become_user:                     "root"
       vars:
         allow_world_readable_tmpfiles: true
       when:
