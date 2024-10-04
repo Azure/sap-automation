@@ -211,12 +211,17 @@ namespace AutomationForm.Models
 
     public bool? register_endpoints_with_dns { get; set; } = true;
 
+    public bool? shared_access_key_enabled { get; set; } = false;
 
-    /*---------------------------------------------------------------------------8
-    |                                                                            |
-    |                       Cluster information                                  |
-    |                                                                            |
-    +------------------------------------4--------------------------------------*/
+    public bool? shared_access_key_enabled_nfs { get; set; } = true;
+  
+
+
+/*---------------------------------------------------------------------------8
+|                                                                            |
+|                       Cluster information                                  |
+|                                                                            |
++------------------------------------4--------------------------------------*/
 
     public string fencing_role_name { get; set; }
 

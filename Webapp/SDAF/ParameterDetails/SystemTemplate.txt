@@ -965,4 +965,8 @@ $$use_prefix$$
 # use_zonal_markers defines if a zonal markers will be added to the virtual machine resource names
 $$use_zonal_markers$$
 
+# shared_access_key_enabled defines Storage account authorization using Shared Access Key.
+$$shared_access_key_enabled$$
 
+# shared_access_key_enabled_nfs defines Storage account used for NFS shares authorization using Shared Access Key.
+$$shared_access_key_enabled_nfs$$

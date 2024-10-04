@@ -427,6 +427,12 @@ $$witness_storage_account_arm_id$$
 # storage_account_replication_type defines the replication type for Azure Files for NFS storage accounts
 $$storage_account_replication_type$$
 
+# shared_access_key_enabled defines Storage account authorization using Shared Access Key.
+$$shared_access_key_enabled$$
+
+# shared_access_key_enabled_nfs defines Storage account used for NFS shares authorization using Shared Access Key.
+$$shared_access_key_enabled_nfs$$
+
 
 #########################################################################################
 #                                                                                       #
