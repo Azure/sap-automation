@@ -160,6 +160,11 @@ packages:
     # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
     - { tier: 'os',     package: 'glibc.i686',                                   node_tier: 'sybase',  state: 'present' }
     # --------------------------- End - Packages required for SYBASE -------------------------------------------8
+    # --------------------------- Begin - Packages required for HANA ----------------------------------------8
+    - { tier: sapos',   package: 'chkconfig',                                    node_tier: 'hana',    state: 'present' }
+    - { tier: sapos',   package: 'tuned',                                        node_tier: 'hana',    state: 'present' }
+    - { tier: sapos',   package: 'tuned-profiles-sap-hana',                      node_tier: 'hana',    state: 'present' }
+    # --------------------------- End - Packages required for HANA ------------------------------------------8
     - { tier: 'sapos',  package: 'autofs',                                       node_tier: 'all',     state: 'present' }
     - { tier: 'sapos',  package: 'compat-sap-c++-*',                             node_tier: 'all',     state: 'present' }
     - { tier: 'sapos',  package: 'csh',                                          node_tier: 'all',     state: 'present' }
@@ -177,7 +182,7 @@ packages:
     - { tier: 'sapos',  package: 'openssl',                                      node_tier: 'all',     state: 'present' }
     - { tier: 'sapos',  package: 'PackageKit-gtk3-module',                       node_tier: 'all',     state: 'present' }
     - { tier: 'sapos',  package: 'rsyslog',                                      node_tier: 'all',     state: 'present' }
-    - { tier: 'sapos',  package: 'tuned-profiles-sap*',                          node_tier: 'all',     state: 'present' }
+    - { tier: 'sapos',  package: 'tuned-profiles-sap',                           node_tier: 'all',     state: 'present' }
     - { tier: 'sapos',  package: 'uuidd',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'sapos',  package: 'xfsprogs',                                     node_tier: 'all',     state: 'present' }
     - { tier: 'sapos',  package: 'xorg-x11-xauth',                               node_tier: 'all',     state: 'present' }
