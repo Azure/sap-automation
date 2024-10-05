@@ -21,4 +21,3 @@
   ansible.builtin.include_tasks:        5.5.5-post_provision_report.yml
 
 ...
-
