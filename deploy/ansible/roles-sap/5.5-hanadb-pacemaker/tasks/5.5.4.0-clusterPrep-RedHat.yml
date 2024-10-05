@@ -322,7 +322,5 @@
       changed_when:                    false
       register:                        hana_system_started
 
-    - name:                            Start HANA Database
-      ansible.builtin.include_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
 # End of HANA clustering resources
