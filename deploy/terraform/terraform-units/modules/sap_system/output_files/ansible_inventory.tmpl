@@ -14,7 +14,7 @@ ${sid}_DB:
       site                : ${site[idx]}
 %{~ endif }
 
-%{~ if db_connectiontype == "winrm" }
+%{~ if db_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
@@ -38,7 +38,7 @@ ${sid}_SCS:
       become_user         : ${scs_become_user}
       os_type             : ${scs_os_type}
       vm_name             : ${scs_vmnodes[idx]}
-%{~ if scs_connectiontype == "winrm" }
+%{~ if scs_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
@@ -62,7 +62,7 @@ ${sid}_ERS:
       become_user         : ${scs_become_user}
       os_type             : ${scs_os_type}
       vm_name             : ${ers_vmnodes[idx]}
-%{~ if ers_connectiontype == "winrm" }
+%{~ if ers_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
@@ -87,7 +87,7 @@ ${sid}_PAS:
       become_user         : ${app_become_user}
       os_type             : ${app_os_type}
       vm_name             : ${pas_vmnodes[idx]}
-%{~ if app_connectiontype == "winrm" }
+%{~ if app_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
@@ -111,7 +111,7 @@ ${sid}_APP:
       become_user         : ${app_become_user}
       os_type             : ${app_os_type}
       vm_name             : ${app_vmnodes[idx]}
-%{~ if app_connectiontype == "winrm" }
+%{~ if app_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
@@ -135,7 +135,7 @@ ${sid}_WEB:
       become_user         : ${web_become_user}
       os_type             : ${web_os_type}
       vm_name             : ${web_vmnodes[idx]}
-%{~ if web_connectiontype == "winrm" }
+%{~ if web_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
       ${winrm_read_timeout}
