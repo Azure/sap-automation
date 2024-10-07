@@ -103,9 +103,10 @@ module "hdb_node" {
   source                                        = "../../terraform-units/modules/sap_system/hdb_node"
   depends_on                                    = [module.common_infrastructure]
   providers                                     = {
-                                                    azurerm.deployer       = azurerm
-                                                    azurerm.main           = azurerm.system
-                                                    azurerm.dnsmanagement  = azurerm.dnsmanagement
+                                                    azurerm.deployer                 = azurerm
+                                                    azurerm.main                     = azurerm.system
+                                                    azurerm.dnsmanagement            = azurerm.dnsmanagement
+                                                    azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                                     # azapi.api                                 = azapi.api
                                                   }
 
