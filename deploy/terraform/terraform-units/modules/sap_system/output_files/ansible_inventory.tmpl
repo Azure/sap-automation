@@ -13,7 +13,6 @@ ${sid}_DB:
 %{~ if scale_out }
       site                : ${site[idx]}
 %{~ endif }
-
 %{~ if db_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
@@ -73,7 +72,6 @@ ${sid}_ERS:
   vars:
     node_tier             : ers
     supported_tiers       : [ers]
-
 
 ${sid}_PAS:
   hosts:
