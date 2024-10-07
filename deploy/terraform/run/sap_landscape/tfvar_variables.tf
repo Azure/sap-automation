@@ -490,6 +490,11 @@ variable "install_always_create_fileshares"     {
                                                   default     = false
                                                 }
 
+variable "create_smb_share"                     {
+                                                  description = "Value indicating if SMB file shares are created"
+                                                  default     = false
+                                                }
+
 
 variable "Agent_IP"                             {
                                                   description = "If provided, contains the IP address of the agent"

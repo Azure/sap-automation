@@ -52,9 +52,18 @@ provider "azurerm"                     {
                                          tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
                                          use_msi                    = var.use_spn ? false : true
                                          storage_use_azuread = true
-
                                        }
 
+provider "azurerm"                     {
+                                         features {}
+                                         alias                      = "privatelinkdnsmanagement"
+                                         subscription_id            = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
+                                         client_id                  = var.use_spn ? local.cp_spn.client_id : null
+                                         client_secret              = var.use_spn ? local.cp_spn.client_secret : null
+                                         tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
+                                         use_msi                    = var.use_spn ? false : true
+                                         storage_use_azuread = true
+                                       }
 
 /*
 based on https://github.com/hashicorp/terraform-provider-azurerm/issues/22515
