@@ -486,10 +486,14 @@ variable "install_private_endpoint_id"          {
                                                 }
 
 variable "install_always_create_fileshares"     {
-                                                  description = "Value indicating if file shares are created ehen using existing storage accounts"
+                                                  description = "Value indicating if file shares are created when using existing storage accounts"
                                                   default     = false
                                                 }
 
+variable "install_create_smb_shares"            {
+                                                  description = "Value indicating if SMB shares should be created"
+                                                  default     = true
+                                                }
 
 variable "Agent_IP"                             {
                                                   description = "If provided, contains the IP address of the agent"

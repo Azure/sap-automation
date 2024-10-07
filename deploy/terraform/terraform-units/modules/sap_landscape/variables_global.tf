@@ -157,7 +157,7 @@ variable "install_storage_account_id"                   { description = "Azure R
 
 variable "install_private_endpoint_id"                  { description = "Azure Resource Identifier for an private endpoint connection" }
 variable "install_always_create_fileshares"             { description = "Value indicating if file shares are created ehen using existing storage accounts" }
-
+variable "install_create_smb_shares"                    { description = "Value indicating if SMB shares should be created" }
 variable "storage_account_replication_type"             {
                                                           description = "Storage account replication type"
                                                           default     = "ZRS"
