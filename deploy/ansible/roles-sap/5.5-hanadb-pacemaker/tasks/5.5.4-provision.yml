@@ -1,5 +1,3 @@
----
-
 ###########################################################################################
 # This file calls the OS specific tasks to configure HANA specific clustering resources  #8
 ###########################################################################################
@@ -7,9 +5,21 @@
 
 # Clustering commands are based on the Host OS
 - name:                                Cluster based on OS in VM
-  ansible.builtin.include_tasks:       "5.5.4.0-clusterPrep-{{ ansible_os_family }}.yml"
+  ansible.builtin.include_tasks:
+    file:                              "5.5.4.0-clusterPrep-{{ ansible_os_family }}.yml"
+    apply:
+      become:                          true
+      become_user:                     root
+      tags:
+        - "5.5.4.0-cluster-prep"
+  when:                                not hana_cluster_existence_check
 
 - name:                                Cluster based on OS in VM
-  ansible.builtin.include_tasks:       "5.5.4.1-cluster-{{ ansible_os_family }}.yml"
-
-...
+  ansible.builtin.include_tasks:
+    file:                              "5.5.4.1-cluster-{{ ansible_os_family }}.yml"
+    apply:
+      become:                          true
+      become_user:                     root
+      tags:
+        - "5.5.4.1-cluster"
+  when:                                not hana_cluster_existence_check

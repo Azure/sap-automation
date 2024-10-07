@@ -38,6 +38,8 @@ resource "azurerm_storage_account" "sapmnt" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
   cross_tenant_replication_enabled     = false
+  shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
+
 
   public_network_access_enabled        = try(var.landscape_tfstate.public_network_access_enabled, true)
   tags                                 = var.tags

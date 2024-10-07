@@ -293,7 +293,7 @@ output "site_information"              {
 
 output "hana_shared_afs_path"          {
                                           description = "Defines the hanashared mount path"
-                                          value       = compact(
+                                          value       = var.database.scale_out ? compact(
                                                           [
                                                            format("%s:/%s/%s",
                                                                try(azurerm_private_endpoint.hanashared[0].private_dns_zone_configs[0].record_sets[0].fqdn,
@@ -318,5 +318,5 @@ output "hana_shared_afs_path"          {
                                                              ),
                                                              azurerm_storage_share.hanashared[1].name
                                                            ) : ""
-                                                         ])
+                                                         ]) : []
                                         }

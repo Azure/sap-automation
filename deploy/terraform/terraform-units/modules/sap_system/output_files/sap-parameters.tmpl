@@ -81,6 +81,15 @@ db_instance_number:            "${db_instance_number}"
 
 platform:                       ${platform}
 
+# Database User (SYSTEM) Password
+# hana_system_user_password:
+
+# OS password for <SID>adm user
+# hana_os_sidadm_password:
+
+# SAP Host Agent User (sapadm) Password
+# hana_os_sapadm_password:
+
 %{~ if scale_out }
 
 #############################################################################

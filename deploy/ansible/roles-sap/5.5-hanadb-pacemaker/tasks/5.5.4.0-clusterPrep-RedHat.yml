@@ -49,8 +49,8 @@
       changed_when:                    false
       register:                        hana_system_stopped
 
-    - name:                            Stop HANA Database
-      ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-stop_hana.yml
+    # - name:                            Stop HANA Database
+    #   ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-stop_hana.yml
 
     - name:                            "Configure ANF hana mounts on {{ primary_instance_name }}"
       when:                            ansible_hostname == primary_instance_name
@@ -322,7 +322,7 @@
       changed_when:                    false
       register:                        hana_system_started
 
-    - name:                            Start HANA Database
-      ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+    # - name:                            Start HANA Database
+    #   ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
 # End of HANA clustering resources

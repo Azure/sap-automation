@@ -29,6 +29,7 @@ resource "azurerm_storage_account" "hanashared" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
   cross_tenant_replication_enabled     = false
+  shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
 
   public_network_access_enabled        = try(var.landscape_tfstate.public_network_access_enabled, true)
   tags                                 = var.tags
@@ -176,7 +177,7 @@ resource "time_sleep" "wait_for_private_endpoints" {
 
 data "azurerm_private_endpoint_connection" "hanashared" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "AFS" ? (
+  count                                = var.NFS_provider == "AFS" && var.use_private_endpoint && var.database.scale_out ? (
                                            length(var.hanashared_private_endpoint_id) > 0 ? (
                                              length(var.database.zones)) : (
                                              0

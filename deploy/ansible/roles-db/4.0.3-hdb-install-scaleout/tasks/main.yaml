@@ -118,8 +118,11 @@
         _rsp_sid:                      "{{ db_sid | upper }}"
         _rsp_number:                   "{{ db_instance_number }}"
         _rsp_system_usage:             "custom"
-        use_master_password:           "{{ hana_use_master_password }}"
-        password_copy:                 "{% if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
+        # use_master_password:           "{{ hana_use_master_password }}"
+        pwd_hdb_system:                "{{ hana_system_user_password | default(main_password) }}"
+        pwd_os_sidadm:                 "{{ hana_os_sidadm_password | default(main_password) }}"
+        pwd_os_sapadm:                 "{{ hana_os_sapadm_password | default(main_password) }}"
+        # password_copy:                 "{% if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
         _rsp_internal_network:         "{{ subnet_cidr_db | default((subnet_address + '/' + subnet_prefix), true) }}"
         # This comes in from the main ansible playbook. It is the password for the root user. Must be randomized after the installation.
         _rsp_root_password:            "{{ root_password }}"

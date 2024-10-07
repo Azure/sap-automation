@@ -20,9 +20,10 @@
     - Restart waagent
 
 - name:                                "1.1 Swap: - Update WAAgent on {{ ansible_os_family }}"
-  ansible.builtin.package:
+  ansible.builtin.dnf:
     name:                              WALinuxAgent
     state:                             latest
+
   when:
     - ansible_os_family == 'RedHat'
   tags:

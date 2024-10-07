@@ -13,19 +13,22 @@ locals {
                                             deploy_defender_extension        = var.deploy_defender_extension
                                             patch_mode                       = var.patch_mode
                                             patch_assessment_mode            = var.patch_assessment_mode
+                                            shared_access_key_enabled        = var.shared_access_key_enabled
+                                            shared_access_key_enabled_nfs    = var.shared_access_key_enabled_nfs
+
                                          }
 
 
   resource_group                       = {
-    name                                    = try(coalesce(var.resourcegroup_name, try(var.infrastructure.resource_group.name, "")), "")
-    arm_id                                  = try(coalesce(var.resourcegroup_arm_id, try(var.infrastructure.resource_group.arm_id, "")), "")
+    name                                    = var.resourcegroup_name
+    arm_id                                  = var.resourcegroup_arm_id
                                          }
 
   resource_group_defined               = (length(local.resource_group.name) + length(local.resource_group.arm_id) ) > 0
 
   ppg                                  = {
-                                           arm_ids = distinct(concat(var.proximityplacementgroup_arm_ids, try(var.infrastructure.ppg.arm_ids, [])))
-                                           names   = distinct(concat(var.proximityplacementgroup_names, try(var.infrastructure.ppg.names, [])))
+                                           arm_ids = distinct(var.proximityplacementgroup_arm_ids)
+                                           names   = distinct(var.proximityplacementgroup_names)
                                          }
   ppg_defined                          = (length(local.ppg.names) + length(local.ppg.arm_ids)) > 0
 
@@ -39,9 +42,9 @@ locals {
 
   anchor_vms                           = local.deploy_anchor_vm ? (
                                            {
-                                             deploy                 = var.deploy_anchor_vm || length(try(var.infrastructure.anchor_vms, {})) > 0
-                                             use_DHCP               = var.anchor_vm_use_DHCP || try(var.infrastructure.anchor_vms.use_DHCP, false)
-                                             accelerated_networking = var.anchor_vm_accelerated_networking || try(var.infrastructure.anchor_vms.accelerated_networking, false)
+                                             deploy                 = var.deploy_anchor_vm
+                                             use_DHCP               = var.anchor_vm_use_DHCP
+                                             accelerated_networking = var.anchor_vm_accelerated_networking
                                              sku                    = var.anchor_vm_sku
                                              os                     = var.anchor_vm_image
 
@@ -75,14 +78,14 @@ locals {
   avset_arm_ids                         = var.database_vm_avset_arm_ids
   db_avset_arm_ids_defined              = length(local.avset_arm_ids) > 0
 
-  frontend_ips                          = try(coalesce(var.database_loadbalancer_ips, try(var.databases[0].loadbalancer.frontend_ip, [])), [])
-  db_tags                               = try(coalesce(var.database_tags, try(var.databases[0].tags, {})), {})
+  frontend_ips                          = var.database_loadbalancer_ips
+  db_tags                               = var.database_tags
 
   databases_temp                       = {
                                            database_cluster_type           = var.database_cluster_type
                                            database_server_count           = var.database_high_availability ? 2 * var.database_server_count : var.database_server_count
                                            database_vm_sku                 = var.database_vm_sku
-                                           db_sizing_key                   = coalesce(var.db_sizing_dictionary_key, var.database_size, try(var.databases[0].size, ""))
+                                           db_sizing_key                   = coalesce(var.db_sizing_dictionary_key, var.database_size)
                                            deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
                                            dual_nics                       = var.database_dual_nics
                                            high_availability               = var.database_high_availability
@@ -155,7 +158,7 @@ locals {
                                            substr(var.database_platform, 0, 3))
                                         ))
                                         number = upper(local.databases_temp.platform) == "HANA" ? (
-                                           coalesce(var.database_instance_number, try(var.databases[0].instance_number, "00"))
+                                           var.database_instance_number
                                            ) : (
                                            "00"
                                           )
@@ -167,20 +170,20 @@ locals {
                                       }
   app_authentication_defined        = (length(local.app_authentication.type) + length(local.app_authentication.username)) > 3
 
-  app_zones_temp                    = distinct(var.application_server_zones)
-  scs_zones_temp                    = distinct(var.scs_server_zones)
-  web_zones_temp                    = distinct(var.webdispatcher_server_zones)
+  app_zones_temp                    = var.application_server_count > 0 ? distinct(var.application_server_zones) : []
+  scs_zones_temp                    = var.scs_server_count > 0 ? distinct(var.scs_server_zones) : []
+  web_zones_temp                    = var.webdispatcher_server_count > 0 ? distinct(var.webdispatcher_server_zones) : []
 
 
   application_temp                  = {
-                                        sid                             = try(coalesce(var.sid, try(var.application_tier.sid, "")), "")
+                                        sid                             = var.sid
                                         enable_deployment               = local.enable_app_tier_deployment
                                         use_DHCP                        = var.app_tier_use_DHCP
                                         dual_nics                       = var.app_tier_dual_nics
-                                        vm_sizing_dictionary_key        = try(coalesce(var.app_tier_sizing_dictionary_key, var.app_tier_vm_sizing, try(var.application_tier.vm_sizing, "")), "Optimized")
-                                        app_instance_number             = coalesce(var.app_instance_number, try(var.application_tier.app_instance_number, "00"))
+                                        vm_sizing_dictionary_key        = coalesce(var.app_tier_sizing_dictionary_key, "Optimized")
+                                        app_instance_number             = coalesce(var.app_instance_number, "00")
                                         application_server_count        = local.enable_app_tier_deployment ? (
-                                                                            max(var.application_server_count, try(var.application_tier.application_server_count, 0))
+                                                                            var.application_server_count
                                                                             ) : (
                                                                             0
                                                                           )
@@ -196,18 +199,18 @@ locals {
 
                                         avset_arm_ids                   = var.application_server_vm_avset_arm_ids
                                         scs_server_count                = local.enable_app_tier_deployment ? (
-                                                                            max(var.scs_server_count, try(var.application_tier.scs_server_count, 0))
+                                                                            var.scs_server_count
                                                                             ) : (
                                                                             0
                                                                           )
                                         scs_high_availability           = local.enable_app_tier_deployment ? (
-                                                                            var.scs_high_availability || try(var.application_tier.scs_high_availability, false)
+                                                                            var.scs_high_availability
                                                                             ) : (
                                                                             false
                                                                           )
                                         scs_cluster_type                = var.scs_cluster_type
-                                        scs_instance_number             = coalesce(var.scs_instance_number, try(var.application_tier.scs_instance_number, "00"))
-                                        ers_instance_number             = coalesce(var.ers_instance_number, try(var.application_tier.ers_instance_number, "02"))
+                                        scs_instance_number             = coalesce(var.scs_instance_number, "00")
+                                        ers_instance_number             = coalesce(var.ers_instance_number, "02")
                                         scs_sku                         = var.scs_server_sku
                                         scs_use_ppg                     = var.scs_server_count > 0 ? var.use_scalesets_for_deployment ? (
                                                                             false) : (
@@ -222,7 +225,7 @@ locals {
                                         scs_cluster_disk_type           = var.scs_cluster_disk_type
 
                                         webdispatcher_count             = local.enable_app_tier_deployment ? (
-                                                                            max(var.webdispatcher_server_count, try(var.application_tier.webdispatcher_count, 0))
+                                                                            var.webdispatcher_server_count
                                                                             ) : (
                                                                             0
                                                                           )
@@ -242,9 +245,9 @@ locals {
                                         user_assigned_identity_id       = var.user_assigned_identity_id
                                       }
 
-  app_tags                          = try(coalesce(var.application_server_tags, try(var.application_tier.app_tags, {})), {})
-  scs_tags                          = try(coalesce(var.scs_server_tags, try(var.application_tier.scs_tags, {})), {})
-  web_tags                          = try(coalesce(var.webdispatcher_server_tags, try(var.application_tier.web_tags, {})), {})
+  app_tags                          = var.application_server_tags
+  scs_tags                          = var.scs_server_tags
+  web_tags                          = var.webdispatcher_server_tags
 
   app_os = {
     source_image_id                 = try(var.application_server_image.source_image_id, "")
@@ -283,13 +286,13 @@ locals {
   app_os_specified                  = (length(local.app_os.source_image_id) + length(local.app_os.publisher)) > 0
 
   scs_os                            = {
-                                        os_type         = try(coalesce(var.scs_server_image.os_type, var.application_server_image.os_type, "LINUX"), "LINUX")
-                                        source_image_id = try(coalesce(var.scs_server_image.source_image_id, try(var.application_tier.scs_os.source_image_id, "")), "")
-                                        publisher       = try(coalesce(var.scs_server_image.publisher, try(var.application_tier.scs_os.publisher, "SUSE")), "SUSE")
-                                        offer           = try(coalesce(var.scs_server_image.offer, try(var.application_tier.scs_os.offer, "sles-sap-15-sp5")), "sles-sap-15-sp5")
-                                        sku             = try(coalesce(var.scs_server_image.sku, try(var.application_tier.scs_os.sku, "gen2")), "gen2")
-                                        version         = try(coalesce(var.scs_server_image.version, try(var.application_tier.scs_os.version, "latest")), "latest")
-                                        type            = try(var.database_vm_image.type, "marketplace")
+                                        os_type         = coalesce(var.scs_server_image.os_type, var.application_server_image.os_type, "LINUX")
+                                        source_image_id = trimspace(coalesce(var.scs_server_image.source_image_id, var.application_server_image.source_image_id, " "))
+                                        publisher       = coalesce(var.scs_server_image.publisher, var.application_server_image.publisher, "SUSE")
+                                        offer           = coalesce(var.scs_server_image.offer, var.application_server_image.offer, "sles-sap-15-sp5")
+                                        sku             = coalesce(var.scs_server_image.sku, var.application_server_image.sku, "gen2")
+                                        version         = coalesce(var.scs_server_image.version, var.application_server_image.version, "latest")
+                                        type            = coalesce(var.database_vm_image.type, "marketplace")
                                       }
 
   scs_os_specified                  = (length(local.scs_os.source_image_id) + length(local.scs_os.publisher)) > 0
@@ -306,13 +309,13 @@ locals {
                                        )
 
   web_os                            = {
-                                        os_type         = try(coalesce(var.webdispatcher_server_image.os_type, var.application_server_image.os_type, "LINUX"), "LINUX")
-                                        source_image_id = try(coalesce(var.webdispatcher_server_image.source_image_id, try(var.application_tier.web_os.source_image_id, "")), "")
-                                        publisher       = try(coalesce(var.webdispatcher_server_image.publisher, try(var.application_tier.web_os.publisher, "SUSE")), "SUSE")
-                                        offer           = try(coalesce(var.webdispatcher_server_image.offer, try(var.application_tier.web_os.offer, "sles-sap-15-sp5")), "sles-sap-15-sp5")
-                                        sku             = try(coalesce(var.webdispatcher_server_image.sku, try(var.application_tier.web_os.sku, "gen2")), "gen2")
-                                        version         = try(coalesce(var.webdispatcher_server_image.version, try(var.application_tier.web_os.version, "latest")), "latest")
-                                        type            = try(var.database_vm_image.type, "marketplace")
+                                        os_type         = coalesce(var.webdispatcher_server_image.os_type, var.application_server_image.os_type, "LINUX")
+                                        source_image_id = coalesce(var.webdispatcher_server_image.source_image_id, var.application_server_image.source_image_id, " ")
+                                        publisher       = coalesce(var.webdispatcher_server_image.publisher, var.application_server_image.publisher, "SUSE")
+                                        offer           = coalesce(var.webdispatcher_server_image.offer, var.application_server_image.offer, "sles-sap-15-sp5")
+                                        sku             = coalesce(var.webdispatcher_server_image.sku, var.application_server_image.sku, "gen2")
+                                        version         = coalesce(var.webdispatcher_server_image.version, var.application_server_image.version, "latest")
+                                        type            = coalesce(var.database_vm_image.type, "marketplace")
                                       }
   web_os_specified                     = (length(local.web_os.source_image_id) + length(local.web_os.publisher)) > 0
 
@@ -324,110 +327,83 @@ locals {
 
   subnet_admin_defined                 = (
                                            length(var.admin_subnet_address_prefix) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_admin.prefix, "")) +
-                                           length(var.admin_subnet_arm_id) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_admin.arm_id, ""))
+                                           length(var.admin_subnet_arm_id)
                                          ) > 0
 
   subnet_admin_arm_id_defined          = (
-                                           length(var.admin_subnet_arm_id) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_admin.arm_id, ""))
+                                           length(var.admin_subnet_arm_id)
                                          ) > 0
 
   subnet_admin_nsg_defined             = (
                                            length(var.admin_subnet_nsg_name) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_admin.nsg.name, "")) +
-                                           length(var.admin_subnet_nsg_arm_id) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id, ""))
+                                           length(var.admin_subnet_nsg_arm_id)
                                          ) > 0
 
   subnet_db_defined                    = (
                                            length(var.db_subnet_address_prefix) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_db.prefix, "")) +
-                                           length(var.db_subnet_arm_id) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_db.arm_id, ""))
+                                           length(var.db_subnet_arm_id)
                                          ) > 0
 
   subnet_db_arm_id_defined             = (
-                                          length(var.db_subnet_arm_id) +
-                                          length(try(var.infrastructure.vnets.sap.subnet_db.arm_id, ""))
+                                          length(var.db_subnet_arm_id)
                                         ) > 0
 
   subnet_db_nsg_defined                = (
                                            length(var.db_subnet_nsg_name) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_db.nsg.name, "")) +
-                                           length(var.db_subnet_nsg_arm_id) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_db.nsg.arm_id, ""))
+                                           length(var.db_subnet_nsg_arm_id)
                                          ) > 0
 
   subnet_app_defined                   = (
                                            length(var.app_subnet_address_prefix) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_app.prefix, "")) +
-                                           length(var.app_subnet_arm_id) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_app.arm_id, ""))
+                                           length(var.app_subnet_arm_id)
                                          ) > 0
 
   subnet_app_arm_id_defined            = (
-                                           length(var.app_subnet_arm_id) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_app.arm_id, ""))
+                                           length(var.app_subnet_arm_id)
                                          ) > 0
 
   subnet_app_nsg_defined               = (
                                            length(var.app_subnet_nsg_name) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_app.nsg.name, "")) +
-                                           length(var.app_subnet_nsg_arm_id) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_app.nsg.arm_id, ""))
+                                           length(var.app_subnet_nsg_arm_id)
                                          ) > 0
 
   subnet_web_defined                   = (
                                            length(var.web_subnet_address_prefix) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_web.prefix, "")) +
-                                           length(var.web_subnet_arm_id) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_web.arm_id, ""))
+                                           length(var.web_subnet_arm_id)
                                          ) > 0
 
   subnet_web_arm_id_defined            = (
-                                           length(var.web_subnet_arm_id) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_web.arm_id, ""))
+                                           length(var.web_subnet_arm_id)
                                          ) > 0
 
   subnet_web_nsg_defined               = (
                                            length(var.web_subnet_nsg_name) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_web.nsg.name, "")) +
-                                           length(var.web_subnet_nsg_arm_id) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, ""))
+                                           length(var.web_subnet_nsg_arm_id)
                                          ) > 0
 
   subnet_storage_defined                 = (
                                            length(var.storage_subnet_address_prefix) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_storage.prefix, "")) +
-                                           length(var.storage_subnet_arm_id) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, ""))
+                                           length(var.storage_subnet_arm_id)
                                          ) > 0
 
-  subnet_storage_arm_id_defined          = (
-                                           length(var.storage_subnet_arm_id) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, ""))
-                                         ) > 0
+  subnet_storage_arm_id_defined          = (length(var.storage_subnet_arm_id)) > 0
 
   subnet_storage_nsg_defined             = (
                                            length(var.storage_subnet_nsg_name) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.name, "")) +
-                                           length(var.storage_subnet_nsg_arm_id) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id, ""))
+                                           length(var.storage_subnet_nsg_arm_id)
                                          ) > 0
 
-  app_nic_ips                          = distinct(concat(var.application_server_app_nic_ips, try(var.application_tier.app_nic_ips, [])))
+  app_nic_ips                          = distinct(var.application_server_app_nic_ips)
   app_nic_secondary_ips                = distinct(var.application_server_app_nic_ips)
-  app_admin_nic_ips                    = distinct(concat(var.application_server_admin_nic_ips, try(var.application_tier.app_admin_nic_ips, [])))
+  app_admin_nic_ips                    = distinct(var.application_server_admin_nic_ips)
 
-  scs_nic_ips                          = distinct(concat(var.scs_server_app_nic_ips, try(var.application_tier.scs_nic_ips, [])))
-  scs_admin_nic_ips                    = distinct(concat(var.scs_server_admin_nic_ips, try(var.application_tier.scs_admin_nic_ips, [])))
-  scs_server_loadbalancer_ips          = distinct(concat(var.scs_server_loadbalancer_ips, try(var.application_tier.scs_server_loadbalancer_ips, [])))
+  scs_nic_ips                          = distinct(var.scs_server_app_nic_ips)
+  scs_admin_nic_ips                    = distinct(var.scs_server_admin_nic_ips)
+  scs_server_loadbalancer_ips          = distinct(var.scs_server_loadbalancer_ips)
 
-  web_nic_ips                          = distinct(concat(var.webdispatcher_server_app_nic_ips, try(var.application_tier.web_nic_ips, [])))
-  web_admin_nic_ips                    = distinct(concat(var.webdispatcher_server_admin_nic_ips, try(var.application_tier.web_admin_nic_ips, [])))
-  webdispatcher_loadbalancer_ips       = distinct(concat(var.webdispatcher_server_loadbalancer_ips, try(var.application_tier.webdispatcher_loadbalancer_ips, [])))
+  web_nic_ips                          = concat(var.webdispatcher_server_app_nic_ips)
+  web_admin_nic_ips                    = concat(var.webdispatcher_server_admin_nic_ips)
+  webdispatcher_loadbalancer_ips       = concat(var.webdispatcher_server_loadbalancer_ips)
 
   subnet_admin                         = merge((
                                            {
@@ -610,32 +586,25 @@ locals {
 
   temp_vnet                            = merge(local.vnets, { sap = local.all_subnets })
 
-  user_keyvault_specified              = (
-                                           length(var.user_keyvault_id) +
-                                           length(try(var.key_vault.kv_user_id, ""))
-                                         ) > 0
+  user_keyvault_specified              = (length(var.user_keyvault_id) ) > 0
   user_keyvault                        = local.user_keyvault_specified ? (
-                                           try(coalesce(var.user_keyvault_id, try(var.key_vault.kv_user_id, "")), "")) : (
-                                           ""
-                                         )
+                                           var.user_keyvault_id
+                                         ) : ""
 
-  spn_keyvault_specified               = (
-                                           length(var.spn_keyvault_id) +
-                                           length(try(var.key_vault.kv_spn_id, ""))
-                                         ) > 0
-  spn_kv                               = local.spn_keyvault_specified ? try(coalesce(var.spn_keyvault_id, try(var.key_vault.kv_spn_id, "")), "") : ""
+  spn_keyvault_specified               = length(var.spn_keyvault_id) > 0
+  spn_kv                               = local.spn_keyvault_specified ? var.spn_keyvault_id : ""
 
-  username_specified                   = (length(var.automation_username) + length(try(var.authentication.username, ""))) > 0
-  username                             = try(coalesce(var.automation_username, try(var.authentication.username, "")), "")
-  password_specified                   = (length(var.automation_password) + length(try(var.authentication.password, ""))) > 0
-  password                             = try(coalesce(var.automation_password, try(var.authentication.password, "")), "")
-  path_to_public_key_specified         = (length(var.automation_path_to_public_key) + length(try(var.authentication.path_to_public_key, ""))) > 0
-  path_to_public_key                   = try(coalesce(var.automation_path_to_public_key, try(var.authentication.path_to_public_key, "")), "")
-  path_to_private_key_specified        = (length(var.automation_path_to_private_key) + length(try(var.authentication.path_to_private_key, ""))) > 0
-  path_to_private_key                  = try(coalesce(var.automation_path_to_private_key, try(var.authentication.path_to_private_key, "")), "")
+  username_specified                   = (length(var.automation_username)) > 0
+  username                             = var.automation_username
+  password_specified                   = (length(var.automation_password) ) > 0
+  password                             = var.automation_password
+  path_to_public_key_specified         = (length(var.automation_path_to_public_key) ) > 0
+  path_to_public_key                   = var.automation_path_to_public_key
+  path_to_private_key_specified        = (length(var.automation_path_to_private_key)) > 0
+  path_to_private_key                  = var.automation_path_to_private_key
 
-  disk_encryption_set_defined          = (length(var.vm_disk_encryption_set_id) + length(try(var.options.disk_encryption_set_id, ""))) > 0
-  disk_encryption_set_id               = try(coalesce(var.vm_disk_encryption_set_id, try(var.options.disk_encryption_set_id, null)), null)
+  disk_encryption_set_defined          = (length(var.vm_disk_encryption_set_id) ) > 0
+  disk_encryption_set_id               = var.vm_disk_encryption_set_id
 
   infrastructure                       = merge(local.temp_infrastructure, (
                                            local.resource_group_defined ? { resource_group = local.resource_group } : null), (
@@ -770,9 +739,8 @@ locals {
                                                                                            ))
                                             privatelink_dns_subscription_id              = trimspace(coalesce(var.privatelink_dns_subscription_id,
                                                                                               try(data.terraform_remote_state.landscape.outputs.privatelink_dns_subscription_id,
-                                                                                                try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, ""),
-                                                                                                " "
-                                                                                              )
+                                                                                                try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, "")
+                                                                                              ), " "
                                                                                             ))
 
                                             register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns

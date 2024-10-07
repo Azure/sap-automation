@@ -324,6 +324,7 @@
       become:                          true
       when:
         - node_tier == 'hana'
+        - database_scale_out
       block:
         - name:                        "Database Installation Playbook: - Setting the DB facts"
           ansible.builtin.set_fact:
@@ -332,7 +333,7 @@
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
             primary_instance_name:      "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-            secondary_instance_name:    "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+            secondary_instance_name:    "{{ ansible_play_hosts_all[1] | default('')}}"         # Setting up Secondary Instance Name
             # Only applicable for scale out with HSR
           tags:
             - always
