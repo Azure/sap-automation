@@ -35,7 +35,7 @@ resource "azurerm_storage_account" "storage_bootdiag" {
 }
 
 resource "azurerm_private_dns_a_record" "storage_bootdiag" {
-  provider                             = azurerm.dnsmanagement
+  provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
   name                                 = lower(local.storageaccount_name)
 
@@ -174,7 +174,7 @@ resource "azurerm_storage_account" "witness_storage" {
 }
 
 resource "azurerm_private_dns_a_record" "witness_storage" {
-  provider                             = azurerm.dnsmanagement
+  provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
   name                                 = lower(local.witness_storageaccount_name)
   zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
@@ -325,7 +325,7 @@ resource "azurerm_storage_account" "transport" {
 
 
 resource "azurerm_private_dns_a_record" "transport" {
-  provider                             = azurerm.dnsmanagement
+  provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.create_transport_storage && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
   name                                 = replace(
                                            lower(
@@ -346,7 +346,7 @@ resource "azurerm_private_dns_a_record" "transport" {
 }
 
 data "azurerm_private_dns_a_record" "transport" {
-  provider                             = azurerm.dnsmanagement
+  provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.create_transport_storage && var.use_private_endpoint && length(var.transport_private_endpoint_id) > 0 ? 1 : 0
   name                                 = replace(
                                            lower(
@@ -560,7 +560,7 @@ resource "azurerm_storage_account_network_rules" "install" {
 
 
 resource "azurerm_private_dns_a_record" "install" {
-  provider                             = azurerm.dnsmanagement
+  provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.use_private_endpoint && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.install_private_endpoint_id) == 0 ? 1 : 0
   name                                 = replace(
                                            lower(
@@ -585,7 +585,7 @@ resource "azurerm_private_dns_a_record" "install" {
 
 
 data "azurerm_private_dns_a_record" "install" {
-  provider                             = azurerm.dnsmanagement
+  provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.use_private_endpoint && length(var.install_private_endpoint_id) > 0 ? 1 : 0
   name                                 = replace(
                                           lower(

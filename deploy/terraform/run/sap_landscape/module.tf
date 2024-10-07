@@ -6,11 +6,12 @@
 module "sap_landscape" {
   source                                       = "../../terraform-units/modules/sap_landscape"
   providers                                    = {
-                                                   azurerm.main          = azurerm.workload
-                                                   azurerm.deployer      = azurerm
-                                                   azurerm.dnsmanagement = azurerm.dnsmanagement
-                                                   azurerm.peering       = azurerm.peering
-                                                   azapi.api             = azapi.api
+                                                   azurerm.main                     = azurerm.workload
+                                                   azurerm.deployer                 = azurerm
+                                                   azurerm.dnsmanagement            = azurerm.dnsmanagement
+                                                   azurerm.peering                  = azurerm.peering
+                                                   azapi.api                        = azapi.api
+                                                   azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                                  }
 
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
