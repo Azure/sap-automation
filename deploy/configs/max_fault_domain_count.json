@@ -168,7 +168,7 @@
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "southeastUS",
+    "Location": "southeastus",
     "MaximumFaultDomainCount": "2"
   },
   {
