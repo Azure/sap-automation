@@ -719,7 +719,7 @@ resource "azurerm_storage_share" "install" {
 
 resource "azurerm_storage_share" "install_smb" {
   provider                             = azurerm.main
-  count                                = local.use_AFS_for_shared ? (
+  count                                = local.use_AFS_for_shared && var.install_create_smb_shares ? (
                                            length(var.install_storage_account_id) > 0 ? (
                                              var.install_always_create_fileshares ? 1 : 0) : (
                                              1
