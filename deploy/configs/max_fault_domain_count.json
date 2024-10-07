@@ -160,7 +160,7 @@
     "MaximumFaultDomainCount": "3"
   },
   {
-    "Location": "southcentrausstg",
+    "Location": "southcentralusstg",
     "MaximumFaultDomainCount": "2"
   },
   {
