@@ -174,9 +174,10 @@ module "hdb_node" {
 module "app_tier" {
   source                                        = "../../terraform-units/modules/sap_system/app_tier"
   providers                                     = {
-                                                    azurerm.deployer       = azurerm
-                                                    azurerm.main           = azurerm.system
-                                                    azurerm.dnsmanagement  = azurerm.dnsmanagement
+                                                    azurerm.deployer                 = azurerm
+                                                    azurerm.main                     = azurerm.system
+                                                    azurerm.dnsmanagement            = azurerm.dnsmanagement
+                                                    azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                                     # azapi.api                                 = azapi.api
                                                   }
 
@@ -226,9 +227,10 @@ module "app_tier" {
 module "anydb_node" {
   source                                        = "../../terraform-units/modules/sap_system/anydb_node"
   providers                                     = {
-                                                    azurerm.deployer       = azurerm
-                                                    azurerm.main           = azurerm.system
-                                                    azurerm.dnsmanagement  = azurerm.dnsmanagement
+                                                    azurerm.deployer                 = azurerm
+                                                    azurerm.main                     = azurerm.system
+                                                    azurerm.dnsmanagement            = azurerm.dnsmanagement
+                                                    azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                                     # azapi.api                                 = azapi.api
                                                   }
 
