@@ -51,9 +51,10 @@ module "sap_namegenerator" {
 module "common_infrastructure" {
   source                                        = "../../terraform-units/modules/sap_system/common_infrastructure"
   providers                                     = {
-                                                    azurerm.deployer       = azurerm
-                                                    azurerm.main           = azurerm.system
-                                                    azurerm.dnsmanagement  = azurerm.dnsmanagement
+                                                    azurerm.deployer                 = azurerm
+                                                    azurerm.main                     = azurerm.system
+                                                    azurerm.dnsmanagement            = azurerm.dnsmanagement
+                                                    azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                                   }
   Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
   application_tier                              = local.application_tier
