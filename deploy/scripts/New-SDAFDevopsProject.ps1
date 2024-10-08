@@ -22,6 +22,17 @@ $Control_plane_code = $Env:SDAF_CONTROL_PLANE_CODE
 $Control_plane_subscriptionID = $Env:SDAF_ControlPlaneSubscriptionID
 $ControlPlaneSubscriptionName = $Env:SDAF_ControlPlaneSubscriptionName
 
+if ( $null -ne $Env:CreateConnections) {
+  $CreateConnection = [System.Convert]::ToBoolean($Env:CreateConnections)
+}
+else {
+  $CreateConnection = $true
+}
+
+if ( $null -ne $Env:ImportFromGitHub) {
+  $ImportFromGitHub = [System.Convert]::ToBoolean($Env:ImportFromGitHub)
+}
+
 if ($IsWindows) { $pathSeparator = "\" } else { $pathSeparator = "/" }
 #endregion
 
@@ -196,14 +207,14 @@ if ($Project_ID.Length -eq 0) {
   Add-Content -Path $fname -Value ""
   Add-Content -Path $fname -Value "Using Azure DevOps Project: $ADO_PROJECT"
 
-  az devops configure --defaults organization=$ADO_ORGANIZATION project='$ADO_PROJECT'
+  az devops configure --defaults organization=$ADO_ORGANIZATION project="$ADO_PROJECT"
 
-  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --project '$ADO_PROJECT' --out tsv)
+  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]"  --out tsv)
 
   Write-Host "Importing the content from GitHub" -ForegroundColor Green
-  az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id  --project '$ADO_PROJECT' --output none
+  az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id   --output none
 
-  az repos update --repository $repo_id --default-branch main --project '$ADO_PROJECT' --output none
+  az repos update --repository $repo_id --default-branch main  --output none
 
 }
 
@@ -214,14 +225,14 @@ else {
 
   Write-Host "Using an existing project"
 
-  az devops configure --defaults organization=$ADO_ORGANIZATION project='$ADO_PROJECT'
+  az devops configure --defaults organization=$ADO_ORGANIZATION project="$ADO_PROJECT"
 
-  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --project '$ADO_PROJECT' --output tsv)
+  $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]"  --output tsv)
   if ($repo_id.Length -ne 0) {
     Write-Host "Using repository '$ADO_Project'" -ForegroundColor Green
   }
 
-  $repo_size = (az repos list --query "[?name=='$ADO_Project'].size | [0]" --project '$ADO_PROJECT' --output tsv)
+  $repo_size = (az repos list --query "[?name=='$ADO_Project'].size | [0]"  --output tsv)
 
   if ($repo_size -eq 0) {
     Write-Host "Importing the repository from GitHub" -ForegroundColor Green
@@ -229,12 +240,12 @@ else {
     Add-Content -Path $fname -Value ""
     Add-Content -Path $fname -Value "Terraform and Ansible code repository stored in the DevOps project (sap-automation)"
 
-    az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id  --project '$ADO_PROJECT' --output tsv
+    az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id   --output tsv
     if ($LastExitCode -eq 1) {
       Write-Host "The repository already exists" -ForegroundColor Yellow
       Write-Host "Creating repository 'SDAF Configuration'" -ForegroundColor Green
       $repo_id = (az repos create --name "SDAF Configuration" --query id --output tsv)
-      az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --project '$ADO_PROJECT' --output none
+      az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id  --output none
     }
 
   }
@@ -242,15 +253,27 @@ else {
     $confirmation = Read-Host "The repository already exists, use it? y/n"
     if ($confirmation -ne 'y') {
       Write-Host "Creating repository 'SDAF Configuration'" -ForegroundColor Green
-      $repo_id = (az repos create --name "SDAF Configuration" --query id --project '$ADO_PROJECT' --output tsv)
-      az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id --project '$ADO_PROJECT' --output none
+      $repo_id = (az repos create --name "SDAF Configuration" --query id  --output tsv)
+      az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id  --output none
     }
   }
 
-  az repos update --repository $repo_id --default-branch main --project '$ADO_PROJECT' --output none
+  az repos update --repository $repo_id --default-branch main  --output none
 }
 
-$confirmation = Read-Host "You can optionally import the Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code. Do you want to run the code from GitHub y/n?"
+if ( $null -ne $Env:ImportFromGitHub) {
+  if ([System.Convert]::ToBoolean($Env:ImportFromGitHub)) {
+    $confirmation = "y"
+  }
+  else {
+    $confirmation = "n"
+  }
+}
+else {
+  $confirmation = Read-Host "You can optionally import the Terraform and Ansible code from GitHub into Azure DevOps, however, this should only be done if you cannot access github from the Azure DevOps agent or if you intend to customize the code. Do you want to run the code from GitHub y/n?"
+}
+
+
 if ($confirmation -ne 'y') {
   Add-Content -Path $fname -Value ""
   Add-Content -Path $fname -Value "Using the code from the sap-automation repository"
@@ -258,18 +281,18 @@ if ($confirmation -ne 'y') {
   $import_code = $true
   $repo_name = "sap-automation"
   Write-Host "Creating $repo_name repository" -ForegroundColor Green
-  az repos create --name $repo_name --query id --project '$ADO_PROJECT' --output none
-  $code_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]" --project '$ADO_PROJECT' --out tsv)
-  az repos import create --git-url https://github.com/Azure/SAP-automation --repository $code_repo_id --project '$ADO_PROJECT' --output none
-  az repos update --repository $code_repo_id --default-branch main --project '$ADO_PROJECT' --output none
+  az repos create --name $repo_name --query id  --output none
+  $code_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]"  --out tsv)
+  az repos import create --git-url https://github.com/Azure/SAP-automation --repository $code_repo_id  --output none
+  az repos update --repository $code_repo_id --default-branch main  --output none
 
   $import_code = $true
   $repo_name = "sap-samples"
   Write-Host "Creating $repo_name repository" -ForegroundColor Green
-  az repos create --name $repo_name --query id --project '$ADO_PROJECT' --output none
-  $sample_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]" --project '$ADO_PROJECT' --out tsv)
-  az repos import create --git-url https://github.com/Azure/SAP-automation-samples --repository $sample_repo_id --project '$ADO_PROJECT' --output none
-  az repos update --repository $sample_repo_id --default-branch main --project '$ADO_PROJECT' --output none
+  az repos create --name $repo_name --query id  --output none
+  $sample_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]"  --out tsv)
+  az repos import create --git-url https://github.com/Azure/SAP-automation-samples --repository $sample_repo_id  --output none
+  az repos update --repository $sample_repo_id --default-branch main  --output none
 
   if ($ADO_Project -ne "SAP Deployment Automation Framework") {
 
@@ -387,7 +410,7 @@ if ($confirmation -ne 'y') {
     Remove-Item $templatename
   }
 
-  $code_repo_id = (az repos list --query "[?name=='sap-automation'].id | [0]" --project '$ADO_PROJECT' --out tsv)
+  $code_repo_id = (az repos list --query "[?name=='sap-automation'].id | [0]"  --out tsv)
 
   $queryString = "?api-version=6.0-preview"
   $pipeline_permission_url = "$ADO_ORGANIZATION/$projectID/_apis/pipelines/pipelinePermissions/repository/$projectID.$code_repo_id$queryString"
@@ -400,135 +423,140 @@ else {
 
   $log = ("Please update [resources.yml](" + $resources_url + ") to point to Github instead of Azure DevOps.")
 
-  $gh_connection_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
-  Write-Host ""
-  Write-Host "The browser will now open, please create a new Github connection, record the name of the connection."
-  Write-Host "URL: " $gh_connection_url
-  Start-Process $gh_connection_url
-  Read-Host "Please press enter when you have created the connection"
+  if ($true -eq $CreateConnection ) {
+    $gh_connection_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
+    Write-Host ""
+    Write-Host "The browser will now open, please create a new Github connection, record the name of the connection."
+    Write-Host "URL: " $gh_connection_url
+    Start-Process $gh_connection_url
+    Read-Host "Please press enter when you have created the connection"
 
-  $ghConn = (az devops service-endpoint list --query "[?type=='github'].name | [0]" --project '$ADO_PROJECT' --out tsv)
+    $ghConn = (az devops service-endpoint list --query "[?type=='github'].name | [0]"  --out tsv)
 
-  $objectId = (az devops invoke --area git --resource refs --route-parameters project='$ADO_Project' repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
+    $objectId = (az devops invoke --area git --resource refs --route-parameters project='$ADO_Project' repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
-  $templatename = "resources.yml"
-  if (Test-Path $templatename) {
+    $templatename = "resources.yml"
+    if (Test-Path $templatename) {
+      Remove-Item $templatename
+    }
+
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "parameters:"
+    Add-Content -Path $templatename "  - name: stages"
+    Add-Content -Path $templatename "    type: stageList"
+    Add-Content -Path $templatename "    default: []"
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "stages:"
+    Add-Content -Path $templatename "  - `${{ parameters.stages }}"
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "resources:"
+    Add-Content -Path $templatename "  repositories:"
+    Add-Content -Path $templatename "    - repository: sap-automation"
+    Add-Content -Path $templatename "      type: GitHub"
+    Add-Content -Path $templatename -Value ("      endpoint: " + $ghConn)
+    Add-Content -Path $templatename "      name: Azure/sap-automation"
+    Add-Content -Path $templatename "      ref: refs/heads/main"
+    #  Add-Content -Path $templatename -Value ("      ref: refs/tags/" + $versionLabel)
+
+    $cont = Get-Content -Path $templatename -Raw
+
+    $inputfile = "sdaf.json"
+
+    $postBody = [PSCustomObject]@{
+      refUpdates = @(@{
+          name        = "refs/heads/main"
+          oldObjectId = $objectId
+        })
+      commits    = @(@{
+          comment = "Updated repository.yml"
+          changes = @(@{
+              changetype = "edit"
+              item       = @{path = "/pipelines/resources.yml" }
+              newContent = @{content = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($cont))
+                contentType          = "base64Encoded"
+              }
+
+            })
+        })
+    }
+
+    Set-Content -Path $inputfile -Value ($postBody | ConvertTo-Json -Depth 6)
+
+    az devops invoke `
+      --area git --resource pushes `
+      --route-parameters project=$ADO_Project repositoryId=$repo_id `
+      --http-method POST --in-file $inputfile `
+      --api-version "6.0" --output none
+
     Remove-Item $templatename
+    $templatename = "resources_including_samples.yml"
+
+    Add-Content -Path $templatename "parameters:"
+    Add-Content -Path $templatename " - name: stages"
+    Add-Content -Path $templatename "   type: stageList"
+    Add-Content -Path $templatename "   default: []"
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "stages:"
+    Add-Content -Path $templatename " - `${{ parameters.stages }}"
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "resources:"
+    Add-Content -Path $templatename "  repositories:"
+    Add-Content -Path $templatename "   - repository: sap-automation"
+    Add-Content -Path $templatename "     type: GitHub"
+    Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
+    Add-Content -Path $templatename "     name: Azure/sap-automation"
+    Add-Content -Path $templatename "     ref: refs/heads/main"
+    Add-Content -Path $templatename "   - repository: sap-samples"
+    Add-Content -Path $templatename "     type: GitHub"
+    Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
+    Add-Content -Path $templatename "     name: Azure/sap-automation-samples"
+    Add-Content -Path $templatename "     ref: refs/heads/main"
+
+    $cont2 = Get-Content -Path $templatename -Raw
+
+    $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
+
+    Remove-Item "sdaf.json"
+
+    $postBody = [PSCustomObject]@{
+      refUpdates = @(@{
+          name        = "refs/heads/main"
+          oldObjectId = $objectId
+        })
+      commits    = @(@{
+          comment = "Updated resources_including_samples.yml"
+          changes = @(@{
+              changetype = "edit"
+              item       = @{path = "/pipelines/resources_including_samples.yml" }
+              newContent = @{content = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($cont2))
+                contentType          = "base64Encoded"
+              }
+
+            })
+        })
+    }
+
+    Set-Content -Path $inputfile -Value ($postBody | ConvertTo-Json -Depth 6)
+
+    az devops invoke `
+      --area git --resource pushes `
+      --route-parameters project=$ADO_Project repositoryId=$repo_id `
+      --http-method POST --in-file $inputfile `
+      --api-version "6.0" --output none
+
+    Remove-Item $templatename
+    Remove-Item $inputfile
   }
-
-  Add-Content -Path $templatename ""
-  Add-Content -Path $templatename "parameters:"
-  Add-Content -Path $templatename "  - name: stages"
-  Add-Content -Path $templatename "    type: stageList"
-  Add-Content -Path $templatename "    default: []"
-  Add-Content -Path $templatename ""
-  Add-Content -Path $templatename "stages:"
-  Add-Content -Path $templatename "  - `${{ parameters.stages }}"
-  Add-Content -Path $templatename ""
-  Add-Content -Path $templatename "resources:"
-  Add-Content -Path $templatename "  repositories:"
-  Add-Content -Path $templatename "    - repository: sap-automation"
-  Add-Content -Path $templatename "      type: GitHub"
-  Add-Content -Path $templatename -Value ("      endpoint: " + $ghConn)
-  Add-Content -Path $templatename "      name: Azure/sap-automation"
-  Add-Content -Path $templatename "      ref: refs/heads/main"
-  #  Add-Content -Path $templatename -Value ("      ref: refs/tags/" + $versionLabel)
-
-  $cont = Get-Content -Path $templatename -Raw
-
-  $inputfile = "sdaf.json"
-
-  $postBody = [PSCustomObject]@{
-    refUpdates = @(@{
-        name        = "refs/heads/main"
-        oldObjectId = $objectId
-      })
-    commits    = @(@{
-        comment = "Updated repository.yml"
-        changes = @(@{
-            changetype = "edit"
-            item       = @{path = "/pipelines/resources.yml" }
-            newContent = @{content = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($cont))
-              contentType          = "base64Encoded"
-            }
-
-          })
-      })
+  else {
+    <# Action when all if and elseif conditions are false #>
   }
-
-  Set-Content -Path $inputfile -Value ($postBody | ConvertTo-Json -Depth 6)
-
-  az devops invoke `
-    --area git --resource pushes `
-    --route-parameters project='$ADO_Project' repositoryId=$repo_id `
-    --http-method POST --in-file $inputfile `
-    --api-version "6.0" --output none
-
-  Remove-Item $templatename
-  $templatename = "resources_including_samples.yml"
-
-  Add-Content -Path $templatename "parameters:"
-  Add-Content -Path $templatename " - name: stages"
-  Add-Content -Path $templatename "   type: stageList"
-  Add-Content -Path $templatename "   default: []"
-  Add-Content -Path $templatename ""
-  Add-Content -Path $templatename "stages:"
-  Add-Content -Path $templatename " - `${{ parameters.stages }}"
-  Add-Content -Path $templatename ""
-  Add-Content -Path $templatename "resources:"
-  Add-Content -Path $templatename "  repositories:"
-  Add-Content -Path $templatename "   - repository: sap-automation"
-  Add-Content -Path $templatename "     type: GitHub"
-  Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
-  Add-Content -Path $templatename "     name: Azure/sap-automation"
-  Add-Content -Path $templatename "     ref: refs/heads/main"
-  Add-Content -Path $templatename "   - repository: sap-samples"
-  Add-Content -Path $templatename "     type: GitHub"
-  Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
-  Add-Content -Path $templatename "     name: Azure/sap-automation-samples"
-  Add-Content -Path $templatename "     ref: refs/heads/main"
-
-  $cont2 = Get-Content -Path $templatename -Raw
-
-  $objectId = (az devops invoke --area git --resource refs --route-parameters project='$ADO_Project' repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
-
-  Remove-Item "sdaf.json"
-
-  $postBody = [PSCustomObject]@{
-    refUpdates = @(@{
-        name        = "refs/heads/main"
-        oldObjectId = $objectId
-      })
-    commits    = @(@{
-        comment = "Updated resources_including_samples.yml"
-        changes = @(@{
-            changetype = "edit"
-            item       = @{path = "/pipelines/resources_including_samples.yml" }
-            newContent = @{content = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($cont2))
-              contentType          = "base64Encoded"
-            }
-
-          })
-      })
-  }
-
-  Set-Content -Path $inputfile -Value ($postBody | ConvertTo-Json -Depth 6)
-
-  az devops invoke `
-    --area git --resource pushes `
-    --route-parameters project='$ADO_Project' repositoryId=$repo_id `
-    --http-method POST --in-file $inputfile `
-    --api-version "6.0" --output none
-
-  Remove-Item $templatename
-  Remove-Item $inputfile
 
 }
 
 #endregion
 
-$repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]" --project '$ADO_PROJECT' --out tsv)
-$repo_name = (az repos list --query "[?name=='$ADO_Project'].name | [0]" --project '$ADO_PROJECT' --out tsv)
+$repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]"  --out tsv)
+$repo_name = (az repos list --query "[?name=='$ADO_Project'].name | [0]"  --out tsv)
 
 $SUserName = 'Enter your S User'
 $SPassword = 'Enter your S user password'
@@ -929,15 +957,19 @@ else {
   }
 
   Write-Host
+  if ($true -eq $CreateConnection) {
+    Write-Host ""
+    Write-Host "The browser will now open, Please create an 'Azure Resource Manager' service connection with the name 'Control_Plane_Service_Connection'."
+    $connections_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
+    Write-Host "URL: " $connections_url
 
-  Write-Host ""
-  Write-Host "The browser will now open, Please create an 'Azure Resource Manager' service connection with the name 'Control_Plane_Service_Connection'."
-  $connections_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
-  Write-Host "URL: " $connections_url
 
-
-  Start-Process $connections_url
-  Read-Host -Prompt "Once you have created and validated the connection, Press any key to continue"
+    Start-Process $connections_url
+    Read-Host -Prompt "Once you have created and validated the connection, Press any key to continue"
+  }
+  else {
+    Write-Host "Please create an 'Azure Resource Manager' service connection with the name 'Control_Plane_Service_Connection' before running any pipeline."
+  }
 
 }
 
@@ -962,12 +994,17 @@ if (!$AlreadySet -or $ResetPAT ) {
 
   # Get pat_url directly from the $ADO_Organization, avoiding double slashes.
   $pat_url = ($ADO_Organization.TrimEnd('/') + "/_usersSettings/tokens").Replace("""", "")
-  Write-Host ""
-  Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
-  Write-Host "URL: " pat_url
-  Start-Process $pat_url
-  $PAT = Read-Host -Prompt "Please enter the PAT "
-  az pipelines variable-group variable update --group-id $Control_plane_groupID --name "PAT" --value $PAT --secret true --only-show-errors --output none
+  if ($true -eq $CreateConnection ) {
+    Write-Host ""
+    Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
+    Write-Host "URL: " pat_url
+    Start-Process $pat_url
+    $PAT = Read-Host -Prompt "Please enter the PAT "
+    az pipelines variable-group variable update --group-id $Control_plane_groupID --name "PAT" --value $PAT --secret true --only-show-errors --output none
+  }
+  else {
+    Write-Host "Please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups, add the PAT variable into the control plane variable group"
+  }
 
   $POOL_ID = 0
   $POOL_NAME_FOUND = (az pipelines pool list --query "[?name=='$Pool_Name'].name | [0]")
@@ -1074,15 +1111,19 @@ if (!$AlreadySet -or $ResetPAT ) {
   }
 
 }
+if ($true -eq $CreateConnection) {
+  Write-Host ""
+  Write-Host "The browser will now open, Select the '"$ADO_PROJECT "Build Service' user and ensure that it has 'Allow' in the Contribute section."
 
-Write-Host ""
-Write-Host "The browser will now open, Select the '"$ADO_PROJECT "Build Service' user and ensure that it has 'Allow' in the Contribute section."
+  $permissions_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/repositories?_a=permissions"
+  Write-Host "URL: " $permissions_url
 
-$permissions_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/repositories?_a=permissions"
-Write-Host "URL: " $permissions_url
-
-Start-Process $permissions_url
-Read-Host -Prompt "Once you have verified the permission, Press any key to continue"
+  Start-Process $permissions_url
+  Read-Host -Prompt "Once you have verified the permission, Press any key to continue"
+}
+else {
+  Write-Host "Please ensure that the '"$ADO_PROJECT "Build Service' user has 'Allow' in the Contribute section in the repository before running any pipelines"
+}
 
 $pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $sample_pipeline_id
 
@@ -1112,8 +1153,9 @@ $page_id = (az devops wiki page show --path 'Next steps' --wiki SDAF --query pag
 
 $wiki_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_wiki/wikis/SDAF/" + $page_id + "/Next-steps"
 Write-Host "URL: " $wiki_url
-Start-Process $wiki_url
-
+if ($true -eq $CreateConnection) {
+  Start-Process $wiki_url
+}
 if (Test-Path ".${pathSeparator}start.md") { Write-Host "Removing start.md" ; Remove-Item ".${pathSeparator}start.md" }
 
 Write-Host "Adding the Build Service user to the Build Administrators group for thge Project" -ForegroundColor Green
