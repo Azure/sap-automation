@@ -33,6 +33,15 @@ if ( $null -ne $Env:ImportFromGitHub) {
   $ImportFromGitHub = [System.Convert]::ToBoolean($Env:ImportFromGitHub)
 }
 
+if ( $null -ne $Env:CreatePAT) {
+  $CreatePAT = [System.Convert]::ToBoolean($Env:CreatePAT)
+}
+else {
+  $CreatePAT = $true
+}
+
+
+
 if ($IsWindows) { $pathSeparator = "\" } else { $pathSeparator = "/" }
 #endregion
 
@@ -54,6 +63,8 @@ $versionLabel = "v3.13.0.0"
 
 if ($Env:AZURE_DEVOPS_EXT_PAT.Length -gt 0) {
   Write-Host "Using the provided Personal Access Token (PAT) to authenticate to the Azure DevOps organization $ADO_Organization" -ForegroundColor Yellow
+  $PAT = $Env:AZURE_DEVOPS_EXT_PAT
+  $CreatePAT = $false
 }
 
 $checkPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
@@ -906,10 +917,10 @@ if ($authenticationMethod -eq "Service Principal") {
     Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
 
     if ($WebApp) {
-      az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID APP_REGISTRATION_OBJECTID=$APP_REGISTRATION_OBJECTID APP_TENANT_ID=$ARM_TENANT_ID CP_ARM_CLIENT_ID=$CP_ARM_CLIENT_ID CP_ARM_OBJECT_ID=$CP_ARM_OBJECT_ID CP_ARM_CLIENT_SECRET='Enter your SPN password here' CP_ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID CP_ARM_TENANT_ID=$CP_ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF --output none --authorize true
+      az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines'  PAT='Enter your personal access token here' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID APP_REGISTRATION_OBJECTID=$APP_REGISTRATION_OBJECTID APP_TENANT_ID=$ARM_TENANT_ID CP_ARM_CLIENT_ID=$CP_ARM_CLIENT_ID CP_ARM_OBJECT_ID=$CP_ARM_OBJECT_ID CP_ARM_CLIENT_SECRET='Enter your SPN password here' CP_ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID CP_ARM_TENANT_ID=$CP_ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF --output none --authorize true
     }
     else {
-      az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' CP_ARM_CLIENT_ID=$CP_ARM_CLIENT_ID CP_ARM_OBJECT_ID=$CP_ARM_OBJECT_ID CP_ARM_CLIENT_SECRET='Enter your SPN password here' CP_ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID CP_ARM_TENANT_ID=$CP_ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF --output none --authorize true
+      az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' PAT='Enter your personal access token here' CP_ARM_CLIENT_ID=$CP_ARM_CLIENT_ID CP_ARM_OBJECT_ID=$CP_ARM_OBJECT_ID CP_ARM_CLIENT_SECRET='Enter your SPN password here' CP_ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID CP_ARM_TENANT_ID=$CP_ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF --output none --authorize true
     }
     $Control_plane_groupID = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
   }
@@ -978,110 +989,122 @@ $groups.Add($Control_plane_groupID)
 
 #endregion
 
-  $POOL_ID = 0
-  $POOL_NAME_FOUND = (az pipelines pool list --query "[?name=='$Pool_Name'].name | [0]")
-  if ($POOL_NAME_FOUND.Length -gt 0) {
-    Write-Host "Agent pool" $Pool_Name "already exists" -ForegroundColor Yellow
-    $POOL_ID = (az pipelines pool list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
-    $queue_id = (az pipelines queue list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
-  }
-  else {
+$POOL_ID = 0
+$POOL_NAME_FOUND = (az pipelines pool list --query "[?name=='$Pool_Name'].name | [0]")
+if ($POOL_NAME_FOUND.Length -gt 0) {
+  Write-Host "Agent pool" $Pool_Name "already exists" -ForegroundColor Yellow
+  $POOL_ID = (az pipelines pool list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
+  $queue_id = (az pipelines queue list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
+}
+else {
 
-    Write-Host "Creating agent pool" $Pool_Name -ForegroundColor Green
+  Write-Host "Creating agent pool" $Pool_Name -ForegroundColor Green
 
-    Set-Content -Path pool.json -Value (ConvertTo-Json @{name = $Pool_Name; autoProvision = $true })
-    az devops invoke --area distributedtask --resource pools --http-method POST --api-version "7.1-preview" --in-file ".${pathSeparator}pool.json" --query-parameters authorizePipelines=true --query id --output none --only-show-errors --route-parameters project=$ADO_Project
-    $POOL_ID = (az pipelines pool list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
-    Write-Host "Agent pool" $Pool_Name "created"
-    $queue_id = (az pipelines queue list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
+  Set-Content -Path pool.json -Value (ConvertTo-Json @{name = $Pool_Name; autoProvision = $true })
+  az devops invoke --area distributedtask --resource pools --http-method POST --api-version "7.1-preview" --in-file ".${pathSeparator}pool.json" --query-parameters authorizePipelines=true --query id --output none --only-show-errors --route-parameters project=$ADO_Project
+  $POOL_ID = (az pipelines pool list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
+  Write-Host "Agent pool" $Pool_Name "created"
+  $queue_id = (az pipelines queue list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
 
-  }
+}
 
-  if (Test-Path ".${pathSeparator}pool.json") { Write-Host "Removing pool.json" ; Remove-Item ".${pathSeparator}pool.json" }
+if (Test-Path ".${pathSeparator}pool.json") { Write-Host "Removing pool.json" ; Remove-Item ".${pathSeparator}pool.json" }
 
-  # # Create header with PAT
-  # $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":{0}" -f $PAT)))
+if ($CreatePAT) {
+  # Get pat_url directly from the $ADO_Organization, avoiding double slashes.
+  $pat_url = ($ADO_Organization.TrimEnd('/') + "/_usersSettings/tokens").Replace("""", "")
+  Write-Host ""
+  Write-Host "The browser will now open, please create a Personal Access Token. Ensure that Read & manage is selected for Agent Pools, Read & write is selected for Code, Read & execute is selected for Build, and Read, create, & manage is selected for Variable Groups"
+  Write-Host "URL: " $pat_url
+  Start-Process $pat_url
+  $PAT = Read-Host -Prompt "Please enter the PAT "
+}
 
-  # $bodyText = [PSCustomObject]@{
-  #   allPipelines = @{
-  #     authorized = $false
-  #   }
-  #   resource     = @{
-  #     id   = 000
-  #     type = "variablegroup"
-  #   }
-  #   pipelines    = @([ordered]@{
-  #       id         = 000
-  #       authorized = $true
-  #     })
-  # }
+if ($PAT.Length -gt 0) {
+  # Create header with PAT
+  az pipelines variable-group variable update --group-id $Control_plane_groupID --name "PAT" --value $PAT --secret true --output none --only-show-errors
+  $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes((":{0}" -f $PAT)))
 
-  # foreach ($group in $groups) {
-  #   $bodyText.resource.id = $group
-  #   $pipeline_permission_url = $ADO_ORGANIZATION + "/" + $Project_ID + "/_apis/pipelines/pipelinePermissions/variablegroup/" + $group.ToString() + "?api-version=5.1-preview.1"
-  #   Write-Host "Setting permissions for variable group:" $group.ToString() -ForegroundColor Yellow
-
-  #   foreach ($pipeline in $pipelines) {
-  #     $bodyText.pipelines[0].id = $pipeline
-  #     $body = $bodyText | ConvertTo-Json -Depth 10
-  #     Write-Host "  Allowing pipeline id:" $pipeline.ToString() -ForegroundColor Yellow
-  #     $response = Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo" } -Body $body -ContentType "application/json"
-  #   }
-  # }
-
-  # $bodyText = [PSCustomObject]@{
-  #   allPipelines = @{
-  #     authorized = $false
-  #   }
-  #   pipelines    = @([ordered]@{
-  #       id         = 000
-  #       authorized = $true
-  #     })
-  # }
-
-  Remove-Item -Path "user.json"
-
-  $postBody = [PSCustomObject]@{
-    accessLevel         = @{
-      accountLicenseType = "stakeholder"
+  $bodyText = [PSCustomObject]@{
+    allPipelines = @{
+      authorized = $false
     }
-    user                = @{
-      origin      = "aad"
-      originId    = $MSI_objectId
-      subjectKind = "servicePrincipal"
+    resource     = @{
+      id   = 000
+      type = "variablegroup"
     }
-    projectEntitlements = @([ordered]@{
-        group      = @{
-          groupType = "projectContributor"
-        }
-        projectRef = @{
-          id = $Project_ID
-        }
-
+    pipelines    = @([ordered]@{
+        id         = 000
+        authorized = $true
       })
-    servicePrincipal    = @{
-      origin      = "aad"
-      originId    = $MSI_objectId
-      subjectKind = "servicePrincipal"
-    }
-
   }
 
-  Set-Content -Path "user.json" -Value ($postBody | ConvertTo-Json -Depth 6)
+  foreach ($group in $groups) {
+    $bodyText.resource.id = $group
+    $pipeline_permission_url = $ADO_ORGANIZATION + "/" + $Project_ID + "/_apis/pipelines/pipelinePermissions/variablegroup/" + $group.ToString() + "?api-version=5.1-preview.1"
+    Write-Host "Setting permissions for variable group:" $group.ToString() -ForegroundColor Yellow
 
-  az devops invoke --area MemberEntitlementManagement --resource ServicePrincipalEntitlements  --in-file user.json --api-version "7.1-preview" --http-method POST
+    foreach ($pipeline in $pipelines) {
+      $bodyText.pipelines[0].id = $pipeline
+      $body = $bodyText | ConvertTo-Json -Depth 10
+      Write-Host "  Allowing pipeline id:" $pipeline.ToString() -ForegroundColor Yellow
+      $response = Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo" } -Body $body -ContentType "application/json"
+    }
+  }
 
-  # # Read-Host -Prompt "Press any key to continue"
+  $bodyText = [PSCustomObject]@{
+    allPipelines = @{
+      authorized = $false
+    }
+    pipelines    = @([ordered]@{
+        id         = 000
+        authorized = $true
+      })
+  }
+}
+Remove-Item -Path "user.json"
 
-  # $pipeline_permission_url = $ADO_ORGANIZATION + "/" + $Project_ID + "/_apis/pipelines/pipelinePermissions/queue/" + $queue_id.ToString() + "?api-version=5.1-preview.1"
-  # Write-Host "Setting permissions for agent pool:" $Pool_Name "(" $queue_id ")" -ForegroundColor Yellow
-  # foreach ($pipeline in $pipelines) {
-  #   $bodyText.pipelines[0].id = $pipeline
-  #   $body = $bodyText | ConvertTo-Json -Depth 10
-  #   Write-Host "  Allowing pipeline id:" $pipeline.ToString() " access to " $Pool_Name -ForegroundColor Yellow
-  #   $response = Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo" } -Body $body -ContentType "application/json"
-  # }
+$postBody = [PSCustomObject]@{
+  accessLevel         = @{
+    accountLicenseType = "stakeholder"
+  }
+  user                = @{
+    origin      = "aad"
+    originId    = $MSI_objectId
+    subjectKind = "servicePrincipal"
+  }
+  projectEntitlements = @([ordered]@{
+      group      = @{
+        groupType = "projectContributor"
+      }
+      projectRef = @{
+        id = $Project_ID
+      }
 
+    })
+  servicePrincipal    = @{
+    origin      = "aad"
+    originId    = $MSI_objectId
+    subjectKind = "servicePrincipal"
+  }
+
+}
+
+Set-Content -Path "user.json" -Value ($postBody | ConvertTo-Json -Depth 6)
+
+az devops invoke --area MemberEntitlementManagement --resource ServicePrincipalEntitlements  --in-file user.json --api-version "7.1-preview" --http-method POST
+
+# Read-Host -Prompt "Press any key to continue"
+if ($PAT.Length -gt 0) {
+  $pipeline_permission_url = $ADO_ORGANIZATION + "/" + $Project_ID + "/_apis/pipelines/pipelinePermissions/queue/" + $queue_id.ToString() + "?api-version=5.1-preview.1"
+  Write-Host "Setting permissions for agent pool:" $Pool_Name "(" $queue_id ")" -ForegroundColor Yellow
+  foreach ($pipeline in $pipelines) {
+    $bodyText.pipelines[0].id = $pipeline
+    $body = $bodyText | ConvertTo-Json -Depth 10
+    Write-Host "  Allowing pipeline id:" $pipeline.ToString() " access to " $Pool_Name -ForegroundColor Yellow
+    $response = Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo" } -Body $body -ContentType "application/json"
+  }
+}
 
 if ($true -eq $CreateConnection) {
   Write-Host ""
