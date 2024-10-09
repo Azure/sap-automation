@@ -367,7 +367,7 @@ stages:
                       TF_IN_AUTOMATION:               true
                       TF_LOG:                         $(TF_LOG)
                       TF_VAR_agent_ado_url:           $(System.CollectionUri)
-                      TF_VAR_agent_pat:               $(PAT)
+                      TF_VAR_agent_pat:               $(System.AccessToken)
                       TF_VAR_agent_pool:              $(POOL)
                       TF_VAR_ansible_core_version:    $(ansible_core_version)
                       TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
