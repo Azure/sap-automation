@@ -34,7 +34,7 @@
     name:                              WALinuxAgent
     state:                             latest
   environment:
-    ZYPP_LOCK_TIMEOUT:                 20
+    ZYPP_LOCK_TIMEOUT:                 "20"
   when:
     - ansible_os_family == 'Suse'
   tags:

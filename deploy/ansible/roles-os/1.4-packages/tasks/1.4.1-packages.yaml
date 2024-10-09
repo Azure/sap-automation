@@ -208,7 +208,7 @@
                                            list }}"
         state:                         "{{ item.state }}"
       environment:
-        ZYPP_LOCK_TIMEOUT:             20
+        ZYPP_LOCK_TIMEOUT:             "20"
       register:                        package_result
       loop:
         - { state: 'latest' }  # Update necessary packages
