@@ -4,6 +4,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 ---
+
 - name:                                "calling setting variables python script" 
   setting_vars: 
     sap_sid: "{{ sap_sid }}"

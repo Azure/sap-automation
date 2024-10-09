@@ -3,16 +3,17 @@
 - name: Gather Logical volumes created in roles-os/1.5.1.1
   ansible.builtin.include_vars: disks_config_asm.yml
 
-- name:                                Set the NFS Server name list
-  ansible.builtin.set_fact:
-    nfs_server_temp:                   "{{ nfs_server_temp | default([]) + [item] }}"
+- name:                                "calling setting variables oracle python script and setting NFS Server name list"
+  setting_vars_oracle:
+    nfs_server_temp: "{{ item }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"  
+  register: setting_vars_output
 
 - name:                                Set the NFS Server name
   ansible.builtin.set_fact:
-    nfs_server:                        "{{ nfs_server_temp | first }}"
+    nfs_server:                        "{{ setting_vars_output.results[0]['nfs_server_temp'] | first }}"
   when:                                NFS_provider == "NONE"
 
 - name: Check if LVs exists.
