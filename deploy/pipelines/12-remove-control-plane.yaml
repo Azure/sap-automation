@@ -466,11 +466,6 @@ stages:
                   az config set extension.use_dynamic_install=yes_without_prompt
 
                   az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
-                  if [ -n $(PAT) ]; then
-                    export AZURE_DEVOPS_EXT_PAT=$(PAT)
-                  else
-                    export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
-                  fi
 
                   export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
                   echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
@@ -750,8 +745,6 @@ stages:
                         if [ ${#variable_value} != 0 ]; then
                           az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name INSTALLATION_MEDIA_ACCOUNT           --yes --only-show-errors
                         fi
-
-
 
                       fi
 
