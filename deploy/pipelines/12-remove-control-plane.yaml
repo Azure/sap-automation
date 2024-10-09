@@ -380,6 +380,7 @@ stages:
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
               DEPLOYER_RANDOM_ID_SEED:  $(DEPLOYER_RANDOM_ID_SEED)
+              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
             failOnStderr: false
 
   - stage:                              Remove_control_plane
