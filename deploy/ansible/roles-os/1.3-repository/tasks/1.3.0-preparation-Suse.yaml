@@ -14,6 +14,8 @@
       # not making any changes; we know this command action doesn't
       # change anything so ensure it doesn't report as changed.
       changed_when:                    false
+      environment:
+        ZYPP_LOCK_TIMEOUT:             "20"
 
   rescue:
     # Attempt to configure the repos by re-registering instance
@@ -36,7 +38,9 @@
           register:                    reg_result
           # registercloudguest rc == 1 when successful
           failed_when:                     reg_result.rc > 1
-
+          environment:
+             ZYPP_LOCK_TIMEOUT:        "20"
+          
         - name:                        "1.3 Packages - Wait 30 secs before retrying"
           ansible.builtin.wait_for:
             timeout:                   30
