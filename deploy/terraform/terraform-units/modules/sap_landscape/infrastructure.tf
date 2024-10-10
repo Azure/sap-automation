@@ -215,7 +215,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
 
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 
-  private_dns_zone_name                = var.dns_zone_names.file_dns_zone_name
+  private_dns_zone_name                = var.dns_settings.dns_zone_names.file_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
 }
@@ -223,7 +223,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
 data "azurerm_private_dns_zone" "file" {
   provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
-  name                                 = var.dns_zone_names.file_dns_zone_name
+  name                                 = var.dns_settings.dns_zone_names.file_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 
@@ -248,7 +248,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
 data "azurerm_private_dns_zone" "storage" {
   provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
-  name                                 = var.dns_zone_names.blob_dns_zone_name
+  name                                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 

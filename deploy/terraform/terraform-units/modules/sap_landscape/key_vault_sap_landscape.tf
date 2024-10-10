@@ -483,7 +483,7 @@ resource "azurerm_private_endpoint" "kv_user" {
 data "azurerm_private_dns_zone" "keyvault" {
   provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
-  name                                 = var.dns_zone_names.vault_dns_zone_name
+  name                                 = var.dns_settings.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 
@@ -493,7 +493,7 @@ resource "azurerm_private_dns_a_record" "keyvault" {
   name                                 = lower(
                                            format("%s", local.user_keyvault_name)
                                          )
-  zone_name                            = var.dns_zone_names.vault_dns_zone_name
+  zone_name                            = var.dns_settings.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
   ttl                                  = 10
   records                              = [
@@ -520,7 +520,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
                                            "vault"
                                          )
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-  private_dns_zone_name                = var.dns_zone_names.vault_dns_zone_name
+  private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
 }
