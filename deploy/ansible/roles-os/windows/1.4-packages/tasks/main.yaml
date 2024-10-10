@@ -48,13 +48,6 @@
     reboot:                            true
   register:                            win_updates
 
-
-- name:                                "1.4-Packages: Register-PSRepository"
-  ansible.windows.win_shell: |
-                                       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-                                       Register-PSRepository -Default -ErrorAction SilentlyContinue
-  register:                            repository_registered
-
 - name:                                "1.4-Packages: Install Nuget"
   ansible.windows.win_shell: |
                                        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -69,6 +62,12 @@
   ansible.windows.win_file:
     path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\nuget.txt'
     state:                             touch
+
+- name:                                "1.4-Packages: Register-PSRepository"
+  ansible.windows.win_shell: |
+                                       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                                       Register-PSRepository -Default -ErrorAction SilentlyContinue
+  register:                            repository_registered
 
 - name:                                "1.4-Packages: Check if PowerShellGet is already installed"
   ansible.windows.win_stat:

@@ -434,6 +434,13 @@ $$shared_access_key_enabled$$
 $$shared_access_key_enabled_nfs$$
 
 
+# Value indicating if file shares are created when using existing storage accounts
+$$install_always_create_fileshares$$
+
+# Value indicating if SMB shares should be created
+$$install_create_smb_shares$$
+
+
 #########################################################################################
 #                                                                                       #
 #  Private DNS support                                                                  #                                                                                       #

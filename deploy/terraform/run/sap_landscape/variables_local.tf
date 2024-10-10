@@ -72,4 +72,5 @@ locals {
                                            var.management_dns_resourcegroup_name != (local.saplib_resource_group_name)
                                          )
 
+
 }

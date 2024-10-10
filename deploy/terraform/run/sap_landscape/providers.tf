@@ -51,7 +51,7 @@ provider "azurerm"                     {
                                          client_secret              = var.use_spn ? local.cp_spn.client_secret : null
                                          tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
                                          use_msi                    = var.use_spn ? false : true
-                                         storage_use_azuread = true
+                                         storage_use_azuread        = true
                                        }
 
 provider "azurerm"                     {
@@ -62,7 +62,7 @@ provider "azurerm"                     {
                                          client_secret              = var.use_spn ? local.cp_spn.client_secret : null
                                          tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
                                          use_msi                    = var.use_spn ? false : true
-                                         storage_use_azuread = true
+                                         storage_use_azuread        = true
                                        }
 
 /*
@@ -126,11 +126,11 @@ terraform                              {
                                                                          }
                                                               azuread =  {
                                                                            source  = "hashicorp/azuread"
-                                                                           version = ">=3.0"
+                                                                           version = "3.0.2"
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = ">= 4.0"
+                                                                           version = "4.4.0"
                                                                          }
                                                               azapi =    {
                                                                            source  = "Azure/azapi"

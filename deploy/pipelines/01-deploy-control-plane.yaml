@@ -380,6 +380,7 @@ stages:
                       USE_WEBAPP:                     ${{ lower(parameters.use_webapp_param) }}
                       WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
 
+
     - stage: Deploy_controlplane
       dependsOn:
           - Prepare_Deployer
@@ -899,7 +900,6 @@ stages:
                       TF_VAR_agent_ado_url:        $(System.CollectionUri)
                       TF_VAR_tf_version:           $(tf_version)
                       TF_VAR_agent_pat:            $(PAT)
-                      AZURE_DEVOPS_EXT_PAT:        $(PAT)
                       IS_PIPELINE_DEPLOYMENT:      true
                       WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
                       APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)
@@ -914,6 +914,7 @@ stages:
                       LOGON_USING_SPN:             $(Logon_Using_SPN)
                       USE_MSI:                     $(Use_MSI)
                       DEPLOYER_RANDOM_ID_SEED:     $(DEPLOYER_RANDOM_ID_SEED)
+                      AZURE_DEVOPS_EXT_PAT:        $(System.AccessToken)
 
                   failOnStderr: false
 

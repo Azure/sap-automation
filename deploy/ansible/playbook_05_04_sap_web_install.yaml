@@ -104,6 +104,8 @@
 
     - name:                            Run the WEB installation Playbook
       become:                          true
+      when:
+        - ansible_os_family != "Windows"
       block:
         - name:                        "WEB Installation Playbook: - run SAPInst"
           ansible.builtin.include_role:

@@ -630,23 +630,18 @@ locals {
 
                                          }
 
-  dns_settings                         = {
+dns_settings                         = {
                                            use_custom_dns_a_registration                = var.use_custom_dns_a_registration
                                            dns_label                                    = var.dns_label
                                            dns_zone_names                               = var.dns_zone_names
                                            dns_server_list                              = var.dns_server_list
 
-                                          #  management_dns_resourcegroup_name            = coalesce(var.management_dns_resourcegroup_name,local.saplib_resource_group_name)
-                                          #  management_dns_subscription_id               = coalesce(var.management_dns_subscription_id, local.saplib_subscription_id)
+                                           management_dns_resourcegroup_name            =  coalesce(var.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+                                           management_dns_subscription_id               =  coalesce(var.management_dns_subscription_id, local.saplib_subscription_id)
 
-                                          #  privatelink_dns_subscription_id              = coalesce(var.privatelink_dns_subscription_id,var.management_dns_subscription_id, local.saplib_subscription_id)
-                                          #  privatelink_dns_resourcegroup_name           = coalesce(var.privatelink_dns_resourcegroup_name,var.management_dns_resourcegroup_name,local.saplib_resource_group_name)
+                                           privatelink_dns_resourcegroup_name           = coalesce(var.privatelink_dns_resourcegroup_name, var.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+                                           privatelink_dns_subscription_id              = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.saplib_subscription_id)
 
-                                           management_dns_resourcegroup_name = trimspace(var.management_dns_resourcegroup_name)
-                                           management_dns_subscription_id = var.management_dns_subscription_id
-
-                                           privatelink_dns_subscription_id = var.privatelink_dns_subscription_id != var.management_dns_subscription_id ? var.privatelink_dns_subscription_id : var.management_dns_subscription_id
-                                           privatelink_dns_resourcegroup_name = var.management_dns_resourcegroup_name != var.privatelink_dns_resourcegroup_name ? var.privatelink_dns_resourcegroup_name : var.management_dns_resourcegroup_name
                                            register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
                                            register_endpoints_with_dns                  = var.register_endpoints_with_dns
                                            register_virtual_network_to_dns              = var.register_virtual_network_to_dns

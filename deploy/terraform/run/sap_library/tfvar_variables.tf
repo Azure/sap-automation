@@ -323,3 +323,8 @@ variable "privatelink_dns_resourcegroup_name"    {
                                                    default     = ""
                                                    type        = string
                                                  }
+
+variable "dns_label"                             {
+                                                   description = "DNS label"
+                                                   default     = ""
+                                                 }
