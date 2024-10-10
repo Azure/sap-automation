@@ -761,6 +761,7 @@ if ($true -eq $CreateConnection ) {
   $epId = az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].id" -o tsv
   if ($epId.Length -ne 0) {
     az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
+  }
 
 
 }
