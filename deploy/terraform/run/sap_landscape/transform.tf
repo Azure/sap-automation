@@ -636,10 +636,10 @@ locals {
                                            dns_zone_names                               = var.dns_zone_names
                                            dns_server_list                              = var.dns_server_list
 
-                                           management_dns_resourcegroup_name            = local.management_dns_resourcegroup_name
-                                           management_dns_subscription_id               = local.management_dns_subscription_id
-                                           privatelink_dns_resourcegroup_name           = local.privatelink_dns_resourcegroup_name
-                                           privatelink_dns_subscription_id              = local.privatelink_dns_subscription_id
+                                           management_dns_resourcegroup_name            = "1" # local.management_dns_resourcegroup_name
+                                           management_dns_subscription_id               = "2" # local.management_dns_subscription_id
+                                           privatelink_dns_resourcegroup_name           = "3" # local.privatelink_dns_resourcegroup_name
+                                           privatelink_dns_subscription_id              = "4" #local.privatelink_dns_subscription_id
 
                                            register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
                                            register_endpoints_with_dns                  = var.register_endpoints_with_dns
