@@ -72,10 +72,10 @@ locals {
                                            var.management_dns_resourcegroup_name != (local.saplib_resource_group_name)
                                          )
 
-  management_dns_resourcegroup_name    =  coalesce(var.management_dns_resourcegroup_name, local.saplib_resource_group_name)
-  management_dns_subscription_id       =  coalesce(var.management_dns_subscription_id, local.saplib_subscription_id)
+  management_dns_resourcegroup_name    =  coalesce(var.management_dns_resourcegroup_name, local.saplib_resource_group_name, "11")
+  management_dns_subscription_id       =  coalesce(var.management_dns_subscription_id, local.saplib_subscription_id, "22")
 
-  privatelink_dns_resourcegroup_name   = coalesce(var.privatelink_dns_resourcegroup_name, var.management_dns_resourcegroup_name, local.saplib_resource_group_name)
-  privatelink_dns_subscription_id      = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.saplib_subscription_id)
+  privatelink_dns_resourcegroup_name   = coalesce(var.privatelink_dns_resourcegroup_name, var.management_dns_resourcegroup_name, local.saplib_resource_group_name, "33")
+  privatelink_dns_subscription_id      = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.saplib_subscription_id, "44")
 
 }
