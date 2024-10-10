@@ -221,14 +221,12 @@ variable "place_delete_lock_on_resources"                { description = "If def
 #########################################################################################
 
 
-variable "dns_settings"
-                                                         {
+variable "dns_settings"                                  {
                                                            description = "DNS settings for the deployment"
                                                            default     = {}
                                                          }
 
-variable "use_private_endpoint"
-                                                         {
+variable "use_private_endpoint"                          {
                                                            description = "Boolean value indicating if private endpoint should be used for the deployment"
                                                            default     = false
                                                            type        = bool

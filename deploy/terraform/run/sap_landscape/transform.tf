@@ -630,7 +630,7 @@ locals {
 
                                          }
 
-  dns_settings                         = {
+  DNS_settings                         = {
                                            use_custom_dns_a_registration                = var.use_custom_dns_a_registration
                                            dns_label                                    = var.dns_label
                                            dns_zone_names                               = var.dns_zone_names
