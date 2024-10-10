@@ -275,7 +275,7 @@ else {
   Write-Host ""
   $Service_Connection_Name = $Workload_zone_code + "_WorkloadZone_Service_Connection"
   $epExists = (az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].name | [0]" )
-  if ($epExists.Length -ne 0) {
+  if ($epExists.Length -eq 0) {
 
     if ($CreateConnection) {
       Write-Host "The browser will now open, Please create an 'Azure Resource Manager' service connection with the name '$Service_Connection_Name'."

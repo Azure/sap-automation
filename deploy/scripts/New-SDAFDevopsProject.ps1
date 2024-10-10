@@ -752,15 +752,19 @@ if ($true -eq $CreateConnection ) {
 
   Write-Host ""
   $Service_Connection_Name = "Control_Plane_Service_Connection"
-  Write-Host "The browser will now open, Please create an 'Azure Resource Manager' service connection with the name 'Control_Plane_Service_Connection'."
-  $connections_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
-  Write-Host "URL: " $connections_url
+  $epExists = (az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].name | [0]" )
+  if ($epExists.Length -eq 0) {
 
-  Start-Process $connections_url
-  Read-Host -Prompt "Once you have created and validated the connection, Press any key to continue"
-  $epId = az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].id" -o tsv
-  if ($epId.Length -ne 0) {
-    az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
+    Write-Host "The browser will now open, Please create an 'Azure Resource Manager' service connection with the name 'Control_Plane_Service_Connection'."
+    $connections_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
+    Write-Host "URL: " $connections_url
+
+    Start-Process $connections_url
+    Read-Host -Prompt "Once you have created and validated the connection, Press any key to continue"
+    $epId = az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].id" -o tsv
+    if ($epId.Length -ne 0) {
+      az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
+    }
   }
 
 
