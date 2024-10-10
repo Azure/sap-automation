@@ -434,8 +434,6 @@ else {
 
   $log = ("Please update [resources.yml](" + $resources_url + ") to point to Github instead of Azure DevOps.")
 
-
-
 }
 
 #endregion
@@ -760,9 +758,9 @@ if ($true -eq $CreateConnection ) {
 
   Start-Process $connections_url
   Read-Host -Prompt "Once you have created and validated the connection, Press any key to continue"
-  $epId = az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].id" -o tsv  --organization $ADO_ORGANIZATION --project $ADO_Project
+  $epId = az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].id" -o tsv
   if ($epId.Length -ne 0) {
-    az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors  --organization $ADO_ORGANIZATION --project $ADO_Project
+    az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
 
 
 }
