@@ -195,12 +195,6 @@
         # hosts file. We do not need to set ipaddr to ipadd.
         # vars:
         #   ipaddr:                    "{{ ipadd }}"
-        - name:                        "SAP OS configuration playbook: - Mount the file systems"
-          ansible.builtin.include_role:
-            name:                      roles-sap-os/2.6-sap-mounts
-          tags:
-            - 2.6-sap-mounts
-
         - name:                        "SAP OS configuration playbook: - Create hosts file"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.4-hosts-file
@@ -305,11 +299,11 @@
           tags:
             - 2.3-sap-exports
 
-#        - name:                        "SAP OS configuration playbook: - Mount the file systems"
-#          ansible.builtin.include_role:
-#            name:                      roles-sap-os/2.6-sap-mounts
-#          tags:
-#            - 2.6-sap-mounts
+        - name:                        "SAP OS configuration playbook: - Mount the file systems"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.6-sap-mounts
+          tags:
+            - 2.6-sap-mounts
 
       when:
         - ansible_os_family != "Windows"
