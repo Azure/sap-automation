@@ -20,10 +20,6 @@ $Workload_zone_subscriptionID = $Env:SDAF_WorkloadZoneSubscriptionID
 $Workload_zoneSubscriptionName = $Env:SDAF_WorkloadZoneSubscriptionName
 $Workload_zone_code = $Env:SDAF_WORKLOAD_ZONE_CODE
 
-Write-Host "Azure DevOps Organization: $ADO_Organization"
-Write-Host "Azure DevOps Project: $ADO_Project"
-Write-Host "Workload zone subscription ID: $Workload_zone_subscriptionID"
-Write-Host "Workload zone subscription Name: $Workload_zoneSubscriptionName"
 
 if ( $null -ne $Env:CreateConnections) {
   $CreateConnection = [System.Convert]::ToBoolean($Env:CreateConnections)
@@ -82,14 +78,6 @@ else {
 }
 
 #endregion
-
-if ($Env:ARM_TENANT_ID.Length -eq 0) {
-  $Env:ARM_TENANT_ID = Read-Host "Please provide Tenant ID, you can find it in the Azure portal under Microsoft Entra ID -> Overview -> Tenant ID"
-  az login --output none --only-show-errors
-}
-else {
-  az login --output none --tenant $Env:ARM_TENANT_ID --only-show-errors
-}
 
 # Check if access to the Azure DevOps organization is available and prompt for PAT if needed
 # Exact permissions required, to be validated, and included in the Read-Host text.
@@ -160,6 +148,9 @@ if ($Workload_zoneSubscriptionName.Length -eq 0) {
   Write-Host "Workload_zoneSubscriptionName is not set"
   exit
 }
+
+Write-Host "Workload zone subscription ID: $Workload_zone_subscriptionID" -ForegroundColor Yellow
+Write-Host "Workload zone subscription Name: $Workload_zoneSubscriptionName" -ForegroundColor Yellow
 
 
 az devops configure --defaults organization=$ADO_Organization project='$ADO_Project' --output none
@@ -255,8 +246,6 @@ else {
     $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]"  --organization $ADO_ORGANIZATION --project $ADO_Project --only-show-errors)
   }
 }
-$idx = $url.IndexOf("_api")
-$pat_url = ($url.Substring(0, $idx) + "_usersSettings/tokens").Replace("""", "")
 
 if ($authenticationMethod -eq "Service Principal") {
 
