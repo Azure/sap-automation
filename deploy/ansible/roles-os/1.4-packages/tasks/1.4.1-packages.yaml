@@ -234,7 +234,7 @@
                                               list }}"
             state:                         "{{ item.state }}"
           environment:
-            ZYPP_LOCK_TIMEOUT:             20
+            ZYPP_LOCK_TIMEOUT:             "20"
           loop:
             - { state: 'latest' }  # Update necessary packages
             - { state: 'present' }  # Install required packages
