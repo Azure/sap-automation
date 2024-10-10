@@ -55,19 +55,7 @@ module "sap_landscape" {
   use_service_endpoint                         = var.use_service_endpoint
   vm_settings                                  = local.vm_settings
   witness_storage_account                      = local.witness_storage_account
-  use_custom_dns_a_registration                = var.use_custom_dns_a_registration
-  dns_label                                    = var.dns_label
-  dns_zone_names                               = var.dns_zone_names
-  dns_server_list                              = var.dns_server_list
-
-  management_dns_resourcegroup_name            = local.management_dns_resourcegroup_name
-  management_dns_subscription_id               = local.management_dns_subscription_id
-  privatelink_dns_resourcegroup_name           = local.privatelink_dns_resourcegroup_name
-  privatelink_dns_subscription_id              = local.privatelink_dns_subscription_id
-
-  register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
-  register_endpoints_with_dns                  = var.register_endpoints_with_dns
-  register_virtual_network_to_dns              = var.register_virtual_network_to_dns
+  dns_settings                                 = local.dns_settings
 
 }
 

@@ -221,76 +221,9 @@ variable "place_delete_lock_on_resources"                { description = "If def
 #########################################################################################
 
 
-variable "dns_label"                               {
-                                                     description = "DNS namespace"
-                                                   }
-
-variable "use_custom_dns_a_registration"           {
-                                                     description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
-                                                     default     = false
-                                                     type        = bool
-                                                   }
-
-variable "management_dns_subscription_id"          {
-                                                     description = "String value giving the possibility to register custom dns a records in a separate subscription"
-                                                     default     = ""
-                                                     type        = string
-                                                   }
-
-variable "management_dns_resourcegroup_name"       {
-                                                     description = "String value giving the possibility to register custom dns a records in a separate resourcegroup"
-                                                     default     = ""
-                                                     type        = string
-                                                   }
-
-variable "privatelink_dns_subscription_id"         {
-                                                     description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate subscription"
-                                                     default     = ""
-                                                     type        = string
-                                                   }
-
-variable "privatelink_dns_resourcegroup_name"      {
-                                                     description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate resourcegroup"
-                                                     default     = ""
-                                                     type        = string
-                                                     }
-
-
-variable "dns_server_list"                         {
-                                                     description = "DNS server list"
-                                                     default     = []
-                                                   }
-
-
-variable "register_virtual_network_to_dns"         {
-                                                     description = "Boolean value indicating if the vnet should be registered to the dns zone"
-                                                     default     = true
-                                                     type        = bool
-                                                   }
-
-variable "dns_zone_names"                          {
-                                                     description = "Private DNS zone names"
-                                                     type        = map(string)
-
-                                                     default = {
-                                                                "file_dns_zone_name"   = "privatelink.file.core.windows.net"
-                                                                "blob_dns_zone_name"   = "privatelink.blob.core.windows.net"
-                                                                "table_dns_zone_name"  = "privatelink.table.core.windows.net"
-                                                                "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
-                                                               }
-                                                   }
-
-variable "register_endpoints_with_dns"             {
-                                                     description = "Boolean value indicating if endpoints should be registered to the dns zone"
-                                                     default     = true
-                                                     type        = bool
-                                                   }
-
-variable "register_storage_accounts_keyvaults_with_dns" {
-                                                     description = "Boolean value indicating if storage accounts and key vaults should be registered to the corresponding dns zones"
-                                                     default     = true
-                                                     type        = bool
-                                                   }
+variable "dns_settings"                                  {
+                                                           description = "DNS namespace"
+                                                         }
 
 
 
