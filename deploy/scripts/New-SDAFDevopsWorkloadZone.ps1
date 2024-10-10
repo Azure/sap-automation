@@ -20,6 +20,19 @@ $Workload_zone_subscriptionID = $Env:SDAF_WorkloadZoneSubscriptionID
 $Workload_zoneSubscriptionName = $Env:SDAF_WorkloadZoneSubscriptionName
 $Workload_zone_code = $Env:SDAF_WORKLOAD_ZONE_CODE
 
+Write-Host "Azure DevOps Organization: $ADO_Organization"
+Write-Host "Azure DevOps Project: $ADO_Project"
+Write-Host "Workload zone subscription ID: $Workload_zone_subscriptionID"
+Write-Host "Workload zone subscription Name: $Workload_zoneSubscriptionName"
+
+if ( $null -ne $Env:CreateConnections) {
+  $CreateConnection = [System.Convert]::ToBoolean($Env:CreateConnections)
+}
+else {
+  $CreateConnection = $true
+}
+
+
 if ($Workload_zone_code.Length -eq 0) {
 
   $Workload_zone_code = Read-Host "Please provide the workload zone code "
@@ -113,12 +126,15 @@ else {
 
 Write-Host "Using authentication method: $authenticationMethod" -ForegroundColor Yellow
 
-
-Write-Host "The browser will now open, please copy the name of the Agent Pool"
-$pool_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/agentqueues"
-Start-Process $pool_url
-
-$Pool_Name = Read-Host "Please provide the Agent pool name"
+if ($Env:SDAF_AGENT_POOL_NAME.Length -ne 0) {
+  $Pool_Name = $Env:SDAF_AGENT_POOL_NAME
+}
+else {
+  Write-Host "The browser will now open, please copy the name of the Agent Pool"
+  $pool_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/agentqueues"
+  Start-Process $pool_url
+  $Pool_Name = Read-Host "Please provide the Agent pool name"
+}
 
 Write-Host ""
 
@@ -224,7 +240,7 @@ if ($authenticationMethod -eq "Service Principal") {
   $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]" --organization $ADO_ORGANIZATION --project $ADO_Project --only-show-errors )
   if ($GroupID.Length -eq 0) {
     Write-Host "Creating the variable group" $WorkloadZonePrefix -ForegroundColor Green
-    az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WZ_PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF Logon_Using_SPN=true USE_MSI=false --output none --authorize true  --organization $ADO_ORGANIZATION --project $ADO_Project
+    az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF Logon_Using_SPN=true USE_MSI=false --output none --authorize true  --organization $ADO_ORGANIZATION --project $ADO_Project
     $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]"  --organization $ADO_ORGANIZATION --project $ADO_Project --only-show-errors)
   }
 
@@ -270,13 +286,19 @@ if ($authenticationMethod -eq "Service Principal") {
 else {
   Write-Host ""
   $Service_Connection_Name = $Workload_zone_code + "_WorkloadZone_Service_Connection"
-  Write-Host "The browser will now open, Please create an 'Azure Resource Manager' service connection with the name '$Service_Connection_Name'."
-  $connections_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
-  Write-Host "URL: " $connections_url
+  if ($CreateConnection) {
+    Write-Host "The browser will now open, Please create an 'Azure Resource Manager' service connection with the name '$Service_Connection_Name'."
+    $connections_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
+    Write-Host "URL: " $connections_url
 
 
-  Start-Process $connections_url
-  Read-Host -Prompt "Once you have created and validated the connection, Press any key to continue"
+    Start-Process $connections_url
+    Read-Host -Prompt "Once you have created and validated the connection, Press any key to continue"
+  }
+  else {
+    Write-Host "Please create an 'Azure Resource Manager' service connection with the name '$Service_Connection_Name'. before you run the Workload Zone Pipeline"
+
+  }
 
 }
 #endregion
