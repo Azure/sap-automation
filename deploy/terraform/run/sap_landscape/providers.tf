@@ -126,11 +126,11 @@ terraform                              {
                                                                          }
                                                               azuread =  {
                                                                            source  = "hashicorp/azuread"
-                                                                           version = ">=3.0"
+                                                                           version = "3.0.2"
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = ">= 4.0"
+                                                                           version = "4.4.0"
                                                                          }
                                                               azapi =    {
                                                                            source  = "Azure/azapi"
