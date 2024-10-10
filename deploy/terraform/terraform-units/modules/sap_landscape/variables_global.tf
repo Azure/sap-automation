@@ -221,7 +221,9 @@ variable "place_delete_lock_on_resources"                { description = "If def
 #########################################################################################
 
 
-
+variable "dns_label"                               {
+                                                     description = "DNS namespace"
+                                                   }
 
 variable "use_custom_dns_a_registration"           {
                                                      description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
