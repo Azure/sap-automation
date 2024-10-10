@@ -473,7 +473,7 @@ resource "azurerm_private_endpoint" "kv_user" {
   dynamic "private_dns_zone_group" {
                                       for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                       content {
-                                        name                 = var.dns_zone_names.vault_dns_zone_name
+                                        name                 = var.dns_settings.dns_zone_names.vault_dns_zone_name
                                         private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault[0].id]
                                       }
                                     }
