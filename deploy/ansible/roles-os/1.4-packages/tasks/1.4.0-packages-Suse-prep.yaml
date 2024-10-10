@@ -35,7 +35,7 @@
                                        SUSEConnect -p sle-module-public-cloud/{{ ansible_distribution_version }}/x86_64
       register:                        cloud_extension
       environment:
-       ZYPP_LOCK_TIMEOUT:              20
+       ZYPP_LOCK_TIMEOUT:              "20"
       
   rescue:
     - name:                            "1.4 Packages - Wait 10 secs before retrying"
