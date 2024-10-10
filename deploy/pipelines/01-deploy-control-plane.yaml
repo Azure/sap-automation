@@ -355,7 +355,7 @@ stages:
                       CP_ARM_CLIENT_SECRET:           $(CP_ARM_CLIENT_SECRET)
                       ARM_SUBSCRIPTION_ID:            $(CP_ARM_SUBSCRIPTION_ID)
                       CP_ARM_TENANT_ID:               $(CP_ARM_TENANT_ID)
-                      AZURE_DEVOPS_EXT_PAT:           $(System.AccessToken)
+                      AZURE_DEVOPS_EXT_PAT:           $(PAT)
                       CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
                       DEPLOYER_RANDOM_ID_SEED:        $(DEPLOYER_RANDOM_ID_SEED)
                       DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
