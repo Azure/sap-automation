@@ -226,6 +226,12 @@
         - db_high_availability is defined
         - database_high_availability is not defined
 
+    - name:                            "Initialize facts for HA resources"
+      ansible.builtin.set_fact:
+        tier:                          ha
+        primary_instance_name:         "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+        secondary_instance_name:       "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+
     - name:                            "Oracle Data Guard Setup"
       when:
         - database_high_availability

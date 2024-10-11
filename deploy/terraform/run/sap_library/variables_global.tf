@@ -37,10 +37,6 @@ variable "deployer_statefile_foldername" {
                                            default     = ""
                                          }
 
-variable "dns_label"                     {
-                                           description = "DNS label"
-                                           default     = ""
-                                         }
 
 
 variable "terraform_template_version"      {

@@ -734,6 +734,8 @@ fi
 #     fi
 # fi
 
+export TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
+
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"

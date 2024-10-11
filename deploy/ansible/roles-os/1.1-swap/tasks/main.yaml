@@ -30,7 +30,7 @@
     - skip_ansible_lint
 
 - name:                                "1.1 Swap: - Update WAAgent on {{ ansible_os_family }}"
-  ansible.builtin.package:
+  community.general.zypper:
     name:                              WALinuxAgent
     state:                             latest
   environment:
