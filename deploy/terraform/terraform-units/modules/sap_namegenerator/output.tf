@@ -65,9 +65,9 @@ output "naming" {
                            ANYDB_SECONDARY_DNSNAME  = concat(local.anydb_secondary_dnsnames, local.anydb_secondary_dnsnames_ha)
                            ANYDB_VMNAME             = var.database_high_availability ? concat(local.anydb_vm_names, local.anydb_vm_names_ha) : local.anydb_vm_names
                            DEPLOYER                 = local.deployer_vm_names
-                           HANA_COMPUTERNAME        = var.database_high_availability ? concat(local.hana_computer_names, local.hana_computer_names_ha) : local.hana_computer_names
-                           HANA_SECONDARY_DNSNAME   = var.database_high_availability ? concat(local.hana_secondary_dnsnames, local.hana_secondary_dnsnames_ha) : local.hana_secondary_dnsnames
-                           HANA_VMNAME              = var.database_high_availability ? concat(local.hana_server_vm_names, local.hana_server_vm_names_ha) : local.hana_server_vm_names
+                           HANA_COMPUTERNAME        = var.database_high_availability ? var.scale_out ? local.hana_computer_names_scaleout : concat(local.hana_computer_names, local.hana_computer_names_ha) : local.hana_computer_names
+                           HANA_SECONDARY_DNSNAME   = var.database_high_availability ? var.scale_out ? local.hana_secondary_dnsnames_scaleout : concat(local.hana_secondary_dnsnames, local.hana_secondary_dnsnames_ha) : local.hana_secondary_dnsnames
+                           HANA_VMNAME              = var.database_high_availability ? var.scale_out ? local.hana_server_vm_names_scaleout : concat(local.hana_server_vm_names, local.hana_server_vm_names_ha) : local.hana_server_vm_names
                            ISCSI_COMPUTERNAME       = local.iscsi_server_names
                            OBSERVER_COMPUTERNAME    = local.observer_computer_names
                            OBSERVER_VMNAME          = local.observer_vm_names

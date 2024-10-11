@@ -27,9 +27,9 @@ module "sap_namegenerator" {
                                                     local.application_tier.scs_server_count
                                                   ) : 0
 
-  app_zones                                     = local.enable_app_tier_deployment ? try(local.application_tier.app_zones, []) : []
-  scs_zones                                     = local.enable_app_tier_deployment ? try(local.application_tier.scs_zones, []) : []
-  web_zones                                     = local.enable_app_tier_deployment ? try(local.application_tier.web_zones, []) : []
+  app_zones                                     = local.enable_app_tier_deployment && var.application_server_count > 0 ? try(local.application_tier.app_zones, []) : []
+  scs_zones                                     = local.enable_app_tier_deployment && var.scs_server_count > 0 ? try(local.application_tier.scs_zones, []) : []
+  web_zones                                     = local.enable_app_tier_deployment && var.webdispatcher_server_count > 0 ? try(local.application_tier.web_zones, []) : []
   db_zones                                      = try(local.database.zones, [])
 
   resource_offset                               = try(var.resource_offset, 0)
@@ -39,6 +39,7 @@ module "sap_namegenerator" {
   scs_high_availability                         = local.application_tier.scs_high_availability
   scs_cluster_type                              = local.application_tier.scs_cluster_type
   use_zonal_markers                             = var.use_zonal_markers
+  scale_out                                     = var.database_HANA_use_scaleout_scenario
 }
 
 #########################################################################################
@@ -50,9 +51,10 @@ module "sap_namegenerator" {
 module "common_infrastructure" {
   source                                        = "../../terraform-units/modules/sap_system/common_infrastructure"
   providers                                     = {
-                                                    azurerm.deployer       = azurerm
-                                                    azurerm.main           = azurerm.system
-                                                    azurerm.dnsmanagement  = azurerm.dnsmanagement
+                                                    azurerm.deployer                 = azurerm
+                                                    azurerm.main                     = azurerm.system
+                                                    azurerm.dnsmanagement            = azurerm.dnsmanagement
+                                                    azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                                   }
   Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
   application_tier                              = local.application_tier
@@ -102,13 +104,15 @@ module "hdb_node" {
   source                                        = "../../terraform-units/modules/sap_system/hdb_node"
   depends_on                                    = [module.common_infrastructure]
   providers                                     = {
-                                                    azurerm.deployer       = azurerm
-                                                    azurerm.main           = azurerm.system
-                                                    azurerm.dnsmanagement  = azurerm.dnsmanagement
+                                                    azurerm.deployer                 = azurerm
+                                                    azurerm.main                     = azurerm.system
+                                                    azurerm.dnsmanagement            = azurerm.dnsmanagement
+                                                    azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                                     # azapi.api                                 = azapi.api
                                                   }
 
   admin_subnet                                  = module.common_infrastructure.admin_subnet
+  Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
   anchor_vm                                     = module.common_infrastructure.anchor_vm // Workaround to create dependency from anchor to db to app
   cloudinit_growpart_config                     = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
@@ -152,9 +156,14 @@ module "hdb_node" {
   terraform_template_version                    = var.terraform_template_version
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
   use_msi_for_clusters                          = var.use_msi_for_clusters
+  use_observer                                  = var.database_HANA_use_scaleout_scenario && local.database.high_availability
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
   dns_settings                                  = local.dns_settings
+  use_private_endpoint                          = var.use_private_endpoint
+  hanashared_private_endpoint_id                = var.hanashared_private_endpoint_id
+  hanashared_id                                 = var.hanashared_id
+  random_id                                     = module.common_infrastructure.random_id
 }
 
 #########################################################################################
@@ -166,9 +175,10 @@ module "hdb_node" {
 module "app_tier" {
   source                                        = "../../terraform-units/modules/sap_system/app_tier"
   providers                                     = {
-                                                    azurerm.deployer       = azurerm
-                                                    azurerm.main           = azurerm.system
-                                                    azurerm.dnsmanagement  = azurerm.dnsmanagement
+                                                    azurerm.deployer                 = azurerm
+                                                    azurerm.main                     = azurerm.system
+                                                    azurerm.dnsmanagement            = azurerm.dnsmanagement
+                                                    azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                                     # azapi.api                                 = azapi.api
                                                   }
 
@@ -218,9 +228,10 @@ module "app_tier" {
 module "anydb_node" {
   source                                        = "../../terraform-units/modules/sap_system/anydb_node"
   providers                                     = {
-                                                    azurerm.deployer       = azurerm
-                                                    azurerm.main           = azurerm.system
-                                                    azurerm.dnsmanagement  = azurerm.dnsmanagement
+                                                    azurerm.deployer                 = azurerm
+                                                    azurerm.main                     = azurerm.system
+                                                    azurerm.dnsmanagement            = azurerm.dnsmanagement
+                                                    azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                                     # azapi.api                                 = azapi.api
                                                   }
 
@@ -353,8 +364,15 @@ module "output_files" {
   #########################################################################################
   bom_name                                      = var.bom_name
   db_sid                                        = local.db_sid
-  observer_ips                                  = module.anydb_node.observer_ips
-  observer_vms                                  = module.anydb_node.observer_vms
+  observer_ips                                  = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.observer_ips) : (
+                                                    module.anydb_node.observer_ips
+                                                  )
+  observer_vms                                  = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.observer_vms) : (
+                                                    module.anydb_node.observer_vms
+                                                  )
+
   platform                                      = upper(try(local.database.platform, "HANA"))
   sap_sid                                       = local.sap_sid
   web_sid                                       = var.web_sid
@@ -400,7 +418,7 @@ module "output_files" {
   shared_home                                   = var.shared_home
   hana_data                                     = module.hdb_node.hana_data_ANF_volumes
   hana_log                                      = module.hdb_node.hana_log_ANF_volumes
-  hana_shared                                   = [module.hdb_node.hana_shared]
+  hana_shared                                   = var.NFS_provider == "ANF" ? module.hdb_node.hana_shared : module.hdb_node.hana_shared_afs_path
   usr_sap                                       = module.common_infrastructure.usrsap_path
 
   #########################################################################################
@@ -429,7 +447,7 @@ module "output_files" {
   #########################################################################################
   use_simple_mount                              = local.validated_use_simple_mount
   upgrade_packages                              = var.upgrade_packages
-  scale_out                                     = var.database_HANA_use_ANF_scaleout_scenario
+  scale_out                                     = var.database_HANA_use_scaleout_scenario
   scale_out_no_standby_role                     = var.database_HANA_no_standby_role
 
   #########################################################################################
@@ -452,4 +470,6 @@ module "output_files" {
   enable_sap_cal                                = var.enable_sap_cal
   calapi_kv                                     = var.calapi_kv
   sap_cal_product_name                          = var.sap_cal_product_name
+
+  site_information                              = module.hdb_node.site_information
 }

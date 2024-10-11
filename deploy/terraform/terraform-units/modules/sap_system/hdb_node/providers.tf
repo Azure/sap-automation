@@ -2,8 +2,8 @@ terraform {
   required_providers {
     azurerm = {
       source                = "hashicorp/azurerm"
-      configuration_aliases = [azurerm.main, azurerm.deployer, azurerm.dnsmanagement]
-      version               = ">= 3.54"
+      configuration_aliases = [azurerm.main, azurerm.deployer, azurerm.dnsmanagement, azurerm.privatelinkdnsmanagement]
+      version               = "4.4.0"
     }
 
     # azapi = {

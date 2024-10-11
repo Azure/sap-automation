@@ -30,7 +30,7 @@
   ansible.builtin.set_fact:
     db_virtualhost_temp:  >-
                                        {%- set _host_name = hostvars[db_server_temp | first]['virtual_host'] -%}
-                                       {%- if db_scale_out and not database_high_availability -%}
+                                       {%- if database_scale_out and not database_high_availability -%}
                                        {%-  set _host_name = sap_sid | lower ~ db_sid | lower ~ 'db' ~ db_instance_number ~ 'so' -%}
                                        {%- endif -%}
                                        {{- _host_name -}}
@@ -194,7 +194,7 @@
         sap_installSAPHostAgent:       "false"
         sap_profile_dir:               /sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile
         sap_scs_hostname:              "{{ custom_scs_virtual_hostname | default(scs_server, true) }}"
-        sap_db_hostname:               "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
+        sap_db_hostname:               "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) | first }}"
         sap_ciVirtualHostname:         "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_APP') | first }}"
         sap_appVirtualHostname:        "{{ app_virtual_hostname }}"
         param_directory:               "{{ dir_params }}"
@@ -287,15 +287,20 @@
         - app_installed_according_to_sapinst | length > 0
 
     - name:                            "APP Install: Get hdbuserstore path"
+      become:                          true
+      become_user:                     "root"
       ansible.builtin.find:
         paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/,/usr/sap/{{ sid_to_be_deployed.sid }}/hdbclient"
         file_type:                     file
         patterns:                      'hdbuserstore'
         recurse:                       true
       register:                        hdbuserstore_file
+      vars:
+        allow_world_readable_tmpfiles: true
       when:
         - database_high_availability
         - platform == 'HANA'
+
     - name:                            "APP Install: Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
@@ -354,12 +359,16 @@
         app_already_installed:         true
 
     - name:                            "APP Install: Get hdbuserstore path"
+      become:                          true
+      become_user:                     "root"
       ansible.builtin.find:
         paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/,/usr/sap/{{ sid_to_be_deployed.sid }}/hdbclient"
         file_type:                     file
         patterns:                      'hdbuserstore'
         recurse:                       true
       register:                        hdbuserstore_file
+      vars:
+        allow_world_readable_tmpfiles: true
       when:
         - database_high_availability
         - platform == 'HANA'
@@ -386,7 +395,7 @@
         ssfs_connect:                  "1"
       register:                        hdbuserstore
       become:                          true
-      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      become_user:                     "root"
       vars:
         allow_world_readable_tmpfiles: true
       when:
@@ -400,7 +409,7 @@
         ssfs_connect:                  "1"
       register:                        hdbuserstore
       become:                          true
-      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+      become_user:                     "root"
       vars:
         allow_world_readable_tmpfiles: true
       when:

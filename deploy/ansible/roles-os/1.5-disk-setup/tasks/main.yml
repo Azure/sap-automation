@@ -67,7 +67,7 @@
 
 - name:                                "1.5 Disk setup - Append 'hanashared' if needed"
   ansible.builtin.set_fact:
-    logical_volumes:                   "{{ logical_volumes_hanashared + logical_volumes }}"
+    logical_volumes:                   "{{ logical_volumes_hanashared | default([]) + logical_volumes }}"
   when:
     - hana_shared_mountpoint is undefined or hana_shared_mountpoint | length == 0
 

@@ -42,7 +42,7 @@ namespace AutomationForm.Models
 
   public class Variable
   {
-    public string? value { get; set; }
+    public string value { get; set; }
     [JsonIgnore]
     public bool? isSecret { get; set; }
     [JsonIgnore]

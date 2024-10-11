@@ -85,7 +85,7 @@ resource "azurerm_route_table" "rt" {
                                                  var.naming.separator,
                                                  var.naming.resource_suffixes.routetable
                                                )
-  disable_bgp_route_propagation              = false
+  bgp_route_propagation_enabled              = false
   resource_group_name                        = local.resource_group_exists ? (
                                                  data.azurerm_resource_group.deployer[0].name) : (
                                                  azurerm_resource_group.deployer[0].name

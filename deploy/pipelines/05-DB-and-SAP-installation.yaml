@@ -337,6 +337,7 @@ stages:
             parameters:
               displayName:                   "Parameter validation"
               ansibleFilePath:               ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_00_validate_parameters.yaml
+              ansibleConfigPath:             ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
               secretName:                    "$(Preparation.SSH_KEY_NAME)"
               passwordSecretName:            "$(Preparation.PASSWORD_KEY_NAME)"
               userNameSecretName:            "$(Preparation.USERNAME_KEY_NAME)"
@@ -355,6 +356,7 @@ stages:
                 parameters:
                   displayName:               "Operating System Configuration"
                   ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_01_os_base_config.yaml
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
@@ -373,6 +375,7 @@ stages:
                 parameters:
                   displayName:               "SAP Specific Operating System Configuration"
                   ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_02_os_sap_specific_config.yaml
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
@@ -391,6 +394,7 @@ stages:
                 parameters:
                   displayName:               "Software download"
                   ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_03_bom_processing.yaml
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
@@ -409,6 +413,7 @@ stages:
                 parameters:
                   displayName:               Central Services Installation
                   ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
@@ -427,6 +432,7 @@ stages:
                 parameters:
                   displayName:               "Database installation"
                   ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_04_00_00_db_install.yaml
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
@@ -445,6 +451,7 @@ stages:
                 parameters:
                   displayName:               Database Load
                   ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_01_sap_dbload.yaml
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
@@ -463,6 +470,7 @@ stages:
                 parameters:
                   displayName:               Database High Availability configuration
                   ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_04_00_01_db_ha.yaml
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
@@ -481,6 +489,7 @@ stages:
                 parameters:
                   displayName:               Primary Application Server Installation
                   ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_02_sap_pas_install.yaml
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
@@ -499,6 +508,7 @@ stages:
                 parameters:
                   displayName:               Application Installation
                   ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_03_sap_app_install.yaml
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
@@ -517,6 +527,7 @@ stages:
                 parameters:
                   displayName:               Web Dispatcher
                   ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_04_sap_web_install.yaml
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
@@ -535,6 +546,7 @@ stages:
                 parameters:
                   displayName:               Post Configuration Actions
                   ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_08_00_00_post_configuration_actions.yaml
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
@@ -553,6 +565,7 @@ stages:
                 parameters:
                   displayName:               SAP on Azure quality checks
                   ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_02_sap_on_azure_quality_checks.yaml
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
@@ -571,6 +584,7 @@ stages:
                 parameters:
                   displayName:               "ACSS Registration"
                   ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_00_acss_registration.yaml
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
@@ -591,6 +605,7 @@ stages:
                 parameters:
                   displayName:               "AMS Provider Creation"
                   ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_01_ams_monitoring.yaml
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"

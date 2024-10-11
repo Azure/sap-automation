@@ -6,6 +6,7 @@ parameters:
     USE_MSI: ''
     displayName: ''
     ansibleFilePath: ''
+    ansibleConfigPath: ''
     sidHosts:  ''
     secretName: ''
     vaultName: ''
@@ -157,6 +158,7 @@ steps:
     ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
     ANSIBLE_HOST_KEY_CHECKING:      false
     ANSIBLE_FILE_PATH:              ${{ parameters.ansibleFilePath }}
+    ANSIBLE_CONFIG:                 ${{ parameters.ansibleConfigPath }}
     PARAMETERS_FOLDER:              ${{ parameters.parametersFolder }}
     EXTRA_PARAMS:                   ${{ parameters.extraParams }}
     SAP_PARAMS:                     ${{ parameters.sapParams }}

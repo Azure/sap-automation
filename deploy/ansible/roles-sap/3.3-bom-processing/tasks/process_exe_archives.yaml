@@ -1,0 +1,50 @@
+---
+
+- name:                                'Create temporary extract directory {{ item.archive }}'
+  ansible.builtin.tempfile:
+    path:                              "/mnt"
+    state:                             directory
+    suffix:                            extract
+  register:                            tempdir
+
+- name:                                Show extract command
+  ansible.builtin.debug:
+    msg:
+      - "Extract directory: {{ tempdir.path }}"
+      - "Extract command: {% if (ansible_os_family | upper) == 'REDHAT' %}unar -s -D{% else %}unrar x{% endif %} {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+
+- name:                                 "Install unar on RHEL"
+  ansible.builtin.dnf:
+    name:                               unar
+    state:                              present
+    skip_broken:                       true
+  when:                                (ansible_os_family | upper) == 'REDHAT'
+
+- name:                                "3.3 BoM Processing: - Extract File, exe file"
+  ansible.builtin.command :            "{% if (ansible_os_family | upper) == 'REDHAT' %}unar -s -D{% else %}unrar x{% endif %} {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+  args:
+    chdir:                             '{{ tempdir.path }}'
+    creates:                           '{{ tempdir.path }}{% if item.tempDir is defined %}/{{ item.tempDir }}{% endif %}/{{ item.creates }}'
+  register:                            extract_result
+
+- name:                                Show extract result
+  ansible.builtin.debug:
+    var:                               extract_result
+
+# - name:                                Wait for file to exist before continuing
+#   ansible.builtin.wait_for:
+#     path:                              '{{ tempdir.path }}{% if item.tempDir is defined %}/{{ item.tempDir }}{% endif %}/{{ item.creates }}'
+
+- name:                                Copy the folder
+  ansible.builtin.copy:
+    src:                               '{{ tempdir.path }}{% if item.tempDir is defined %}/{{ item.tempDir }}{% endif %}/'
+    dest:                              '{{ target_media_location }}/{{ item.extractDir }}'
+    remote_src:                        true
+    mode:                              0755
+
+- name:                                Remove extract directory
+  ansible.builtin.file:
+    path:                              '{{ tempdir.path }}'
+    state:                             absent
+
+...

@@ -185,7 +185,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   admin_username                       = var.sid_username
   admin_password                       = local.enable_auth_key ? null : var.sid_password
   disable_password_authentication      = !local.enable_auth_password
-  tags                                 = merge(var.tags, local.tags)
+  tags                                 = merge(var.tags, local.tags, var.database.scale_out ?  { "SITE" = count.index %2 == 0 ? "SITE1" : "SITE2" } : null)
 
   patch_mode                                             = var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
@@ -211,19 +211,12 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
                                          ) : null
 
   network_interface_ids                = local.enable_storage_subnet ? (
-                                           var.options.legacy_nic_order ? (
-                                             compact([
+                                           compact([
                                                var.database_dual_nics ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : null,
                                                azurerm_network_interface.nics_dbnodes_db[count.index].id,
                                                azurerm_network_interface.nics_dbnodes_storage[count.index].id
                                              ])
-                                             ) : (
-                                             compact([
-                                               azurerm_network_interface.nics_dbnodes_db[count.index].id,
-                                               var.database_dual_nics ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : null,
-                                               azurerm_network_interface.nics_dbnodes_storage[count.index].id
-                                             ])
-                                           )
+
                                            ) : (
                                            var.database_dual_nics ? (
                                              var.options.legacy_nic_order ? (

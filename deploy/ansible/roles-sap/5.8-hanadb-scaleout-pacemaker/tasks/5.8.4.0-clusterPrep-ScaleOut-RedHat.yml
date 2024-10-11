@@ -1,0 +1,270 @@
+---
+
+# RHEL Clustering - Deploy HANA cluster resources
+# Azure ref: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability-rhel
+
+# @TODO Subscribe to subscriptions/repos if required
+# This code assumes the deployment is using RHEL SAP image
+
+# SAP HANA Cluster resources prep for ANF
+# https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-netapp-files-red-hat
+
+
+# +------------------------------------4--------------------------------------*/
+
+# We set this to prevent code overflow. Since pacemaker code for both AFS and ANF are the same barring NFS mount options, we parameterize this parameter.
+- name:                                "5.8 HANA Pacemaker Scaleout - NFS Compatibility - set mount options based on NFS source"
+  ansible.builtin.set_fact:
+    nfs_mount_options:                 "{% if NFS_provider == 'ANF' %}defaults,rw,hard,rsize=262144,wsize=262144,proto=tcp,noatime,_netdev,nfsvers=4.1,lock,sec=sys{% else %}noresvport,defaults,rw,hard,proto=tcp,noatime,nfsvers=4.1,lock{% endif %}"
+    directory_path:                    "{% if NFS_provider == 'ANF' %}/shared{% else %}{% endif %}"
+
+  # Ref : https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-scale-out-hsr-rhel?tabs=lb-portal#create-file-system-resources
+- name:                                "5.8 HANA Pacemaker Scaleout - Configure the ANF/AFS file system resources"
+  when:
+    - database_high_availability
+    - database_scale_out
+    - NFS_provider in ["ANF","AFS"]
+    - hana_shared_mountpoint is defined
+    - hana_shared_mountpoint | length > 1
+  block:
+    # Notes :
+    # 1. keep cluster out of maintenance mode
+    # 2. Stopping HANA is fine, but do not kill any sap services locking /hana/shared especially if you have configured replication between sites.
+    # 3. mask the /hana/shared in /etc/fstab and configure filesystem role in pacemaker. Let pacemaker handle share mount.
+    # 4. Do not kill existing processes and attempt to unmount /hana/shared. Bad things will happen.
+    # 5. No Seriously !! Terrible things will happen and you will have a hard time repairing the deployment
+
+    - name:                            "5.8 HANA Pacemaker Scaleout - Stop HANA System on both sites"
+      block:
+        - name:                        "5.8 HANA Pacemaker Scaleout - Execute HANA StopSystem on both sites"
+          become_user:                 "{{ db_sid | lower }}adm"
+          become:                      true
+          ansible.builtin.command:     "{{ sapcontrol_command }} -function StopSystem"
+          failed_when:                 false
+          changed_when:                false
+          register:                    hana_system_stopped
+          when:                        ansible_hostname in [ primary_instance_name , secondary_instance_name ]
+
+    - name:                            "5.8 HANA Pacemaker Scaleout - Wait 2 minutes for SAP system to stop"
+      ansible.builtin.wait_for:
+        timeout:                       120
+
+    - name:                            "5.8 HANA Pacemaker Scaleout - Configure pacemaker hana shared filesystem resources on {{ primary_instance_name }}"
+      when:                            ansible_hostname == primary_instance_name
+      become:                          true
+      become_user:                     root
+      block:
+        - name:                        "5.8 HANA Pacemaker Scaleout - Configure NFS filesystem resource in Pacemaker for HSR sites"
+          ansible.builtin.shell: >
+                                       pcs resource create {{ item.fs_name }} --disabled ocf:heartbeat:Filesystem \
+                                       device="{{ item.fs_mount }}" directory="{{ item.fs_dir }}" fstype="nfs" \
+                                       options="{{ nfs_mount_options }}" \
+                                       op monitor interval=20s on-fail=fence timeout=120s OCF_CHECK_LEVEL=20 \
+                                       op start interval=0 timeout=120 op stop interval=0 timeout=120 \
+                                       clone meta clone-node-max=1 interleave=true
+          register:                    nfs_mount_sites
+          failed_when:                 false
+          ignore_errors:               true
+          loop:
+            - { fs_name: 'fs_hana_shared_s1',fs_mount: '{{ hana_shared_mountpoint[0] }}{{ directory_path }}', fs_dir: '/hana/shared' }
+            - { fs_name: 'fs_hana_shared_s2',fs_mount: '{{ hana_shared_mountpoint[1] }}{{ directory_path }}', fs_dir: '/hana/shared' }
+          loop_control:
+            loop_var:                  item
+
+        - name:                        "5.8 HANA Pacemaker Scaleout - Check if NFS hana mounts did not error on {{ primary_instance_name }}"
+          ansible.builtin.set_fact:
+            chk_nfs_mount_sites:      "{{ nfs_mount_sites.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list | select() }}"
+
+
+        - name:                        "5.8 HANA Pacemaker Scaleout - Check if NFS hana mounts did not error on {{ primary_instance_name }}"
+          ansible.builtin.debug:
+            msg:
+            - "nfs_mount_sites_results: {{ nfs_mount_sites.results }}"
+            - "chk_nfs_mount_sites:     {{ chk_nfs_mount_sites }}"
+
+        - name:                        "5.8 HANA Pacemaker Scaleout - Fail when NFS hana mounts errored on {{ primary_instance_name }}"
+          ansible.builtin.fail:
+            msg:                       "Failed to create NFS hana mounts on {{ primary_instance_name }}"
+          when:
+            - chk_nfs_mount_sites | length > 0
+
+        - name:                        "5.8 HANA Pacemaker Scaleout - Configure node attributes for primary site on {{ primary_instance_name }}"
+          ansible.builtin.shell: >
+                                       pcs node attribute {{ item }} NFS_{{ db_sid | upper }}_SITE=S1
+          register:                    node_nfs_attribute_site1
+          failed_when:                 false
+          ignore_errors:               true
+          with_items:
+            - "{{ ansible_play_hosts_all[0::2] }}"
+
+        - name:                        "5.8 HANA Pacemaker Scaleout - Configure node attributes for secondary site on {{ primary_instance_name }}"
+          ansible.builtin.shell: >
+                                       pcs node attribute {{ item }} NFS_{{ db_sid | upper }}_SITE=S2
+          register:                    node_nfs_attribute_site2
+          failed_when:                 false
+          ignore_errors:               true
+          with_items:
+            - "{{ ansible_play_hosts_all[1::2] }}"
+
+        - name:                        "5.8 HANA Pacemaker Scaleout - Configure location constraint for filesystem resource clone on {{ primary_instance_name }}"
+          ansible.builtin.shell: >
+                                       pcs constraint location {{ item.clone_name }} rule resource-discovery=never score=-INFINITY NFS_{{ db_sid | upper }}_SITE ne {{ item.site_code }}
+          register:                    location_nfs_attribute_sites
+          failed_when:                 false
+          ignore_errors:               true
+          loop:
+            - { clone_name: 'fs_hana_shared_s1-clone', site_code: 'S1'}
+            - { clone_name: 'fs_hana_shared_s2-clone', site_code: 'S2'}
+
+        - name:                        "5.8 HANA Pacemaker Scaleout - Check if NFS hana mounts constraints did not error on {{ primary_instance_name }}"
+          ansible.builtin.set_fact:
+            chk_location_nfs_attribute_sites:      "{{ location_nfs_attribute_sites.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list }}"
+
+        - name:                        "5.8 HANA Pacemaker Scaleout - Fail when NFS hana mounts errored on {{ primary_instance_name }}"
+          ansible.builtin.fail:
+            msg:                       "Failed to create NFS hana mounts on {{ primary_instance_name }}"
+          when:
+            - chk_location_nfs_attribute_sites | length > 0
+
+        - name:                        "5.8 HANA Pacemaker Scaleout - Comment out the mountpoint from '/etc/fstab' file"
+          ansible.builtin.replace:
+            path:                      /etc/fstab
+            regexp:                    "^{{ item }}"
+            replace:                   "# {{ item }}"
+            backup:                    true
+          loop:
+            - "{{ hana_shared_mountpoint[0] }}"
+            - "{{ hana_shared_mountpoint[1] }}"
+
+        - name:                        "5.8 HANA Pacemaker Scaleout - Activate filesystem resource on {{ primary_instance_name }}"
+          ansible.builtin.shell: >
+                                       pcs resource enable {{ item.fs_name }}
+          register:                    activate_nfs_mount_sites
+          failed_when:                 false
+          ignore_errors:               true
+          loop:
+            - { fs_name: 'fs_hana_shared_s1' }
+            - { fs_name: 'fs_hana_shared_s2' }
+          when:
+            - chk_location_nfs_attribute_sites | length == 0
+            - chk_nfs_mount_sites | length == 0
+
+        - name:                        "5.8 HANA Pacemaker Scaleout - Configure pacemaker attribute resource on {{ primary_instance_name }}"
+          ansible.builtin.shell: >
+                                       pcs resource create {{ item.res_name }} ocf:pacemaker:attribute active_value=true \
+                                       inactive_value=false name={{ item.res_name }} \
+                                       clone meta clone-node-max=1 interleave=true
+          register:                    attribute_hana_nfs_sites
+          failed_when:                 false
+          ignore_errors:               true
+          loop:
+            - { res_name: 'hana_nfs_s1_active' }
+            - { res_name: 'hana_nfs_s2_active' }
+
+        - name:                        "5.8 HANA Pacemaker Scaleout - Create constraints for pacemaker attribute resource on {{ primary_instance_name }}"
+          ansible.builtin.shell: >
+                                       pcs constraint order fs_hana_shared_s1-clone then hana_nfs_s1_active-clone
+          register:                    loc_attribute_hana_nfs_sites
+          failed_when:                 false
+          ignore_errors:               true
+          loop:
+            - { fs_clone: 'fs_hana_shared_s1-clone', res_clone: 'hana_nfs_s1_active-clone' }
+            - { fs_clone: 'fs_hana_shared_s2-clone', res_clone: 'hana_nfs_s2_active-clone' }
+
+    - name:                            "5.8 HANA Pacemaker Scaleout - Wait for /hana/shared to become available on all participating nodes"
+      block:
+        - name:                        Wait for /hana/shared to be mounted
+          ansible.builtin.wait_for:
+            path:                      /hana/shared
+            state:                     present
+            timeout:                   300
+
+        - name:                        "5.8 HANA Pacemaker Scaleout - Check if /hana/shared is mounted"
+          ansible.builtin.shell: >
+                                       mountpoint -q /hana/shared
+          register:                    hana_shared_mounted
+          changed_when:                false
+          failed_when:                 false
+
+        - name:                        "5.8 HANA Pacemaker Scaleout - Fail if /hana/shared is not mounted"
+          ansible.builtin.fail:
+            msg:                       "Critical failure : /hana/shared is not mounted"
+          when:                        hana_shared_mounted.rc > 0
+
+        - name:                        "5.8 HANA Pacemaker Scaleout - Start HANA on both nodes"
+          ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+          when:
+           - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
+
+    # # Note: We need to manually start HANA on all participating nodes via HDB script.
+    # - name:                            Start HANA database on each participating node
+    #   become_user:                     "{{ db_sid | lower }}adm"
+    #   args:
+    #     chdir:                           "/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}"
+    #   become:                          true
+    #   ansible.builtin.shell: >
+    #                                    source /usr/sap/{{ db_sid | upper }}/home/.sapenv.sh &&
+    #                                    HDB start
+    #   failed_when:                     hdb_start.rc > 0
+    #   changed_when:                    false
+    #   register:                        hdb_start
+
+    # - name:                            Start HANA System on both sites
+    #   become_user:                     "{{ db_sid | lower }}adm"
+    #   become:                          true
+    #   ansible.builtin.command:         "{{ sapcontrol_command }} -function StartSystem"
+    #   failed_when:                     hana_system_started.rc > 0
+    #   changed_when:                    false
+    #   register:                        hana_system_started
+    #   when:
+    #     - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
+
+    - name:                            "5.8 HANA Pacemaker Scaleout - Wait for SAP system to stabilize (debug)"
+      ansible.builtin.debug:
+        msg:                           "5.8 HANA Pacemaker Scaleout - Wait {{ hana_scaleout_wait_for_start_in_sec }} seconds for SAP system to stabilize"
+
+    - name:                            "5.8 HANA Pacemaker Scaleout - Wait for SAP system to stabilize"
+      ansible.builtin.wait_for:
+        timeout:                       "{{ hana_scaleout_wait_for_start_in_sec }}"
+# End of HANA filesystem clustering resources
+
+  # Ref : https://access.redhat.com/articles/3004101 - 4.3 Configure general cluster properties
+- name:                                "5.8 HANA Pacemaker Scaleout - Configure general cluster properties"
+  become:                              true
+  become_user:                         root
+  when:
+    - ansible_hostname == primary_instance_name
+  block:
+    - name:                             "5.8 HANA Pacemaker Scaleout - Set resource stickiness value to 1000"
+      ansible.builtin.shell: >
+                                        pcs resource defaults update resource-stickiness=1000
+      register:                         res_stickiness
+      failed_when:                      res_stickiness.rc > 0
+      changed_when:                     false
+
+    - name:                             "5.8 HANA Pacemaker Scaleout - Set migration threshold value to 5000"
+      ansible.builtin.shell: >
+                                        pcs resource defaults update migration-threshold=5000
+      register:                         mig_threshold
+      failed_when:                      mig_threshold.rc > 0
+      changed_when:                     false
+
+# ⠀⠀⠀⠀⠀⠀⣠⡤⠶⠒⢛⢻⠛⠛⠛⠛⠛⠛⢿⣛⡓⠶⢦⣤⠀⠀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⡴⡫⠒⠊⠁⠀⣸⠀⠀⠀⠀⠀⠀⢹⠀⠀⠁⠒⡏⢳⡄⠀⠀⠀⠀
+# ⠀⠀⠀⢀⡾⡑⡇⡀⠀⠀⠀⡷⠀⠀⠤⠤⠀⠀⢸⠀⠀⠀⠀⡇⡳⢻⡄⠀⠀⠀
+# ⠀⠀⢀⡾⢱⠔⠁⡇⠀⠀⠀⣇⠀⣀⣀⣀⣀⣀⣀⡇⠀⠀⠀⠃⠱⣵⢻⡄⠀⠀
+# ⠀⠀⡾⠁⢀⡀⢤⠗⠒⠒⢺⢳⠤⠶⠶⠶⠶⠶⢖⣷⠒⠒⠒⡦⢄⡀⠀⢹⡄⠀
+# ⠀⢸⡇⠐⣁⠤⠬⠤⠤⣤⣼⣷⣵⣶⣶⣶⣶⣶⣽⣿⢤⣤⠤⠷⠤⢄⡁⠘⣇⠀
+# ⠀⠘⣧⣞⣁⣀⡮⡯⡿⠛⠛⠫⠿⠭⠭⠭⠭⠽⠿⠛⠛⢻⠽⡿⣄⣀⣑⣦⠏⠀
+# ⠀⠀⣿⢠⣿⠃⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡍⠁⠈⣿⡆⢸⠀⠀
+# ⠀⠀⣿⢸⣿⡀⠀⠀⠑⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠔⠀⠀⠀⣿⣇⢸⡀⠀
+# ⢀⣴⡏⠥⠹⢇⠀⠀⠀⠀⠑⠄⠀⠀⠀⠀⠀⠀⠤⠂⠁⠀⠀⠀⢠⠟⠥⠹⣧⡀
+# ⣿⡼⢶⡒⠲⡚⠳⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡴⠛⡲⠒⣲⠷⢹
+# ⣿⣗⡚⠨⠑⢌⠢⡘⠷⣤⣀⣴⣾⠻⠟⠛⠻⡻⣶⣄⣠⡴⠏⡠⢊⠔⡡⢺⢚⢸
+# ⠙⢯⣗⣀⡀⠀⠑⠂⠥⢂⠭⣛⢵⣖⣒⣒⢲⡦⢟⠭⣕⠪⠅⠊⠀⠀⣁⣘⣯⠞
+# ⠀⠀⢿⡑⢬⣑⢄⠀⠀⠀⠈⡟⡞⣯⣷⣢⢿⣇⡗⡏⠀⠀⠀⢀⢴⡁⢐⣹⠀⠀
+# ⠀⠀⠀⠙⢻⡈⠳⣗⢄⣼⠓⣟⡏⣄⠩⠭⢡⡊⣗⡗⣷⣄⣴⡹⠋⡾⠛⠁⠀⠀
+# ⠀⠀⠀⠀⠀⠳⣤⡈⣷⣿⣆⢸⡇⠛⠀⠀⠘⠃⣿⢀⣿⣷⢋⣠⠾⠃⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⠀⠉⠻⠦⣭⣽⠇⠿⠀⠀⠸⠃⣯⣭⡥⠞⠋⠁⠀⠀⠀⠀⠀⠀
+# ⢀⢀⣀⣀⣀⣀⣀⣀⣀⣀⣈⣳⣵⣶⣶⣷⣶⣾⡵⣋⣀⣀⣀⣀⢀⠀⠀⠀⠀⠀
+# ⣿⣟⣟⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣯⣽⣽⣯⣿

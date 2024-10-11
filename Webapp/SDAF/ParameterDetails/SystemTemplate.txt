@@ -887,18 +887,24 @@ $$tags$$
 
 #########################################################################################
 #                                                                                       #
-#  Scaleout variables                                                                   #
+#  Scale out variables                                                                   #
 #                                                                                       #
 #########################################################################################
 
-#If true, the database tier will be configured for scaleout scenario
-$$database_HANA_use_ANF_scaleout_scenario$$
+#If true, the database tier will be configured for scale out scenario
+$$database_HANA_use_scaleout_scenario$$
 
 #If true, the database scale out tier will not have a standby role
 $$database_HANA_no_standby_role$$
 
-# Defined the standbynode count in a scaleout scenario
+# Defined the standby node count in a scale out scenario
 $$stand_by_node_count$$
+
+# The Azure Resource identifier for the HANA shared volume storage account
+$$hanashared_id$$
+
+# The Azure Resource identifier for the private endpoint connection to the HANA shared volume
+$$hanashared_private_endpoint_id$$
 
 
 #########################################################################################
@@ -959,4 +965,8 @@ $$use_prefix$$
 # use_zonal_markers defines if a zonal markers will be added to the virtual machine resource names
 $$use_zonal_markers$$
 
+# shared_access_key_enabled defines Storage account authorization using Shared Access Key.
+$$shared_access_key_enabled$$
 
+# shared_access_key_enabled_nfs defines Storage account used for NFS shares authorization using Shared Access Key.
+$$shared_access_key_enabled_nfs$$

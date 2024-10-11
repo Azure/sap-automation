@@ -1,0 +1,21 @@
+---
+
+###########################################################################################
+# This file calls the OS specific tasks to configure HANA specific clustering resources  #8
+###########################################################################################
+- name:                                "5.8 HANA Pacemaker Scaleout - HSR Create helper variables"
+  ansible.builtin.set_fact:
+    DB:                                "{{ db_sid | upper }}/HDB{{ db_instance_number }}"
+    db_sid_admin_user:                 "{{ db_sid | lower }}adm"
+
+- name:                                "5.8 HANA Pacemaker Scaleout - configure pre-requisites"
+  ansible.builtin.include_tasks:       "5.8.4.0-clusterPrep-ScaleOut-{{ ansible_os_family }}.yml"
+
+- name:                                "5.8 HANA Pacemaker Scaleout - import - SAP HanaSRMultiTarget"
+  ansible.builtin.include_tasks:       5.8.3-SAPHanaSRMultiTarget-{{ ansible_os_family }}.yml
+
+- name:                                "5.8 HANA Pacemaker Scaleout - configure cluster resources"
+  ansible.builtin.include_tasks:       "5.8.4.1-cluster-ScaleOut-{{ ansible_os_family }}.yml"
+
+
+...

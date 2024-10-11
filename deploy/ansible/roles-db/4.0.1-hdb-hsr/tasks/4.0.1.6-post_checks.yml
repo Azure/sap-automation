@@ -3,22 +3,40 @@
 - name:                                "HANA HSR: - Ensure replication status is active"
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
-  # Note: ideally we should be using set -o pipefail here (see for example https://xanmanning.co.uk/2019/03/21/ansible-lint-rule-306.html).
-  # However, the python script returns a status of 15 (!), which breaks the pipeline. Consequently,
-  # no pipefail option and elect to skip Ansible linting of this task.
-  ansible.builtin.shell: |
-    set -o pipefail
-    cdpy
-    (python systemReplicationStatus.py; echo) | grep -q 'overall system replication status: ACTIVE'
-  register:                            grep_result
-  until:                               grep_result.rc == 0 or grep_result.rc == 1
-  failed_when:                         grep_result.rc != 0 and grep_result.rc != 1
-  changed_when:                        false
-  retries:                             10
-  delay:                               5
-  when:                                ansible_hostname == primary_instance_name
+  block:
 
-- name:                                "HANA HSR: - Debug replication"
-  ansible.builtin.debug:
-    var:                               grep_result
-    verbosity:                         2
+    - name:                                "HANA HSR: - Ensure replication status is active"
+      # Note: ideally we should be using set -o pipefail here (see for example https://xanmanning.co.uk/2019/03/21/ansible-lint-rule-306.html).
+      # However, the python script returns a status of 15 (!), which breaks the pipeline. Consequently,
+      # no pipefail option and elect to skip Ansible linting of this task.
+      ansible.builtin.shell: |
+        set -o pipefail
+        (python systemReplicationStatus.py; echo) | grep -q 'overall system replication status: ACTIVE'
+      register:                            grep_result
+      until:                               grep_result.rc == 0 or grep_result.rc == 1
+      failed_when:                         grep_result.rc != 0 and grep_result.rc != 1
+      changed_when:                        false
+      retries:                             10
+      delay:                               5
+      when:                                ansible_hostname == primary_instance_name
+
+    - name:                                "HANA HSR: - Debug replication"
+      ansible.builtin.debug:
+        var:                               grep_result
+        verbosity:                         2
+
+  vars:
+    ansible_python_interpreter:        python3
+  environment:
+    HOME:                              "/usr/sap/{{ db_sid | upper }}/home"
+    PYTHONHOME:                        "/usr/sap/{{ DB }}/exe/Python3"
+    DIR_EXECUTABLE:                    "/usr/sap/{{ DB }}/exe"
+    SAP_RETRIEVAL_PATH:                "/usr/sap/{{ DB }}/{{ virtual_host }}"
+    DIR_SYSEXE:                        "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
+    SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
+    SECUDIR:                           "/usr/sap/{{ DB }}/{{ virtual_host }}/sec"
+    DAT_BIN_DIR:                       "/usr/sap/{{ DB }}/exe/dat_bin_dir"
+    DIR_INSTANCE:                      "/usr/sap/{{ DB }}"
+    PYTHONPATH:                        "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ virtual_host }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts:/usr/sap/{{ DB }}/exe/Python3/lib/python3.7"
+    PATH:                              "/usr/sap/{{ DB }}/exe/krb5/bin:/usr/sap/{{ DB }}/exe/krb5/sbin:/usr/sap/{{ DB }}/{{ virtual_host }}:/usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/mdc:/usr/sap/{{ DB }}/exe/Python3/bin:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/HDB/home:/usr/sap/HDB/home/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/usr/lib/mit/bin"
+    LD_LIBRARY_PATH:                   "/usr/sap/{{ DB }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ DB }}/exe/krb5/lib:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/filter:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/{{ DB }}/exe/plugins/afl:/usr/sap/{{ DB }}/exe/plugins/lcapps:/usr/sap/{{ DB }}/exe/plugins/repository:/usr/sap/{{ DB }}/exe/plugins/epmmds:/usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:/usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
