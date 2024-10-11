@@ -68,6 +68,8 @@ stages:
               echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
               green="\e[1;32m" ; reset="\e[0m"
 
+
+
               # echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
               #   git fetch -q --all
               #   git checkout -q $(Build.SourceBranchName)
@@ -80,13 +82,9 @@ stages:
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
                 az config set extension.use_dynamic_install=yes_without_prompt
+                az config set extension.dynamic_install_allow_preview=true
 
                 az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
-                if [ -n $(PAT) ]; then
-                  export AZURE_DEVOPS_EXT_PAT=$(PAT)
-                else
-                  export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
-                fi
 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
                 echo '$(parent_variable_group) id: ' $VARIABLE_GROUP_ID
@@ -380,6 +378,7 @@ stages:
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
               DEPLOYER_RANDOM_ID_SEED:  $(DEPLOYER_RANDOM_ID_SEED)
+              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
             failOnStderr: false
 
   - stage:                              Remove_control_plane
@@ -467,11 +466,6 @@ stages:
                   az config set extension.use_dynamic_install=yes_without_prompt
 
                   az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
-                  if [ -n $(PAT) ]; then
-                    export AZURE_DEVOPS_EXT_PAT=$(PAT)
-                  else
-                    export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
-                  fi
 
                   export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
                   echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
@@ -752,8 +746,6 @@ stages:
                           az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name INSTALLATION_MEDIA_ACCOUNT           --yes --only-show-errors
                         fi
 
-
-
                       fi
 
                   fi
@@ -773,3 +765,4 @@ stages:
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
               DEPLOYER_RANDOM_ID_SEED:  $(DEPLOYER_RANDOM_ID_SEED)
+              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)

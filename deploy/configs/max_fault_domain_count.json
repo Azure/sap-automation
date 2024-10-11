@@ -120,6 +120,10 @@
     "MaximumFaultDomainCount": "2"
   },
   {
+    "Location": "newzealandnorth",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
     "Location": "northcentralus",
     "MaximumFaultDomainCount": "3"
   },
@@ -161,6 +165,10 @@
   },
   {
     "Location": "southeastasia",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "southeastus",
     "MaximumFaultDomainCount": "2"
   },
   {

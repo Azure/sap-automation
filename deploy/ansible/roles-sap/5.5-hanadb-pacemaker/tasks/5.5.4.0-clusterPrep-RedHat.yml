@@ -9,6 +9,7 @@
 # SAP HANA Cluster resources prep for ANF
 # https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-netapp-files-red-hat
 
+# Additonal steps inherited from  https://access.redhat.com/articles/6093611
 
 # +------------------------------------4--------------------------------------*/
 - name:                            "Backward Compatibility - Check required Database HA variables"
@@ -48,9 +49,8 @@
       changed_when:                    false
       register:                        hana_system_stopped
 
-    - name:                            Wait 2 minutes for SAP system to stop
-      ansible.builtin.pause:
-        seconds:                       120
+    # - name:                            Stop HANA Database
+    #   ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-stop_hana.yml
 
     - name:                            "Configure ANF hana mounts on {{ primary_instance_name }}"
       when:                            ansible_hostname == primary_instance_name
@@ -314,7 +314,7 @@
             msg:                       "Failed to create ANF hana mounts on {{ secondary_instance_name }}"
           when:                        chk_nfs_mounts_enable_node2 | length > 0
 
-    - name:                            Start HANA System on both nodes
+    - name:                            Start HANA System on node
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
       ansible.builtin.command:         "{{ sapcontrol_command }} -function StartSystem"
@@ -322,7 +322,7 @@
       changed_when:                    false
       register:                        hana_system_started
 
-    - name:                            Wait 5 minutes for SAP system to start
-      ansible.builtin.pause:
-        seconds:                       300
+    # - name:                            Start HANA Database
+    #   ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+
 # End of HANA clustering resources

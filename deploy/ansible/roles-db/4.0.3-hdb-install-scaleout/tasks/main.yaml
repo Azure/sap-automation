@@ -21,6 +21,7 @@
   ansible.builtin.set_fact:
     sap_inifile:                       "hdbserver_{{ virtual_host }}_{{ sap_sid }}_install.rsp"
     dir_params:                        "{{ tmp_directory }}/.params"
+    sap_custom_config:                 "global.ini"
 
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Create list of all db hosts"
   ansible.builtin.set_fact:
@@ -89,7 +90,11 @@
                                        - "Client Subnet CIDR:  {{ subnet_client_cidr }}"
                                        - "Storage Subnet CIDR: {{ subnet_storage_cidr }}"
 
-# Scale out ANF only runs on primary node or the first node in the SID_DB list. This is mandatory.
+# Scale out - ANF with shared storage
+# Scale out ANF must only run on the designated primary node from the DB server list.
+# /*---------------------------------------------------------------------------8
+# |             Primary site setup with Shared storage scale out               |
+# +------------------------------------4--------------------------------------*/
 - name:                                "4.0.3 - SAP HANA SCALE OUT: HANA Install - Scale Out - ANF"
   block:
 
@@ -100,7 +105,7 @@
 
     - name:                            "4.0.3 - SAP HANA SCALE OUT: SAP HANA Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
       ansible.builtin.template:
-        src:                           "HANA_2_00_install_scaleout_anf.rsp"
+        src:                           "HANA_2_00_install_scaleout.rsp"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
         mode:                          0644
         force:                         true
@@ -113,28 +118,32 @@
         _rsp_sid:                      "{{ db_sid | upper }}"
         _rsp_number:                   "{{ db_instance_number }}"
         _rsp_system_usage:             "custom"
-        use_master_password:           "{{ hana_use_master_password }}"
-        password_copy:                 "{%if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
+        # use_master_password:           "{{ hana_use_master_password }}"
+        pwd_hdb_system:                "{{ hana_system_user_password | default(main_password) }}"
+        pwd_os_sidadm:                 "{{ hana_os_sidadm_password | default(main_password) }}"
+        pwd_os_sapadm:                 "{{ hana_os_sapadm_password | default(main_password) }}"
+        # password_copy:                 "{% if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
         _rsp_internal_network:         "{{ subnet_cidr_db | default((subnet_address + '/' + subnet_prefix), true) }}"
         # This comes in from the main ansible playbook. It is the password for the root user. Must be randomized after the installation.
         _rsp_root_password:            "{{ root_password }}"
-        # Note: Last node in the DB list is marked as standby, while everything else except first node is marked as worker node
-        # This is the way !!!
+        # Note : Default configuration involves placing the last node in DB List as standby.
+        # Note : This behavior can be overridden via property 'database_no_standby' to force all remaining nodes as workers
+        # Note : This configuration is not recommended as it leaves your distributed system without a standby
+        # NOTE: DO NOT ALTER FORMATTING OR SPACING. THIS BREAKS THE JINJA2 CODE.
         _rsp_additional_hosts:         "{% for item in db_hosts[1:] %}
-                                        {% if loop.index == db_hosts | length -1 %}
-                                        {% if db_no_standby %}
-                                        {{ item }}:role=worker:group=default:workergroup=default
-                                        {% else %}
-                                        {{ item }}:role=standby:group=default:workergroup=default
-                                        {% endif %}
-                                        {% else %}
-                                        {{ item }}:role=worker:group=default:workergroup=default,
-                                        {% endif %}
-                                        {% endfor %}"
-
+          {% if loop.index == db_hosts | length - 1 %}
+          {% if database_no_standby %}
+          {{ item | trim }}:role=worker:group=default:workergroup=default
+          {% else %}
+          {{ item | trim }}:role=standby:group=default:workergroup=default
+          {% endif %}
+          {% else %}
+          {{ item | trim }}:role=worker:group=default:workergroup=default,
+          {% endif %}
+          {% endfor %}"
     - name:                            "4.0.3 - SAP HANA SCALE OUT: Progress"
       ansible.builtin.debug:
-        msg:                           "Start HANA Installation"
+        msg:                           "Start HANA Installation on primary node"
 
     - name:                            "4.0.3 - SAP HANA SCALE OUT: installation"
       block:
@@ -142,7 +151,7 @@
           ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        chmod 755 /usr/sap;
-                                       ./hdblcm --batch --action=install --hostname {{ virtual_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
+                                       ./hdblcm --batch --action=install --hostname {{ virtual_host | trim }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
           args:
             chdir:                     "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
             creates:                   "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
@@ -158,7 +167,7 @@
 
         - name:                        "4.0.3 - SAP HANA SCALE OUT: Progress"
           ansible.builtin.debug:
-            msg:                       "Restarting the HANA Installation"
+            msg:                       "Restarting the HANA Installation on primary node"
           when:                        hana_installation.rc == 1
 
 
@@ -185,7 +194,7 @@
     - name:                            "4.0.3 - SAP HANA SCALE OUT: Installation results"
       ansible.builtin.debug:
         msg:
-          - "HANA Installation failed"
+          - "HANA Installation failed on primary node"
           - "HDBLCM output: {{ hana_installation }}"
       when:
         - hana_installation.rc is defined
@@ -203,7 +212,7 @@
 
         - name:                        "4.0.3 - SAP HANA SCALE OUT: Installation results"
           ansible.builtin.debug:
-            msg:                       "HANA Installation succeeded"
+            msg:                       "HANA Installation succeeded on primary node"
 
         - name:                        "4.0.3 - SAP HANA SCALE OUT: HANA Install: flag"
           ansible.builtin.file:
@@ -294,7 +303,7 @@
             state:                     present
             mode:                      0644
             option:                    "map_{{ hostvars[item].virtual_host }}"
-            value:                     "{{ (hostvars[item].ansible_all_ipv4_addresses | ansible.utils.ipaddr(subnet_client_cidr)) | first | default(hostvars[item].ansible_host) }}"
+            value:                     "{{ (hostvars[item].ansible_all_ipv4_addresses | ansible.utils.ipaddr(subnet_cidr_client)) | first | default(hostvars[item].ansible_host) }}"
           with_items:
             - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
 
@@ -372,172 +381,585 @@
 
   when:
     - not hana_installed.stat.exists
-    - not (db_high_availability | default(false))
+    - not (database_high_availability | default(false))
     # Only allowed for the first node. No other node in the scale out - ANF setup is allowed to install hdblcm.
-    - ansible_hostname == db_hosts[0]
-    - db_scale_out is defined
-    - db_scale_out
+    - ansible_hostname == primary_instance_name
+    - database_scale_out is defined
+    - database_scale_out
 
-# TODO: add block for Scale out with HSR support here, same as regular installation.
+
+# Scale our HSR with multi site replication
+# DB servers need to be split into two sites, each with designated primary. HANA setup will run on the primaries only.
+
 - name:                                "4.0.3 - SAP HANA SCALE OUT: HANA Install - Scale Out - HSR"
+  when:
+    - database_high_availability
   block:
-
-    - name:                            "4.0.3 - SAP HANA SCALE OUT: remove install response file if exists"
-      ansible.builtin.file:
-        path:                          "{{ dir_params }}/{{ sap_inifile }}"
-        state:                         absent
-
-    - name:                            "4.0.3 - SAP HANA SCALE OUT: SAP HANA Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
-      ansible.builtin.template:
-        src:                           "HANA_2_00_install.rsp"
-        dest:                          "{{ dir_params }}/{{ sap_inifile }}"
-        mode:                          0644
-        force:                         true
-      # Template parameter mapping
-      vars:
-        _rsp_component_root:           "../COMPONENTS"
-        _rsp_components:               "{{ hana_components }}"
-        _rsp_sapmnt:                   "/hana/shared"                              # Default Value
-        _rsp_hostname:                 "{{ virtual_host }}"
-        _rsp_sid:                      "{{ db_sid | upper }}"
-        _rsp_number:                   "{{ db_instance_number }}"
-        _rsp_system_usage:             "custom"
-        use_master_password:           "{{ hana_use_master_password }}"
-        password_copy:                 "{%if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
-
-    - name:                            "4.0.3 - SAP HANA SCALE OUT: Progress"
-      ansible.builtin.debug:
-        msg:                           "Start HANA Installation"
-
-    - name:                            "4.0.3 - SAP HANA SCALE OUT: installation"
-      block:
-        - name:                        "4.0.3 - SAP HANA SCALE OUT: Execute hdblcm on {{ virtual_host }}"
-          ansible.builtin.shell: |
-                                       umask {{ custom_umask | default('022') }} ;
-                                       chmod 755 /usr/sap;
-                                       ./hdblcm --batch --action=install --hostname {{ virtual_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
-          args:
-            chdir:                     "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
-            creates:                   "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
-          environment:
-            TMPDIR:                    "{{ tmp_directory }}/{{ db_sid | upper }}"
-          register:                    hana_installation
-          failed_when:                 hana_installation.rc > 0
-      rescue:
-        - name:                        "Fail if HANA installation failed with rc > 1"
-          ansible.builtin.fail:
-            msg:                       "INSTALL:0022:Execute hdblcm failed."
-          when:                        hana_installation.rc > 1
-
-        - name:                        "4.0.3 - SAP HANA SCALE OUT: Progress"
-          ansible.builtin.debug:
-            msg:                       "Restarting the HANA Installation"
-          when:                        hana_installation.rc == 1
-
-
-        - name:                        "4.0.3 - SAP HANA SCALE OUT: Re-execute hdblcm on {{ virtual_host }} and rescue"
-          block:
-            - name:                    "4.0.3 - SAP HANA SCALE OUT: Re-execute hdblcm on {{ virtual_host }}"
-              ansible.builtin.shell: |
-                                       umask {{ custom_umask | default('022') }} ;
-                                       chmod 755 /usr/sap;
-                                       ./hdblcm --batch --action=install --hostname {{ virtual_host }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
-              args:
-                chdir:                 "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
-                creates:               "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
-              environment:
-                TMPDIR:                "{{ tmp_directory }}/{{ db_sid | upper }}"
-              register:                hana_installation
-              failed_when:             hana_installation.rc > 0
-              when:                    hana_installation.rc == 1
-          rescue:
-            - name:                    "Fail if HANA installation failed on second attempt."
-              ansible.builtin.fail:
-                msg:                   "INSTALL:0022:Execute hdblcm failed."
-
-    - name:                            "4.0.3 - SAP HANA SCALE OUT: Installation results"
-      ansible.builtin.debug:
-        msg:
-          - "HANA Installation failed"
-          - "HDBLCM output: {{ hana_installation }}"
+    # /*---------------------------------------------------------------------------8
+    # |             Primary site setup with Shared nothing scale out               |
+    # +------------------------------------4--------------------------------------*/
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: HANA Install - Scale Out - HSR ( Primary Site )"
       when:
-        - hana_installation.rc is defined
-        - hana_installation.rc > 0
-
-    - name:                            "Errorhandling: SAP HANA"
-      ansible.builtin.debug:
-        msg:                           "INSTALL:{{ hana_installation }}"
-      when:
-        - hana_installation.rc is defined
-        - hana_installation.rc > 0
-
-    - name:                            "4.0.3 - SAP HANA SCALE OUT: Successful installation"
+      - ansible_hostname == primary_instance_name
+      - not hana_installed.stat.exists
       block:
-
-        - name:                        "4.0.3 - SAP HANA SCALE OUT: Installation results"
-          ansible.builtin.debug:
-            msg:                       "HANA Installation succeeded"
-
-        - name:                        "4.0.3 - SAP HANA SCALE OUT: HANA Install: flag"
+        - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: remove install response file if exists"
           ansible.builtin.file:
-            path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
-            state:                     touch
-            mode:                      0755
+            path:                        "{{ dir_params }}/{{ sap_inifile }}"
+            state:                       absent
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT: Retrieve Subscription ID and Resource Group Name"
-          ansible.builtin.uri:
-            url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
-            use_proxy:                 false
-            headers:
-              Metadata:                true
-          register:                    azure_metadata
+        - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
+          ansible.builtin.template:
+            src:                         "HANA_2_00_install_scaleout.rsp"
+            dest:                        "{{ dir_params }}/{{ sap_inifile }}"
+            mode:                        0644
+            force:                       true
+          # Template parameter mapping
+          vars:
+            _rsp_component_root:         "../COMPONENTS"
+            _rsp_components:             "{{ hana_components }}"
+            _rsp_sapmnt:                 "/hana/shared"                              # Default Value
+            _rsp_hostname:               "{{ virtual_host }}"
+            _rsp_sid:                    "{{ db_sid | upper }}"
+            _rsp_number:                 "{{ db_instance_number }}"
+            _rsp_system_usage:           "custom"
+            use_master_password:         "{{ hana_use_master_password }}"
+            _rsp_hana_data_basepath:     "{{ hana_data_basepath }}"
+            _rsp_hana_log_basepath:      "{{ hana_log_basepath }}"
+            password_copy:               "{% if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
+            _rsp_internal_network:       "{{ (subnet_address + '/' + subnet_prefix) }}"
+            _rsp_root_password:          "{{ root_password }}"
+            pwd_hdb_system:              "{{ hana_system_user_password | default(main_password) }}"
+            pwd_os_sidadm:               "{{ hana_os_sidadm_password | default(main_password) }}"
+            pwd_os_sapadm:               "{{ hana_os_sapadm_password | default(main_password) }}"
+            # NOTE: DO NOT ALTER FORMATTING OR SPACING. THIS BREAKS THE JINJA2 CODE.
+            _rsp_additional_hosts:       "{% for item in db_hosts[2::2] %}
+              {% if loop.index == db_hosts | length - 1 %}
+              {{ item | trim }}:role=worker:group=default:workergroup=default
+              {% else %}
+              {{ item | trim }}:role=worker:group=default:workergroup=default,
+              {% endif %}
+              {% endfor %}"
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT: Extract Azure subscription details"
-          ansible.builtin.set_fact:
-            subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
-            resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
+        - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Template processing: Create custom ini file {{ sap_custom_config }} from {{ HANA_2_00_customconfig.rsp }}"
+          ansible.builtin.template:
+            src:                         "HANA_2_00_customconfig.rsp"
+            dest:                        "{{ dir_params }}/{{ sap_custom_config }}"
+            mode:                        0644
+            force:                       true
+          vars:
+            _rsp_basepath_shared:        "no"
+            _rsp_hana_data_basepath:     "{{ hana_data_basepath }}"
+            _rsp_hana_log_basepath:      "{{ hana_log_basepath }}"
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT: Show the subscription and resource group"
+        - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Progress"
+          ansible.builtin.debug:
+            msg:                         "Start HANA Installation on primary node"
+
+        - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: installation"
+          block:
+            - name:                      "SAP HANA SCALE OUT-HSR: Execute hdblcm on {{ primary_instance_name }}"
+              ansible.builtin.shell: |
+                                        umask {{ custom_umask | default('022') }} ;
+                                        chmod 755 /usr/sap;
+                                        ./hdblcm --batch --action=install --hostname {{ virtual_host | trim }} --configfile='{{ dir_params }}/{{ sap_inifile }}' --custom_cfg='{{ dir_params }}'
+              args:
+                chdir:                   "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
+                creates:                 "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
+              environment:
+                TMPDIR:                  "{{ tmp_directory }}/{{ db_sid | upper }}"
+              register:                  hana_installation
+              failed_when:               hana_installation.rc > 0
+          rescue:
+            - name:                      "Fail if HANA installation failed with rc > 1"
+              ansible.builtin.fail:
+                msg:                     "INSTALL:0022:Execute hdblcm failed."
+              when:                      hana_installation.rc > 1
+
+            - name:                      "SAP HANA SCALE OUT-HSR: Progress"
+              ansible.builtin.debug:
+                msg:                     "Restarting the HANA Installation on primary node"
+              when:                      hana_installation.rc == 1
+
+            - name:                      "SAP HANA SCALE OUT-HSR: Re-execute hdblcm on {{ virtual_host }} and rescue"
+              block:
+                - name:                  "SAP HANA SCALE OUT-HSR: Re-execute hdblcm on {{ virtual_host }}"
+                  ansible.builtin.shell: |
+                                          umask {{ custom_umask | default('022') }} ;
+                                          chmod 755 /usr/sap;
+                                          ./hdblcm --batch --action=install --hostname {{ virtual_host | trim }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
+                  args:
+                    chdir:               "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
+                    creates:             "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
+                  environment:
+                    TMPDIR:              "{{ tmp_directory }}/{{ db_sid | upper }}"
+                  register:              hana_installation
+                  failed_when:           hana_installation.rc > 0
+                  when:                  hana_installation.rc == 1
+              rescue:
+                - name:                  "Fail if HANA installation failed on second attempt."
+                  ansible.builtin.fail:
+                    msg:                 "INSTALL:0022:Execute hdblcm failed on primary node."
+
+        - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Installation results"
           ansible.builtin.debug:
             msg:
-              - "Subscription ID: {{ subscription_id }}"
-              - "Resource Group Name: {{ resource_group_name }}"
+              - "HANA Installation failed on primary node"
+              - "HDBLCM output: {{ hana_installation }}"
+          when:
+            - hana_installation.rc is defined
+            - hana_installation.rc > 0
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT: Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
-          ansible.builtin.include_role:
-            name:                      roles-misc/0.6-ARM-Deployment
+        - name:                          "Errorhandling: SAP HANA"
+          ansible.builtin.debug:
+            msg:                         "INSTALL:{{ hana_installation }}"
+          when:
+            - hana_installation.rc is defined
+            - hana_installation.rc > 0
+
+        - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Successful installation"
+          block:
+
+            - name:                      "SAP HANA SCALE OUT-HSR: Installation results"
+              ansible.builtin.debug:
+                msg:                     "HANA Installation succeeded on primary node"
+
+            - name:                      "SAP HANA SCALE OUT-HSR: HANA Install: flag"
+              ansible.builtin.file:
+                path:                    "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
+                state:                   touch
+                mode:                    0755
+
+            - name:                      "Retrieve Subscription ID and Resource Group Name"
+              ansible.builtin.uri:
+                url:                     http://169.254.169.254/metadata/instance?api-version=2021-02-01
+                use_proxy:               false
+                headers:
+                  Metadata:              true
+              register:                  azure_metadata
+
+            - name:                      "Extract details"
+              ansible.builtin.set_fact:
+                subscription_id:         "{{ azure_metadata.json.compute.subscriptionId }}"
+                resource_group_name:     "{{ azure_metadata.json.compute.resourceGroupName }}"
+
+            - name:                      "Show the subscription and resource group"
+              ansible.builtin.debug:
+                msg:
+                  - "Subscription ID: {{ subscription_id }}"
+                  - "Resource Group Name: {{ resource_group_name }}"
+
+            - name:                        "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
+              ansible.builtin.include_role:
+                name:                    roles-misc/0.6-ARM-Deployment
+              vars:
+                subscriptionId:          "{{ subscription_id }}"
+                resourceGroupName:       "{{ resource_group_name }}"
+
+            - name:                      "SAP HANA SCALE OUT-HSR: ARM Deployment flag"
+              ansible.builtin.file:
+                path:                    "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb_arm.txt"
+                state:                   touch
+                mode:                    0755
+
+            - name:                      "SAP HANA SCALE OUT-HSR: remove install response file"
+              ansible.builtin.file:
+                path:                    "{{ dir_params }}/{{ sap_inifile }}"
+                state:                   absent
+
+            - name:                      "SAP HANA SCALE OUT-HSR: remove custom config response file"
+              ansible.builtin.file:
+                path:                    "{{ dir_params }}/{{ sap_custom_config }}"
+                state:                   absent
+
+          when:
+            - hana_installation.rc is defined
+            - hana_installation.rc < 1
+
+        - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Create backup folder"
+          ansible.builtin.file:
+            path:                        "{{ hana_backup_path }}"
+            state:                       directory
+            group:                       sapsys
+            owner:                       "{{ db_sid | lower }}adm"
+            mode:                        0755
+
+        - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Configure global.ini"
+          block:
+            - name:                      "Prepare global.ini for domain name resolution."
+              become_user:               root
+              become:                    true
+              community.general.ini_file:
+                path:                    "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+                section:                 communication
+                state:                   present
+                mode:                    0644
+                option:                  listeninterface
+                value:                   .internal
+
+            - name:                      "Prepare global.ini for installation in non-shared environment"
+              become_user:               root
+              become:                    true
+              community.general.ini_file:
+                path:                    "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+                section:                 persistence
+                state:                   present
+                mode:                    0644
+                option:                  basepath_shared
+                value:                   "{{ _rsp_basepath_shared }}"
+              tags:
+               - skip_ansible_lint
+
+            - name:                      "Prepare global.ini for site hosts name resolution (Primary Site)"
+              community.general.ini_file:
+                path:                    "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+                section:                 "internal_hostname_resolution"
+                mode:                    0644
+                state:                   present
+                option:                  "{{ hostvars[item].ansible_host }}"
+                value:                   "{{ hostvars[item].virtual_host }}"
+              with_items:
+                - "{{ db_hosts[0::2] }}"
+
+            - name:                      "Prepare global.ini for HANA hosts name resolution on replication network"
+              community.general.ini_file:
+                path:                      "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+                section:                   "system_replication_hostname_resolution"
+                mode:                      0644
+                state:                     present
+                option:                    "{{ hostvars[item].ansible_all_ipv4_addresses | ansible.utils.ipaddr(subnet_cidr_db) | first | default(hostvars[item].ansible_host ) }}"
+                value:                     "{{ hostvars[item].virtual_host }}"
+              with_items:
+                - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
+              when:
+                - subnet_cidr_db is defined
+
+        - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Restart HANA"
+          block:
+          - name:                        "Stop HANA Database"
+            become_user:                 "{{ db_sid | lower }}adm"
+            become:                      true
+            ansible.builtin.shell: |
+                                        sapcontrol -nr {{ db_instance_number }} -function StopSystem {{ db_sid | upper }}
+            changed_when:                false
+            failed_when:                 false
+            register:                    hana_stopped
+            environment:
+              PATH:                      /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+              DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+              LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+              SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+            vars:
+              allow_world_readable_tmpfiles: true
+
+          # ToDo: Check if we can interrogate the HANA DB to see if it is stopped.
+          - name:                        "Wait 2 minutes for SAP system to stop"
+            ansible.builtin.wait_for:
+              timeout:                   120
+
+          - name:                        "Start HANA Database"
+            become_user:                 "{{ db_sid | lower }}adm"
+            become:                      true
+            ansible.builtin.shell: |
+                                        sapcontrol -nr {{ db_instance_number }} -function StartSystem {{ db_sid | upper }}
+            changed_when:                false
+            failed_when:                 false
+            register:                    hana_started
+            environment:
+              PATH:                      /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+              DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+              LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+              SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+            vars:
+              allow_world_readable_tmpfiles: true
+
+          - name:                        "Wait 2 minutes for SAP system to start"
+            ansible.builtin.wait_for:
+              timeout:                   120
+
+    # /*---------------------------------------------------------------------------8
+    # |             Secondary site setup with Shared nothing scale out               |
+    # +------------------------------------4--------------------------------------*/
+    - name:                                "4.0.3 - SAP HANA SCALE OUT: HANA Install - Scale Out - HSR ( Secondary Site )"
+      block:
+        - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: remove install response file if exists"
+          ansible.builtin.file:
+            path:                          "{{ dir_params }}/{{ sap_inifile }}"
+            state:                         absent
+
+        - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
+          ansible.builtin.template:
+            src:                           "HANA_2_00_install_scaleout.rsp"
+            dest:                          "{{ dir_params }}/{{ sap_inifile }}"
+            mode:                          0644
+            force:                         true
+          # Template parameter mapping
           vars:
-            subscriptionId:            "{{ subscription_id }}"
-            resourceGroupName:         "{{ resource_group_name }}"
+            _rsp_component_root:           "../COMPONENTS"
+            _rsp_components:               "{{ hana_components }}"
+            _rsp_sapmnt:                   "/hana/shared"                              # Default Value
+            _rsp_hostname:                 "{{ virtual_host }}"
+            _rsp_sid:                      "{{ db_sid | upper }}"
+            _rsp_number:                   "{{ db_instance_number }}"
+            _rsp_system_usage:             "custom"
+            use_master_password:           "{{ hana_use_master_password }}"
+            _rsp_hana_data_basepath:       "{{ hana_data_basepath }}"
+            _rsp_hana_log_basepath:        "{{ hana_log_basepath }}"
+            password_copy:                 "{% if hana_use_master_password == 'n' %}{{ main_password }}{% else %}{% endif %}"
+            pwd_hdb_system:                "{{ hana_system_user_password | default(main_password) }}"
+            pwd_os_sidadm:                 "{{ hana_os_sidadm_password | default(main_password) }}"
+            pwd_os_sapadm:                 "{{ hana_os_sapadm_password | default(main_password) }}"
+            _rsp_internal_network:         "{{ (subnet_address + '/' + subnet_prefix) }}"
+            _rsp_root_password:            "{{ root_password }}"
+            # NOTE: DO NOT ALTER FORMATTING OR SPACING. THIS BREAKS THE JINJA2 CODE.
+            _rsp_additional_hosts:         "{% for item in db_hosts[3::2] %}
+              {% if loop.index == db_hosts | length - 1 %}
+              {{ item | trim }}:role=worker:group=default:workergroup=default
+              {% else %}
+              {{ item | trim }}:role=worker:group=default:workergroup=default,
+              {% endif %}
+              {% endfor %}"
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT: ARM Deployment flag"
+        - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Template processing: Create custom ini file {{ sap_custom_config }} from {{ HANA_2_00_customconfig.rsp }}"
+          ansible.builtin.template:
+            src:                           "HANA_2_00_customconfig.rsp"
+            dest:                          "{{ dir_params }}/{{ sap_custom_config }}"
+            mode:                          0644
+            force:                         true
+          vars:
+            _rsp_basepath_shared:          "no"
+            _rsp_hana_data_basepath:       "{{ hana_data_basepath }}"
+            _rsp_hana_log_basepath:        "{{ hana_log_basepath }}"
+
+        - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Progress"
+          ansible.builtin.debug:
+            msg:                           "Start HANA Installation on secondary node"
+
+        - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: installation"
+          block:
+            - name:                        "SAP HANA: Execute hdblcm on {{ secondary_instance_name }}"
+              ansible.builtin.shell: |
+                                          umask {{ custom_umask | default('022') }} ;
+                                          chmod 755 /usr/sap;
+                                          ./hdblcm --batch --action=install --hostname {{ virtual_host | trim }} --configfile='{{ dir_params }}/{{ sap_inifile }}' --custom_cfg='{{ dir_params }}'
+              args:
+                chdir:                     "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
+                creates:                   "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
+              environment:
+                TMPDIR:                    "{{ tmp_directory }}/{{ db_sid | upper }}"
+              register:                    hana_installation
+              failed_when:                 hana_installation.rc > 0
+          rescue:
+            - name:                        "Fail if HANA installation failed with rc > 1"
+              ansible.builtin.fail:
+                msg:                       "INSTALL:0022:Execute hdblcm failed."
+              when:                        hana_installation.rc > 1
+
+            - name:                        "SAP HANA: Progress"
+              ansible.builtin.debug:
+                msg:                       "Restarting the HANA Installation on secondary node"
+              when:                        hana_installation.rc == 1
+
+            - name:                        "SAP HANA: Re-execute hdblcm on {{ virtual_host }} and rescue"
+              block:
+                - name:                    "SAP HANA: Re-execute hdblcm on {{ virtual_host }}"
+                  ansible.builtin.shell: |
+                                          umask {{ custom_umask | default('022') }} ;
+                                          chmod 755 /usr/sap;
+                                          ./hdblcm --batch --action=install --hostname {{ virtual_host | trim }} --configfile='{{ dir_params }}/{{ sap_inifile }}'
+                  args:
+                    chdir:                 "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE"
+                    creates:               "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
+                  environment:
+                    TMPDIR:                "{{ tmp_directory }}/{{ db_sid | upper }}"
+                  register:                hana_installation
+                  failed_when:             hana_installation.rc > 0
+                  when:                    hana_installation.rc == 1
+              rescue:
+                - name:                    "Fail if HANA installation failed on second attempt."
+                  ansible.builtin.fail:
+                    msg:                   "INSTALL:0022:Execute hdblcm failed on secondary node."
+
+        - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Installation results"
+          ansible.builtin.debug:
+            msg:
+              - "HANA Installation failed on secondary node"
+              - "HDBLCM output: {{ hana_installation }}"
+          when:
+            - hana_installation.rc is defined
+            - hana_installation.rc > 0
+
+        - name:                            "Errorhandling: SAP HANA"
+          ansible.builtin.debug:
+            msg:                           "INSTALL:{{ hana_installation }}"
+          when:
+            - hana_installation.rc is defined
+            - hana_installation.rc > 0
+
+        - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Successful installation"
+          block:
+
+            - name:                        "SAP HANA SCALE OUT-HSR: Installation results"
+              ansible.builtin.debug:
+                msg:                       "HANA Installation succeeded on secondary node"
+
+            - name:                        "SAP HANA SCALE OUT-HSR: HANA Install: flag"
+              ansible.builtin.file:
+                path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
+                state:                     touch
+                mode:                      0755
+
+            - name:                        "Retrieve Subscription ID and Resource Group Name"
+              ansible.builtin.uri:
+                url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
+                use_proxy:                 false
+                headers:
+                  Metadata:                true
+              register:                    azure_metadata
+
+            - name:                        "Extract details"
+              ansible.builtin.set_fact:
+                subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
+                resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
+
+            - name:                        "Show the subscription and resource group"
+              ansible.builtin.debug:
+                msg:
+                  - "Subscription ID: {{ subscription_id }}"
+                  - "Resource Group Name: {{ resource_group_name }}"
+
+            - name:                        "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
+              ansible.builtin.include_role:
+                name:                      roles-misc/0.6-ARM-Deployment
+              vars:
+                subscriptionId:            "{{ subscription_id }}"
+                resourceGroupName:         "{{ resource_group_name }}"
+
+            - name:                        "SAP HANA SCALE OUT-HSR: ARM Deployment flag"
+              ansible.builtin.file:
+                path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb_arm.txt"
+                state:                     touch
+                mode:                      0755
+
+            - name:                        "SAP HANA SCALE OUT-HSR: remove install response file"
+              ansible.builtin.file:
+                path:                      "{{ dir_params }}/{{ sap_inifile }}"
+                state:                     absent
+
+            - name:                        "SAP HANA SCALE OUT-HSR: remove custom config response file"
+              ansible.builtin.file:
+                path:                      "{{ dir_params }}/{{ sap_custom_config }}"
+                state:                     absent
+
+          when:
+            - hana_installation.rc is defined
+            - hana_installation.rc < 1
+
+        - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Create backup folder"
           ansible.builtin.file:
-            path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb_arm.txt"
-            state:                     touch
-            mode:                      0755
+            path:                          "{{ hana_backup_path }}"
+            state:                         directory
+            group:                         sapsys
+            owner:                         "{{ db_sid | lower }}adm"
+            mode:                          0755
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT: remove install response file"
-          ansible.builtin.file:
-            path:                      "{{ dir_params }}/{{ sap_inifile }}"
-            state:                     absent
+        - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Configure global.ini"
+          block:
+            - name:                        "Prepare global.ini for domain name resolution."
+              become_user:                 root
+              become:                      true
+              community.general.ini_file:
+                path:                      "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+                section:                   communication
+                state:                     present
+                mode:                      0644
+                option:                    listeninterface
+                value:                     .internal
 
+            - name:                        "Prepare global.ini for installation in non-shared environment"
+              become_user:                 root
+              become:                      true
+              community.general.ini_file:
+                path:                      "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+                section:                   persistence
+                state:                     present
+                mode:                      0644
+                option:                    basepath_shared
+                value:                     "{{ _rsp_basepath_shared }}"
+              tags:
+               - skip_ansible_lint
+
+            - name:                        "Prepare global.ini for site hosts name resolution (Secondary Site)"
+              community.general.ini_file:
+                path:                      "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+                section:                   "internal_hostname_resolution"
+                mode:                      0644
+                state:                     present
+                option:                    "{{ hostvars[item].ansible_host }}"
+                value:                     "{{ hostvars[item].virtual_host }}"
+              with_items:
+                - "{{ db_hosts[1::2] }}"
+
+            - name:                      "Prepare global.ini for HANA hosts name resolution on replication network"
+              community.general.ini_file:
+                path:                      "/hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini"
+                section:                   "system_replication_hostname_resolution"
+                mode:                      0644
+                state:                     present
+                option:                    "{{ hostvars[item].ansible_all_ipv4_addresses  | ansible.utils.ipaddr(subnet_cidr_db) | first | default(hostvars[item].ansible_host) }}"
+                value:                     "{{ hostvars[item].virtual_host }}"
+              with_items:
+                - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
+              when:
+                - subnet_cidr_db is defined
+
+        - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Restart HANA"
+          block:
+          - name:                        "Stop HANA Database"
+            become_user:                 "{{ db_sid | lower }}adm"
+            become:                      true
+            ansible.builtin.shell: |
+                                        sapcontrol -nr {{ db_instance_number }} -function StopSystem {{ db_sid | upper }}
+            changed_when:                false
+            failed_when:                 false
+            register:                    hana_stopped
+            environment:
+              PATH:                      /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+              DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+              LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+              SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+            vars:
+              allow_world_readable_tmpfiles: true
+
+          # ToDo: Check if we can interrogate the HANA DB to see if it is stopped.
+          - name:                        "Wait 2 minutes for SAP system to stop"
+            ansible.builtin.wait_for:
+              timeout:                   120
+
+          - name:                        "Start HANA Database on secondary node"
+            become_user:                 "{{ db_sid | lower }}adm"
+            become:                      true
+            ansible.builtin.shell: |
+                                        sapcontrol -nr {{ db_instance_number }} -function StartSystem {{ db_sid | upper }}
+            changed_when:                false
+            failed_when:                 false
+            register:                    hana_started
+            environment:
+              PATH:                      /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+              DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+              LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+              SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+            vars:
+              allow_world_readable_tmpfiles: true
+
+          - name:                        "Wait 2 minutes for SAP system to start"
+            ansible.builtin.wait_for:
+              timeout:                   120
       when:
-        - hana_installation.rc is defined
-        - hana_installation.rc < 1
+      - ansible_hostname == secondary_instance_name
+      - not hana_installed.stat.exists
 
-    - name:                            "4.0.3 - SAP HANA SCALE OUT: Create backup folder"
-      ansible.builtin.file:
-        path:                          "{{ hana_backup_path }}"
-        state:                         directory
-        group:                         sapsys
-        owner:                         "{{ db_sid | lower }}adm"
-        mode:                          0755
-  when:
-    - not hana_installed.stat.exists
-    - db_high_availability is defined
-    - db_high_availability
-    - db_scale_out is defined
-    - db_scale_out
+# /*----------------------------End of setup----------------------------------8
 
 
 - name:                                "HANA Install status"
@@ -603,6 +1025,46 @@
   when:
     - hana_installed.stat.exists
 
+
+# Scale out Supplementary tasks
+# Create {{ db_sid | lower}}adm account on majority maker VM, onlye required if its going to be added to Pacemaker
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Supplementary tasks"
+  block:
+    - name:                            "Create Create SAP Groups on Observer VM"
+      when:
+        - node_tier == 'observer'
+      ansible.builtin.group:
+        name:                              "{{ item.group }}"
+        gid:                               "{{ item.gid }}"
+        state:                             present
+      loop:
+        - { group: 'sapsys',    gid: '{{ sapsys_gid }}'  }
+        - { group: 'sapinst',   gid: '{{ sapinst_gid }}' }
+
+    - name:                                 "Create /usr/sap directory"
+      when:
+        - node_tier == 'observer'
+      ansible.builtin.file:
+        path:                               "/usr/sap"
+        state:                              directory
+        mode:                               '0755'
+        owner:                              root
+        group:                              root
+        force:                              true
+
+    - name:                            "Create {{ db_sid | lower }}adm account for Observer "
+      when:
+        - node_tier == 'observer'
+      ansible.builtin.user:
+        name:                                 "{{ db_sid | lower }}adm"
+        comment:                              "SAP HANA Database System Administrator"
+        uid:                                  "{{ hdbadm_uid }}"
+        group:                                "sapsys"
+        state:                                present
+        shell:                                "/bin/sh"
+        home:                                 "/usr/sap/{{ db_sid | upper }}/home"
+  when:
+    - database_high_availability
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

@@ -486,10 +486,14 @@ variable "install_private_endpoint_id"          {
                                                 }
 
 variable "install_always_create_fileshares"     {
-                                                  description = "Value indicating if file shares are created ehen using existing storage accounts"
+                                                  description = "Value indicating if file shares are created when using existing storage accounts"
                                                   default     = false
                                                 }
 
+variable "install_create_smb_shares"            {
+                                                  description = "Value indicating if SMB shares should be created"
+                                                  default     = true
+                                                }
 
 variable "Agent_IP"                             {
                                                   description = "If provided, contains the IP address of the agent"
@@ -936,3 +940,14 @@ variable "deployer_tfstate_key"                   {
                                                     default = ""
                                                   }
 
+variable "shared_access_key_enabled"            {
+                                                  description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
+                                                  default     = false
+                                                  type        = bool
+                                                }
+
+variable "shared_access_key_enabled_nfs"        {
+                                                  description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
+                                                  default     = true
+                                                  type        = bool
+                                                }

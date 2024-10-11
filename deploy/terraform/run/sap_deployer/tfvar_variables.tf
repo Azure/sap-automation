@@ -414,7 +414,10 @@ variable "shared_access_key_enabled"            {
                                                   type        = bool
                                                 }
 
-
+variable "tags"                                 {
+                                                  description = "If provided, tags for all resources"
+                                                  default     = {}
+                                                }
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #

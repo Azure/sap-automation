@@ -59,7 +59,12 @@
 # -------------------------------------+---------------------------------------8
     - name:                            "Perform BoM processing"
       when:
-        - "'scs' in supported_tiers"
+        # run on SCS or the when no SCS is defined run on the first DB server to support HANA only install
+        - "'scs' in supported_tiers or (
+            platform == 'HANA' and
+            (groups[sap_sid | upper ~ '_SCS'] is not defined or groups[sap_sid | upper ~ '_SCS'] | length == 0) and
+            inventory_hostname == (groups[sap_sid | upper ~ '_DB'] | sort)[0]
+          )"
       block:
 
         - name:                        Set facts

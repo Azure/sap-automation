@@ -53,8 +53,9 @@
     - name:                            "AFS Mount: Create Directories ({{ item.temppath }})"
       ansible.builtin.file:
         path:                          "/{{ item.temppath }}/{{ item.folder }}"
+        owner:                         "{{ item.owner }}"
         state:                         directory
-        mode:                          0755
+        mode:                          "{{ item.permissions }}"
 
     - name:                            "AFS Mount: Unmount file systems ({{ item.temppath }})"
       ansible.posix.mount:
@@ -90,9 +91,9 @@
 
 - name:                                "AFS Mount: Create SAP Directories ({{ item.path }})"
   ansible.builtin.file:
-    owner:                             '{{ sidadm_uid }}'
+    owner:                             "{{ item.owner }}"
     group:                             sapsys
-    mode:                              0755
+    mode:                              "{{ item.permissions }}"
     path:                              "{{ item.path }}"
     state:                             directory
     recurse:                           true
@@ -110,7 +111,7 @@
   ansible.builtin.file:
     path:                              "{{ is_created_now.path }}"
     state:                             directory
-    mode:                              0755
+    mode:                              "{{ item.permissions }}"
     attr:                              i+
   when:
     - node_tier in item.target_nodes or item.target_nodes == "all"

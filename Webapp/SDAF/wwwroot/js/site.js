@@ -472,7 +472,8 @@ $("#subscription").on("change", function () {
                 "witness_storage_account_arm_id",
                 "transport_storage_account_id",
                 "install_storage_account_id",
-                "azure_files_sapmnt_id"
+                "azure_files_sapmnt_id",
+                "hanashared_id"
             ],
             controller: "/Armclient/GetStorageAccountOptions",
             errorMessage: "Error retrieving storage accounts for specified subscription",
@@ -483,7 +484,8 @@ $("#subscription").on("change", function () {
         {
             ids: ["transport_private_endpoint_id",
                 "install_private_endpoint_id",
-                "sapmnt_private_endpoint_id"
+                "sapmnt_private_endpoint_id",
+                "hanashared_private_endpoint_id"
             ],
             controller: "/Armclient/GetPrivateEndpointOptions",
             errorMessage: "Error retrieving private endpoints for specified subscription",
@@ -503,7 +505,9 @@ $("#subscription").on("change", function () {
             }
         },
         {
-            ids: ["proximityplacementgroup_arm_ids"],
+            ids: ["proximityplacementgroup_arm_ids",
+              "app_proximityplacementgroup_arm_ids"
+            ],
             controller: "/Armclient/GetPPGroupOptions",
             errorMessage: "Error retrieving proximity placement groups for specified subscription",
             input: {
@@ -552,11 +556,12 @@ $("#network_arm_id").on("change", function () {
             controller: "/Armclient/GetSubnetOptions",
             ids: [
                 "admin_subnet_arm_id",
-                "db_subnet_arm_id",
+                "anf_subnet_arm_id",
                 "app_subnet_arm_id",
-                "web_subnet_arm_id",
+                "db_subnet_arm_id",
                 "iscsi_subnet_arm_id",
-                "anf_subnet_arm_id"
+                "storage_subnet_arm_id",
+                "web_subnet_arm_id"
             ],
             errorMessage: "Error retrieving subnets for specified vnet",
             input: {
@@ -567,11 +572,12 @@ $("#network_arm_id").on("change", function () {
             controller: "/Armclient/GetNsgOptions",
             ids: [
                 "admin_subnet_nsg_arm_id",
-                "db_subnet_nsg_arm_id",
+                "anf_subnet_nsg_arm_id",
                 "app_subnet_nsg_arm_id",
-                "web_subnet_nsg_arm_id",
+                "db_subnet_nsg_arm_id",
                 "iscsi_subnet_nsg_arm_id",
-                "anf_subnet_nsg_arm_id"
+                "storage_subnet_nsg_arm_id",
+                "web_subnet_nsg_arm_id"
             ],
             errorMessage: "Error retrieving network security groups for specified vnet's resource group",
             input: {

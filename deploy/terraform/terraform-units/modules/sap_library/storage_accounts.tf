@@ -89,18 +89,18 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
 }
 
 resource "azurerm_role_assignment" "storage_tfstate_contributor" {
-  count                                = try(var.deployer_tfstate.deployer_uai.principal_id, "") != "" ? 1 : 0
+  count                                = try(var.deployer_tfstate.deployer_msi_id, "") != "" ? 1 : 0
   provider                             = azurerm.main
   scope                                = local.sa_tfstate_exists ? var.storage_account_tfstate.arm_id : azurerm_storage_account.storage_tfstate[0].id
-  role_definition_name                 = "Storage Account Contributor"
-  principal_id                         = var.deployer_tfstate.deployer_uai.principal_id
+  role_definition_name                 = "Storage Blob Data Contributor"
+  principal_id                         = var.deployer_tfstate.deployer_msi_id
 }
 
 resource "azurerm_role_assignment" "storage_tfstate_contributor_ssi" {
   provider                             = azurerm.main
   count                                = try(var.deployer_tfstate.add_system_assigned_identity, false) ? length(var.deployer_tfstate.deployer_system_assigned_identity) : 0
   scope                                = local.sa_tfstate_exists ? var.storage_account_tfstate.arm_id : azurerm_storage_account.storage_tfstate[0].id
-  role_definition_name                 = "Storage Account Contributor"
+  role_definition_name                 = "Storage Blob Data Contributor"
   principal_id                         = var.deployer_tfstate.deployer_system_assigned_identity[count.index]
 }
 
@@ -308,6 +308,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
 
   cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.storage_account_sapbits.public_network_access_enabled
+  shared_access_key_enabled            = var.storage_account_sapbits.shared_access_key_enabled
 
   routing {
             publish_microsoft_endpoints = true

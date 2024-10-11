@@ -150,6 +150,7 @@
       'folder':             '{{ bom_base_name }}',
       'mount':              '{{ usr_sap_install_mountpoint }}',
       'opts':               'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
+      'owner':              '{{ sidadm_uid }}',
       'path':               '/usr/sap/install',
       'permissions':        '0777',
       'set_chattr_on_dir':  false,
@@ -187,7 +188,7 @@
       register: set_immutable_attribute
   when:
     - tier == 'sapos'
-    - node_tier != 'hana'
+    - node_tier not in ['hana','observer']
     - sap_mnt is defined
     - use_simple_mount is defined and use_simple_mount
 
@@ -308,6 +309,7 @@
       'type':              'trans',
       'temppath':          'saptrans',
       'mount':             '{{ sap_trans }}',
+      'owner':             'root',
       'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
       'path':              '/usr/sap/trans',
       'permissions':       '0775',
@@ -320,5 +322,31 @@
   when:
     - tier == 'sapos'
     - sap_trans is defined
+
+
+# Scale out - shared nothing configuration code to support AFS based /hana/shared mount
+- name:                                 "AFS Mount: Scale out hana_shared"
+  ansible.builtin.include_tasks:        2.6.0.1-afs-mount.yaml
+  loop:
+    - {
+      'type':              'shared',
+      'temppath':          'shared',
+      'mount':             "{% if ansible_hostname in query('inventory_hostnames', '{{ sap_sid | upper }}_DB')[0::2] %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
+      'opts':              'vers=4,minorversion=1,sec=syss',
+      'owner':              '{{ sidadm_uid }}',
+      'path':              '/hana/shared',
+      'permissions':       '0775',
+      'set_chattr_on_dir': false,
+      'target_nodes':      ['hana'],
+      'create_temp_folders': false
+    }
+  vars:
+    primary_host:                      "{{ ansible_hostname }}"
+  when:
+    - database_scale_out
+    - db_high_availability
+    - hana_shared_mountpoint is defined
+    - hana_shared_mountpoint | length == 2
+
 
 ...

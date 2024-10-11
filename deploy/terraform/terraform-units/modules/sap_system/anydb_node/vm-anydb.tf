@@ -506,7 +506,7 @@ resource "azurerm_virtual_machine_extension" "anydb_win_aem_extension" {
 
 resource "azurerm_virtual_machine_extension" "configure_ansible" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment && var.database.deploy_v1_monitoring_extension ? (
+  count                                = local.enable_deployment ? (
                                            upper(local.anydb_ostype) == "WINDOWS" ? (
                                              var.database_server_count) : (
                                              0

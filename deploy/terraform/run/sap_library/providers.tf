@@ -20,7 +20,7 @@ data "azurerm_client_config" "current" {
 provider "azurerm"                     {
                                          features {
                                                   }
-                                         skip_provider_registration = true
+
                                          use_msi                    = var.use_spn ? false : true
                                          storage_use_azuread        = !var.shared_access_key_enabled
 
@@ -42,13 +42,11 @@ provider "azurerm"                     {
                                          use_msi                    = var.use_spn ? false : true
 
                                          alias = "main"
-                                         skip_provider_registration = true
                                        }
 
 provider "azurerm"                     {
                                          features {
                                                   }
-                                         skip_provider_registration = true
                                          alias                      = "deployer"
                                          storage_use_azuread        = !var.shared_access_key_enabled
                                          use_msi                    = var.use_spn ? false : true
@@ -63,7 +61,6 @@ provider "azurerm"                     {
                                          client_id                  = local.use_spn ? local.spn.client_id : null
                                          client_secret              = local.use_spn ? local.spn.client_secret : null
                                          tenant_id                  = local.use_spn ? local.spn.tenant_id : null
-                                         skip_provider_registration = true
                                          storage_use_azuread        = !var.shared_access_key_enabled
                                          use_msi                    = var.use_spn ? false : true
                                        }
@@ -75,7 +72,6 @@ provider "azurerm"                     {
                                          client_secret              = local.use_spn ? local.spn.client_secret : null
                                          tenant_id                  = local.use_spn ? local.spn.tenant_id : null
                                          alias                      = "privatelinkdnsmanagement"
-                                         skip_provider_registration = true
                                          storage_use_azuread        = true
                                        }
 
@@ -104,11 +100,11 @@ terraform                              {
                                                                          }
                                                               azuread =  {
                                                                            source  = "hashicorp/azuread"
-                                                                           version = ">=2.2"
+                                                                           version = "3.0.2"
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "~> 3.3"
+                                                                           version = "4.4.0"
                                                                          }
                                                             }
                                        }

@@ -1,0 +1,38 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+- name:                                     "1.18 Generic Pacemaker - Set Runtime Facts"
+  ansible.builtin.import_tasks:             1.18.0-set_runtime_facts.yml
+
+- name:                                     "1.18 Generic Pacemaker - Run pre-checks"
+  ansible.builtin.import_tasks:             1.18.1-pre_checks.yml
+
+- name:                                     "1.18 Generic Pacemaker - Set Runtime Facts"
+  ansible.builtin.import_tasks:             1.18.1.1-iSCSI.yml
+  when:
+                                            - (database_cluster_type == 'ISCSI')
+
+- name:                                     "1.18 Generic Pacemaker - SBD Devices"
+  ansible.builtin.import_tasks:             1.18.1.2-sbd.yaml
+  when:
+                                            - (database_cluster_type == "ASD")   or
+                                              (database_cluster_type == "ISCSI")
+
+# Import this task only if the cluster is not yet created
+- name:                                     "1.18 Generic Pacemaker - Provision"
+  when:
+    - not cluster_existence_check == '0'
+  block:
+    - name:                                 "1.18 Generic Pacemaker - Provision Pacemaker"
+      ansible.builtin.import_tasks:         1.18.2-provision.yml
+  tags:
+                                            - 1.18.2-provision
+
+- name:                                     "1.18 Generic Pacemaker - Post provision report"
+  ansible.builtin.import_tasks:             1.18.3-post_provision_report.yml
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

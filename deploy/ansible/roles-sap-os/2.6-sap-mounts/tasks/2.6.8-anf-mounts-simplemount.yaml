@@ -678,38 +678,38 @@
       - tier == 'sapos'
       - node_tier == 'hana'
   when:
-    - not db_scale_out
+    - not database_scale_out
 
 # Run this block set when db_Scale_out is true but db_high_availability is false
 - name:                                "ANF Mount: Run tasks for scale out setups"
   block:
-  - name:                                "ANF Mount: Scale Out - Create SAP Directories (usrsap)"
+  - name:                              "ANF Mount: Scale Out - Create SAP Directories (usrsap)"
     ansible.builtin.file:
-      owner:                             "{{ db_sid | lower }}adm"
-      group:                             sapsys
-      mode:                              0755
-      path:                              "/usr/sap/{{ db_sid | upper }}"
-      state:                             directory
+      owner:                           '{{ hdbadm_uid }}'
+      group:                           sapsys
+      mode:                            0755
+      path:                            "/usr/sap/{{ db_sid | upper }}"
+      state:                           directory
     when:
       - tier == 'hana'
 
-  - name:                                "ANF Mount: Scale Out - Create SAP Directories (hana data)"
+  - name:                              "ANF Mount: Scale Out - Create SAP Directories (hana data)"
     ansible.builtin.file:
-      owner:                             "{{ db_sid | lower }}adm"
-      group:                             sapsys
-      mode:                              0755
-      path:                              "/hana/data/{{ db_sid | upper }}"
-      state:                             directory
+      owner:                           '{{ hdbadm_uid }}'
+      group:                           sapsys
+      mode:                            0755
+      path:                            "/hana/data/{{ db_sid | upper }}"
+      state:                           directory
     when:
       - tier == 'hana'
 
   - name:                                "ANF Mount: Scale Out - Create SAP Directories (hana log)"
     ansible.builtin.file:
-      owner:                             "{{ db_sid | lower }}adm"
-      group:                             sapsys
-      mode:                              0755
-      path:                              "/hana/log/{{ db_sid | upper }}"
-      state:                             directory
+      owner:                           '{{ hdbadm_uid }}'
+      group:                           sapsys
+      mode:                            0755
+      path:                            "/hana/log/{{ db_sid | upper }}"
+      state:                           directory
     when:
       - tier == 'hana'
 
@@ -760,8 +760,8 @@
       - hana_shared_mountpoint is defined
       - hana_shared_mountpoint | length == 1
       # For Scale out without HSR/pacemaker. Relies on ANF + hot spare to provide HA.
-      - db_scale_out is defined
-      - db_scale_out
+      - database_scale_out is defined
+      - database_scale_out
 
   - name:                                "ANF Mount: HANA Data - Scale out - Create mount list"
     block:
@@ -869,7 +869,7 @@
       - tier == 'sapos'
       - node_tier == 'hana'
   when:
-    - db_scale_out
+    - database_scale_out
     - not db_high_availability
 
 

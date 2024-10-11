@@ -52,7 +52,7 @@ locals {
   db_os = {
     "source_image_id"                  = local.db_custom_image ? var.database.os.source_image_id : ""
     "publisher"                        = try(var.database.os.publisher, local.db_custom_image ? "" : "SUSE")
-    "offer"                            = try(var.database.os.offer, local.db_custom_image ? "" : "sles-sap-15-sp3")
+    "offer"                            = try(var.database.os.offer, local.db_custom_image ? "" : "sles-sap-15-sp5")
     "sku"                              = try(var.database.os.sku, local.db_custom_image ? "" : "gen1")
     "version"                          = try(var.database.os.version, local.db_custom_image ? "" : "latest")
   }

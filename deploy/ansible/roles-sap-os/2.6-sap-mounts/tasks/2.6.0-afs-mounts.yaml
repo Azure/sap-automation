@@ -39,6 +39,23 @@
       - "First server: {{ first_server_temp }}"
     verbosity:                         2
 
+- name:                                "AFS Mount: Create configuration file
+                                        with additional optimization settings"
+  ansible.builtin.blockinfile:
+    path:                              /etc/sysctl.d/ms-az.conf
+    backup:                            true
+    create:                            true
+    mode:                              0644
+    marker:                            "# {mark} HANA AFS optimizations"
+    block: |
+      net.ipv6.conf.all.disable_ipv6 = 1
+      net.ipv4.tcp_max_syn_backlog = 16348
+      net.ipv4.conf.all.rp_filter = 0
+      sunrpc.tcp_slot_table_entries = 128
+      vm.swappiness=10
+  when:
+    - node_tier == 'hana'
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |         Prepare for the sap_mnt mounts                                     |
@@ -160,6 +177,7 @@
       'mount':              '{{ usr_sap_install_mountpoint }}',
       'opts':               'rw,hard,rsize=1048576,wsize=1048576,noresvport,actimeo=60,vers=4,minorversion=1,sec=sys',
       'path':               '/usr/sap/install',
+      'owner':              '{{ sidadm_uid }}',
       'permissions':        '0777',
       'set_chattr_on_dir':  false,
       'target_nodes':       ['all'],
@@ -196,7 +214,7 @@
       register: set_immutable_attribute
   when:
     - tier == 'sapos'
-    - node_tier != 'hana'
+    - node_tier not in ['hana' , 'observer']
     - sap_mnt is defined
 
 # /*---------------------------------------------------------------------------8
@@ -384,6 +402,7 @@
       'mount':             '{{ sap_trans }}',
       'opts':              '{{ afs_mnt_options }}',
       'path':              '/usr/sap/trans',
+      'owner':             "root",
       'permissions':       '0775',
       'set_chattr_on_dir': false,
       'target_nodes':      ['app','pas', 'ers', 'scs'],
@@ -394,5 +413,29 @@
   when:
     - tier == 'sapos'
     - sap_trans is defined
+
+# Scale out - shared nothing configuration code to support AFS based /hana/shared mount
+- name:                                 "AFS Mount: Scale out hana_shared"
+  ansible.builtin.include_tasks:        2.6.0.1-afs-mount.yaml
+  loop:
+    - {
+      'type':              'shared',
+      'temppath':          'shared',
+      'mount':             "{% if site | default('SITE1') == 'SITE1' %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
+      'opts':              'vers=4,minorversion=1,sec=sys',
+      'path':              '/hana/shared',
+      'owner':             '{{ sidadm_uid }}',
+      'permissions':       '0775',
+      'set_chattr_on_dir': false,
+      'target_nodes':      ['hana'],
+      'create_temp_folders': false
+    }
+  vars:
+    primary_host:                      "{{ ansible_hostname }}"
+  when:
+    - database_scale_out
+    - database_high_availability
+    - hana_shared_mountpoint is defined
+    - hana_shared_mountpoint | length == 2
 
 ...

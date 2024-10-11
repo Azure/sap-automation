@@ -61,9 +61,10 @@ export ANSIBLE_PASSWORD=$password_secret
 # entry associated with the specific setting.
 #
 export           ANSIBLE_HOST_KEY_CHECKING=False
-export           ANSIBLE_INVENTORY="${sap_sid}_hosts.yaml"
+export           ANSIBLE_INVENTORY="${sap_sid%$'\r'}_hosts.yaml"
 export           ANSIBLE_PRIVATE_KEY_FILE=sshkey
 export           ANSIBLE_COLLECTIONS_PATHS=/opt/ansible/collections:${ANSIBLE_COLLECTIONS_PATHS:+${ANSIBLE_COLLECTIONS_PATHS}}
+export           ANSIBLE_CONFIG="${cmd_dir}/ansible.cfg"
 
 # We really should be determining the user dynamically, or requiring
 # that it be specified in the inventory settings (currently true)
@@ -149,7 +150,7 @@ all_playbooks=(
 
 # Set of options that will be passed to the ansible-playbook command
 playbook_options=(
-        --inventory-file="${sap_sid}_hosts.yaml"
+        --inventory-file="${sap_sid%$'\r'}_hosts.yaml"
         --private-key=${ANSIBLE_PRIVATE_KEY_FILE}
         --extra-vars="_workspace_directory=`pwd`"
         --extra-vars="@${sap_params_file}"

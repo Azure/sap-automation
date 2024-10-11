@@ -24,12 +24,12 @@ sap_sid:                       ${sid}
 # web_sid is the Web Dispatcher SID (if applicable)
 web_sid:                       ${web_sid}
 
-wd_instance_number:           "${web_instance_number}"
+wd_instance_number:            "${web_instance_number}"
 
 # scs_high_availability is a boolean flag indicating
 # if the SAP Central Services are deployed using high availability
-scs_high_availability:          ${scs_high_availability}                      # {scs_high_availability}
-scs_cluster_type:               ${scs_cluster_type}
+scs_high_availability:         ${scs_high_availability}                      # {scs_high_availability}
+scs_cluster_type:              ${scs_cluster_type}
 
 # SCS Instance Number
 scs_instance_number:           "${scs_instance_number}"
@@ -47,9 +47,8 @@ ers_lb_ip:                     ${ers_server_loadbalancer_ip}
 
 %{~ if platform == "SQLSERVER" }
 # IP address of CNO in Windows and takes the form IPAddress/CIDR
-scs_clst_lb_ip:                 ${scs_cluster_loadbalancer_ip}
+scs_clst_lb_ip:                ${scs_cluster_loadbalancer_ip}
 %{~ endif }
-
 
 # PAS Instance Number
 pas_instance_number:           "${pas_instance_number}"
@@ -82,6 +81,15 @@ db_instance_number:            "${db_instance_number}"
 
 platform:                       ${platform}
 
+# Database User (SYSTEM) Password
+# hana_system_user_password:
+
+# OS password for <SID>adm user
+# hana_os_sidadm_password:
+
+# SAP Host Agent User (sapadm) Password
+# hana_os_sapadm_password:
+
 %{~ if scale_out }
 
 #############################################################################
@@ -91,35 +99,40 @@ platform:                       ${platform}
 #############################################################################
 
 # Scale out defines if the database is to be deployed in a scale out configuration
-db_scale_out:                   ${scale_out}
-db_no_standby:                  ${scale_out_no_standby_role}
+database_scale_out:            ${scale_out}
+database_no_standby:           ${scale_out_no_standby_role}
 
-subnet_cidr_storage:          ${subnet_cidr_storage}
+subnet_cidr_storage:           ${subnet_cidr_storage}
 %{~ endif }
-subnet_cidr_anf:              ${subnet_cidr_anf}
-subnet_cidr_app:              ${subnet_cidr_app}
-subnet_cidr_db:               ${subnet_cidr_db}
-subnet_cidr_client:           ${subnet_cidr_client}
+subnet_cidr_anf:               ${subnet_cidr_anf}
+subnet_cidr_app:               ${subnet_cidr_app}
+subnet_cidr_db:                ${subnet_cidr_db}
+
+%{~ if length(subnet_cidr_client) != 0 }
+subnet_cidr_client:            ${subnet_cidr_client}
+%{~ endif }
 
 # db_high_availability is a boolean flag indicating if the
 # SAP database servers are deployed using high availability
-db_high_availability:           ${database_high_availability}
-database_high_availability:     ${database_high_availability}
-database_cluster_type:          ${database_cluster_type}
+db_high_availability:          ${database_high_availability}
+database_high_availability:    ${database_high_availability}
+database_cluster_type:         ${database_cluster_type}
 # database_loadbalancer_ip is the IP address of the load balancer for the database virtual machines
-database_loadbalancer_ip:       ${database_loadbalancer_ip}
+database_loadbalancer_ip:      ${database_loadbalancer_ip}
 
 # Backwards compatibility
-db_lb_ip:                       ${database_loadbalancer_ip}
+db_lb_ip:                      ${database_loadbalancer_ip}
 
+%{~ if platform == "SQLSERVER" }
 # database_cluster_ip is the IP address of the load balancer for the database cluster in Windows
-database_cluster_ip:                 ${database_cluster_ip}
+database_cluster_ip:           ${database_cluster_ip}
+%{~ endif }
 
 # use_simple_mount defines if simple mount is to be used
 use_simple_mount:              ${is_use_simple_mount}
 
 # use_fence_kdump defines if optional kdump stonith device needs to be added for RHEL clusters.
-use_fence_kdump:              ${is_use_fence_kdump}
+use_fence_kdump:               ${is_use_fence_kdump}
 
 
 #############################################################################
