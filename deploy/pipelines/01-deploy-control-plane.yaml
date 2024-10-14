@@ -89,11 +89,12 @@ stages:
                             boldred="\e[1;31m"
                             cyan="\e[1;36m"
 
-                            export ARM_CLIENT_ID=$servicePrincipalId
+                            export ARM_CLIENT_ID=$servicePrincipalId; echo 'ARM_CLIENT_ID' $ARM_CLIENT_ID
 
                             if [ -n "$(servicePrincipalKey)" ]; then
                                 export ARM_CLIENT_SECRET=$servicePrincipalKey
                             else
+                                echo "Use OIDC"
                                 export ARM_USE_OIDC=true
                                 export ARM_USE_AZUREAD=true
                                 export ARM_OIDC_TOKEN=$idToken
