@@ -621,6 +621,8 @@ stages:
                       else
                           echo "Sourcing the deploy_server.sh"
                           source /etc/profile.d/deploy_server.sh
+
+                          printenv
                           if [ $USE_MSI != "true" ]; then
 
                               echo -e "$cyan--- Using SPN ---$reset"
