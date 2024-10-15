@@ -78,6 +78,7 @@ data "azurerm_subnet" "subnet_mgmt" {
 
 // Creates boot diagnostics storage account for Deployer
 resource "azurerm_storage_account" "deployer" {
+  depends_on                           = [ azurerm_subnet.subnet_mgmt ]
   count                                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? 0 : 1
   name                                 = local.storageaccount_names
   resource_group_name                  = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
@@ -90,12 +91,10 @@ resource "azurerm_storage_account" "deployer" {
   shared_access_key_enabled            = var.deployer.shared_access_key_enabled
 
   cross_tenant_replication_enabled     = false
-  depends_on                           = [ azurerm_subnet.subnet_mgmt ]
 
-  dynamic "network_rules"              {
+  dynamic "network_rules"               {
                                           for_each = range(var.use_service_endpoint ? 1 : 0)
-                                          content
-                                            {
+                                          content {
                                               default_action                     = "Deny"
                                               virtual_network_subnet_ids         = [(local.management_subnet_exists) ? local.management_subnet_arm_id : azurerm_subnet.subnet_mgmt[0].id]
                                             }
