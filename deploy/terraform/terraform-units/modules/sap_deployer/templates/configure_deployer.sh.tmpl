@@ -758,14 +758,13 @@ else
       sudo touch "$${agent_home}/no_tok"
     fi
 
-    set -o xtrace
     if [ -f "$${agent_home}/agent_configured" ]; then
       echo "Agent already configured"
     else
-      set +o xtrace
       if [[ -n "$${TOKEN}" ]]; then
+        echo "Configuring Agent"
         sudo chmod -R 744 "$${agent_home}"
-        set -o xtrace
+
         cd "$${agent_home}"
         ./env.sh
 
@@ -775,6 +774,8 @@ else
 
         (echo "$${agent_home}/config.sh"  --unattended --url "$${DEVURL}" --auth pat --token "$${TOKEN}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a "$${agent_home}/config_fixed_params.sh") > /dev/null 2>&1
         sudo chmod +x "$${agent_home}/config_fixed_params.sh"
+
+        echo "Installing Agent"
 
         sudo runuser -l "$${local_user}" -c "$${agent_home}/config_fixed_params.sh"  | sudo tee -a "$${agent_home}/log.txt"
 
