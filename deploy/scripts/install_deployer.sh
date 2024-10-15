@@ -206,6 +206,19 @@ else
         terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
     fi
 fi
+return_value=$?
+if [ 1 == $return_value ]
+then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                             $boldreduscore Errors during the init phase $resetformatting                              #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    unset TF_DATA_DIR
+    exit $return_value
+fi
 
 extra_vars=""
 
