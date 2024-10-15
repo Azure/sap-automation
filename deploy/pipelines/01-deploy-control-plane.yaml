@@ -438,6 +438,10 @@ stages:
                       echo "Azure CLI version:"
                       echo "-------------------------------------------------"
                       az --version
+                      echo ""
+                      echo "Terraform version:"
+                      echo "-------------------------------------------------"
+                      terraform --version
                       echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
                       cd $CONFIG_REPO_PATH
                       git checkout -q $(Build.SourceBranchName)
