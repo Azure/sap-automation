@@ -620,7 +620,7 @@ stages:
 
                       else
                           echo "Sourcing the deploy_server.sh"
-                          . /etc/profile.d/deploy_server.sh ; terraform --version
+                          . /etc/profile.d/deploy_server.sh ; /opt/bin/terraform/terraform --version
 
                           if [ $USE_MSI != "true" ]; then
 
