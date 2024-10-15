@@ -88,12 +88,19 @@ resource "azurerm_storage_account" "deployer" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
   shared_access_key_enabled            = var.deployer.shared_access_key_enabled
-  network_rules {
-    default_action                     = "Deny"
-    virtual_network_subnet_ids         = [(local.management_subnet_exists) ? local.management_subnet_arm_id : azurerm_subnet.subnet_mgmt[0].id]
-  }
+
   cross_tenant_replication_enabled     = false
   depends_on                           = [ azurerm_subnet.subnet_mgmt ]
+
+  dynamic "network_rules"              {
+                                          for_each = range(var.use_service_endpoint ? 1 : 0)
+                                          content
+                                            {
+                                              default_action                     = "Deny"
+                                              virtual_network_subnet_ids         = [(local.management_subnet_exists) ? local.management_subnet_arm_id : azurerm_subnet.subnet_mgmt[0].id]
+                                            }
+                                        }
+
 }
 
 data "azurerm_storage_account" "deployer" {
