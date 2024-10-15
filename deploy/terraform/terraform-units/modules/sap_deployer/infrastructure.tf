@@ -90,7 +90,7 @@ resource "azurerm_storage_account" "deployer" {
   shared_access_key_enabled            = var.deployer.shared_access_key_enabled
   network_rules {
     default_action                     = "Deny"
-    virtual_network_subnet_ids         = [azurerm_subnet.subnet_mgmt[0].id]
+    virtual_network_subnet_ids         = [(local.management_subnet_exists) ? local.management_subnet_arm_id : azurerm_subnet.subnet_mgmt[0].id]
   }
   cross_tenant_replication_enabled     = false
   depends_on                           = [ azurerm_subnet.subnet_mgmt ]
