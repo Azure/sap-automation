@@ -390,6 +390,16 @@ then
         rm apply_output.json
     fi
 fi
+if [ 0 != $return_value ]
+then
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                      $boldreduscore !!! Error when Creating the deployer !!! $resetformatting                       #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit $return_value
+fi
 
 keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
 temp=$(echo "${keyvault}" | grep "Warning")
