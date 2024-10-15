@@ -380,8 +380,15 @@ function missing {
 
 
 function validate_dependencies {
+    sudo chown -R $USER:$USER /opt/terraform
+    tf_path="terraform"
+
+    if [ -f /opt/terraform/bin/terraform ]; then
+        tf_path="/opt/terraform/bin/terraform"
+    fi
+
     # Check terraform
-    tf=$(terraform -version | grep Terraform)
+    tf=$("${tf_path}" -version | grep Terraform)
     if [ -z "$tf" ]; then
         echo ""
         echo "#########################################################################################"
@@ -397,7 +404,6 @@ function validate_dependencies {
     then
         mkdir -p /opt/terraform/.terraform.d/plugin-cache
     fi
-    sudo chown -R $USER:$USER /opt/terraform
     export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 
 
