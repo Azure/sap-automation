@@ -622,11 +622,6 @@ stages:
                           echo "Sourcing the deploy_server.sh"
                           . /etc/profile.d/deploy_server.sh
 
-                          echo $PATH
-
-                          sudo /opt/terraform/bin/terraform --version
-                          sudo /opt/terraform/terraform_1.9.5/terraform --version
-
                           if [ $USE_MSI != "true" ]; then
 
                               echo -e "$cyan--- Using SPN ---$reset"

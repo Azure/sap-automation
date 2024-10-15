@@ -36,6 +36,11 @@ source "${script_directory}/deploy_utils.sh"
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
 
+if [[  -f /etc/profile.d/deploy_server.sh ]]; then
+ . /etc/profile.d/deploy_server.sh
+fi
+
+
 force=0
 recover=0
 ado_flag=""
