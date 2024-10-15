@@ -623,6 +623,7 @@ stages:
                           source /etc/profile.d/deploy_server.sh
 
                           printenv
+                          terraform --version
                           if [ $USE_MSI != "true" ]; then
 
                               echo -e "$cyan--- Using SPN ---$reset"
