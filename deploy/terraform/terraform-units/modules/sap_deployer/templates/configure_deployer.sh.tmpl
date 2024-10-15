@@ -483,6 +483,38 @@ else
       ;;
     esac
 
+    # Install Terraform
+    case "$(get_distro_name)" in
+    (ubuntu)
+        # echo "Getting the Key"
+        sudo wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+
+        sudo echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+        sudo apt update
+        sudo apt install terraform
+        ;;
+    (sles)
+        set +o errexit
+        if [ -f /home/"$${local_user}"/repos_configured ]; then
+          sudo zypper install -y --from azure-cli azure-cli
+        else
+          sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+          repo_found=$(zypper repos | grep "Azure CLI")
+          if [ -z "$${repo_found}" ]; then
+            sudo zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli
+          fi
+          sudo touch /home/$${local_user}/repos_configured
+          sudo zypper install -y --from azure-cli azure-cli
+        fi
+        set -o errexit
+        ;;
+    (rhel*)
+        sudo yum install -y yum-utils
+        sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+        sudo yum -y install terraform
+        ;;
+    esac
+
     # Install Azure CLI
     case "$(get_distro_name)" in
     (ubuntu)
