@@ -774,6 +774,7 @@ else
 
         (echo "$${agent_home}/config.sh"  --unattended --url "$${DEVURL}" --auth pat --token "$${TOKEN}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a "$${agent_home}/config_fixed_params.sh") > /dev/null 2>&1
         sudo chmod +x "$${agent_home}/config_fixed_params.sh"
+        sudo chown "$${local_user}" "$${agent_home}/config_fixed_params.sh"
 
         echo "Installing Agent"
 
