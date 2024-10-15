@@ -620,10 +620,8 @@ stages:
 
                       else
                           echo "Sourcing the deploy_server.sh"
-                          source /etc/profile.d/deploy_server.sh
+                          . /etc/profile.d/deploy_server.sh
 
-                          printenv | grep PATH
-                          /opt/terraform/bin/terraform --version
                           if [ $USE_MSI != "true" ]; then
 
                               echo -e "$cyan--- Using SPN ---$reset"
@@ -643,7 +641,7 @@ stages:
                               az account set --subscription $ARM_SUBSCRIPTION_ID
                           else
                               echo -e "$cyan--- Using MSI ---$reset"
-                              source /etc/profile.d/deploy_server.sh
+                              . /etc/profile.d/deploy_server.sh
                               # export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                               export ARM_USE_MSI=true
                               export ARM_USE_AZUREAD=true
