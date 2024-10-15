@@ -456,9 +456,11 @@ else
         "$${tf_bin}" \
         "$${tf_cache}"
 
-    wget -nv -O "/tmp/$${tf_zip}" "https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip}"
-    sudo unzip -o "/tmp/$${tf_zip}" -d "$${tf_dir}"
+    wget -nv -O "/$${asad_home}/$${tf_zip}" "https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip}"
+    sudo unzip -o "/$${asad_home}/$${tf_zip}" -d "$${tf_dir}"
     sudo ln -vfs "../$(basename "$${tf_dir}")/terraform" "$${tf_bin}/terraform"
+
+    sudo rm "/$${asad_home}/$${tf_zip}"
 
     # Uninstall Azure CLI - For some platforms
     case "$(get_distro_name)" in
