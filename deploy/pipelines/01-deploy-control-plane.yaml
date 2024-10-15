@@ -624,7 +624,7 @@ stages:
 
                           echo $PATH
 
-                          terraform --version
+                          /opt/terraform/bin/terraform --version
 
                           if [ $USE_MSI != "true" ]; then
 
