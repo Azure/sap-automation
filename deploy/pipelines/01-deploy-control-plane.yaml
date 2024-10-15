@@ -624,6 +624,8 @@ stages:
 
                           echo $PATH
 
+                          terraform --version
+
                           if [ $USE_MSI != "true" ]; then
 
                               echo -e "$cyan--- Using SPN ---$reset"
