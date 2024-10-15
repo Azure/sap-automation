@@ -459,6 +459,7 @@ else
     wget -nv -O "/$${asad_home}/$${tf_zip}" "https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip}"
     sudo unzip -o "/$${asad_home}/$${tf_zip}" -d "$${tf_dir}"
     sudo ln -vfs "../$(basename "$${tf_dir}")/terraform" "$${tf_bin}/terraform"
+    sudo chmod 755 "$${tf_bin}/terraform"
 
     sudo rm "/$${asad_home}/$${tf_zip}"
 
