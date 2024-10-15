@@ -240,16 +240,6 @@ variable "deployer_image"                       {
                                                                 }
                                                 }
 
-variable "plan"                                 {
-                                                  description = "The plan for the marketplace item"
-                                                  default = {
-                                                              use         = false
-                                                              "name"      = ""
-                                                              "publisher" = ""
-                                                              "product"   = ""
-                                                            }
-                                                }
-
 variable "deployer_private_ip_address"          {
                                                   description = "If provides, the value of the deployer Virtual machine IPs"
                                                   default = [""]
