@@ -59,6 +59,7 @@ def run_module():
         }
 
     if distribution_full_id in ['redhat8', 'redhat9']:
+        print("HELLO")
         result['nfs_service'] = 'nfs-server'
     elif distribution_full_id == 'redhat7':
         result['nfs_service'] = 'nfs'
