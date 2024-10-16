@@ -271,6 +271,8 @@ export AZADHOME="/home/$${local_user}"
 if [ -f /etc/profile.d/deploy_server.sh ] ; then
     echo
     echo ##vso[task.logissue type=warning]Deployer already configured
+    sudo chmod 775 /etc/profile.d/deploy_server.sh
+fi
 
     exit 0
 else
@@ -824,4 +826,5 @@ else
         echo "export CONFIG_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/WORKSPACES'" | sudo tee -a /etc/profile.d/deploy_server.sh
       fi
     fi
+    sudo chmod 775 /etc/profile.d/deploy_server.sh
 fi
