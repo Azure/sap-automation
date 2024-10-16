@@ -713,22 +713,31 @@ stages:
                       export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 
                       sudo chmod +x $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh
+                      if [ $USE_MSI != "true" ]; then
+                          echo -e "$cyan--- Using SPN ---$reset"
+                          export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
+                          export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
+                          export ARM_TENANT_ID=$CP_ARM_TENANT_ID
+                          export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
+                          export ARM_USE_MSI=false
 
-                      if [ "$USE_MSI" = "true" ]; then
-                          echo -e "$cyan--- Using MSI ---$reset"
-                          $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh  \
-                          --deployer_parameter_file "${deployer_configfile}"             \
-                          --library_parameter_file "${library_configfile}"               \
-                          --subscription $STATE_SUBSCRIPTION                             \
-                          --auto-approve --ado --msi                                     \
-                          ${storage_account_parameter} ${keyvault_parameter}
-                      else
                           $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh  \
                           --deployer_parameter_file "${deployer_configfile}"             \
                           --library_parameter_file "${library_configfile}"               \
                           --subscription $STATE_SUBSCRIPTION                             \
                           --spn_secret $ARM_CLIENT_SECRET --tenant_id $ARM_TENANT_ID     \
                           --auto-approve --ado                                           \
+                          ${storage_account_parameter} ${keyvault_parameter}
+                      else
+                          echo -e "$cyan--- Using MSI ---$reset"
+                          export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
+                          export ARM_USE_MSI=true
+
+                          $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh  \
+                          --deployer_parameter_file "${deployer_configfile}"             \
+                          --library_parameter_file "${library_configfile}"               \
+                          --subscription $STATE_SUBSCRIPTION                             \
+                          --auto-approve --ado --msi                                     \
                           ${storage_account_parameter} ${keyvault_parameter}
                       fi
 
