@@ -7,12 +7,13 @@ resetformatting="\e[0m"
 
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
+script_directory_parent="$(dirname "${script_directory}")"
 
 #call stack has full scriptname when using source
-source ../deploy_utils.sh
+source "${script_directory_parent}"/deploy_utils.sh
 
 if [[  -f /etc/profile.d/deploy_server.sh ]]; then
-. /etc/profile.d/deploy_server.sh
+  . /etc/profile.d/deploy_server.sh
 fi
 
 
