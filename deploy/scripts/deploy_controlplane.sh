@@ -246,7 +246,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
   set_executing_user_environment_variables "${spn_secret}"
 else
   echo "Using Managed Identity for deployment"
-  export ARM_USE_MSI=true
+
   set_executing_user_environment_variables "none"
 fi
 
