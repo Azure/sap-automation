@@ -194,9 +194,6 @@ function checkIfCloudShell() {
     local isRunInCloudShell=1 # default value is false
     if [ "$POWERSHELL_DISTRIBUTION_CHANNEL" == "CloudShell" ]; then
         isRunInCloudShell=0
-        echo "isRunInCloudShell: true"
-    else
-        echo "isRunInCloudShell: false"
     fi
 
     return $isRunInCloudShell
