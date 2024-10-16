@@ -380,7 +380,7 @@ function missing {
 
 
 function validate_dependencies {
-    sudo chown -R $USER:$USER /opt/terraform
+    sudo chown -R $USER /opt/terraform
     tf_path="terraform"
 
     if [ -f /opt/terraform/bin/terraform ]; then
