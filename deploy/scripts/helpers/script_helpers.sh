@@ -9,7 +9,7 @@ full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
 #call stack has full scriptname when using source
-source "../deploy_utils.sh"
+source ../deploy_utils.sh
 
 if [[  -f /etc/profile.d/deploy_server.sh ]]; then
 . /etc/profile.d/deploy_server.sh
@@ -409,9 +409,7 @@ function validate_dependencies {
         return 2 #No such file or directory
     fi
 
-    isInCloudShellCheck=$(checkIfCloudShell)
-
-    if [[ (($isInCloudShellCheck == 0)) ]]; then
+    if checkIfCloudShell; then
       mkdir -p "${HOME}/.terraform.d/plugin-cache"
       export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
     else

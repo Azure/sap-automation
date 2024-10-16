@@ -227,7 +227,7 @@ key=$(echo "${parameterfile_name}" | cut -d. -f1)
 #Plugins
 isInCloudShellCheck=$(checkIfCloudShell)
 
-if [[ (($isInCloudShellCheck == 0)) ]]; then
+if checkIfCloudShell; then
   mkdir -p "${HOME}/.terraform.d/plugin-cache"
   export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
 else
