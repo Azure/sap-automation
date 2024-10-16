@@ -1193,7 +1193,8 @@ then
     else
       az login --identity --output none
     fi
-
+    full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+    script_directory="$(dirname "${full_script_path}")"
     az deployment group create --resource-group ${created_resource_group_name} --name "ControlPlane_Deployer_${created_resource_group_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
     return_value=0
     if [ 1 == $called_from_ado ] ; then
@@ -1322,7 +1323,8 @@ then
     echo "#########################################################################################"
     echo ""
     echo ""
-
+    full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+    script_directory="$(dirname "${full_script_path}")"
     az deployment group create --resource-group ${rg_name} --name "SAP_${rg_name}" --subscription  $ARM_SUBSCRIPTION_ID --template-file "${script_directory}/templates/empty-deployment.json"  --output none
 
 fi
@@ -1343,7 +1345,8 @@ then
     echo "#########################################################################################"
     echo ""
     echo ""
-
+    full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+    script_directory="$(dirname "${full_script_path}")"
     az deployment group create --resource-group ${rg_name} --name "SAP-WORKLOAD-ZONE_${rg_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
 fi
 
@@ -1398,6 +1401,8 @@ then
     echo ""
     echo ""
 
+    full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+    script_directory="$(dirname "${full_script_path}")"
     az deployment group create --resource-group ${rg_name} --name "SAP-LIBRARY_${rg_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
 
 fi
