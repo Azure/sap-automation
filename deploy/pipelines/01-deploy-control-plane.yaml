@@ -612,6 +612,10 @@ stages:
 
                           az extension add --name storage-blob-preview >/dev/null
                           echo -e "$green--- az login ---$reset"
+                          export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
+                          export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
+                          export ARM_TENANT_ID=$CP_ARM_TENANT_ID
+                          export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                           az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
                           return_code=$?
                           if [ 0 != $return_code ]; then
