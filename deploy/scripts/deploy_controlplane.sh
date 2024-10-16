@@ -241,10 +241,10 @@ load_config_vars "${deployer_config_information}" "step"
 
 if [ 0 = "${deploy_using_msi_only:-}" ]; then
     echo "Using Service Principal for deployment"
+    unset ARM_USE_MSI
     set_executing_user_environment_variables "${spn_secret}"
 else
     echo "Using Managed Identity for deployment"
-
     set_executing_user_environment_variables "none"
 fi
 

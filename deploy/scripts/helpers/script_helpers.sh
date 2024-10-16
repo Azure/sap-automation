@@ -12,11 +12,6 @@ script_directory_parent="$(dirname "${script_directory}")"
 #call stack has full scriptname when using source
 source "${script_directory_parent}"/deploy_utils.sh
 
-if [[  -f /etc/profile.d/deploy_server.sh ]]; then
-  . /etc/profile.d/deploy_server.sh
-fi
-
-
 function control_plane_showhelp {
     echo ""
     echo "#################################################################################################################"
@@ -398,7 +393,7 @@ function validate_dependencies {
     fi
 
     # Check terraform
-    tf=$(terraform --version | grep Terraform)
+    tf=$(/opt/terraform/bin/terraform --version | grep Terraform)
     if [ -z "$tf" ]; then
         echo ""
         echo "#########################################################################################"
