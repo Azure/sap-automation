@@ -73,6 +73,7 @@ provider "azurerm"                     {
                                          tenant_id                  = local.use_spn ? local.spn.tenant_id : null
                                          alias                      = "privatelinkdnsmanagement"
                                          storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
                                        }
 
 
