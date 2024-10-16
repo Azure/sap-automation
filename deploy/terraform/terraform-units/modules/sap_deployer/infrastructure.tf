@@ -108,7 +108,7 @@ data "azurerm_storage_account" "deployer" {
 
 resource "azurerm_role_assignment" "deployer" {
   provider                             = azurerm.main
-  count                                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? 0 : 1
+  count                                = var.assign_subscription_permissions && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
   scope                                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? var.deployer.deployer_diagnostics_account_arm_id : azurerm_storage_account.deployer[0].id
   role_definition_name                 = "Storage Blob Data Contributor"
   principal_id                         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
