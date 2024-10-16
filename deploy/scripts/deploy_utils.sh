@@ -374,6 +374,7 @@ function set_executing_user_environment_variables() {
                     export ARM_TENANT_ID
                     export ARM_CLIENT_ID
                     export ARM_CLIENT_SECRET
+                    unset ARM_USE_MSI
 
                 else
                     echo -e "\t[set_executing_user_environment_variables]: unable to identify the executing user and client"
@@ -396,6 +397,7 @@ function unset_executing_user_environment_variables() {
     unset ARM_TENANT_ID
     unset ARM_CLIENT_ID
     unset ARM_CLIENT_SECRET
+    unset ARM_USE_MSI
 
 }
 # print the script name and function being called
