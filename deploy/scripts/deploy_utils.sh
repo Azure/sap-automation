@@ -1,6 +1,12 @@
 #!/bin/bash
 
-export PATH=${PATH}:/opt/terraform/bin:/opt/ansible/bin
+if [ -d /opt/terraform/bin ]; then
+    export PATH=${PATH}:/opt/terraform/bin
+fi
+
+if [ -d /opt/ansible/bin ]; then
+    export PATH=${PATH}:/opt/ansible/bin
+fi
 
 #########################################################################
 # Helper utilities

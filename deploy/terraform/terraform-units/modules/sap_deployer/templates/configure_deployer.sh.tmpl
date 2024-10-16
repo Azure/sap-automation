@@ -272,7 +272,6 @@ if [ -f /etc/profile.d/deploy_server.sh ] ; then
     echo
     echo ##vso[task.logissue type=warning]Deployer already configured
     sudo chmod 775 /etc/profile.d/deploy_server.sh
-fi
 
     exit 0
 else
@@ -797,6 +796,7 @@ else
         sudo touch "$${agent_home}/agent_configured"
 
         echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}" | sudo tee -a /etc/profile.d/deploy_server.sh
+        sudo chmod 775 /etc/profile.d/deploy_server.sh
         # Install dotNet
         case "$(get_distro_name)" in
           (ubuntu)
@@ -820,11 +820,12 @@ else
       else
         echo "NO TOKEN specified"
         echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}":'$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
+        sudo chmod 775 /etc/profile.d/deploy_server.sh
 
         echo "export SAP_AUTOMATION_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
         echo "export DEPLOYMENT_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
         echo "export CONFIG_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/WORKSPACES'" | sudo tee -a /etc/profile.d/deploy_server.sh
       fi
     fi
-    sudo chmod 775 /etc/profile.d/deploy_server.sh
+
 fi
