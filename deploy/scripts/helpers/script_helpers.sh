@@ -5,6 +5,11 @@ boldred="\e[1;31m"
 cyan="\e[1;36m"
 resetformatting="\e[0m"
 
+if [[  -f /etc/profile.d/deploy_server.sh ]]; then
+. /etc/profile.d/deploy_server.sh
+fi
+
+
 function control_plane_showhelp {
     echo ""
     echo "#################################################################################################################"
@@ -381,9 +386,6 @@ function missing {
 
 function validate_dependencies {
     sudo chown -R $USER /opt/terraform
-    if [[  -f /etc/profile.d/deploy_server.sh ]]; then
-    . /etc/profile.d/deploy_server.sh
-    fi
 
     # Check terraform
     tf=$(terraform --version | grep Terraform)
