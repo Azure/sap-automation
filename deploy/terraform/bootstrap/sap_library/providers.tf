@@ -26,6 +26,8 @@ provider "azurerm"                     {
                                                   }
 
                                          storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
+
                                        }
 
 provider "azurerm"                     {
@@ -44,6 +46,7 @@ provider "azurerm"                     {
                                          alias                      = "main"
 
                                          storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
                                        }
 
 
@@ -53,6 +56,7 @@ provider "azurerm"                     {
                                          alias                      = "deployer"
 
                                          storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
                                        }
 
 provider "azurerm"                     {
@@ -64,6 +68,7 @@ provider "azurerm"                     {
                                          alias                      = "dnsmanagement"
 
                                          storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
                                        }
 
 provider "azurerm"                     {
@@ -75,6 +80,7 @@ provider "azurerm"                     {
                                          alias                      = "privatelinkdnsmanagement"
 
                                          storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
                                        }
 
 provider "azuread"                     {
