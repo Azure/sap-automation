@@ -381,14 +381,12 @@ function missing {
 
 function validate_dependencies {
     sudo chown -R $USER /opt/terraform
-    tf_path="terraform"
-
-    if [ -f /opt/terraform/bin/terraform ]; then
-        tf_path="/opt/terraform/bin/terraform"
+    if [[  -f /etc/profile.d/deploy_server.sh ]]; then
+    . /etc/profile.d/deploy_server.sh
     fi
 
     # Check terraform
-    tf=$("${tf_path}" -version | grep Terraform)
+    tf=$(terraform --version | grep Terraform)
     if [ -z "$tf" ]; then
         echo ""
         echo "#########################################################################################"
