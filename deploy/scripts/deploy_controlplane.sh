@@ -31,7 +31,7 @@ full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
 if [[  -f /etc/profile.d/deploy_server.sh ]]; then
- . /etc/profile.d/deploy_server.sh
+  . /etc/profile.d/deploy_server.sh
 fi
 
 #call stack has full scriptname when using source

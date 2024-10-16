@@ -5,6 +5,12 @@ boldred="\e[1;31m"
 cyan="\e[1;36m"
 resetformatting="\e[0m"
 
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+
+#call stack has full scriptname when using source
+source "../deploy_utils.sh"
+
 if [[  -f /etc/profile.d/deploy_server.sh ]]; then
 . /etc/profile.d/deploy_server.sh
 fi
@@ -385,7 +391,10 @@ function missing {
 
 
 function validate_dependencies {
-    sudo chown -R $USER /opt/terraform
+    # if /opt/terraform exists, assign permissions to the user
+    if [ -d /opt/terraform ]; then
+        sudo chown -R $USER /opt/terraform
+    fi
 
     # Check terraform
     tf=$(terraform --version | grep Terraform)
@@ -399,12 +408,20 @@ function validate_dependencies {
         echo ""
         return 2 #No such file or directory
     fi
-    # Set Terraform Plug in cache
-    if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]
-    then
+
+    isInCloudShellCheck=$(checkIfCloudShell)
+
+    if [[ (($isInCloudShellCheck == 0)) ]]; then
+      mkdir -p "${HOME}/.terraform.d/plugin-cache"
+      export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
+    else
+      if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
         mkdir -p /opt/terraform/.terraform.d/plugin-cache
+      fi
+      export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
     fi
-    export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+    # Set Terraform Plug in cache
+
 
 
     az --version >stdout.az 2>&1

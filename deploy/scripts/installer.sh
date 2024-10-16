@@ -165,13 +165,18 @@ fi
 
 
 #Plugins
-if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]
-then
-    mkdir -p /opt/terraform/.terraform.d/plugin-cache
-fi
-sudo chown -R $USER:$USER /opt/terraform
+isInCloudShellCheck=$(checkIfCloudShell)
 
-export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+if [[ (($isInCloudShellCheck == 0)) ]]; then
+  mkdir -p "${HOME}/.terraform.d/plugin-cache"
+  export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
+else
+  if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
+    mkdir -p /opt/terraform/.terraform.d/plugin-cache
+    sudo chown -R "$USER" /opt/terraform
+  fi
+  export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+fi
 
 
 parallelism=10
