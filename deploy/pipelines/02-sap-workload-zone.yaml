@@ -395,9 +395,9 @@ stages:
                         STATE_SUBSCRIPTION=${az_var}; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
                     fi
 
-                    az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ARM_SUBSCRIPTION_ID.value" | tr -d \")
+                    az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WL_ARM_SUBSCRIPTION_ID.value" | tr -d \")
                     if [ -z ${az_var} ]; then
-                        echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+                        echo "##vso[task.logissue type=error]Variable WL_ARM_SUBSCRIPTION_ID was not defined."
                         exit 2
                     else
                         echo 'Target subscription' $WL_ARM_SUBSCRIPTION_ID
