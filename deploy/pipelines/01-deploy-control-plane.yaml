@@ -123,11 +123,9 @@ stages:
 
                             echo "$(variable_group) id:  ${VARIABLE_GROUP_ID}"
 
-
-                            echo "${{ parameters.force_reset }}"
                             if [ "${{ parameters.force_reset }}" = "True" ]; then
                               echo "##vso[task.logissue type=warning]Forcing a re-install"
-                              echo "running on $(this_agent)"
+                              echo "Running on:            $(this_agent)"
                               sed -i 's/step=1/step=0/' $deployer_environment_file_name
                               sed -i 's/step=2/step=0/' $deployer_environment_file_name
                               sed -i 's/step=3/step=0/' $deployer_environment_file_name
@@ -599,7 +597,7 @@ stages:
 
                       # Check if running on deployer
                       if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-                          echo -e "$green --- Install dos2unix ---$reset"
+                          echo -e "$green--- Install dos2unix ---$reset"
                           sudo apt-get -qq install dos2unix
 
                           sudo apt -qq install zip
@@ -637,7 +635,7 @@ stages:
 
                           if [ $USE_MSI != "true" ]; then
 
-                              echo -e "$cyan --- Install using Service Principals ---$reset"
+                              echo -e "$cyan--- Install using Service Principals ---$reset"
                               export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
                               export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
                               export ARM_TENANT_ID=$CP_ARM_TENANT_ID
@@ -653,7 +651,7 @@ stages:
                               fi
                               az account set --subscription $ARM_SUBSCRIPTION_ID
                           else
-                              echo -e "$cyan --- Install using Managed Identity ---$reset"
+                              echo -e "$cyan--- Install using Managed Identity ---$reset"
                               # export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                               export ARM_USE_MSI=true
                               export ARM_USE_AZUREAD=true

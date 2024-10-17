@@ -304,21 +304,21 @@ function validate_webapp_exports {
     fi
 
     if [ "${ARM_USE_MSI}" == "false" ]; then
-      if [ -z "$TF_VAR_webapp_client_secret" ]; then
-          echo ""
-          echo "#########################################################################################"
-          echo "#                                                                                       #"
-          echo -e "#            $boldred Missing environment variables (TF_VAR_webapp_client_secret)!!! $resetformatting           #"
-          echo "#                                                                                       #"
-          echo "#   Please export the following variables to successfully deploy the Webapp:            #"
-          echo "#      TF_VAR_app_registration_app_id (webapp registration application id)              #"
-          echo "#      TF_VAR_webapp_client_secret (webapp registration password / secret)              #"
-          echo "#                                                                                       #"
-          echo "#   If you do not wish to deploy the Webapp, unset the TF_VAR_use_webapp variable       #"
-          echo "#                                                                                       #"
-          echo "#########################################################################################"
-          return 65                                                                                           #data format error
-      fi
+        if [ -z "$TF_VAR_webapp_client_secret" ]; then
+            echo ""
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo -e "#            $boldred Missing environment variables (TF_VAR_webapp_client_secret)!!! $resetformatting           #"
+            echo "#                                                                                       #"
+            echo "#   Please export the following variables to successfully deploy the Webapp:            #"
+            echo "#      TF_VAR_app_registration_app_id (webapp registration application id)              #"
+            echo "#      TF_VAR_webapp_client_secret (webapp registration password / secret)              #"
+            echo "#                                                                                       #"
+            echo "#   If you do not wish to deploy the Webapp, unset the TF_VAR_use_webapp variable       #"
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+            return 65                                                                                           #data format error
+        fi
     fi
 
     return 0
@@ -387,19 +387,23 @@ function missing {
 
 
 function validate_dependencies {
-    local tfPath="/opt/terraform/bin/terraform"
+
+    if [ -f /opt/terraform/bin/terraform ]; then
+        tfPath="/opt/terraform/bin/terraform"
+    else
+        tfPath=$(which terraform)
+    fi
+
     # if /opt/terraform exists, assign permissions to the user
     if [ -d /opt/terraform ]; then
         sudo chown -R "$USER" /opt/terraform
-    else
-      tfPath=$(which terraform)
     fi
 
     # Check terraform
     if checkIfCloudShell; then
-      tf=$(terraform --version | grep Terraform)
+        tf=$(terraform --version | grep Terraform)
     else
-      tf=$($tfPath --version | grep Terraform)
+        tf=$($tfPath --version | grep Terraform)
     fi
 
     if [ -z "$tf" ]; then
@@ -414,13 +418,13 @@ function validate_dependencies {
     fi
 
     if checkIfCloudShell; then
-      mkdir -p "${HOME}/.terraform.d/plugin-cache"
-      export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
+        mkdir -p "${HOME}/.terraform.d/plugin-cache"
+        export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
     else
-      if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
-        mkdir -p /opt/terraform/.terraform.d/plugin-cache
-      fi
-      export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+        if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
+            mkdir -p /opt/terraform/.terraform.d/plugin-cache
+        fi
+        export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
     fi
     # Set Terraform Plug in cache
 
