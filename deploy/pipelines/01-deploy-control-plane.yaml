@@ -747,6 +747,8 @@ stages:
                     if [ $USE_MSI != "true" ]; then
                         echo -e "$cyan --- Install using Service Principals ---$reset"
 
+                        export TF_VAR_use_spn=true
+
                         $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh \
                         --deployer_parameter_file "${deployer_configfile}"              \
                         --library_parameter_file "${library_configfile}"                \
@@ -757,6 +759,7 @@ stages:
                         ${storage_account_parameter} ${keyvault_parameter}
                     else
                         echo -e "$cyan --- Install using Managed Identity ---$reset"
+                        export TF_VAR_use_spn=false
 
                         ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_controlplane.sh  \
                         --deployer_parameter_file "${deployer_configfile}"                 \
@@ -785,17 +788,16 @@ stages:
                     if [ -f "${deployer_environment_file_name}" ]; then
 
                         file_deployer_tfstate_key=$(grep "^deployer_tfstate_key=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-                        echo "Deployer State File ${file_deployer_tfstate_key}"
+                        echo "Deployer State:       ${file_deployer_tfstate_key}"
 
                         file_key_vault=$(grep "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-                        echo "(File) Deployer Key Vault ${file_key_vault}"
+                        echo "Deployer Keyvault:    ${file_key_vault}"
 
                         file_REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-                        echo "(File) Terraform state file storage account ${file_REMOTE_STATE_SA}"
+                        echo "Terraform account:    ${file_REMOTE_STATE_SA}"
 
                         file_REMOTE_STATE_RG=$(grep "^REMOTE_STATE_RG=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-
-                        echo "(File) Terraform state file resource group ${file_REMOTE_STATE_RG}"
+                        echo "Terraform rgname:     ${file_REMOTE_STATE_SA}"
                     fi
 
                     echo -e "$green--- Update repo ---$reset"
