@@ -143,25 +143,6 @@ stages:
                         exit 2
                     fi
 
-                    if [ -z $CP_ARM_SUBSCRIPTION_ID ]; then
-                        echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $(parent_variable_group) variable group."
-                        exit 2
-                    fi
-
-                    if [ -z $CP_ARM_CLIENT_ID ]; then
-                        echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined in the $(parent_variable_group) variable group."
-                        exit 2
-                    fi
-
-                    if [ -z $CP_ARM_CLIENT_SECRET ]; then
-                        echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined in the $(parent_variable_group) variable group."
-                        exit 2
-                    fi
-
-                    if [ -z $CP_ARM_TENANT_ID ]; then
-                        echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $(parent_variable_group) variable group."
-                        exit 2
-                    fi
                 fi
 
 
