@@ -489,7 +489,7 @@ stages:
                         if [ -f "${deployer_environment_file_name}" ] ; then
 
                             key_vault=$(grep "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-                            echo -e "$cyan 'Deployer Key Vault' ${key_vault} $reset"
+                            echo "Deployer Key Vault:   ${key_vault}"
                             az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name Deployer_Key_Vault --value "${key_vault}" --output none --only-show-errors
                         fi
                     fi
@@ -500,7 +500,8 @@ stages:
                     else
                         if [ -f "${deployer_environment_file_name}" ] ; then
                             STATE_SUBSCRIPTION=$(grep "^STATE_SUBSCRIPTION=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-                            echo 'Terraform state file subscription' "${STATE_SUBSCRIPTION}"
+                            echo "TF Subscription:      ${STATE_SUBSCRIPTION}"
+
                             az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Subscription --value "${STATE_SUBSCRIPTION}" --output none --only-show-errors
                         fi
                     fi
@@ -519,7 +520,8 @@ stages:
                     else
                         if [ -f "${deployer_environment_file_name}" ] ; then
                             REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-                            echo 'Terraform state file storage account' "${REMOTE_STATE_SA}"
+                            echo "TF Account:           ${REMOTE_STATE_SA}"
+
                             az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Account_Name --value "${REMOTE_STATE_SA}" --output none --only-show-errors
                         fi
                     fi
