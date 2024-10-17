@@ -394,6 +394,8 @@ function validate_dependencies {
         tfPath=$(which terraform)
     fi
 
+    echo "Checking Terraform: $tfPath"
+
     # if /opt/terraform exists, assign permissions to the user
     if [ -d /opt/terraform ]; then
         sudo chown -R "$USER" /opt/terraform
