@@ -177,7 +177,17 @@ stages:
                         exit 2
                     fi
 
+                    if [ $WL_ARM_CLIENT_SECRET == '$$(ARM_CLIENT_SECRET)' ]; then
+                        echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
+                        exit 2
+                    fi
+
                     if [ -z $WL_ARM_TENANT_ID ]; then
+                        echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+                        exit 2
+                    fi
+
+                    if [ $WL_ARM_TENANT_ID == '$$(ARM_TENANT_ID)' ]; then
                         echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
                         exit 2
                     fi
@@ -353,7 +363,6 @@ stages:
                     exit 2
                 fi
 
-
                 echo -e "$green--- Read parameter values ---$reset"
 
                 if [ "true" == $(inherit) ]; then
@@ -513,7 +522,7 @@ stages:
                         export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
                         export ARM_TENANT_ID=$WL_ARM_TENANT_ID
                         export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
-                        export ARM_USE_MSI=false
+                        unset ARM_USE_MSI
                         az login --service-principal --username $WL_ARM_CLIENT_ID --password=$WL_ARM_CLIENT_SECRET --tenant $WL_ARM_TENANT_ID --output none
                         return_code=$?
                         if [ 0 != $return_code ]; then
@@ -522,14 +531,14 @@ stages:
                             exit $return_code
                         fi
                         $SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)   \
-                        --deployer_environment $(deployer_environment) --subscription $(ARM_SUBSCRIPTION_ID)                                 \
-                        --spn_id $WL_ARM_CLIENT_ID --spn_secret $WL_ARM_CLIENT_SECRET --tenant_id $WL_ARM_TENANT_ID                          \
-                        --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
+                        --deployer_environment $(deployer_environment) --subscription $ARM_SUBSCRIPTION_ID                                     \
+                        --spn_id $WL_ARM_CLIENT_ID --spn_secret $WL_ARM_CLIENT_SECRET --tenant_id $WL_ARM_TENANT_ID                            \
+                        --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}"   \
                         --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado
                     else
                         $SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh --parameterfile $(workload_zone_configuration_file)   \
-                        --deployer_environment $(deployer_environment) --subscription $(ARM_SUBSCRIPTION_ID)                                 \
-                        --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
+                        --deployer_environment $(deployer_environment) --subscription $ARM_SUBSCRIPTION_ID                                     \
+                        --deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}"   \
                         --state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado --msi
 
                     fi
