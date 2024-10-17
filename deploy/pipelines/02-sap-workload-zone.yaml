@@ -429,6 +429,7 @@ stages:
                     echo -e "$cyan--- Using SPN ---$reset"
                     export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                     export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
+                    export ARM_OBJECT_ID=$WL_ARM_OBJECT_ID
                     export ARM_TENANT_ID=$WL_ARM_TENANT_ID
                     export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
                     export ARM_USE_AZUREAD=true
