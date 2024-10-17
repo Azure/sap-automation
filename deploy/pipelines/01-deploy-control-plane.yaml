@@ -560,7 +560,7 @@ stages:
                             exit 2
                         fi
                         TF_VAR_app_registration_app_id=$(APP_REGISTRATION_APP_ID);
-                        echo 'App Registration App ID' "${TF_VAR_app_registration_app_id}"
+                        echo "App Registration ID:  ${TF_VAR_app_registration_app_id}"
                         export TF_VAR_app_registration_app_id
                         TF_VAR_webapp_client_secret=$(WEB_APP_CLIENT_SECRET)
                         export TF_VAR_webapp_client_secret
@@ -641,7 +641,7 @@ stages:
                         export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
                         export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
                         export ARM_TENANT_ID=$CP_ARM_TENANT_ID
-                        export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
+                        export ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
                         az login --service-principal --username "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
                         return_code=$?
                         if [ 0 != $return_code ]; then
@@ -679,6 +679,7 @@ stages:
                             export ARM_USE_MSI=true
                             export ARM_USE_AZUREAD=true
                             unset ARM_CLIENT_SECRET
+                            az account set --subscription $ARM_SUBSCRIPTION_ID
                         fi
                     fi
 
@@ -699,9 +700,10 @@ stages:
                         if [ 0 = $bootstrapped ]; then
                             key_vault=$(grep "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
                             export key_vault
-                            echo "Key Vault: $key_vault"
+                            echo "Deployer Key Vault:   ${key_vault}"
                             if [ -n "${key_vault}" ]; then
-                                echo 'Deployer Key Vault' ${key_vault}
+                                echo "Deployer Key Vault:   ${key_vault}"
+
                                 key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
                                 if [ -n "${key_vault_id}" ]; then
 
@@ -718,7 +720,7 @@ stages:
                     echo -e "$green--- Deploy the Control Plane ---$reset"
 
                     if [ -n "$(POOL)" ]; then
-                        echo 'Deployer Agent Pool' $(POOL)
+                        echo "Deployer Agent Pool:  $(POOL)"
                     fi
 
                     if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip" ]; then
@@ -744,11 +746,6 @@ stages:
                     sudo chmod +x $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh
                     if [ $USE_MSI != "true" ]; then
                         echo -e "$cyan --- Install using Service Principals ---$reset"
-                        export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
-                        export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
-                        export ARM_TENANT_ID=$CP_ARM_TENANT_ID
-                        export ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-                        unset ARM_USE_MSI
 
                         $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh \
                         --deployer_parameter_file "${deployer_configfile}"              \
@@ -760,9 +757,6 @@ stages:
                         ${storage_account_parameter} ${keyvault_parameter}
                     else
                         echo -e "$cyan --- Install using Managed Identity ---$reset"
-                        export ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-                        export ARM_USE_MSI=true
-                        unset ARM_CLIENT_SECRET
 
                         ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_controlplane.sh  \
                         --deployer_parameter_file "${deployer_configfile}"                 \
