@@ -662,7 +662,7 @@ stages:
                             export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
                             export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
                             export ARM_TENANT_ID=$CP_ARM_TENANT_ID
-                            export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
+                            export ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
                             unset ARM_USE_MSI
                             az login --service-principal --username "${ARM_CLIENT_ID}" --password="${ARM_CLIENT_SECRET}" --tenant "${ARM_TENANT_ID}" --output none
 
@@ -672,7 +672,7 @@ stages:
                                 echo "##vso[task.logissue type=error]az login failed."
                                 exit $return_code
                             fi
-                            az account set --subscription "${ARM_SUBSCRIPTION_ID}"
+                            az account set --subscription $ARM_SUBSCRIPTION_ID
                         else
                             echo -e "$cyan--- Install using Managed Identity ---$reset"
                             # export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
@@ -747,7 +747,7 @@ stages:
                         export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
                         export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
                         export ARM_TENANT_ID=$CP_ARM_TENANT_ID
-                        export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
+                        export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID:         $(CP_ARM_SUBSCRIPTION_ID)
                         unset ARM_USE_MSI
 
                         $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh \
@@ -942,7 +942,7 @@ stages:
                   displayName:         Deploy control plane
                   env:
                       SYSTEM_ACCESSTOKEN:          $(System.AccessToken)
-                      ARM_SUBSCRIPTION_ID:         $(CP_ARM_SUBSCRIPTION_ID)
+                      CP_ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
                       CP_ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
                       CP_ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
                       CP_ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
