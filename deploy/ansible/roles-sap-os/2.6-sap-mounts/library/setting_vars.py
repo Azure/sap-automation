@@ -59,16 +59,12 @@ def run_module():
         }
 
     if distribution_full_id in ['redhat8', 'redhat9']:
-        print("HELLO")
         result['nfs_service'] = 'nfs-server'
     elif distribution_full_id == 'redhat7':
-        print("HELLO2")
         result['nfs_service'] = 'nfs'
     elif distribution_full_id == 'oraclelinux8':
-        print("HELLO3")
         result['nfs_service'] = 'rpcbind'
     else:
-        print("HELLO4")
         result['nfs_service'] = 'nfsserver'
 
     module.exit_json(**result)
