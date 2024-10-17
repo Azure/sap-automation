@@ -367,35 +367,35 @@ stages:
 
                 if [ "true" == $(inherit) ]; then
 
-                    az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" | tr -d \")
+                    az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" --out tsv)
                     if [ -z ${az_var} ]; then
                         deployer_tfstate_key=$(cat ${deployer_environment_file_name}  | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
                     else
                         deployer_tfstate_key=${az_var} ; echo 'Deployer State File' $deployer_tfstate_key
                     fi
 
-                    az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                    az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
                     if [ -z ${az_var} ]; then
                         key_vault=$(cat ${deployer_environment_file_name}  | grep keyvault= | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
                     else
                         key_vault=${az_var}; echo 'Deployer Key Vault' ${key_vault}
                     fi
 
-                    az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" | tr -d \")
+                    az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
                     if [ -z ${az_var} ]; then
                         REMOTE_STATE_SA=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
                     else
                         REMOTE_STATE_SA=${az_var}; echo 'Terraform state file storage account' $REMOTE_STATE_SA
                     fi
 
-                    az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" | tr -d \")
+                    az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" --out tsv)
                     if [ -z ${az_var} ]; then
                         STATE_SUBSCRIPTION=$(cat ${deployer_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
                     else
                         STATE_SUBSCRIPTION=${az_var}; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
                     fi
 
-                    az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WL_ARM_SUBSCRIPTION_ID.value" | tr -d \")
+                    az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WL_ARM_SUBSCRIPTION_ID.value" --out tsv)
                     if [ -z ${az_var} ]; then
                         echo "##vso[task.logissue type=error]Variable WL_ARM_SUBSCRIPTION_ID was not defined."
                         exit 2
@@ -403,7 +403,7 @@ stages:
                         echo 'Target subscription' $WL_ARM_SUBSCRIPTION_ID
                     fi
 
-                    az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Workload_Key_Vault.value" | tr -d \")
+                    az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Workload_Key_Vault.value" --out tsv)
                     if [ -z ${az_var} ]; then
                         if [ -f ${workload_environment_file_name} ]; then
                             export workload_key_vault=$(cat ${workload_environment_file_name}  | grep workloadkeyvault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}

@@ -310,26 +310,26 @@ stages:
                             fi
                         echo -e "$green--- Adding variables to the variable group:" $(variable_group) "---$reset"
                             if [ 0 = $return_code ]; then
-                                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value")
+                                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" --out tsv)
                                 if [ -z ${az_var} ]; then
                                     az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName --value ${file_deployer_tfstate_key} --output none --only-show-errors
                                 else
                                     az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName --value ${file_deployer_tfstate_key} --output none --only-show-errors
                                 fi
-                                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value")
+                                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
                                 if [ -z ${az_var} ]; then
                                     az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${file_key_vault} --output none --only-show-errors
                                 else
                                     az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${file_key_vault} --output none --only-show-errors
                                 fi
-                                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ControlPlaneEnvironment.value")
+                                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ControlPlaneEnvironment.value" --out tsv)
                                 if [ -z ${az_var} ]; then
                                     az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneEnvironment --value ${ENVIRONMENT} --output none --only-show-errors
                                 else
                                     az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneEnvironment --value ${ENVIRONMENT} --output none --only-show-errors
                                 fi
 
-                                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ControlPlaneLocation.value")
+                                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ControlPlaneLocation.value" --out tsv)
                                 if [ -z ${az_var} ]; then
                                     az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneLocation --value ${LOCATION} --output none --only-show-errors
                                 else
@@ -337,7 +337,7 @@ stages:
                                 fi
 
                                 if [ -n "${deployer_random_id}" ] ; then
-                                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value")
+                                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value" --out tsv)
                                   if [ -z ${az_var} ]; then
                                       az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name DEPLOYER_RANDOM_ID_SEED --value ${deployer_random_id} --output none --only-show-errors
                                   else
@@ -545,14 +545,14 @@ stages:
                           bootstrapped=0
 
                       if [ ! -f $deployer_environment_file_name ]; then
-                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value")
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
                           if [[ ${#az_var} -ne 0 ]]; then
                               echo "REMOTE_STATE_SA="${az_var}
                               echo "REMOTE_STATE_SA="${az_var} | tee -a  $deployer_environment_file_name > /dev/null
                               echo "STATE_SUBSCRIPTION="$ARM_SUBSCRIPTION_ID | tee -a  $deployer_environment_file_name > /dev/null
                           fi
 
-                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value")
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" --out tsv)
                           if [[ ${#az_var} -ne 0 ]]; then
                               echo "REMOTE_STATE_RG="${az_var}
                               echo "REMOTE_STATE_RG="${az_var} | tee -a  $deployer_environment_file_name > /dev/null
@@ -560,12 +560,12 @@ stages:
 
                           fi
 
-                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value")
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" --out tsv)
                           if [[ ${#az_var} -ne 0 ]]; then
                               echo "deployer_tfstate_key="${az_var}  | tee -a  $deployer_environment_file_name > /dev/null
                           fi
 
-                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value")
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
                           if [[ ${#az_var} -ne 0 ]]; then
                               echo "keyvault="${az_var}  | tee -a  $deployer_environment_file_name > /dev/null
                               bootstrapped=1
@@ -856,49 +856,49 @@ stages:
 
                       echo -e "$green--- Adding variables to the variable group:" $(variable_group) "---$reset"
                       if [ 0 = $return_code ]; then
-                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value")
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
                           if [ -z ${az_var} ]; then
                               az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --value ${file_REMOTE_STATE_SA} --output none --only-show-errors
                           else
                               az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --value ${file_REMOTE_STATE_SA} --output none --only-show-errors
                           fi
 
-                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value")
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" --out tsv)
                           if [ -z ${az_var} ]; then
                               az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Resource_Group_Name --value ${file_REMOTE_STATE_RG} --output none --only-show-errors
                           else
                               az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Resource_Group_Name --value ${file_REMOTE_STATE_RG} --output none --only-show-errors
                           fi
 
-                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value")
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" --out tsv)
                           if [ -z ${az_var} ]; then
                               az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --value $ARM_SUBSCRIPTION_ID --output none --only-show-errors
                           else
                               az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --value $ARM_SUBSCRIPTION_ID --output none --only-show-errors
                           fi
 
-                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value")
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" --out tsv)
                           if [ -z ${az_var} ]; then
                               az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName --value ${file_deployer_tfstate_key} --output none --only-show-errors
                           else
                               az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName --value ${file_deployer_tfstate_key} --output none --only-show-errors
                           fi
 
-                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value")
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
                           if [ -z ${az_var} ]; then
                               az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${file_key_vault} --output none --only-show-errors
                           else
                               az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault --value ${file_key_vault} --output none --only-show-errors
                           fi
 
-                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ControlPlaneEnvironment.value")
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ControlPlaneEnvironment.value" --out tsv)
                           if [ -z ${az_var} ]; then
                               az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneEnvironment --value ${ENVIRONMENT} --output none --only-show-errors
                           else
                               az pipelines variable-group variable update --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneEnvironment --value ${ENVIRONMENT} --output none --only-show-errors
                           fi
 
-                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ControlPlaneLocation.value")
+                          az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "ControlPlaneLocation.value" --out tsv)
                           if [ -z ${az_var} ]; then
                               az pipelines variable-group variable create --group-id ${VARIABLE_GROUP_ID} --name ControlPlaneLocation --value ${LOCATION} --output none --only-show-errors
                           else
