@@ -156,14 +156,15 @@ automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region_code}""${network_logical_name}"
 
-echo "Configuration file:              $system_config_information"
-echo "Deployment region:               $region"
-echo "Deployment region code:          $region_code"
+echo "Configuration file:                    $system_config_information"
+echo "Deployment region:                     $region"
+echo "Deployment region code:                $region_code"
 
 if [ 1 == $called_from_ado ] ; then
     this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
     export TF_VAR_Agent_IP=$this_ip
-    echo "Agent IP:                        $this_ip"
+    echo "Agent IP:                              $this_ip"
+
 fi
 
 
@@ -189,7 +190,7 @@ if [[ -n "${TF_PARALLELLISM}" ]]; then
     parallelism=$TF_PARALLELLISM
 fi
 
-echo "Parallelism count:               $parallelism"
+echo "Parallelism count:                      $parallelism"
 
 param_dirname=$(pwd)
 
@@ -206,7 +207,8 @@ fi
 if [ "${deployment_system}" == sap_deployer ]
 then
     deployer_tfstate_key=${key}.terraform.tfstate
-    STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
+    ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
+    export ARM_SUBSCRIPTION_ID
 fi
 if [[ -z $STATE_SUBSCRIPTION ]];
 then
@@ -225,9 +227,9 @@ else
     save_config_vars "${system_config_information}" REMOTE_STATE_SA
 fi
 
-echo "Terraform state subscription:    ${STATE_SUBSCRIPTION}"
-echo "Terraform state account:         ${REMOTE_STATE_SA}"
-echo "Target subscription:             ${ARM_SUBSCRIPTION_ID}"
+echo "Terraform state subscription:           ${STATE_SUBSCRIPTION}"
+echo "Terraform state account:                ${REMOTE_STATE_SA}"
+echo "Target subscription:                    ${ARM_SUBSCRIPTION_ID}"
 
 deployer_tfstate_key_parameter=''
 
