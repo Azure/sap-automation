@@ -163,7 +163,7 @@ stages:
                   rm -f terraform_$(tf_version)_linux_amd64.zip
               else
                 if [ $USE_MSI != "true" ]; then
-                  echo "Using SPN"
+                  echo -e "$cyan --- Remove using Service Principals ---$reset"
 
                   export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                   export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
@@ -178,6 +178,7 @@ stages:
                     exit $return_code
                   fi
                 else
+                  echo -e "$cyan --- Remove using Managed Identity ---$reset"
                   export ARM_USE_MSI=true
                   export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
                   unset ARM_TENANT_ID
@@ -330,7 +331,7 @@ stages:
                 echo -e "$green --- Running on deployer ---$reset"
 
                 if [ $USE_MSI != "true" ]; then
-                  echo "Using SPN"
+                  echo -e "$cyan --- Remove using Service Principals ---$reset"
 
                   export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                   export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
@@ -345,6 +346,7 @@ stages:
                     exit $return_code
                   fi
                 else
+                  echo -e "$cyan --- Remove using Managed Identity ---$reset"
                   export ARM_USE_MSI=true
                   export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
                   unset ARM_TENANT_ID
@@ -721,7 +723,7 @@ stages:
                   fi
               fi
 
-              echo -e "$green--- Run the remover script that destroys the SAP workload zone (landscape) ---$reset"
+              echo -e "$green --- Run the remover script that destroys the SAP workload zone (landscape) ---$reset"
               cd "$CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)"
 
               $SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover.sh \

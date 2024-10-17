@@ -426,7 +426,7 @@ stages:
 
                 if [ $USE_MSI != "true" ]; then
 
-                    echo -e "$cyan--- Using SPN ---$reset"
+                    echo -e "$cyan --- Install using Service Principals ---$reset"
                     export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                     export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
                     export ARM_OBJECT_ID=$WL_ARM_OBJECT_ID
@@ -451,7 +451,7 @@ stages:
                     secrets_set=$? ; echo -e "$cyan Set Secrets returned $secrets_set $reset"
                     az keyvault set-policy --name "${key_vault}" --application-id $ARM_CLIENT_ID --secret-permissions get list  --subscription $STATE_SUBSCRIPTION --output none
                 else
-                    echo -e "$cyan--- Using MSI ---$reset"
+                    echo -e "$cyan --- Install using Managed Identity ---$reset"
                     # export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                     export ARM_USE_MSI=true
                     export ARM_USE_AZUREAD=true

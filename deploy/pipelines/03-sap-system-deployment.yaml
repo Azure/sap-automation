@@ -256,7 +256,7 @@ stages:
                 fi
 
                 if [ $USE_MSI != "true" ]; then
-                  echo "Using SPN"
+                  echo -e "$cyan --- Install using Service Principals ---$reset"
 
                   export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                   export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
@@ -271,6 +271,7 @@ stages:
                     exit $return_code
                   fi
                 else
+                  echo -e "$cyan --- Install using Managed Identity ---$reset"
                   export ARM_USE_MSI=true
                   export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
                   unset ARM_TENANT_ID
