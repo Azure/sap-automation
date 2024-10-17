@@ -193,17 +193,20 @@ stages:
                             fi
                         # Check if running on deployer
                         if [ ! -f /etc/profile.d/deploy_server.sh ]; then
-                            echo -e "$green --- Install dos2unix ---$reset"
+                            echo -e "$green--- Install dos2unix ---$reset"
                             sudo apt-get -qq install dos2unix
                             sudo apt -qq install zip
-                            echo -e "$green --- Install terraform ---$reset"
+                            echo -e "$green--- Install terraform ---$reset"
                             wget -q $(tf_url)
                             return_code=$?
                             if [ 0 != $return_code ]; then
                                 echo "##vso[task.logissue type=error]Unable to download Terraform version $(tf_version)."
                                 exit 2
                             fi
-                            unzip -qq terraform_$(tf_version)_linux_amd64.zip ; sudo mv terraform /bin/
+                            sudo mkdir -p  /opt/terraform/bin/
+                            unzip -qq terraform_$(tf_version)_linux_amd64.zip
+                            sudo mv terraform /opt/terraform/bin/terraform
+                            sudo chmod +x /opt/terraform/bin/terraform
                             rm -f terraform_$(tf_version)_linux_amd64.zip
                             az extension add --name storage-blob-preview >/dev/null
                         fi
