@@ -190,7 +190,7 @@ if [[ -n "${TF_PARALLELLISM}" ]]; then
     parallelism=$TF_PARALLELLISM
 fi
 
-echo "Parallelism count:                      $parallelism"
+echo "Parallelism count:                     $parallelism"
 
 param_dirname=$(pwd)
 
@@ -215,6 +215,35 @@ then
   STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
 fi
 
+
+if [[ -n $STATE_SUBSCRIPTION ]];
+then
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#       $cyan Changing the subscription to: $STATE_SUBSCRIPTION $resetformatting            #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    az account set --sub "${STATE_SUBSCRIPTION}"
+
+    return_code=$?
+    if [ 0 != $return_code ]; then
+
+      echo "#########################################################################################"
+      echo "#                                                                                       #"
+      echo -e "#         $boldred  The deployment account (MSI or SPN) does not have access to $resetformatting                #"
+      echo -e "#                      $boldred ${STATE_SUBSCRIPTION} $resetformatting                           #"
+      echo "#                                                                                       #"
+      echo "#########################################################################################"
+
+      echo "##vso[task.logissue type=error]The deployment account (MSI or SPN) does not have access to ${STATE_SUBSCRIPTION}"
+      exit $return_code
+   fi
+
+    account_set=1
+fi
+
 if [[ -z $REMOTE_STATE_SA ]];
 then
     echo "Loading the State file information"
@@ -227,9 +256,9 @@ else
     save_config_vars "${system_config_information}" REMOTE_STATE_SA
 fi
 
-echo "Terraform state subscription:           ${STATE_SUBSCRIPTION}"
-echo "Terraform state account:                ${REMOTE_STATE_SA}"
-echo "Target subscription:                    ${ARM_SUBSCRIPTION_ID}"
+echo "Terraform state subscription:          ${STATE_SUBSCRIPTION}"
+echo "Terraform state account:               ${REMOTE_STATE_SA}"
+echo "Target subscription:                   ${ARM_SUBSCRIPTION_ID}"
 
 deployer_tfstate_key_parameter=''
 
@@ -359,34 +388,6 @@ if [[ -n ${subscription} ]]; then
         exit 65
     fi
     export ARM_SUBSCRIPTION_ID="${subscription}"
-fi
-
-if [[ -n $STATE_SUBSCRIPTION ]];
-then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#       $cyan Changing the subscription to: $STATE_SUBSCRIPTION $resetformatting            #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    az account set --sub "${STATE_SUBSCRIPTION}"
-
-    return_code=$?
-    if [ 0 != $return_code ]; then
-
-      echo "#########################################################################################"
-      echo "#                                                                                       #"
-      echo -e "#         $boldred  The deployment account (MSI or SPN) does not have access to $resetformatting                #"
-      echo -e "#                      $boldred ${STATE_SUBSCRIPTION} $resetformatting                           #"
-      echo "#                                                                                       #"
-      echo "#########################################################################################"
-
-      echo "##vso[task.logissue type=error]The deployment account (MSI or SPN) does not have access to ${STATE_SUBSCRIPTION}"
-      exit $return_code
-   fi
-
-    account_set=1
 fi
 
 load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
