@@ -1162,6 +1162,9 @@ fi
 
 if [ "${deployment_system}" == sap_deployer ]
 then
+
+    terraform -chdir="${terraform_module_directory}"  output
+
     deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
     keyvault=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw deployer_kv_user_name | tr -d \")
 
