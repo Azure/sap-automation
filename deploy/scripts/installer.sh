@@ -50,8 +50,11 @@ do
 done
 
 
-echo "Parameter file:                  $parameterfile"
-echo "Current directory:               $(pwd)"
+echo "Parameter file:                        $parameterfile"
+echo "Current directory:                     $(pwd)"
+echo "Terraform state subscription_id:       ${STATE_SUBSCRIPTION}"
+echo "Terraform state storage account name:  ${REMOTE_STATE_SA}"
+
 tfstate_resource_id=""
 tfstate_parameter=""
 
