@@ -155,8 +155,6 @@ stages:
 
                 ENVIRONMENT=$(grep "^environment" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) | awk -F'=' '{print $2}' | xargs)
                    LOCATION=$(grep "^location" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
-                echo Environment: ${ENVIRONMENT}
-                echo Location:    ${LOCATION}
 
                 ENVIRONMENT_IN_FILENAME=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs )
                           LOCATION_CODE=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs )
@@ -219,8 +217,11 @@ stages:
                   *) LOCATION_IN_FILENAME="westeurope" ;;
                 esac
 
+                echo "Environment:           ${ENVIRONMENT}"
+                echo "Location:              ${LOCATION}"
                 echo "Environment(filename): $ENVIRONMENT_IN_FILENAME"
                 echo "Location(filename):    $LOCATION_IN_FILENAME"
+                echo ""
 
                 if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
                   echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) '$ENVIRONMENT' does not match the $(workload_zone_configuration_file) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
@@ -234,30 +235,40 @@ stages:
 
                 deployer_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE; echo "Environment file: " $deployer_environment_file_name
 
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
                 if [ -n "${az_var}" ]; then
-                  key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
+                  key_vault="${az_var}"
+                  echo "Deployer Key Vault:    ${key_vault}"
                 else
                   echo "Reading key vault from environment file"
-                  key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                  key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs)
+                  echo "Deployer Key Vault:    ${key_vault}"
                 fi
 
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" | tr -d \")
+                export STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
+                echo "TF state subscription:   $STATE_SUBSCRIPTION"
+
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
                 if [ -n "${az_var}" ]; then
-                  REMOTE_STATE_SA="${az_var}" ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                  REMOTE_STATE_SA="${az_var}"
+                  echo "TF state account:      $REMOTE_STATE_SA"
+
                 else
                   echo "Reading storage account from environment file"
-                  REMOTE_STATE_SA=$(cat ${deployer_environment_file_name} | grep REMOTE_STATE_SA | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                  REMOTE_STATE_SA=$(cat ${deployer_environment_file_name} | grep REMOTE_STATE_SA | awk -F'=' '{print $2}' | xargs)
+                  echo "TF state account:      $REMOTE_STATE_SA"
                 fi
 
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" | tr -d \")
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" --out tsv)
                 if [ -n "${az_var}" ]; then
-                  REMOTE_STATE_RG="${az_var}"  ; echo 'Terraform state file resource group' $REMOTE_STATE_RG
+                  REMOTE_STATE_RG="${az_var}"
+                  echo "TF state rg name:      $REMOTE_STATE_RG"
                 else
-                  REMOTE_STATE_RG=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_RG      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file resource group' $REMOTE_STATE_RG
+                  REMOTE_STATE_RG=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_RG      | awk -F'=' '{print $2}' | xargs)
+                  echo "TF state rg name:      $REMOTE_STATE_RG"
                 fi
 
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value" | tr -d \")
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value" --out tsv)
                 if [ -n "${az_var}"  ]; then
                     deployer_random_id="${az_var}"
                 else
@@ -266,7 +277,6 @@ stages:
                     fi
                 fi
 
-                export STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
                 if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip ]; then
                     pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
                     unzip  -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)
@@ -503,8 +513,6 @@ stages:
 
                   ENVIRONMENT=$(grep "^environment" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) | awk -F'=' '{print $2}' | xargs)
                      LOCATION=$(grep "^location" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
-                  echo Environment: ${ENVIRONMENT}
-                  echo Location:    ${LOCATION}
 
                   ENVIRONMENT_IN_FILENAME=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs )
                             LOCATION_CODE=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs )
@@ -567,8 +575,11 @@ stages:
                     *) LOCATION_IN_FILENAME="westeurope" ;;
                   esac
 
+                  echo "Environment:           ${ENVIRONMENT}"
+                  echo "Location:              ${LOCATION}"
                   echo "Environment(filename): $ENVIRONMENT_IN_FILENAME"
                   echo "Location(filename):    $LOCATION_IN_FILENAME"
+                  echo ""
 
                   if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
                     echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) '$ENVIRONMENT' does not match the $(workload_zone_configuration_file) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
@@ -600,7 +611,7 @@ stages:
                   fi
                   az account set --subscription $ARM_SUBSCRIPTION_ID
 
-                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
                   if [ -n "${az_var}" ]; then
                     key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
                   else

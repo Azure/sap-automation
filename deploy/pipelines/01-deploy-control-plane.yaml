@@ -96,8 +96,9 @@ stages:
 
                             file_deployer_tfstate_key=$(deployerfolder).tfstate
 
-                            ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs) ; echo Environment ${ENVIRONMENT}
-                            LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs) ;    echo Location ${LOCATION}
+                            ENVIRONMENT=$(echo $(deployerfolder) | awk -F'-' '{print $1}' | xargs)
+                            LOCATION=$(echo $(deployerfolder) | awk -F'-' '{print $2}' | xargs)
+
                             deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}
 
                         echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
@@ -109,13 +110,18 @@ stages:
 
                             az extension add --name azure-devops --output none
 
-                            echo "Agent:        " $(this_agent)
-                            echo "Organization: " $(System.CollectionUri)
-                            echo "Project:      " $(System.TeamProject)
+
+                            echo "Environment:           ${ENVIRONMENT}"
+                            echo "Location:              ${LOCATION}"
+                            echo ""
+                            echo "Agent:                 $(this_agent)"
+                            echo "Organization:          $(System.CollectionUri)"
+                            echo "Project:               $(System.TeamProject)"
 
                             az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
                             export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-                            echo "$(variable_group) id: ${VARIABLE_GROUP_ID}"
+
+                            echo "$(variable_group) id:  ${VARIABLE_GROUP_ID}"
 
 
                             echo "${{ parameters.force_reset }}"
@@ -161,7 +167,6 @@ stages:
                                 fi
                               fi
                             fi
-                            echo "Agent: " $(this_agent)
                             if [ -z ${VARIABLE_GROUP_ID} ]; then
                                 echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                                 exit 2
@@ -215,11 +220,12 @@ stages:
                                 echo 'Deployer Agent PAT is defined'
                             fi
                             if [ -n "$(POOL)" ]; then
-                                echo 'Deployer Agent Pool' $(POOL)
+                                echo "Deployer Agent Pool:   $(POOL)"
 
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
                                 pass=$(echo $(System.CollectionId) | sed 's/-//g')
+                                echo "Unzipping state.zip"
                                 unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                             fi
 
@@ -250,8 +256,7 @@ stages:
                               export ARM_USE_OIDC=false
                               export ARM_USE_AZUREAD=true
 
-                              az login --service-principal -u $ARM_CLIENT_ID -p=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
-
+                              az login --service-principal -u $ARM_CLIENT_ID -p=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
 
                               $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
                                 --deployer_parameter_file ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/$(deployerconfig) \

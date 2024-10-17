@@ -387,16 +387,19 @@ function missing {
 
 
 function validate_dependencies {
+    local tfPath="/opt/terraform/bin/terraform"
     # if /opt/terraform exists, assign permissions to the user
     if [ -d /opt/terraform ]; then
         sudo chown -R "$USER" /opt/terraform
+    else
+      tfPath=$(which terraform)
     fi
 
     # Check terraform
     if checkIfCloudShell; then
       tf=$(terraform --version | grep Terraform)
     else
-      tf=$(/opt/terraform/bin/terraform --version | grep Terraform)
+      tf=$($tfPath --version | grep Terraform)
     fi
 
     if [ -z "$tf" ]; then
