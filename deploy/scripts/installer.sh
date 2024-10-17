@@ -265,7 +265,7 @@ else
 
 fi
 
-useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
+useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription ${STATE_SUBSCRIPTION} --out tsv)
 
 if [ "$useSAS" = "true" ] ; then
   echo "Storage Account Authentication:  Key"
