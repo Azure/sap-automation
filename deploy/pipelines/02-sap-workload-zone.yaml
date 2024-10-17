@@ -462,14 +462,14 @@ stages:
 
                 if [ $USE_MSI != "true" ]; then
 
-                    isUserAccessAdmin=$(az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION  --query "[?principalType=='ServicePrincipal'].principalId | [0] " --assignee $ARM_CLIENT_ID)
+                    isUserAccessAdmin=$(az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION  --query "[?principalType=='ServicePrincipal'].principalId | [0] " --assignee $ARM_OBJECT_ID)
 
                     tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 
                     if [ -n "${isUserAccessAdmin}" ]; then
 
                         echo -e "$green--- Set permissions ---$reset"
-                        perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Reader" --query "[?principalId=='$WL_ARM_CLIENT_ID'].principalId | [0]"  -o tsv  --only-show-errors)
+                        perms=$(az role assignment list --subscription ${STATE_SUBSCRIPTION} --role "Reader" --query "[?principalId=='$WL_ARM_OBJECT_ID'].principalId | [0]"  -o tsv  --only-show-errors)
                         if [ -z "$perms" ]; then
                             echo -e "$green --- Assign subscription permissions to $perms ---$reset"
                             az role assignment create --assignee-object-id $WL_ARM_OBJECT_ID  --assignee-principal-type ServicePrincipal --role "Reader" --scope "/subscriptions/${STATE_SUBSCRIPTION}" --output none
