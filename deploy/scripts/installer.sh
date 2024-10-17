@@ -266,8 +266,8 @@ if [[ -z $deployer_tfstate_key ]];
 then
     load_config_vars "${system_config_information}" "deployer_tfstate_key"
 else
-    echo "Deployer state file name:        ${deployer_tfstate_key}"
-    save_config_vars "${system_config_information}" deployer_tfstate_key
+    echo "Deployer state file name:              ${deployer_tfstate_key}"
+    echo "Target subscription:                   ${ARM_SUBSCRIPTION_ID}"
 fi
 
 if [ "${deployment_system}" != sap_deployer ]
@@ -297,7 +297,7 @@ else
   load_config_vars "${system_config_information}" "keyvault"
   export TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 
-  echo "Deployer Keyvault ID:            $TF_VAR_deployer_kv_user_arm_id"
+  echo "Deployer Keyvault ID:                  $TF_VAR_deployer_kv_user_arm_id"
 
 fi
 
