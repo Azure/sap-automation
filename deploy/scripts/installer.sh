@@ -50,9 +50,8 @@ do
 done
 
 
-echo "Parameter file:    $parameterfile"
-echo "Current directory: $(pwd)"
-
+echo "Parameter file:                  $parameterfile"
+echo "Current directory:               $(pwd)"
 tfstate_resource_id=""
 tfstate_parameter=""
 
@@ -154,13 +153,14 @@ automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region_code}""${network_logical_name}"
 
-echo "Configuration file: $system_config_information"
-echo "Deployment region: $region"
-echo "Deployment region code: $region_code"
+echo "Configuration file:              $system_config_information"
+echo "Deployment region:               $region"
+echo "Deployment region code:          $region_code"
+
 if [ 1 == $called_from_ado ] ; then
     this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
     export TF_VAR_Agent_IP=$this_ip
-    echo "Agent IP: $this_ip"
+    echo "Agent IP:                        $this_ip"
 fi
 
 
@@ -186,7 +186,7 @@ if [[ -n "${TF_PARALLELLISM}" ]]; then
     parallelism=$TF_PARALLELLISM
 fi
 
-echo "Parallelism count $parallelism"
+echo "Parallelism count:               $parallelism"
 
 param_dirname=$(pwd)
 
@@ -221,8 +221,8 @@ else
     save_config_vars "${system_config_information}" REMOTE_STATE_SA
 fi
 
-echo "Terraform state file storage:" "${REMOTE_STATE_SA}"
-echo "Terraform state subscription:" "${STATE_SUBSCRIPTION}"
+echo "Terraform state subscription:    ${STATE_SUBSCRIPTION}"
+echo "Terraform state account:         ${REMOTE_STATE_SA}"
 
 deployer_tfstate_key_parameter=''
 
@@ -230,7 +230,7 @@ if [[ -z $deployer_tfstate_key ]];
 then
     load_config_vars "${system_config_information}" "deployer_tfstate_key"
 else
-    echo "Deployer state file name:" "${deployer_tfstate_key}"
+    echo "Deployer state file name:        ${deployer_tfstate_key}"
     save_config_vars "${system_config_information}" deployer_tfstate_key
 fi
 
@@ -261,17 +261,17 @@ else
   load_config_vars "${system_config_information}" "keyvault"
   export TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 
-  echo "Deployer Keyvault: $TF_VAR_deployer_kv_user_arm_id"
+  echo "Deployer Keyvault ID:            $TF_VAR_deployer_kv_user_arm_id"
 
 fi
 
 useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
 if [ "$useSAS" = "true" ] ; then
-  echo "Authenticate storage using SAS"
+  echo "Storage Account Authentication:  Key"
   export ARM_USE_AZUREAD=false
 else
-  echo "Authenticate storage using Entra ID"
+  echo "Storage Account Authentication:  Entra ID"
   export ARM_USE_AZUREAD=true
 fi
 
@@ -309,6 +309,7 @@ then
         fi
     else
         landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
+        echo "Workload zone state file:        ${landscape_tfstate_key}"
     fi
 fi
 
@@ -396,7 +397,7 @@ if [[ -z ${REMOTE_STATE_SA} ]]; then
     fi
 fi
 
-echo "Terraform state storage " "${REMOTE_STATE_SA}"
+echo "Terraform state storage account: ${REMOTE_STATE_SA}"
 
 if [ -z ${REMOTE_STATE_SA} ]; then
     option="REMOTE_STATE_SA"
@@ -445,9 +446,9 @@ fi
 
 ok_to_proceed=false
 
-echo "Terraform state subscription_id      = ${STATE_SUBSCRIPTION}"
-echo "Terraform state resource group name  = ${REMOTE_STATE_RG}"
-echo "Terraform state storage account name = ${REMOTE_STATE_SA}"
+echo "Terraform subscription_id:       ${STATE_SUBSCRIPTION}"
+echo "Terraform resource group name:   ${REMOTE_STATE_RG}"
+echo "Terraform state storage account: ${REMOTE_STATE_SA}"
 
 # This is used to tell Terraform if this is a new deployment or an update
 deployment_parameter=""
