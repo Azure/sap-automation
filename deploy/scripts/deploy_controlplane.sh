@@ -287,7 +287,7 @@ if [ 0 == $step ]; then
     fi
 
     load_config_vars "${deployer_config_information}" "keyvault"
-    echo "Key vault:" $keyvault
+    echo "Key vault:                   ${keyvault}"
 
     if [ -z "$keyvault" ]; then
         echo "#########################################################################################"
