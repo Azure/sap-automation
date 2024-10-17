@@ -148,10 +148,10 @@ stages:
 
               # Check if running on deployer
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-                echo -e "$green --- Install dos2unix ---$reset"
+                echo -e "$green--- Install dos2unix ---$reset"
                   sudo apt-get -qq install dos2unix
 
-                echo -e "$green --- Install terraform ---$reset"
+                echo -e "$green--- Install terraform ---$reset"
 
                   wget -q $(tf_url)
                   return_code=$?
@@ -163,7 +163,7 @@ stages:
                   rm -f terraform_$(tf_version)_linux_amd64.zip
               else
                 if [ $USE_MSI != "true" ]; then
-                  echo -e "$cyan --- Remove using Service Principals ---$reset"
+                  echo -e "$cyan--- Remove using Service Principals ---$reset"
 
                   export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                   export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
@@ -178,7 +178,7 @@ stages:
                     exit $return_code
                   fi
                 else
-                  echo -e "$cyan --- Remove using Managed Identity ---$reset"
+                  echo -e "$cyan--- Remove using Managed Identity ---$reset"
                   export ARM_USE_MSI=true
                   export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
                   unset ARM_TENANT_ID
@@ -331,10 +331,10 @@ stages:
                   az login --identity --allow-no-subscriptions --output none
                 fi
               else
-                echo -e "$green --- Running on deployer ---$reset"
+                echo -e "$green--- Running on deployer ---$reset"
 
                 if [ $USE_MSI != "true" ]; then
-                  echo -e "$cyan --- Remove using Service Principals ---$reset"
+                  echo -e "$cyan--- Remove using Service Principals ---$reset"
 
                   export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                   export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
@@ -533,10 +533,10 @@ stages:
 
               # Check if running on deployer
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-                  echo -e "$green --- Install dos2unix ---$reset"
+                  echo -e "$green--- Install dos2unix ---$reset"
                   sudo apt-get -qq install dos2unix
 
-                  echo -e "$green --- Install terraform ---$reset"
+                  echo -e "$green--- Install terraform ---$reset"
 
                   wget -q $(tf_url)
                   return_code=$?
@@ -717,11 +717,11 @@ stages:
                       exit $return_code
                   fi
               else
-                  echo -e "$green --- Running on deployer ---$reset"
+                  echo -e "$green--- Running on deployer ---$reset"
 
                   if [ "${USE_MSI}" != "true" ]; then
 
-                      echo -e "$cyan --- Install using Service Principals ---$reset"
+                      echo -e "$cyan--- Remove using Service Principals ---$reset"
                       export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                       export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
                       export ARM_TENANT_ID=$WL_ARM_TENANT_ID
