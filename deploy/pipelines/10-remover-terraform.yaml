@@ -87,7 +87,8 @@ stages:
           - template: templates\download.yaml
           - bash: |
               #!/bin/bash
-                green="\e[1;32m" ; reset="\e[0m"
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m" ; cyan="\e[1;36m"
+
               echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
 
               echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $(sap_system_folder)"

@@ -66,9 +66,7 @@ stages:
               set -u
 
               echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
-              green="\e[1;32m" ; reset="\e[0m"
-
-
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m" ; cyan="\e[1;36m"
 
               # echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
               #   git fetch -q --all
@@ -131,7 +129,7 @@ stages:
                     rm -f terraform_$(tf_version)_linux_amd64.zip
                 fi
                 if [ $USE_MSI != "true" ]; then
-                  echo -e "$cyan --- Remove using Service Principals ---$reset"
+                  echo -e "$cyan--- Remove using Service Principals ---$reset"
                   unset ARM_USE_MSI
                   az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
                   return_code=$?
@@ -141,7 +139,7 @@ stages:
                       exit $return_code
                   fi
                 else
-                  echo -e "$cyan --- Remove using Managed Identity ---$reset"
+                  echo -e "$cyan--- Remove using Managed Identity ---$reset"
                   source /etc/profile.d/deploy_server.sh
                   export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                   export ARM_USE_MSI=true
@@ -418,15 +416,15 @@ stages:
               inlineScript: |
                 #!/bin/bash
                 echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
-                green="\e[1;32m" ; reset="\e[0m"
+                green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m" ; cyan="\e[1;36m"
                 export ARM_USE_MSI=false
                 if [ $USE_MSI != "true" ]; then
-                  echo -e "$cyan --- Remove using Service Principals ---$reset"
+                  echo -e "$cyan--- Remove using Service Principals ---$reset"
                   export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
                   export ARM_TENANT_ID=$CP_ARM_TENANT_ID
                   export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
                 else
-                  echo -e "$cyan --- Remove using Managed Identity ---$reset"
+                  echo -e "$cyan--- Remove using Managed Identity ---$reset"
                   export ARM_CLIENT_ID=$servicePrincipalId
                   export ARM_TENANT_ID=$tenantId
                   export ARM_CLIENT_SECRET=$servicePrincipalKey
@@ -589,7 +587,7 @@ stages:
                 echo -e "$green--- az login ---$reset"
 
                   if [ $USE_MSI != "true" ]; then
-                    echo -e "$cyan --- Remove using Service Principals ---$reset"
+                    echo -e "$cyan--- Remove using Service Principals ---$reset"
 
                     unset ARM_USE_MSI
                     az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
