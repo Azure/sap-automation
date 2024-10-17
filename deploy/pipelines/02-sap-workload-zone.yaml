@@ -150,46 +150,57 @@ stages:
                 git checkout -q $(Build.SourceBranchName)
 
                 echo -e "$green--- Validations ---$reset"
-
-                if [ -z $WL_ARM_SUBSCRIPTION_ID ]; then
-                  echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
-                  exit 2
-                fi
                 if [ $USE_MSI != "true" ]; then
 
-                  if [ -z $WL_ARM_CLIENT_ID ]; then
-                    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
+                  if [ -z $WL_ARM_SUBSCRIPTION_ID ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
                     exit 2
                   fi
 
-                  if [ -z $WL_ARM_CLIENT_SECRET ]; then
-                    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
+                  if [ $WL_ARM_SUBSCRIPTION_ID == '$$(ARM_SUBSCRIPTION_ID)' ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $(variable_group) variable group."
                     exit 2
                   fi
 
-                  if [ -z $WL_ARM_TENANT_ID ]; then
-                    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-                    exit 2
-                  fi
+                    if [ -z $WL_ARM_CLIENT_ID ]; then
+                      echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
+                      exit 2
+                    fi
 
-                  if [ -z $CP_ARM_SUBSCRIPTION_ID ]; then
-                    echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $(parent_variable_group) variable group."
-                    exit 2
-                  fi
+                    if [ $WL_ARM_CLIENT_ID == ]; then
+                      echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
+                      exit 2
+                    fi
 
-                  if [ -z $CP_ARM_CLIENT_ID ]; then
-                    echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined in the $(parent_variable_group) variable group."
-                    exit 2
-                  fi
+                    if [ -z $WL_ARM_CLIENT_SECRET ]; then
+                      echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
+                      exit 2
+                    fi
 
-                  if [ -z $CP_ARM_CLIENT_SECRET ]; then
-                    echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined in the $(parent_variable_group) variable group."
-                    exit 2
-                  fi
+                    if [ -z $WL_ARM_TENANT_ID ]; then
+                      echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+                      exit 2
+                    fi
 
-                  if [ -z $CP_ARM_TENANT_ID ]; then
-                    echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $(parent_variable_group) variable group."
-                    exit 2
+                    if [ -z $CP_ARM_SUBSCRIPTION_ID ]; then
+                      echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $(parent_variable_group) variable group."
+                      exit 2
+                    fi
+
+                    if [ -z $CP_ARM_CLIENT_ID ]; then
+                      echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined in the $(parent_variable_group) variable group."
+                      exit 2
+                    fi
+
+                    if [ -z $CP_ARM_CLIENT_SECRET ]; then
+                      echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined in the $(parent_variable_group) variable group."
+                      exit 2
+                    fi
+
+                    if [ -z $CP_ARM_TENANT_ID ]; then
+                      echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $(parent_variable_group) variable group."
+                      exit 2
+                    fi
                   fi
                 fi
 
@@ -426,10 +437,10 @@ stages:
                     echo -e "$green --- Set secrets ---$reset"
 
                     $SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh --workload --vault "${key_vault}" --environment "${ENVIRONMENT}"  \
-                      --region "${LOCATION}" --subscription $WL_ARM_SUBSCRIPTION_ID --spn_id $WL_ARM_CLIENT_ID --spn_secret "${WL_ARM_CLIENT_SECRET}"      \
-                      --tenant_id $WL_ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
+                      --region "${LOCATION}" --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID --spn_secret "${ARM_CLIENT_SECRET}"  \
+                      --tenant_id $ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
                     secrets_set=$? ; echo -e "$cyan Set Secrets returned $secrets_set $reset"
-                    az keyvault set-policy --name "${key_vault}" --object-id $WL_ARM_OBJECT_ID --secret-permissions get list  --subscription $STATE_SUBSCRIPTION --output none
+                    az keyvault set-policy --name "${key_vault}" --object-id $ARM_OBJECT_ID --secret-permissions get list  --subscription $STATE_SUBSCRIPTION --output none
                 else
                     echo -e "$cyan--- Using MSI ---$reset"
                     # export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
