@@ -736,7 +736,7 @@ stages:
                         pass=$(echo $(System.CollectionId) | sed 's/-//g')
 
                         echo "Unzipping the deployer state file"
-                        unzip -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip2" -d "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)"
+                        unzip -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)"
                     fi
 
                     # ls -lart "${CONFIG_REPO_PATH}"/DEPLOYER/$(deployerfolder)
