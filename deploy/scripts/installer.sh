@@ -217,12 +217,14 @@ then
     load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${system_config_information}" "tfstate_resource_id"
     load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
+    load_config_vars "${system_config_information}" "ARM_SUBSCRIPTION_ID"
 else
     save_config_vars "${system_config_information}" REMOTE_STATE_SA
 fi
 
 echo "Terraform state subscription:    ${STATE_SUBSCRIPTION}"
 echo "Terraform state account:         ${REMOTE_STATE_SA}"
+echo "Target subscription:             ${ARM_SUBSCRIPTION_ID}"
 
 deployer_tfstate_key_parameter=''
 
