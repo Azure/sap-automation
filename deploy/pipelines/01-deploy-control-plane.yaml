@@ -483,8 +483,8 @@ stages:
                     echo -e "$green--- Variables ---$reset"
                     az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Deployer_Key_Vault.value" --output tsv)
                     if [ -n "${az_var}"  ]; then
-                        key_vault="${az_var}"
-                        echo -e "$cyan 'Deployer Key Vault' ${key_vault} $reset"
+                        export key_vault="${az_var}"
+                        echo "Deployer Key Vault:   ${key_vault}"
                     else
                         if [ -f "${deployer_environment_file_name}" ] ; then
 
@@ -496,10 +496,11 @@ stages:
 
                     az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Terraform_Remote_Storage_Subscription.value"  --output tsv)
                     if [ -n "${az_var}"  ]; then
-                        STATE_SUBSCRIPTION="${az_var}"  ; echo 'Terraform state file subscription' "$STATE_SUBSCRIPTION"
+                        export STATE_SUBSCRIPTION="${az_var}"
+                        echo "TF Subscription:      ${STATE_SUBSCRIPTION}"
                     else
                         if [ -f "${deployer_environment_file_name}" ] ; then
-                            STATE_SUBSCRIPTION=$(grep "^STATE_SUBSCRIPTION=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
+                            export STATE_SUBSCRIPTION=$(grep "^STATE_SUBSCRIPTION=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
                             echo "TF Subscription:      ${STATE_SUBSCRIPTION}"
 
                             az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Subscription --value "${STATE_SUBSCRIPTION}" --output none --only-show-errors
@@ -516,7 +517,8 @@ stages:
 
                     az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Terraform_Remote_Storage_Account_Name.value"  --output tsv)
                     if [ -n "${az_var}"  ]; then
-                        REMOTE_STATE_SA="${az_var}"  ; echo 'Terraform state file storage account' "${REMOTE_STATE_SA}"
+                        export REMOTE_STATE_SA="${az_var}"
+                        echo "TF Account:           ${REMOTE_STATE_SA}"
                     else
                         if [ -f "${deployer_environment_file_name}" ] ; then
                             REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
