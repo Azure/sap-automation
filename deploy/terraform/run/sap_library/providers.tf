@@ -50,7 +50,7 @@ provider "azurerm"                     {
                                          alias                      = "deployer"
                                          storage_use_azuread        = !var.shared_access_key_enabled
                                          use_msi                    = true
-                                         subscription_id            = data.azurerm_key_vault_secret.subscription_id[0].value
+                                         subscription_id            = local.spn.subscription_id
 
                                        }
 
