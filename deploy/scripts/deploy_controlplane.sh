@@ -81,12 +81,12 @@ done
 
 echo "ADO flag:             ${ado_flag}"
 
-key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
+key=$(basename "${deployer_parameter_file}" | cut -d. -f1)
 deployer_tfstate_key="${key}.terraform.tfstate"
 
 echo "Deployer State File:  ${deployer_tfstate_key}"
 
-key=$(echo "${library_parameter_file}" | cut -d. -f1)
+key=$(basename "${library_parameter_file}" | cut -d. -f1)
 library_tfstate_key="${key}.terraform.tfstate"
 
 echo "Library State File:   ${library_tfstate_key}"
