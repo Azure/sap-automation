@@ -81,6 +81,8 @@ done
 
 echo "ADO flag ${ado_flag}"
 
+deployer_tfstate_key=$(echo "${deployer_file_parametername}" | cut -d. -f1).terraform.tfstate
+
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 root_dirname=$(pwd)
 
@@ -135,6 +137,9 @@ if [ $force == 1 ]; then
 fi
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
+
+save_config_var "deployer_tfstate_key" "${deployer_config_information}"
+
 
 # Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
