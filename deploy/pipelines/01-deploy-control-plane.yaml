@@ -433,7 +433,6 @@ stages:
                       export PATH=$path
                     fi
 
-
                     echo -e "$green--- Information ---$reset"
                     echo "Environment:          ${ENVIRONMENT}"
                     echo "Location:             ${LOCATION}"
@@ -528,7 +527,6 @@ stages:
                             REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
                             echo "TF Account:           ${REMOTE_STATE_SA}"
 
-                            az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Account_Name --value "${REMOTE_STATE_SA}" --output none --only-show-errors
                         fi
                     fi
 
