@@ -79,9 +79,17 @@ do
     esac
 done
 
-echo "ADO flag ${ado_flag}"
+echo "ADO flag:             ${ado_flag}"
 
-deployer_tfstate_key=$(echo "${deployer_file_parametername}" | cut -d. -f1).terraform.tfstate
+key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
+deployer_tfstate_key="${key}.terraform.tfstate"
+
+echo "Deployer State File:  ${deployer_tfstate_key}"
+
+key=$(echo "${library_parameter_file}" | cut -d. -f1)
+library_tfstate_key="${key}.terraform.tfstate"
+
+echo "Library State File:   ${library_tfstate_key}"
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 root_dirname=$(pwd)

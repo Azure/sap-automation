@@ -14,7 +14,7 @@ locals {
                                            use = var.use_deployer
                                          }
   key_vault                            = {
-                                           kv_spn_id = coalesce(local.spn_key_vault_arm_id, var.spn_keyvault_id)
+                                           kv_spn_id = coalesce(var.spn_keyvault_id, local.spn_key_vault_arm_id)
                                          }
   storage_account_sapbits              = {
                                             arm_id                   = var.library_sapmedia_arm_id
