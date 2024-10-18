@@ -132,7 +132,7 @@ fi
 # Convert the region to the correct code
 get_region_code "$region"
 
-echo "Region code for deployment:  $region_code"
+echo "Region code:           ${region_code}"
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
@@ -254,11 +254,11 @@ fi
 load_config_vars "${deployer_config_information}" "step"
 
 if [ 0 = "${deploy_using_msi_only:-}" ]; then
-    echo "Using Service Principal for deployment"
+    echo "Identity to use:       Service Principal"
     unset ARM_USE_MSI
     set_executing_user_environment_variables "${spn_secret}"
 else
-    echo "Using Managed Identity for deployment"
+    echo "Identity to use:       Managed Identity"
     set_executing_user_environment_variables "none"
 fi
 
@@ -300,7 +300,7 @@ if [ 0 == $step ]; then
     fi
 
     load_config_vars "${deployer_config_information}" "keyvault"
-    echo "Key vault:                   ${keyvault}"
+    echo "Key vault:             ${keyvault}"
 
     if [ -z "$keyvault" ]; then
         echo "#########################################################################################"
@@ -530,7 +530,6 @@ if [ 2 == $step ]; then
     fi
 
     allParams=$(printf " -p %s -d %s %s" "${library_file_parametername}" "${relative_path}" "${approveparam}")
-    echo "${allParams}"
 
     "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/install_library.sh $allParams
     return_code=$?

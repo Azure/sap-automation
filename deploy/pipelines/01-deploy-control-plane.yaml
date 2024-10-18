@@ -230,12 +230,10 @@ stages:
                                 unzip -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip -d ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
                             fi
 
-                            ls -lart ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)
-
                             if [ $(use_webapp) = "true" ]; then
-                                echo "Use WebApp is selected"
+                                echo "Deploy Web App:        true"
                             else
-                                echo "No WebApp"
+                                echo "Deploy Web App:        false"
                             fi
 
                             export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
