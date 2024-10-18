@@ -387,6 +387,7 @@ function missing {
 
 
 function validate_dependencies {
+    tfPath="/opt/terraform/bin/terraform"
 
     if [ -f /opt/terraform/bin/terraform ]; then
         tfPath="/opt/terraform/bin/terraform"

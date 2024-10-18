@@ -294,8 +294,8 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-echo "Keyvault:           ${keyvault}"
-echo "Subscription:       ${STATE_SUBSCRIPTION}"
+echo "Key vault:                   ${keyvault}"
+echo "Subscription:                ${STATE_SUBSCRIPTION}"
 
 save_config_vars "${environment_config_information}" \
 keyvault \
