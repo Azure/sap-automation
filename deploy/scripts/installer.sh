@@ -256,10 +256,6 @@ else
     save_config_vars "${system_config_information}" REMOTE_STATE_SA
 fi
 
-echo "Terraform state subscription:          ${STATE_SUBSCRIPTION}"
-echo "Terraform state account:               ${REMOTE_STATE_SA}"
-echo "Target subscription:                   ${ARM_SUBSCRIPTION_ID}"
-
 deployer_tfstate_key_parameter=''
 
 if [[ -z $deployer_tfstate_key ]];
@@ -405,8 +401,6 @@ if [[ -z ${REMOTE_STATE_SA} ]]; then
     fi
 fi
 
-echo "Terraform state storage account: ${REMOTE_STATE_SA}"
-
 if [ -z ${REMOTE_STATE_SA} ]; then
     option="REMOTE_STATE_SA"
     missing
@@ -454,10 +448,6 @@ fi
 
 ok_to_proceed=false
 
-echo "Terraform subscription_id:       ${STATE_SUBSCRIPTION}"
-echo "Terraform resource group name:   ${REMOTE_STATE_RG}"
-echo "Terraform state storage account: ${REMOTE_STATE_SA}"
-
 # This is used to tell Terraform if this is a new deployment or an update
 deployment_parameter=""
 # This is used to tell Terraform the version information from the state file
@@ -466,6 +456,14 @@ version_parameter=""
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
 terraform --version
+
+echo "Terraform details"
+echo "Subscription:                          ${STATE_SUBSCRIPTION}"
+echo "Storage Account:                       ${REMOTE_STATE_SA}"
+echo "Resource Group:                        ${REMOTE_STATE_RG}"
+echo "State file:                            ${key}.terraform.tfstate"
+echo "Target subscription:                   ${ARM_SUBSCRIPTION_ID}"
+
 
 check_output=0
 if [ -f terraform.tfstate ]; then

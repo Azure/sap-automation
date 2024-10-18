@@ -142,10 +142,6 @@ get_region_code "$region"
 key=$(echo "${workload_file_parametername}" | cut -d. -f1)
 landscape_tfstate_key=${key}.terraform.tfstate
 
-echo "Deployment region: $region"
-echo "Deployment region code: $region_code"
-echo "Keyvault: $keyvault"
-
 #Persisting the parameters across executions
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
@@ -169,7 +165,11 @@ then
     rm -Rf .terraform terraform.tfstate*
 fi
 
-echo "Workload configuration file: $workload_config_information"
+
+echo "Configuration file:                    $workload_config_information"
+echo "Deployment region:                     $region"
+echo "Deployment region code:                $region_code"
+echo "Keyvault:                              $keyvault"
 
 if [ -n "$STATE_SUBSCRIPTION" ]
 then
@@ -286,7 +286,9 @@ then
         fi
     fi
 else
-    echo "tfstate_resource_id $tfstate_resource_id"
+
+    echo "Terraform resource Id:            $tfstate_resource_id"
+
     save_config_vars "${workload_config_information}" \
     tfstate_resource_id
 fi
@@ -419,10 +421,10 @@ fi
 useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
 if [ "$useSAS" = "true" ] ; then
-  echo "Authenticate storage using SAS"
+  echo "Storage Account authentication:   key"
   export ARM_USE_AZUREAD=false
 else
-  echo "Authenticate storage using Entra ID"
+  echo "Storage Account authentication:   Entra ID"
   export ARM_USE_AZUREAD=true
 fi
 
@@ -582,10 +584,11 @@ fi
 
 root_dirname=$(pwd)
 
-echo "     subscription_id=${STATE_SUBSCRIPTION}"
-echo " resource_group_name=${REMOTE_STATE_RG}"
-echo "storage_account_name=${REMOTE_STATE_SA}"
-
+echo "Terraform details"
+echo "Subscription:                     ${STATE_SUBSCRIPTION}"
+echo "Storage Account:                  ${REMOTE_STATE_SA}"
+echo "Resource Group:                   ${REMOTE_STATE_RG}"
+echo "State file:                       ${key}.terraform.tfstate"
 
 if [ ! -d ./.terraform/ ];
 then
