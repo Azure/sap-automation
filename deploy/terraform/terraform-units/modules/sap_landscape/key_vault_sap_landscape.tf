@@ -85,7 +85,7 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
 
 resource "azurerm_role_assignment" "role_assignment_spn" {
   provider                             = azurerm.main
-  count                                = var.enable_rbac_authorization_for_keyvault && local.service_principal.object_id != "" ? 1 : 0
+  count                                = var.enable_rbac_authorization_for_keyvault && local.service_principal.object_id != "" && !var.options.use_spn ? 1 : 0
   scope                                = local.user_keyvault_exist ? (
                                                                        local.user_key_vault_id) : (
                                                                        azurerm_key_vault.kv_user[0].id
@@ -114,6 +114,25 @@ resource "azurerm_key_vault_access_policy" "kv_user" {
                                           "Purge"
                                         ]
 }
+
+resource "azurerm_key_vault_access_policy" "kv_user_spn" {
+  provider                             = azurerm.main
+  count                                = var.options.use_spn && !var.enable_rbac_authorization_for_keyvault ? 1 : 0
+  key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  tenant_id                            = local.service_principal.tenant_id
+  object_id                            = local.service_principal.object_id != "" ? local.service_principal.object_id : "00000000-0000-0000-0000-000000000000"
+
+  secret_permissions                   = [
+                                          "Get",
+                                          "List",
+                                          "Set",
+                                          "Delete",
+                                          "Recover",
+                                          "Restore",
+                                          "Purge"
+                                        ]
+}
+
 
 ###############################################################################
 #                                                                             #
