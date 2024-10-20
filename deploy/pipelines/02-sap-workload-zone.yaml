@@ -434,7 +434,7 @@ stages:
               if [ $USE_MSI != "true" ]; then
 
                   echo "Deployment credentials:               Service Principal"
-                  echo "Deployment credential ID:             $WL_ARM_CLIENT_ID"
+                  echo "Deployment credential ID (SPN):      $WL_ARM_CLIENT_ID"
 
                   export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                   export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
@@ -458,7 +458,6 @@ stages:
                   --region "${LOCATION}" --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID --spn_secret "${ARM_CLIENT_SECRET}"  \
                   --tenant_id $ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
                   secrets_set=$? ; echo -e "$cyan Set Secrets returned $secrets_set $reset"
-                  # az keyvault set-policy --name "${key_vault}" --spn $ARM_OBJECT_ID  --secret-permissions get list   --subscription $STATE_SUBSCRIPTION --output none
               else
                   echo "Deployment credentials:               Managed Identity"
                   # export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
