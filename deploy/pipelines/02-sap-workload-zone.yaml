@@ -327,8 +327,6 @@ stages:
               az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
               export PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
-              printf -v val '%-15s' "$(parent_variable_group) id:"
-              echo "$val                        $PARENT_VARIABLE_GROUP_ID"
 
               if [ -z ${PARENT_VARIABLE_GROUP_ID} ]; then
                   echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
@@ -341,8 +339,13 @@ stages:
                   echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                   exit 2
               fi
-              printf -v val '%-15s' "$(variable_group) id:"
-              echo "$val                        $VARIABLE_GROUP_ID"
+              printf -v tempval '%s id:' $(variable_group)
+              printf -v val '%-20s' "${tempval}"
+              echo "$val                  $VARIABLE_GROUP_ID"
+
+              printf -v tempval '%s id:' $(parent_variable_group)
+              printf -v val '%-20s' "${tempval}"
+              echo "$val                  $PARENT_VARIABLE_GROUP_ID"
 
               deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/$(deployer_environment)$(deployer_region)
               echo "Deployer Environment File:            $deployer_environment_file_name"

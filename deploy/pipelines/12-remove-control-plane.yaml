@@ -86,8 +86,6 @@ stages:
 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
 
-                printf -v val %-15.15s "$VARIABLE_GROUP_ID"
-                echo "${val}:             $VARIABLE_GROUP_ID"
                 if [ -z ${VARIABLE_GROUP_ID} ]; then
                     echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
                     exit 2
@@ -219,10 +217,10 @@ stages:
                   *) LOCATION_IN_FILENAME="westeurope" ;;
                 esac
 
-                echo "Environment:           ${ENVIRONMENT}"
-                echo "Location:              ${LOCATION}"
-                echo "Environment(filename): $ENVIRONMENT_IN_FILENAME"
-                echo "Location(filename):    $LOCATION_IN_FILENAME"
+                echo "Environment:                          ${ENVIRONMENT}"
+                echo "Location:                             ${LOCATION}"
+                echo "Environment(filename):                $ENVIRONMENT_IN_FILENAME"
+                echo "Location(filename):                   $LOCATION_IN_FILENAME"
                 echo ""
 
 
@@ -241,34 +239,27 @@ stages:
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
                 if [ -n "${az_var}" ]; then
                   key_vault="${az_var}"
-                  echo "Deployer Key Vault:    ${key_vault}"
                 else
                   echo "Reading key vault from environment file"
                   key_vault=$(grep -m "^keyvault=" ${deployer_environment_file_name} | awk -F'=' '{print $2}' | xargs)
-                  echo "Deployer Key Vault:    ${key_vault}"
                 fi
 
                 export STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
-                echo "TF state subscription:   $STATE_SUBSCRIPTION"
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
                 if [ -n "${az_var}" ]; then
                   REMOTE_STATE_SA="${az_var}"
-                  echo "TF state account:      $REMOTE_STATE_SA"
 
                 else
                   echo "Reading storage account from environment file"
                   REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA=" ${deployer_environment_file_name} |  awk -F'=' '{print $2}' | xargs)
-                  echo "TF state account:      $REMOTE_STATE_SA"
                 fi
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" --out tsv)
                 if [ -n "${az_var}" ]; then
                   REMOTE_STATE_RG="${az_var}"
-                  echo "TF state rg name:      $REMOTE_STATE_RG"
                 else
                   REMOTE_STATE_RG=$(grep "^REMOTE_STATE_RG" ${deployer_environment_file_name}  |  awk -F'=' '{print $2}' | xargs)
-                  echo "TF state rg name:      $REMOTE_STATE_RG"
                 fi
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value" --out tsv)
@@ -279,6 +270,11 @@ stages:
                         deployer_random_id=$(grep "^deployer_random_id=" ${deployer_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
                     fi
                 fi
+
+                echo "Terraform state subscription:         $STATE_SUBSCRIPTION"
+                echo "Terraform state rg name:              $REMOTE_STATE_RG"
+                echo "Terraform state account:              $REMOTE_STATE_SA"
+                echo "Deployer Key Vault:                   ${key_vault}"
 
                 if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip ]; then
                     pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
@@ -302,7 +298,7 @@ stages:
 
                 return_code=$?
 
-                echo "Return code from remove_controlplane $return_code."
+                echo "Return code from remove_controlplane: $return_code."
 
               echo -e "$green--- Remove Control Plane Part 1 ---$reset"
                 cd $CONFIG_REPO_PATH
@@ -481,8 +477,10 @@ stages:
 
                   export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
 
-                  printf -v val %-15.15s "$VARIABLE_GROUP_ID"
-                  echo "${val}:             $VARIABLE_GROUP_ID"
+                  printf -v tempval '%s id:' $(parent_variable_group)
+                  printf -v val '%-20s' "${tempval}"
+                  echo "$val                  $VARIABLE_GROUP_ID"
+
                   if [ -z ${VARIABLE_GROUP_ID} ]; then
                       echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
                       exit 2
@@ -580,10 +578,10 @@ stages:
                     *) LOCATION_IN_FILENAME="westeurope" ;;
                   esac
 
-                  echo "Environment:           ${ENVIRONMENT}"
-                  echo "Location:              ${LOCATION}"
-                  echo "Environment(filename): $ENVIRONMENT_IN_FILENAME"
-                  echo "Location(filename):    $LOCATION_IN_FILENAME"
+                  echo "Environment:                          ${ENVIRONMENT}"
+                  echo "Location:                             ${LOCATION}"
+                  echo "Environment(filename):                $ENVIRONMENT_IN_FILENAME"
+                  echo "Location(filename):                   $LOCATION_IN_FILENAME"
                   echo ""
 
                   if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
@@ -618,11 +616,13 @@ stages:
 
                   az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
                   if [ -n "${az_var}" ]; then
-                    key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
+                    key_vault="${az_var}"
                   else
                     echo "Reading key vault from environment file"
-                    key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                    key_vault=$(grep -m1 "^keyvault=" ${deployer_environment_file_name} | awk -F'=' '{print $2}' | xargs)
                   fi
+
+                  echo "Deployer Key Vault:                   $key_vault"
 
                   key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
                   if [ -n "${key_vault_id}" ]; then

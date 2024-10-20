@@ -670,12 +670,13 @@ stages:
               echo "Network(filename):                    $NETWORK_IN_FILENAME"
               echo ""
 
-              tempval=$(echo $(variable_group) | xargs )
-              printf -v val '%-20s' "$tempval id:"
-              echo "$val                        $VARIABLE_GROUP_ID"
-              tempval=$(echo $(parent_variable_group) | xargs )
-              printf -v val '%-20s' "$tempval id:"
-              echo "$val                        $PARENT_VARIABLE_GROUP_ID"
+              printf -v tempval '%s id:' $(variable_group)
+              printf -v val '%-20s' "${tempval}"
+              echo "$val                  $VARIABLE_GROUP_ID"
+
+              printf -v tempval '%s id:' $(parent_variable_group)
+              printf -v val '%-20s' "${tempval}"
+              echo "$val                  $PARENT_VARIABLE_GROUP_ID"
 
               if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
                   echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) '$ENVIRONMENT' does not match the $(workload_zone_configuration_file) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
