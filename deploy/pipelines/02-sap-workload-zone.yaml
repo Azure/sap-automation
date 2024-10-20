@@ -293,7 +293,7 @@ stages:
 
                 echo "Deployer Environment                  $(deployer_environment)"
                 echo "Deployer Region                       $(deployer_region)"
-                echo "Workload TFvars                       $workload_zone_configuration_file"
+                echo "Workload TFvars                       $(workload_zone_configuration_file)"
                 echo ""
 
                 echo "Agent pool:                           $(this_agent)"
