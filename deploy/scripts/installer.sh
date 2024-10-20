@@ -156,9 +156,9 @@ automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region_code}""${network_logical_name}"
 
-echo "Configuration file:                    $system_config_information"
-echo "Deployment region:                     $region"
-echo "Deployment region code:                $region_code"
+echo "Configuration file:                  $system_config_information"
+echo "Deployment region:                   $region"
+echo "Deployment region code:              $region_code"
 
 if [ 1 == $called_from_ado ] ; then
     this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1

@@ -400,7 +400,7 @@ function validate_dependencies {
         tfPath=$(which terraform)
     fi
 
-    echo "Checking Terraform:                    $tfPath"
+    echo "Checking Terraform:                  $tfPath"
 
     # if /opt/terraform exists, assign permissions to the user
     if [ -d /opt/terraform ]; then
@@ -485,7 +485,7 @@ function validate_dependencies {
 }
 
 function validate_key_parameters {
-    echo "Validating:                            $1"
+    echo "Validating:                          $1"
     ext=$(echo $1 | cut -d. -f2)
 
     # Helper variables

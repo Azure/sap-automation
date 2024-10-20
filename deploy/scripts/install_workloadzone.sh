@@ -167,10 +167,10 @@ then
 fi
 
 
-echo "Configuration file:                    $workload_config_information"
-echo "Deployment region:                     $region"
-echo "Deployment region code:                $region_code"
-echo "Keyvault:                              $keyvault"
+echo "Configuration file:                  $workload_config_information"
+echo "Deployment region:                   $region"
+echo "Deployment region code:              $region_code"
+echo "Keyvault:                            $keyvault"
 
 if [ -n "$STATE_SUBSCRIPTION" ]
 then
