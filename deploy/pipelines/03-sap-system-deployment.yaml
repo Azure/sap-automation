@@ -238,11 +238,13 @@ stages:
                 az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none --only-show-errors
 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-                echo "$(variable_group) id:        $VARIABLE_GROUP_ID"
+
                 if [ -z ${VARIABLE_GROUP_ID} ]; then
                   echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                   exit 2
                 fi
+                printf -v val '%-15s' "$VARIABLE_GROUP_ID"
+                echo "$val id:        $VARIABLE_GROUP_ID"
               echo -e "$green--- Login ---$reset"
 
                 if [ -z $USE_MSI ]; then
@@ -318,9 +320,9 @@ stages:
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value | tr -d \")
                 if [ -z ${az_var} ]; then
-                  export workload_key_vault=$(grep workloadkeyvault= ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+                  export workload_key_vault=$(grep workloadkeyvault= ${environment_file_name} | awk -F'=' '{print $2}' | xargs)
                 else
-                  export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault}
+                  export workload_key_vault=${az_var}
                 fi
 
                 echo "Deployer state file:                   $deployer_tfstate_key"
