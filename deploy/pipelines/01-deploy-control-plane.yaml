@@ -723,9 +723,7 @@ stages:
                         if [ 0 = $bootstrapped ]; then
                             key_vault=$(grep "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
                             export key_vault
-                            echo "Deployer Key Vault:   ${key_vault}"
                             if [ -n "${key_vault}" ]; then
-                                echo "Deployer Key Vault:   ${key_vault}"
 
                                 key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
                                 if [ -n "${key_vault_id}" ]; then
