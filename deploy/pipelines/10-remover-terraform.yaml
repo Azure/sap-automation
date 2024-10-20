@@ -294,9 +294,10 @@ stages:
               echo "SID(filename):                        $SID_IN_FILENAME"
 
 
-              echo '$(variable_group) id:'
-              tempval= (echo $(variable_group))
-              printf -v val '%-20s' ("$tempval id:")
+
+              tempval= $(echo '$(variable_group) id:')
+              echo $tempval
+              printf -v val '%-20s' $tempval
               echo "$val                        $VARIABLE_GROUP_ID"
               tempval= '$(parent_variable_group) id:'
               printf -v val '%-20s' ("$tempval id:")
