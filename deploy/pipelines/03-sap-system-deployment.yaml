@@ -327,10 +327,10 @@ stages:
                   export workload_key_vault=${az_var}
                 fi
 
-                echo "Deployer state file:                   $deployer_tfstate_key"
-                echo "Deployer Key Vault:                    $key_vault"
-                echo "Workload Zone state file:              $landscape_tfstate_key"
-                echo "Workload Zone Key Vault:               $workload_key_vault"
+                echo "Deployer state file:                 $deployer_tfstate_key"
+                echo "Deployer Key Vault:                  $key_vault"
+                echo "Workload Zone state file:            $landscape_tfstate_key"
+                echo "Workload Zone Key Vault:             $workload_key_vault"
 
               echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
 

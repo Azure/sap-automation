@@ -50,10 +50,10 @@ do
 done
 
 
-echo "Parameter file:                        $parameterfile"
-echo "Current directory:                     $(pwd)"
-echo "Terraform state subscription_id:       ${STATE_SUBSCRIPTION}"
-echo "Terraform state storage account name:  ${REMOTE_STATE_SA}"
+echo "Parameter file:                      $parameterfile"
+echo "Current directory:                   $(pwd)"
+echo "Terraform state subscription_id:     ${STATE_SUBSCRIPTION}"
+echo "Terraform state storage account name:${REMOTE_STATE_SA}"
 
 tfstate_resource_id=""
 tfstate_parameter=""
@@ -163,7 +163,7 @@ echo "Deployment region code:              $region_code"
 if [ 1 == $called_from_ado ] ; then
     this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
     export TF_VAR_Agent_IP=$this_ip
-    echo "Agent IP:                              $this_ip"
+    echo "Agent IP:                            $this_ip"
 
 fi
 
@@ -190,7 +190,7 @@ if [[ -n "${TF_PARALLELLISM}" ]]; then
     parallelism=$TF_PARALLELLISM
 fi
 
-echo "Parallelism count:                     $parallelism"
+echo "Parallelism count:                   $parallelism"
 
 param_dirname=$(pwd)
 
