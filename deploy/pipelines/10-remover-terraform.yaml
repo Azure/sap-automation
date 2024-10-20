@@ -293,16 +293,14 @@ stages:
               echo "Network(filename):                    $NETWORK_IN_FILENAME"
               echo "SID(filename):                        $SID_IN_FILENAME"
 
-
-
               printf -v tempval '%s id:' $(variable_group)
               echo $tempval
-              printf -v val '%-20s id:' $tempval
+              printf -v val '%-20s' $tempval
               echo "$val                        $VARIABLE_GROUP_ID"
 
               printf -v tempval '%s id:' $(parent_variable_group)
               echo $tempval
-              printf -v val '%-20s id:' $tempval
+              printf -v val '%-20s:' $tempval
               echo "$val                        $PARENT_VARIABLE_GROUP_ID"
 
               echo ""
