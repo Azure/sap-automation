@@ -128,7 +128,7 @@ function get_and_store_sa_details {
     local REMOTE_STATE_SA="${1}"
     local config_file_name="${2}"
 
-    echo "Trying to find the storage account ${REMOTE_STATE_SA}"
+    echo "Trying to find the storage account:    ${REMOTE_STATE_SA}"
 
     save_config_vars "${config_file_name}" REMOTE_STATE_SA
     if [ -z $STATE_SUBSCRIPTION ];then
@@ -144,7 +144,7 @@ function get_and_store_sa_details {
     REMOTE_STATE_RG \
     tfstate_resource_id \
     STATE_SUBSCRIPTION
-    echo "Found the storage account ${REMOTE_STATE_SA}"
+    echo "Found the storage account:             ${REMOTE_STATE_SA}"
 }
 
 # /*---------------------------------------------------------------------------8
