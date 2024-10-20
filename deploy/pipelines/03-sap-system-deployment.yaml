@@ -114,19 +114,11 @@ stages:
                     NETWORK=$(grep "^network_logical_name" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
                     SID=$(grep "^sid" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
 
-                echo "Environment:           $ENVIRONMENT"
-                echo "Location:              $LOCATION"
-                echo "Network:               $NETWORK"
-                echo "SID:                   $SID"
-                echo "System TFvars          $sap_system_configuration"
-                echo ""
-                echo "Agent:                 $(this_agent)"
-                echo "Organization:          $(System.CollectionUri)"
-                echo "Project:               $(System.TeamProject)"
-                echo ""
-                echo "Azure CLI version:"
-                echo "-------------------------------------------------"
-                az --version
+                echo "Environment:                           $ENVIRONMENT"
+                echo "Location:                              $LOCATION"
+                echo "Network:                               $NETWORK"
+                echo "SID:                                   $SID"
+                echo "System TFvars                          $sap_system_configuration"
 
                 ENVIRONMENT_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ;
                           LOCATION_CODE=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ;
@@ -191,10 +183,20 @@ stages:
                   *) LOCATION_IN_FILENAME="westeurope" ;;
                 esac
 
-                echo "Environment(filename):                $ENVIRONMENT_IN_FILENAME"
-                echo "Location(filename):                   $LOCATION_IN_FILENAME"
-                echo "Network(filename):                    $NETWORK_IN_FILENAME"
-                echo "SID(filename):                        $SID_IN_FILENAME"
+                echo "Environment(filename):                 $ENVIRONMENT_IN_FILENAME"
+                echo "Location(filename):                    $LOCATION_IN_FILENAME"
+                echo "Network(filename):                     $NETWORK_IN_FILENAME"
+                echo "SID(filename):                         $SID_IN_FILENAME"
+
+                echo ""
+                echo "Agent:                                 $(this_agent)"
+                echo "Organization:                          $(System.CollectionUri)"
+                echo "Project:                               $(System.TeamProject)"
+                echo ""
+                echo "Azure CLI version:"
+                echo "-------------------------------------------------"
+                az --version
+
 
                 if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
                   echo "##vso[task.logissue type=error]The environment setting in $(sap_system_configuration) '$ENVIRONMENT' does not match the $(sap_system_configuration) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
