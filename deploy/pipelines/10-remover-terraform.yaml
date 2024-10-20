@@ -193,7 +193,7 @@ stages:
                 az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
+
                 if [ -z ${VARIABLE_GROUP_ID} ]; then
                   echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                   exit 2
@@ -286,6 +286,11 @@ stages:
                 echo "Location(filename):    $LOCATION_IN_FILENAME"
                 echo "Network(filename):     $NETWORK_IN_FILENAME"
                 echo "SID(filename):         $SID_IN_FILENAME"
+
+                printf -v val '%-15s' "$(variable_group) id:"
+                echo "$val                        $VARIABLE_GROUP_ID"
+                printf -v val '%-15s' "$(parent_variable_group) id:"
+                echo "$val                        $PARENT_VARIABLE_GROUP_ID"
 
                 echo ""
 
@@ -648,6 +653,10 @@ stages:
               echo "Location(filename):    $LOCATION_IN_FILENAME"
               echo "Network(filename):     $NETWORK_IN_FILENAME"
               echo ""
+              printf -v val '%-15s' "$(variable_group) id:"
+              echo "$val                        $VARIABLE_GROUP_ID"
+              printf -v val '%-15s' "$(parent_variable_group) id:"
+              echo "$val                        $PARENT_VARIABLE_GROUP_ID"
 
               if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
                   echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) '$ENVIRONMENT' does not match the $(workload_zone_configuration_file) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
