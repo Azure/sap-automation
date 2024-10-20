@@ -234,7 +234,8 @@ stages:
                   exit 2
                 fi
 
-                deployer_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE; echo "Environment file: " $deployer_environment_file_name
+                deployer_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE;
+                echo "Environment file:                     $deployer_environment_file_name"
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
                 if [ -n "${az_var}" ]; then
@@ -580,6 +581,8 @@ stages:
 
                   echo "Environment:                          ${ENVIRONMENT}"
                   echo "Location:                             ${LOCATION}"
+                  echo "Location code:                        ${LOCATION_CODE}"
+
                   echo "Environment(filename):                $ENVIRONMENT_IN_FILENAME"
                   echo "Location(filename):                   $LOCATION_IN_FILENAME"
                   echo ""
@@ -596,7 +599,8 @@ stages:
 
                 echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
 
-                  deployer_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION; echo "Environment file: " $deployer_environment_file_name
+                  deployer_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE
+                  echo "Environment file:                     $deployer_environment_file_name"
 
                 echo -e "$green--- az login ---$reset"
 
