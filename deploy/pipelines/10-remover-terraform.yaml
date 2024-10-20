@@ -367,6 +367,9 @@ stages:
               fi
 
               echo -e "$green--- Set variables ---$reset"
+              cat "${workload_environment_file_name}"
+              grep   "^workloadkeyvault=" "${workload_environment_file_name}"
+              grep  -m1 "^workloadkeyvault=" "${workload_environment_file_name}"
 
               az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}Workload_Key_Vault.value" --out tsv)
               if [ -z ${az_var} ]; then
