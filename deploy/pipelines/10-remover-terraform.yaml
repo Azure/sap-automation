@@ -292,7 +292,7 @@ stages:
               echo "Network(filename):                    $NETWORK_IN_FILENAME"
               echo "SID(filename):                        $SID_IN_FILENAME"
 
-              tempval=$(echo "$(variable_group) | xargs ")
+              tempval= $(echo $(variable_group) | xargs)
               printf -v val '%-20s' "$tempval id:"
               echo "$val                        $VARIABLE_GROUP_ID"
               tempval=$(echo "$(parent_variable_group) | xargs ")
@@ -668,10 +668,10 @@ stages:
               echo "Network(filename):                    $NETWORK_IN_FILENAME"
               echo ""
 
-              tempval=$(echo "$(variable_group) | xargs ")
+              tempval=$(echo $(variable_group) | xargs )
               printf -v val '%-20s' "$tempval id:"
               echo "$val                        $VARIABLE_GROUP_ID"
-              tempval=$(echo "$(parent_variable_group) | xargs ")
+              tempval=$(echo $(parent_variable_group) | xargs )
               printf -v val '%-20s' "$tempval id:"
               echo "$val                        $PARENT_VARIABLE_GROUP_ID"
 
