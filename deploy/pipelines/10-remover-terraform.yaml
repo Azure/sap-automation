@@ -210,8 +210,6 @@ stages:
               dos2unix -q $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
               echo -e "$green--- Read parameters ---$reset"
 
-              systemConfigurationFile=$HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
-
               ENVIRONMENT=$(grep "^environment" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
               LOCATION=$(grep "^location" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
               NETWORK=$(grep "^network_logical_name" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
@@ -280,6 +278,9 @@ stages:
                   *) LOCATION_IN_FILENAME="westeurope" ;;
               esac
 
+
+              workload_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE$NETWORK;
+              echo "Workload Environment file:            $workload_environment_file_name"
 
               echo "Environment:                          $ENVIRONMENT"
               echo "Location:                             $LOCATION"
@@ -369,9 +370,6 @@ stages:
               fi
 
               echo -e "$green--- Set variables ---$reset"
-              cat "${systemConfigurationFile}"
-              grep   "^workloadkeyvault=" "${systemConfigurationFile}"
-              grep  -m1 "^workloadkeyvault=" "${systemConfigurationFile}"
 
               az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}Workload_Key_Vault.value" --out tsv)
               if [ -z ${az_var} ]; then
@@ -589,6 +587,8 @@ stages:
               LOCATION=$(grep "^location" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
               NETWORK=$(grep "^network_logical_name" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs)
 
+              workload_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE$NETWORK;
+
               ENVIRONMENT_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs )
               LOCATION_CODE=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs )
               case "$LOCATION_CODE" in
@@ -651,13 +651,18 @@ stages:
               esac
 
               NETWORK_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $3}' | xargs )
-              echo "Environment:           ${ENVIRONMENT}"
-              echo "Location:              ${LOCATION}"
-              echo "Network:               ${NETWORK}"
+              workload_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE$NETWORK;
+              echo "Workload Environment file:            $workload_environment_file_name"
+              echo "Environment:                          ${ENVIRONMENT}"
+              echo "Location:                             ${LOCATION}"
+              echo "Network:                              ${NETWORK}"
               echo ""
-              echo "Environment(filename): $ENVIRONMENT_IN_FILENAME"
-              echo "Location(filename):    $LOCATION_IN_FILENAME"
-              echo "Network(filename):     $NETWORK_IN_FILENAME"
+
+              workload_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE$NETWORK;
+              echo "Environment file:                     $workload_environment_file_name"
+              echo "Environment(filename):                $ENVIRONMENT_IN_FILENAME"
+              echo "Location(filename):                   $LOCATION_IN_FILENAME"
+              echo "Network(filename):                    $NETWORK_IN_FILENAME"
               echo ""
               printf -v val '%-15s' "$(variable_group) id:"
               echo "$val                        $VARIABLE_GROUP_ID"
@@ -689,7 +694,7 @@ stages:
 
               az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}Workload_Key_Vault.value" --out tsv)
               if [ -z ${az_var} ]; then
-                  export workload_key_vault=$(grep "^workloadkeyvault=" "${workload_environment_file_name}"   | awk -F'=' '{print $2}' | xargs)
+                  export workload_key_vault=$(grep -m1 "^workloadkeyvault=" "${workload_environment_file_name}"   | awk -F'=' '{print $2}' | xargs)
               else
                   export workload_key_vault="${az_var}"
               fi
@@ -711,13 +716,13 @@ stages:
               if [ -n "${az_var}" ]; then
                   REMOTE_STATE_SA="${az_var}"
               else
-                  REMOTE_STATE_SA=$(grep "REMOTE_STATE_SA"  ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
+                  REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA="  ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
               fi
 
-              echo "Workload Key Vault:    ${workload_key_vault}"
-              echo "Deployer Key Vault:    ${key_vault}"
-              echo "TF state subscription: $STATE_SUBSCRIPTION"
-              echo "TF state account:      $REMOTE_STATE_SA"
+              echo "Workload Key Vault:                   ${workload_key_vault}"
+              echo "Deployer Key Vault:                   ${key_vault}"
+              echo "Terraform state subscription:         $STATE_SUBSCRIPTION"
+              echo "Terraform state account:              $REMOTE_STATE_SA"
 
               # Check if running on deployer
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
