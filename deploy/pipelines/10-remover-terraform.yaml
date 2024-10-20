@@ -296,8 +296,9 @@ stages:
               echo "0"
               printf -v tempval '%s id:' $(variable_group)
               echo $tempval "1"
+              echo $tempval#
               echo "1"
-              printf -v val '%-20s' $tempval
+              printf -v val '%-20s' "${tempval}"
               echo "$val                        $VARIABLE_GROUP_ID"
               echo "2"
 
