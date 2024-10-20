@@ -56,7 +56,8 @@ provider "azurerm"                     {
                                          alias                      = "deployer"
 
                                          storage_use_azuread        = true
-                                         use_msi                    = var.use_spn ? false : true
+                                         use_msi                    = false
+                                         subscription_id            = coalesce(local.deployer_subscription_id, local.spn.subscription_id)
                                        }
 
 provider "azurerm"                     {
