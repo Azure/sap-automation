@@ -210,6 +210,8 @@ stages:
               dos2unix -q $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
               echo -e "$green--- Read parameters ---$reset"
 
+              systemConfigurationFile=$HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration)
+
               ENVIRONMENT=$(grep "^environment" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
               LOCATION=$(grep "^location" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
               NETWORK=$(grep "^network_logical_name" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
@@ -367,13 +369,13 @@ stages:
               fi
 
               echo -e "$green--- Set variables ---$reset"
-              cat "${workload_environment_file_name}"
-              grep   "^workloadkeyvault=" "${workload_environment_file_name}"
-              grep  -m1 "^workloadkeyvault=" "${workload_environment_file_name}"
+              cat "${systemConfigurationFile}"
+              grep   "^workloadkeyvault=" "${systemConfigurationFile}"
+              grep  -m1 "^workloadkeyvault=" "${systemConfigurationFile}"
 
               az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}Workload_Key_Vault.value" --out tsv)
               if [ -z ${az_var} ]; then
-                  export workload_key_vault=$(grep  -m1 "^workloadkeyvault=" "${workload_environment_file_name}"  |  awk -F'=' '{print $2}' | xargs)
+                  export workload_key_vault=$(grep  -m1 "^workloadkeyvault=" "${systemConfigurationFile}"  |  awk -F'=' '{print $2}' | xargs)
               else
                   export workload_key_vault="${az_var}"
               fi
@@ -381,27 +383,28 @@ stages:
               if [ -n $(Deployer_Key_Vault) ]; then
                   export key_vault=$(Deployer_Key_Vault)
               else
-                  export key_vault=$(grep -m1 "^keyvault=" ${workload_environment_file_name}  |  awk -F'=' '{print $2}' | xargs)
+                  export key_vault=$(grep -m1 "^keyvault=" ${systemConfigurationFile}  |  awk -F'=' '{print $2}' | xargs)
               fi
 
               az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" --out tsv)
               if [ -n "${az_var}" ]; then
                   STATE_SUBSCRIPTION="${az_var}"
               else
-                  STATE_SUBSCRIPTION=$(grep "^STATE_SUBSCRIPTION=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
+                  STATE_SUBSCRIPTION=$(grep "^STATE_SUBSCRIPTION=" ${systemConfigurationFile}  | awk -F'=' '{print $2}' | xargs)
               fi
 
               az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
               if [ -n "${az_var}" ]; then
                   REMOTE_STATE_SA="${az_var}"
               else
-                  REMOTE_STATE_SA=$(grep "REMOTE_STATE_SA"  ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
+                  REMOTE_STATE_SA=$(grep "REMOTE_STATE_SA"  ${systemConfigurationFile}  | awk -F'=' '{print $2}' | xargs)
               fi
 
               echo "Deployer Key Vault:    ${key_vault}"
               echo "Workload Key Vault:    ${workload_key_vault}"
               echo "TF state subscription: $STATE_SUBSCRIPTION"
               echo "TF state account:      $REMOTE_STATE_SA"
+              echo "System configuration:  $systemConfigurationFile"
 
               echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
               cd $CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder)
