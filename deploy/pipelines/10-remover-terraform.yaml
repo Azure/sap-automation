@@ -294,7 +294,7 @@ stages:
               echo "SID(filename):                        $SID_IN_FILENAME"
 
               tempval= '$(variable_group)'
-              echo '$(variable_group)" id:"
+              echo '$(variable_group) id:'
               printf -v val '%-20s' ("$tempval id:")
               echo "$val                        $VARIABLE_GROUP_ID"
               tempval= '$(parent_variable_group) id:'
