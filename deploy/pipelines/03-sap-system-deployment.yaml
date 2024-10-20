@@ -231,14 +231,14 @@ stages:
                 fi
               echo -e "$green--- Configure devops CLI extension ---$reset"
 
-                az config set extension.use_dynamic_install=yes_without_prompt --output none
+                az config set extension.use_dynamic_install=yes_without_prompt --output none  --only-show-errors
 
-                az extension add --name azure-devops --output none
+                az extension add --name azure-devops --output none --only-show-errors
 
-                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none --only-show-errors
 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
+                echo "$(variable_group) id:        $VARIABLE_GROUP_ID"
                 if [ -z ${VARIABLE_GROUP_ID} ]; then
                   echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                   exit 2
