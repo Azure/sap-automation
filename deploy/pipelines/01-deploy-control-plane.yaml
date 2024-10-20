@@ -124,8 +124,11 @@ stages:
                             az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
                             export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-                            printf -v val '%-15s' "$(variable_group) id:"
-                            echo "$val                        $VARIABLE_GROUP_ID"
+
+
+                            printf -v tempval '%s id:' $(parent_variable_group)
+                            printf -v val '%-20s' "${tempval}"
+                            echo "$val                  $VARIABLE_GROUP_ID"
 
                             if [ "${{ parameters.force_reset }}" = "True" ]; then
                               echo "##vso[task.logissue type=warning]Forcing a re-install"
@@ -140,7 +143,7 @@ stages:
                                 key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
                               else
                                 echo "Reading key vault from environment file"
-                                key_vault=$(grep -m1 "^keyvault=""   ${deployer_environment_file_name} |awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                                key_vault=$(grep -m1 "^keyvault="   ${deployer_environment_file_name} |awk -F'=' '{print $2}' | xargs)
                               fi
 
                               key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
