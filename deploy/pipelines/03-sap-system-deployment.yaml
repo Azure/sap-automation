@@ -246,7 +246,7 @@ stages:
                   exit 2
                 fi
                 printf -v val '%-15s' "$(variable_group) id:"
-                echo "$val                      $VARIABLE_GROUP_ID"
+                echo "$val                        $VARIABLE_GROUP_ID"
               echo -e "$green--- Login ---$reset"
 
                 if [ -z $USE_MSI ]; then

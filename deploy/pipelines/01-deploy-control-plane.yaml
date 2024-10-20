@@ -106,22 +106,26 @@ stages:
                             git checkout -q $(Build.SourceBranchName)
                         echo -e "$green--- Configure devops CLI extension ---$reset"
                             az config set extension.use_dynamic_install=yes_without_prompt
-                            az --version
 
-                            az extension add --name azure-devops --output none
+                            az extension add --name azure-devops --output none --only-show-errors
 
+                            echo "Environment:                           $ENVIRONMENT"
+                            echo "Location:                              $LOCATION"
 
-                            echo "Environment:           ${ENVIRONMENT}"
-                            echo "Location:              ${LOCATION}"
                             echo ""
-                            echo "Agent:                 $(this_agent)"
-                            echo "Organization:          $(System.CollectionUri)"
-                            echo "Project:               $(System.TeamProject)"
-
+                            echo "Agent:                                 $(this_agent)"
+                            echo "Organization:                          $(System.CollectionUri)"
+                            echo "Project:                               $(System.TeamProject)"
+                            echo ""
+                            echo "Azure CLI version:"
+                            echo "-------------------------------------------------"
+                            az --version
+                            echo ""
                             az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
-                            export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
 
-                            echo "$(variable_group) id:  ${VARIABLE_GROUP_ID}"
+                            export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
+                            printf -v val '%-15s' "$(variable_group) id:"
+                            echo "$val                        $VARIABLE_GROUP_ID"
 
                             if [ "${{ parameters.force_reset }}" = "True" ]; then
                               echo "##vso[task.logissue type=warning]Forcing a re-install"
@@ -434,15 +438,15 @@ stages:
                     fi
 
                     echo -e "$green--- Information ---$reset"
-                    echo "Environment:          ${ENVIRONMENT}"
-                    echo "Location:             ${LOCATION}"
-                    echo "Agent:                $(this_agent)"
-                    echo "Organization:         $(System.CollectionUri)"
-                    echo "Project:              $(System.TeamProject)"
-                    echo "Deployer Folder:      $(deployerfolder)"
-                    echo "Deployer TFvars:      $(deployerconfig)"
-                    echo "Library Folder:       $(libraryfolder)"
-                    echo "Library TFvars:       $(libraryconfig)"
+                    echo "Environment:                           ${ENVIRONMENT}"
+                    echo "Location:                              ${LOCATION}"
+                    echo "Agent:                                 $(this_agent)"
+                    echo "Organization:                          $(System.CollectionUri)"
+                    echo "Project:                               $(System.TeamProject)"
+                    echo "Deployer Folder:                       $(deployerfolder)"
+                    echo "Deployer TFvars:                       $(deployerconfig)"
+                    echo "Library Folder:                        $(libraryfolder)"
+                    echo "Library TFvars:                        $(libraryconfig)"
 
                     echo ""
                     echo "Azure CLI version:"
@@ -480,19 +484,20 @@ stages:
                         echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                         exit 2
                     fi
-                    echo "VARIABLE_GROUP_ID:    ${VARIABLE_GROUP_ID}"
-
+                    printf -v val '%-15s' "$(variable_group) id:"
+                    echo "$val                        $VARIABLE_GROUP_ID"
 
                     echo -e "$green--- Variables ---$reset"
                     az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Deployer_Key_Vault.value" --output tsv)
                     if [ -n "${az_var}"  ]; then
                         export key_vault="${az_var}"
-                        echo "Deployer Key Vault:   ${key_vault}"
+                        echo "Deployer Key Vault:                    ${key_vault}"
                     else
                         if [ -f "${deployer_environment_file_name}" ] ; then
 
                             key_vault=$(grep "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-                            echo "Deployer Key Vault:   ${key_vault}"
+                            echo "Deployer Key Vault:                    ${key_vault}"
+                            echo "Deployer TFvars:                       $(deployerconfig)"
                             az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name Deployer_Key_Vault --value "${key_vault}" --output none --only-show-errors
                         fi
                     fi
@@ -500,11 +505,11 @@ stages:
                     az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Terraform_Remote_Storage_Subscription.value"  --output tsv)
                     if [ -n "${az_var}"  ]; then
                         export STATE_SUBSCRIPTION="${az_var}"
-                        echo "TF Subscription:      ${STATE_SUBSCRIPTION}"
+                        echo "Terraform Subscription:                ${STATE_SUBSCRIPTION}"
                     else
                         if [ -f "${deployer_environment_file_name}" ] ; then
                             export STATE_SUBSCRIPTION=$(grep "^STATE_SUBSCRIPTION=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-                            echo "TF Subscription:      ${STATE_SUBSCRIPTION}"
+                            echo "Terraform Subscription:                ${STATE_SUBSCRIPTION}"
 
                             az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Subscription --value "${STATE_SUBSCRIPTION}" --output none --only-show-errors
                         fi
@@ -521,11 +526,12 @@ stages:
                     az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Terraform_Remote_Storage_Account_Name.value"  --output tsv)
                     if [ -n "${az_var}"  ]; then
                         export REMOTE_STATE_SA="${az_var}"
-                        echo "TF Account:           ${REMOTE_STATE_SA}"
+                        echo "Terraform storage account:             ${REMOTE_STATE_SA}"
+
                     else
                         if [ -f "${deployer_environment_file_name}" ] ; then
                             REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
-                            echo "TF Account:           ${REMOTE_STATE_SA}"
+                            echo "Terraform storage account:             ${REMOTE_STATE_SA}"
 
                         fi
                     fi
@@ -550,7 +556,7 @@ stages:
                     fi
 
                     if [ "$USE_WEBAPP" = "true" ]; then
-                        echo "Use WebApp is selected"
+                        echo "Deploy Web Application:                true"
 
                         if [ -z "${APP_REGISTRATION_APP_ID}" ]; then
                             echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
@@ -567,7 +573,8 @@ stages:
                         TF_VAR_webapp_client_secret=$(WEB_APP_CLIENT_SECRET)
                         export TF_VAR_webapp_client_secret
                         export TF_VAR_use_webapp=true
-
+                    else
+                      echo "Deploy Web Application:                false"
                     fi
 
                     bootstrapped=0

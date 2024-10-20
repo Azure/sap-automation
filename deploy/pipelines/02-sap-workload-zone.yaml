@@ -220,14 +220,16 @@ stages:
                 ENVIRONMENT=$(grep "^environment" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs)
                 LOCATION=$(grep "^location" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
                 NETWORK=$(grep "^network_logical_name" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs)
-                echo Environment:     ${ENVIRONMENT}
-                echo Location:        ${LOCATION}
-                echo Network:         ${NETWORK}
-                echo "TFvars          $workload_zone_configuration_file"
+
+                echo "Environment(filename):                 $ENVIRONMENT_IN_FILENAME"
+                echo "Location(filename):                    $LOCATION_IN_FILENAME"
+                echo "Network(filename):                     $NETWORK_IN_FILENAME"
+                echo "SID(filename):                         $SID_IN_FILENAME"
+
                 echo ""
-                echo "Agent:          $(this_agent)"
-                echo "Organization:   $(System.CollectionUri)"
-                echo "Project:        $(System.TeamProject)"
+                echo "Agent:                                 $(this_agent)"
+                echo "Organization:                          $(System.CollectionUri)"
+                echo "Project:                               $(System.TeamProject)"
                 echo ""
                 echo "Azure CLI version:"
                 echo "-------------------------------------------------"
