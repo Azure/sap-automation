@@ -245,8 +245,8 @@ stages:
                   echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                   exit 2
                 fi
-                printf -v val '%-15s' $(variable_group)
-                echo "$val id:        $VARIABLE_GROUP_ID"
+                printf -v val '%-15s id:' $(variable_group)
+                echo "$val                      $VARIABLE_GROUP_ID"
               echo -e "$green--- Login ---$reset"
 
                 if [ -z $USE_MSI ]; then
