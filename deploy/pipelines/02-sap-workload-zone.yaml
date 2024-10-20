@@ -213,9 +213,8 @@ stages:
                     fi
                 fi
 
-                echo -e "$green--- Convert config file to UX format ---$reset"
                 dos2unix -q LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file)
-                echo -e "$green--- Read details ---$reset"
+                echo -e "$green--- Read deployment details ---$reset"
 
                 ENVIRONMENT=$(grep "^environment" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs)
                 LOCATION=$(grep "^location" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
@@ -328,23 +327,22 @@ stages:
                 az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
                 export PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
+                printf -v val '%-15s' "$(parent_variable_group) id:"
+                echo "$val                        $VARIABLE_GROUP_ID"
 
-                echo '$(parent_variable_group) id: ' $PARENT_VARIABLE_GROUP_ID
                 if [ -z ${PARENT_VARIABLE_GROUP_ID} ]; then
                     echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
                     exit 2
                 fi
 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
+
                 if [ -z ${VARIABLE_GROUP_ID} ]; then
                     echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                     exit 2
                 fi
-
-                echo "Agent Pool: " $(this_agent)
-
-                echo -e "$green--- Set CONFIG_REPO_PATH variable ---$reset"
+                printf -v val '%-15s' "$(variable_group) id:"
+                echo "$val                        $VARIABLE_GROUP_ID"
 
                 deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/$(deployer_environment)$(deployer_region) ; echo 'Deployer Environment File' $deployer_environment_file_name
                 workload_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}  ; echo 'Workload Environment File' $workload_environment_file_name
