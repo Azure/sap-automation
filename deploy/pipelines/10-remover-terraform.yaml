@@ -291,7 +291,6 @@ stages:
               echo "Location(filename):                   $LOCATION_IN_FILENAME"
               echo "Network(filename):                    $NETWORK_IN_FILENAME"
               echo "SID(filename):                        $SID_IN_FILENAME"
-              echo "Deployment credentials:               Service Principal"
 
               printf -v val '%-15s' "$(variable_group) id:"
               echo "$val                        $VARIABLE_GROUP_ID"
@@ -323,8 +322,9 @@ stages:
               # Check if running on deployer
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
-                  if [ $LOGON_USING_SPN == "true" ]; then
-                      echo "Logon Using SPN"
+                  if [ $USE_MSI != "true" ]; then
+                      echo "Deployment credentials:               Service Principal"
+                      echo "Deployment credentials Id (SPN):      $WL_ARM_CLIENT_SECRET"
 
                       export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                       export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
@@ -346,7 +346,8 @@ stages:
                   echo -e "$green--- Running on deployer ---$reset"
 
                   if [ $USE_MSI != "true" ]; then
-                      echo -e "$cyan--- Remove using Service Principals ---$reset"
+                      echo "Deployment credentials:               Service Principal"
+                      echo "Deployment credentials Id (SPN):      $WL_ARM_CLIENT_SECRET"
 
                       export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                       export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
@@ -361,7 +362,7 @@ stages:
                           exit $return_code
                       fi
                   else
-                      echo -e "$cyan --- Remove using Managed Identity ---$reset"
+                      echo "Deployment credentials:               Managed Identity"
                       export ARM_USE_MSI=true
                       export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
                       unset ARM_TENANT_ID
@@ -373,7 +374,7 @@ stages:
 
               az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}Workload_Key_Vault.value" --out tsv)
               if [ -z ${az_var} ]; then
-                  export workload_key_vault=$(grep  -m1 "^workloadkeyvault=" "${systemConfigurationFile}"  |  awk -F'=' '{print $2}' | xargs)
+                  export workload_key_vault=$(grep  -m1 "^workloadkeyvault=" "${workload_environment_file_name}"  |  awk -F'=' '{print $2}' | xargs)
               else
                   export workload_key_vault="${az_var}"
               fi
@@ -381,28 +382,28 @@ stages:
               if [ -n $(Deployer_Key_Vault) ]; then
                   export key_vault=$(Deployer_Key_Vault)
               else
-                  export key_vault=$(grep -m1 "^keyvault=" ${systemConfigurationFile}  |  awk -F'=' '{print $2}' | xargs)
+                  export key_vault=$(grep -m1 "^keyvault=" ${workload_environment_file_name}  |  awk -F'=' '{print $2}' | xargs)
               fi
 
               az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" --out tsv)
               if [ -n "${az_var}" ]; then
                   STATE_SUBSCRIPTION="${az_var}"
               else
-                  STATE_SUBSCRIPTION=$(grep "^STATE_SUBSCRIPTION=" ${systemConfigurationFile}  | awk -F'=' '{print $2}' | xargs)
+                  STATE_SUBSCRIPTION=$(grep "^STATE_SUBSCRIPTION=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
               fi
 
               az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
               if [ -n "${az_var}" ]; then
                   REMOTE_STATE_SA="${az_var}"
               else
-                  REMOTE_STATE_SA=$(grep "REMOTE_STATE_SA"  ${systemConfigurationFile}  | awk -F'=' '{print $2}' | xargs)
+                  REMOTE_STATE_SA=$(grep "REMOTE_STATE_SA"  ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
               fi
 
-              echo "Deployer Key Vault:    ${key_vault}"
-              echo "Workload Key Vault:    ${workload_key_vault}"
-              echo "TF state subscription: $STATE_SUBSCRIPTION"
-              echo "TF state account:      $REMOTE_STATE_SA"
-              echo "System configuration:  $systemConfigurationFile"
+              echo "Deployer Key Vault:                   ${key_vault}"
+              echo "Workload Key Vault:                   ${workload_key_vault}"
+              echo "TF state subscription:                $STATE_SUBSCRIPTION"
+              echo "TF state account:                     $REMOTE_STATE_SA"
+              echo "System configuration:                 $systemConfigurationFile"
 
               echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
               cd $CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder)
