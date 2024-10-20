@@ -283,23 +283,23 @@ stages:
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" --out tsv)
                 if [ -z ${az_var} ]; then
-                  export STATE_SUBSCRIPTION=$(grep STATE_SUBSCRIPTION ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                  export STATE_SUBSCRIPTION=$(grep STATE_SUBSCRIPTION ${environment_file_name} | awk -F'=' '{print $2}' | xargs)
                 else
-                  export STATE_SUBSCRIPTION=${az_var} ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                  export STATE_SUBSCRIPTION=${az_var}
                 fi
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
                 if [ -z ${az_var} ]; then
-                  export REMOTE_STATE_SA=$(grep REMOTE_STATE_SA ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                  export REMOTE_STATE_SA=$(grep REMOTE_STATE_SA ${environment_file_name} | awk -F'=' '{print $2}' | xargs)
                 else
-                  export REMOTE_STATE_SA=${az_var} ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                  export REMOTE_STATE_SA=${az_var}
                 fi
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" --out tsv)
                 if [ -z ${az_var} ]; then
-                  export deployer_tfstate_key=$(grep deployer_tfstate_key ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
+                  export deployer_tfstate_key=$(grep deployer_tfstate_key ${environment_file_name} | awk -F'=' '{print $2}' | xargs)
                 else
-                  export deployer_tfstate_key=${az_var} ; echo 'Deployer State File' $deployer_tfstate_key
+                  export deployer_tfstate_key=${az_var}
                 fi
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Zone_State_FileName.value | tr -d \")

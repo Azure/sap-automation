@@ -311,7 +311,6 @@ stages:
                 echo "-------------------------------------------------"
                 az --version
 
-
                 if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
                     echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) '$ENVIRONMENT' does not match the $(workload_zone_configuration_file) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
                     exit 2
