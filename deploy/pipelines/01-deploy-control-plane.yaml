@@ -215,7 +215,7 @@ stages:
                             sudo mv terraform /opt/terraform/bin/terraform
                             sudo chmod +x /opt/terraform/bin/terraform
                             rm -f terraform_$(tf_version)_linux_amd64.zip
-                            az extension add --name storage-blob-preview >/dev/null
+                            az extension add --name storage-blob-preview --allow-preview true --only-show-errors >/dev/null
                         fi
                         echo -e "$green--- Configure parameters ---$reset"
                             echo -e "$green--- Convert config files to UX format ---$reset"
@@ -225,10 +225,10 @@ stages:
                             deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
                         echo -e "$green--- Deploy the Control Plane ---$reset"
                             if [ -n "$(PAT)" ]; then
-                                echo 'Deployer Agent PAT is defined'
+                                echo "Deployer Agent PAT:                   IsDefined"
                             fi
                             if [ -n "$(POOL)" ]; then
-                                echo "Deployer Agent Pool:   $(POOL)"
+                                echo "Deployer Agent Pool:                  $(POOL)"
 
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
@@ -238,9 +238,10 @@ stages:
                             fi
 
                             if [ $(use_webapp) = "true" ]; then
-                                echo "Deploy Web App:        true"
+                                echo "Deploy Web App:                       true"
+
                             else
-                                echo "Deploy Web App:        false"
+                                echo "Deploy Web App:                       false"
                             fi
 
                             export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
@@ -537,8 +538,13 @@ stages:
                     fi
 
                     echo "Terraform state subscription:         $STATE_SUBSCRIPTION"
-                    echo "Terraform state rg name:              $REMOTE_STATE_RG"
-                    echo "Terraform storage account:            $REMOTE_STATE_SA"
+                    if [ -n "${REMOTE_STATE_RG}"  ]; then
+                        echo "Terraform state rg name:              $REMOTE_STATE_RG"
+                    fi
+                    if [ -n "${REMOTE_STATE_SA}"  ]; then
+                        echo "Terraform storage account:            $REMOTE_STATE_SA"
+                    fi
+
                     echo "Deployer Key Vault:                   ${key_vault}"
                     echo "Deployer TFvars:                      $(deployerconfig)"
 
@@ -735,7 +741,7 @@ stages:
                     echo -e "$green--- Deploy the Control Plane ---$reset"
 
                     if [ -n "$(POOL)" ]; then
-                        echo "Deployer Agent Pool:  $(POOL)"
+                        echo "Deployer Agent Pool:                  $(POOL)"
                     fi
 
                     if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip" ]; then

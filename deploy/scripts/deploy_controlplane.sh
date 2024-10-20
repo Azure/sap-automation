@@ -84,12 +84,13 @@ echo "ADO flag:             ${ado_flag}"
 key=$(basename "${deployer_parameter_file}" | cut -d. -f1)
 deployer_tfstate_key="${key}.terraform.tfstate"
 
-echo "Deployer State File:  ${deployer_tfstate_key}"
+echo "Deployer State File:                  ${deployer_tfstate_key}"
 
 key=$(basename "${library_parameter_file}" | cut -d. -f1)
 library_tfstate_key="${key}.terraform.tfstate"
 
-echo "Library State File:   ${library_tfstate_key}"
+echo "Deployer State File:                  ${deployer_tfstate_key}"
+echo "Library State File:                   ${library_tfstate_key}"
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 root_dirname=$(pwd)
@@ -132,7 +133,8 @@ fi
 # Convert the region to the correct code
 get_region_code "$region"
 
-echo "Region code:           ${region_code}"
+echo "Region code:                          ${region_code}"
+
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
