@@ -300,10 +300,10 @@ fi
 useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription ${STATE_SUBSCRIPTION} --out tsv)
 
 if [ "$useSAS" = "true" ] ; then
-  echo "Storage Account Authentication:  Key"
+  echo "Storage Account Authentication:        Key"
   export ARM_USE_AZUREAD=false
 else
-  echo "Storage Account Authentication:  Entra ID"
+  echo "Storage Account Authentication:        Entra ID"
   export ARM_USE_AZUREAD=true
 fi
 
@@ -314,7 +314,7 @@ if [[ -z $landscape_tfstate_key ]];
 then
     load_config_vars "${system_config_information}" "landscape_tfstate_key"
 else
-    echo "Workload zone file name:" "${landscape_tfstate_key}"
+    echo "Workload zone state file:              ${landscape_tfstate_key}"
     save_config_vars "${system_config_information}" landscape_tfstate_key
 fi
 
@@ -341,7 +341,7 @@ then
         fi
     else
         landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
-        echo "Workload zone state file:        ${landscape_tfstate_key}"
+        echo "Workload zone state file:              ${landscape_tfstate_key}"
     fi
 fi
 

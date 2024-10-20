@@ -485,7 +485,7 @@ function validate_dependencies {
 }
 
 function validate_key_parameters {
-    echo "Validating $1"
+    echo "Validating:                            $1"
     ext=$(echo $1 | cut -d. -f2)
 
     # Helper variables
