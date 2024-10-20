@@ -296,10 +296,14 @@ stages:
 
 
               printf -v tempval '%s id:' $(variable_group)
-              echo "$tempval                        $VARIABLE_GROUP_ID"
+              echo $tempval
+              printf -v val '%-20s id:' $tempval
+              echo "$val                        $VARIABLE_GROUP_ID"
 
               printf -v tempval '%s id:' $(parent_variable_group)
-              echo "$tempval                        $PARENT_VARIABLE_GROUP_ID"
+              echo $tempval
+              printf -v val '%-20s id:' $tempval
+              echo "$val                        $PARENT_VARIABLE_GROUP_ID"
 
               echo ""
 
