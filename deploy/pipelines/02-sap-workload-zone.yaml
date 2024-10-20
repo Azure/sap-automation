@@ -296,7 +296,7 @@ stages:
                 echo "Workload TFvars                       $workload_zone_configuration_file"
                 echo ""
 
-                echo "Agent:                                $(this_agent)"
+                echo "Agent pool:                           $(this_agent)"
                 echo "Organization:                         $(System.CollectionUri)"
                 echo "Project:                              $(System.TeamProject)"
                 echo ""
@@ -361,64 +361,79 @@ stages:
 
                     az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" --out tsv)
                     if [ -z ${az_var} ]; then
-                        deployer_tfstate_key=$(cat ${deployer_environment_file_name}  | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
+                        deployer_tfstate_key=$(grep "^deployer_tfstate_key=" ${deployer_environment_file_name} | awk -F'=' '{print $2}' | xargs)
                     else
-                        deployer_tfstate_key=${az_var} ; echo 'Deployer State File' $deployer_tfstate_key
+                        deployer_tfstate_key=${az_var}
                     fi
 
                     az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
                     if [ -z ${az_var} ]; then
-                        key_vault=$(cat ${deployer_environment_file_name}  | grep keyvault= | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                        key_vault=$(grep "^keyvault=" ${deployer_environment_file_name} | awk -F'=' '{print $2}' | xargs)
                     else
-                        key_vault=${az_var}; echo 'Deployer Key Vault' ${key_vault}
+                        key_vault=${az_var}
                     fi
 
                     az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
                     if [ -z ${az_var} ]; then
-                        REMOTE_STATE_SA=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                        REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA"  ${deployer_environment_file_name}  |  awk -F'=' '{print $2}' | xargs) ;
                     else
                         REMOTE_STATE_SA=${az_var}; echo 'Terraform state file storage account' $REMOTE_STATE_SA
                     fi
 
                     az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" --out tsv)
                     if [ -z ${az_var} ]; then
-                        STATE_SUBSCRIPTION=$(cat ${deployer_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                        STATE_SUBSCRIPTION=$(grep "^STATE_SUBSCRIPTION" ${deployer_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
                     else
                         STATE_SUBSCRIPTION=${az_var}; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+
                     fi
 
                     az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WL_ARM_SUBSCRIPTION_ID.value" --out tsv)
                     if [ -z ${az_var} ]; then
                         echo "##vso[task.logissue type=error]Variable WL_ARM_SUBSCRIPTION_ID was not defined."
                         exit 2
-                    else
-                        echo 'Target subscription' $WL_ARM_SUBSCRIPTION_ID
                     fi
 
                     az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Workload_Key_Vault.value" --out tsv)
                     if [ -z ${az_var} ]; then
                         if [ -f ${workload_environment_file_name} ]; then
-                            export workload_key_vault=$(cat ${workload_environment_file_name}  | grep workloadkeyvault     | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+                            export workload_key_vault=$(grep "^workloadkeyvault" ${workload_environment_file_name} | awk -F'=' '{print $2}' | xargs)
                         fi
                     else
-                        export workload_key_vault=$(Workload_Key_Vault)  ; echo 'Workload Key Vault' ${workload_key_vault}
+                        export workload_key_vault=$(Workload_Key_Vault)
+
                     fi
                 else
-                    deployer_tfstate_key=$(cat ${workload_environment_file_name}  | grep deployer_tfstate_key | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
-                    key_vault=$(cat ${workload_environment_file_name}  | grep workload_key_vault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
-                    REMOTE_STATE_SA=$(cat ${workload_environment_file_name}  | grep REMOTE_STATE_SA      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
-                    STATE_SUBSCRIPTION=$(cat ${workload_environment_file_name}  | grep STATE_SUBSCRIPTION   | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                    deployer_tfstate_key=$(grep "^deployer_tfstate_key=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
+                    echo "Deployer State File (file)            $deployer_tfstate_key"
+
+                    key_vault=$(grep "^workload_key_vault="" -m1 ${workload_environment_file_name} | awk -F'=' '{print $2}' | xargs) ;
+                    echo "Deployer Key Vault  (file)            ${key_vault}"
+
+                    REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA=" ${workload_environment_file_name} | awk -F'=' '{print $2}' | xargs)
+
+                    STATE_SUBSCRIPTION=$(grep "^STATE_SUBSCRIPTION=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
                 fi
 
-                secrets_set=1
-                echo -e "$green--- az login ---$reset"
+                echo "Deployer State File                   $deployer_tfstate_key"
+                echo "Deployer Key vault                    $key_vault"
+                echo "Workload Key Vault:                   ${workload_key_vault}"
+                echo "Target subscription                   $WL_ARM_SUBSCRIPTION_ID"
 
-                echo "Sourcing the deploy_server.sh"
+                echo "Terraform state file subscription:    $STATE_SUBSCRIPTION"
+                echo "Terraform state file storage account: $REMOTE_STATE_SA"
+
+                secrets_set=1
+                echo -e "$green---az login ---$reset"
+
+                echo -e "$cyan---Sourcing the deploy_server.sh file$reset"
                 . /etc/profile.d/deploy_server.sh ; /opt/bin/terraform/terraform --version
 
                 if [ $USE_MSI != "true" ]; then
 
-                    echo -e "$cyan --- Install using Service Principals ---$reset"
+                    echo "Deployment credentials:               Service Principal"
+                    echo "Deployment credential ID:             $WL_ARM_CLIENT_ID"
+
                     export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                     export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
                     export ARM_OBJECT_ID=$WL_ARM_OBJECT_ID
@@ -443,7 +458,7 @@ stages:
                     secrets_set=$? ; echo -e "$cyan Set Secrets returned $secrets_set $reset"
                     # az keyvault set-policy --name "${key_vault}" --spn $ARM_OBJECT_ID  --secret-permissions get list   --subscription $STATE_SUBSCRIPTION --output none
                 else
-                    echo -e "$cyan --- Install using Managed Identity ---$reset"
+                    echo "Deployment credentials:               MAnaged Identity"
                     # export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                     export ARM_USE_MSI=true
                     export ARM_USE_AZUREAD=true
