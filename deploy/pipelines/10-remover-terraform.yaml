@@ -195,14 +195,13 @@ stages:
               az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none --only-show-errors
 
               export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-              export VARIABLE_GROUP_NAME=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].name | [0] --output tsv" | xargs)
 
               if [ -z ${VARIABLE_GROUP_ID} ]; then
                   echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                   exit 2
               fi
               export PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]");
-              export PARENT_VARIABLE_GROUP_NAME=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].name | [0] --output tsv" | xargs)
+
               if [ -z ${PARENT_VARIABLE_GROUP_ID} ]; then
                   echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
                   exit 2
@@ -294,10 +293,12 @@ stages:
               echo "Network(filename):                    $NETWORK_IN_FILENAME"
               echo "SID(filename):                        $SID_IN_FILENAME"
 
-              tempval= $(echo $(variable_group) | xargs)
-              printf -v val '%-20s' ("$VARIABLE_GROUP_NAME id:")
+              tempval= '$(variable_group)'
+              echo '$(variable_group)" id:"
+              printf -v val '%-20s' ("$tempval id:")
               echo "$val                        $VARIABLE_GROUP_ID"
-              tempval=$(echo "$(parent_variable_group) | xargs ")
+              tempval= '$(parent_variable_group) id:'
+              printf -v val '%-20s' ("$tempval id:")
               printf -v val '%-20s' "$PARENT_VARIABLE_GROUP_NAME id:"
               echo "$val                        $PARENT_VARIABLE_GROUP_ID"
 
