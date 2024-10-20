@@ -221,20 +221,6 @@ stages:
                 LOCATION=$(grep "^location" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
                 NETWORK=$(grep "^network_logical_name" LANDSCAPE/$(workload_zone_folder)/$(workload_zone_configuration_file) | awk -F'=' '{print $2}' | xargs)
 
-                echo "Environment(filename):                 $ENVIRONMENT_IN_FILENAME"
-                echo "Location(filename):                    $LOCATION_IN_FILENAME"
-                echo "Network(filename):                     $NETWORK_IN_FILENAME"
-                echo "SID(filename):                         $SID_IN_FILENAME"
-
-                echo ""
-                echo "Agent:                                 $(this_agent)"
-                echo "Organization:                          $(System.CollectionUri)"
-                echo "Project:                               $(System.TeamProject)"
-                echo ""
-                echo "Azure CLI version:"
-                echo "-------------------------------------------------"
-                az --version
-
                 ENVIRONMENT_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $1}' | xargs )
                 LOCATION_CODE=$(echo $(workload_zone_folder) | awk -F'-' '{print $2}' | xargs )
                 case "$LOCATION_CODE" in
@@ -297,9 +283,15 @@ stages:
                 esac
 
                 NETWORK_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $3}' | xargs )
+
+                echo "Environment:                          $ENVIRONMENT"
+                echo "Location:                             $LOCATION"
+                echo "Network:                              $NETWORK"
+
                 echo "Environment(filename):                $ENVIRONMENT_IN_FILENAME"
                 echo "Location(filename):                   $LOCATION_IN_FILENAME"
                 echo "Network(filename):                    $NETWORK_IN_FILENAME"
+
                 echo "Deployer Environment                  $(deployer_environment)"
                 echo "Deployer Region                       $(deployer_region)"
                 echo "Workload TFvars                       $workload_zone_configuration_file"
@@ -331,11 +323,12 @@ stages:
                 echo -e "$green--- Configure devops CLI extension ---$reset"
                 az config set extension.use_dynamic_install=yes_without_prompt --output none
 
-                az extension add --name azure-devops --output none
+                az extension add --name azure-devops --output none --only-show-errors
 
                 az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
                 export PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
+
                 echo '$(parent_variable_group) id: ' $PARENT_VARIABLE_GROUP_ID
                 if [ -z ${PARENT_VARIABLE_GROUP_ID} ]; then
                     echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
