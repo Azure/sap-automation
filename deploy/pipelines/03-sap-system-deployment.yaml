@@ -191,10 +191,10 @@ stages:
                   *) LOCATION_IN_FILENAME="westeurope" ;;
                 esac
 
-                echo "Environment(filename): $ENVIRONMENT_IN_FILENAME"
-                echo "Location(filename):    $LOCATION_IN_FILENAME"
-                echo "Network(filename):     $NETWORK_IN_FILENAME"
-                echo "SID(filename):         $SID_IN_FILENAME"
+                echo "Environment(filename):                $ENVIRONMENT_IN_FILENAME"
+                echo "Location(filename):                   $LOCATION_IN_FILENAME"
+                echo "Network(filename):                    $NETWORK_IN_FILENAME"
+                echo "SID(filename):                        $SID_IN_FILENAME"
 
                 if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
                   echo "##vso[task.logissue type=error]The environment setting in $(sap_system_configuration) '$ENVIRONMENT' does not match the $(sap_system_configuration) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
@@ -243,7 +243,7 @@ stages:
                   echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                   exit 2
                 fi
-                printf -v val '%-15s' "$VARIABLE_GROUP_ID"
+                printf -v val '%-15s' $(variable_group)
                 echo "$val id:        $VARIABLE_GROUP_ID"
               echo -e "$green--- Login ---$reset"
 
