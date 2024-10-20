@@ -215,10 +215,10 @@ stages:
               NETWORK=$(grep "^network_logical_name" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
               SID=$(grep "^sid" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
 
-              ENVIRONMENT_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ;
-              LOCATION_CODE=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ;
-              NETWORK_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs) ;
-              SID_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs) ;
+              ENVIRONMENT_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs)
+              LOCATION_CODE=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs)
+              NETWORK_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $3}' | xargs)
+              SID_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $4}' | xargs)
               case "$LOCATION_CODE" in
                   "AUCE") LOCATION_IN_FILENAME="australiacentral" ;;
                   "AUC2") LOCATION_IN_FILENAME="australiacentral2" ;;
@@ -370,7 +370,7 @@ stages:
 
               az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}Workload_Key_Vault.value" --out tsv)
               if [ -z ${az_var} ]; then
-                  export workload_key_vault=$(grep "^workloadkeyvault=" -m1 "${workload_environment_file_name}"  |  awk -F'=' '{print $2}' | xargs)
+                  export workload_key_vault=$(grep  -m1 "^workloadkeyvault=" "${workload_environment_file_name}"  |  awk -F'=' '{print $2}' | xargs)
               else
                   export workload_key_vault="${az_var}"
               fi
@@ -378,7 +378,7 @@ stages:
               if [ -n $(Deployer_Key_Vault) ]; then
                   export key_vault=$(Deployer_Key_Vault)
               else
-                  export key_vault=$(grep "^keyvault=" -m1 ${workload_environment_file_name}  |  awk -F'=' '{print $2}' | xargs)
+                  export key_vault=$(grep -m1 "^keyvault=" ${workload_environment_file_name}  |  awk -F'=' '{print $2}' | xargs)
               fi
 
               az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" --out tsv)
@@ -683,7 +683,7 @@ stages:
 
               az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}Workload_Key_Vault.value" --out tsv)
               if [ -z ${az_var} ]; then
-                  export workload_key_vault=$(cat "${workload_environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs)
+                  export workload_key_vault=$(grep "^workloadkeyvault=" "${workload_environment_file_name}"   | awk -F'=' '{print $2}' | xargs)
               else
                   export workload_key_vault="${az_var}"
               fi
@@ -691,7 +691,7 @@ stages:
               if [ -n $(Deployer_Key_Vault) ]; then
                   export key_vault=$(Deployer_Key_Vault)
               else
-                  export key_vault=$(grep "^keyvault="   -m1 ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
+                  export key_vault=$(grep -m1 "^keyvault=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
               fi
 
               az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" --out tsv)

@@ -140,7 +140,7 @@ stages:
                                 key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
                               else
                                 echo "Reading key vault from environment file"
-                                key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                                key_vault=$(grep -m1 "^keyvault=""   ${deployer_environment_file_name} |awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
                               fi
 
                               key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)

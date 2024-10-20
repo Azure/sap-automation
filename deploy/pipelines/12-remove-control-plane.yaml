@@ -244,7 +244,7 @@ stages:
                   echo "Deployer Key Vault:    ${key_vault}"
                 else
                   echo "Reading key vault from environment file"
-                  key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs)
+                  key_vault=$(grep -m "^keyvault=" ${deployer_environment_file_name} | awk -F'=' '{print $2}' | xargs)
                   echo "Deployer Key Vault:    ${key_vault}"
                 fi
 
@@ -258,7 +258,7 @@ stages:
 
                 else
                   echo "Reading storage account from environment file"
-                  REMOTE_STATE_SA=$(cat ${deployer_environment_file_name} | grep REMOTE_STATE_SA | awk -F'=' '{print $2}' | xargs)
+                  REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA=" ${deployer_environment_file_name} |  awk -F'=' '{print $2}' | xargs)
                   echo "TF state account:      $REMOTE_STATE_SA"
                 fi
 
@@ -267,7 +267,7 @@ stages:
                   REMOTE_STATE_RG="${az_var}"
                   echo "TF state rg name:      $REMOTE_STATE_RG"
                 else
-                  REMOTE_STATE_RG=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_RG      | awk -F'=' '{print $2}' | xargs)
+                  REMOTE_STATE_RG=$(grep "^REMOTE_STATE_RG" ${deployer_environment_file_name}  |  awk -F'=' '{print $2}' | xargs)
                   echo "TF state rg name:      $REMOTE_STATE_RG"
                 fi
 
@@ -276,7 +276,7 @@ stages:
                     deployer_random_id="${az_var}"
                 else
                     if [ -f ${deployer_environment_file_name} ] ; then
-                        deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
+                        deployer_random_id=$(grep "^deployer_random_id=" ${deployer_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
                     fi
                 fi
 

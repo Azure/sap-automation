@@ -410,7 +410,7 @@ stages:
               else
                   deployer_tfstate_key=$(grep "^deployer_tfstate_key=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
 
-                  key_vault=$(grep "^workload_key_vault=" -m1 ${workload_environment_file_name} | awk -F'=' '{print $2}' | xargs) ;
+                  key_vault=$(grep -m1 "^workload_key_vault=" ${workload_environment_file_name} | awk -F'=' '{print $2}' | xargs) ;
 
                   REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA=" ${workload_environment_file_name} | awk -F'=' '{print $2}' | xargs)
 
