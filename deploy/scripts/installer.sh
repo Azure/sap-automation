@@ -349,7 +349,7 @@ if [[ -z $STATE_SUBSCRIPTION ]];
 then
     load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
 else
-    echo "Saving the state subscription"
+
     if is_valid_guid "$STATE_SUBSCRIPTION" ; then
         save_config_var "STATE_SUBSCRIPTION" "${system_config_information}"
     else

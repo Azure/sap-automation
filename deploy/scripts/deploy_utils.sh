@@ -46,12 +46,12 @@ function load_config_vars() {
         return
     fi
     for var_name; do # iterate over function params
-            # NOTE: Should we care if we fail to retrieve a value from the file?
+        # NOTE: Should we care if we fail to retrieve a value from the file?
         var_value="$(grep -m1 "^${var_name}=" "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')"
 
         if [ -z "${var_value}" ]
         then
-          var_value="$(grep -m1 "^${var_name} " "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')"
+            var_value="$(grep -m1 "^${var_name} " "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')"
         fi
 
         # NOTE: this continue means we skip setting an empty value for a variable
@@ -285,6 +285,12 @@ function set_executing_user_environment_variables() {
 
     az_client_secret="$1"
 
+    echo ""
+    echo "----------------------------------------------------------------------------------------------"
+
+    echo "Setting the environment variables for the executing user"
+
+
     echo -e "\t[set_executing_user_environment_variables]: Identifying the executing user and client"
 
     set_azure_cloud_environment
@@ -388,6 +394,9 @@ function set_executing_user_environment_variables() {
         echo -e "\t\tARM_SUBSCRIPTION_ID: $(printenv ARM_SUBSCRIPTION_ID)"
         echo -e "\t\tARM_USE_MSI: $(printenv ARM_USE_MSI)"
     fi
+    echo "----------------------------------------------------------------------------------------------"
+    echo ""
+
 }
 
 function unset_executing_user_environment_variables() {

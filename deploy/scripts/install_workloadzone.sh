@@ -173,7 +173,6 @@ echo "Keyvault:                              $keyvault"
 
 if [ -n "$STATE_SUBSCRIPTION" ]
 then
-    echo "Saving the state subscription"
     if is_valid_guid "$STATE_SUBSCRIPTION" ; then
         echo "Valid subscription format"
         save_config_vars "${workload_config_information}" \
