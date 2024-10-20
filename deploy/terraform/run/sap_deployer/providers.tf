@@ -28,7 +28,7 @@ provider "azurerm"                     {
                                          partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
                                          storage_use_azuread        = !var.shared_access_key_enabled
 
-                                         use_msi                    = var.use_spn ? false : true
+                                         use_msi                    = true
                                        }
 
 provider "azurerm"                     {
