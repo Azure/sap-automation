@@ -287,13 +287,14 @@ then
     fi
 else
 
-    echo "Terraform resource Id:            $tfstate_resource_id"
+    echo "Terraform Storage Account Id:        $tfstate_resource_id"
 
     save_config_vars "${workload_config_information}" \
     tfstate_resource_id
 fi
 
 
+echo ""
 init "${automation_config_directory}" "${generic_config_information}" "${workload_config_information}"
 
 param_dirname=$(pwd)
