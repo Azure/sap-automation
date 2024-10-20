@@ -456,14 +456,15 @@ version_parameter=""
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
 terraform --version
-
+echo ""
 echo "Terraform details"
-echo "Subscription:                          ${STATE_SUBSCRIPTION}"
-echo "Storage Account:                       ${REMOTE_STATE_SA}"
-echo "Resource Group:                        ${REMOTE_STATE_RG}"
-echo "State file:                            ${key}.terraform.tfstate"
-echo "Target subscription:                   ${ARM_SUBSCRIPTION_ID}"
-
+echo "-------------------------------------------------------------------------"
+echo "Subscription:                         ${STATE_SUBSCRIPTION}"
+echo "Storage Account:                      ${REMOTE_STATE_SA}"
+echo "Resource Group:                       ${REMOTE_STATE_RG}"
+echo "State file:                           ${key}.terraform.tfstate"
+echo "Target subscription:                  ${ARM_SUBSCRIPTION_ID}"
+echo ""
 
 check_output=0
 if [ -f terraform.tfstate ]; then
