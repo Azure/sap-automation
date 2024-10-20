@@ -118,7 +118,7 @@ stages:
                 echo "Location:                              $LOCATION"
                 echo "Network:                               $NETWORK"
                 echo "SID:                                   $SID"
-                echo "System TFvars                          $sap_system_configuration"
+                echo "System TFvars:                         $(sap_system_configuration)"
 
                 ENVIRONMENT_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ;
                           LOCATION_CODE=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ;
