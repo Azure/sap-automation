@@ -105,7 +105,7 @@ stages:
                             cd $CONFIG_REPO_PATH
                             git checkout -q $(Build.SourceBranchName)
                         echo -e "$green--- Configure devops CLI extension ---$reset"
-                            az config set extension.use_dynamic_install=yes_without_prompt
+                            az config set extension.use_dynamic_install=yes_without_prompt  --only-show-errors
 
                             az extension add --name azure-devops --output none --only-show-errors
 
@@ -117,14 +117,9 @@ stages:
                             echo "Organization:                        $(System.CollectionUri)"
                             echo "Project:                             $(System.TeamProject)"
                             echo ""
-                            echo "Azure CLI version:"
-                            echo "-------------------------------------------------"
-                            az --version
-                            echo ""
-                            az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+                            az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none --only-show-errors
 
                             export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-
 
                             printf -v tempval '%s id:' $(variable_group)
                             printf -v val '%-20s' "${tempval}"
