@@ -281,7 +281,7 @@ stages:
 
 
               workload_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE$NETWORK;
-              echo "Workload Environment file:             $workload_environment_file_name"
+              echo "Workload Environment file:           $workload_environment_file_name"
 
               echo "Environment:                         $ENVIRONMENT"
               echo "Location:                            $LOCATION"
@@ -299,7 +299,7 @@ stages:
 
               printf -v tempval '%s id:' $(parent_variable_group)
               printf -v val '%-20s' "${tempval}"
-              echo "$val                  $PARENT_VARIABLE_GROUP_ID"
+              echo "$val                 $PARENT_VARIABLE_GROUP_ID"
 
               echo ""
 
@@ -661,7 +661,7 @@ stages:
               echo "Workload Environment file:           $workload_environment_file_name"
               echo "Environment:                         ${ENVIRONMENT}"
               echo "Location:                            ${LOCATION}"
-              echo "Network:                              ${NETWORK}"
+              echo "Network:                             ${NETWORK}"
               echo ""
 
               workload_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE$NETWORK;
