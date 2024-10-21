@@ -1105,33 +1105,33 @@ if [ -f "${workload_config_information}".err ]; then
     cat "${workload_config_information}".err
 fi
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo -e "#             $cyan  Adding the subnets to storage account firewalls $resetformatting                        #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+# echo ""
+# echo "#########################################################################################"
+# echo "#                                                                                       #"
+# echo -e "#             $cyan  Adding the subnets to storage account firewalls $resetformatting                        #"
+# echo "#                                                                                       #"
+# echo "#########################################################################################"
+# echo ""
 
-subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw app_subnet_id | tr -d \")
+# subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw app_subnet_id | tr -d \")
 
-useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
-echo "useSAS = $useSAS"
+# useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
+# echo "Shared Access Key access:             $useSAS"
 
-if [ -n "${subnet_id}" ]; then
-  echo "Adding the app subnet"
-  az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
-  if [ -n "$SAPBITS" ] ; then
-    az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name $SAPBITS --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
-  fi
-fi
+# if [ -n "${subnet_id}" ]; then
+#   echo "Adding the application subnet to the storage account hosting the Terraform State files"
+#   az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
+#   if [ -n "$SAPBITS" ] ; then
+#     az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name $SAPBITS --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
+#   fi
+# fi
 
-subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw db_subnet_id | tr -d \")
+# subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw db_subnet_id | tr -d \")
 
-if [ -n "${subnet_id}" ]; then
-  echo "Adding the db subnet"
-  az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
-fi
+# if [ -n "${subnet_id}" ]; then
+#   echo "Adding the db subnet"
+#   az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
+# fi
 
 unset TF_DATA_DIR
 
