@@ -51,7 +51,7 @@ locals {
   service_principal                    = {
                                            subscription_id = local.spn.subscription_id,
                                            tenant_id       = local.spn.tenant_id,
-                                           object_id       = var.use_spn ? local.spn.client_id : null
+                                           object_id       = var.use_spn ? data.azuread_service_principal.sp[0].object_id   : null
                                          }
 
   account                              = {

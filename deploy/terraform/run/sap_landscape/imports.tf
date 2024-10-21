@@ -67,3 +67,8 @@ data "azurerm_key_vault_secret" "cp_tenant_id" {
   key_vault_id                         = local.spn_key_vault_arm_id
 }
 
+// Import current service principal
+data "azuread_service_principal" "sp"             {
+                                                    count          = var.use_spn ? 1 : 0
+                                                    client_id      = local.spn.client_id
+                                                  }
