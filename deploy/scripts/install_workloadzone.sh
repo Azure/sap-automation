@@ -763,7 +763,7 @@ else
 fi
 return_value=$?
 
-echo "Terraform Plan return code: " $return_value
+echo "Terraform Plan return code:          $return_value"
 if [ 1 == $return_value ]
 then
     echo "#########################################################################################"
