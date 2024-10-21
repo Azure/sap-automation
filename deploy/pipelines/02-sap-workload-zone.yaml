@@ -478,7 +478,7 @@ stages:
 
                   isUserAccessAdmin=$(az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION  --query "[?principalType=='ServicePrincipal'].principalId | [0] " --assignee $ARM_OBJECT_ID)
 
-                  echo "Service Principal:                    "$ARM_CLIENT_ID"
+                  echo "Service Principal:                    $ARM_CLIENT_ID"
                   echo "Is User Access Administrator:         $isUserAccessAdmin"
                   echo "Deployment credentials:               Managed Identity"
 
