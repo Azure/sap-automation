@@ -109,13 +109,13 @@ stages:
 
                             az extension add --name azure-devops --output none --only-show-errors
 
-                            echo "Environment:                           $ENVIRONMENT"
-                            echo "Location:                              $LOCATION"
+                            echo "Environment:                         $ENVIRONMENT"
+                            echo "Location:                            $LOCATION"
 
                             echo ""
-                            echo "Agent:                                 $(this_agent)"
-                            echo "Organization:                          $(System.CollectionUri)"
-                            echo "Project:                               $(System.TeamProject)"
+                            echo "Agent:                               $(this_agent)"
+                            echo "Organization:                        $(System.CollectionUri)"
+                            echo "Project:                             $(System.TeamProject)"
                             echo ""
                             echo "Azure CLI version:"
                             echo "-------------------------------------------------"
@@ -126,7 +126,7 @@ stages:
                             export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
 
 
-                            printf -v tempval '%s id:' $(parent_variable_group)
+                            printf -v tempval '%s id:' $(variable_group)
                             printf -v val '%-20s' "${tempval}"
                             echo "$val                  $VARIABLE_GROUP_ID"
 
@@ -202,7 +202,7 @@ stages:
                         if [ ! -f /etc/profile.d/deploy_server.sh ]; then
                             echo -e "$green--- Install dos2unix ---$reset"
                             sudo apt-get -qq install dos2unix
-                            sudo apt -qq install zip
+                            sudo apt-get -qq install zip
                             echo -e "$green--- Install terraform ---$reset"
                             wget -q $(tf_url)
                             return_code=$?
@@ -225,10 +225,10 @@ stages:
                             deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
                         echo -e "$green--- Deploy the Control Plane ---$reset"
                             if [ -n "$(PAT)" ]; then
-                                echo "Deployer Agent PAT:                   IsDefined"
+                                echo "Deployer Agent PAT:                  IsDefined"
                             fi
                             if [ -n "$(POOL)" ]; then
-                                echo "Deployer Agent Pool:                  $(POOL)"
+                                echo "Deployer Agent Pool:                 $(POOL)"
 
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
@@ -238,10 +238,10 @@ stages:
                             fi
 
                             if [ $(use_webapp) = "true" ]; then
-                                echo "Deploy Web App:                       true"
+                                echo "Deploy Web App:                      true"
 
                             else
-                                echo "Deploy Web App:                       false"
+                                echo "Deploy Web App:                      false"
                             fi
 
                             export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
@@ -250,7 +250,7 @@ stages:
                             if [ "$USE_MSI" = "true" ]; then
                               export ARM_CLIENT_SECRET=$servicePrincipalKey
                               export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
-                              echo "Deployment credentials:               Managed Identity"
+                              echo "Deployment credentials:              Managed Identity"
 
 
                               $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
@@ -292,12 +292,13 @@ stages:
                                if [ -z "$file_deployer_tfstate_key" ]; then
                                   file_deployer_tfstate_key=$DEPLOYER_TFSTATE_KEY
                                fi
-                               echo 'Deployer State File' $file_deployer_tfstate_key
+                               echo "Deployer State File                   $file_deployer_tfstate_key"
+
                                file_key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= | awk -F'=' '{print $2}' | xargs)
-                               echo 'Deployer Key Vault' ${file_key_vault}
+                               echo "Deployer Key Vault:                   ${file_key_vault}"
+
                                deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
                                library_random_id=$(cat ${deployer_environment_file_name} | grep library_random_id= | awk -F'=' '{print $2}' | xargs)
-                               echo 'Deployer Random ID' ${deployer_random_id}
 
                             fi
                         echo -e "$green--- Update repo ---$reset"
@@ -310,7 +311,7 @@ stages:
                               added=1
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
-                              sudo apt install zip
+                              sudo apt-get install zip -y
                               pass=$(echo $(System.CollectionId) | sed 's/-//g')
                               zip -j -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                               git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
@@ -646,7 +647,7 @@ stages:
                         echo -e "$green--- Install dos2unix ---$reset"
                         sudo apt-get -qq install dos2unix
 
-                        sudo apt -qq install zip
+                        sudo apt-get -qq install zip
 
                         echo -e "$green --- Install terraform ---$reset"
 
@@ -841,7 +842,7 @@ stages:
                     if [ -n "${backend}" ]; then
                         echo "Local Terraform state"
                         if [ -f "${CONFIG_REPO_PATH}"/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
-                            sudo apt install zip
+                            sudo apt-get -qq install zip
                             echo "Compressing the deployer state file"
                             pass=$(echo $(System.CollectionId) | sed 's/-//g')
                             zip -j -P "${pass}" "${CONFIG_REPO_PATH}"/DEPLOYER/$(deployerfolder)/state "${CONFIG_REPO_PATH}"/DEPLOYER/$(deployerfolder)/terraform.tfstate
@@ -865,7 +866,7 @@ stages:
                     if [ -n "${backend}" ]; then
                         echo "Local Terraform state"
                         if [ -f "${CONFIG_REPO_PATH}"/LIBRARY/$(libraryfolder)/terraform.tfstate ]; then
-                            sudo apt install zip
+                            sudo apt-get -qq install zip
                             echo "Compressing the library state file"
                             pass=$(echo $(System.CollectionId) | sed 's/-//g')
                             zip -j -P "${pass}" "${CONFIG_REPO_PATH}"/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate

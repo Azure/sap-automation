@@ -79,18 +79,18 @@ do
     esac
 done
 
-echo "ADO flag:                             ${ado_flag}"
+echo "ADO flag:                            ${ado_flag}"
 
 key=$(basename "${deployer_parameter_file}" | cut -d. -f1)
 deployer_tfstate_key="${key}.terraform.tfstate"
 
-echo "Deployer State File:                  ${deployer_tfstate_key}"
+echo "Deployer State File:                 ${deployer_tfstate_key}"
 
 key=$(basename "${library_parameter_file}" | cut -d. -f1)
 library_tfstate_key="${key}.terraform.tfstate"
 
-echo "Deployer State File:                  ${deployer_tfstate_key}"
-echo "Library State File:                   ${library_tfstate_key}"
+echo "Deployer State File:                 ${deployer_tfstate_key}"
+echo "Library State File:                  ${library_tfstate_key}"
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 root_dirname=$(pwd)
@@ -133,7 +133,7 @@ fi
 # Convert the region to the correct code
 get_region_code "$region"
 
-echo "Region code:                          ${region_code}"
+echo "Region code:                         ${region_code}"
 
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
@@ -256,11 +256,11 @@ fi
 load_config_vars "${deployer_config_information}" "step"
 
 if [ 0 = "${deploy_using_msi_only:-}" ]; then
-    echo "Identity to use:                      Service Principal"
+    echo "Identity to use:                     Service Principal"
     unset ARM_USE_MSI
     set_executing_user_environment_variables "${spn_secret}"
 else
-    echo "Identity to use:                      Managed Identity"
+    echo "Identity to use:                     Managed Identity"
     set_executing_user_environment_variables "none"
 fi
 
