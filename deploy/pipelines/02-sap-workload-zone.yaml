@@ -462,10 +462,10 @@ stages:
                   --region "${LOCATION}" --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID --spn_secret "${ARM_CLIENT_SECRET}"  \
                   --tenant_id $ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
                   secrets_set=$? ;
-                  echo "Set Secrets returned:              $secrets_set"
+                  echo "Set Secrets returned:                  $secrets_set"
 
               else
-                  echo "Deployment credentials:            Managed Identity"
+                  echo "Deployment credentials:                Managed Identity"
                   # export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                   export ARM_USE_MSI=true
                   export ARM_USE_AZUREAD=true
@@ -476,9 +476,9 @@ stages:
               debug_variable=''
 
               if [ $USE_MSI != "true" ]; then
-                  echo "Deployment credentials:            Service Principal"
-                  echo "Service Principal:                 $WL_ARM_CLIENT_ID"
-                  echo "Service Principal (OID)            $WL_ARM_OBJECT_ID"
+                  echo "Deployment credentials:                Service Principal"
+                  echo "Service Principal:                     $WL_ARM_CLIENT_ID"
+                  echo "Service Principal (OID)                $WL_ARM_OBJECT_ID"
 
                   isUserAccessAdmin=$(az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION   --assignee $WL_ARM_OBJECT_ID --query "[].principalName | [0]" --output tsv)
 
