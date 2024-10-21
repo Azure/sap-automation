@@ -283,22 +283,22 @@ stages:
 
               NETWORK_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $3}' | xargs )
 
-              echo "Environment:                           $ENVIRONMENT"
-              echo "Location:                              $LOCATION"
-              echo "Network:                               $NETWORK"
+              echo "Environment:                         $ENVIRONMENT"
+              echo "Location:                            $LOCATION"
+              echo "Network:                             $NETWORK"
 
-              echo "Environment(filename):                 $ENVIRONMENT_IN_FILENAME"
-              echo "Location(filename):                    $LOCATION_IN_FILENAME"
-              echo "Network(filename):                     $NETWORK_IN_FILENAME"
+              echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
+              echo "Location(filename):                  $LOCATION_IN_FILENAME"
+              echo "Network(filename):                   $NETWORK_IN_FILENAME"
 
-              echo "Deployer Environment                   $(deployer_environment)"
-              echo "Deployer Region                        $(deployer_region)"
-              echo "Workload TFvars                        $(workload_zone_configuration_file)"
+              echo "Deployer Environment                 $(deployer_environment)"
+              echo "Deployer Region                      $(deployer_region)"
+              echo "Workload TFvars                      $(workload_zone_configuration_file)"
               echo ""
 
-              echo "Agent pool:                            $(this_agent)"
-              echo "Organization:                          $(System.CollectionUri)"
-              echo "Project:                               $(System.TeamProject)"
+              echo "Agent pool:                          $(this_agent)"
+              echo "Organization:                        $(System.CollectionUri)"
+              echo "Project:                             $(System.TeamProject)"
               echo ""
               echo "Azure CLI version:"
               echo "-------------------------------------------------"
@@ -341,17 +341,17 @@ stages:
               fi
               printf -v tempval '%s id:' $(variable_group)
               printf -v val '%-20s' "${tempval}"
-              echo "$val                   $VARIABLE_GROUP_ID"
+              echo "$val                 $VARIABLE_GROUP_ID"
 
               printf -v tempval '%s id:' $(parent_variable_group)
               printf -v val '%-20s' "${tempval}"
-              echo "$val                   $PARENT_VARIABLE_GROUP_ID"
+              echo "$val                 $PARENT_VARIABLE_GROUP_ID"
 
               deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/$(deployer_environment)$(deployer_region)
-              echo "Deployer Environment File:             $deployer_environment_file_name"
+              echo "Deployer Environment File:           $deployer_environment_file_name"
 
               workload_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE}${NETWORK}
-              echo "Workload Zone Environment File:        $workload_environment_file_name"
+              echo "Workload Zone Environment File:      $workload_environment_file_name"
 
               dos2unix -q ${deployer_environment_file_name}
               dos2unix -q ${workload_environment_file_name}
@@ -420,13 +420,13 @@ stages:
                   STATE_SUBSCRIPTION=$(grep "^STATE_SUBSCRIPTION=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
               fi
 
-              echo "Deployer statefile:                    $deployer_tfstate_key"
-              echo "Deployer Key vault:                    $key_vault"
-              echo "Workload Key vault:                    ${workload_key_vault}"
-              echo "Target subscription                    $WL_ARM_SUBSCRIPTION_ID"
+              echo "Deployer statefile:                  $deployer_tfstate_key"
+              echo "Deployer Key vault:                  $key_vault"
+              echo "Workload Key vault:                  ${workload_key_vault}"
+              echo "Target subscription                  $WL_ARM_SUBSCRIPTION_ID"
 
-              echo "Terraform state file subscription:     $STATE_SUBSCRIPTION"
-              echo "Terraform state file storage account:  $REMOTE_STATE_SA"
+              echo "Terraform state file subscription:   $STATE_SUBSCRIPTION"
+              echo "Terraform state file storage account:$REMOTE_STATE_SA"
 
               secrets_set=1
               echo -e "$green---az login ---$reset"
@@ -436,9 +436,9 @@ stages:
 
               if [ $USE_MSI != "true" ]; then
 
-                  echo "Deployment credentials:                Service Principal"
-                  echo "Deployment credential ID (SPN):        $WL_ARM_CLIENT_ID"
-                  echo "Deployer subscription:                 $STATE_SUBSCRIPTION"
+                  echo "Deployment credentials:              Service Principal"
+                  echo "Deployment credential ID (SPN):      $WL_ARM_CLIENT_ID"
+                  echo "Deployer subscription:               $STATE_SUBSCRIPTION"
 
                   export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                   export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
@@ -462,10 +462,10 @@ stages:
                   --region "${LOCATION}" --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID --spn_secret "${ARM_CLIENT_SECRET}"  \
                   --tenant_id $ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
                   secrets_set=$? ;
-                  echo "Set Secrets returned:                $secrets_set"
+                  echo "Set Secrets returned:              $secrets_set"
 
               else
-                  echo "Deployment credentials:              Managed Identity"
+                  echo "Deployment credentials:            Managed Identity"
                   # export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                   export ARM_USE_MSI=true
                   export ARM_USE_AZUREAD=true
@@ -476,9 +476,9 @@ stages:
               debug_variable=''
 
               if [ $USE_MSI != "true" ]; then
-                  echo "Deployment credentials:              Service Principal"
-                  echo "Service Principal:                   $WL_ARM_CLIENT_ID"
-                  echo "Service Principal (OID)              $WL_ARM_OBJECT_ID"
+                  echo "Deployment credentials:            Service Principal"
+                  echo "Service Principal:                 $WL_ARM_CLIENT_ID"
+                  echo "Service Principal (OID)            $WL_ARM_OBJECT_ID"
 
                   isUserAccessAdmin=$(az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION   --assignee $WL_ARM_OBJECT_ID --query "[].principalName | [0]" --output tsv)
 
