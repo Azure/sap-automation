@@ -384,14 +384,14 @@ stages:
                   if [ -z ${az_var} ]; then
                       REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA"  ${deployer_environment_file_name}  |  awk -F'=' '{print $2}' | xargs) ;
                   else
-                      REMOTE_STATE_SA=${az_var}; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                      REMOTE_STATE_SA=${az_var}
                   fi
 
                   az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" --out tsv)
                   if [ -z ${az_var} ]; then
                       STATE_SUBSCRIPTION=$(grep "^STATE_SUBSCRIPTION" ${deployer_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
                   else
-                      STATE_SUBSCRIPTION=${az_var}; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                      STATE_SUBSCRIPTION=${az_var}
 
                   fi
 
@@ -481,8 +481,6 @@ stages:
                   echo "Service Principal (OID)               $WL_ARM_OBJECT_ID"
 
                   isUserAccessAdmin=$(az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION   --assignee $WL_ARM_OBJECT_ID --query "[].principalName | [0]" --output tsv)
-
-                  echo "Is User Access Administrator:         ${isUserAccessAdmin}"
 
                   tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 
