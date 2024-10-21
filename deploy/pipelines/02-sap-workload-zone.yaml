@@ -437,8 +437,8 @@ stages:
               if [ $USE_MSI != "true" ]; then
 
                   echo "Deployment credentials:               Service Principal"
-                  echo "Deployment credential ID (SPN):      $WL_ARM_CLIENT_ID"
-                  echo "Deployer subscription:               $STATE_SUBSCRIPTION"
+                  echo "Deployment credential ID (SPN):       $WL_ARM_CLIENT_ID"
+                  echo "Deployer subscription:                $STATE_SUBSCRIPTION"
 
                   export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                   export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
@@ -480,7 +480,7 @@ stages:
                   echo "Service Principal:                    $WL_ARM_CLIENT_ID"
                   echo "Service Principal (OID)               $WL_ARM_OBJECT_ID"
 
-                  isUserAccessAdmin=$(az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION   --assignee $WL_ARM_CLIENT_ID --query "[].principalName | [0]" --output tsv)
+                  isUserAccessAdmin=$(az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION   --assignee $WL_ARM_OBJECT_ID --query "[].principalName | [0]" --output tsv)
 
                   echo "Is User Access Administrator:         ${isUserAccessAdmin}"
 
