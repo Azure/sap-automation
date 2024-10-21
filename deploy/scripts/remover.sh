@@ -195,7 +195,7 @@ this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 export TF_VAR_Agent_IP=$this_ip
-echo "Agent IP:                              $this_ip"
+echo "Agent IP:                            $this_ip"
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
@@ -216,10 +216,10 @@ if [ "${deployment_system}" == sap_system ]; then
     system_config_information="${automation_config_directory}"/"${environment}""${region_code}""${network_logical_name}"
 fi
 
-echo "Deployer environment:                  $deployer_environment"
-echo "Configuration file:                    $system_config_information"
-echo "Deployment region:                     $region"
-echo "Deployment region code:                $region_code"
+echo "Deployer environment:                $deployer_environment"
+echo "Configuration file:                  $system_config_information"
+echo "Deployment region:                   $region"
+echo "Deployment region code:              $region_code"
 
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
