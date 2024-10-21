@@ -97,24 +97,6 @@ resource "azurerm_role_assignment" "role_assignment_spn" {
   principal_id                         = local.service_principal.object_id
 }
 
-resource "azurerm_key_vault_access_policy" "kv_user" {
-  provider                             = azurerm.deployer
-  count                                = var.options.use_spn && (length(try(var.deployer_tfstate.deployer_uai.principal_id,"")) > 0) ? 1 : 0
-  key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
-  tenant_id                            = local.service_principal.tenant_id
-  object_id                            = var.deployer_tfstate.deployer_uai.principal_id
-
-  secret_permissions                   = [
-                                          "Get",
-                                          "List",
-                                          "Set",
-                                          "Delete",
-                                          "Recover",
-                                          "Restore",
-                                          "Purge"
-                                        ]
-}
-
 resource "azurerm_key_vault_access_policy" "kv_user_spn" {
   provider                             = azurerm.main
   count                                = var.options.use_spn ? 1 : 0
