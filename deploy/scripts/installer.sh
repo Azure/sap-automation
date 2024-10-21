@@ -50,10 +50,10 @@ do
 done
 
 
-echo "Parameter file:                      $parameterfile"
-echo "Current directory:                   $(pwd)"
-echo "Terraform state subscription_id:     ${STATE_SUBSCRIPTION}"
-echo "Terraform state storage account name:${REMOTE_STATE_SA}"
+echo "Parameter file:                        $parameterfile"
+echo "Current directory:                     $(pwd)"
+echo "Terraform state subscription_id:       ${STATE_SUBSCRIPTION}"
+echo "Terraform state storage account name:  ${REMOTE_STATE_SA}"
 
 tfstate_resource_id=""
 tfstate_parameter=""
@@ -156,14 +156,14 @@ automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 system_config_information="${automation_config_directory}""${environment}""${region_code}""${network_logical_name}"
 
-echo "Configuration file:                  $system_config_information"
-echo "Deployment region:                   $region"
-echo "Deployment region code:              $region_code"
+echo "Configuration file:                    $system_config_information"
+echo "Deployment region:                     $region"
+echo "Deployment region code:                $region_code"
 
 if [ 1 == $called_from_ado ] ; then
     this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
     export TF_VAR_Agent_IP=$this_ip
-    echo "Agent IP:                            $this_ip"
+    echo "Agent IP:                              $this_ip"
 
 fi
 
@@ -246,7 +246,6 @@ fi
 
 if [[ -z $REMOTE_STATE_SA ]];
 then
-    echo "Loading the State file information"
     load_config_vars "${system_config_information}" "REMOTE_STATE_SA"
     load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
     load_config_vars "${system_config_information}" "tfstate_resource_id"

@@ -114,7 +114,7 @@ landscape_tfstate_key_parameter=""
 #show_help=false
 #deployer_tfstate_key_exists=false
 #landscape_tfstate_key_exists=false
-echo "parameterfile: $parameterfile"
+echo "parameterfile:                         $parameterfile"
 
 working_directory=$(pwd)
 
@@ -195,9 +195,7 @@ this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 export TF_VAR_Agent_IP=$this_ip
-echo "Agent IP:                            $this_ip"
-
-
+echo "Agent IP:                              $this_ip"
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
@@ -218,10 +216,10 @@ if [ "${deployment_system}" == sap_system ]; then
     system_config_information="${automation_config_directory}"/"${environment}""${region_code}""${network_logical_name}"
 fi
 
-echo "Deployer environment:                $deployer_environment"
-echo "Configuration file:                  $system_config_information"
-echo "Deployment region:                   $region"
-echo "Deployment region code:              $region_code"
+echo "Deployer environment:                  $deployer_environment"
+echo "Configuration file:                    $system_config_information"
+echo "Deployment region:                     $region"
+echo "Deployment region code:                $region_code"
 
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
@@ -238,7 +236,6 @@ else
   fi
   export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 fi
-
 
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
 var_file="${parameterfile_dirname}"/"${parameterfile}"
@@ -316,7 +313,6 @@ else
   echo "Authenticate storage using Entra ID"
   export ARM_USE_AZUREAD=true
 fi
-
 
 echo ""
 echo "#########################################################################################"

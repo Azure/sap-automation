@@ -164,8 +164,8 @@ stages:
                   rm -f terraform_$(tf_version)_linux_amd64.zip
               else
                   if [ $USE_MSI != "true" ]; then
-                      echo "Deployment credentials:               Service Principal"
-                      echo "Deployment credential ID (SPN):      $WL_ARM_CLIENT_ID"
+                      echo "Deployment credentials:                Service Principal"
+                      echo "Deployment credential ID (SPN):       $WL_ARM_CLIENT_ID"
 
                       export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                       export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
@@ -180,7 +180,7 @@ stages:
                           exit $return_code
                       fi
                   else
-                      echo "Deployment credentials:               ^Managed Identity"
+                      echo "Deployment credentials:                ^Managed Identity"
 
                       export ARM_USE_MSI=true
                       export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
@@ -281,25 +281,27 @@ stages:
 
 
               workload_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE$NETWORK;
-              echo "Workload Environment file:            $workload_environment_file_name"
+              echo "Workload Environment file:             $workload_environment_file_name"
 
-              echo "Environment:                          $ENVIRONMENT"
-              echo "Location:                             $LOCATION"
-              echo "Network:                              $NETWORK"
-              echo "SID:                                  $SID"
+              echo "Environment:                           $ENVIRONMENT"
+              echo "Location:                              $LOCATION"
+              echo "Network:                               $NETWORK"
+              echo "SID:                                   $SID"
               echo ""
-              echo "Environment(filename):                $ENVIRONMENT_IN_FILENAME"
-              echo "Location(filename):                   $LOCATION_IN_FILENAME"
-              echo "Network(filename):                    $NETWORK_IN_FILENAME"
-              echo "SID(filename):                        $SID_IN_FILENAME"
+              echo "Environment(filename):                 $ENVIRONMENT_IN_FILENAME"
+              echo "Location(filename):                    $LOCATION_IN_FILENAME"
+              echo "Network(filename):                     $NETWORK_IN_FILENAME"
+              echo "SID(filename):                         $SID_IN_FILENAME"
+
+
 
               printf -v tempval '%s id:' $(variable_group)
               printf -v val '%-20s' "${tempval}"
-              echo "$val                  $VARIABLE_GROUP_ID"
+              echo "$val                   $VARIABLE_GROUP_ID"
 
               printf -v tempval '%s id:' $(parent_variable_group)
               printf -v val '%-20s' "${tempval}"
-              echo "$val                  $PARENT_VARIABLE_GROUP_ID"
+              echo "$val                   $PARENT_VARIABLE_GROUP_ID"
 
               echo ""
 
@@ -327,8 +329,8 @@ stages:
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
                   if [ $USE_MSI != "true" ]; then
-                      echo "Deployment credentials:               Service Principal"
-                      echo "Deployment credentials Id (SPN):      $WL_ARM_CLIENT_SECRET"
+                      echo "Deployment credentials:                Service Principal"
+                      echo "Deployment credentials Id (SPN):       $WL_ARM_CLIENT_SECRET"
 
                       export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                       export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
@@ -403,11 +405,12 @@ stages:
                   REMOTE_STATE_SA=$(grep "REMOTE_STATE_SA"  ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
               fi
 
-              echo "Deployer Key Vault:                   ${key_vault}"
-              echo "Workload Key Vault:                   ${workload_key_vault}"
-              echo "TF state subscription:                $STATE_SUBSCRIPTION"
-              echo "TF state account:                     $REMOTE_STATE_SA"
-              echo "System configuration:                 $systemConfigurationFile"
+              echo "Deployer Key Vault:                    ${key_vault}"
+
+              echo "Workload Key Vault:                    ${workload_key_vault}"
+              echo "TF state subscription:                 $STATE_SUBSCRIPTION"
+              echo "TF state account:                      $REMOTE_STATE_SA"
+              echo "System configuration:                  $systemConfigurationFile"
 
               echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
               cd $CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder)
@@ -657,26 +660,26 @@ stages:
 
               NETWORK_IN_FILENAME=$(echo $(workload_zone_folder) | awk -F'-' '{print $3}' | xargs )
               workload_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE$NETWORK;
-              echo "Workload Environment file:            $workload_environment_file_name"
-              echo "Environment:                          ${ENVIRONMENT}"
-              echo "Location:                             ${LOCATION}"
-              echo "Network:                              ${NETWORK}"
+              echo "Workload Environment file:             $workload_environment_file_name"
+              echo "Environment:                           ${ENVIRONMENT}"
+              echo "Location:                              ${LOCATION}"
+              echo "Network:                               ${NETWORK}"
               echo ""
 
               workload_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE$NETWORK;
-              echo "Environment file:                     $workload_environment_file_name"
-              echo "Environment(filename):                $ENVIRONMENT_IN_FILENAME"
-              echo "Location(filename):                   $LOCATION_IN_FILENAME"
-              echo "Network(filename):                    $NETWORK_IN_FILENAME"
+              echo "Environment file:                      $workload_environment_file_name"
+              echo "Environment(filename):                 $ENVIRONMENT_IN_FILENAME"
+              echo "Location(filename):                    $LOCATION_IN_FILENAME"
+              echo "Network(filename):                     $NETWORK_IN_FILENAME"
               echo ""
 
               printf -v tempval '%s id:' $(variable_group)
               printf -v val '%-20s' "${tempval}"
-              echo "$val                  $VARIABLE_GROUP_ID"
+              echo "$val                   $VARIABLE_GROUP_ID"
 
               printf -v tempval '%s id:' $(parent_variable_group)
               printf -v val '%-20s' "${tempval}"
-              echo "$val                  $PARENT_VARIABLE_GROUP_ID"
+              echo "$val                   $PARENT_VARIABLE_GROUP_ID"
 
               if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
                   echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) '$ENVIRONMENT' does not match the $(workload_zone_configuration_file) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
@@ -728,10 +731,10 @@ stages:
                   REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA="  ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
               fi
 
-              echo "Workload Key Vault:                   ${workload_key_vault}"
-              echo "Deployer Key Vault:                   ${key_vault}"
-              echo "Terraform state subscription:         $STATE_SUBSCRIPTION"
-              echo "Terraform state account:              $REMOTE_STATE_SA"
+              echo "Workload Key Vault:                    ${workload_key_vault}"
+              echo "Deployer Key Vault:                    ${key_vault}"
+              echo "Terraform state subscription:          $STATE_SUBSCRIPTION"
+              echo "Terraform state account:               $REMOTE_STATE_SA"
 
               # Check if running on deployer
               if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then

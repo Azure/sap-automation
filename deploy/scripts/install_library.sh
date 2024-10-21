@@ -143,7 +143,6 @@ fi
 region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 get_region_code $region
 
-
 if [ true == "$use_deployer" ]
 then
     if [ ! -d "${deployer_statefile_foldername}" ]
@@ -406,7 +405,7 @@ echo ""
 deployer_parameter=""
 if [ -n "${deployer_statefile_foldername}" ];
 then
-    echo "Deployer folder specified:" "${deployer_statefile_foldername}"
+    echo "Deployer folder specified:             ${deployer_statefile_foldername}"
     if [ -n "${approve}" ]
     then
         terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -auto-approve -json | tee -a  apply_output.json

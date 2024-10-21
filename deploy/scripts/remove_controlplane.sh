@@ -177,13 +177,11 @@ init "${automation_config_directory}" "${generic_config_information}" "${deploye
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 
 export TF_IN_AUTOMATION="true"
-echo "Deployer environment:                $deployer_environment"
+echo "Deployer environment:                  $deployer_environment"
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 export TF_VAR_Agent_IP=$this_ip
-echo "Agent IP:                            $this_ip"
-
-
+echo "Agent IP:                              $this_ip"
 
 if [ -n "${subscription}" ]
 then
@@ -246,10 +244,10 @@ key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
 useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
 if [ "$useSAS" = "true" ] ; then
-  echo "Authenticate storage using SAS"
+  echo "Storage Account Authentication:        Key"
   export ARM_USE_AZUREAD=false
 else
-  echo "Authenticate storage using Entra ID"
+  echo "Storage Account Authentication:        Entra ID"
   export ARM_USE_AZUREAD=true
 fi
 
