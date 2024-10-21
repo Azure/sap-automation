@@ -479,7 +479,7 @@ stages:
 
                   az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION
                   echo "...................."
-                  az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION  --query "[?principalType=='ServicePrincipal'].principalId
+                  az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION  --query "[?principalType=='ServicePrincipal'].principalId"
 
                   isUserAccessAdmin=$(az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION  --query "[?principalType=='ServicePrincipal'].principalId | [0] " --assignee $WL_ARM_OBJECT_ID --out tsv)
 
