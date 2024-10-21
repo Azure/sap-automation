@@ -216,7 +216,6 @@ if [ "${deployment_system}" == sap_system ]; then
     system_config_information="${automation_config_directory}"/"${environment}""${region_code}""${network_logical_name}"
 fi
 
-echo "Deployer environment:                $deployer_environment"
 echo "Configuration file:                  $system_config_information"
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
