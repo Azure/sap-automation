@@ -217,10 +217,10 @@ stages:
                   *) LOCATION_IN_FILENAME="westeurope" ;;
                 esac
 
-                echo "Environment:                           ${ENVIRONMENT}"
-                echo "Location:                              ${LOCATION}"
-                echo "Environment(filename):                 $ENVIRONMENT_IN_FILENAME"
-                echo "Location(filename):                    $LOCATION_IN_FILENAME"
+                echo "Environment:                         ${ENVIRONMENT}"
+                echo "Location:                            ${LOCATION}"
+                echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
+                echo "Location(filename):                  $LOCATION_IN_FILENAME"
                 echo ""
 
 
@@ -235,7 +235,7 @@ stages:
                 fi
 
                 deployer_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE;
-                echo "Environment file:                      $deployer_environment_file_name"
+                echo "Environment file:                    $deployer_environment_file_name"
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
                 if [ -n "${az_var}" ]; then
@@ -272,10 +272,10 @@ stages:
                     fi
                 fi
 
-                echo "Terraform state subscription:          $STATE_SUBSCRIPTION"
-                echo "Terraform state rg name:               $REMOTE_STATE_RG"
-                echo "Terraform state account:               $REMOTE_STATE_SA"
-                echo "Deployer Key Vault:                    ${key_vault}"
+                echo "Terraform state subscription:        $STATE_SUBSCRIPTION"
+                echo "Terraform state rg name:             $REMOTE_STATE_RG"
+                echo "Terraform state account:             $REMOTE_STATE_SA"
+                echo "Deployer Key Vault:                  ${key_vault}"
 
                 if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip ]; then
                     pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
@@ -579,12 +579,12 @@ stages:
                     *) LOCATION_IN_FILENAME="westeurope" ;;
                   esac
 
-                  echo "Environment:                           ${ENVIRONMENT}"
-                  echo "Location:                              ${LOCATION}"
-                  echo "Location code:                         ${LOCATION_CODE}"
+                  echo "Environment:                         ${ENVIRONMENT}"
+                  echo "Location:                            ${LOCATION}"
+                  echo "Location code:                       ${LOCATION_CODE}"
 
-                  echo "Environment(filename):                 $ENVIRONMENT_IN_FILENAME"
-                  echo "Location(filename):                    $LOCATION_IN_FILENAME"
+                  echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
+                  echo "Location(filename):                  $LOCATION_IN_FILENAME"
                   echo ""
 
                   if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
@@ -600,7 +600,7 @@ stages:
                 echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
 
                   deployer_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE
-                  echo "Environment file:                     $deployer_environment_file_name"
+                  echo "Environment file:                   $deployer_environment_file_name"
 
                 echo -e "$green--- az login ---$reset"
 
@@ -626,7 +626,7 @@ stages:
                     key_vault=$(grep -m1 "^keyvault=" ${deployer_environment_file_name} | awk -F'=' '{print $2}' | xargs)
                   fi
 
-                  echo "Deployer Key Vault:                    $key_vault"
+                  echo "Deployer Key Vault:                  $key_vault"
 
                   key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
                   if [ -n "${key_vault_id}" ]; then
