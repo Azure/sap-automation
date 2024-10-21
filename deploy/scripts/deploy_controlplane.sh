@@ -79,7 +79,7 @@ do
     esac
 done
 
-echo "ADO flag:             ${ado_flag}"
+echo "ADO flag:                             ${ado_flag}"
 
 key=$(basename "${deployer_parameter_file}" | cut -d. -f1)
 deployer_tfstate_key="${key}.terraform.tfstate"
