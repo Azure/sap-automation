@@ -476,16 +476,13 @@ stages:
               debug_variable=''
 
               if [ $USE_MSI != "true" ]; then
-
-                  az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION
-                  echo "...................."
-                  az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION  --query "[?principalType=='ServicePrincipal'].principalId"
-
-                  isUserAccessAdmin=$(az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION  --query "[?principalType=='ServicePrincipal'].principalId | [0] " --assignee $WL_ARM_OBJECT_ID --out tsv)
-
-                  echo "Service Principal:                    $ARM_CLIENT_ID"
-                  echo "Is User Access Administrator:         ${isUserAccessAdmin}"
                   echo "Deployment credentials:               Service Principal"
+                  echo "Service Principal:                    $WL_ARM_CLIENT_ID"
+                  echo "Service Principal (OID)               $WL_ARM_OBJECT_ID"
+
+                  isUserAccessAdmin=$(az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION   --assignee $WL_ARM_OBJECT_ID --query "[].principalName | [0]" --output tsv)
+
+                  echo "Is User Access Administrator:         ${isUserAccessAdmin}"
 
                   tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 
