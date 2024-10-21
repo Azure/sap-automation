@@ -570,7 +570,7 @@ stages:
                     fi
 
                     if [ "$USE_WEBAPP" = "true" ]; then
-                        echo "Deploy Web Application:                true"
+                        echo "Deploy Web Application:               true"
 
                         if [ -z "${APP_REGISTRATION_APP_ID}" ]; then
                             echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
@@ -588,7 +588,7 @@ stages:
                         export TF_VAR_webapp_client_secret
                         export TF_VAR_use_webapp=true
                     else
-                      echo "Deploy Web Application:                false"
+                      echo "Deploy Web Application:               false"
                     fi
 
                     bootstrapped=0
