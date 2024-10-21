@@ -64,12 +64,12 @@ this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 
 deployer_environment=$(echo "${deployer_environment}" | tr "[:lower:]" "[:upper:]")
 
-echo "Deployer environment:                $deployer_environment"
+echo "Deployer environment:                 $deployer_environment"
 
 if [ 1 == $called_from_ado ] ; then
     this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
     export TF_VAR_Agent_IP=$this_ip
-    echo "Agent IP:                            $this_ip"
+    echo "Agent IP:                             $this_ip"
 
 fi
 
@@ -167,10 +167,10 @@ then
 fi
 
 
-echo "Configuration file:                  $workload_config_information"
-echo "Deployment region:                   $region"
-echo "Deployment region code:              $region_code"
-echo "Keyvault:                            $keyvault"
+echo "Configuration file:                   $workload_config_information"
+echo "Deployment region:                    $region"
+echo "Deployment region code:               $region_code"
+echo "Keyvault:                             $keyvault"
 
 if [ -n "$STATE_SUBSCRIPTION" ]
 then
