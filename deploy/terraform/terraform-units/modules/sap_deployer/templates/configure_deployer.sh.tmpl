@@ -459,7 +459,7 @@ else
 
     wget -nv -O "/$${asad_home}/$${tf_zip}" "https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip}"
     sudo touch "$${asad_ws}/LOCAL/1"
-    sudo unzip -o "/$${asad_home}/$${tf_zip}" -d "$${tf_dir}"
+    sudo unzip -qq -o "/$${asad_home}/$${tf_zip}" -d "$${tf_dir}"
     sudo touch "$${asad_ws}/LOCAL/2"
     sudo ln -vfs "../$(basename "$${tf_dir}")/terraform" "$${tf_bin}/terraform"
     sudo touch "$${asad_ws}/LOCAL/3"

@@ -315,7 +315,7 @@ stages:
                     echo "Compressing the state file."
                     sudo apt install zip
                     pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
-                    zip -j -P "${pass}" DEPLOYER/$(deployer_folder)/state DEPLOYER/$(deployer_folder)/terraform.tfstate
+                    zip -q -j -P "${pass}" DEPLOYER/$(deployer_folder)/state DEPLOYER/$(deployer_folder)/terraform.tfstate
                     git add -f DEPLOYER/$(deployer_folder)/state.zip
                     changed=1
                 fi
@@ -327,7 +327,7 @@ stages:
                           sudo apt install zip
                           echo "Compressing the library state file"
                           pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
-                          zip -j -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/terraform.tfstate
+                          zip -q -j -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/terraform.tfstate
                           git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip
                           changed=1
                       fi

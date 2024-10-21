@@ -308,7 +308,7 @@ stages:
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate ]; then
                               sudo apt-get install zip -y
                               pass=$(echo $(System.CollectionId) | sed 's/-//g')
-                              zip -j -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
+                              zip -q -j -P "${pass}" ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/terraform.tfstate
                               git add -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip
                               added=1
                             fi
@@ -737,14 +737,14 @@ stages:
                     echo -e "$green--- Deploy the Control Plane ---$reset"
 
                     if [ -n "$(POOL)" ]; then
-                        echo "Deployer Agent Pool:                  $(POOL)"
+                        echo "Deployer Agent Pool:                 $(POOL)"
                     fi
 
                     if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip" ]; then
                         pass=$(echo $(System.CollectionId) | sed 's/-//g')
 
                         echo "Unzipping the library state file"
-                        unzip -o -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)"
+                        unzip -o  -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)"
                     fi
 
                     # ls -lart ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)
@@ -753,7 +753,7 @@ stages:
                         pass=$(echo $(System.CollectionId) | sed 's/-//g')
 
                         echo "Unzipping the deployer state file"
-                        unzip -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)"
+                        unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)"
                     fi
 
                     # ls -lart "${CONFIG_REPO_PATH}"/DEPLOYER/$(deployerfolder)
@@ -840,7 +840,7 @@ stages:
                             sudo apt-get -qq install zip
                             echo "Compressing the deployer state file"
                             pass=$(echo $(System.CollectionId) | sed 's/-//g')
-                            zip -j -P "${pass}" "${CONFIG_REPO_PATH}"/DEPLOYER/$(deployerfolder)/state "${CONFIG_REPO_PATH}"/DEPLOYER/$(deployerfolder)/terraform.tfstate
+                            zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}"/DEPLOYER/$(deployerfolder)/state "${CONFIG_REPO_PATH}"/DEPLOYER/$(deployerfolder)/terraform.tfstate
                             git add -f "${CONFIG_REPO_PATH}"/DEPLOYER/$(deployerfolder)/state.zip
                             added=1
                         fi
@@ -864,7 +864,7 @@ stages:
                             sudo apt-get -qq install zip
                             echo "Compressing the library state file"
                             pass=$(echo $(System.CollectionId) | sed 's/-//g')
-                            zip -j -P "${pass}" "${CONFIG_REPO_PATH}"/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
+                            zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}"/LIBRARY/$(libraryfolder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(libraryfolder)/terraform.tfstate
                             git add -f "${CONFIG_REPO_PATH}"/LIBRARY/$(libraryfolder)/state.zip
                             added=1
                         fi
