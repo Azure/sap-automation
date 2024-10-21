@@ -114,7 +114,7 @@ landscape_tfstate_key_parameter=""
 #show_help=false
 #deployer_tfstate_key_exists=false
 #landscape_tfstate_key_exists=false
-echo "parameterfile:                         $parameterfile"
+echo "parameterfile:                       $parameterfile"
 
 working_directory=$(pwd)
 
