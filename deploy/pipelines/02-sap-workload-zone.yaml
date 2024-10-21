@@ -438,6 +438,7 @@ stages:
 
                   echo "Deployment credentials:               Service Principal"
                   echo "Deployment credential ID (SPN):      $WL_ARM_CLIENT_ID"
+                  echo "Deployer subscription:               $STATE_SUBSCRIPTION"
 
                   export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                   export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
@@ -476,11 +477,15 @@ stages:
 
               if [ $USE_MSI != "true" ]; then
 
-                  isUserAccessAdmin=$(az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION  --query "[?principalType=='ServicePrincipal'].principalId | [0] " --assignee $ARM_OBJECT_ID)
+                  az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION
+                  echo "...................."
+                  az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION  --query "[?principalType=='ServicePrincipal'].principalId
+
+                  isUserAccessAdmin=$(az role assignment list --role "User Access Administrator" --subscription $STATE_SUBSCRIPTION  --query "[?principalType=='ServicePrincipal'].principalId | [0] " --assignee $WL_ARM_OBJECT_ID --out tsv)
 
                   echo "Service Principal:                    $ARM_CLIENT_ID"
-                  echo "Is User Access Administrator:         $isUserAccessAdmin"
-                  echo "Deployment credentials:               Managed Identity"
+                  echo "Is User Access Administrator:         ${isUserAccessAdmin}"
+                  echo "Deployment credentials:               Service Principal"
 
                   tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 
