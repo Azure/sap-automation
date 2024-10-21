@@ -394,7 +394,7 @@ function missing {
 function validate_dependencies {
     tfPath="/opt/terraform/bin/terraform"
 
-    if [ -f /opt/terraform/bin/terraform ]; then
+    if [ -d /opt/terraform/bin/terraform ]; then
         tfPath="/opt/terraform/bin/terraform"
     else
         tfPath=$(which terraform)
@@ -486,7 +486,7 @@ function validate_dependencies {
 
 function validate_key_parameters {
     echo "Validating:                          $1"
-    ext=$(echo $1 | cut -d. -f2)
+    ext=$(echo "$1" | cut -d. -f2)
 
     # Helper variables
     if [ "${ext}" == json ]; then
