@@ -1,3 +1,6 @@
+data "azuread_client_config" "current" {}
+
+
 #######################################4#######################################8
 #                                                                              #
 #                            Workload zone key vault                           #
@@ -95,14 +98,11 @@ resource "azurerm_role_assignment" "role_assignment_spn" {
 }
 
 resource "azurerm_key_vault_access_policy" "kv_user" {
-  provider                             = azurerm.main
-  count                                = (var.key_vault.exists || var.enable_rbac_authorization_for_keyvault) ? (
-                                           0) : (
-                                           (length(var.deployer_tfstate) > 0 ? var.deployer_tfstate.deployer_uai.principal_id == local.service_principal.object_id : false) ? 0 : 1
-                                         )
+  provider                             = azurerm.deployer
+  count                                = var.options.use_spn && (length(try(var.deployer_tfstate.deployer_uai.principal_id,"")) > 0) ? 1 : 0
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
   tenant_id                            = local.service_principal.tenant_id
-  object_id                            = local.service_principal.object_id != "" ? local.service_principal.object_id : "00000000-0000-0000-0000-000000000000"
+  object_id                            = var.deployer_tfstate.deployer_uai.principal_id
 
   secret_permissions                   = [
                                           "Get",
@@ -119,8 +119,8 @@ resource "azurerm_key_vault_access_policy" "kv_user_spn" {
   provider                             = azurerm.main
   count                                = var.options.use_spn ? 1 : 0
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
-  tenant_id                            = var.service_principal.tenant_id
-  object_id                            = var.service_principal.object_id
+  tenant_id                            = data.azuread_client_config.current.tenant_id
+  object_id                            = data.azuread_client_config.current.object_id
 
   secret_permissions                   = [
                                           "Get",
