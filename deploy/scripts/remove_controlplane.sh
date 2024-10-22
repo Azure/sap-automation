@@ -181,7 +181,7 @@ echo "Deployer environment:                  $deployer_environment"
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 export TF_VAR_Agent_IP=$this_ip
-echo "Agent IP:                              $this_ip"
+echo "Agent IP:                            $this_ip"
 
 if [ -n "${subscription}" ]
 then
