@@ -493,7 +493,7 @@ function validate_key_parameters {
     load_config_vars $1 "location"
     export region=$(echo ${location} | xargs)
 
-    if [ -z "${environment}" ]; then
+    if [ -z ${environment} ]; then
         echo "#########################################################################################"
         echo "#                                                                                       #"
         echo -e "#                         $boldred  Incorrect parameter file. $resetformatting                                  #"
@@ -505,7 +505,7 @@ function validate_key_parameters {
         return 64 #script usage wrong
     fi
 
-    if [ -z "${region}" ]; then
+    if [ -z ${region} ]; then
         echo "#########################################################################################"
         echo "#                                                                                       #"
         echo -e "#                          $boldred Incorrect parameter file. $resetformatting                                  #"

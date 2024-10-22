@@ -115,6 +115,7 @@ fi
 
 # Check that parameter files have environment and location defined
 validate_key_parameters "$workload_file_parametername"
+return_code=$?
 if [ 0 != $return_code ]; then
     exit $return_code
 fi
