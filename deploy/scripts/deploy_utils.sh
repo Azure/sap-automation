@@ -49,9 +49,9 @@ function load_config_vars() {
         # NOTE: Should we care if we fail to retrieve a value from the file?
         var_value="$(grep -m1 "^${var_name}=" "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')"
 
-        if [ -z "${var_value}" ]
+        if [ -z ${var_value} ]
         then
-            var_value="$(grep -m1 "^${var_name} " "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')"
+            var_value="$(grep -m1 "^${var_name}[[:space:]]=" "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')"
         fi
 
         # NOTE: this continue means we skip setting an empty value for a variable
