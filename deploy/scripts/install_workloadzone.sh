@@ -180,8 +180,9 @@ echo ""
 echo "Configuration file:                  ${environment}${region_code}${network_logical_name}"
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
-echo "Keyvault:                            $keyvault"
-echo "Target Subscription:                 $STATE_SUBSCRIPTION"
+echo "Deployer Keyvault:                   $keyvault"
+echo "Deployer Subscription:               $subscription"
+echo "Target Subscription:                 $subscription"
 
 if [ -n "$STATE_SUBSCRIPTION" ]
 then
