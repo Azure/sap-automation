@@ -134,7 +134,7 @@ fi
 echo "Region code:                         ${region_code}"
 
 load_config_vars "$workload_file_parametername" "network_logical_name"
-network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
+network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]" | xargs)
 
 if [ -z "${network_logical_name}" ]; then
     echo "#########################################################################################"
@@ -163,7 +163,7 @@ if [ "$deployer_environment" != "$environment" ]; then
     fi
 fi
 
-workload_config_information="${automation_config_directory}"/"${environment}""${region_code}""${network_logical_name}"
+workload_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
 
 if [ "${force}" == 1 ]
 then
@@ -175,15 +175,16 @@ then
 fi
 
 
-echo "Configuration file:                  $workload_config_information"
+echo "Configuration file:                  ${environment}${region_code}${network_logical_name}"
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
 echo "Keyvault:                            $keyvault"
+echo "Target Subscription:                 $STATE_SUBSCRIPTION"
 
 if [ -n "$STATE_SUBSCRIPTION" ]
 then
     if is_valid_guid "$STATE_SUBSCRIPTION" ; then
-        echo "Valid subscription format"
+
         save_config_vars "${workload_config_information}" \
         STATE_SUBSCRIPTION
 
