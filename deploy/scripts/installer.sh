@@ -751,8 +751,6 @@ if [ 1 != $return_value ] ; then
               fi
             fi
           fi
-
-
       fi
     fi
 
@@ -760,12 +758,36 @@ if [ 1 != $return_value ] ; then
 
 fi
 
-container_exists=$(az storage container exists --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors --query exists)
+useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
-if [ "${container_exists}" == "false" ]; then
-    az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors
+if [ "$useSAS" = "true" ] ; then
+  echo "Storage Account authentication:   key"
+  export ARM_USE_AZUREAD=false
+else
+  echo "Storage Account authentication:   Entra ID"
+  export ARM_USE_AZUREAD=true
 fi
 
+
+if [ "$useSAS" = "true" ] ; then
+  container_exists=$(az storage container exists --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors --query exists)
+else
+  container_exists=$(az storage container exists --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors --query exists --auth-mode login)
+fi
+
+if [ "${container_exists}" == "false" ]; then
+  if [ "$useSAS" = "true" ] ; then
+    az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors
+  else
+    az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --auth-mode login --only-show-errors
+  fi
+fi
+
+if [ "$useSAS" = "true" ] ; then
+  az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors  --output none
+else
+  az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --auth-mode login --only-show-errors  --output none
+fi
 
 fatal_errors=0
 # HANA VM
