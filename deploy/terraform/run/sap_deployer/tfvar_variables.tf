@@ -22,6 +22,11 @@ variable "location"                              {
                                                    type        = string
                                                  }
 
+variable "subscription_id"                       {
+                                                   description = "Defines the Azure subscription_id"
+                                                   type        = string
+                                                 }
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitioms                          #

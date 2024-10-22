@@ -293,6 +293,7 @@ else
   export TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 
   echo "Deployer Keyvault ID:                  $TF_VAR_deployer_kv_user_arm_id"
+  export TF_VAR_subscription_id=${STATE_SUBSCRIPTION}
 
 fi
 
