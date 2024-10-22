@@ -127,8 +127,8 @@ get_region_code "$region"
 
 
 if [ "${region_code}" == 'UNKN' ]; then
-  LOCATION_CODE=$(echo "$workload_file_parametername" | awk -F'-' '{print $2}' | xargs )
-  region_code=$LOCATION_CODE
+  LOCATION_CODE=$(echo "$workload_file_parametername" | awk -F'-' '{print $2}' )
+  region_code=$(echo "${LOCATION_CODE}" | tr "[:lower:]" "[:upper:]" | xargs)
 fi
 
 echo "Region code:                         ${region_code}"
@@ -174,7 +174,7 @@ then
     rm -Rf .terraform terraform.tfstate*
 fi
 
-
+echo ""
 echo "Configuration file:                  ${environment}${region_code}${network_logical_name}"
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
