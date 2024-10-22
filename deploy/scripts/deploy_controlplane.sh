@@ -636,7 +636,7 @@ if [ 3 == $step ]; then
 
     echo  "Calling installer.sh with parameters: $allParams"
 
-    "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/installer.sh "$allParams"
+    "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" $allParams
     return_code=$?
     if [ 0 != $return_code ]; then
         echo "Migrating the deployer state failed" > "${deployer_config_information}".err
