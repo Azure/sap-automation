@@ -181,10 +181,10 @@ echo "Configuration file:                  ${environment}${region_code}${network
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
 echo "Deployer Keyvault:                   $keyvault"
-echo "Deployer Subscription:               $subscription"
+echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
 echo "Target Subscription:                 $subscription"
 
-if [ -n "$STATE_SUBSCRIPTION" ]
+if [[ -n $STATE_SUBSCRIPTION ]]
 then
     if is_valid_guid "$STATE_SUBSCRIPTION" ; then
 
@@ -216,6 +216,8 @@ fi
 if [ -n "$REMOTE_STATE_SA" ] ; then
 
     get_and_store_sa_details ${REMOTE_STATE_SA} ${workload_config_information}
+    save_config_vars "${workload_config_information}" \
+        tfstate_resource_id REMOTE_STATE_RG
 fi
 
 if [ -n "$keyvault" ]
@@ -335,7 +337,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
   if [ -n "$client_id" ]
   then
       if is_valid_guid "$client_id" ; then
-          echo "Valid spn id format"
+          echo ""
       else
           printf -v val %-40.40s "$client_id"
           echo "#########################################################################################"
