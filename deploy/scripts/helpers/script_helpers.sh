@@ -489,9 +489,9 @@ function validate_key_parameters {
 
     # Helper variables
     load_config_vars $1 "environment"
-    export environment=$(echo ${environment} | xargs | tr "[:lower:]" "[:upper:]" )
+    export environment=$(echo ${environment} | xargs | tr "[:lower:]" "[:upper:]" | tr -d '\r' )
     load_config_vars $1 "location"
-    export region=$(echo ${location} | xargs)
+    export region=$(echo ${location} | xargs | tr -d '\r')
 
     if [ -z ${environment} ]; then
         echo "#########################################################################################"

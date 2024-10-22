@@ -415,7 +415,7 @@ function print_script_name_and_function() {
 }
 
 function get_region_code() {
-    region_lower=$(echo "${region}" | tr [:upper:] [:lower:] )
+    region_lower=$(echo "${region}" | tr [:upper:] [:lower:] | xargs | tr -d '\r')
     case "${region_lower}" in
         "australiacentral")   export region_code="AUCE" ;;
         "australiacentral2")  export region_code="AUC2" ;;
