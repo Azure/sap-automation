@@ -165,6 +165,8 @@ fi
 
 workload_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
 deployer_config_information="${automation_config_directory}/${deployer_environment}${region_code}"
+save_config_vars "${workload_config_information}" \
+    STATE_SUBSCRIPTION REMOTE_STATE_SA subscription
 
 
 if [ "${force}" == 1 ]
@@ -182,6 +184,7 @@ echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
 echo "Deployer Keyvault:                   $keyvault"
 echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
+echo "Remote state storage account:        $REMOTE_STATE_SA"
 echo "Target Subscription:                 $subscription"
 
 if [[ -n $STATE_SUBSCRIPTION ]]
@@ -213,12 +216,15 @@ then
 
 fi
 
+cat ${workload_config_information}
 if [ -n "$REMOTE_STATE_SA" ] ; then
 
     get_and_store_sa_details ${REMOTE_STATE_SA} ${workload_config_information}
     save_config_vars "${workload_config_information}" \
         tfstate_resource_id REMOTE_STATE_RG
 fi
+
+cat ${workload_config_information}
 
 if [ -n "$keyvault" ]
 then
