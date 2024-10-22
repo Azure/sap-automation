@@ -468,9 +468,9 @@ else
 
       if [ -n "$spn_secret" ]
       then
-          allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret ***** --subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}"  "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}" )
+          fixed_allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret ***** --subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}"  "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}" )
 
-          echo "Calling set_secrets with:             ${allParams}"
+          echo "Calling set_secrets with:             ${fixed_allParams}"
 
           allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}" )
 
