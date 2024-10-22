@@ -634,7 +634,7 @@ if [ 3 == $step ]; then
 
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
 
-    echo -e "$cyan calling installer.sh with parameters: $allParams $reset"
+    echo  "Calling installer.sh with parameters: $allParams"
 
     "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     return_code=$?
