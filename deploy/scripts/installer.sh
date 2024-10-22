@@ -167,7 +167,6 @@ if [ 1 == $called_from_ado ] ; then
 
 fi
 
-
 #Plugins
 isInCloudShellCheck=$(checkIfCloudShell)
 
@@ -181,7 +180,6 @@ else
   fi
   export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 fi
-
 
 parallelism=10
 
@@ -297,6 +295,8 @@ else
   export ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
 
 fi
+
+echo $deployer_parameter
 
 useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription ${STATE_SUBSCRIPTION} --out tsv)
 
