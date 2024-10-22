@@ -550,7 +550,7 @@ if [ 2 == $step ]; then
     REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
     STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id  | tr -d \")
 
-    if [ $ado_flag != "--ado" ] ; then
+    if [ "${ado_flag}" != "--ado" ] ; then
         az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address ${this_ip} --output none
     fi
 

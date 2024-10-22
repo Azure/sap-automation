@@ -641,7 +641,7 @@ allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${extra_v
 
 terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams | tee -a plan_output.log
 return_value=$?
-echo "Terraform Plan return code:          $return_value"
+echo "Terraform Plan return code:           $return_value"
 
 if [ 1 == $return_value ] ; then
     echo ""
@@ -759,10 +759,10 @@ fi
 useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
 if [ "$useSAS" = "true" ] ; then
-  echo "Storage Account authentication:   key"
+  echo "Storage Account authentication:       key"
   export ARM_USE_AZUREAD=false
 else
-  echo "Storage Account authentication:   Entra ID"
+  echo "Storage Account authentication:       Entra ID"
   export ARM_USE_AZUREAD=true
 fi
 
