@@ -50,10 +50,10 @@ do
 done
 
 
-echo "Parameter file:                        $parameterfile"
-echo "Current directory:                     $(pwd)"
-echo "Terraform state subscription_id:       ${STATE_SUBSCRIPTION}"
-echo "Terraform state storage account name:  ${REMOTE_STATE_SA}"
+echo "Parameter file:                      $parameterfile"
+echo "Current directory:                   $(pwd)"
+echo "Terraform state subscription_id:     ${STATE_SUBSCRIPTION}"
+echo "Terraform state storage account name:${REMOTE_STATE_SA}"
 
 tfstate_resource_id=""
 tfstate_parameter=""
@@ -261,8 +261,8 @@ if [[ -z $deployer_tfstate_key ]];
 then
     load_config_vars "${system_config_information}" "deployer_tfstate_key"
 else
-    echo "Deployer state file name:              ${deployer_tfstate_key}"
-    echo "Target subscription:                   ${ARM_SUBSCRIPTION_ID}"
+    echo "Deployer state file name:            ${deployer_tfstate_key}"
+    echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 fi
 
 if [ "${deployment_system}" != sap_deployer ]
@@ -293,7 +293,8 @@ else
   export TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 
   echo "Deployer Keyvault ID:                  $TF_VAR_deployer_kv_user_arm_id"
-  export TF_VAR_subscription_id=${STATE_SUBSCRIPTION}
+  deployer_parameter="  -var subscription_id=${STATE_SUBSCRIPTION} "
+  export ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
 
 fi
 
@@ -638,7 +639,7 @@ then
     rm plan_output.log
 fi
 
-allParams=$(printf " -var-file=%s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" )
+allParams=$(printf " -var-file=%s %s %s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}" )
 
 terraform -chdir="$terraform_module_directory" plan -no-color -detailed-exitcode $allParams | tee -a plan_output.log
 return_value=$?
