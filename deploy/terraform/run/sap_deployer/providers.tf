@@ -27,7 +27,7 @@ provider "azurerm"                     {
                                                   }
                                          partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
                                          storage_use_azuread        = !var.shared_access_key_enabled
-                                         subscription_id            = try(var.subscription_id, null)
+                                         subscription_id            = var.subscription_id
 
                                          use_msi                    = true
                                        }

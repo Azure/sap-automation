@@ -292,7 +292,7 @@ else
   load_config_vars "${system_config_information}" "keyvault"
   export TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 
-  echo "Deployer Keyvault ID:                  $TF_VAR_deployer_kv_user_arm_id"
+  echo "Deployer Keyvault ID x:                  $TF_VAR_deployer_kv_user_arm_id"
   deployer_parameter="  -var subscription_id=${STATE_SUBSCRIPTION} "
   export ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
 

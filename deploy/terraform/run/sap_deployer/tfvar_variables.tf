@@ -25,6 +25,7 @@ variable "location"                              {
 variable "subscription_id"                       {
                                                    description = "Defines the Azure subscription_id"
                                                    type        = string
+                                                   default     = null
                                                  }
 
 #######################################4#######################################8
