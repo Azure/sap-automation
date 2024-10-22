@@ -85,6 +85,7 @@ key=$(basename "${deployer_parameter_file}" | cut -d. -f1)
 deployer_tfstate_key="${key}.terraform.tfstate"
 
 echo "Deployer State File:                 ${deployer_tfstate_key}"
+echo "Deployer Subscription:               ${subscription}"
 
 key=$(basename "${library_parameter_file}" | cut -d. -f1)
 library_tfstate_key="${key}.terraform.tfstate"
@@ -274,6 +275,23 @@ if [ $recover == 1 ]; then
     fi
 fi
 
+#Persist the parameters
+if [ -n "$subscription" ]; then
+    save_config_var "subscription" "${deployer_config_information}"
+    export STATE_SUBSCRIPTION=$subscription
+    save_config_var "STATE_SUBSCRIPTION" "${deployer_config_information}"
+    export ARM_SUBSCRIPTION_ID=$subscription
+    save_config_var "ARM_SUBSCRIPTION_ID" "${deployer_config_information}"
+fi
+
+if [ -n "$client_id" ]; then
+    save_config_var "client_id" "${deployer_config_information}"
+fi
+
+if [ -n "$tenant_id" ]; then
+    save_config_var "tenant_id" "${deployer_config_information}"
+fi
+
 curdir=$(pwd)
 if [ 0 == $step ]; then
     echo ""
@@ -286,15 +304,16 @@ if [ 0 == $step ]; then
 
     allParams=$(printf " --parameterfile %s %s" "${deployer_file_parametername}" "${approveparam}")
 
-    echo $allParams
-
     cd "${deployer_dirname}" || exit
 
     if [ $force == 1 ]; then
         rm -Rf .terraform terraform.tfstate*
     fi
 
-    "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/install_deployer.sh $allParams
+    echo "Calling install_deployer.sh:         $allParams"
+    echo "Deployer State File:                 ${deployer_tfstate_key}"
+
+    "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/install_deployer.sh
     return_code=$?
     if [ 0 != $return_code ]; then
         echo "Bootstrapping of the deployer failed" > "${deployer_config_information}".err
@@ -313,22 +332,6 @@ if [ 0 == $step ]; then
         echo "Bootstrapping of the deployer failed" > "${deployer_config_information}".err
         exit 10
     fi
-
-    #Persist the parameters
-    if [ -n "$subscription" ]; then
-        save_config_var "subscription" "${deployer_config_information}"
-        export STATE_SUBSCRIPTION=$subscription
-        save_config_var "STATE_SUBSCRIPTION" "${deployer_config_information}"
-    fi
-
-    if [ -n "$client_id" ]; then
-        save_config_var "client_id" "${deployer_config_information}"
-    fi
-
-    if [ -n "$tenant_id" ]; then
-        save_config_var "tenant_id" "${deployer_config_information}"
-    fi
-
     if [ -n "${FORCE_RESET}" ]; then
         step=3
         save_config_var "step" "${deployer_config_information}"
