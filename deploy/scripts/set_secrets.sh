@@ -201,7 +201,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
         fi
     else
         if is_valid_guid "${client_id}" ; then
-            echo "Valid client_id specified"
+            echo ""
         else
             printf -v val %-40.40s "$client_id"
             echo "#########################################################################################"
@@ -228,7 +228,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
         fi
     else
         if is_valid_guid "${tenant_id}" ; then
-            echo "Valid tenant_id specified"
+            echo ""
         else
             printf -v val %-40.40s "$tenant_id"
             echo "#########################################################################################"
@@ -272,7 +272,7 @@ if [ -z "${subscription}" ]; then
     read -r -p "SPN Subscription: " subscription
 else
     if is_valid_guid "${subscription}" ; then
-        echo "Valid subscription specified"
+        echo ""
     else
         printf -v val %-40.40s "${subscription}"
         echo "#########################################################################################"
