@@ -179,13 +179,13 @@ relative_path="${deployer_dirname}"
 export TF_DATA_DIR="${relative_path}"/.terraform
 
 step=0
-
+echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
 echo -e "#                   $cyan Starting the control plane deployment $resetformatting                             #"
 echo "#                                                                                       #"
 echo "#########################################################################################"
-
+echo ""
 noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
 
 if [ -n "$noAccess" ]; then

@@ -75,7 +75,7 @@ deployment_system=sap_deployer
 
 param_dirname=$(dirname "${parameterfile}")
 
-echo "Parameter file:                        ${parameterfile}"
+echo "Parameter file:                      ${parameterfile}"
 
 if [ ! -f "${parameterfile}" ]
 then
@@ -139,7 +139,7 @@ export TF_DATA_DIR="${param_dirname}"/.terraform
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 export TF_VAR_Agent_IP=$this_ip
-echo "Agent IP:                              $this_ip"
+echo "Agent IP:                            $this_ip"
 
 ok_to_proceed=false
 new_deployment=false
