@@ -486,18 +486,12 @@ function validate_dependencies {
 
 function validate_key_parameters {
     echo "Validating:                          $1"
-    ext=$(echo "$1" | cut -d. -f2)
 
     # Helper variables
-    if [ "${ext}" == json ]; then
-        export environment=$(jq --raw-output .infrastructure.environment $1)
-        export region=$(jq --raw-output .infrastructure.region $1)
-    else
-        load_config_vars $1 "environment"
-        environment=$(echo ${environment} | xargs | tr "[:lower:]" "[:upper:]" )
-        load_config_vars $1 "location"
-        region=$(echo ${location} | xargs)
-    fi
+    load_config_vars $1 "environment"
+    export environment=$(echo ${environment} | xargs | tr "[:lower:]" "[:upper:]" )
+    load_config_vars $1 "location"
+    export region=$(echo ${location} | xargs)
 
     if [ -z "${environment}" ]; then
         echo "#########################################################################################"

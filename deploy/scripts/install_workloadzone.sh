@@ -73,7 +73,6 @@ if [ 1 == $called_from_ado ] ; then
 
 fi
 
-
 workload_file_parametername=$(basename "${parameterfile}")
 
 param_dirname=$(dirname "${parameterfile}")
@@ -119,6 +118,11 @@ validate_key_parameters "$workload_file_parametername"
 if [ 0 != $return_code ]; then
     exit $return_code
 fi
+
+# Convert the region to the correct code
+get_region_code "$region"
+
+echo "Region code:                         ${region_code}"
 
 load_config_vars "$workload_file_parametername" "network_logical_name"
 network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
