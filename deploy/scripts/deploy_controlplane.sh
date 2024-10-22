@@ -535,6 +535,7 @@ if [ 2 == $step ]; then
     fi
 
     allParams=$(printf " -p %s -d %s %s" "${library_file_parametername}" "${relative_path}" "${approveparam}")
+    echo "Calling install_library.sh with:    $allParams"
 
     "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/install_library.sh $allParams
     return_code=$?
@@ -680,7 +681,7 @@ if [ 4 == $step ]; then
     cd "${library_dirname}" || exit
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_library %s %s" "${library_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}"  "${ado_flag}")
 
-    echo -e "$cyan calling installer.sh with parameters: $allParams $reset"
+    echo "Calling installer.sh with:          $allParams"
 
     "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     return_code=$?
