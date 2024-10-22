@@ -164,6 +164,8 @@ if [ "$deployer_environment" != "$environment" ]; then
 fi
 
 workload_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
+deployer_config_information="${automation_config_directory}/${deployer_environment}${region_code}"
+
 
 if [ "${force}" == 1 ]
 then
@@ -274,7 +276,7 @@ then
     if [ -n "$deployer_environment" ]
     then
         deployer_config_information="${automation_config_directory}"/"${deployer_environment}""${region_code}"
-        echo "Deployer config file $deployer_config_information"
+        echo "Deployer config file:                $deployer_config_information"
         if [ -f "$deployer_config_information" ]
         then
             load_config_vars "${deployer_config_information}" "keyvault"
@@ -282,7 +284,7 @@ then
             load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
             load_config_vars "${deployer_config_information}" "tfstate_resource_id"
             load_config_vars "${deployer_config_information}" "deployer_tfstate_key"
-            echo "tfstate_resource_id: $tfstate_resource_id"
+
             save_config_vars "${workload_config_information}" \
             tfstate_resource_id
 
@@ -313,7 +315,7 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 if [ -n "$subscription" ]
 then
     if is_valid_guid "$subscription"  ; then
-        echo "Valid subscription format"
+        echo ""
     else
         printf -v val %-40.40s "$subscription"
         echo "#########################################################################################"
