@@ -451,7 +451,7 @@ if [ 1 = "${deploy_using_msi_only:-}" ]; then
   then
       echo "Setting the secrets"
 
-      allParams=$(printf " --workload --environment %s --region %s --vault %s --keyvault_subscription %s --msi " "${environment}" "${region_code}" "${keyvault}"  "${STATE_SUBSCRIPTION}" )
+      allParams=$(printf " --workload --environment %s --region %s --vault %s --keyvault_subscription %s --subscription %s --msi " "${environment}" "${region_code}" "${keyvault}"  "${STATE_SUBSCRIPTION}" "${ARM_SUBSCRIPTION_ID}" )
 
       echo "Calling set_secrets with:             ${allParams}"
 
@@ -475,11 +475,11 @@ else
 
       if [ -n "$spn_secret" ]
       then
-          fixed_allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret ***** --keyvault_subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}"  "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}" )
+          fixed_allParams=$(printf " --workload --environment %s --region %s --vault %s  --subscription %s --spn_secret ***** --keyvault_subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}"  "${ARM_SUBSCRIPTION_ID}"  "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}" )
 
           echo "Calling set_secrets with:             ${fixed_allParams}"
 
-          allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --keyvault_subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}" )
+          allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --keyvault_subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}"  "${ARM_SUBSCRIPTION_ID}" "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}" )
 
           "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh" ${allParams}
 
