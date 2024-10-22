@@ -644,7 +644,7 @@ if [ 3 == $step ]; then
         load_config_vars "${deployer_config_information}" "ARM_SUBSCRIPTION_ID"
     fi
 
-    allParams=$(printf " --parameterfile %s --storageaccountname %s --state_subscription --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${STATE_SUBSCRIPTION}" "${approveparam}" "${ado_flag}" )
+    allParams=$(printf " --parameterfile %s --storageaccountname %s --state_subscription %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${STATE_SUBSCRIPTION}" "${approveparam}" "${ado_flag}" )
 
     echo "Calling installer.sh with:          $allParams"
     "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" $allParams
