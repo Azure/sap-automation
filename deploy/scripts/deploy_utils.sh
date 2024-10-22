@@ -132,13 +132,17 @@ function get_and_store_sa_details {
 
     save_config_vars "${config_file_name}" REMOTE_STATE_SA
     if [ -z $STATE_SUBSCRIPTION ];then
-        tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" --output tsv)
+        tf_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" --output tsv)
+        REMOTE_STATE_RGNAME=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --query "[].resourceGroup | [0]" --output tsv)
     else
-        tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --subscription $STATE_SUBSCRIPTION --query "[].id | [0]" --output tsv)
+        tf_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --subscription $STATE_SUBSCRIPTION --query "[].id | [0]" --output tsv)
+        REMOTE_STATE_RGNAME=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --subscription $STATE_SUBSCRIPTION --query "[].resourceGroup | [0]" --output tsv)
+
     fi
     fail_if_null tfstate_resource_id
-    export STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
-    export REMOTE_STATE_RG=$(echo $tfstate_resource_id | cut -d/ -f5 | tr -d \" | xargs)
+
+    export REMOTE_STATE_RG=$REMOTE_STATE_RGNAME
+    export tfstate_resource_id=$tf_resource_id
 
     save_config_vars "${config_file_name}" \
     REMOTE_STATE_RG \

@@ -168,7 +168,6 @@ deployer_config_information="${automation_config_directory}/${deployer_environme
 save_config_vars "${workload_config_information}" \
     STATE_SUBSCRIPTION REMOTE_STATE_SA subscription
 
-
 if [ "${force}" == 1 ]
 then
     if [ -f "${workload_config_information}" ]
@@ -216,12 +215,8 @@ then
 
 fi
 
-cat ${workload_config_information}
 if [ -n "$REMOTE_STATE_SA" ] ; then
-
     get_and_store_sa_details ${REMOTE_STATE_SA} ${workload_config_information}
-    save_config_vars "${workload_config_information}" \
-        tfstate_resource_id REMOTE_STATE_RG
 fi
 
 cat ${workload_config_information}
@@ -486,7 +481,7 @@ else
 
           allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --keyvault_subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}" )
 
-          "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh ${allParams}"
+          "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh" ${allParams}
 
           if [ -f secret.err ]; then
               error_message=$(cat secret.err)
