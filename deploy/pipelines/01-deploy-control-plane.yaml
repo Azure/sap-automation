@@ -220,10 +220,10 @@ stages:
                             deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
                         echo -e "$green--- Deploy the Control Plane ---$reset"
                             if [ -n "$(PAT)" ]; then
-                                echo "Deployer Agent PAT:                  IsDefined"
+                                echo "Deployer Agent PAT:                    IsDefined"
                             fi
                             if [ -n "$(POOL)" ]; then
-                                echo "Deployer Agent Pool:                 $(POOL)"
+                                echo "  Deployer Agent Pool:                   $(POOL)"
 
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
@@ -548,7 +548,7 @@ stages:
 
                     storage_account_parameter=""
                     if [ -n "${REMOTE_STATE_SA}"  ]; then
-                        storage_account_parameter="--storageaccountname ${REMOTE_STATE_SA}"
+                        storage_account_parameter=" --storageaccountname ${REMOTE_STATE_SA} "
                     else
                         sed -i 's/step=2/step=1/' "$deployer_environment_file_name"
                         sed -i 's/step=3/step=1/' "$deployer_environment_file_name"
@@ -578,7 +578,7 @@ stages:
                             exit 2
                         fi
                         TF_VAR_app_registration_app_id=$(APP_REGISTRATION_APP_ID);
-                        echo "App Registration ID:  ${TF_VAR_app_registration_app_id}"
+                        echo "App Registration ID:                ${TF_VAR_app_registration_app_id}"
                         export TF_VAR_app_registration_app_id
                         TF_VAR_webapp_client_secret=$(WEB_APP_CLIENT_SECRET)
                         export TF_VAR_webapp_client_secret
@@ -786,9 +786,10 @@ stages:
                         ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_controlplane.sh  \
                         --deployer_parameter_file "${deployer_configfile}"                 \
                         --library_parameter_file "${library_configfile}"                   \
-                        --subscription "${STATE_SUBSCRIPTION}"                             \
-                        --auto-approve --ado --msi                                         \
-                        "${storage_account_parameter}" "${keyvault_parameter}"
+                        --subscription "${STATE_SUBSCRIPTION}" --ado --msi                 \
+                        "${storage_account_parameter}" "${keyvault_parameter}"             \
+                        --auto-approve
+
                     fi
 
                     return_code=$?
