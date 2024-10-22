@@ -126,7 +126,7 @@ fi
 get_region_code "$region"
 
 
-if [ "$region_code" == 'UNKN' ]; then
+if [ "${region_code}" == 'UNKN' ]; then
   LOCATION_CODE=$(echo "$workload_file_parametername" | awk -F'-' '{print $2}' | xargs )
   region_code=$LOCATION_CODE
 fi
@@ -147,11 +147,6 @@ if [ -z "${network_logical_name}" ]; then
     echo ""
     return 64 #script usage wrong
 fi
-
-
-# Convert the region to the correct code
-region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
-get_region_code "$region"
 
 key=$(echo "${workload_file_parametername}" | cut -d. -f1)
 landscape_tfstate_key=${key}.terraform.tfstate
