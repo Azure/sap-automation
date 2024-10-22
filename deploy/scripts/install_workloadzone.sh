@@ -12,9 +12,11 @@ full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
 #call stack has full scriptname when using source
+# shellcheck disable=SC1091
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
+# shellcheck disable=SC1091
 source "${script_directory}/helpers/script_helpers.sh"
 
 force=0
@@ -123,6 +125,12 @@ fi
 # Convert the region to the correct code
 get_region_code "$region"
 
+
+if [ "$region_code" == 'UNKN' ]; then
+  LOCATION_CODE=$(echo "$workload_file_parametername" | awk -F'-' '{print $2}' | xargs )
+  region_code=$LOCATION_CODE
+fi
+
 echo "Region code:                         ${region_code}"
 
 load_config_vars "$workload_file_parametername" "network_logical_name"
@@ -153,7 +161,7 @@ landscape_tfstate_key=${key}.terraform.tfstate
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 
-if [ $deployer_environment != $environment ]; then
+if [ "$deployer_environment" != "$environment" ]; then
     if [ -f "${automation_config_directory}"/"${environment}""${region_code}" ]; then
         # Add support for having multiple vnets in the same environment and zone - rename exiting file to support seamless transition
         mv "${automation_config_directory}"/"${environment}""${region_code}" "${automation_config_directory}"/"${environment}""${region_code}""${network_logical_name}"
