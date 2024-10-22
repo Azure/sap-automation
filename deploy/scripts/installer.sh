@@ -290,7 +290,7 @@ else
   load_config_vars "${system_config_information}" "keyvault"
   export TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription ${STATE_SUBSCRIPTION} --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 
-  echo "Deployer Keyvault ID x:                  $TF_VAR_deployer_kv_user_arm_id"
+  echo "Deployer Keyvault ID:                $TF_VAR_deployer_kv_user_arm_id"
   deployer_parameter="  -var subscription_id=${STATE_SUBSCRIPTION} "
   export ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
 
@@ -301,10 +301,10 @@ echo $deployer_parameter
 useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription ${STATE_SUBSCRIPTION} --out tsv)
 
 if [ "$useSAS" = "true" ] ; then
-  echo "Storage Account Authentication:        Key"
+  echo "Storage Account Authentication:      Key"
   export ARM_USE_AZUREAD=false
 else
-  echo "Storage Account Authentication:        Entra ID"
+  echo "Storage Account Authentication:      Entra ID"
   export ARM_USE_AZUREAD=true
 fi
 
@@ -315,7 +315,7 @@ if [[ -z $landscape_tfstate_key ]];
 then
     load_config_vars "${system_config_information}" "landscape_tfstate_key"
 else
-    echo "Workload zone state file:              ${landscape_tfstate_key}"
+    echo "Workload zone state file:            ${landscape_tfstate_key}"
     save_config_vars "${system_config_information}" landscape_tfstate_key
 fi
 
@@ -342,7 +342,7 @@ then
         fi
     else
         landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
-        echo "Workload zone state file:              ${landscape_tfstate_key}"
+        echo "Workload zone state file:            ${landscape_tfstate_key}"
     fi
 fi
 
@@ -460,11 +460,11 @@ terraform --version
 echo ""
 echo "Terraform details"
 echo "-------------------------------------------------------------------------"
-echo "Subscription:                         ${STATE_SUBSCRIPTION}"
-echo "Storage Account:                      ${REMOTE_STATE_SA}"
-echo "Resource Group:                       ${REMOTE_STATE_RG}"
-echo "State file:                           ${key}.terraform.tfstate"
-echo "Target subscription:                  ${ARM_SUBSCRIPTION_ID}"
+echo "Subscription:                        ${STATE_SUBSCRIPTION}"
+echo "Storage Account:                     ${REMOTE_STATE_SA}"
+echo "Resource Group:                      ${REMOTE_STATE_RG}"
+echo "State file:                          ${key}.terraform.tfstate"
+echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
 echo ""
 
 check_output=0

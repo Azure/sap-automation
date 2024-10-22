@@ -588,10 +588,11 @@ root_dirname=$(pwd)
 echo ""
 echo "Terraform details"
 echo "-------------------------------------------------------------------------"
-echo "Subscription:                         ${STATE_SUBSCRIPTION}"
-echo "Storage Account:                      ${REMOTE_STATE_SA}"
-echo "Resource Group:                       ${REMOTE_STATE_RG}"
-echo "State file:                           ${key}.terraform.tfstate"
+echo "Subscription:                        ${STATE_SUBSCRIPTION}"
+echo "Storage Account:                     ${REMOTE_STATE_SA}"
+echo "Resource Group:                      ${REMOTE_STATE_RG}"
+echo "State file:                          ${key}.terraform.tfstate"
+echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
 
 if [ ! -d ./.terraform/ ];
 then
