@@ -296,8 +296,6 @@ else
 
 fi
 
-echo $deployer_parameter
-
 useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription ${STATE_SUBSCRIPTION} --out tsv)
 
 if [ "$useSAS" = "true" ] ; then
