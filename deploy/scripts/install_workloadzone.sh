@@ -219,8 +219,6 @@ if [ -n "$REMOTE_STATE_SA" ] ; then
     get_and_store_sa_details ${REMOTE_STATE_SA} ${workload_config_information}
 fi
 
-cat ${workload_config_information}
-
 if [ -n "$keyvault" ]
 then
     if valid_kv_name "$keyvault" ; then
