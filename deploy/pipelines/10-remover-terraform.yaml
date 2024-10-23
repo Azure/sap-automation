@@ -770,8 +770,6 @@ stages:
               echo "Deployer Key Vault:                  ${key_vault}"
               echo "Terraform state subscription:        $STATE_SUBSCRIPTION"
               echo "Terraform state account:             $REMOTE_STATE_SA"
-              echo "Terraform state resource group:      $REMOTE_STATE_RG"
-
               echo "System configuration:                $(workload_zone_configuration_file)"
 
               echo "Deployer state file name:            $deployer_tfstate_key"
@@ -818,6 +816,7 @@ stages:
               fi
 
               echo -e "$green --- Run the remover script that destroys the SAP workload zone (landscape) ---$reset"
+              cd "$CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)" || exit
               cd "$CONFIG_REPO_PATH/LANDSCAPE/$(workload_zone_folder)" || exit
 
               $SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover.sh \
