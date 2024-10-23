@@ -467,35 +467,44 @@ echo ""
 
 check_output=0
 if [ -f terraform.tfstate ]; then
+    if [ -f ./.terraform/terraform.tfstate ]; then
+        if grep "azurerm" ./.terraform/terraform.tfstate ; then
+            echo ""
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo "#                     The state is already migrated to Azure!!!                         #"
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+            echo ""
+        else
 
-  if [ "${deployment_system}" == sap_deployer ]
-  then
-    echo ""
-    echo -e "$cyan Reinitializing deployer in case of on a new deployer $resetformatting"
+            if [ "${deployment_system}" == sap_deployer ]; then
 
-    terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
-    terraform -chdir="${terraform_module_directory}" init  -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure
-    echo ""
-    key_vault_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
+                echo ""
+                echo -e "$cyan Reinitializing deployer in case of on a new deployer $resetformatting"
 
-    if [ -n "${key_vault_id}" ]
-    then
-      export TF_VAR_deployer_kv_user_arm_id="${key_vault_id}" ; echo $TF_VAR_deployer_kv_user_arm_id
+                terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
+                terraform -chdir="${terraform_module_directory}" init  -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure
+                echo ""
+                key_vault_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
+
+                if [ -n "${key_vault_id}" ]
+                then
+                    export TF_VAR_deployer_kv_user_arm_id="${key_vault_id}" ; echo $TF_VAR_deployer_kv_user_arm_id
+                fi
+            fi
+
+
+            if [ "${deployment_system}" == sap_library ]
+            then
+                echo "Reinitializing library in case of on a new deployer"
+                terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
+
+                terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure
+            fi
+        fi
     fi
-
-
-  fi
-
-  if [ "${deployment_system}" == sap_library ]
-  then
-    echo "Reinitializing library in case of on a new deployer"
-    terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
-
-    terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate" -reconfigure
-  fi
-
 fi
-
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
