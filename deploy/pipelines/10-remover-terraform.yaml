@@ -425,15 +425,17 @@ stages:
               cd $CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder) || exit
               echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
 
-              ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh
-              #  \
-              # --parameterfile $(sap_system_configuration) \
-              # --type sap_system \
-              # --state_subscription ${STATE_SUBSCRIPTION} \
+              echo "Deployer state file name:            $deployer_tfstate_key"
+              echo "Workload zone state file name:       $landscape_tfstate_key"
+
+              ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh  \
+              --parameterfile $(sap_system_configuration) \
+              --type sap_system \
+              --state_subscription ${STATE_SUBSCRIPTION} \
               # --storageaccountname "${REMOTE_STATE_SA}" \
               # --deployer_tfstate_key ${deployer_tfstate_key} \
               # --landscape_tfstate_key ${landscape_tfstate_key}  \
-              # --auto-approve
+              --auto-approve
               return_code=$?
               exit 66
               echo -e "$green--- Pull latest from DevOps Repository ---$reset"
