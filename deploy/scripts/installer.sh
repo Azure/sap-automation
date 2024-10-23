@@ -468,13 +468,7 @@ echo ""
 check_output=0
 if [ -f terraform.tfstate ]; then
     if [ -f ./.terraform/terraform.tfstate ]; then
-        if grep "azurerm" ./.terraform/terraform.tfstate ; then
-            echo ""
-            echo "#########################################################################################"
-            echo "#                                                                                       #"
-            echo "#                     The state is already migrated to Azure!!!                         #"
-            echo "#                                                                                       #"
-            echo "#########################################################################################"
+        if grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate ; then
             echo ""
         else
 
