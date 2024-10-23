@@ -564,7 +564,8 @@ stages:
               fi
               return_code=$?
 
-              echo "Return code: ${return_code}"
+              echo "Return code from deployment:         ${return_code}"
+
               if [ -f ${workload_environment_file_name} ]; then
                   export workload_key_vault=$(cat ${workload_environment_file_name} | grep workloadkeyvault=      | awk -F'=' '{print $2}' | xargs)
                   echo "Workload zone key vault:             ${workload_key_vault}"
