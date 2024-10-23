@@ -406,35 +406,33 @@ stages:
               echo "Workload Key Vault:                  ${workload_key_vault}"
               echo "TF state subscription:               $STATE_SUBSCRIPTION"
               echo "TF state account:                    $REMOTE_STATE_SA"
-              echo "System configuration:                $(sap_system_configuration)"
+              echo "System configuration:                $systemConfigurationFile"
 
               az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" --out tsv)
               if [ -n "${az_var}" ]; then
-                  export deployer_tfstate_key="${az_var}"
+                  deployer_tfstate_key="${az_var}"
               else
-                  export deployer_tfstate_key=$(grep "^deployer_tfstate_key=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
+                  deployer_tfstate_key=$(grep "^STATE_SUBSCRIPTION=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
               fi
 
               az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query $NETWORK"Workload_Zone_State_FileName.value" --out tsv)
               if [ -n "${az_var}" ]; then
-                  export landscape_tfstate_key="${az_var}"
+                  landscape_tfstate_key="${az_var}"
               else
-                  export landscape_tfstate_key=$(grep "^landscape_tfstate_key=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
+                  landscape_tfstate_key=$(grep "^landscape_tfstate_key=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
               fi
 
-              cd $CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder) || exit
-
-              echo "Deployer state file name:            $deployer_tfstate_key"
-              echo "Workload zone state file name:       $landscape_tfstate_key"
-
               echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
-
-              ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh  \
-                --parameterfile $(sap_system_configuration)            \
-                --type sap_system                                      \
-                --state_subscription "${STATE_SUBSCRIPTION}"           \
-                --storageaccountname "${REMOTE_STATE_SA}"              \
-                --auto-approve
+              cd $CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder)
+              ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh \
+              --parameterfile $(sap_system_configuration) \
+              --type sap_system \
+              --state_subscription ${STATE_SUBSCRIPTION} \
+              --storageaccountname "${REMOTE_STATE_SA}" \
+              --deployer_tfstate_key ${deployer_tfstate_key} \
+              --landscape_tfstate_key ${landscape_tfstate_key}  \
+              --auto-approve
+              return_code=$?
 
               return_code=$?
               echo -e "$green--- Pull latest from DevOps Repository ---$reset"
@@ -745,6 +743,13 @@ stages:
                   deployer_tfstate_key=$(grep "^STATE_SUBSCRIPTION=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
               fi
 
+              az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query $NETWORK"Workload_Zone_State_FileName.value" --out tsv)
+              if [ -n "${az_var}" ]; then
+                  landscape_tfstate_key="${az_var}"
+              else
+                  landscape_tfstate_key=$(grep "^landscape_tfstate_key=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
+              fi
+
               az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
               if [ -n "${az_var}" ]; then
                   export REMOTE_STATE_SA="${az_var}"
@@ -818,9 +823,9 @@ stages:
               --type sap_landscape \
               --state_subscription ${STATE_SUBSCRIPTION} \
               --storageaccountname "${REMOTE_STATE_SA}" \
-              --auto-approve \
               --deployer_tfstate_key ${deployer_tfstate_key} \
-              --ado
+              --landscape_tfstate_key ${landscape_tfstate_key}  \
+              --auto-approve
 
               return_code=$?
 

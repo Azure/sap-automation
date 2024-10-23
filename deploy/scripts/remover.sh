@@ -78,7 +78,7 @@ function missing {
 }
 
 #process inputs - may need to check the option i for auto approve as it is not used
-INPUT_ARGUMENTS=$(getopt -n remover -o p:o:t:s:d:ahi --longoptions type:,parameterfile,deployer_tfstate_key:,storageaccountname:,state_subscription:,ado,auto-approve,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n remover -o p:o:t:s:d:l:ahi --longoptions type:,parameterfile,storageaccountname:,state_subscription:,deployer_tfstate_key:,landscape_tfstate_key:,ado,auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -94,6 +94,7 @@ do
         -o | --storageaccountname)                 REMOTE_STATE_SA="$2"             ; shift 2 ;;
         -s | --state_subscription)                 STATE_SUBSCRIPTION="$2"          ; shift 2 ;;
         -d | --deployer_tfstate_key)               deployer_tfstate_key="$2"          ; shift 2 ;;
+        -l | --landscape_tfstate_key)              landscape_tfstate_key="$2"          ; shift 2 ;;
         -t | --type)                               deployment_system="$2"           ; shift 2 ;;
         -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
         -a | --ado)                                called_from_ado=1                ; shift ;;
