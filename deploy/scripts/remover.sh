@@ -56,7 +56,7 @@ function showhelp {
     echo "#   Example:                                                                            #"
     echo "#                                                                                       #"
     echo "#   [REPO-ROOT]deploy/scripts/remover.sh \                                              #"
-    echo "#      --parameterfile DEV-WEEU-SAP01-X00.json \                                        #"
+    echo "#      --parameterfile DEV-WEEU-SAP01-X00.tfvars \                                      #"
     echo "#      --type sap_system                                                                #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
