@@ -14,7 +14,7 @@ data "terraform_remote_state" "deployer" {
                                            resource_group_name  = local.saplib_resource_group_name
                                            storage_account_name = local.tfstate_storage_account_name
                                            container_name       = local.tfstate_container_name
-                                           key                  = trim(var.deployer_tfstate_key)
+                                           key                  = trimspace(var.deployer_tfstate_key)
                                            subscription_id      = local.saplib_subscription_id
 
                                          }

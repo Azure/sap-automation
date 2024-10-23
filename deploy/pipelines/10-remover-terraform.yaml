@@ -770,6 +770,8 @@ stages:
               echo "Deployer Key Vault:                  ${key_vault}"
               echo "Terraform state subscription:        $STATE_SUBSCRIPTION"
               echo "Terraform state account:             $REMOTE_STATE_SA"
+              echo "Terraform state resource group:      $REMOTE_STATE_RG"
+
               echo "System configuration:                $(workload_zone_configuration_file)"
 
               echo "Deployer state file name:            $deployer_tfstate_key"
