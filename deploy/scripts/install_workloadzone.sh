@@ -172,8 +172,8 @@ fi
 get_region_code "$region"
 
 if [ "${region_code}" == 'UNKN' ]; then
-  LOCATION_CODE=$(echo "$workload_file_parametername" | awk -F'-' '{print $2}')
-  region_code=$(echo "${LOCATION_CODE}" | tr "[:lower:]" "[:upper:]" | xargs)
+    LOCATION_CODE=$(echo "$workload_file_parametername" | awk -F'-' '{print $2}' )
+    region_code=$(echo "${LOCATION_CODE}" | tr "[:lower:]" "[:upper:]" | xargs)
 fi
 
 echo "Region code:                         ${region_code}"
@@ -211,7 +211,7 @@ fi
 workload_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
 deployer_config_information="${automation_config_directory}/${deployer_environment}${region_code}"
 save_config_vars "${workload_config_information}" \
-  STATE_SUBSCRIPTION REMOTE_STATE_SA subscription
+STATE_SUBSCRIPTION REMOTE_STATE_SA subscription
 
 if [ "${force}" == 1 ]; then
   if [ -f "${workload_config_information}" ]; then
@@ -364,43 +364,46 @@ if [ -n "$subscription" ]; then
   fi
 fi
 if [ 0 = "${deploy_using_msi_only:-}" ]; then
-  if [ -n "$client_id" ]; then
-    if is_valid_guid "$client_id"; then
-      echo ""
-    else
-      printf -v val %-40.40s "$client_id"
-      echo "#########################################################################################"
-      echo "#                                                                                       #"
-      echo -e "#         The provided spn_id is not valid:$boldred ${val} $resetformatting   #"
-      echo "#                                                                                       #"
-      echo "#########################################################################################"
-      exit 65
-    fi
-  fi
-
-  if [ -n "$tenant_id" ]; then
-    if is_valid_guid "$tenant_id"; then
-      echo ""
-    else
-      printf -v val %-40.40s "$tenant_id"
-      echo "#########################################################################################"
-      echo "#                                                                                       #"
-      echo -e "#       The provided tenant_id is not valid:$boldred ${val} $resetformatting  #"
-      echo "#                                                                                       #"
-      echo "#########################################################################################"
-      exit 65
+    if [ -n "$client_id" ]
+    then
+        if is_valid_guid "$client_id" ; then
+            echo ""
+        else
+            printf -v val %-40.40s "$client_id"
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo -e "#         The provided spn_id is not valid:$boldred ${val} $resetformatting   #"
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+            exit 65
+        fi
     fi
 
-  fi
-  #setting the user environment variables
-  if [ -n "${spn_secret}" ]; then
-    set_executing_user_environment_variables "${spn_secret}"
-  else
-    set_executing_user_environment_variables "none"
-  fi
+    if [ -n "$tenant_id" ]
+    then
+        if is_valid_guid "$tenant_id" ; then
+            echo "Valid tenant id format"
+        else
+            printf -v val %-40.40s "$tenant_id"
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo -e "#       The provided tenant_id is not valid:$boldred ${val} $resetformatting  #"
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+            exit 65
+        fi
+
+    fi
+    #setting the user environment variables
+    if [ -n "${spn_secret}" ]
+    then
+        set_executing_user_environment_variables "${spn_secret}"
+    else
+        set_executing_user_environment_variables "none"
+    fi
 else
-  #setting the user environment variables
-  set_executing_user_environment_variables "N/A"
+    #setting the user environment variables
+    set_executing_user_environment_variables "N/A"
 fi
 
 if [[ -z ${REMOTE_STATE_SA} ]]; then
@@ -435,8 +438,10 @@ else
   get_and_store_sa_details ${REMOTE_STATE_SA} ${workload_config_information}
 fi
 
-if [ -z "$subscription" ]; then
-  subscription="${STATE_SUBSCRIPTION}"
+
+if [ -z "$subscription" ]
+then
+    subscription="${STATE_SUBSCRIPTION}"
 fi
 
 if [ -z "$REMOTE_STATE_SA" ]; then
@@ -461,71 +466,76 @@ fi
 
 useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
-if [ "$useSAS" = "true" ]; then
-  echo "Storage Account authentication:       key"
-  export ARM_USE_AZUREAD=false
+if [ "$useSAS" = "true" ] ; then
+    echo "Storage Account authentication:       key"
+    export ARM_USE_AZUREAD=false
 else
-  echo "Storage Account authentication:       Entra ID"
-  export ARM_USE_AZUREAD=true
+    echo "Storage Account authentication:       Entra ID"
+    export ARM_USE_AZUREAD=true
 fi
 
 if [ 1 = "${deploy_using_msi_only:-}" ]; then
-  if [ -n "${keyvault}" ]; then
-    echo "Setting the secrets"
+    if [ -n "${keyvault}" ]
+    then
+        echo "Setting the secrets"
 
-    allParams=$(printf " --workload --environment %s --region %s --vault %s --keyvault_subscription %s --subscription %s --msi " "${environment}" "${region_code}" "${keyvault}" "${STATE_SUBSCRIPTION}" "${ARM_SUBSCRIPTION_ID}")
+        allParams=$(printf " --workload --environment %s --region %s --vault %s --keyvault_subscription %s --subscription %s --msi " "${environment}" "${region_code}" "${keyvault}"  "${STATE_SUBSCRIPTION}" "${ARM_SUBSCRIPTION_ID}" )
 
-    echo "Calling set_secrets with:             ${allParams}"
+        echo "Calling set_secrets with:             ${allParams}"
 
-    "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
+        "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
 
-    if [ -f secret.err ]; then
-      error_message=$(cat secret.err)
-      echo "##vso[task.logissue type=error]${error_message}"
-      rm secret.err
-      exit 65
+        if [ -f secret.err ]; then
+            error_message=$(cat secret.err)
+            echo "##vso[task.logissue type=error]${error_message}"
+            rm secret.err
+            exit 65
+        fi
     fi
-  fi
 
 else
-  if [ -n "${keyvault}" ]; then
-    echo "Setting the secrets"
+    if [ -n "${keyvault}" ]
+    then
+        echo "Setting the secrets"
 
-    save_config_var "client_id" "${workload_config_information}"
-    save_config_var "tenant_id" "${workload_config_information}"
+        save_config_var "client_id" "${workload_config_information}"
+        save_config_var "tenant_id" "${workload_config_information}"
 
-    if [ -n "$spn_secret" ]; then
-      fixed_allParams=$(printf " --workload --environment %s --region %s --vault %s  --subscription %s --spn_secret ***** --keyvault_subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${ARM_SUBSCRIPTION_ID}" "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}")
+        if [ -n "$spn_secret" ]
+        then
+            fixed_allParams=$(printf " --workload --environment %s --region %s --vault %s  --subscription %s --spn_secret ***** --keyvault_subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}"  "${ARM_SUBSCRIPTION_ID}"  "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}" )
 
-      echo "Calling set_secrets with:             ${fixed_allParams}"
+            echo "Calling set_secrets with:             ${fixed_allParams}"
 
-      allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --keyvault_subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${ARM_SUBSCRIPTION_ID}" "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}")
+            allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --keyvault_subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}"  "${ARM_SUBSCRIPTION_ID}" "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}" )
 
-      "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh" ${allParams}
+            "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh" ${allParams}
 
-      if [ -f secret.err ]; then
-        error_message=$(cat secret.err)
-        echo "##vso[task.logissue type=error]${error_message}"
+            if [ -f secret.err ]; then
+                error_message=$(cat secret.err)
+                echo "##vso[task.logissue type=error]${error_message}"
 
-        exit 65
-      fi
-    else
-      read -p "Do you want to specify the Workload SPN Details Y/N?" ans
-      answer=${ans^^}
-      if [ ${answer} == 'Y' ]; then
-        allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${STATE_SUBSCRIPTION}" "${client_id}")
+                exit 65
+            fi
+        else
+            read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
+            answer=${ans^^}
+            if [ ${answer} == 'Y' ]; then
+                allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${STATE_SUBSCRIPTION}" "${client_id}" )
 
-        "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh ${allParams}"
-        if [ $? -eq 255 ]; then
-          exit $?
+                "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh ${allParams}"
+                if [ $? -eq 255 ]
+                then
+                    exit $?
+                fi
+            fi
         fi
-      fi
-    fi
 
-    if [ -f kv.log ]; then
-      rm kv.log
+        if [ -f kv.log ]
+        then
+            rm kv.log
+        fi
     fi
-  fi
 fi
 if [ -z "${deployer_tfstate_key}" ]; then
   load_config_vars "${workload_config_information}" "deployer_tfstate_key"
@@ -601,14 +611,14 @@ new_deployment=false
 isInCloudShellCheck=$(checkIfCloudShell)
 
 if checkIfCloudShell; then
-  mkdir -p "${HOME}/.terraform.d/plugin-cache"
-  export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
+    mkdir -p "${HOME}/.terraform.d/plugin-cache"
+    export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
 else
-  if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
-    mkdir -p /opt/terraform/.terraform.d/plugin-cache
-    sudo chown -R "$USER" /opt/terraform
-  fi
-  export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+    if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
+        mkdir -p /opt/terraform/.terraform.d/plugin-cache
+        sudo chown -R "$USER" /opt/terraform
+    fi
+    export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 fi
 
 root_dirname=$(pwd)
@@ -781,10 +791,10 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-if [ 1 == $called_from_ado ]; then
-  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter | tee -a plan_output.log
+if [ 1 == $called_from_ado ] ; then
+    terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode  -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter  | tee -a plan_output.log
 else
-  terraform -chdir="${terraform_module_directory}" plan -detailed-exitcode -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter | tee -a plan_output.log
+    terraform -chdir="${terraform_module_directory}" plan -detailed-exitcode  -var-file=${var_file} $tfstate_parameter $deployer_tfstate_key_parameter  | tee -a plan_output.log
 fi
 return_value=$?
 
@@ -807,16 +817,16 @@ fi
 
 echo "TEST_ONLY: " $TEST_ONLY
 if [ "${TEST_ONLY}" == "True" ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                                 $cyan Running plan only. $resetformatting                                  #"
-  echo "#                                                                                       #"
-  echo "#                                  No deployment performed.                             #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  exit 0
+    echo ""
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#                                 $cyan Running plan only. $resetformatting                                  #"
+    echo "#                                                                                       #"
+    echo "#                                  No deployment performed.                             #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
+    echo ""
+    exit 0
 fi
 
 ok_to_proceed=0
@@ -897,14 +907,15 @@ if [ 1 == $ok_to_proceed ]; then
     parallelism=$TF_PARALLELLISM
   fi
 
-  if [ 1 == $called_from_ado ]; then
-    terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json | tee -a apply_output.json
-  else
-    if [ -n "${approve}" ]; then
-      terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json | tee -a apply_output.json
+    if [ 1 == $called_from_ado ] ; then
+        terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -no-color -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
     else
-      terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
-    fi
+        if [ -n "${approve}" ]
+        then
+            terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter -json  | tee -a  apply_output.json
+        else
+            terraform -chdir="${terraform_module_directory}" apply ${approve} -parallelism="${parallelism}" -var-file=${var_file} $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
+        fi
 
   fi
 
@@ -912,12 +923,15 @@ if [ 1 == $ok_to_proceed ]; then
 
 fi
 
+
 rerun_apply=0
 
-if [ -f apply_output.json ]; then
-  # Check for resource that can be imported
-  existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
-  if [[ -n ${existing} ]]; then
+if [ -f apply_output.json ]
+then
+    # Check for resource that can be imported
+    existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
+    if [[ -n ${existing} ]]
+    then
 
     readarray -t existing_resources < <(echo ${existing} | jq -c '.')
     for item in "${existing_resources[@]}"; do
@@ -1036,8 +1050,9 @@ if [ -f apply_output.json ]; then
 
 fi
 
-if [ -f apply_output.json ]; then
-  rm apply_output.json
+if [ -f apply_output.json ]
+then
+    rm apply_output.json
 fi
 
 workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
@@ -1064,9 +1079,9 @@ if [ 0 == $return_value ]; then
       echo "#########################################################################################"
       echo ""
 
-      save_config_var "workloadkeyvault" "${workload_config_information}"
+            save_config_var "workloadkeyvault" "${workload_config_information}"
+        fi
     fi
-  fi
 
 fi
 
@@ -1160,24 +1175,24 @@ unset TF_DATA_DIR
 #                                                                               #
 #################################################################################
 
-if [ "$useSAS" = "true" ]; then
-  container_exists=$(az storage container exists --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors --query exists)
+if [ "$useSAS" = "true" ] ; then
+    container_exists=$(az storage container exists --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors --query exists)
 else
-  container_exists=$(az storage container exists --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors --query exists --auth-mode login)
+    container_exists=$(az storage container exists --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors --query exists --auth-mode login)
 fi
 
 if [ "${container_exists}" == "false" ]; then
-  if [ "$useSAS" = "true" ]; then
-    az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors
-  else
-    az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --auth-mode login --only-show-errors
-  fi
+    if [ "$useSAS" = "true" ] ; then
+        az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors
+    else
+        az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --auth-mode login --only-show-errors
+    fi
 fi
 
-if [ "$useSAS" = "true" ]; then
-  az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+if [ "$useSAS" = "true" ] ; then
+    az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --only-show-errors  --output none
 else
-  az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --auth-mode login --only-show-errors --output none
+    az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}"  --no-progress --overwrite --auth-mode login --only-show-errors  --output none
 fi
 
 exit $return_value
