@@ -285,6 +285,7 @@ then
         fi
     else
         deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+        echo "Deployer state file name:            ${deployer_tfstate_key}"
     fi
 else
   load_config_vars "${system_config_information}" "keyvault"
@@ -340,7 +341,6 @@ then
         fi
     else
         landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
-        echo "Workload zone state file:            ${landscape_tfstate_key}"
     fi
 fi
 

@@ -1075,7 +1075,7 @@ if [ 0 == $return_value ] ; then
             echo ""
 
             save_config_var "workloadkeyvault" "${workload_config_information}"
-        fi
+        fi_system
     fi
 
 fi
@@ -1096,7 +1096,6 @@ echo ""
 if [ -n "${spn_secret}" ]
 then
     az logout
-    echo "Login as SPN"
     az login --service-principal --username "${client_id}" --password="${spn_secret}" --tenant "${tenant_id}" --output none
 fi
 
