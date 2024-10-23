@@ -75,7 +75,7 @@ deployment_system=sap_deployer
 
 param_dirname=$(dirname "${parameterfile}")
 
-echo "Parameter file: "${parameterfile}""
+echo "Parameter file:                       ${parameterfile}"
 
 if [ ! -f "${parameterfile}" ]
 then

@@ -93,6 +93,7 @@ module "common_infrastructure" {
   use_random_id_for_storageaccounts             = var.use_random_id_for_storageaccounts
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   dns_settings                                  = local.dns_settings
+  enable_firewall_for_keyvaults_and_storage     = var.enable_firewall_for_keyvaults_and_storage
 }
 
 #-------------------------------------------------------------------------------

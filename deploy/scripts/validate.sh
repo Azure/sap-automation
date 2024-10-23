@@ -9,6 +9,11 @@ boldreduscore="\e[1;4;31m"
 boldred="\e[1;31m"
 cyan="\e[1;36m"
 resetformatting="\e[0m"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+
+#call stack has full scriptname when using source
+source "${script_directory}/deploy_utils.sh"
 
 min() {
     printf "%s\n" "${@:2}" | sort "$1" | head -n1
@@ -26,7 +31,7 @@ heading() {
     echo "----------------------------------------------------------------------------"
 }
 
-showhelp() 
+showhelp()
 {
     echo ""
     echo "#########################################################################################"
@@ -132,7 +137,7 @@ else
 fi
 
 ###############################################################################
-#                              SAP System                                     # 
+#                              SAP System                                     #
 ###############################################################################
 if [ "${deployment_system}" == sap_system ] ; then
 
@@ -167,7 +172,7 @@ if [ "${deployment_system}" == sap_system ] ; then
     # subnet identifier and output prefix string changing. As such
     # they can be converted into a parameterised function call.
 
-    # Admin subnet 
+    # Admin subnet
 
     subnet_name=$(jq --raw-output .infrastructure.vnets.sap.subnet_admin.name "${parameterfile}")
     subnet_arm_id=$(jq --raw-output .infrastructure.vnets.sap.subnet_admin.arm_id "${parameterfile}")
@@ -176,7 +181,7 @@ if [ "${deployment_system}" == sap_system ] ; then
     then
         subnet_name=$(echo $subnet_arm_id | cut -d/ -f11 | xargs)
     fi
-    
+
 
     subnet_nsg_name=$(jq --raw-output .infrastructure.vnets.sap.subnet_admin.nsg.name "${parameterfile}")
     subnet_nsg_arm_id=$(jq --raw-output .infrastructure.vnets.sap.subnet_admin.nsg.arm_id "${parameterfile}")
@@ -205,9 +210,9 @@ if [ "${deployment_system}" == sap_system ] ; then
     else
         echo "Admin nsg:                   " "Defined by the workload/automation"
     fi
-    
-    # db subnet 
-    
+
+    # db subnet
+
     subnet_name=$(jq --raw-output .infrastructure.vnets.sap.subnet_db.name "${parameterfile}")
     subnet_arm_id=$(jq --raw-output .infrastructure.vnets.sap.subnet_db.arm_id "${parameterfile}")
     subnet_prefix=$(jq --raw-output .infrastructure.vnets.sap.subnet_db.prefix "${parameterfile}")
@@ -215,7 +220,7 @@ if [ "${deployment_system}" == sap_system ] ; then
     then
         subnet_name=$(echo $subnet_arm_id | cut -d/ -f11 | xargs)
     fi
-    
+
 
     subnet_nsg_name=$(jq --raw-output .infrastructure.vnets.sap.subnet_db.nsg.name "${parameterfile}")
     subnet_nsg_arm_id=$(jq --raw-output .infrastructure.vnets.sap.subnet_db.nsg.arm_id "${parameterfile}")
@@ -244,9 +249,9 @@ if [ "${deployment_system}" == sap_system ] ; then
     else
         echo "db nsg:                      " "Defined by the workload/automation"
     fi
-    
-    # app subnet 
-    
+
+    # app subnet
+
     subnet_name=$(jq --raw-output .infrastructure.vnets.sap.subnet_app.name "${parameterfile}")
     subnet_arm_id=$(jq --raw-output .infrastructure.vnets.sap.subnet_app.arm_id "${parameterfile}")
     subnet_prefix=$(jq --raw-output .infrastructure.vnets.sap.subnet_app.prefix "${parameterfile}")
@@ -265,7 +270,7 @@ if [ "${deployment_system}" == sap_system ] ; then
     if [ \( -n "${subnet_name}" \) -a \( "${subnet_name}" != "null" \) ]
     then
         echo "app subnet:                  " "${subnet_name}"
-    else 
+    else
         echo "app subnet:                  " "Subnet defined by the workload/automation"
     fi
 
@@ -282,9 +287,9 @@ if [ "${deployment_system}" == sap_system ] ; then
     else
         echo "app nsg:                     " "Defined by the workload/automation"
     fi
-    
-    # web subnet 
-    
+
+    # web subnet
+
     subnet_name=$(jq --raw-output .infrastructure.vnets.sap.subnet_web.name "${parameterfile}")
     subnet_arm_id=$(jq --raw-output .infrastructure.vnets.sap.subnet_web.arm_id "${parameterfile}")
     subnet_prefix=$(jq --raw-output .infrastructure.vnets.sap.subnet_web.prefix "${parameterfile}")
@@ -320,9 +325,9 @@ if [ "${deployment_system}" == sap_system ] ; then
     else
         echo "web nsg:                     " "Defined by the workload/automation"
     fi
-    
+
     echo ""
-    
+
     heading "Database tier"
     platform=$(jq --raw-output '.databases[0].platform' "${parameterfile}")
     echo "Platform:                    " "${platform}"
@@ -357,7 +362,7 @@ if [ "${deployment_system}" == sap_system ] ; then
         version=$(jq --raw-output '.databases[0].os.version' "${parameterfile}")
         echo "Image version:               " "${version}"
     fi
-    
+
     if jq --exit-status '.databases[0].zones' "${parameterfile}" >/dev/null; then
         echo "Deployment:                  " "Zonal"
         zones=$(jq --compact-output '.databases[0].zones' "${parameterfile}")
@@ -381,9 +386,9 @@ if [ "${deployment_system}" == sap_system ] ; then
     else
         echo "Authentication:              " "key"
     fi
-    
+
     echo
-    
+
     heading "Application tier"
     if jq --exit-status '.application.authentication.type' "${parameterfile}" >/dev/null; then
         authentication=$(jq --raw-output '.application.authentication.type' "${parameterfile}")
@@ -391,7 +396,7 @@ if [ "${deployment_system}" == sap_system ] ; then
     else
         echo "Authentication:              " "key"
     fi
-    
+
     echo "Application servers"
     if [ $app_zone_count -gt 1 ] ; then
         echo "  Application avset:         " "($app_zone_count) (name defined by automation)"
@@ -426,7 +431,7 @@ if [ "${deployment_system}" == sap_system ] ; then
     else
         echo "  Deployment:                " "Regional"
     fi
-    
+
     echo "Central Services"
     echo "  SCS load balancer:         " "(name defined by automation)"
     if [ $scs_zone_count -gt 1 ] ; then
@@ -487,7 +492,7 @@ if [ "${deployment_system}" == sap_system ] ; then
     else
         echo "  Deployment:                " "Regional"
     fi
-    
+
     echo "Web dispatcher"
     web_server_count=$(jq --raw-output .application.webdispatcher_count "${parameterfile}")
     echo "  Web dispatcher lb:         " "(name defined by automation)"
@@ -497,7 +502,7 @@ if [ "${deployment_system}" == sap_system ] ; then
         echo "  Web dispatcher avset:      " "(name defined by automation)"
     fi
     echo "  Number of servers:         " "${web_server_count}"
-    
+
     if jq --exit-status '.application.web_os' "${parameterfile}" >/dev/null; then
         if jq --exit-status '.application.web_os.source_image_id' "${parameterfile}" >/dev/null; then
             image=$(jq --raw-output .application.web_os.source_image_id "${parameterfile}")
@@ -546,7 +551,7 @@ if [ "${deployment_system}" == sap_system ] ; then
     else
         echo "  Deployment:                " "Regional"
     fi
-    
+
     echo ""
     heading "Key Vault"
     if jq --exit-status '.key_vault.kv_spn_id' "${parameterfile}" >/dev/null; then
@@ -555,29 +560,29 @@ if [ "${deployment_system}" == sap_system ] ; then
     else
         echo "  SPN Key Vault:             " "Deployer keyvault"
     fi
-    
+
     if jq --exit-status '.key_vault.kv_user_id' "${parameterfile}" >/dev/null; then
         kv=$(jq --raw-output .key_vault.kv_user_id "${parameterfile}")
         echo "  User Key Vault:            " "${kv}"
     else
         echo "  User Key Vault:            " "Workload keyvault"
     fi
-    
+
     if jq --exit-status '.key_vault.kv_prvt_id' "${parameterfile}" >/dev/null; then
         kv=$(jq --raw-output .key_vault.kv_prvt_id "${parameterfile}")
         echo "  Automation Key Vault:      " "${kv}"
     else
         echo "  Automation Key Vault:      " "Workload keyvault"
     fi
-    
+
 fi
 
 ###############################################################################
-#                              SAP Landscape                                  # 
+#                              SAP Landscape                                  #
 ###############################################################################
 if [ "${deployment_system}" == sap_landscape ] ; then
     heading "Networking"
-    
+
     vnet_name=$(jq --raw-output .infrastructure.vnets.sap.name "${parameterfile}")
     vnet_arm_id=$(jq --raw-output .infrastructure.vnets.sap.arm_id "${parameterfile}")
     vnet_address_space=$(jq --raw-output .infrastructure.vnets.sap.address_space "${parameterfile}")
@@ -588,7 +593,7 @@ if [ "${deployment_system}" == sap_landscape ] ; then
 
     echo "VNet Logical name:           " "${vnet_name}"
     echo "Address space:               " "${vnet_address_space}"
-    # Admin subnet 
+    # Admin subnet
 
     subnet_name=$(jq --raw-output .infrastructure.vnets.sap.subnet_admin.name "${parameterfile}")
     subnet_arm_id=$(jq --raw-output .infrastructure.vnets.sap.subnet_admin.arm_id "${parameterfile}")
@@ -623,9 +628,9 @@ if [ "${deployment_system}" == sap_landscape ] ; then
     else
         echo "Admin nsg:                   " "Defined by the system/automation"
     fi
-    
-    # db subnet 
-    
+
+    # db subnet
+
     subnet_name=$(jq --raw-output .infrastructure.vnets.sap.subnet_db.name "${parameterfile}")
     subnet_arm_id=$(jq --raw-output .infrastructure.vnets.sap.subnet_db.arm_id "${parameterfile}")
     subnet_prefix=$(jq --raw-output .infrastructure.vnets.sap.subnet_db.prefix "${parameterfile}")
@@ -633,7 +638,7 @@ if [ "${deployment_system}" == sap_landscape ] ; then
     then
         subnet_name=$(echo $subnet_arm_id | cut -d/ -f11 | xargs)
     fi
-    
+
     subnet_nsg_name=$(jq --raw-output .infrastructure.vnets.sap.subnet_db.nsg.name "${parameterfile}")
     subnet_nsg_arm_id=$(jq --raw-output .infrastructure.vnets.sap.subnet_db.nsg.arm_id "${parameterfile}")
     if [ -z "${subnet_nsg_arm_id}" ]
@@ -659,9 +664,9 @@ if [ "${deployment_system}" == sap_landscape ] ; then
     else
         echo "db nsg:                      " "Defined by the system/automation"
     fi
-    
-    # app subnet 
-    
+
+    # app subnet
+
     subnet_name=$(jq --raw-output .infrastructure.vnets.sap.subnet_app.name "${parameterfile}")
     subnet_arm_id=$(jq --raw-output .infrastructure.vnets.sap.subnet_app.arm_id "${parameterfile}")
     subnet_prefix=$(jq --raw-output .infrastructure.vnets.sap.subnet_app.prefix "${parameterfile}")
@@ -695,9 +700,9 @@ if [ "${deployment_system}" == sap_landscape ] ; then
     else
         echo "app nsg:                     " "Defined by the system/automation"
     fi
-    
-    # web subnet 
-    
+
+    # web subnet
+
     subnet_name=$(jq --raw-output .infrastructure.vnets.sap.subnet_web.name "${parameterfile}")
     subnet_arm_id=$(jq --raw-output .infrastructure.vnets.sap.subnet_web.arm_id "${parameterfile}")
     subnet_prefix=$(jq --raw-output .infrastructure.vnets.sap.subnet_web.prefix "${parameterfile}")
@@ -716,7 +721,7 @@ if [ "${deployment_system}" == sap_landscape ] ; then
     if [ -z "${subnet_name}" ]
     then
         echo "web subnet:                  " "${subnet_name}"
-    else    
+    else
         echo "web subnet:                  " "Subnet defined by the system/automation"
     fi
     if [ -z "${subnet_prefix}" ]
@@ -731,8 +736,8 @@ if [ "${deployment_system}" == sap_landscape ] ; then
     else
         echo "web nsg:                     " "Defined by the system/automation"
     fi
-    
-    
+
+
     echo ""
     heading "Key Vault"
     if jq --exit-status '.key_vault.kv_spn_id' "${parameterfile}" >/dev/null; then
@@ -741,14 +746,14 @@ if [ "${deployment_system}" == sap_landscape ] ; then
     else
         echo "  SPN Key Vault:             " "Deployer keyvault"
     fi
-    
+
     if jq --exit-status '.key_vault.kv_user_id' "${parameterfile}" >/dev/null; then
         kv=$(jq --raw-output .key_vault.kv_user_id "${parameterfile}")
         echo "  User Key Vault:            " "${kv}"
     else
         echo "  User Key Vault:            " "Workload keyvault"
     fi
-    
+
     if jq --exit-status '.key_vault.kv_prvt_id' "${parameterfile}" >/dev/null; then
         kv=$(jq --raw-output .key_vault.kv_prvt_id "${parameterfile}")
         echo "  Automation Key Vault:      " "${kv}"
@@ -758,7 +763,7 @@ if [ "${deployment_system}" == sap_landscape ] ; then
 fi
 
 ###############################################################################
-#                              SAP Library                                    # 
+#                              SAP Library                                    #
 ###############################################################################
 
 if [ "${deployment_system}" == sap_library ] ; then
@@ -770,29 +775,29 @@ if [ "${deployment_system}" == sap_library ] ; then
     else
         echo "  SPN Key Vault:             " "Deployer keyvault"
     fi
-    
+
     if jq --exit-status '.key_vault.kv_user_id' "${parameterfile}" >/dev/null; then
         kv=$(jq --raw-output .key_vault.kv_user_id "${parameterfile}")
         echo "  User Key Vault:            " "${kv}"
     else
         echo "  User Key Vault:            " "Library keyvault"
     fi
-    
+
     if jq --exit-status '.key_vault.kv_prvt_id' "${parameterfile}" >/dev/null; then
         kv=$(jq --raw-output .key_vault.kv_prvt_id "${parameterfile}")
         echo "  Automation Key Vault:      " "${kv}"
     else
         echo "  Automation Key Vault:      " "Library keyvault"
     fi
-    
+
 fi
 
 ###############################################################################
-#                              SAP Deployer                                   # 
+#                              SAP Deployer                                   #
 ###############################################################################
 
 if [ "${deployment_system}" == sap_deployer ] ; then
-    heading "Networking"    
+    heading "Networking"
     if jq --exit-status '.infrastructure.vnets.management' "${parameterfile}" >/dev/null; then
         if jq --exit-status '.infrastructure.vnets.management.arm_id' "${parameterfile}" >/dev/null; then
             arm_id=$(jq --raw-output .infrastructure.vnets.management.arm_id "${parameterfile}")
@@ -812,23 +817,23 @@ if [ "${deployment_system}" == sap_deployer ] ; then
     else
         error "The Virtual network must be defined"
     fi
-    
+
     echo ""
-    heading "Key Vault"    
+    heading "Key Vault"
     if jq --exit-status '.key_vault.kv_spn_id' "${parameterfile}" >/dev/null; then
         kv=$(jq --raw-output .key_vault.kv_spn_id "${parameterfile}")
         echo "  SPN Key Vault:             " "${kv}"
     else
         echo "  SPN Key Vault:             " "Deployer keyvault"
     fi
-    
+
     if jq --exit-status '.key_vault.kv_user_id' "${parameterfile}" >/dev/null; then
         kv=$(jq --raw-output .key_vault.kv_user_id "${parameterfile}")
         echo "  User Key Vault:            " "${kv}"
     else
         echo "  User Key Vault:            " "Deployer keyvault"
     fi
-    
+
     if jq --exit-status '.key_vault.kv_prvt_id' "${parameterfile}" >/dev/null; then
         kv=$(jq --raw-output .key_vault.kv_prvt_id "${parameterfile}")
         echo "  Automation Key Vault:      " "${kv}"

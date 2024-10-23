@@ -33,6 +33,11 @@ variable "place_delete_lock_on_resources"       {
                                                   default     = false
                                                 }
 
+variable "prevent_deletion_if_contains_resources" {
+                                                    description = "Controls if resource groups are deleted even if they contain resources"
+                                                    type        = bool
+                                                    default     = true
+                                                  }
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitioms                          #

@@ -49,8 +49,8 @@ provider "azurerm"                     {
                                                   }
                                          alias                      = "deployer"
                                          storage_use_azuread        = !var.shared_access_key_enabled
-                                         use_msi                    = var.use_spn ? false : true
-
+                                         use_msi                    = true
+                                         subscription_id            = local.saplib_subscription_id
                                        }
 
 provider "azurerm"                     {
@@ -73,6 +73,7 @@ provider "azurerm"                     {
                                          tenant_id                  = local.use_spn ? local.spn.tenant_id : null
                                          alias                      = "privatelinkdnsmanagement"
                                          storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
                                        }
 
 
@@ -104,7 +105,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.4.0"
+                                                                           version = "4.6.0"
                                                                          }
                                                             }
                                        }

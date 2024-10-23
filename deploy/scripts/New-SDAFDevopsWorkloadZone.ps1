@@ -230,7 +230,7 @@ if ($authenticationMethod -eq "Service Principal") {
   $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]"  --only-show-errors )
   if ($GroupID.Length -eq 0) {
     Write-Host "Creating the variable group" $WorkloadZonePrefix -ForegroundColor Green
-    az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF Logon_Using_SPN=true USE_MSI=false --output none --authorize true
+    az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' WL_ARM_CLIENT_ID=$ARM_CLIENT_ID WL_ARM_OBJECT_ID=$ARM_OBJECT_ID WL_ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET WL_ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF Logon_Using_SPN=true USE_MSI=false --output none --authorize true
     $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]"   --only-show-errors)
   }
 
@@ -241,7 +241,7 @@ else {
   $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]"  --only-show-errors )
   if ($GroupID.Length -eq 0) {
     Write-Host "Creating the variable group" $WorkloadZonePrefix -ForegroundColor Green
-    az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF Logon_Using_SPN=false USE_MSI=true --output none --authorize true
+    az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' WL_ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF Logon_Using_SPN=false USE_MSI=true --output none --authorize true
     $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]"   --only-show-errors)
   }
 }
@@ -250,9 +250,9 @@ if ($authenticationMethod -eq "Service Principal") {
 
   $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $ARM_CLIENT_SECRET
 
-  az pipelines variable-group variable update --group-id $GroupID --name "ARM_CLIENT_SECRET" --value $ARM_CLIENT_SECRET --secret true   --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $GroupID --name "ARM_CLIENT_ID" --value $ARM_CLIENT_ID   --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $GroupID --name "ARM_OBJECT_ID" --value $ARM_OBJECT_ID   --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --name "WL_ARM_CLIENT_SECRET" --value $ARM_CLIENT_SECRET --secret true   --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --name "WL_ARM_CLIENT_ID" --value $ARM_CLIENT_ID   --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --name "WL_ARM_OBJECT_ID" --value $ARM_OBJECT_ID   --output none --only-show-errors
 
 
   $epExists = (az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].name | [0]")

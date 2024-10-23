@@ -26,6 +26,8 @@ provider "azurerm"                     {
                                                   }
 
                                          storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
+
                                        }
 
 provider "azurerm"                     {
@@ -44,6 +46,7 @@ provider "azurerm"                     {
                                          alias                      = "main"
 
                                          storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
                                        }
 
 
@@ -53,6 +56,8 @@ provider "azurerm"                     {
                                          alias                      = "deployer"
 
                                          storage_use_azuread        = true
+                                         use_msi                    = false
+                                         subscription_id            = var.use_deployer ? data.terraform_remote_state.deployer[0].outputs.created_resource_group_subscription_id : null
                                        }
 
 provider "azurerm"                     {
@@ -64,6 +69,7 @@ provider "azurerm"                     {
                                          alias                      = "dnsmanagement"
 
                                          storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
                                        }
 
 provider "azurerm"                     {
@@ -75,6 +81,7 @@ provider "azurerm"                     {
                                          alias                      = "privatelinkdnsmanagement"
 
                                          storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
                                        }
 
 provider "azuread"                     {
@@ -104,7 +111,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.4.0"
+                                                                           version = "4.6.0"
                                                                          }
                                                             }
                                        }

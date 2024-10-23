@@ -66,9 +66,7 @@ stages:
               set -u
 
               echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
-              green="\e[1;32m" ; reset="\e[0m"
-
-
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m" ; cyan="\e[1;36m"
 
               # echo -e "$green--- Checkout $(Build.SourceBranchName) ---$reset"
               #   git fetch -q --all
@@ -87,7 +85,7 @@ stages:
                 az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
-                echo '$(parent_variable_group) id: ' $VARIABLE_GROUP_ID
+
                 if [ -z ${VARIABLE_GROUP_ID} ]; then
                     echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
                     exit 2
@@ -131,8 +129,8 @@ stages:
                     rm -f terraform_$(tf_version)_linux_amd64.zip
                 fi
                 if [ $USE_MSI != "true" ]; then
-                  echo "Login using SPN"
-                  export ARM_USE_MSI=false
+                  echo -e "$cyan--- Remove using Service Principals ---$reset"
+                  unset ARM_USE_MSI
                   az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
                   return_code=$?
                   if [ 0 != $return_code ]; then
@@ -141,6 +139,7 @@ stages:
                       exit $return_code
                   fi
                 else
+                  echo -e "$cyan--- Remove using Managed Identity ---$reset"
                   source /etc/profile.d/deploy_server.sh
                   export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                   export ARM_USE_MSI=true
@@ -152,12 +151,10 @@ stages:
                 dos2unix -q $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file)
                 dos2unix -q $CONFIG_REPO_PATH/LIBRARY/$(library_folder)/$(library_configuration_file)
 
-              echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
+              echo -e "$green--- Environment information ---$reset"
 
                 ENVIRONMENT=$(grep "^environment" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) | awk -F'=' '{print $2}' | xargs)
                    LOCATION=$(grep "^location" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
-                echo Environment: ${ENVIRONMENT}
-                echo Location:    ${LOCATION}
 
                 ENVIRONMENT_IN_FILENAME=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs )
                           LOCATION_CODE=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs )
@@ -220,8 +217,12 @@ stages:
                   *) LOCATION_IN_FILENAME="westeurope" ;;
                 esac
 
-                echo "Environment(filename): $ENVIRONMENT_IN_FILENAME"
-                echo "Location(filename):    $LOCATION_IN_FILENAME"
+                echo "Environment:                         ${ENVIRONMENT}"
+                echo "Location:                            ${LOCATION}"
+                echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
+                echo "Location(filename):                  $LOCATION_IN_FILENAME"
+                echo ""
+
 
                 if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
                   echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) '$ENVIRONMENT' does not match the $(workload_zone_configuration_file) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
@@ -233,41 +234,49 @@ stages:
                   exit 2
                 fi
 
-                deployer_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE; echo "Environment file: " $deployer_environment_file_name
+                deployer_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE;
+                echo "Environment file:                    $deployer_environment_file_name"
 
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
                 if [ -n "${az_var}" ]; then
-                  key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
+                  key_vault="${az_var}"
                 else
                   echo "Reading key vault from environment file"
-                  key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                  key_vault=$(grep -m "^keyvault=" ${deployer_environment_file_name} | awk -F'=' '{print $2}' | xargs)
                 fi
 
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" | tr -d \")
+                export STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
+
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
                 if [ -n "${az_var}" ]; then
-                  REMOTE_STATE_SA="${az_var}" ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                  REMOTE_STATE_SA="${az_var}"
+
                 else
                   echo "Reading storage account from environment file"
-                  REMOTE_STATE_SA=$(cat ${deployer_environment_file_name} | grep REMOTE_STATE_SA | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                  REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA=" ${deployer_environment_file_name} |  awk -F'=' '{print $2}' | xargs)
                 fi
 
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" | tr -d \")
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" --out tsv)
                 if [ -n "${az_var}" ]; then
-                  REMOTE_STATE_RG="${az_var}"  ; echo 'Terraform state file resource group' $REMOTE_STATE_RG
+                  REMOTE_STATE_RG="${az_var}"
                 else
-                  REMOTE_STATE_RG=$(cat ${deployer_environment_file_name}  | grep REMOTE_STATE_RG      | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file resource group' $REMOTE_STATE_RG
+                  REMOTE_STATE_RG=$(grep "^REMOTE_STATE_RG" ${deployer_environment_file_name}  |  awk -F'=' '{print $2}' | xargs)
                 fi
 
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value" | tr -d \")
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "DEPLOYER_RANDOM_ID_SEED.value" --out tsv)
                 if [ -n "${az_var}"  ]; then
                     deployer_random_id="${az_var}"
                 else
                     if [ -f ${deployer_environment_file_name} ] ; then
-                        deployer_random_id=$(cat ${deployer_environment_file_name} | grep deployer_random_id= | awk -F'=' '{print $2}' | xargs)
+                        deployer_random_id=$(grep "^deployer_random_id=" ${deployer_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
                     fi
                 fi
 
-                export STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                echo "Terraform state subscription:        $STATE_SUBSCRIPTION"
+                echo "Terraform state rg name:             $REMOTE_STATE_RG"
+                echo "Terraform state account:             $REMOTE_STATE_SA"
+                echo "Deployer Key Vault:                  ${key_vault}"
+
                 if [ -f ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip ]; then
                     pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
                     unzip  -qq -o -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip -d ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)
@@ -290,7 +299,7 @@ stages:
 
                 return_code=$?
 
-                echo "Return code from remove_controlplane $return_code."
+                echo "Return code from remove_controlplane:  $return_code."
 
               echo -e "$green--- Remove Control Plane Part 1 ---$reset"
                 cd $CONFIG_REPO_PATH
@@ -306,7 +315,7 @@ stages:
                     echo "Compressing the state file."
                     sudo apt install zip
                     pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
-                    zip -j -P "${pass}" DEPLOYER/$(deployer_folder)/state DEPLOYER/$(deployer_folder)/terraform.tfstate
+                    zip -q -j -P "${pass}" DEPLOYER/$(deployer_folder)/state DEPLOYER/$(deployer_folder)/terraform.tfstate
                     git add -f DEPLOYER/$(deployer_folder)/state.zip
                     changed=1
                 fi
@@ -318,7 +327,7 @@ stages:
                           sudo apt install zip
                           echo "Compressing the library state file"
                           pass=$(echo $DEPLOYER_RANDOM_ID_SEED | sed 's/-//g')
-                          zip -j -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/terraform.tfstate
+                          zip -q -j -P "${pass}" ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/terraform.tfstate
                           git add -f ${CONFIG_REPO_PATH}/LIBRARY/$(library_folder)/state.zip
                           changed=1
                       fi
@@ -417,15 +426,15 @@ stages:
               inlineScript: |
                 #!/bin/bash
                 echo "##vso[build.updatebuildnumber]Removing the control plane defined in $(deployer_folder) $(library_folder)"
-                green="\e[1;32m" ; reset="\e[0m"
+                green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m" ; cyan="\e[1;36m"
                 export ARM_USE_MSI=false
                 if [ $USE_MSI != "true" ]; then
-                  echo "use Service Principal"
+                  echo -e "$cyan--- Remove using Service Principals ---$reset"
                   export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
                   export ARM_TENANT_ID=$CP_ARM_TENANT_ID
                   export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
                 else
-                  echo "use MSI"
+                  echo -e "$cyan--- Remove using Managed Identity ---$reset"
                   export ARM_CLIENT_ID=$servicePrincipalId
                   export ARM_TENANT_ID=$tenantId
                   export ARM_CLIENT_SECRET=$servicePrincipalKey
@@ -468,7 +477,11 @@ stages:
                   az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
                   export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]")
-                  echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
+
+                  printf -v tempval '%s id:' $(parent_variable_group)
+                  printf -v val '%-20s' "${tempval}"
+                  echo "$val                  $VARIABLE_GROUP_ID"
+
                   if [ -z ${VARIABLE_GROUP_ID} ]; then
                       echo "##vso[task.logissue type=error]Variable group $(parent_variable_group) could not be found."
                       exit 2
@@ -500,12 +513,10 @@ stages:
                   dos2unix -q $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file)
                   dos2unix -q $CONFIG_REPO_PATH/LIBRARY/$(library_folder)/$(library_configuration_file)
 
-                echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
+                echo -e "$green--- Environment information ---$reset"
 
                   ENVIRONMENT=$(grep "^environment" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) | awk -F'=' '{print $2}' | xargs)
                      LOCATION=$(grep "^location" $CONFIG_REPO_PATH/DEPLOYER/$(deployer_folder)/$(deployer_configuration_file) | awk -F'=' '{print $2}' | xargs | tr 'A-Z' 'a-z')
-                  echo Environment: ${ENVIRONMENT}
-                  echo Location:    ${LOCATION}
 
                   ENVIRONMENT_IN_FILENAME=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs )
                             LOCATION_CODE=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs )
@@ -568,8 +579,13 @@ stages:
                     *) LOCATION_IN_FILENAME="westeurope" ;;
                   esac
 
-                  echo "Environment(filename): $ENVIRONMENT_IN_FILENAME"
-                  echo "Location(filename):    $LOCATION_IN_FILENAME"
+                  echo "Environment:                         ${ENVIRONMENT}"
+                  echo "Location:                            ${LOCATION}"
+                  echo "Location code:                       ${LOCATION_CODE}"
+
+                  echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
+                  echo "Location(filename):                  $LOCATION_IN_FILENAME"
+                  echo ""
 
                   if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
                     echo "##vso[task.logissue type=error]The environment setting in $(workload_zone_configuration_file) '$ENVIRONMENT' does not match the $(workload_zone_configuration_file) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
@@ -583,13 +599,15 @@ stages:
 
                 echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
 
-                  deployer_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION; echo "Environment file: " $deployer_environment_file_name
+                  deployer_environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION_CODE
+                  echo "Environment file:                   $deployer_environment_file_name"
 
                 echo -e "$green--- az login ---$reset"
 
                   if [ $USE_MSI != "true" ]; then
-                    echo "Login using SPN"
-                    export ARM_USE_MSI=false
+                    echo -e "$cyan--- Remove using Service Principals ---$reset"
+
+                    unset ARM_USE_MSI
                     az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
                     return_code=$?
                     if [ 0 != $return_code ]; then
@@ -600,13 +618,15 @@ stages:
                   fi
                   az account set --subscription $ARM_SUBSCRIPTION_ID
 
-                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
                   if [ -n "${az_var}" ]; then
-                    key_vault="${az_var}" ; echo 'Deployer Key Vault' ${key_vault}
+                    key_vault="${az_var}"
                   else
                     echo "Reading key vault from environment file"
-                    key_vault=$(cat ${deployer_environment_file_name} | grep keyvault= -m1 | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' ${key_vault}
+                    key_vault=$(grep -m1 "^keyvault=" ${deployer_environment_file_name} | awk -F'=' '{print $2}' | xargs)
                   fi
+
+                  echo "Deployer Key Vault:                  $key_vault"
 
                   key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
                   if [ -n "${key_vault_id}" ]; then

@@ -326,7 +326,7 @@ resource "azurerm_storage_account" "transport" {
 
 resource "azurerm_private_dns_a_record" "transport" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.create_transport_storage && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
+  count                                = var.use_private_endpoint && var.create_transport_storage && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
   name                                 = replace(
                                            lower(
                                              format("%s", local.landscape_shared_transport_storage_account_name)
@@ -525,7 +525,7 @@ resource "azurerm_storage_account" "install" {
 
 resource "azurerm_storage_account_network_rules" "install" {
   provider                             = azurerm.main
-  count                                = local.use_AFS_for_shared && length(var.install_storage_account_id) == 0 ? 1 : 0
+  count                                = local.use_AFS_for_shared && var.enable_firewall_for_keyvaults_and_storage  && length(var.install_storage_account_id) == 0 ? 1 : 0
   depends_on                           = [
                                             azurerm_storage_account.install,
                                             azurerm_storage_share.install,

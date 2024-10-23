@@ -42,6 +42,11 @@ variable "use_spn"                               {
                                                   default     = false
                                                  }
 
+variable "tags"                                  {
+                                                   description = "If provided, tags for all resources"
+                                                   default     = {}
+                                                 }
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitioms                          #

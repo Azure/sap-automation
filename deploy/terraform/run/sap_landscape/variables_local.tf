@@ -29,10 +29,9 @@ locals {
 
   deployer_subscription_id             = coalesce(
                                            try(data.terraform_remote_state.deployer[0].outputs.created_resource_group_subscription_id,""),
-                                           length(local.spn_key_vault_arm_id) > 0 ? (
-                                             split("/", local.spn_key_vault_arm_id)[2]) : (
-                                             ""
-                                         ))
+                                           length(local.spn_key_vault_arm_id) > 0 ? (split("/", local.spn_key_vault_arm_id)[2]) : (""),
+                                           local.saplib_subscription_id
+                                           )
 
   spn                                  = {
                                            subscription_id = data.azurerm_key_vault_secret.subscription_id.value,
@@ -51,7 +50,7 @@ locals {
   service_principal                    = {
                                            subscription_id = local.spn.subscription_id,
                                            tenant_id       = local.spn.tenant_id,
-                                           object_id       = var.use_spn ? try(data.azuread_service_principal.sp[0].id, null) : null
+                                           object_id       = var.use_spn ? data.azuread_service_principal.sp[0].object_id   : null
                                          }
 
   account                              = {
