@@ -8,6 +8,7 @@ set -o pipefail
 boldreduscore="\e[1;4;31m"
 boldred="\e[1;31m"
 cyan="\e[1;36m"
+green="\e[1;32m"
 resetformatting="\e[0m"
 
 #External helper functions
@@ -1450,6 +1451,7 @@ fi
 
 if [ -f "${system_config_information}".err ]; then
    cat "${system_config_information}".err
+   sudo rm "${system_config_information}".err
 fi
 
 unset TF_DATA_DIR
@@ -1457,7 +1459,6 @@ unset TF_DATA_DIR
 #################################################################################
 #                                                                               #
 #                           Copy tfvars to storage account                      #
-#                                                                               #
 #                                                                               #
 #################################################################################
 
@@ -1499,6 +1500,15 @@ if [ "${deployment_system}" == sap_library ] ; then
     az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login  --no-progress --overwrite --only-show-errors --output none
   fi
 fi
+
+echo ""
+echo "#########################################################################################"
+echo "#                                                                                       #"
+echo -e "#                        $green Deployment completed $resetformatting                                        #"
+echo "#                                                                                       #"
+echo "#########################################################################################"
+echo ""
+
 
 
 exit $return_value
