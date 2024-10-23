@@ -236,14 +236,14 @@ echo ""
 isInCloudShellCheck=$(checkIfCloudShell)
 
 if checkIfCloudShell; then
-  mkdir -p "${HOME}/.terraform.d/plugin-cache"
-  export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
+    mkdir -p "${HOME}/.terraform.d/plugin-cache"
+    export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
 else
-  if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
-    mkdir -p /opt/terraform/.terraform.d/plugin-cache
-    sudo chown -R "$USER" /opt/terraform
-  fi
-  export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+    if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
+        mkdir -p /opt/terraform/.terraform.d/plugin-cache
+        sudo chown -R "$USER" /opt/terraform
+    fi
+    export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 fi
 
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
@@ -354,7 +354,7 @@ else
     resource_group_exist=true
 fi
 
-if [ $resource_group_exist ];
+if [ "$resource_group_exist" ];
 then
     echo ""
     echo "#########################################################################################"
@@ -366,11 +366,11 @@ then
 
     if [ "$deployment_system" == "sap_deployer" ]; then
         terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
-        $deployer_tfstate_key_parameter
+        "$deployer_tfstate_key_parameter"
 
         echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
         terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" \
-        $deployer_tfstate_key_parameter
+        "$deployer_tfstate_key_parameter"
 
         elif [ "$deployment_system" == "sap_library" ]; then
         echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
@@ -389,28 +389,27 @@ then
         terraform -chdir="${terraform_bootstrap_directory}" init -upgrade=true -force-copy
 
         terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
-        $landscape_tfstate_key_parameter \
-        $deployer_tfstate_key_parameter
+        "$landscape_tfstate_key_parameter" \
+        "$deployer_tfstate_key_parameter"
 
-        terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" ${approve} \
-        $landscape_tfstate_key_parameter \
-        $deployer_tfstate_key_parameter
+        terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" "${approve}" \
+        "$landscape_tfstate_key_parameter" \
+        "$deployer_tfstate_key_parameter"
     else
 
-        echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
-        echo $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
+        echo -e "#$cyan processing "$deployment_system" removal as defined in "$parameterfile_name" "$resetformatting""
         if [ -n "${approve}" ]
         then
 
-            terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" ${approve} \
-                $tfstate_parameter \
-                $landscape_tfstate_key_parameter \
-                $deployer_tfstate_key_parameter  -json  | tee -a  destroy_output.json
+            terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" "${approve}" \
+                "$tfstate_parameter" \
+                "$landscape_tfstate_key_parameter" \
+                "$deployer_tfstate_key_parameter"  -json  | tee -a  destroy_output.json
         else
-            terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" ${approve} \
-                $tfstate_parameter \
-                $landscape_tfstate_key_parameter \
-                $deployer_tfstate_key_parameter
+            terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" "${approve}" \
+                "$tfstate_parameter" \
+                "$landscape_tfstate_key_parameter" \
+                "$deployer_tfstate_key_parameter"
 
         fi
 
