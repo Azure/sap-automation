@@ -29,13 +29,13 @@ function showhelp {
     echo "#   This file contains the logic to remove the different systems                        #"
     echo "#   The script expects the following exports:                                           #"
     echo "#                                                                                       #"
-    echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))                  #"
+    echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))              #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#      REMOTE_STATE_RG (resource group name for storage account containing state files) #"
     echo "#      REMOTE_STATE_SA (storage account for state file)                                 #"
     echo "#                                                                                       #"
     echo "#   The script will persist the parameters needed between the executions in the         #"
-    echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder.                                                #"
+    echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder.                               #"
     echo "#                                                                                       #"
     echo "#                                                                                       #"
     echo "#   Usage: remover.sh                                                                   #"
@@ -221,6 +221,16 @@ echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
 
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
+
+echo ""
+echo "Terraform details"
+echo "-------------------------------------------------------------------------"
+echo "Subscription:                        ${STATE_SUBSCRIPTION}"
+echo "Storage Account:                     ${REMOTE_STATE_SA}"
+echo "Resource Group:                      ${REMOTE_STATE_RG}"
+echo "State file:                          ${key}.terraform.tfstate"
+echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
+echo ""
 
 #Plugins
 isInCloudShellCheck=$(checkIfCloudShell)

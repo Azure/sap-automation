@@ -619,7 +619,7 @@ then
             echo ""
             echo "#########################################################################################"
             echo "#                                                                                       #"
-            echo -e "#              $cyan Deployed using the Terraform templates version: $val $resetformatting                #"
+            echo -e "#              $cyan Deployed using the Terraform templates version: $val $resetformatting               #"
             echo "#                                                                                       #"
             echo "#########################################################################################"
             echo ""
@@ -1451,7 +1451,7 @@ fi
 
 if [ -f "${system_config_information}".err ]; then
    cat "${system_config_information}".err
-   sudo rm "${system_config_information}".err
+   rm "${system_config_information}".err
 fi
 
 unset TF_DATA_DIR
@@ -1504,7 +1504,7 @@ fi
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
-echo -e "#                        $green Deployment completed $resetformatting                                        #"
+echo -e "#                        $green Deployment completed $resetformatting                                         #"
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
