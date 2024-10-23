@@ -365,7 +365,12 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
 
   fi
   #setting the user environment variables
-  set_executing_user_environment_variables "${spn_secret}"
+  if [ -n "${spn_secret}" ]
+  then
+    set_executing_user_environment_variables "${spn_secret}"
+  else
+    set_executing_user_environment_variables "none"
+  fi
 else
   #setting the user environment variables
   set_executing_user_environment_variables "N/A"
