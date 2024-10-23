@@ -135,6 +135,11 @@ variable "shared_access_key_enabled_nfs"        {
                                                   type        = bool
                                                 }
 
+variable "enable_firewall_for_keyvaults_and_storage" {
+                                                       description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+                                                       default     = true
+                                                       type        = bool
+                                                     }
 
 #########################################################################################
 #                                                                                       #
