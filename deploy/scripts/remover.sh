@@ -268,15 +268,15 @@ load_config_vars "${system_config_information}" "ARM_SUBSCRIPTION_ID"
 
 deployer_tfstate_key_parameter=''
 if [ "${deployment_system}" != sap_deployer ]; then
-    deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+    deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key} "
 fi
 
 landscape_tfstate_key_parameter=''
 if [ "${deployment_system}" == sap_system ]; then
-    landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
+    landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key} "
 fi
 
-tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id} "
 
 #setting the user environment variables
 set_executing_user_environment_variables "none"
@@ -401,16 +401,11 @@ then
         if [ -n "${approve}" ]
         then
 
-            terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" ${approve} \
-                $tfstate_parameter \
-                "$landscape_tfstate_key_parameter" \
+            terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" $approve  $tfstate_parameter $landscape_tfstate_key_parameter \
 
                 $deployer_tfstate_key_parameter  -json  | tee -a  destroy_output.json
         else
-            terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" ${approve} \
-                $tfstate_parameter \
-                "$landscape_tfstate_key_parameter" \
-                $deployer_tfstate_key_parameter
+            terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" $approve $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
 
         fi
 
