@@ -525,7 +525,7 @@ resource "azurerm_storage_account" "install" {
 
 resource "azurerm_storage_account_network_rules" "install" {
   provider                             = azurerm.main
-  count                                = local.use_AFS_for_shared && length(var.install_storage_account_id) == 0 ? 1 : 0
+  count                                = local.use_AFS_for_shared && var.enable_firewall_for_keyvaults_and_storage  && length(var.install_storage_account_id) == 0 ? 1 : 0
   depends_on                           = [
                                             azurerm_storage_account.install,
                                             azurerm_storage_share.install,
