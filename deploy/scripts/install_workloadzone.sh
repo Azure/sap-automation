@@ -1117,6 +1117,16 @@ Date : "${now}"
 
 EOF
 
+printf -v kvname '%-40s' "${workloadkeyvault}"
+echo ""
+echo "#########################################################################################"
+echo "#                                                                                       #"
+echo -e "# $cyan Please save these values: $resetformatting                                                           #"
+echo "#     - Key Vault: ${kvname}                             #"
+echo "#                                                                                       #"
+echo "#########################################################################################"
+
+
 if [ -f "${workload_config_information}".err ]; then
     cat "${workload_config_information}".err
 fi
