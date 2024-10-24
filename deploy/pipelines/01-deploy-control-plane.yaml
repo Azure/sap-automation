@@ -109,13 +109,13 @@ stages:
 
                             az extension add --name azure-devops --output none --only-show-errors
 
-                            echo "Environment:                       $ENVIRONMENT"
-                            echo "Location:                          $LOCATION"
+                            echo "Environment:                         $ENVIRONMENT"
+                            echo "Location:                            $LOCATION"
 
                             echo ""
-                            echo "Agent:                             $(this_agent)"
-                            echo "Organization:                      $(System.CollectionUri)"
-                            echo "Project:                           $(System.TeamProject)"
+                            echo "Agent:                               $(this_agent)"
+                            echo "Organization:                        $(System.CollectionUri)"
+                            echo "Project:                             $(System.TeamProject)"
                             echo ""
                             az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none --only-show-errors
 
@@ -123,7 +123,7 @@ stages:
 
                             printf -v tempval '%s id:' $(variable_group)
                             printf -v val '%-20s' "${tempval}"
-                            echo "$val                  $VARIABLE_GROUP_ID"
+                            echo "$val                 $VARIABLE_GROUP_ID"
 
                             if [ "${{ parameters.force_reset }}" = "True" ]; then
                               echo "##vso[task.logissue type=warning]Forcing a re-install"
@@ -161,7 +161,8 @@ stages:
                               step=0
                             else
                               if [ -f ${deployer_environment_file_name} ]; then
-                                step=$(cat ${deployer_environment_file_name}  | grep step= | awk -F'=' '{print $2}' | xargs) ; echo 'Step' ${step}
+                                step=$(cat ${deployer_environment_file_name}  | grep step= | awk -F'=' '{print $2}' | xargs)
+                                echo "Step:                              $(this_agent)"
                                 if [ "0" != ${step} ]; then
                                   exit 0
                                 fi

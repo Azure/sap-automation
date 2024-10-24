@@ -202,7 +202,7 @@ variable "use_private_endpoint"                  {
 
 variable "short_named_endpoints_nics"           {
                                                    description = "If defined, uses short names for private endpoints nics"
-                                                   default     = true
+                                                   default     = false
                                                  }
 
 variable "public_network_access_enabled"              {
