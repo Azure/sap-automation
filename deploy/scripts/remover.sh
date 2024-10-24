@@ -315,14 +315,14 @@ fi
 useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
 if [ "$useSAS" = "true" ] ; then
-  echo "Authenticate storage using SAS"
+  echo "Storage Account Authentication:        Key"
   export ARM_USE_AZUREAD=false
 else
-  echo "Authenticate storage using Entra ID"
+  echo "Storage Account Authentication:        Entra ID"
   export ARM_USE_AZUREAD=true
 fi
 
-if [ -n $deployer_tfstate_key ]; then
+if [ -n "$deployer_tfstate_key" ]; then
   terraform_deployer_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/sap_deployer/
 
   terraform -chdir="${terraform_deployer_module_directory}" init  -reconfigure \
@@ -336,7 +336,7 @@ if [ -n $deployer_tfstate_key ]; then
   }
   deployer_kv_user_arm_id=$(terraform -chdir="${terraform_deployer_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
   export TF_VAR_spn_keyvault_id=$deployer_kv_user_arm_id
-  terraform -chdir="${terraform_deployer_module_directory}" output
+  terraform -chdir="${terraform_deployer_module_directory}" output created_resource_group_subscription_id
 fi
 
 
@@ -358,7 +358,7 @@ terraform -chdir="${terraform_module_directory}" init  -reconfigure \
     exit 1
 }
 
-
+export TF_VAR_tfstate_resource_id=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query id --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
 created_resource_group_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_id | tr -d \")
 created_resource_group_id_length=$(expr length "$created_resource_group_id")
