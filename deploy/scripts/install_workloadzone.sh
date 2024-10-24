@@ -1075,7 +1075,7 @@ if [ 0 == $return_value ] ; then
             echo ""
 
             save_config_var "workloadkeyvault" "${workload_config_information}"
-        fi_system
+        fi
     fi
 
 fi
