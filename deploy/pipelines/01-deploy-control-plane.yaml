@@ -220,10 +220,10 @@ stages:
                             deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
                         echo -e "$green--- Deploy the Control Plane ---$reset"
                             if [ -n "$(PAT)" ]; then
-                                echo "Deployer Agent PAT:                    IsDefined"
+                                echo "Deployer Agent PAT:                  IsDefined"
                             fi
                             if [ -n "$(POOL)" ]; then
-                                echo "  Deployer Agent Pool:                   $(POOL)"
+                                echo "  Deployer Agent Pool:               $(POOL)"
 
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
@@ -260,8 +260,8 @@ stages:
                               export ARM_USE_OIDC=false
                               export ARM_USE_AZUREAD=true
 
-                              echo "Deployment credentials:             Service Principal"
-                              echo "Deployment credential ID (SPN):    $WL_ARM_CLIENT_ID"
+                              echo "Deployment credentials:              Service Principal"
+                              echo "Deployment credential ID (SPN):      $CP_ARM_CLIENT_ID"
 
                               az login --service-principal -u $ARM_CLIENT_ID -p=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
 
