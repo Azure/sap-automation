@@ -754,15 +754,24 @@ stages:
 
               az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
               if [ -n "${az_var}" ]; then
-                  REMOTE_STATE_SA="${az_var}"
+                  export REMOTE_STATE_SA="${az_var}"
               else
-                  REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA="  ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
+                  export REMOTE_STATE_SA=$(grep "^REMOTE_STATE_SA="  ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
+              fi
+
+              az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" --out tsv)
+              if [ -n "${az_var}" ]; then
+                  export REMOTE_STATE_RG="${az_var}"
+              else
+                  export REMOTE_STATE_RG=$(grep "^REMOTE_STATE_RG="  ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
               fi
 
               echo "Workload Key Vault:                  ${workload_key_vault}"
               echo "Deployer Key Vault:                  ${key_vault}"
               echo "Terraform state subscription:        $STATE_SUBSCRIPTION"
               echo "Terraform state account:             $REMOTE_STATE_SA"
+              echo "Terraform state resource group:      $REMOTE_STATE_RG"
+
               echo "System configuration:                $(workload_zone_configuration_file)"
 
               echo "Deployer state file name:            $deployer_tfstate_key"
