@@ -442,7 +442,7 @@ stages:
               git pull
 
               #stop the pipeline after you have reset the whitelisting on your resources
-              echo "Return code from remover.sh $return_code."
+              echo "Return code from remover.sh:         $return_code."
               if [ 0 != $return_code ]; then
                   echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
                   exit $return_code
@@ -831,7 +831,7 @@ stages:
               return_code=$?
 
               #stop the pipeline after you have reset the whitelisting on your resources
-              echo "Return code from remover.sh $return_code."
+              echo "Return code from remover.sh:         $return_code."
               if [ 0 != $return_code ]; then
                   echo "##vso[task.logissue type=error]Return code from remover.sh $return_code."
                   exit $return_code

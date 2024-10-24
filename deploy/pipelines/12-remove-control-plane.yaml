@@ -79,8 +79,8 @@ stages:
                 echo DEPLOYMENT_REPO_PATH=$DEPLOYMENT_REPO_PATH > .sap_deployment_automation/config
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
-                az config set extension.use_dynamic_install=yes_without_prompt
-                az config set extension.dynamic_install_allow_preview=true
+                az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
+                az config set extension.dynamic_install_allow_preview=true --only-show-errors
 
                 az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
@@ -299,7 +299,7 @@ stages:
 
                 return_code=$?
 
-                echo "Return code from remove_controlplane:  $return_code."
+                echo "Return code from remove_controlplane: $return_code."
 
               echo -e "$green--- Remove Control Plane Part 1 ---$reset"
                 cd $CONFIG_REPO_PATH
@@ -472,7 +472,7 @@ stages:
                   cd $HOME; mkdir -p .sap_deployment_automation
 
                 echo -e "$green--- Configure devops CLI extension ---$reset"
-                  az config set extension.use_dynamic_install=yes_without_prompt
+                  az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
 
                   az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
@@ -653,7 +653,7 @@ stages:
 
                   return_code=$?
 
-                  echo "Return code from remove_deployer $return_code."
+                  echo "Return code from remove_deployer:    $return_code."
                   if [ 0 != $return_code ]; then
                     echo "##vso[task.logissue type=error]Return code from remove_deployer $return_code."
                   fi
