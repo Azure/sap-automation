@@ -23,12 +23,9 @@ locals {
                                               ""
                                             )
                                           }
-    tags                               = try(
-                                          coalesce(
-                                            var.resourcegroup_tags,
-                                            try(var.infrastructure.tags, {})
-                                          ),
-                                          {}
+    tags                               = merge(
+                                            var.tags, var.resourcegroup_tags
+
                                         )
 
     vnets                              = {
@@ -177,8 +174,6 @@ locals {
                                                                        try(var.deployers[0].sku, "")
                                                                      ), "")
                                                  }
-
-                                           plan = var.plan
 
                                            private_ip_address = try(coalesce(
                                                                   var.deployer_private_ip_address,

@@ -22,6 +22,18 @@ variable "location"                              {
                                                    type        = string
                                                  }
 
+variable "subscription_id"                       {
+                                                   description = "Defines the Azure subscription_id"
+                                                   type        = string
+                                                   default     = null
+                                                 }
+
+
+variable "prevent_deletion_if_contains_resources" {
+                                                    description = "Controls if resource groups are deleted even if they contain resources"
+                                                    type        = bool
+                                                    default     = true
+                                                  }
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitioms                          #
@@ -240,16 +252,6 @@ variable "deployer_image"                       {
                                                                 }
                                                 }
 
-variable "plan"                                 {
-                                                  description = "The plan for the marketplace item"
-                                                  default = {
-                                                              use         = false
-                                                              "name"      = ""
-                                                              "publisher" = ""
-                                                              "product"   = ""
-                                                            }
-                                                }
-
 variable "deployer_private_ip_address"          {
                                                   description = "If provides, the value of the deployer Virtual machine IPs"
                                                   default = [""]
@@ -378,7 +380,7 @@ variable "deployer_diagnostics_account_arm_id"        {
 
 variable "tf_version"                                 {
                                                         description = "Terraform version to install on deployer"
-                                                        default     = "1.9.5"
+                                                        default     = "1.9.8"
                                                       }
 
 variable "name_override_file"                         {
@@ -414,7 +416,10 @@ variable "shared_access_key_enabled"            {
                                                   type        = bool
                                                 }
 
-
+variable "tags"                                 {
+                                                  description = "If provided, tags for all resources"
+                                                  default     = {}
+                                                }
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #

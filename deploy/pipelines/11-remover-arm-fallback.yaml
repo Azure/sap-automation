@@ -319,7 +319,7 @@ stages:
                   return_code=0
 
                   export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]"); echo "Variable group: " $VARIABLE_GROUP_ID
-                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "CP_ARM_SUBSCRIPTION_ID.value" | tr -d \")
+                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "CP_ARM_SUBSCRIPTION_ID.value" --out tsv)
                   if [ -z $variable_value ]; then
                     subscription=$ARM_SUBSCRIPTION_ID
                   else
@@ -406,42 +406,42 @@ stages:
                       if [ ${#VARIABLE_GROUP_ID} != 0 ]; then
                         echo "Deleting variables"
 
-                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" )
+                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
                         if [ ${#variable_value} != 0 ]; then
                           az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors
                         fi
 
-                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" )
+                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" --out tsv)
                         if [ ${#variable_value} != 0 ]; then
                           az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Resource_Group_Name --yes --only-show-errors
                         fi
 
-                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" )
+                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" --out tsv)
                         if [ ${#variable_value} != 0 ]; then
                           az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --yes --only-show-errors
                         fi
 
-                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" )
+                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" --out tsv)
                         if [ ${#variable_value} != 0 ]; then
                           az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName               --yes --only-show-errors
                         fi
 
-                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" )
+                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
                         if [ ${#variable_value} != 0 ]; then
                           az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors
                         fi
 
-                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value" )
+                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value" --out tsv)
                         if [ ${#variable_value} != 0 ]; then
                           az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE                       --yes --only-show-errors
                         fi
 
-                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value" )
+                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value" --out tsv)
                         if [ ${#variable_value} != 0 ]; then
                           az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY                       --yes --only-show-errors
                         fi
 
-                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value" )
+                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value" --out tsv)
                         if [ ${#variable_value} != 0 ]; then
                           az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID                            --yes --only-show-errors
                         fi

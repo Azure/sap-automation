@@ -7,6 +7,7 @@
 # |  Begin: configuration for SAPHanaSR python hook                            |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+# Note: Refer to https://access.redhat.com/articles/3004101 for RHEL hook installation for HSR ( scale up and scale out ) setups
 
 - name:                                HANA 2.0 only - Implement the Python system replication hook SAPHanaSR
   when:
@@ -173,10 +174,6 @@
       failed_when:                     false
       changed_when:                    false
       register:                        hana_system_started
-
-    - name:                            Wait 5 minutes for SAP system to start
-      ansible.builtin.pause:
-        seconds:                       300
 
     - name:                           Start HANA Database
       ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml

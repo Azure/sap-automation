@@ -30,11 +30,18 @@ resetformatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
+if [[  -f /etc/profile.d/deploy_server.sh ]]; then
+  path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh  | awk -F'=' '{print $2}' | xargs)
+  export PATH=$path
+fi
+
 #call stack has full scriptname when using source
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
+
+
 
 force=0
 recover=0
@@ -72,7 +79,19 @@ do
     esac
 done
 
-echo "ADO flag ${ado_flag}"
+echo "ADO flag:                            ${ado_flag}"
+
+key=$(basename "${deployer_parameter_file}" | cut -d. -f1)
+deployer_tfstate_key="${key}.terraform.tfstate"
+
+echo "Deployer State File:                 ${deployer_tfstate_key}"
+echo "Deployer Subscription:               ${subscription}"
+
+key=$(basename "${library_parameter_file}" | cut -d. -f1)
+library_tfstate_key="${key}.terraform.tfstate"
+
+echo "Deployer State File:                 ${deployer_tfstate_key}"
+echo "Library State File:                  ${library_tfstate_key}"
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 root_dirname=$(pwd)
@@ -115,7 +134,8 @@ fi
 # Convert the region to the correct code
 get_region_code "$region"
 
-echo "Region code for deployment:  $region_code"
+echo "Region code:                         ${region_code}"
+
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
@@ -128,6 +148,9 @@ if [ $force == 1 ]; then
 fi
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
+
+save_config_var "deployer_tfstate_key" "${deployer_config_information}"
+
 
 # Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
@@ -157,25 +180,25 @@ relative_path="${deployer_dirname}"
 export TF_DATA_DIR="${relative_path}"/.terraform
 
 step=0
-
+echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
 echo -e "#                   $cyan Starting the control plane deployment $resetformatting                             #"
 echo "#                                                                                       #"
 echo "#########################################################################################"
-
+echo ""
 noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
 
 if [ -n "$noAccess" ]; then
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#        $boldred The provided credentials do not have access to the subscription!!! $resetformatting           #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
+    echo "#########################################################################################"
+    echo "#                                                                                       #"
+    echo -e "#        $boldred The provided credentials do not have access to the subscription!!! $resetformatting           #"
+    echo "#                                                                                       #"
+    echo "#########################################################################################"
 
-  az account show --output table
+    az account show --output table
 
-  exit 65
+    exit 65
 fi
 az account list --query "[].{Name:name,Id:id}" --output table
 #setting the user environment variables
@@ -209,26 +232,24 @@ if [ -n "${subscription}" ]; then
     if [ -n "${keyvault}" ] ; then
 
 
-      kv_found=$(az keyvault list --subscription "${subscription}" --query [].name | grep  "${keyvault}")
+        kv_found=$(az keyvault list --subscription "${subscription}" --query [].name | grep  "${keyvault}")
 
-      if [ -z "${kv_found}" ] ; then
-          echo "#########################################################################################"
-          echo "#                                                                                       #"
-          echo -e "#                            $boldred  Detected a failed deployment $resetformatting                            #"
-          echo "#                                                                                       #"
-          echo -e "#                                  $cyan Trying to recover $resetformatting                                  #"
-          echo "#                                                                                       #"
-          echo "#########################################################################################"
-          step=0
-          save_config_var "step" "${deployer_config_information}"
-      fi
+        if [ -z "${kv_found}" ] ; then
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo -e "#                            $boldred  Detected a failed deployment $resetformatting                            #"
+            echo "#                                                                                       #"
+            echo -e "#                                  $cyan Trying to recover $resetformatting                                  #"
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+            step=0
+            save_config_var "step" "${deployer_config_information}"
+        fi
     else
-      step=0
-      save_config_var "step" "${deployer_config_information}"
+        step=0
+        save_config_var "step" "${deployer_config_information}"
 
     fi
-
-
 
 fi
 
@@ -236,11 +257,12 @@ fi
 load_config_vars "${deployer_config_information}" "step"
 
 if [ 0 = "${deploy_using_msi_only:-}" ]; then
-  echo "Using Service Principal for deployment"
-  set_executing_user_environment_variables "${spn_secret}"
+    echo "Identity to use:                     Service Principal"
+    unset ARM_USE_MSI
+    set_executing_user_environment_variables "${spn_secret}"
 else
-  echo "Using Managed Identity for deployment"
-  set_executing_user_environment_variables "none"
+    echo "Identity to use:                     Managed Identity"
+    set_executing_user_environment_variables "none"
 fi
 
 if [ $recover == 1 ]; then
@@ -251,6 +273,23 @@ if [ $recover == 1 ]; then
         step=3
         save_config_var "step" "${deployer_config_information}"
     fi
+fi
+
+#Persist the parameters
+if [ -n "$subscription" ]; then
+    save_config_var "subscription" "${deployer_config_information}"
+    export STATE_SUBSCRIPTION=$subscription
+    save_config_var "STATE_SUBSCRIPTION" "${deployer_config_information}"
+    export ARM_SUBSCRIPTION_ID=$subscription
+    save_config_var "ARM_SUBSCRIPTION_ID" "${deployer_config_information}"
+fi
+
+if [ -n "$client_id" ]; then
+    save_config_var "client_id" "${deployer_config_information}"
+fi
+
+if [ -n "$tenant_id" ]; then
+    save_config_var "tenant_id" "${deployer_config_information}"
 fi
 
 curdir=$(pwd)
@@ -265,15 +304,16 @@ if [ 0 == $step ]; then
 
     allParams=$(printf " --parameterfile %s %s" "${deployer_file_parametername}" "${approveparam}")
 
-    echo $allParams
-
     cd "${deployer_dirname}" || exit
 
     if [ $force == 1 ]; then
         rm -Rf .terraform terraform.tfstate*
     fi
 
-    "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/install_deployer.sh $allParams
+    echo "Calling install_deployer.sh:         $allParams"
+    echo "Deployer State File:                 ${deployer_tfstate_key}"
+
+    "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" $allParams
     return_code=$?
     if [ 0 != $return_code ]; then
         echo "Bootstrapping of the deployer failed" > "${deployer_config_information}".err
@@ -281,7 +321,7 @@ if [ 0 == $step ]; then
     fi
 
     load_config_vars "${deployer_config_information}" "keyvault"
-    echo "Key vault:" $keyvault
+    echo "Key vault:             ${keyvault}"
 
     if [ -z "$keyvault" ]; then
         echo "#########################################################################################"
@@ -292,28 +332,12 @@ if [ 0 == $step ]; then
         echo "Bootstrapping of the deployer failed" > "${deployer_config_information}".err
         exit 10
     fi
-
-    #Persist the parameters
-    if [ -n "$subscription" ]; then
-        save_config_var "subscription" "${deployer_config_information}"
-        export STATE_SUBSCRIPTION=$subscription
-        save_config_var "STATE_SUBSCRIPTION" "${deployer_config_information}"
-    fi
-
-    if [ -n "$client_id" ]; then
-        save_config_var "client_id" "${deployer_config_information}"
-    fi
-
-    if [ -n "$tenant_id" ]; then
-        save_config_var "tenant_id" "${deployer_config_information}"
-    fi
-
     if [ -n "${FORCE_RESET}" ]; then
-      step=3
-      save_config_var "step" "${deployer_config_information}"
-      exit 0
+        step=3
+        save_config_var "step" "${deployer_config_information}"
+        exit 0
     else
-      export step=1
+        export step=1
     fi
     save_config_var "step" "${deployer_config_information}"
 
@@ -341,18 +365,18 @@ if [ 1 == $step ] || [ 3 == $step ] ; then
 
     if [ -z "$keyvault" ]; then
 
-      key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
-      if [ $recover == 1 ]; then
-        terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
-        terraform -chdir="${terraform_module_directory}" init -upgrade=true     \
-        --backend-config "subscription_id=${STATE_SUBSCRIPTION}"                \
-        --backend-config "resource_group_name=${REMOTE_STATE_RG}"               \
-        --backend-config "storage_account_name=${REMOTE_STATE_SA}"              \
-        --backend-config "container_name=tfstate"                               \
-        --backend-config "key=${key}.terraform.tfstate"
+        key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
+        if [ $recover == 1 ]; then
+            terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
+            terraform -chdir="${terraform_module_directory}" init -upgrade=true     \
+            --backend-config "subscription_id=${STATE_SUBSCRIPTION}"                \
+            --backend-config "resource_group_name=${REMOTE_STATE_RG}"               \
+            --backend-config "storage_account_name=${REMOTE_STATE_SA}"              \
+            --backend-config "container_name=tfstate"                               \
+            --backend-config "key=${key}.terraform.tfstate"
 
-        keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
-      fi
+            keyvault=$(terraform -chdir="${terraform_module_directory}"  output deployer_kv_user_name | tr -d \")
+        fi
     fi
 
     if [ -z "$keyvault" ]; then
@@ -374,15 +398,15 @@ if [ 1 == $step ] || [ 3 == $step ] ; then
 
     kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]" --subscription "${subscription}")
     if [ -z $kv_name_check ]; then
-      echo ""
-      echo "#########################################################################################"
-      echo "#                                                                                       #"
-      echo -e "#                             $cyan  Retrying keyvault access $resetformatting                               #"
-      echo "#                                                                                       #"
-      echo "#########################################################################################"
-      echo ""
-      sleep 60
-      kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]" --subscription "${subscription}")
+        echo ""
+        echo "#########################################################################################"
+        echo "#                                                                                       #"
+        echo -e "#                             $cyan  Retrying keyvault access $resetformatting                               #"
+        echo "#                                                                                       #"
+        echo "#########################################################################################"
+        echo ""
+        sleep 60
+        kv_name_check=$(az keyvault list --query "[?name=='$keyvault'].name | [0]" --subscription "${subscription}")
     fi
 
     if [ -z $kv_name_check ]; then
@@ -421,30 +445,30 @@ if [ 1 == $step ] || [ 3 == $step ] ; then
             if [ 0 = "${deploy_using_msi_only:-}" ]; then
 
 
-              read -p "Do you want to specify the SPN Details Y/N?" ans
-              answer=${ans^^}
-              if [ "$answer" == 'Y' ]; then
-                  allParams=$(printf " -e %s -r %s -v %s " "${environment}" "${region_code}" "${keyvault}" )
+                read -p "Do you want to specify the SPN Details Y/N?" ans
+                answer=${ans^^}
+                if [ "$answer" == 'Y' ]; then
+                    allParams=$(printf " -e %s -r %s -v %s " "${environment}" "${region_code}" "${keyvault}" )
 
-                  #$allParams as an array (); array math can be done in shell, allowing dynamic parameter lists to be created
-                  #"${allParams[@]}" - quotes all elements of the array
+                    #$allParams as an array (); array math can be done in shell, allowing dynamic parameter lists to be created
+                    #"${allParams[@]}" - quotes all elements of the array
 
-                  "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
-                  return_code=$?
-                  if [ 0 != $return_code ]; then
-                      exit $return_code
-                  fi
-              fi
+                    "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
+                    return_code=$?
+                    if [ 0 != $return_code ]; then
+                        exit $return_code
+                    fi
+                fi
             else
-              allParams=$(printf " -e %s -r %s -v %s --subscription %s --msi " "${environment}" "${region_code}" "${keyvault}" "${subscription}")
+                allParams=$(printf " -e %s -r %s -v %s --subscription %s --msi " "${environment}" "${region_code}" "${keyvault}" "${subscription}")
 
-              "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
-              if [ -f secret.err ]; then
-                  error_message=$(cat secret.err)
-                  echo "##vso[task.logissue type=error]${error_message}"
+                "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh $allParams
+                if [ -f secret.err ]; then
+                    error_message=$(cat secret.err)
+                    echo "##vso[task.logissue type=error]${error_message}"
 
-                  exit 65
-              fi
+                    exit 65
+                fi
 
             fi
         fi
@@ -458,8 +482,8 @@ if [ 1 == $step ] || [ 3 == $step ] ; then
         fi
         cd "${curdir}" || exit
         if [ 1 == $step ] ; then
-          step=2
-          save_config_var "step" "${deployer_config_information}"
+            step=2
+            save_config_var "step" "${deployer_config_information}"
         fi
     else
         az_subscription_id=$(az account show --query id -o tsv)
@@ -511,7 +535,7 @@ if [ 2 == $step ]; then
     fi
 
     allParams=$(printf " -p %s -d %s %s" "${library_file_parametername}" "${relative_path}" "${approveparam}")
-    echo "${allParams}"
+    echo "Calling install_library.sh with:    $allParams"
 
     "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/install_library.sh $allParams
     return_code=$?
@@ -526,7 +550,7 @@ if [ 2 == $step ]; then
     REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
     STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id  | tr -d \")
 
-    if [ $ado_flag != "--ado" ] ; then
+    if [ "${ado_flag}" != "--ado" ] ; then
         az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address ${this_ip} --output none
     fi
 
@@ -601,22 +625,30 @@ if [ 3 == $step ]; then
     v=""
     secret=$(az keyvault secret list --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
     if [ "${secret}" == "${secretname}"  ]; then
-      TF_VAR_sa_connection_string=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
-      export TF_VAR_sa_connection_string
+        TF_VAR_sa_connection_string=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
+        export TF_VAR_sa_connection_string
 
     fi
 
     if [[ -z $REMOTE_STATE_SA ]];
     then
-        echo "Loading the State file information"
         load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
     fi
 
-    allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}" "${ado_flag}" )
+    if [[ -z $STATE_SUBSCRIPTION ]];
+    then
+        load_config_vars "${deployer_config_information}" "STATE_SUBSCRIPTION"
+    fi
 
-    echo -e "$cyan calling installer.sh with parameters: $allParams"
+    if [[ -z $ARM_SUBSCRIPTION_ID ]];
+    then
+        load_config_vars "${deployer_config_information}" "ARM_SUBSCRIPTION_ID"
+    fi
 
-    "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/installer.sh $allParams
+    allParams=$(printf " --parameterfile %s --storageaccountname %s --state_subscription %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${STATE_SUBSCRIPTION}" "${approveparam}" "${ado_flag}" )
+
+    echo "Calling installer.sh with:          $allParams"
+    "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" $allParams
     return_code=$?
     if [ 0 != $return_code ]; then
         echo "Migrating the deployer state failed" > "${deployer_config_information}".err
@@ -649,7 +681,7 @@ if [ 4 == $step ]; then
     cd "${library_dirname}" || exit
     allParams=$(printf " --parameterfile %s --storageaccountname %s --type sap_library %s %s" "${library_file_parametername}" "${REMOTE_STATE_SA}" "${approveparam}"  "${ado_flag}")
 
-    echo -e "$cyan calling installer.sh with parameters: $allParams"
+    echo "Calling installer.sh with:          $allParams"
 
     "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/installer.sh $allParams
     return_code=$?

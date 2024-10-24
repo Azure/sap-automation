@@ -36,10 +36,10 @@ locals {
                                          )
 
   spn                                  = {
-                                           subscription_id = length(var.deployer_kv_user_arm_id) > 0 && var.use_spn ? data.azurerm_key_vault_secret.subscription_id[0].value : null,
-                                           client_id       = length(var.deployer_kv_user_arm_id) > 0 && var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null,
-                                           client_secret   = length(var.deployer_kv_user_arm_id) > 0 && var.use_spn ? data.azurerm_key_vault_secret.client_secret[0].value : null,
-                                           tenant_id       = length(var.deployer_kv_user_arm_id) > 0 && var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
+                                           subscription_id = data.azurerm_key_vault_secret.subscription_id[0].value
+                                           client_id       = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null,
+                                           client_secret   = var.use_spn ? data.azurerm_key_vault_secret.client_secret[0].value : null,
+                                           tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
                                          }
 
 }

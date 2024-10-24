@@ -2,6 +2,14 @@
 # |                             Update packages                                 |
 # +------------------------------------4---------------------------------------*/
 
+# Note: in some rare cases, RHEL update task will fail because it expects the directory to exist before it can even check for presence of file.
+- name:                                "1.4 Packages: - check if path /etc/sap_deployment_automation{{ sap_sid | upper }} exists"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
+    state:                             directory
+    mode:                              '0755'
+
+
 - name:                                "1.4 Packages: - check if {{ sap_sid }} is updated"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/packages_installed.txt"

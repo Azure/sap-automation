@@ -1,6 +1,11 @@
 - name:                                "1.4 Packages: - Import package list"
   ansible.builtin.include_vars:        os-packages.yaml
 
+- name:                                "1.4 Packages: - Installing packages for tier"
+  ansible.builtin.debug:
+    msg:                               "Installing packages for tier {{ tier }} on {{ distribution_id }}"
+
+
 # Analyse the package list for this distribution selecting only those
 # packages assigned to the active tier or 'all'.
 - name:                                "1.4 Packages: - Determine packages appropriate for tier on: {{ distribution_id }}"
@@ -46,6 +51,8 @@
                                            map(attribute='package') |
                                            list }}"
         state:                         "{{ item.state }}"
+      environment:
+        ZYPP_LOCK_TIMEOUT:             "20"
       register:                        package_result
       loop:
         - { state: 'latest' }  # Update necessary packages
@@ -70,6 +77,8 @@
                                               map(attribute='package') |
                                               list }}"
             state:                         "{{ item.state }}"
+          environment:
+            ZYPP_LOCK_TIMEOUT:             "20"
           register:                        package_result
           loop:
             - { state: 'latest' }  # Update necessary packages
@@ -93,6 +102,8 @@
                                            map(attribute='package') |
                                            list }}"
         state:                         "{{ item.state }}"
+      environment:
+        ZYPP_LOCK_TIMEOUT:             "20"
       register:                        package_result
       loop:
         - { state: 'latest' }  # Update necessary packages
@@ -117,6 +128,8 @@
                                               map(attribute='package') |
                                               list }}"
             state:                         "{{ item.state }}"
+          environment:
+            ZYPP_LOCK_TIMEOUT:             "20"
           register:                         package_result
           loop:
             - { state: 'latest' }  # Update necessary packages
@@ -142,6 +155,8 @@
                                            map(attribute='package') |
                                            list }}"
         state:                         "{{ item.state }}"
+      environment:
+        ZYPP_LOCK_TIMEOUT:             "20"
       register:                        package_result
       loop:
         - { state: 'latest' }  # Update necessary packages
@@ -166,6 +181,8 @@
                                               map(attribute='package') |
                                               list }}"
             state:                         "{{ item.state }}"
+          environment:
+            ZYPP_LOCK_TIMEOUT:             "20"
           register:                        package_result
           loop:
             - { state: 'latest' }  # Update necessary packages
@@ -190,6 +207,8 @@
                                            map(attribute='package') | selectattr('node_tier', 'defined') | selectattr('node_tier', 'equalto', node_tier) |
                                            list }}"
         state:                         "{{ item.state }}"
+      environment:
+        ZYPP_LOCK_TIMEOUT:             "20"
       register:                        package_result
       loop:
         - { state: 'latest' }  # Update necessary packages
@@ -214,6 +233,8 @@
                                               map(attribute='package') | selectattr('node_tier', 'defined') | selectattr('node_tier', 'equalto', node_tier) |
                                               list }}"
             state:                         "{{ item.state }}"
+          environment:
+            ZYPP_LOCK_TIMEOUT:             "20"
           loop:
             - { state: 'latest' }  # Update necessary packages
             - { state: 'present' }  # Install required packages

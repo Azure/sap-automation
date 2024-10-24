@@ -174,7 +174,7 @@
 
 - name:                                "1.10 Networking - Add routes and restart VM for HANA scaleout"
   when:
-    - db_scale_out
+    - database_scale_out
     - node_tier == 'hana'
   block:
     # display the list of azure network interfaces and the expected ethX interface names
@@ -196,6 +196,7 @@
         - az_network_interfaces | length >= 1
         - not azif.interfaceName in ['eth0', 'eth0:0']
         - subnet_cidr_storage | ansible.utils.network_in_usable( azif.ipAddress )
+        - subnet_cidr_anf is defined
 
     # since the storage nic is the 3rd added to the VM we will assume that the device is eth2
     # and the connection is 'Wired connection 2'
@@ -212,6 +213,7 @@
         - az_network_interfaces | length > 2
         - not azif.interfaceName in ['eth0', 'eth0:0']
         - subnet_cidr_storage | ansible.utils.network_in_usable( azif.ipAddress )
+        - subnet_cidr_anf is defined
 
     - name:                            "1.10 Networking - Print the network configuration details for client route"
       ansible.builtin.debug:
@@ -231,6 +233,7 @@
         - az_network_interfaces | length > 2
         - not azif.interfaceName in ['eth0', 'eth0:0']
         - subnet_cidr_client | ansible.utils.network_in_usable( azif.ipAddress )
+        - subnet_cidr_app is defined
 
     - name:                            "1.10 Networking - Add route to the application subnet via client gateway"
       ansible.builtin.command:         nmcli connection modify "Wired connection 1" +ipv4.routes "{{ subnet_cidr_app }} {{ azif.subnet | ansible.utils.ipmath(1) }}"
@@ -243,6 +246,7 @@
         - az_network_interfaces | length > 1
         - not azif.interfaceName in ['eth0', 'eth0:0']
         - subnet_cidr_client | ansible.utils.network_in_usable( azif.ipAddress )
+        - subnet_cidr_app is defined
 
     # reboot VM after the new routes are added
     - name:                                "1.10 Networking - Reboot VM and wait for 5 minutes"

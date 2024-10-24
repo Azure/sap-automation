@@ -143,7 +143,6 @@ fi
 region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 get_region_code $region
 
-
 if [ true == "$use_deployer" ]
 then
     if [ ! -d "${deployer_statefile_foldername}" ]
@@ -165,12 +164,18 @@ generic_config_information="${automation_config_directory}"config
 library_config_information="${automation_config_directory}""${environment}""${region_code}"
 
 #Plugins
-if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]
-then
+isInCloudShellCheck=$(checkIfCloudShell)
+
+if checkIfCloudShell; then
+  mkdir -p "${HOME}/.terraform.d/plugin-cache"
+  export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
+else
+  if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
     mkdir -p /opt/terraform/.terraform.d/plugin-cache
+    sudo chown -R "$USER" /opt/terraform
+  fi
+  export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 fi
-sudo chown -R $USER:$USER /opt/terraform
-export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 
 
 param_dirname=$(pwd)
@@ -333,7 +338,7 @@ echo "##########################################################################
 echo ""
 
 if [ -n "${deployer_statefile_foldername}" ]; then
-    echo "Deployer folder specified:" "${deployer_statefile_foldername}"
+    echo "Deployer folder specified:             ${deployer_statefile_foldername}"
     terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" > plan_output.log 2>&1
 else
     terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}"  > plan_output.log 2>&1
@@ -400,7 +405,7 @@ echo ""
 deployer_parameter=""
 if [ -n "${deployer_statefile_foldername}" ];
 then
-    echo "Deployer folder specified:" "${deployer_statefile_foldername}"
+    echo "Deployer folder specified:             ${deployer_statefile_foldername}"
     if [ -n "${approve}" ]
     then
         terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -auto-approve -json | tee -a  apply_output.json
@@ -435,7 +440,7 @@ then
 
           if [ -n "${deployer_statefile_foldername}" ];
           then
-              echo "Deployer folder specified:" "${deployer_statefile_foldername}"
+              echo "Deployer folder specified:             ${deployer_statefile_foldername}"
               terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" $moduleID $resourceID
           else
               terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $moduleID $resourceID
@@ -454,7 +459,7 @@ then
         echo ""
         if [ -n "${deployer_statefile_foldername}" ];
         then
-            echo "Deployer folder specified:" "${deployer_statefile_foldername}"
+            echo "Deployer folder specified:             ${deployer_statefile_foldername}"
             terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -auto-approve -json | tee -a  apply_output.json
         else
             terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -auto-approve -json | tee -a  apply_output.json
@@ -477,7 +482,7 @@ then
 
           if [ -n "${deployer_statefile_foldername}" ];
           then
-              echo "Deployer folder specified:" "${deployer_statefile_foldername}"
+              echo "Deployer folder specified:             ${deployer_statefile_foldername}"
               terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" $moduleID $resourceID
           else
               terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $moduleID $resourceID
@@ -497,7 +502,7 @@ then
         echo ""
         if [ -n "${deployer_statefile_foldername}" ];
         then
-            echo "Deployer folder specified:" "${deployer_statefile_foldername}"
+            echo "Deployer folder specified:             ${deployer_statefile_foldername}"
             terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -auto-approve -json | tee -a  apply_output.json
         else
             terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -auto-approve -json | tee -a  apply_output.json

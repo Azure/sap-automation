@@ -362,7 +362,15 @@ namespace AutomationForm.Models
     [PrivateEndpointIdValidator]
     public string install_private_endpoint_id { get; set; }
 
+    public bool? shared_access_key_enabled { get; set; } = false;
 
+    public bool? shared_access_key_enabled_nfs { get; set; } = true;
+
+    public bool? install_always_create_fileshares { get; set; } = true;
+
+    public bool? install_create_smb_shares { get; set; } = true;
+
+    
 
     /*---------------------------------------------------------------------------8
     |                                                                            |

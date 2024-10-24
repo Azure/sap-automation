@@ -24,8 +24,10 @@ provider "azurerm"                     {
                                                                    }
 
                                                   }
-                                         skip_provider_registration = true
+
                                          storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
+
                                        }
 
 provider "azurerm"                     {
@@ -42,8 +44,9 @@ provider "azurerm"                     {
                                          tenant_id                  = local.use_spn ? local.spn.tenant_id : null
 
                                          alias                      = "main"
-                                         skip_provider_registration = true
+
                                          storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
                                        }
 
 
@@ -51,8 +54,10 @@ provider "azurerm"                     {
                                          features {
                                                   }
                                          alias                      = "deployer"
-                                         skip_provider_registration = true
+
                                          storage_use_azuread        = true
+                                         use_msi                    = false
+                                         subscription_id            = var.use_deployer ? data.terraform_remote_state.deployer[0].outputs.created_resource_group_subscription_id : null
                                        }
 
 provider "azurerm"                     {
@@ -62,8 +67,9 @@ provider "azurerm"                     {
                                          client_secret              = local.use_spn ? local.spn.client_secret : null
                                          tenant_id                  = local.use_spn ? local.spn.tenant_id : null
                                          alias                      = "dnsmanagement"
-                                         skip_provider_registration = true
+
                                          storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
                                        }
 
 provider "azurerm"                     {
@@ -73,8 +79,9 @@ provider "azurerm"                     {
                                          client_secret              = local.use_spn ? local.spn.client_secret : null
                                          tenant_id                  = local.use_spn ? local.spn.tenant_id : null
                                          alias                      = "privatelinkdnsmanagement"
-                                         skip_provider_registration = true
+
                                          storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
                                        }
 
 provider "azuread"                     {
@@ -100,11 +107,11 @@ terraform                              {
                                                                          }
                                                               azuread =  {
                                                                            source  = "hashicorp/azuread"
-                                                                           version = ">=2.2"
+                                                                           version = "3.0.2"
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = ">=3.3"
+                                                                           version = "4.6.0"
                                                                          }
                                                             }
                                        }

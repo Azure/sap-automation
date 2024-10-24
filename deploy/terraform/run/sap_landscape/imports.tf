@@ -16,6 +16,7 @@ data "terraform_remote_state" "deployer" {
                                            key                  = var.deployer_tfstate_key
                                            subscription_id      = local.saplib_subscription_id
                                            use_msi              = var.use_spn ? false : true
+                                           use_azuread_auth     = true
                                          }
 }
 
@@ -67,8 +68,7 @@ data "azurerm_key_vault_secret" "cp_tenant_id" {
 }
 
 // Import current service principal
-data "azuread_service_principal" "sp" {
-  count                               = var.use_spn ? 1 : 0
-  client_id                           = local.spn.client_id
-}
-
+data "azuread_service_principal" "sp"             {
+                                                    count          = var.use_spn ? 1 : 0
+                                                    client_id      = local.spn.client_id
+                                                  }

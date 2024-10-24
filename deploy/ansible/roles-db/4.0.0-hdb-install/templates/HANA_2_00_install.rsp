@@ -7,7 +7,7 @@ component_medium=
 component_dirs=
 
 # Use single master password for all users, created during installation ( Default: n )
-use_master_password= {{ use_master_password }}
+use_master_password=
 
 # Directory root to search for components
 component_root={{ _rsp_component_root }}
@@ -66,7 +66,7 @@ root_user=root
 root_password=
 
 # SAP Host Agent User (sapadm) Password
-sapadm_password={{ password_copy }}
+sapadm_password={{ pwd_os_sapadm }}
 
 # Directory containing a storage configuration
 storage_cfg=
@@ -123,7 +123,7 @@ certificates_hostmap=
 master_password={{ main_password }}
 
 # System Administrator Password
-password={{ password_copy }}
+password={{ pwd_os_sidadm }}
 
 # System Administrator Home Directory ( Default: /usr/sap/${sid}/home )
 home=/usr/sap/${sid}/home
@@ -138,7 +138,7 @@ userid={{ hdbadm_uid }}
 groupid={{ sapsys_gid }}
 
 # Database User (SYSTEM) Password
-system_user_password={{ password_copy }}
+system_user_password={{ pwd_hdb_system }}
 
 # Restart system after machine reboot? ( Default: n )
 autostart=n

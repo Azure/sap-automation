@@ -39,34 +39,34 @@ keep_agent=0
 
 function showhelp {
     echo ""
-    echo "#################################################################################################################"
-    echo "#                                                                                                               #"
-    echo "#                                                                                                               #"
-    echo "#   This file contains the logic to remove the deployer and library from an Azure region                        #"
-    echo "#                                                                                                               #"
-    echo "#   The script experts the following exports:                                                                   #"
-    echo "#                                                                                                               #"
-    echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation                      #"
-    echo "#                                                                                                               #"
-    echo "#   The script is to be run from a parent folder to the folders containing the json parameter files for         #"
-    echo "#    the deployer and the library and the environment.                                                          #"
-    echo "#                                                                                                               #"
-    echo "#   The script will persist the parameters needed between the executions in the                                 #"
-    echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                                        #"
-    echo "#                                                                                                               #"
-    echo "#                                                                                                               #"
-    echo "#   Usage: remove_region.sh                                                                                     #"
-    echo "#      -d or --deployer_parameter_file       deployer parameter file                                            #"
-    echo "#      -l or --library_parameter_file        library parameter file                                             #"
-    echo "#                                                                                                               #"
-    echo "#                                                                                                               #"
-    echo "#   Example:                                                                                                    #"
-    echo "#                                                                                                               #"
-    echo "#   SAP_AUTOMATION_REPO_PATH/scripts/remove_controlplane.sh \                                                   #"
-    echo "#      --deployer_parameter_file DEPLOYER/PROD-WEEU-DEP00-INFRASTRUCTURE/PROD-WEEU-DEP00-INFRASTRUCTURE.json \  #"
-    echo "#      --library_parameter_file LIBRARY/PROD-WEEU-SAP_LIBRARY/PROD-WEEU-SAP_LIBRARY.json \                      #"
-    echo "#                                                                                                               #"
-    echo "#################################################################################################################"
+    echo "##################################################################################################################"
+    echo "#                                                                                                                #"
+    echo "#                                                                                                                #"
+    echo "#   This file contains the logic to remove the deployer and library from an Azure region                         #"
+    echo "#                                                                                                                #"
+    echo "#   The script experts the following exports:                                                                    #"
+    echo "#                                                                                                                #"
+    echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation                       #"
+    echo "#                                                                                                                #"
+    echo "#   The script is to be run from a parent folder to the folders containing the json parameter files for          #"
+    echo "#    the deployer and the library and the environment.                                                           #"
+    echo "#                                                                                                                #"
+    echo "#   The script will persist the parameters needed between the executions in the                                  #"
+    echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                                         #"
+    echo "#                                                                                                                #"
+    echo "#                                                                                                                #"
+    echo "#   Usage: remove_region.sh                                                                                      #"
+    echo "#      -d or --deployer_parameter_file       deployer parameter file                                             #"
+    echo "#      -l or --library_parameter_file        library parameter file                                              #"
+    echo "#                                                                                                                #"
+    echo "#                                                                                                                #"
+    echo "#   Example:                                                                                                     #"
+    echo "#                                                                                                                #"
+    echo "#   SAP_AUTOMATION_REPO_PATH/scripts/remove_controlplane.sh \                                                    #"
+    echo "#      --deployer_parameter_file DEPLOYER/PROD-WEEU-DEP00-INFRASTRUCTURE/PROD-WEEU-DEP00-INFRASTRUCTURE.tfvars \ #"
+    echo "#      --library_parameter_file LIBRARY/PROD-WEEU-SAP_LIBRARY/PROD-WEEU-SAP_LIBRARY.tfvars \                     #"
+    echo "#                                                                                                                #"
+    echo "##################################################################################################################"
 }
 
 function missing {
@@ -177,11 +177,11 @@ init "${automation_config_directory}" "${generic_config_information}" "${deploye
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 
 export TF_IN_AUTOMATION="true"
-echo "Deployer environment: $deployer_environment"
+echo "Deployer environment:                  $deployer_environment"
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 export TF_VAR_Agent_IP=$this_ip
-echo "Agent IP: $this_ip"
+echo "Agent IP:                            $this_ip"
 
 if [ -n "${subscription}" ]
 then
@@ -240,6 +240,16 @@ if [ -z "${storage_account}" ]; then
 fi
 
 key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
+
+useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
+
+if [ "$useSAS" = "true" ] ; then
+  echo "Storage Account Authentication:        Key"
+  export ARM_USE_AZUREAD=false
+else
+  echo "Storage Account Authentication:        Entra ID"
+  export ARM_USE_AZUREAD=true
+fi
 
 # Reinitialize
 echo ""

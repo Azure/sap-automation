@@ -168,27 +168,65 @@ output "hana_log_ANF_volumes"          {
                                                          ]) : []
                                        }
 
+# Order the list so that the zonal information is in the correct order
+
 output "hana_shared"                   {
-                                         description = "HANA Shared primary volume"
-                                         value       = try(var.hana_ANF_volumes.use_for_shared ? (
-                                                         format("%s:/%s",
-                                                           var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]) : (
-                                                             try(azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0], "")
+                                         description = "HANA Shared volumes"
+                                         value       = local.shared_volume_count == 0 ? (
+                                                         []
+                                                         ) : ((
+                                                         var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? data.azurerm_netapp_volume.hanashared[0].zone : azurerm_netapp_volume.hanashared[0].zone)) == var.database.zones[0] ? (
+                                                         [
+                                                           format("%s:/%s",
+                                                             var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]) : (
+                                                               azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]
+                                                             ),
+                                                             var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanashared[0].volume_path) : (
+                                                               azurerm_netapp_volume.hanashared[0].volume_path
+                                                             )
                                                            ),
-                                                           var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
-                                                             data.azurerm_netapp_volume.hanashared[0].volume_path) : (
-                                                             try(azurerm_netapp_volume.hanashared[0].volume_path, "")
+                                                           format("%s:/%s",
+                                                             var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]) : (
+                                                               azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]
+                                                             ),
+                                                             var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanashared[1].volume_path) : (
+                                                               azurerm_netapp_volume.hanashared[1].volume_path
+                                                             )
                                                            )
-                                                         )
+                                                         ]
                                                          ) : (
-                                                         ""
-                                                       ), "")
-                                       }
+                                                         [
+                                                           format("%s:/%s",
+                                                             var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]) : (
+                                                               azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]
+                                                             ),
+                                                             var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanashared[1].volume_path) : (
+                                                               azurerm_netapp_volume.hanashared[1].volume_path
+                                                             )
+                                                           ),
+                                                           format("%s:/%s",
+                                                             var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]) : (
+                                                               azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]
+                                                             ),
+                                                             var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
+                                                               data.azurerm_netapp_volume.hanashared[0].volume_path) : (
+                                                               azurerm_netapp_volume.hanashared[0].volume_path
+                                                             )
+                                                           )
+                                                         ]
+                                                       )
+                                                     }
 
 output "application_volume_group"      {
                                          description = "Application volume group"
-                                         value       = azurerm_netapp_volume_group_sap_hana.avg_HANA
+                                         value       = azurerm_netapp_volume_group_sap_hana.avg_HANA_full
                                        }
 
 
@@ -227,3 +265,58 @@ output "ANF_subnet_prefix"             {
                                                            )
 
                                            }
+
+
+output "observer_ips"                  {
+                                         description = "IP adresses for observer nodes"
+                                         value       = local.enable_deployment && var.use_observer ? (
+                                                         azurerm_network_interface.observer[*].private_ip_address) : (
+                                                         []
+                                                       )
+                                       }
+
+output "observer_vms"                  {
+                                         description = "Resource IDs for observer nodes"
+                                         value       = local.enable_deployment && var.use_observer ? (
+                                                         azurerm_linux_virtual_machine.observer[*].id) : (
+                                                         [""]
+                                                       )
+                                       }
+
+output "site_information"              {
+                                         description = "Site information"
+                                         value       = local.enable_deployment ? (
+                                                         local.site_information) : (
+                                                         null
+                                                       )
+                                       }
+
+output "hana_shared_afs_path"          {
+                                          description = "Defines the hanashared mount path"
+                                          value       = var.database.scale_out && var.NFS_provider == "AFS" ? compact(
+                                                          [
+                                                           format("%s:/%s/%s",
+                                                               try(azurerm_private_endpoint.hanashared[0].private_dns_zone_configs[0].record_sets[0].fqdn,
+                                                                 try(azurerm_private_endpoint.hanashared[0].private_service_connection[0].private_ip_address,"")
+                                                               ),
+                                                             length(var.hanashared_id) > 0 ? (
+                                                               split("/", var.hanashared_id[0])[8]
+                                                               ) : (
+                                                               azurerm_storage_account.hanashared[0].name
+                                                             ),
+                                                             azurerm_storage_share.hanashared[0].name
+                                                           ),
+                                                           length(var.database.zones) > 1 ?
+                                                           format("%s:/%s/%s",
+                                                               try(azurerm_private_endpoint.hanashared[1].private_dns_zone_configs[0].record_sets[0].fqdn,
+                                                                 try(azurerm_private_endpoint.hanashared[1].private_service_connection[0].private_ip_address,"")
+                                                               ),
+                                                             length(var.hanashared_id) > 0 ? (
+                                                               split("/", var.hanashared_id[1])[8]
+                                                               ) : (
+                                                               azurerm_storage_account.hanashared[1].name
+                                                             ),
+                                                             azurerm_storage_share.hanashared[1].name
+                                                           ) : ""
+                                                         ]) : []
+                                        }

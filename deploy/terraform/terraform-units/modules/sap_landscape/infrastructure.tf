@@ -201,7 +201,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
-  provider                             = azurerm.dnsmanagement
+  provider                             = azurerm.privatelinkdnsmanagement
   count                                = local.use_Azure_native_DNS && var.use_private_endpoint ? 1 : 0
   depends_on                           = [
                                            azurerm_virtual_network.vnet_sap
@@ -221,14 +221,14 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
 }
 
 data "azurerm_private_dns_zone" "file" {
-  provider                             = azurerm.dnsmanagement
+  provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   name                                 = var.dns_settings.dns_zone_names.file_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
-  provider                             = azurerm.dnsmanagement
+  provider                             = azurerm.privatelinkdnsmanagement
   count                                = local.use_Azure_native_DNS  && var.use_private_endpoint ? 1 : 0
   depends_on                           = [
                                            azurerm_virtual_network.vnet_sap
@@ -246,7 +246,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
 }
 
 data "azurerm_private_dns_zone" "storage" {
-  provider                             = azurerm.dnsmanagement
+  provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   name                                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name

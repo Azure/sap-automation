@@ -42,6 +42,11 @@ variable "use_spn"                               {
                                                   default     = false
                                                  }
 
+variable "tags"                                  {
+                                                   description = "If provided, tags for all resources"
+                                                   default     = {}
+                                                 }
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitioms                          #
@@ -220,7 +225,7 @@ variable "spn_keyvault_id"                      {
 
 variable "shared_access_key_enabled"            {
                                                   description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
-                                                  default     = true
+                                                  default     = false
                                                   type        = bool
                                                 }
 

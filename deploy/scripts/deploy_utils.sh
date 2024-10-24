@@ -1,6 +1,12 @@
 #!/bin/bash
 
-export PATH=${PATH}:/opt/terraform/bin:/opt/ansible/bin
+if [ -d /opt/terraform/bin ]; then
+    export PATH=${PATH}:/opt/terraform/bin
+fi
+
+if [ -d /opt/ansible/bin ]; then
+    export PATH=${PATH}:/opt/ansible/bin
+fi
 
 #########################################################################
 # Helper utilities
@@ -40,12 +46,12 @@ function load_config_vars() {
         return
     fi
     for var_name; do # iterate over function params
-            # NOTE: Should we care if we fail to retrieve a value from the file?
+        # NOTE: Should we care if we fail to retrieve a value from the file?
         var_value="$(grep -m1 "^${var_name}=" "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')"
 
-        if [ -z "${var_value}" ]
+        if [ -z ${var_value} ]
         then
-          var_value="$(grep -m1 "^${var_name} " "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')"
+            var_value="$(grep -m1 "^${var_name}[[:space:]]=" "${var_file}" | cut -d'=' -f2-  | tr -d ' ' | tr -d '"')"
         fi
 
         # NOTE: this continue means we skip setting an empty value for a variable
@@ -122,23 +128,27 @@ function get_and_store_sa_details {
     local REMOTE_STATE_SA="${1}"
     local config_file_name="${2}"
 
-    echo "Trying to find the storage account ${REMOTE_STATE_SA}"
+    echo "Trying to find the storage account:  ${REMOTE_STATE_SA}"
 
     save_config_vars "${config_file_name}" REMOTE_STATE_SA
     if [ -z $STATE_SUBSCRIPTION ];then
-        tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" --output tsv)
+        tf_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" --output tsv)
+        REMOTE_STATE_RGNAME=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --query "[].resourceGroup | [0]" --output tsv)
     else
-        tfstate_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --subscription $STATE_SUBSCRIPTION --query "[].id | [0]" --output tsv)
+        tf_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --subscription $STATE_SUBSCRIPTION --query "[].id | [0]" --output tsv)
+        REMOTE_STATE_RGNAME=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --subscription $STATE_SUBSCRIPTION --query "[].resourceGroup | [0]" --output tsv)
+
     fi
     fail_if_null tfstate_resource_id
-    export STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
-    export REMOTE_STATE_RG=$(echo $tfstate_resource_id | cut -d/ -f5 | tr -d \" | xargs)
+
+    export REMOTE_STATE_RG=$REMOTE_STATE_RGNAME
+    export tfstate_resource_id=$tf_resource_id
 
     save_config_vars "${config_file_name}" \
     REMOTE_STATE_RG \
     tfstate_resource_id \
     STATE_SUBSCRIPTION
-    echo "Found the storage account ${REMOTE_STATE_SA}"
+    echo "Found the storage account:           ${REMOTE_STATE_SA}"
 }
 
 # /*---------------------------------------------------------------------------8
@@ -188,9 +198,6 @@ function checkIfCloudShell() {
     local isRunInCloudShell=1 # default value is false
     if [ "$POWERSHELL_DISTRIBUTION_CHANNEL" == "CloudShell" ]; then
         isRunInCloudShell=0
-        echo "isRunInCloudShell: true"
-    else
-        echo "isRunInCloudShell: false"
     fi
 
     return $isRunInCloudShell
@@ -282,6 +289,12 @@ function set_executing_user_environment_variables() {
 
     az_client_secret="$1"
 
+    echo ""
+    echo "----------------------------------------------------------------------------------------------"
+
+    echo "Setting the environment variables for the executing user"
+
+
     echo -e "\t[set_executing_user_environment_variables]: Identifying the executing user and client"
 
     set_azure_cloud_environment
@@ -371,6 +384,7 @@ function set_executing_user_environment_variables() {
                     export ARM_TENANT_ID
                     export ARM_CLIENT_ID
                     export ARM_CLIENT_SECRET
+                    unset ARM_USE_MSI
 
                 else
                     echo -e "\t[set_executing_user_environment_variables]: unable to identify the executing user and client"
@@ -384,6 +398,9 @@ function set_executing_user_environment_variables() {
         echo -e "\t\tARM_SUBSCRIPTION_ID: $(printenv ARM_SUBSCRIPTION_ID)"
         echo -e "\t\tARM_USE_MSI: $(printenv ARM_USE_MSI)"
     fi
+    echo "----------------------------------------------------------------------------------------------"
+    echo ""
+
 }
 
 function unset_executing_user_environment_variables() {
@@ -393,6 +410,7 @@ function unset_executing_user_environment_variables() {
     unset ARM_TENANT_ID
     unset ARM_CLIENT_ID
     unset ARM_CLIENT_SECRET
+    unset ARM_USE_MSI
 
 }
 # print the script name and function being called
@@ -401,7 +419,7 @@ function print_script_name_and_function() {
 }
 
 function get_region_code() {
-    region_lower=$(echo "${region}" | tr [:upper:] [:lower:] )
+    region_lower=$(echo "${region}" | tr [:upper:] [:lower:] | xargs | tr -d '\r')
     case "${region_lower}" in
         "australiacentral")   export region_code="AUCE" ;;
         "australiacentral2")  export region_code="AUC2" ;;

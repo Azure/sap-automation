@@ -1,0 +1,222 @@
+---
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |      Set Runtime Paramters - e.g Sub ID , Resource group name              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# ----------------------------------------
+# BEGIN
+# ----------------------------------------
+
+- name:                                           "Cluster Type: SBD - parameters to be used..."
+  ansible.builtin.debug:
+    msg:                                          # Best method for formatting output with Azure Devops Logs
+                                                  - "database_cluster_type:           {{ database_cluster_type }}"
+
+- name:                                           "1.18.0 Generic Pacemaker - Retrieve Subscription ID and Resource Group Name"
+  ansible.builtin.uri:
+    url:                                          http://169.254.169.254/metadata/instance?api-version=2021-02-01
+    use_proxy:                                    false
+    headers:
+      Metadata:                                   true
+  register:                                       azure_metadata
+
+- name:                                           "1.18.0 Generic Pacemaker - Show IMDS results"
+  ansible.builtin.debug:
+    var:                                          azure_metadata.json
+    verbosity:                                    2
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Fencing Specific                                                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+- name:                                           "Cluster Type: Fencing"
+  block:
+
+    - name:                                       "Cluster Type: Fencing specific..."
+      ansible.builtin.debug:
+        msg:                                      # Best method for formatting output with Azure Devops Logs
+                                                  - "Cluster Type: Fencing specific..."
+
+    - name:                                       "1.18.0 Generic Pacemaker - Extract details"
+      ansible.builtin.set_fact:
+        fencing_spn_subscription_id:              "{{ azure_metadata.json.compute.subscriptionId }}"
+        resource_group_name:                      "{{ azure_metadata.json.compute.resourceGroupName }}"
+
+  when:
+                                                  - (database_cluster_type == "AFA")
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Fencing Specific - END                                                     |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | SBD/ISCSI Specific                                                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+- name:                                           "Cluster Type: SBD"
+  block:
+
+    - name:                                       "Cluster Type: SBD specific..."
+      ansible.builtin.debug:
+        msg:                                      # Best method for formatting output with Azure Devops Logs
+                                                  - "Cluster Type: SBD specific..."
+
+  when:
+                                                  - (database_cluster_type == "ASD")
+
+- name:                                           "Cluster Type: SBD"
+  block:
+
+    - name:                                       "Cluster Type: ISCI specific..."
+      ansible.builtin.debug:
+        msg:                                      # Best method for formatting output with Azure Devops Logs
+                                                  - "Cluster Type: ISCI specific..."
+  when:
+                                                    (database_cluster_type == "ISCSI")
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | SBD/ISCSI Specific - END                                                   |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- name:                                           "1.18.0 Generic Pacemaker - Extract details"
+  ansible.builtin.set_fact:
+    primary_ip:                                   "{{ azure_metadata.json.network.interface[0].ipv4.ipAddress[0].privateIpAddress }}"
+    subnet_prefix:                                "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
+
+- name:                                           "1.18.0 Generic Pacemaker - Set unique variable fact"
+  ansible.builtin.set_fact:
+    "host_var":                                   "{{ ansible_hostname | replace('-','_') }}"
+
+- name:                                           "1.18.0 Generic Pacemaker - Extract VM Name"
+  ansible.builtin.set_fact:
+    vm_name:                                      "{{ azure_metadata.json.compute.name }}"
+
+- name:                                           "Wait for primary_ip check on current node to finish"
+  ansible.builtin.set_fact:
+    "is_primIP_defined_on_host":                  "{{ hostvars[ansible_hostname].primary_ip is defined }}"
+  retries:                                        30
+  delay:                                          60
+  until:                                          is_primIP_defined_on_host
+
+
+- name:                                           "1.18.0 Generic Pacemaker - Extract NIC IPs"
+  ansible.builtin.set_fact:
+    # "{{ host_var }}_instance_ip":                 "{{ hostvars[ansible_hostname]['primary_ip'] | string }}"
+    "instance_ip":                                "{{ hostvars[ansible_hostname]['primary_ip'] | string }}"
+- name:                                           "1.18.0 Generic Pacemaker - Show Details"
+  ansible.builtin.debug:
+    msg:
+                                                  - "FENCING :"
+                                                  - "   SUBSCRIPTION       : {% if fencing_spn_subscription_id is defined %}{{ fencing_spn_subscription_id }}{% else %}NOT DEFINED{% endif %}"
+                                                  - "   RESOURCE GROUP     : {% if resource_group_name is defined %}{{ resource_group_name }}{% else %}NOT DEFINED{% endif %}"
+                                                  - "   SUBNET PREFIX      : {{ subnet_prefix }}"
+    verbosity:                         2
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Configure SSH Keys for inter-node communication as root for SUSE           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                           "1.18.0 Generic Pacemaker - Configure SSH Keys for inter-node communication as root for SUSE"
+  block:
+    - name:                                       "1.18.0 Generic Pacemaker - Ensure there are SSH keys for the root user to communicate between nodes"
+      ansible.builtin.shell:                      ssh-keygen -b 4096 -t rsa -f /root/.ssh/id_rsa -q -N ""
+      args:
+        creates:                                  /root/.ssh/id_rsa
+
+    - name:                                       "1.18.0 Generic Pacemaker - Ensure there is a public key for the root user SSH key"
+      ansible.builtin.shell:                      ssh-keygen -f /root/.ssh/id_rsa -y > /root/.ssh/id_rsa.pub
+      args:
+        creates:                                  /root/.ssh/id_rsa.pub
+
+    - name:                                       "1.18.0 Generic Pacemaker - Ensure the Public SSH keys are available for exchanging SSH key trust between nodes"
+      ansible.builtin.command:                    cat /root/.ssh/id_rsa.pub
+      register:                                   cluster_public_ssh_key
+      changed_when:                               false
+
+    - name:                                       "1.18.0 Generic Pacemaker - Set SSH fact"
+      ansible.builtin.set_fact:
+        cluster_public_ssh_key:                   "{{ cluster_public_ssh_key.stdout }}"
+  when:
+    - ansible_os_family | upper == "SUSE"
+
+- name:                                           "1.18.0 Generic Pacemaker - Wait for ssh key facts to be present"
+  when:
+                                                  - ansible_os_family | upper == "SUSE"
+  block:
+    - name:                                       "Wait for cluster_public_ssh_key check on nodes to finish"
+      ansible.builtin.set_fact:
+        # "is_ssh_defined_on_{{ host_var }}":       "{{ hostvars[ansible_hostname].cluster_public_ssh_key is defined }}"
+        "is_ssh_defined":                        "{{ hostvars[ansible_hostname].cluster_public_ssh_key is defined }}"
+      retries:                                    30
+      delay:                                      60
+      # until:                                      is_ssh_defined_on_{{ host_var }}
+      until:                                      is_ssh_defined
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Configure SSH Keys for inter-node communication as root for SUSE - END     |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Validate packages for Pacemaker installation - BEGIN                       |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# Currently we can only validate the version numbers for packages on SUSE and RHEL
+# We need to add support for comparing minor releases.
+# The current version filter is not able to do that.
+
+- name:                                           "1.18.0 Generic Pacemaker - Get packages information"
+  ansible.builtin.package_facts:
+
+- name:                                           "1.18.0 Generic Pacemaker - Set packages information ({{ ansible_os_family | upper }})"
+  ansible.builtin.set_fact:
+    pacemaker_version:                             "{{ ansible_facts.packages['pacemaker'] | map(attribute='version') | first | default('') }}"
+    resource_agents_version:                       "{{ ansible_facts.packages['resource-agents'] | map(attribute='version') | first | default('') }}"
+
+- name:                                           "1.18.0 Generic Pacemaker - Show packages information ({{ ansible_os_family | upper }})"
+  when:                                           ansible_os_family | upper == "REDHAT"
+  ansible.builtin.debug:
+    msg:
+      - "pacemaker:                               {{ ansible_facts.packages['pacemaker'] }}"
+      - "resource-agents:                         {{ ansible_facts.packages['resource-agents'] }}"
+      - "fence-agents-azure-arm:                  {{ ansible_facts.packages['fence-agents-azure-arm'] }}"
+
+- name:                                           "1.18.0 Generic Pacemaker - Show packages information ({{ ansible_os_family | upper }})"
+  when:                                           ansible_os_family | upper == "SUSE"
+  ansible.builtin.debug:
+    msg:
+      - "pacemaker:                               {{ ansible_facts.packages['pacemaker'] }}"
+      - "resource-agents:                         {{ ansible_facts.packages['resource-agents'] }}"
+
+- name:                                           "Verify that the packages are the right version"
+  ansible.builtin.assert:
+    that:
+      - 'ansible_facts.packages[ packages_list.name ][0].version is version( packages_list.version , ">=", version_type= packages_list.version_type )'
+    fail_msg:                                     "{{ packages_list.name }} version is not greater than {{ packages_list.version }}"
+    success_msg:                                  "{{ packages_list.name }} version is greater than {{ packages_list.version }}"
+  register:                                       package_version_results
+  loop:                                           "{{ package_versions[distribution_full_id] }}"
+  loop_control:
+    loop_var:                                     packages_list
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

@@ -14,7 +14,7 @@ resource "time_offset" "secret_expiry_date" {
 resource "azurerm_key_vault_secret" "saplibrary_access_key" {
   provider                             = azurerm.deployer
 
-  count                                = length(var.key_vault.kv_spn_id) > 0  ? 1 : 0
+  count                                = length(var.key_vault.kv_spn_id) > 0 && var.storage_account_sapbits.shared_access_key_enabled ? 1 : 0
   depends_on                           = [azurerm_private_endpoint.kv_user]
   name                                 = "sapbits-access-key"
   value                                = local.sa_sapbits_exists ? (
@@ -82,7 +82,7 @@ resource "azurerm_key_vault_secret" "tfstate" {
 
 
 resource "azurerm_private_dns_a_record" "kv_user" {
-  provider                             = azurerm.deployer
+  provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   name                                 = lower(split("/", var.key_vault.kv_spn_id)[8])
   zone_name                            = var.dns_settings.dns_zone_names.vault_dns_zone_name

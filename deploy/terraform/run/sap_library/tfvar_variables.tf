@@ -224,7 +224,7 @@ variable "deployment"                           {
 
 variable "shared_access_key_enabled"            {
                                                   description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
-                                                  default     = true
+                                                  default     = false
                                                   type        = bool
                                                 }
 
@@ -322,4 +322,14 @@ variable "privatelink_dns_resourcegroup_name"    {
                                                    description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate resourcegroup"
                                                    default     = ""
                                                    type        = string
+                                                 }
+
+variable "dns_label"                             {
+                                                   description = "DNS label"
+                                                   default     = ""
+                                                 }
+
+variable "tags"                                  {
+                                                   description = "If provided, tags for all resources"
+                                                   default     = {}
                                                  }

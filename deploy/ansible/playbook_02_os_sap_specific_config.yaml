@@ -80,13 +80,6 @@
 #
 # -------------------------------------+---------------------------------------8
   tasks:
-
-    - name:                            "SAP OS Configuration: - Set deployment type"
-      ansible.builtin.set_fact:
-        single_server:                 "{{ (ansible_play_hosts_all | length) == 1 }}"
-      tags:
-        - always
-
     - name:                            "SAP OS Configuration - Linux based systems"
       become:                          true
       become_user:                     "root"
@@ -169,12 +162,12 @@
 
         # we do not need to add the same assertion for subnet_cidr_client as it is
         # calculated for specific deployment scenarios.
-        - name:                        "SAP OS configuration playbook: - Set the subnet_client_cidr fact"
+        - name:                        "SAP OS configuration playbook: - Set the subnet_cidr_client fact"
           ansible.builtin.set_fact:
-            subnet_client_cidr:        "{{ subnet_cidr_client | default(azure_network_metadata.json.interface[0].ipv4.subnet[0].address + '/' + azure_network_metadata.json.interface[0].ipv4.subnet[0].prefix) }}"
+            subnet_cidr_client:        "{{ subnet_cidr_client | default(azure_network_metadata.json.interface[0].ipv4.subnet[0].address + '/' + azure_network_metadata.json.interface[0].ipv4.subnet[0].prefix) }}"
           when:
             - platform == 'HANA'
-            - db_scale_out
+            - database_scale_out
             - not database_high_availability
           tags:
             - always
@@ -228,7 +221,17 @@
           tags:
             - 1.4-packages
           vars:
-            tier:                     ha
+            tier:                      ha
+
+        - name:                        "SAP OS configuration playbook: - Ensure the packages required for SYBASE are registered"
+          when:
+            - platform == 'SYBASE'
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+          tags:
+            - 1.4-packages
+          vars:
+            tier:                      sybase
 
         - name:                        "SAP OS configuration playbook: - Configure volume groups, logical volumes and file systems"
           ansible.builtin.include_role:
@@ -279,13 +282,7 @@
           tags:
             - 1.16-services
           vars:
-            tier:                     ha
-
-        - name:                        "SAP OS configuration playbook: - directory permissions"
-          ansible.builtin.include_role:
-            name:                      roles-sap-os/2.2-sapPermissions
-          tags:
-            - 2.2-sapPermissions
+            tier:                      ha
 
         - name:                        "SAP OS configuration playbook: - Configurations according to SAP Notes"
           ansible.builtin.include_role:
@@ -304,6 +301,12 @@
             name:                      roles-sap-os/2.6-sap-mounts
           tags:
             - 2.6-sap-mounts
+
+        - name:                        "SAP OS configuration playbook: - directory permissions"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.2-sapPermissions
+          tags:
+            - 2.2-sapPermissions
 
       when:
         - ansible_os_family != "Windows"

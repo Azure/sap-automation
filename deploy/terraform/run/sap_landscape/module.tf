@@ -6,11 +6,12 @@
 module "sap_landscape" {
   source                                       = "../../terraform-units/modules/sap_landscape"
   providers                                    = {
-                                                   azurerm.main          = azurerm.workload
-                                                   azurerm.deployer      = azurerm
-                                                   azurerm.dnsmanagement = azurerm.dnsmanagement
-                                                   azurerm.peering       = azurerm.peering
-                                                   azapi.api             = azapi.api
+                                                   azurerm.main                     = azurerm.workload
+                                                   azurerm.deployer                 = azurerm
+                                                   azurerm.dnsmanagement            = azurerm.dnsmanagement
+                                                   azurerm.peering                  = azurerm.peering
+                                                   azapi.api                        = azapi.api
+                                                   azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                                  }
 
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
@@ -25,6 +26,7 @@ module "sap_landscape" {
   enable_rbac_authorization_for_keyvault       = var.enable_rbac_authorization_for_keyvault
   infrastructure                               = local.infrastructure
   install_always_create_fileshares             = var.install_always_create_fileshares
+  install_create_smb_shares                    = var.install_create_smb_shares
   install_private_endpoint_id                  = var.install_private_endpoint_id
   install_storage_account_id                   = var.install_storage_account_id
   install_volume_size                          = var.install_volume_size

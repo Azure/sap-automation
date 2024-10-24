@@ -5,7 +5,7 @@ become_user_name:                       root
 oracle_user_name:                       oracle
 orchestration_ansible_user:             azureadm
 # ------------------- Begin - SDAF Ansible Version ---------------------------8
-SDAF_Version:                   "3.12.0.0"
+SDAF_Version:                           "3.13.1.0"
 
 # ------------------- End - SDAF Ansible Version ---------------------------8
 
@@ -39,6 +39,12 @@ always_upload_jinja_templates:         true
 hana_use_master_password:              y
 hana_password_copy:                    ""
 hana_backup_path:                      /hana/backup
+# Note: the spacing and lining of Jinja2 expression is critical here, lest we end up with a stray character in the path
+hana_data_basepath:                    "{% if database_scale_out %}/hana/data/{{ db_sid | upper }}{% else %}/hana/data{% endif %}"
+hana_log_basepath:                     "{% if database_scale_out %}/hana/log/{{ db_sid | upper }}{% else %}/hana/log{% endif %}"
+hana_shared_basepath:                  "/hana/shared"
+hana_usrsap_basepath:                  "/usr/sap"
+hana_autostart:                        false                                   # When set to true, will configure autostart parameter to 1 for HANA nodes. Only applicable for Scale out
 sap_sid:                               ""                                      # REQUIRED - SAP Install
 download_basket_dir:                   "{{ target_media_location }}/download_basket"
 db_sid:                                "XDB"                                   # Default
@@ -62,6 +68,11 @@ instance_type:                         "ASCS"
 dbload_retry_count:                    120
 
 single_server:                         false
+
+hana_scaleout_wait_for_start_in_sec:   300
+scs_wait_for_start_in_sec:             300
+hana_wait_for_start_in_sec:            300
+hana_wait_for_stop_in_sec:             120
 
 # Default sizes for volumes
 
@@ -219,9 +230,9 @@ use_simple_mount:                       false
 
 # Cluster - Defaults
 # database_high_availability:            false
-db_scale_out:                          false
+database_scale_out:                    false
 database_cluster_type:                 "AFA"
-db_no_standby:                         false                                    # when set to true, will deploy the scale out - ANF cluster without a standby node.
+database_no_standby:                   false                                    # when set to true, will deploy the scale out - ANF cluster without a standby node.
 # scs_high_availability:                 false
 scs_cluster_type:                      "AFA"
 # Configure pacemaker for Azure scheduled events

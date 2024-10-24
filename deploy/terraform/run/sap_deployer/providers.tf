@@ -16,7 +16,7 @@ Description:
 provider "azurerm"                     {
                                          features {
                                                     resource_group {
-                                                                     prevent_deletion_if_contains_resources = true
+                                                                     prevent_deletion_if_contains_resources = var.prevent_deletion_if_contains_resources
                                                                    }
                                                     key_vault {
                                                                  purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
@@ -26,9 +26,10 @@ provider "azurerm"                     {
                                                               }
                                                   }
                                          partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
-                                         skip_provider_registration = true
                                          storage_use_azuread        = !var.shared_access_key_enabled
-                                         use_msi                    = var.use_spn ? false : true
+                                         subscription_id            = var.subscription_id
+
+                                         use_msi                    = true
                                        }
 
 provider "azurerm"                     {
@@ -44,9 +45,8 @@ provider "azurerm"                     {
                                                               }
                                                   }
                                          partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
-                                         skip_provider_registration = true
 
-                                         subscription_id            = local.spn.subscription_id
+                                         subscription_id            = data.azurerm_key_vault_secret.subscription_id[0].value
                                          client_id                  = var.use_spn ? local.spn.client_id : null
                                          client_secret              = var.use_spn ? local.spn.client_secret: null
                                          tenant_id                  = var.use_spn ? local.spn.tenant_id: null
@@ -62,7 +62,6 @@ provider "azurerm"                     {
                                          client_id                  = var.use_spn ? local.spn.client_id : null
                                          client_secret              = var.use_spn ? local.spn.client_secret: null
                                          tenant_id                  = var.use_spn ? local.spn.tenant_id: null
-                                         skip_provider_registration = true
                                          storage_use_azuread        = !var.shared_access_key_enabled
                                          use_msi                    = var.use_spn ? false : true
                                        }
@@ -84,11 +83,11 @@ terraform                              {
                                                                          }
                                                               azuread =  {
                                                                            source  = "hashicorp/azuread"
-                                                                           version = ">=2.2"
+                                                                           version = "3.0.2"
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "~> 3.3"
+                                                                           version = "4.6.0"
                                                                          }
                                                             }
                                        }

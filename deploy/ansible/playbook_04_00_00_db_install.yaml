@@ -81,9 +81,8 @@
       ansible.builtin.set_fact:
         root_password:                 "{{ lookup('ansible.builtin.password', '/dev/null', seed=inventory_hostname) }}"
       when:
-        - db_scale_out is defined
-        - db_scale_out
-        - not db_high_availability
+        - database_scale_out is defined
+        - database_scale_out
       register:                         root_password_generated
 
     - name:                        "Database Installation Playbook: - Show root password"
@@ -95,54 +94,10 @@
 
 
 # /*----------------------------------------------------------------------------8
-# |                                                                            |
+# |                                                                             |
 # |                      Playbook for HANA DB Install                           |
-# |                                                                            |
+# |                          No Scale Out configuration                         |
 # +------------------------------------4--------------------------------------*/
-
-# +------------------------Scale out HANA configuration only -----------------*/
-
-# This configures root account on HANA nodes for scale out + anf configuration only
-- hosts:                               "{{ sap_sid | upper }}_DB"
-  name:                                DB Installation - login configuration
-  remote_user:                         "{{ orchestration_ansible_user }}"
-  gather_facts:                        true
-  any_errors_fatal:                    true
-  vars_files:
-    - vars/ansible-input-api.yaml
-  tasks:
-    - name:                           "SAP HANA: Configure root credential for Scale-Out"
-      block:
-        - name:                            Reset root password
-          become:                          true
-          ansible.builtin.user:
-            name:                          root
-            update_password:               always
-            password:                      "{{ hostvars.localhost.root_password | password_hash('sha512') }}"
-
-        - name:                            Enable {{ item.key }} in /etc/ssh/sshd_config
-          become:                          true
-          ansible.builtin.lineinfile:
-            path:                          "/etc/ssh/sshd_config"
-            regex:                         "^(# *)?{{ item.key }}"
-            line:                          "{{ item.key }} {{ item.value }}"
-            state:                         present
-          loop:
-            - { key: "PermitRootLogin", value: "yes" }
-            - { key: "PasswordAuthentication", value: "yes" }
-            - { key: "ChallengeResponseAuthentication", value: "yes" }
-
-        - name:                            "Restart SSHD on {{ ansible_hostname }}"
-          become:                          true
-          ansible.builtin.service:
-            name:                          sshd
-            state:                         restarted
-
-      when:
-        - not db_high_availability
-        - db_scale_out | default(false)
-        - hostvars.localhost.root_password is defined
-
 
 - hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                DB Installation - HANA
@@ -158,6 +113,7 @@
   # Build the list of tasks to be executed in order here.
   #
   # -------------------------------------+---------------------------------------8
+
     - name:                            "Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
@@ -169,6 +125,7 @@
       become:                          true
       when:
         - node_tier == 'hana'
+        - not database_scale_out
       block:
         - name:                        "Database Installation Playbook: - Setting the DB facts"
           ansible.builtin.set_fact:
@@ -179,14 +136,6 @@
             # Only applicable for scale out with HSR
           tags:
             - always
-
-        - name:                        "Database Installation Playbook: - Setting the DB Scale Out facts"
-          ansible.builtin.set_fact:
-            root_password:             "{{ hostvars.localhost.root_password }}"
-          when:
-            - db_scale_out is defined
-            - db_scale_out
-            - not db_high_availability
 
         - name:                        "Database Installation Playbook: - Show SAP password"
           ansible.builtin.debug:
@@ -199,22 +148,7 @@
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.0-hdb-install
               when:
-                - not db_scale_out
-
-            - name:                        "Database Installation Playbook: - Clear the failed state of hosts"
-              ansible.builtin.meta:        clear_host_errors
-
-            # - name:                    "Database installation Playbook: - run HANA Scale-Out mounts"
-            #   ansible.builtin.include_role:
-            #     name:                   roles-sap-os/2.6-sap-mounts
-            #   when:
-            #     - db_scale_out | default(false) == true
-
-            - name:                    "Database Installation Playbook: - run HANA Scale-Out installation"
-              ansible.builtin.include_role:
-                name:                  roles-db/4.0.3-hdb-install-scaleout
-              when:
-                - db_scale_out
+                - not database_scale_out
 
             - name:                    "Database Installation Playbook: - Create db-install-done flag"
               delegate_to:             localhost
@@ -258,6 +192,7 @@
         # - db_high_availability
         - database_high_availability
         - node_tier == 'hana'
+        - not database_scale_out
       block:
         - name:                         "Database Installation Playbook: - Setting the facts"
           ansible.builtin.set_fact:
@@ -332,6 +267,273 @@
             state:                     touch
             mode:                      0755
 
+# /*----------------------------------------------------------------------------8
+# |                                                                             |
+# |                      Playbook for HANA DB Install                           |
+# |                          Scale Out configuration Only                       |
+# +------------------------------------4--------------------------------------*/
+
+# This configures HANA Scale out ( netapp and HSR shared nothing )
+- hosts:                               "{{ sap_sid | upper }}_DB"
+  name:                                DB Installation - HANA Scale Out
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
+  any_errors_fatal:                    true
+  vars_files:
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
+
+  tasks:
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+      when:
+        - db_high_availability is defined
+        - database_high_availability is not defined
+    # This configures root account on HANA nodes for scale out configuration ( shared and shared nothing with HSR ) to use password based login.
+    - name:                            "SAP HANA: Configure root credential for Scale-Out"
+      block:
+        - name:                            Reset root password
+          become:                          true
+          ansible.builtin.user:
+            name:                          root
+            update_password:               always
+            password:                      "{{ hostvars.localhost.root_password | password_hash('sha512') }}"
+
+        - name:                            Enable {{ item.key }} in /etc/ssh/sshd_config
+          become:                          true
+          ansible.builtin.lineinfile:
+            path:                          "/etc/ssh/sshd_config"
+            regex:                         "^(# *)?{{ item.key }}"
+            line:                          "{{ item.key }} {{ item.value }}"
+            state:                         present
+          loop:
+            - { key: "PermitRootLogin", value: "yes" }
+            - { key: "PasswordAuthentication", value: "yes" }
+            - { key: "ChallengeResponseAuthentication", value: "yes" }
+
+        - name:                            "Restart SSHD on {{ ansible_hostname }}"
+          become:                          true
+          ansible.builtin.service:
+            name:                          sshd
+            state:                         restarted
+      when:
+        - database_scale_out
+        - hostvars.localhost.root_password is defined
+
+    - name:                            "Database Installation Playbook: - Install HANA Scale Out"
+      become:                          true
+      when:
+        - node_tier == 'hana'
+        - database_scale_out
+      block:
+        - name:                        "Database Installation Playbook: - Setting the DB facts"
+          ansible.builtin.set_fact:
+            tier:                      hdb                                     # Actions for HANA DB Serve
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            primary_instance_name:      "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+            secondary_instance_name:    "{{ ansible_play_hosts_all[1] | default('')}}"         # Setting up Secondary Instance Name
+            # Only applicable for scale out with HSR
+          tags:
+            - always
+
+        - name:                        "Database Installation Playbook: - Setting the DB Scale Out facts"
+          ansible.builtin.set_fact:
+            root_password:             "{{ hostvars.localhost.root_password }}"
+          when:
+            # - database_scale_out is defined
+            - database_scale_out
+            # - not db_high_availability
+
+        - name:                        "Database Installation Playbook: - Show SAP password"
+          ansible.builtin.debug:
+            msg:                       "{{ hostvars.localhost.sap_password }}"
+            verbosity:                 4
+
+        - name:                        "Run the Database installation Playbook"
+          block:
+            - name:                    "Database Installation Playbook: - run HANA installation"
+              ansible.builtin.include_role:
+                name:                  roles-db/4.0.0-hdb-install
+              when:
+                - not database_scale_out
+
+            - name:                        "Database Installation Playbook: - Clear the failed state of hosts"
+              ansible.builtin.meta:        clear_host_errors
+
+            # - name:                    "Database installation Playbook: - run HANA Scale-Out mounts"
+            #   ansible.builtin.include_role:
+            #     name:                   roles-sap-os/2.6-sap-mounts
+            #   when:
+            #     - database_scale_out | default(false) == true
+
+            - name:                    "Database Installation Playbook: - run HANA Scale-Out installation"
+              ansible.builtin.include_role:
+                name:                  roles-db/4.0.3-hdb-install-scaleout
+              when:
+                - database_scale_out
+
+            - name:                    "Database Installation Playbook: - Create db-install-done flag"
+              delegate_to:             localhost
+              become:                  false
+              ansible.builtin.file:
+                path:                  "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
+                state:                 touch
+                mode:                  0755
+              when:
+                - hana_already_installed is defined or (hana_installation.rc is defined and hana_installation.rc == 0)
+
+          always:
+            - name:                    "Database Installation Playbook: - Get the Error lines from installation output"
+              ansible.builtin.set_fact:
+                error_lines:           "{{ error_lines | default([]) + [item] }}"
+              with_items:              "{{ hana_installation.stdout_lines }}"
+              when:
+                - hana_installation is defined
+                - hana_installation.stdout_lines is defined
+                - '"ERROR" in item'
+
+            - name:                    "Database Installation Playbook: - Run post installation routines"
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+              vars:
+                suffix:                "_DB"
+                tier:                  'hana'
+
+            - name:                    "Database Installation Playbook: - Show errors from HANA installation"
+              ansible.builtin.debug:
+                msg:                   "{{ error_lines }}"
+              when:
+                - error_lines is defined
+
+          tags:
+            - 4.0.0-hdb-install
+    # This disables root account on HANA nodes for scale out configuration ( shared and shared nothing with HSR ) to use password based login.
+    - name:                           "SAP HANA: disable root credential for Scale-Out"
+      block:
+        - name:                            Reset root password to random local value
+          become:                          true
+          ansible.builtin.user:
+            name:                          root
+            update_password:               always
+            password:                      "{{ lookup('ansible.builtin.password', '/dev/null', seed=inventory_hostname) | password_hash('sha512') }}"
+
+        - name:                            Enable {{ item.key }} in /etc/ssh/sshd_config
+          become:                          true
+          ansible.builtin.lineinfile:
+            path:                          "/etc/ssh/sshd_config"
+            regex:                         "^(# *)?{{ item.key }}"
+            line:                          "{{ item.key }} {{ item.value }}"
+            state:                         present
+          loop:
+            - { key: "PermitRootLogin", value: "yes" }
+            - { key: "PasswordAuthentication", value: "no" }
+            - { key: "ChallengeResponseAuthentication", value: "no" }
+
+        - name:                            "Restart SSHD on {{ ansible_hostname }}"
+          become:                          true
+          ansible.builtin.service:
+            name:                          sshd
+            state:                         restarted
+      when:
+        - database_scale_out
+        - hostvars.localhost.root_password is defined
+
+
+# Configure HANA Scale out Pacemaker, run on DB nodes and majority maker node ( first node if multiple are provided, rest are ignored. )
+- hosts:                               "{{ sap_sid | upper }}_DB:
+                                        {{ sap_sid | upper }}_OBSERVER_DB"
+  name:                                DB Installation - HANA Scale Out - Pacemaker
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        true                                    # Important to collect hostvars information
+  any_errors_fatal:                    true
+  vars_files:
+    - vars/ansible-input-api.yaml                                              # API Input template with defaults
+  tasks:
+    - name:                        "Database Installation Playbook: - Install Pacemaker (Scale Out)"
+      become:                          true
+      when:
+        # - db_high_availability
+        - db_high_availability
+        - node_tier in ['hana','observer']
+        - database_scale_out
+      block:
+        - name:                        "Database Installation Playbook: - Setting the facts"
+          ansible.builtin.set_fact:
+            tier:                       ha
+            main_password:              "{{ hostvars.localhost.sap_password }}"
+            password_ha_db_cluster:     "{{ hostvars.localhost.db_cluster_password }}"
+            primary_instance_name:      "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+            secondary_instance_name:    "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+            # root_password:              "{{ hostvars.localhost.root_password }}"
+            # fencing_spn_client_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
+            # fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{%- endif %}"
+            # fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{%- endif %}"
+
+        - name:                        "Database Installation Playbook: - Setting the facts for fencing"
+          ansible.builtin.set_fact:
+            fencing_spn_client_id:      "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
+            fencing_spn_client_pwd:     "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
+            fencing_spn_tenant_id:      "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
+          when:
+                                        - database_cluster_type == "AFA"
+                                        - not use_msi_for_clusters
+
+        - name:                        "Database Installation Playbook: - Ensure the correct repositories are set"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.3-repository
+          tags:
+            - 1.3-repository
+
+        - name:                        "Database Installation Playbook: - Ensure the correct packages are installed"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+          tags:
+            - 1.4-packages
+
+        # Setup the kernel parameters required for pacemaker cluster VMs
+        - name:                        "Database Installation Playbook: - Ensure the correct kernel parameters are set"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.9-kernelparameters
+          tags:
+            - 1.9-kernelparameters
+
+        - name:                        "Database Installation Playbook: - Ensure the needed services are enabled/disabled"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.16-services
+          tags:
+            - 1.16-services
+
+        - name:                        "Database Installation Playbook: - Ensure the accounts are present"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.11-accounts
+          tags:
+            - 1.11-accounts
+
+        # Scale out based pacemaker task/s
+        - name:                        "Database Installation Playbook: - Install Scale Out Pacemaker"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.18-scaleout-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
+            apply:
+              tags:
+                - 1.18-scaleout-pacemaker
+              become:                  true
+              become_user:             root
+          when:
+            - node_tier in ['hana','observer']
+            - database_scale_out
+
+          tags:
+            - 1.18-scaleout-pacemaker
+
+        - name:                        "Database Installation Playbook: - Create pacemaker-install-done flag"
+          delegate_to:                 localhost
+          become:                      false
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/pacemaker-install-done"
+            state:                     touch
+            mode:                      0755
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |

@@ -271,6 +271,7 @@ export AZADHOME="/home/$${local_user}"
 if [ -f /etc/profile.d/deploy_server.sh ] ; then
     echo
     echo ##vso[task.logissue type=warning]Deployer already configured
+    sudo chmod 775 /etc/profile.d/deploy_server.sh
 
     exit 0
 else
@@ -456,9 +457,12 @@ else
         "$${tf_bin}" \
         "$${tf_cache}"
 
-    wget -nv -O "/tmp/$${tf_zip}" "https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip}"
-    sudo unzip -o "/tmp/$${tf_zip}" -d "$${tf_dir}"
+    wget -nv -O "/$${asad_home}/$${tf_zip}" "https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip}"
+    sudo unzip -qq -o "/$${asad_home}/$${tf_zip}" -d "$${tf_dir}"
     sudo ln -vfs "../$(basename "$${tf_dir}")/terraform" "$${tf_bin}/terraform"
+    sudo chmod 755 "$${tf_bin}/terraform"
+
+    sudo rm "/$${asad_home}/$${tf_zip}"
 
     # Uninstall Azure CLI - For some platforms
     case "$(get_distro_name)" in
@@ -758,14 +762,13 @@ else
       sudo touch "$${agent_home}/no_tok"
     fi
 
-    set -o xtrace
     if [ -f "$${agent_home}/agent_configured" ]; then
       echo "Agent already configured"
     else
-      set +o xtrace
       if [[ -n "$${TOKEN}" ]]; then
+        echo "Configuring Agent"
         sudo chmod -R 744 "$${agent_home}"
-        set -o xtrace
+
         cd "$${agent_home}"
         ./env.sh
 
@@ -775,6 +778,9 @@ else
 
         (echo "$${agent_home}/config.sh"  --unattended --url "$${DEVURL}" --auth pat --token "$${TOKEN}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a "$${agent_home}/config_fixed_params.sh") > /dev/null 2>&1
         sudo chmod +x "$${agent_home}/config_fixed_params.sh"
+        sudo chown "$${local_user}" "$${agent_home}/config_fixed_params.sh"
+
+        echo "Installing Agent"
 
         sudo runuser -l "$${local_user}" -c "$${agent_home}/config_fixed_params.sh"  | sudo tee -a "$${agent_home}/log.txt"
 
@@ -790,6 +796,7 @@ else
         sudo touch "$${agent_home}/agent_configured"
 
         echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}" | sudo tee -a /etc/profile.d/deploy_server.sh
+        sudo chmod 775 /etc/profile.d/deploy_server.sh
         # Install dotNet
         case "$(get_distro_name)" in
           (ubuntu)
@@ -813,10 +820,12 @@ else
       else
         echo "NO TOKEN specified"
         echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}":'$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
+        sudo chmod 775 /etc/profile.d/deploy_server.sh
 
         echo "export SAP_AUTOMATION_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
         echo "export DEPLOYMENT_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
         echo "export CONFIG_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/WORKSPACES'" | sudo tee -a /etc/profile.d/deploy_server.sh
       fi
     fi
+
 fi

@@ -93,8 +93,8 @@
       when:                                     database_high_availability
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                               "{{ sap_sid | upper }}_DB"
-  name:                                DB HA Configuration
+- hosts:                              "{{ sap_sid | upper }}_DB"
+  name:                                HANA DB HA Configuration
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
@@ -112,6 +112,11 @@
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
+
+    - name:                            "0.0 Validations: - Gather facts for first time"
+      ansible.builtin.setup:
+      tags:
+                                       - always
 
     - name:                            "HANA HA Setup"
       become:                          true
@@ -148,6 +153,8 @@
             - name:                    "Run the db/hdb-hsr role"
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.1-hdb-hsr
+              when:
+                - node_tier == 'hana'
               tags:
                 - 4.0.1-hdb-hsr
 
@@ -177,9 +184,20 @@
             - name:                    "HANA HA Setup: - run the Pacemaker role"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.5-hanadb-pacemaker
-              when:                    database_high_availability
+              when:
+                - database_high_availability
+                - not database_scale_out
               tags:
                 - 5.5-hanadb-pacemaker
+
+            - name:                    "HANA HA Setup: - run the Pacemaker role for scale out"
+              ansible.builtin.include_role:
+                name:                  roles-sap/5.8-hanadb-scaleout-pacemaker
+              when:
+                - database_high_availability
+                - database_scale_out
+              tags:
+                - 5.8-hanadb-scaleout-pacemaker
 
       when:
         - database_high_availability
@@ -208,10 +226,14 @@
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                            "Get Instance names"
+    - name:                            "Initialize facts for HA resources"
       ansible.builtin.set_fact:
-        primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
-        secondary_instance_name:   "{{ ansible_play_hosts_all[1] | default('N/A') }}"         # Setting up Secondary Instance Name
+        tier:                          ha
+        primary_instance_name:         "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+        secondary_instance_name:       "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+      when:
+        - database_high_availability
+        - ansible_play_hosts_all | length >= 2
 
     - name:                            "Oracle Data Guard Setup"
       when:

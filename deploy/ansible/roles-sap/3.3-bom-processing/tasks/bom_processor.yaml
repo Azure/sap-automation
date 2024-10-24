@@ -35,7 +35,7 @@
 # |  03) Create dynamic extract directories                                    |
 # |  04) Download media from bom                                               |
 # |  05) Extract files - SAPCAR                                                |
-# |  06) Extract files - UNRAR                                                 |
+# |  06) Extract files - UNRAR/UNAR                                                 |
 # |  07) Extract files - UNZIP                                                 |
 # |  08) Purge BOM file from Ansible Controller - TBD                          |
 #                                                                              |
@@ -188,20 +188,28 @@
 
 
 #   06) Extract files - UNRAR
-- name:                                "3.3 BoM Processing: - Extract File, UNRAR"
-  ansible.builtin.command:             unrar x "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
-  args:
-    chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
-    creates:                           "{{ target_media_location }}/{{ item.extractDir }}/\
-                                        {% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
-  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
-  when:
-    - item.extract is not undefined
-    - item.extract
-    - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="RAR") ) or
-      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="RAR") ) or
-      ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="EXE") ) or
-      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="EXE") )
+
+# Note: SAP has started to distribute Schema files packed as RAR files or spanned solid archives with self extracting EXE files against Zip files as before.
+# This requires WinRAR or opensource RAR extractor.
+# RHEL does not distibuted unrar anymore https://access.redhat.com/solutions/28959
+# RHEL recommends using unarchiver ( alias : unar ) in EPEL repository from Fedora as unrar from https://www.rarlab.com does not cplies with OpenSource Licenses.
+# This also presents another problem as the archive files will get unpacked into /usr/sap/install/CD_EXPORT/<package_ID>/<files> and will cause setup to fail.
+# This issue is now being handled by process_exe_archives.yaml
+
+# - name:                                "3.3 BoM Processing: - Extract File, UNRAR"
+#   ansible.builtin.command:             "{% if (ansible_os_family | upper) == 'REDHAT' %}unar -s -D{% else %}unrar x{% endif %} {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
+#   args:
+#     chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
+#     creates:                           "{{ target_media_location }}/{{ item.extractDir }}/\
+#                                         {% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
+#   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+#   when:
+#     - item.extract is not undefined
+#     - item.extract
+#     - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="RAR") ) or
+#       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="RAR") ) or
+#       ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="EXE") ) or
+#       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="EXE") )
 
 
 #   07) Extract files - UNZIP
@@ -236,6 +244,17 @@
 #     - item.extract
 #     - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="EXE") ) or
 #       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="EXE") )
+
+#   08) Extract files - EXE
+
+- name:                                "3.3 BoM Processing: - Extract File, EXE"
+  ansible.builtin.include_tasks:       "process_exe_archives.yaml"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+  when:
+    - item.extract is defined
+    - item.extract
+    - ( item.filename is undefined and (item.archive |regex_search('[^.]+(?=\\.*$)')|upper=="EXE") ) or
+      ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="EXE") )
 
 
 # -------------------------------------+---------------------------------------8

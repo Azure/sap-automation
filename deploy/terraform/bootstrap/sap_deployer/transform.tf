@@ -26,12 +26,8 @@ locals {
                                               ""
                                             )
                                           }
-    tags                               = try(
-                                          coalesce(
-                                            var.resourcegroup_tags,
-                                            try(var.infrastructure.tags, {})
-                                          ),
-                                          {}
+    tags                               = merge(
+                                            var.tags, var.resourcegroup_tags
                                         )
 
     vnets                              = {
@@ -130,10 +126,11 @@ locals {
                                               }
                                             }
                                           }
-  deploy_monitoring_extension      = var.deploy_monitoring_extension
-  deploy_defender_extension        = var.deploy_defender_extension
+    deploy_monitoring_extension        = var.deploy_monitoring_extension
+    deploy_defender_extension          = var.deploy_defender_extension
 
-                                         }
+                                        }
+
   deployer                             = {
                                            size = try(
                                              coalesce(
@@ -180,8 +177,6 @@ locals {
                                                                        try(var.deployers[0].sku, "")
                                                                      ), "")
                                                  }
-
-                                           plan = var.plan
 
                                            private_ip_address = try(coalesce(
                                                                   var.deployer_private_ip_address,

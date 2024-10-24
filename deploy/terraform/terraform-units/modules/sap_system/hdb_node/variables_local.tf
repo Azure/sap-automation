@@ -51,7 +51,7 @@ locals {
   use_ANF                              = try(var.database.use_ANF, false)
   //Scalout subnet is needed if ANF is used and there are more than one hana node
   dbnode_per_site                      = length(try(var.database.dbnodes, [{}]))
-  enable_storage_subnet                = var.database.use_ANF && var.database.scale_out && length(try(var.storage_subnet.id,""))>0
+  enable_storage_subnet                = var.database.scale_out && length(try(var.storage_subnet.id,""))>0
 
   // Availability Set
   availabilityset_arm_ids              = try(var.database.avset_arm_ids, [])
@@ -86,7 +86,7 @@ locals {
                                              "") : (
                                              length(try(var.database.os.offer, "")) > 0 ? (
                                                var.database.os.offer) : (
-                                               "sles-sap-15-sp3"
+                                               "sles-sap-15-sp5"
                                              )
                                            )
                                            sku = local.hdb_custom_image ? (
@@ -136,6 +136,8 @@ locals {
                                           hdb_admin_vm   = 4
                                           hdb_db_vm      = 5
                                           hdb_storage_vm = 4
+                                          observer_db_vm = 8
+
                                         }
 
   // Ports used for specific HANA Versions
@@ -391,6 +393,12 @@ locals {
                                            (var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.log_volume_count) : (
                                            0
                                          )
+  shared_volume_count                 = (local.create_shared_volumes) ? (
+                                           length(var.ppg)) : (
+                                           0
+                                         )
+
+
   extension_settings                   =  length(var.database.user_assigned_identity_id) > 0 ? [{
                                            "key" = "msi_res_id"
                                            "value" = var.database.user_assigned_identity_id
@@ -412,5 +420,22 @@ locals {
 
   create_shared_volumes                = !local.use_avg && var.hana_ANF_volumes.use_for_shared && !var.hana_ANF_volumes.use_existing_shared_volume
   use_shared_volumes                   = local.use_avg || var.hana_ANF_volumes.use_for_shared && var.hana_ANF_volumes.use_existing_shared_volume
+
+  #If using an existing VM for observer set use_observer to false in .tfvars
+  observer_size                        = "Standard_D4s_v3"
+  observer_authentication              = local.authentication
+  observer_custom_image                = local.hdb_custom_image
+  observer_custom_image_id             = local.enable_deployment ? local.hdb_os.source_image_id : ""
+  observer_os                          = local.enable_deployment ? local.hdb_os : null
+
+  site_information                    = flatten(
+                                           [
+                                            for idx, server_count in range(var.database_server_count) :
+                                              [
+                                                idx %2 == 0 ? "SITE1" : "SITE2"
+                                              ]
+                                           ]
+                                         )
+
 
 }

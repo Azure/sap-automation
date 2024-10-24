@@ -80,6 +80,7 @@
 - name:                                "0.4 Installation Media: - Save SAP Binaries Storage Account information"
   ansible.builtin.set_fact:
     account_name:                      "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
+    container_name:                    "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}"
   when:                                sapbits_location_base_path is defined
 
 - name:                                "0.4 Installation Media: - Extract Shared Key Access token flag"
@@ -215,9 +216,44 @@
       ansible.builtin.set_fact:
         sapbits_sas_token:             "{{ az_sapbits_sas_token.stdout }}"
 
-- name:                                "0.0 Validations - Check required variables are present and not empty"
+- name:                                 "0.4 Installation Media: - Create SAP Binaries Storage Account SAS token"
   when:
-   - allowSharedKeyAccess
+    - sapbits_sas_token is not defined or (sapbits_sas_token | string | length == 0)
+  block:
+
+    - name:                             "0.4 Installation Media: - SAS token"
+      ansible.builtin.debug:
+        msg:                            "Creating the storage account SAS token"
+
+    - name:                             "0.4 Installation Media: - Set Expiry"
+      ansible.builtin.command:          "date +'%Y-%m-%d' -d '+3 days'"
+      register:                         expiry
+
+    - name:                            "0.4 Installation Media: - Create USer delegation SAP Binaries Storage Account SAS in Control Plane subscription"
+      ansible.builtin.command: >-
+                                       az storage container generate-sas \
+                                         --account-name {{ account_name }} \
+                                         --name {{ container_name }} \
+                                         --expiry {{ expiry.stdout }} \
+                                         --permissions lr \
+                                         --auth-mode login \
+                                         --as-user  \
+                                         {{ subscription_parameter }}   \
+                                         --out tsv
+      changed_when:                    false
+      register:                        az_sapbits_sas_token
+
+    - name:                            "0.4 Installation Media: - Debug storage account details (sas)"
+      ansible.builtin.debug:
+        var:                           az_sapbits_sas_token
+        verbosity:                     4
+
+    - name:                            "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS (temp)"
+      ansible.builtin.set_fact:
+        sapbits_sas_token:             "{{ az_sapbits_sas_token.stdout }}"
+
+
+- name:                                "0.0 Validations - Check required variables are present and not empty"
   ansible.builtin.assert:
     that:
       - sapbits_sas_token is defined                    # Has the variable been defined

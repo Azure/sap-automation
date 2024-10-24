@@ -58,7 +58,7 @@ resource "azurerm_subnet" "subnet_mgmt" {
   virtual_network_name                 = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
   address_prefixes                     = [local.management_subnet_prefix]
 
-  private_endpoint_network_policies_enabled     = !var.use_private_endpoint
+  private_endpoint_network_policies     = !var.use_private_endpoint ? "Enabled" : "Disabled"
 
   service_endpoints                    = var.use_service_endpoint ? (
                                            var.use_webapp ? (
@@ -78,22 +78,25 @@ data "azurerm_subnet" "subnet_mgmt" {
 
 // Creates boot diagnostics storage account for Deployer
 resource "azurerm_storage_account" "deployer" {
+  depends_on                           = [ azurerm_subnet.subnet_mgmt ]
   count                                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? 0 : 1
   name                                 = local.storageaccount_names
   resource_group_name                  = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                             = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   account_replication_type             = "LRS"
   account_tier                         = "Standard"
-  enable_https_traffic_only            = local.enable_secure_transfer
+  https_traffic_only_enabled            = local.enable_secure_transfer
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
   shared_access_key_enabled            = var.deployer.shared_access_key_enabled
-  network_rules {
-    default_action                     = "Deny"
-    virtual_network_subnet_ids         = [azurerm_subnet.subnet_mgmt[0].id]
-  }
+
   cross_tenant_replication_enabled     = false
-  depends_on                           = [ azurerm_subnet.subnet_mgmt ]
+
+   network_rules {
+    default_action                     = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+    virtual_network_subnet_ids         = var.use_service_endpoint ? [(local.management_subnet_exists) ? local.management_subnet_arm_id : azurerm_subnet.subnet_mgmt[0].id] : null
+  }
+
 }
 
 data "azurerm_storage_account" "deployer" {
@@ -103,21 +106,14 @@ data "azurerm_storage_account" "deployer" {
 
 }
 
-resource "azurerm_role_assignment" "deployer_boot_diagnostics_contributor" {
+resource "azurerm_role_assignment" "deployer" {
   provider                             = azurerm.main
   count                                = var.assign_subscription_permissions && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
   scope                                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? var.deployer.deployer_diagnostics_account_arm_id : azurerm_storage_account.deployer[0].id
-  role_definition_name                 = "Storage Account Contributor"
+  role_definition_name                 = "Storage Blob Data Contributor"
   principal_id                         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
 }
 
-resource "azurerm_role_assignment" "deployer_boot_diagnostics_contributor_msi" {
-  provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions ? 1 : 0
-  scope                                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? var.deployer.deployer_diagnostics_account_arm_id : azurerm_storage_account.deployer[0].id
-  role_definition_name                 = "Storage Account Contributor"
-  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
-}
 
 resource "azurerm_role_assignment" "resource_group_contributor" {
   provider                             = azurerm.main
@@ -135,20 +131,5 @@ resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" 
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }
 
-resource "azurerm_role_assignment" "resource_group_acsservice" {
-  provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
-  scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
-  role_definition_name                 = "Azure Center for SAP solutions administrator"
-  principal_id                         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
-}
-
-resource "azurerm_role_assignment" "resource_group_acsservice_msi" {
-  provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions ? 1 : 0
-  scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
-  role_definition_name                 = "Azure Center for SAP solutions administrator"
-  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
-}
 
 

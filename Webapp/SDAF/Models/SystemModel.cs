@@ -211,12 +211,17 @@ namespace AutomationForm.Models
 
     public bool? register_endpoints_with_dns { get; set; } = true;
 
+    public bool? shared_access_key_enabled { get; set; } = false;
 
-    /*---------------------------------------------------------------------------8
-    |                                                                            |
-    |                       Cluster information                                  |
-    |                                                                            |
-    +------------------------------------4--------------------------------------*/
+    public bool? shared_access_key_enabled_nfs { get; set; } = true;
+  
+
+
+/*---------------------------------------------------------------------------8
+|                                                                            |
+|                       Cluster information                                  |
+|                                                                            |
++------------------------------------4--------------------------------------*/
 
     public string fencing_role_name { get; set; }
 
@@ -485,6 +490,7 @@ namespace AutomationForm.Models
 
     public int? sapmnt_volume_size { get; set; }
 
+    [StorageAccountIdValidator]
     public string azure_files_sapmnt_id { get; set; }
 
     public bool? use_random_id_for_storageaccounts { get; set; } = true;
@@ -636,12 +642,17 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
 
-    public bool? database_HANA_use_ANF_scaleout_scenario { get; set; } = false;
+    public bool? database_HANA_use_scaleout_scenario { get; set; } = false;
 
     public bool? database_HANA_no_standby_role { get; set; } = false;
 
     public int? stand_by_node_count { get; set; } = 0;
 
+    [StorageAccountIdValidator]
+    public string[] hanashared_id { get; set; }
+
+    [PrivateEndpointIdValidator]
+    public string[] hanashared_private_endpoint_id { get; set; }
 
     /*---------------------------------------------------------------------------8
     |                                                                            |

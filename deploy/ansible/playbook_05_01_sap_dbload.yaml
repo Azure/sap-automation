@@ -78,6 +78,10 @@
     - name:                            "DBLoad Playbook: - Perform DB Load on HANA"
       become:                          true
       become_user:                     root
+      when:
+        - platform == 'HANA'
+        - "'pas' in supported_tiers"
+        - ansible_os_family != "Windows"
       block:
         - name:                        "DBLoad Playbook: - Setting the dbload facts"
           ansible.builtin.set_fact:
@@ -91,18 +95,13 @@
           tags:
             - always
 
+
         - name:                        "DBLoad Playbook: - Set deployment type"
           ansible.builtin.set_fact:
             single_server:              "{{ (ansible_play_hosts_all | length) == 1 }}"
           tags:
             - always
 
-
-        - name:                    "DBLoad Playbook: - Mounting"
-          ansible.builtin.include_role:
-            name:                  roles-sap-os/2.6-sap-mounts
-          tags:
-            - 2.6-sap-mounts
 
         - name:                        "DBLoad Playbook: Define this SID"
           ansible.builtin.set_fact:
@@ -119,6 +118,28 @@
         - name:                        "DBLoad Playbook: Define list of SIDs"
           ansible.builtin.set_fact:
             all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
+
+        # - name:                            Generic Users and Groups for SAP Installation
+        #   ansible.builtin.include_role:
+        #     name:                          roles-sap-os/2.5-sap-users
+        #     tasks_from:                    user_nw.yaml
+        #   vars:
+        #     scs_instance_number:          "{{ sid_to_be_deployed.ascs_inst_no }}"
+        #     tier:                          generic
+        #     main_password:                 "{{ hostvars.localhost.sap_password }}"
+        #     sapbits_location_base_path:    "{{ hostvars.localhost.sapbits_location_base_path }}"
+        #     sapbits_sas_token:             "{{ hostvars.localhost.sapbits_sas_token }}"
+        #   loop:                            "{{ all_sids }}"
+        #   loop_control:
+        #     loop_var:                    sid_to_be_deployed
+        #   tags:
+        #     - 2.5-sap-users
+
+        - name:                    "DBLoad Playbook: - Mounting"
+          ansible.builtin.include_role:
+            name:                  roles-sap-os/2.6-sap-mounts
+          tags:
+            - 2.6-sap-mounts
 
         - name:                        Run the DBLoad Playbook
           block:
@@ -169,11 +190,6 @@
                 - error_lines is defined
           tags:
             - 5.1-dbload
-
-      when:
-        - platform == 'HANA'
-        - "'pas' in supported_tiers"
-        - ansible_os_family != "Windows"
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |

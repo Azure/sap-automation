@@ -157,7 +157,10 @@ variable "install_storage_account_id"                   { description = "Azure R
 
 variable "install_private_endpoint_id"                  { description = "Azure Resource Identifier for an private endpoint connection" }
 variable "install_always_create_fileshares"             { description = "Value indicating if file shares are created ehen using existing storage accounts" }
-
+variable "install_create_smb_shares"                    {
+                                                          description = "Value indicating if SMB shares should be created"
+                                                          default     = true
+                                                        }
 variable "storage_account_replication_type"             {
                                                           description = "Storage account replication type"
                                                           default     = "ZRS"
@@ -218,7 +221,11 @@ variable "place_delete_lock_on_resources"                { description = "If def
 #########################################################################################
 
 
-variable "dns_settings"                                  { description = "DNS settings for the deployment" }
+variable "dns_settings"                                  {
+                                                           description = "DNS namespace"
+                                                         }
+
+
 
 variable "use_private_endpoint"                          {
                                                            description = "Boolean value indicating if private endpoint should be used for the deployment"
