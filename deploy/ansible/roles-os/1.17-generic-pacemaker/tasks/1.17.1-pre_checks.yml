@@ -10,6 +10,8 @@
   ansible.builtin.pip:
     name:                              passlib
     state:                             present
+  vars:
+    ansible_python_interpreter:        "python3"
   tags:
     - always
 
