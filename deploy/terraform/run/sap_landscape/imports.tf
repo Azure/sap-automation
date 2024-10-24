@@ -8,7 +8,6 @@ data "azurerm_client_config" "current" {}
 
 data "terraform_remote_state" "deployer" {
   backend                              = "azurerm"
-  provider                             = azurerm.workload
 
   count                                = length(try(var.deployer_tfstate_key, "")) > 0 ? 1 : 0
   config                               = {
