@@ -261,7 +261,7 @@ stages:
 
                 if [ $USE_MSI != "true" ]; then
                   echo "Deployment credentials:              Service Principal"
-                  echo "Deployment credential ID (SPN):     $WL_ARM_CLIENT_ID"
+                  echo "Deployment credential ID (SPN):      $WL_ARM_CLIENT_ID"
 
                   export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                   export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
