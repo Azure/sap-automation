@@ -422,18 +422,20 @@ stages:
                   landscape_tfstate_key=$(grep "^landscape_tfstate_key=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
               fi
 
-              echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
               cd $CONFIG_REPO_PATH/SYSTEM/$(sap_system_folder) || exit
-              ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh \
-              --parameterfile $(sap_system_configuration) \
-              --type sap_system \
-              --state_subscription ${STATE_SUBSCRIPTION} \
-              --storageaccountname "${REMOTE_STATE_SA}" \
-              --deployer_tfstate_key ${deployer_tfstate_key} \
-              --landscape_tfstate_key ${landscape_tfstate_key}  \
-              --auto-approve
-              return_code=$?
+              echo -e "$green--- Run the remover script that destroys the SAP system ---$reset"
 
+              ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh
+              #  \
+              # --parameterfile $(sap_system_configuration) \
+              # --type sap_system \
+              # --state_subscription ${STATE_SUBSCRIPTION} \
+              # --storageaccountname "${REMOTE_STATE_SA}" \
+              # --deployer_tfstate_key ${deployer_tfstate_key} \
+              # --landscape_tfstate_key ${landscape_tfstate_key}  \
+              # --auto-approve
+              return_code=$?
+              exit 66
               echo -e "$green--- Pull latest from DevOps Repository ---$reset"
               git checkout -q $(Build.SourceBranchName)
               git pull
