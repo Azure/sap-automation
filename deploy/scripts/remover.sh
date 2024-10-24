@@ -105,9 +105,8 @@ done
 #variables
 tfstate_resource_id=""
 tfstate_parameter=""
-deployer_tfstate_key=""
+
 deployer_tfstate_key_parameter=""
-landscape_tfstate_key=""
 landscape_tfstate_key_parameter=""
 
 # unused variables
