@@ -31,144 +31,30 @@ if [ "$VALID_ARGUMENTS" != "0" ]; then
 fi
 
 eval set -- "$INPUT_ARGUMENTS"
-while :; do
-  case "$1" in
-  -a | --ado)
-    called_from_ado=1
-    shift
-    ;;
-  -c | --spn_id)
-    client_id="$2"
-    shift 2
-    ;;
-  -d | --deployer_tfstate_key)
-    deployer_tfstate_key="$2"
-    shift 2
-    ;;
-  -e | --deployer_environment)
-    deployer_environment="$2"
-    shift 2
-    ;;
-  -f | --force)
-    force=1
-    shift
-    ;;
-  -i | --auto-approve)
-    approve="--auto-approve"
-    shift
-    ;;
-  -k | --state_subscription)
-    STATE_SUBSCRIPTION="$2"
-    shift 2
-    ;;
-  -m | --msi)
-    deploy_using_msi_only=1
-    shift
-    ;;
-  -n | --spn_secret)
-    spn_secret="$2"
-    shift 2
-    ;;
-  -o | --storageaccountname)
-    REMOTE_STATE_SA="$2"
-    shift 2
-    ;;
-  -p | --parameterfile)
-    parameterfile="$2"
-    shift 2
-    ;;
-  -s | --subscription)
-    subscription="$2"
-    shift 2
-    ;;
-  -t | --tenant_id)
-    tenant_id="$2"
-    shift 2
-    ;;
-  -v | --keyvault)
-    keyvault="$2"
-    shift 2
-    ;;
-while :; do
-  case "$1" in
-  -a | --ado)
-    called_from_ado=1
-    shift
-    ;;
-  -c | --spn_id)
-    client_id="$2"
-    shift 2
-    ;;
-  -d | --deployer_tfstate_key)
-    deployer_tfstate_key="$2"
-    shift 2
-    ;;
-  -e | --deployer_environment)
-    deployer_environment="$2"
-    shift 2
-    ;;
-  -f | --force)
-    force=1
-    shift
-    ;;
-  -i | --auto-approve)
-    approve="--auto-approve"
-    shift
-    ;;
-  -k | --state_subscription)
-    STATE_SUBSCRIPTION="$2"
-    shift 2
-    ;;
-  -m | --msi)
-    deploy_using_msi_only=1
-    shift
-    ;;
-  -n | --spn_secret)
-    spn_secret="$2"
-    shift 2
-    ;;
-  -o | --storageaccountname)
-    REMOTE_STATE_SA="$2"
-    shift 2
-    ;;
-  -p | --parameterfile)
-    parameterfile="$2"
-    shift 2
-    ;;
-  -s | --subscription)
-    subscription="$2"
-    shift 2
-    ;;
-  -t | --tenant_id)
-    tenant_id="$2"
-    shift 2
-    ;;
-  -v | --keyvault)
-    keyvault="$2"
-    shift 2
-    ;;
+while :
+do
+    case "$1" in
+        -a | --ado)                                called_from_ado=1                ; shift ;;
+        -c | --spn_id)                             client_id="$2"                   ; shift 2 ;;
+        -d | --deployer_tfstate_key)               deployer_tfstate_key="$2"        ; shift 2 ;;
+        -e | --deployer_environment)               deployer_environment="$2"        ; shift 2 ;;
+        -f | --force)                              force=1                          ; shift ;;
+        -i | --auto-approve)                       approve="--auto-approve"         ; shift ;;
+        -k | --state_subscription)                 STATE_SUBSCRIPTION="$2"          ; shift 2 ;;
+        -m | --msi)                                deploy_using_msi_only=1          ; shift ;;
+        -n | --spn_secret)                         spn_secret="$2"                  ; shift 2 ;;
+        -o | --storageaccountname)                 REMOTE_STATE_SA="$2"             ; shift 2 ;;
+        -p | --parameterfile)                      parameterfile="$2"               ; shift 2 ;;
+        -s | --subscription)                       subscription="$2"                ; shift 2 ;;
+        -t | --tenant_id)                          tenant_id="$2"                   ; shift 2 ;;
+        -v | --keyvault)                           keyvault="$2"                    ; shift 2 ;;
 
-  -h | --help)
-    workload_zone_showhelp
-    exit 3
-    shift
-    ;;
-  --)
-    shift
-    break
-    ;;
-  esac
-  -h | --help)
-    workload_zone_showhelp
-    exit 3
-    shift
-    ;;
-  --)
-    shift
-    break
-    ;;
-  esac
+        -h | --help)                               workload_zone_showhelp
+        exit 3                           ; shift ;;
+        --) shift; break ;;
+    esac
 done
+
 tfstate_resource_id=""
 tfstate_parameter=""
 
