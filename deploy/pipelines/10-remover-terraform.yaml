@@ -348,8 +348,8 @@ stages:
                   echo -e "$green--- Running on deployer ---$reset"
 
                   if [ $USE_MSI != "true" ]; then
-                      echo "Deployment credentials:               Service Principal"
-                      echo "Deployment credentials Id (SPN):      $WL_ARM_CLIENT_SECRET"
+                      echo "Deployment credentials:              Service Principal"
+                      echo "Deployment credentials ID (SPN):     $WL_ARM_CLIENT_SECRET"
 
                       export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
                       export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
