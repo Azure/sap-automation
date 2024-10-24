@@ -6,12 +6,12 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "1.17 Generic Pacemaker: - Ensure passlib is installed"
-  ansible.builtin.pip:
-    name:                              passlib
-    state:                             present
-  tags:
-    - always
+# - name:                                "1.17 Generic Pacemaker: - Ensure passlib is installed"
+#   ansible.builtin.pip:
+#     name:                              passlib
+#     state:                             present
+#   tags:
+#     - always
 
 
 # /*---------------------------------------------------------------------------8
