@@ -323,24 +323,6 @@ else
   export ARM_USE_AZUREAD=true
 fi
 
-if [ -n "$deployer_tfstate_key" ]; then
-  terraform_deployer_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/sap_deployer/
-
-  terraform -chdir="${terraform_deployer_module_directory}" init  -reconfigure \
-  --backend-config "subscription_id=${STATE_SUBSCRIPTION}"          \
-  --backend-config "resource_group_name=${REMOTE_STATE_RG}"         \
-  --backend-config "storage_account_name=${REMOTE_STATE_SA}"        \
-  --backend-config "container_name=tfstate"                         \
-  --backend-config "key=${deployer_tfstate_key}" || {
-      echo "Terraform init failed"
-      exit 1
-  }
-  deployer_kv_user_arm_id=$(terraform -chdir="${terraform_deployer_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
-  export TF_VAR_spn_keyvault_id=$deployer_kv_user_arm_id
-  terraform -chdir="${terraform_deployer_module_directory}" output created_resource_group_subscription_id
-fi
-
-
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
