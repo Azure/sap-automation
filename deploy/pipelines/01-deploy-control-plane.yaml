@@ -109,13 +109,13 @@ stages:
 
                             az extension add --name azure-devops --output none --only-show-errors
 
-                            echo "Environment:                         $ENVIRONMENT"
-                            echo "Location:                            $LOCATION"
+                            echo "Environment:                       $ENVIRONMENT"
+                            echo "Location:                          $LOCATION"
 
                             echo ""
-                            echo "Agent:                               $(this_agent)"
-                            echo "Organization:                        $(System.CollectionUri)"
-                            echo "Project:                             $(System.TeamProject)"
+                            echo "Agent:                             $(this_agent)"
+                            echo "Organization:                      $(System.CollectionUri)"
+                            echo "Project:                           $(System.TeamProject)"
                             echo ""
                             az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none --only-show-errors
 
@@ -260,8 +260,8 @@ stages:
                               export ARM_USE_OIDC=false
                               export ARM_USE_AZUREAD=true
 
-                              echo "Deployment credentials:               Service Principal"
-                              echo "Deployment credential ID (SPN):      $WL_ARM_CLIENT_ID"
+                              echo "Deployment credentials:             Service Principal"
+                              echo "Deployment credential ID (SPN):    $WL_ARM_CLIENT_ID"
 
                               az login --service-principal -u $ARM_CLIENT_ID -p=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
 
@@ -676,9 +676,9 @@ stages:
                         . /etc/profile.d/deploy_server.sh ; /opt/bin/terraform/terraform --version
 
                         if [ $USE_MSI != "true" ]; then
-                            echo "Deployment credentials:                Service Principal"
-                            echo "Deployment credential ID (SPN):        $CP_ARM_CLIENT_ID"
-                            echo "Deployer subscription:                 $CP_ARM_SUBSCRIPTION_ID"
+                            echo "Deployment credentials:              Service Principal"
+                            echo "Deployment credential ID (SPN):      $CP_ARM_CLIENT_ID"
+                            echo "Deployer subscription:               $CP_ARM_SUBSCRIPTION_ID"
 
                             export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
                             export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
@@ -765,9 +765,9 @@ stages:
 
                     sudo chmod +x $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh
                     if [ $USE_MSI != "true" ]; then
-                        echo "Deployment credentials:                Service Principal"
-                        echo "Deployment credential ID (SPN):        $CP_ARM_CLIENT_ID"
-                        echo "Deployer subscription:                 $CP_ARM_SUBSCRIPTION_ID"
+                        echo "Deployment credentials:              Service Principal"
+                        echo "Deployment credential ID (SPN):      $CP_ARM_CLIENT_ID"
+                        echo "Deployer subscription:               $CP_ARM_SUBSCRIPTION_ID"
 
                         export TF_VAR_use_spn=true
 
