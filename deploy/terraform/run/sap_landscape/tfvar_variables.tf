@@ -352,7 +352,7 @@ variable "user_keyvault_id"                     {
 
 variable "spn_keyvault_id"                      {
                                                   description = "If provided, the Azure resource identifier of the deployment credential keyvault"
-                                                  default     = ""
+                                                  default     = null
                                                 }
 
 variable "enable_purge_control_for_keyvaults"   {
