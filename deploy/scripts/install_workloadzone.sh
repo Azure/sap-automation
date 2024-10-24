@@ -880,7 +880,7 @@ if [ 2 == $return_value ] ; then
         ok_to_proceed=1
     fi
 fi
-
+return_value=0
 if [ 1 == $ok_to_proceed ]; then
     echo ""
     echo "#########################################################################################"
