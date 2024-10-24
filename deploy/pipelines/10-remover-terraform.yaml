@@ -719,6 +719,13 @@ stages:
                   STATE_SUBSCRIPTION=$(grep "^STATE_SUBSCRIPTION=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
               fi
 
+              az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" --out tsv)
+              if [ -n "${az_var}" ]; then
+                  deployer_tfstate_key="${az_var}"
+              else
+                  deployer_tfstate_key=$(grep "^STATE_SUBSCRIPTION=" ${workload_environment_file_name}  | awk -F'=' '{print $2}' | xargs)
+              fi
+
               az_var=$(az pipelines variable-group variable list --group-id ${PARENT_VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
               if [ -n "${az_var}" ]; then
                   REMOTE_STATE_SA="${az_var}"
@@ -781,6 +788,7 @@ stages:
               --state_subscription ${STATE_SUBSCRIPTION} \
               --storageaccountname "${REMOTE_STATE_SA}" \
               --auto-approve \
+              --deployer_tfstate_key ${deployer_tfstate_key} \
               --ado
 
               return_code=$?
