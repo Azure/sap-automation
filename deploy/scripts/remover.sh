@@ -416,11 +416,7 @@ then
     else
 
         echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
-
-        allParams=$(printf " --parameterfile %s --storageaccountname %s --state_subscription %s --type sap_deployer %s %s " "${deployer_file_parametername}" "${REMOTE_STATE_SA}" "${STATE_SUBSCRIPTION}" "${approveparam}" "${ado_flag}" )
-
         echo "Calling destroy with:          -var-file=${var_file} $approve $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter"
-
 
         if [ -n "${approve}" ]
         then
