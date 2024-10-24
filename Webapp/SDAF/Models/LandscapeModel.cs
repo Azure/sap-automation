@@ -221,6 +221,8 @@ namespace AutomationForm.Models
 
     public string resourcegroup_name { get; set; }
 
+    public bool? prevent_deletion_if_contains_resources { get; set; } = true;
+
     /*---------------------------------------------------------------------------8
     |                                                                            |
     |                       Azure NetApp Files information                       |

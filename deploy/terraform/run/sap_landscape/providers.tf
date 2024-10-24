@@ -16,6 +16,7 @@ provider "azurerm"                     {
                                          features {}
                                          subscription_id            = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
                                          use_msi                    = var.use_spn ? false : true
+
                                          storage_use_azuread        = true
                                        }
 
