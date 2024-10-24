@@ -399,6 +399,10 @@ fi
 if [ -n "$keyvault" ]; then
   if valid_kv_name "$keyvault"; then
     save_config_var "keyvault" "${workload_config_information}"
+    key_vault_id=$(az resource list --name "${key_vault}"  --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+    if [ -n "$keyvault" ]; then
+        export TF_VAR_spn_keyvault_id=${key_vault_id}
+    fi
   else
     printf -v val %-40.40s "$keyvault"
     echo "#########################################################################################"
