@@ -218,7 +218,7 @@ resource "azurerm_private_endpoint" "table_tfstate" {
 
   subnet_id                            = var.deployer_tfstate.subnet_mgmt_id
 
-  custom_network_interface_name        = var.short_named_endpoints_nics ? format("%s%s%s%s",
+  custom_network_interface_name        = var.short_named_endpoints_nics ? format("%s%s%st%s",
                                            var.naming.resource_prefixes.storage_private_link_tf,
                                            length(local.prefix) > 0 ? (
                                              local.prefix) : (

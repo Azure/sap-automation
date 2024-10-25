@@ -339,25 +339,27 @@ packages:
     - { tier: 'ha',     package: 'socat',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'ha',     package: 'corosync',                                     node_tier: 'all',     state: 'present' }
     - { tier: 'ha',     package: 'resource-agents>=4.3',                         node_tier: 'all',     state: 'present' }
-    - { tier: 'ha',     package: 'fence-agents>=4.4.0',                          node_tier: 'all',     state: 'present' }
     - { tier: 'ha',     package: 'cloud-netconfig-azure>=1.3',                   node_tier: 'all',     state: 'present' }
   # Assumption: Public_Cloud_Module_x86_64 already available
     - { tier: 'ha',     package: 'python-azure-mgmt-compute',                    node_tier: 'all',     state: 'present' }
     - { tier: 'ha',     package: 'python-azure-identity',                        node_tier: 'all',     state: 'present' }  # Added as part of documentation update
-    - { tier: 'ha',     package: 'sap-suse-cluster-connector',                   node_tier: 'hana',     state: 'present' }
+    - { tier: 'ha',     package: 'sap-suse-cluster-connector',                   node_tier: 'hana',    state: 'present' }
     - { tier: 'ha',     package: 'sap-suse-cluster-connector',                   node_tier: 'scs',     state: 'present' }
     - { tier: 'ha',     package: 'sap-suse-cluster-connector',                   node_tier: 'ers',     state: 'present' }
   # -------------------------- End - packages required for Clustering ------------------------------------8
   sles_sap12.4:
   # --------------------------- Begin - Packages required for SYBASE -----------------------------------------8
     # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
-    - { tier: 'os',     package: 'glibc-32bit',                                  node_tier: 'sybase',     state: 'present' }
+    - { tier: 'os',     package: 'glibc-32bit',                                  node_tier: 'sybase',  state: 'present' }
+    - { tier: 'ha',     package: 'fence-agents>=4.4.0',                          node_tier: 'all',     state: 'present' }
     # --------------------------- End - Packages required for SYBASE -------------------------------------------8
   sles_sap12.5:
   # --------------------------- Begin - Packages required for SYBASE -----------------------------------------8
     # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
-    - { tier: 'os',     package: 'glibc-32bit',                                  node_tier: 'sybase',     state: 'present' }
-    # --------------------------- End - Packages required for SYBASE -------------------------------------------8
+    - { tier: 'os',     package: 'glibc-32bit',                                  node_tier: 'sybase',  state: 'present' }
+    - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'scs',     state: 'present' }
+    - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'ers',     state: 'present' }
+    - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'hana',    state: 'present' }    # --------------------------- End - Packages required for SYBASE -------------------------------------------8
   sles_sap15:
     - { tier: 'os',     package: 'chrony',                                       node_tier: 'all',     state: 'present' }
 #   - { tier: 'os',     package: 'libyui-qt-pkg11',                              node_tier: 'all',     state: 'present' }
@@ -365,7 +367,7 @@ packages:
     - { tier: 'os',     package: 'systemd',                                      node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'tuned',                                        node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'numad',                                        node_tier: 'all',     state: 'present' }
-    - { tier: 'os',     package: 'ntp',                                          node_tier: 'all',     state: 'absent' }
+    - { tier: 'os',     package: 'ntp',                                          node_tier: 'all',     state: 'absent'  }
     - { tier: 'os',     package: 'unrar',                                        node_tier: 'scs',     state: 'present' }
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
