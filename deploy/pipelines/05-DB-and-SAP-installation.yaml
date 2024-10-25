@@ -159,17 +159,17 @@ stages:
                 cd $HOME
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
-                az config set extension.use_dynamic_install=yes_without_prompt  --output none
+                az config set extension.use_dynamic_install=yes_without_prompt  --output none --only-show-errors
 
-                az extension add --name azure-devops --output none
+                az extension add --name azure-devops --output none --only-show-errors
 
                 az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
               echo -e "$green--- Validations ---$reset"
-                ENVIRONMENT=$(echo ${SAP_SYSTEM_CONFIGURATION_NAME} | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
-                   LOCATION=$(echo ${SAP_SYSTEM_CONFIGURATION_NAME} | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
-                    NETWORK=$(echo ${SAP_SYSTEM_CONFIGURATION_NAME} | awk -F'-' '{print $3}' | xargs) ; echo Virtual network logical name $NETWORK
-                        SID=$(echo ${SAP_SYSTEM_CONFIGURATION_NAME} | awk -F'-' '{print $4}' | xargs) ; echo SID $SID
+                ENVIRONMENT=$(echo ${SAP_SYSTEM_CONFIGURATION_NAME} | awk -F'-' '{print $1}' | xargs)
+                   LOCATION=$(echo ${SAP_SYSTEM_CONFIGURATION_NAME} | awk -F'-' '{print $2}' | xargs)
+                    NETWORK=$(echo ${SAP_SYSTEM_CONFIGURATION_NAME} | awk -F'-' '{print $3}' | xargs)
+                        SID=$(echo ${SAP_SYSTEM_CONFIGURATION_NAME} | awk -F'-' '{print $4}' | xargs)
 
                 environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION$NETWORK ; echo configuration_file $environment_file_name
                           params_file=$HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml              ;  echo sap_parameters_file $params_file
@@ -218,6 +218,15 @@ stages:
                 echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]sap-parameters.yaml"
                 echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
                 echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
+
+                echo "Environment:                         $ENVIRONMENT"
+                echo "Location:                            $LOCATION"
+                echo "Virtual network logical name:        $NETWORK"
+                echo "SAP Application BoM:                 $BOM_BASE_NAME"
+
+                echo "SID:                                 ${SID}"
+                echo "Folder:                              $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
+                echo "Hosts file:                          ${SID}_hosts.yaml"
 
               echo -e "$green--- Get Files from the DevOps Repository ---$reset"
                 cd ${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}
@@ -274,11 +283,12 @@ stages:
                 # If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
                 deployer_file=/etc/profile.d/deploy_server.sh
                 if [ "$USE_MSI" = "true" ]; then
-                  echo  "Using MSI"
+                  echo "Deployment credentials:              Managed Identity"
                   source /etc/profile.d/deploy_server.sh
                   az account set --subscription $control_plane_subscription
 
                 else
+                  echo "Deployment credentials:              Service Principal"
                   if [ ! -n $AZURE_CLIENT_ID ]; then
                     echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                     exit 2
