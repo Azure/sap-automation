@@ -10,7 +10,7 @@
   ansible.builtin.set_fact:
     python_version:                    "python2"
   when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
-  
+
 - name:                                "1.17 Generic Pacemaker: - Ensure passlib is installed"
   ansible.builtin.pip:
     name:                              passlib
