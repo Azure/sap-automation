@@ -61,11 +61,7 @@ variable "scaleset_id"                          {
                                                   default     = ""
                                                 }
 
-variable "prevent_deletion_if_contains_resources" {
-                                                    description = "Controls if resource groups are deleted even if they contain resources"
-                                                    type        = bool
-                                                    default     = true
-                                                  }#########################################################################################
+#########################################################################################
 #                                                                                       #
 #  Resource Group variables                                                             #
 #                                                                                       #
@@ -85,6 +81,13 @@ variable "resourcegroup_tags"                   {
                                                   description = "If provided, tags for the resource group"
                                                   default     = {}
                                                 }
+
+
+variable "prevent_deletion_if_contains_resources" {
+                                                    description = "Controls if resource groups are deleted even if they contain resources"
+                                                    type        = bool
+                                                    default     = true
+                                                  }
 
 #########################################################################################
 #                                                                                       #
