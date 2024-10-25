@@ -13,7 +13,7 @@
     state:                             latest
     update_cache:                      true
   environment:
-    ZYPP_LOCK_TIMEOUT:                 "20"
+    ZYPP_LOCK_TIMEOUT:                 "60"
   tags:
     - skip_ansible_lint
 
