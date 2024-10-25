@@ -1,3 +1,5 @@
+---
+
 # Validate that the SCS cluster is working as expected
 
 - name:                                "5.6 SCS/ERS Validation: - Set Python version {{ distribution_id }}"
@@ -179,3 +181,5 @@
             DIR_LIBRARY:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run
             LD_LIBRARY_PATH:           /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
+
+...
