@@ -30,7 +30,6 @@ provider "azurerm"                     {
                                                                  purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
                                                               }
                                                   }
-                                         subscription_id     = data.azurerm_key_vault_secret.subscription_id.value
                                          client_id           = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.client_id : null
                                          client_secret       = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.client_secret : null
                                          tenant_id           = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.tenant_id : null
