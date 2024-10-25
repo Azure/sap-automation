@@ -21,7 +21,7 @@ provider "azurerm"                     {
 provider "azurerm"                     {
                                          features {
                                                     resource_group {
-                                                                     prevent_deletion_if_contains_resources = true
+                                                                     prevent_deletion_if_contains_resources = var.prevent_deletion_if_contains_resources
                                                                    }
                                                     key_vault {
                                                                  purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
@@ -98,7 +98,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.6.0"
+                                                                           version = "4.7.0"
                                                                          }
                                                             }
                                        }
