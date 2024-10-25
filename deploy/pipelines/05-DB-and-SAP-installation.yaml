@@ -171,8 +171,8 @@ stages:
                     NETWORK=$(echo ${SAP_SYSTEM_CONFIGURATION_NAME} | awk -F'-' '{print $3}' | xargs)
                         SID=$(echo ${SAP_SYSTEM_CONFIGURATION_NAME} | awk -F'-' '{print $4}' | xargs)
 
-                environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION$NETWORK ; echo configuration_file $environment_file_name
-                          params_file=$HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml              ;  echo sap_parameters_file $params_file
+                environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION$NETWORK
+                          params_file=$HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml
 
               if [ "azure pipelines" = "$(this_agent)" ]; then
                   echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-${ENVIRONMENT} variable group using the 'POOL' variable."
@@ -206,7 +206,6 @@ stages:
                 dos2unix -q $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/${SID}_hosts.yaml
 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
                 if [ -z ${VARIABLE_GROUP_ID} ]; then
                     echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                     exit 2
@@ -223,10 +222,14 @@ stages:
                 echo "Location:                            $LOCATION"
                 echo "Virtual network logical name:        $NETWORK"
                 echo "SAP Application BoM:                 $BOM_BASE_NAME"
+                printf -v val '%-15s' "$(variable_group) id:"
+                echo "$val                      $VARIABLE_GROUP_ID"
 
                 echo "SID:                                 ${SID}"
                 echo "Folder:                              $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
                 echo "Hosts file:                          ${SID}_hosts.yaml"
+                echo "sap_parameters_file:                 $params_file"
+                echo "Configuration file:                  $environment_file_name"
 
               echo -e "$green--- Get Files from the DevOps Repository ---$reset"
                 cd ${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}
@@ -245,24 +248,33 @@ stages:
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value --output tsv)
                 if [ -z ${az_var} ]; then
-                  export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+                  export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs)
                 else
-                  export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault} ;
+                  export workload_key_vault=${az_var}
                 fi
+
+                echo "Workload Key Vault:                  ${workload_key_vault}"
+                echo "SID:                                 ${SID}"
+                echo "Folder:                              $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Secret_Prefix.value  --output tsv)
                 if [ -z ${az_var} ]; then
-                  export workload_prefix=$(cat "${environment_file_name}"  | grep workload_zone_prefix      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Prefix' ${workload_prefix}
+                  export workload_prefix=$(cat "${environment_file_name}"  | grep workload_zone_prefix      | awk -F'=' '{print $2}' | xargs)
                 else
-                  export workload_prefix=${az_var} ; echo 'Workload Prefix' ${workload_prefix};
+                  export workload_prefix=${az_var}
                 fi
+
+                echo "Workload Prefix:                     ${workload_prefix}"
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query Terraform_Remote_Storage_Subscription.value  --output tsv)
                 if [ -z ${az_var} ]; then
-                  export control_plane_subscription=$(cat "${environment_file_name}"  | grep STATE_SUBSCRIPTION      | awk -F'=' '{print $2}' | xargs) ; echo 'Control Plane Subscription' ${control_plane_subscription}
+                  export control_plane_subscription=$(cat "${environment_file_name}"  | grep STATE_SUBSCRIPTION      | awk -F'=' '{print $2}' | xargs)
                 else
-                  export control_plane_subscription=${az_var} ; echo 'Control Plane Subscription' ${control_plane_subscription}
+                  export control_plane_subscription=${az_var}
                 fi
+
+                echo "Control Plane Subscription:          ${control_plane_subscription}"
+                echo "Workload Prefix:                     ${workload_prefix}"
 
                 if [[ $EXTRA_PARAMETERS = "'$(EXTRA_PARAMETERS)'" ]]; then
                   new_parameters=$PIPELINE_EXTRA_PARAMETERS
