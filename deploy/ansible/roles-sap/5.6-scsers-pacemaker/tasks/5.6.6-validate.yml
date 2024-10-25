@@ -122,7 +122,6 @@
         - name:                        "5.6 SCS/ERS Validation: Wait {{ scs_wait_for_start_in_sec }} seconds for the StartService {{ sap_sid | upper }} to finish"
           ansible.builtin.wait_for:
             timeout:                   "{{ scs_wait_for_start_in_sec }}"
-          when:
 
     - name:                            "5.6 SCS/ERS Validation: Validate Cluster resource move and SAP start when the group g-{{ sap_sid | upper }}_{{ instance_type | upper }} has moved"
       when:
