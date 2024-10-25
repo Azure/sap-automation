@@ -123,7 +123,7 @@ stages:
 
                             printf -v tempval '%s id:' $(variable_group)
                             printf -v val '%-20s' "${tempval}"
-                            echo "$val                  $VARIABLE_GROUP_ID"
+                            echo "$val                 $VARIABLE_GROUP_ID"
 
                             if [ "${{ parameters.force_reset }}" = "True" ]; then
                               echo "##vso[task.logissue type=warning]Forcing a re-install"
@@ -161,7 +161,8 @@ stages:
                               step=0
                             else
                               if [ -f ${deployer_environment_file_name} ]; then
-                                step=$(cat ${deployer_environment_file_name}  | grep step= | awk -F'=' '{print $2}' | xargs) ; echo 'Step' ${step}
+                                step=$(cat ${deployer_environment_file_name}  | grep step= | awk -F'=' '{print $2}' | xargs)
+                                echo "Step:                              $(this_agent)"
                                 if [ "0" != ${step} ]; then
                                   exit 0
                                 fi
@@ -220,10 +221,10 @@ stages:
                             deployer_environment_file_name=$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}$LOCATION
                         echo -e "$green--- Deploy the Control Plane ---$reset"
                             if [ -n "$(PAT)" ]; then
-                                echo "Deployer Agent PAT:                    IsDefined"
+                                echo "Deployer Agent PAT:                  IsDefined"
                             fi
                             if [ -n "$(POOL)" ]; then
-                                echo "  Deployer Agent Pool:                   $(POOL)"
+                                echo "  Deployer Agent Pool:               $(POOL)"
 
                             fi
                             if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/$(deployerfolder)/state.zip ]; then
@@ -245,7 +246,7 @@ stages:
                             if [ "$USE_MSI" = "true" ]; then
                               export ARM_CLIENT_SECRET=$servicePrincipalKey
                               export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
-                              echo "Deployment credentials:              Managed Identity"
+                              echo "Deployment credentials:                Managed Identity"
 
 
                               $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh                               \
@@ -260,8 +261,8 @@ stages:
                               export ARM_USE_OIDC=false
                               export ARM_USE_AZUREAD=true
 
-                              echo "Deployment credentials:               Service Principal"
-                              echo "Deployment credential ID (SPN):      $WL_ARM_CLIENT_ID"
+                              echo "Deployment credentials:              Service Principal"
+                              echo "Deployment credential ID (SPN):      $CP_ARM_CLIENT_ID"
 
                               az login --service-principal -u $ARM_CLIENT_ID -p=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
 
@@ -578,7 +579,7 @@ stages:
                             exit 2
                         fi
                         TF_VAR_app_registration_app_id=$(APP_REGISTRATION_APP_ID);
-                        echo "App Registration ID:                ${TF_VAR_app_registration_app_id}"
+                        echo "App Registration ID:                  ${TF_VAR_app_registration_app_id}"
                         export TF_VAR_app_registration_app_id
                         TF_VAR_webapp_client_secret=$(WEB_APP_CLIENT_SECRET)
                         export TF_VAR_webapp_client_secret
@@ -676,9 +677,9 @@ stages:
                         . /etc/profile.d/deploy_server.sh ; /opt/bin/terraform/terraform --version
 
                         if [ $USE_MSI != "true" ]; then
-                            echo "Deployment credentials:                Service Principal"
-                            echo "Deployment credential ID (SPN):        $CP_ARM_CLIENT_ID"
-                            echo "Deployer subscription:                 $CP_ARM_SUBSCRIPTION_ID"
+                            echo "Deployment credentials:              Service Principal"
+                            echo "Deployment credential ID (SPN):      $CP_ARM_CLIENT_ID"
+                            echo "Deployer subscription:               $CP_ARM_SUBSCRIPTION_ID"
 
                             export ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
                             export ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
@@ -765,9 +766,9 @@ stages:
 
                     sudo chmod +x $SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh
                     if [ $USE_MSI != "true" ]; then
-                        echo "Deployment credentials:                Service Principal"
-                        echo "Deployment credential ID (SPN):        $CP_ARM_CLIENT_ID"
-                        echo "Deployer subscription:                 $CP_ARM_SUBSCRIPTION_ID"
+                        echo "Deployment credentials:              Service Principal"
+                        echo "Deployment credential ID (SPN):      $CP_ARM_CLIENT_ID"
+                        echo "Deployer subscription:               $CP_ARM_SUBSCRIPTION_ID"
 
                         export TF_VAR_use_spn=true
 

@@ -352,7 +352,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
   if [ -n "$tenant_id" ]
   then
       if is_valid_guid "$tenant_id" ; then
-          echo "Valid tenant id format"
+          echo ""
       else
           printf -v val %-40.40s "$tenant_id"
           echo "#########################################################################################"
@@ -1075,7 +1075,7 @@ if [ 0 == $return_value ] ; then
             echo ""
 
             save_config_var "workloadkeyvault" "${workload_config_information}"
-        fi_system
+        fi
     fi
 
 fi
