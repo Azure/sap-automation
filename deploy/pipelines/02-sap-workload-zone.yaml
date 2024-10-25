@@ -432,7 +432,7 @@ stages:
               echo -e "$green---az login ---$reset"
 
               echo -e "$cyan---Sourcing the deploy_server.sh file$reset"
-              . /etc/profile.d/deploy_server.sh ; /opt/bin/terraform/terraform --version
+              . /etc/profile.d/deploy_server.sh
 
               if [ $USE_MSI != "true" ]; then
 
