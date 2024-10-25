@@ -293,7 +293,7 @@ stages:
                     echo "Set Secrets returned:                $secrets_set"
 
                 else
-                    echo "Deployment credentials:                Managed Identity"
+                    echo "Deployment credentials:              Managed Identity"
                     export ARM_USE_MSI=true
                     export ARM_USE_AZUREAD=true
                     unset ARM_CLIENT_SECRET
