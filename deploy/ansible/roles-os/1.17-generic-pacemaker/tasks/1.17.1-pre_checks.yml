@@ -6,7 +6,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:		                           "5.6 SCS/ERS Validation: - Set Python version {{ distribution_id }}"
+- name:                                "5.6 SCS/ERS Validation: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                    "python2"
   when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
@@ -16,7 +16,7 @@
     name:                              passlib
     state:                             present
   vars:
-    ansible_python_interpreter:         "{{ python_version }}"
+    ansible_python_interpreter:        "{{ python_version }}"
   tags:
     - always
 
