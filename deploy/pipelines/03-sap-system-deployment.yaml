@@ -259,28 +259,44 @@ stages:
                   fi
                 fi
 
+                echo -e "$cyan---Sourcing the deploy_server.sh file$reset"
+                . /etc/profile.d/deploy_server.sh
+                export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
                 if [ $USE_MSI != "true" ]; then
-                  echo "Deployment credentials:              Service Principal"
-                  echo "Deployment credential ID (SPN):      $WL_ARM_CLIENT_ID"
 
-                  export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
-                  export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
-                  export ARM_TENANT_ID=$WL_ARM_TENANT_ID
-                  export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
-                  export ARM_USE_MSI=false
-                  az login --service-principal --username $WL_ARM_CLIENT_ID --password=$WL_ARM_CLIENT_SECRET --tenant $WL_ARM_TENANT_ID --output none
-                  return_code=$?
-                  if [ 0 != $return_code ]; then
-                    echo -e "$boldred--- Login failed ---$reset"
-                    echo "##vso[task.logissue type=error]az login failed."
-                    exit $return_code
-                  fi
+                    echo "Deployment credentials:              Service Principal"
+                    echo "Deployment credential ID (SPN):      $WL_ARM_CLIENT_ID"
+                    echo "Deployer subscription:               $STATE_SUBSCRIPTION"
+
+                    export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
+                    export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
+                    export ARM_OBJECT_ID=$WL_ARM_OBJECT_ID
+                    export ARM_TENANT_ID=$WL_ARM_TENANT_ID
+                    export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
+                    export ARM_USE_AZUREAD=true
+                    unset ARM_USE_MSI
+                    az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+
+                    return_code=$?
+                    if [ 0 != $return_code ]; then
+                        echo -e "$boldred--- Login failed ---$reset"
+                        echo "##vso[task.logissue type=error]az login failed."
+                        exit $return_code
+                    fi
+                    az account set --subscription $STATE_SUBSCRIPTION
+                    echo -e "$green --- Set secrets ---$reset"
+
+                    $SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh --workload --vault "${key_vault}" --environment "${ENVIRONMENT}"  \
+                    --region "${LOCATION}" --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID --spn_secret "${ARM_CLIENT_SECRET}"  \
+                    --tenant_id $ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
+                    secrets_set=$? ;
+                    echo "Set Secrets returned:                $secrets_set"
+
                 else
-                  echo "Deployment credentials:               Managed Identity"
-                  export ARM_USE_MSI=true
-                  export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
-                  unset ARM_TENANT_ID
-                  az login --identity --allow-no-subscriptions --output none
+                    echo "Deployment credentials:              Managed Identity"
+                    export ARM_USE_MSI=true
+                    export ARM_USE_AZUREAD=true
+                    unset ARM_CLIENT_SECRET
                 fi
 
               echo -e "$green--- Define variables ---$reset"

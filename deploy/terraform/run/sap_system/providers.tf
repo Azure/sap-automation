@@ -21,7 +21,7 @@ provider "azurerm"                     {
 provider "azurerm"                     {
                                          features {
                                                     resource_group {
-                                                                     prevent_deletion_if_contains_resources = true
+                                                                     prevent_deletion_if_contains_resources = var.prevent_deletion_if_contains_resources
                                                                    }
                                                     key_vault {
                                                                  purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
@@ -30,7 +30,6 @@ provider "azurerm"                     {
                                                                  purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
                                                               }
                                                   }
-                                         subscription_id     = data.azurerm_key_vault_secret.subscription_id.value
                                          client_id           = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.client_id : null
                                          client_secret       = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.client_secret : null
                                          tenant_id           = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.tenant_id : null
@@ -99,7 +98,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.6.0"
+                                                                           version = "4.7.0"
                                                                          }
                                                             }
                                        }

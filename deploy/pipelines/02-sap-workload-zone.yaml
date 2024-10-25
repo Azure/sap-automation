@@ -432,7 +432,7 @@ stages:
               echo -e "$green---az login ---$reset"
 
               echo -e "$cyan---Sourcing the deploy_server.sh file$reset"
-              . /etc/profile.d/deploy_server.sh ; /opt/bin/terraform/terraform --version
+              . /etc/profile.d/deploy_server.sh
 
               if [ $USE_MSI != "true" ]; then
 
@@ -465,7 +465,7 @@ stages:
                   echo "Set Secrets returned:                $secrets_set"
 
               else
-                  echo "Deployment credentials:                Managed Identity"
+                  echo "Deployment credentials:              Managed Identity"
                   # export ARM_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
                   export ARM_USE_MSI=true
                   export ARM_USE_AZUREAD=true
