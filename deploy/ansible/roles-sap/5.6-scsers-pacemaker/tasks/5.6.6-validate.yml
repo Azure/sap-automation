@@ -68,7 +68,7 @@
         ansible_python_interpreter:    "{{ python_version }}"
       ansible.builtin.shell: >-
         set -o pipefail;
-        crm_resource --resource g-{{ sap_sid | upper }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2| cut -d " " -f 2
+        crm_resource --resource g-{{ sap_sid | upper }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2| cut -d " " -f 2 | tr -d "'"
       when:
         - ansible_hostname == primary_instance_name
       failed_when:                     false
@@ -137,7 +137,7 @@
         - name:                        "Check if cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is running on {{ primary_instance_name }}"
           ansible.builtin.shell: >-
             set -o pipefail;
-            crm_resource --resource g-{{ sap_sid | upper }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2 | cut -d " " -f 2
+            crm_resource --resource g-{{ sap_sid | upper }}_{{ instance_type | upper }} --locate | cut -d ':' -f 2 | cut -d " " -f 2  | tr -d "'"
           vars:
             allow_world_readable_tmpfiles: true
             ansible_python_interpreter:    "{{ python_version }}"
