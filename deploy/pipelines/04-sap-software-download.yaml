@@ -205,10 +205,11 @@ stages:
                 fi
 
                 if [ "$USE_MSI" = "true" ]; then
-                  echo  "Using MSI"
+                  echo "Deployment credentials:              Managed Identity"
                   source /etc/profile.d/deploy_server.sh
 
                 else
+                  echo "Deployment credentials:              Service Principal"
                   if [ ! -n $ARM_CLIENT_ID ]; then
                     echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                     exit 2
