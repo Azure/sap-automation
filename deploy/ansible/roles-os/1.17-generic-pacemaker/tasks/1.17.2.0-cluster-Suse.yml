@@ -185,7 +185,7 @@
 
     - name:                            "1.17 Generic Pacemaker - Enable Stonith"
       ansible.builtin.shell: |
-                                       crm configure property stonith-enabled=true \
+                                       crm configure property stonith-enabled=true
                                        crm configure property concurrent-fencing=true
       register:                        crm_configure_result
       failed_when:                     crm_configure_result.rc > 1
