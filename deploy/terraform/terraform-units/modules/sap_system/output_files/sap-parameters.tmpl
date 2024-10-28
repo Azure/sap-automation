@@ -125,7 +125,13 @@ db_lb_ip:                      ${database_loadbalancer_ip}
 
 %{~ if platform == "SQLSERVER" }
 # database_cluster_ip is the IP address of the load balancer for the database cluster in Windows
-database_cluster_ip:           ${database_cluster_ip}
+database_cluster_ip:            ${database_cluster_ip}
+%{~ endif }
+
+%{~ if database_active_active }
+# If the database will deployed with Active/Active (read enabled) configuration (HANA only)
+database_active_active:         ${database_active_active}
+database_active_active_loadbalancer_ip: ${database_active_active_loadbalancer_ip}
 %{~ endif }
 
 # use_simple_mount defines if simple mount is to be used

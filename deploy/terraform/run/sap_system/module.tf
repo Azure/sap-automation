@@ -127,6 +127,7 @@ module "hdb_node" {
                                                     0
                                                   )
   database_use_premium_v2_storage               = var.database_use_premium_v2_storage
+  database_active_active                        = var.database_active_active
   database_vm_admin_nic_ips                     = var.database_vm_admin_nic_ips
   database_vm_db_nic_ips                        = var.database_vm_db_nic_ips
   database_vm_db_nic_secondary_ips              = var.database_vm_db_nic_secondary_ips
@@ -329,6 +330,8 @@ module "output_files" {
   database_cluster_type                         = var.database_cluster_type
   database_cluster_ip                           = module.anydb_node.database_cluster_ip
   database_high_availability                    = local.database.high_availability
+  database_active_active                        = var.database_active_active
+  database_active_active_loadbalancer_ip        = try(module.hdb_node.database_loadbalancer_ip[1], "")
   database_loadbalancer_ip                      = upper(try(local.database.platform, "HANA")) == "HANA" ? (
                                                     module.hdb_node.database_loadbalancer_ip[0]) : (
                                                     module.anydb_node.database_loadbalancer_ip[0]

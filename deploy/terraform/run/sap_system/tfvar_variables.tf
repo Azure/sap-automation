@@ -602,6 +602,11 @@ variable "database_use_premium_v2_storage"      {
                                                   default     = false
                                                 }
 
+variable "database_active_active"               {
+                                                  description = "If true, database will deployed with Active/Active (read enabled) configuration, only supported for HANA"
+                                                  default     = false
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  Observer variables                                                                   #
