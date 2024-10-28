@@ -91,12 +91,18 @@ output "database_disks"                {
 
 output "database_loadbalancer_ip"      {
                                          description = "Database loadbalancer IP information"
-                                         value       = [
-                                                         local.enable_db_lb_deployment ? (
-                                                           try(azurerm_lb.hdb[0].frontend_ip_configuration[0].private_ip_address, "")) : (
-                                                           ""
-                                                         )
-                                                       ]
+                                         value       = local.enable_db_lb_deployment ? (
+                                                        compact(
+                                                          concat(
+                                                            [
+                                                              try(azurerm_lb.hdb[0].frontend_ip_configuration[0].private_ip_address, "")
+                                                            ],
+                                                            [
+                                                              try(azurerm_lb.hdb[0].frontend_ip_configuration[1].private_ip_address, "")
+                                                            ]
+                                                          )
+                                                        )
+                                                       ) : [""]
                                        }
 
 output "database_loadbalancer_id"      {

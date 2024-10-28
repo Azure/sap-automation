@@ -184,6 +184,8 @@ resource "local_file" "sap-parameters_yml" {
               database_cluster_type       = var.database_cluster_type
               database_high_availability  = var.database_high_availability
               database_cluster_ip         = try(format("%s/%s", var.database_cluster_ip, var.database_subnet_netmask), "")
+              database_active_active      = var.database_active_active
+              database_active_active_loadbalancer_ip = var.database_active_active_loadbalancer_ip
               db_instance_number          = try(var.database.instance.number, "00")
               database_loadbalancer_ip    = var.database_loadbalancer_ip
               db_sid                      = var.db_sid

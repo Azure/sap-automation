@@ -167,6 +167,49 @@ locals {
                                           null
                                         )
 
+  standard_ips                        = [
+                                          {
+                                            name = format("%s%s%s%s",
+                                              var.naming.resource_prefixes.db_alb_feip,
+                                              local.prefix,
+                                              var.naming.separator,
+                                              local.resource_suffixes.db_alb_feip
+                                            )
+                                            subnet_id = var.database.scale_out ? var.admin_subnet.id :  var.db_subnet.id
+                                            private_ip_address = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? (
+                                              var.database.loadbalancer.frontend_ips[0]) : (
+                                              var.database.use_DHCP ? (
+                                                null) : (
+                                                cidrhost(
+                                                  var.database.scale_out ? var.admin_subnet.address_prefixes[0] : var.db_subnet.address_prefixes[0],
+                                                  local.hdb_ip_offsets.hdb_lb
+                                              ))
+                                            )
+                                            private_ip_address_allocation = length(try(var.database.loadbalancer.frontend_ips[1], "")) > 0 ? "Static" : "Dynamic"
+                                          },
+                                          {
+                                            name = format("%s%s%s%s",
+                                              var.naming.resource_prefixes.db_rlb_feip,
+                                              local.prefix,
+                                              var.naming.separator,
+                                              local.resource_suffixes.db_rlb_feip
+                                            )
+                                            subnet_id = var.database.scale_out ? var.admin_subnet.id : var.db_subnet.id
+                                            private_ip_address = length(try(var.database.loadbalancer.frontend_ips[1], "")) > 0 ? (
+                                              var.database.loadbalancer.frontend_ips[0]) : (
+                                              var.database.use_DHCP ? (
+                                                null) : (
+                                                cidrhost(
+                                                  var.database.scale_out ? var.admin_subnet.address_prefixes[0] :  var.db_subnet.address_prefixes[0],
+                                                  local.hdb_ip_offsets.hdb_lb + 1
+                                              ))
+                                            )
+                                            private_ip_address_allocation = length(try(var.database.loadbalancer.frontend_ips[1], "")) > 0 ? "Static" : "Dynamic"
+                                          }
+                                         ]
+
+  frontend_ips                         = slice(local.standard_ips, 0, var.database_active_active ? 2 : 1)
+
   // OS disk to be created for HANA DB nodes
   // disk_iops_read_write only apply for ultra
   os_disk                              = flatten(

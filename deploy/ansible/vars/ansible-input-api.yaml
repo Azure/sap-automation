@@ -233,6 +233,8 @@ use_simple_mount:                       false
 database_scale_out:                    false
 database_cluster_type:                 "AFA"
 database_no_standby:                   false                                    # when set to true, will deploy the scale out - ANF cluster without a standby node.
+database_active_active:                false                                    # when set to true, database will deployed with Active/Active (read enabled) configuration (HANA only)
+database_active_active_loadbalancer_ip: ""
 # scs_high_availability:                 false
 scs_cluster_type:                      "AFA"
 # Configure pacemaker for Azure scheduled events
