@@ -5,8 +5,8 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "calling setting variables python script" 
-  setting_vars: 
+- name:                                "calling setting variables python script"
+  setting_vars:
     sap_sid: "{{ sap_sid }}"
     hdbadm_uid: "{{ hdbadm_uid }}"
     platform: "{{ platform }}"

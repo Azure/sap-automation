@@ -13,7 +13,7 @@
     nfs_server_temp: "{{ item }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"  
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
   register: setting_vars_output
 
 - name:                                "2.6 SAP Mounts: - Set the NFS Server name"
