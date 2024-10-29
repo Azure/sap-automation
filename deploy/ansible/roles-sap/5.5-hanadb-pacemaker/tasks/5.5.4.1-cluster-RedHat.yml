@@ -13,6 +13,7 @@
 # +------------------------------------4--------------------------------------*/
 
 - name:                                "5.5.4.1 HANA Cluster configuration - Optimise the Pacemaker cluster for SAP HANA"
+  when: ansible_hostname == primary_instance_name
   block:
     - name:                            "5.5.4.1 HANA Cluster configuration - Get the cluster maintenance mode status"
       ansible.builtin.shell:           pcs property show maintenance-mode
@@ -281,6 +282,37 @@
     # +------------------------------------4--------------------------------------*/
 
 
+    # HANA active/active
+    - name:                            "5.5.4.1 HANA Cluster configuration - Configure HANA active/read-enabled system replication"
+      when:
+        - database_active_active | default(false)
+        - not db_scale_out
+      block:
+        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active netcat resource for the Load Balancer Healthprobe is created"
+          ansible.builtin.shell:       pcs resource create secnc_{{ db_sid | upper }}_{{ db_instance_number }} azure-lb port=626{{ db_instance_number }}
+          register:                    sec_netcat
+          failed_when:                 sec_netcat.rc > 1
+
+        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active Virtual IP resource for the Load Balancer Front End IP is created"
+          ansible.builtin.shell:       pcs resource create secvip_{{ db_sid | upper }}_{{ db_instance_number }} IPaddr2 ip="{{ database_active_active_loadbalancer_ip }}"
+          register:                    sec_vip
+          failed_when:                 sec_vip.rc > 1
+
+        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active Virtual IP group resource is created"
+          ansible.builtin.shell:       pcs resource group add g_secip_{{ db_sid | upper }}_{{ db_instance_number }} secnc_{{ db_sid | upper }}_{{ db_instance_number }} secvip_{{ db_sid | upper }}_{{ db_instance_number }}
+          register:                    sec_vip_g
+          failed_when:                 sec_vip_g.rc > 1
+
+        - name:                        "5.5.4.1 HANA Cluster configuration - Configure constraints between g_secip_SID_XX"
+          ansible.builtin.shell:       pcs constraint location  g_secip_{{ db_sid | upper }}_{{ db_instance_number }} rule score=INFINITY hana_{{ db_sid | lower }}_sync_state eq SOK and hana_{{ db_sid | lower }}_roles eq 4:S:master1:master:worker:master
+          register:                    sec_constraint
+          failed_when:                 sec_constraint.rc > 1
+
+        - name:                        "5.5.4.1 HANA Cluster configuration - Configure constraints between g_secip_SID_XX"
+          ansible.builtin.shell:       pcs constraint location  g_secip_{{ db_sid | upper }}_{{ db_instance_number }} rule score=4000 hana_{{ db_sid | lower }}_sync_state eq PRIM and hana_{{ db_sid | lower }}_roles eq 4:P:master1:master:worker:master
+          register:                    sec_constraint
+          failed_when:                 sec_constraint.rc > 1
+
     - name:                            "5.5.4.1 HANA Cluster configuration - Disable Maintenance mode for the cluster"
       ansible.builtin.shell:           pcs property set maintenance-mode=false
 
@@ -332,7 +364,6 @@
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
       when:                            ansible_distribution_major_version in ["8", "9"]
-  when: ansible_hostname == primary_instance_name
 
 # End of HANA clustering resources
 
