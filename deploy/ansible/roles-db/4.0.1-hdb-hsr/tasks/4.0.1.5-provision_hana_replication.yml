@@ -10,6 +10,10 @@
 - name:                                "HANA HSR: - Ensure HANA 1.0 is configured for System Replication"
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
+  when:
+    - ansible_hostname == primary_instance_name
+    - hdb_version[0:2] == "1."  # https://www.blue.works/en/hana-version-numbering-explained/
+    - hana_system_replication_needed
   block:
 
     # https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#configure-sap-hana-10-system-replication
@@ -39,37 +43,30 @@
     PYTHONPATH:                        "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ virtual_host }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts:/usr/sap/{{ DB }}/exe/Python3/lib/python3.7"
     PATH:                              "/usr/sap/{{ DB }}/exe/krb5/bin:/usr/sap/{{ DB }}/exe/krb5/sbin:/usr/sap/{{ DB }}/{{ virtual_host }}:/usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/mdc:/usr/sap/{{ DB }}/exe/Python3/bin:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/HDB/home:/usr/sap/HDB/home/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/usr/lib/mit/bin"
     LD_LIBRARY_PATH:                   "/usr/sap/{{ DB }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ DB }}/exe/krb5/lib:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/filter:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/{{ DB }}/exe/plugins/afl:/usr/sap/{{ DB }}/exe/plugins/lcapps:/usr/sap/{{ DB }}/exe/plugins/repository:/usr/sap/{{ DB }}/exe/plugins/epmmds:/usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:/usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
-  when:
-    - ansible_hostname == primary_instance_name
-    - hdb_version[0:2] == "1."  # https://www.blue.works/en/hana-version-numbering-explained/
-    - hana_system_replication_needed
 
 - name:                                "HANA HSR: - Perform pre-flight backup checks"
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
+  when:                                ansible_hostname == primary_instance_name
   block:
     - name:                            "HANA HSR: - Check backup file exists for SYSTEMDB database for System Identifier {{ db_sid }}"
       ansible.builtin.stat:
         path:                          "{{ db_sid_backup_dir }}/INITIAL_SYSTEMDB_BACKUP_databackup_0_1"
       register:                        systemdb_backup_file
-#      failed_when:                     not systemdb_backup_file.stat.exists
       changed_when:                    false
 
     - name:                            "HANA HSR: - Check backup file exists for tenant {{ hana_tenant_database_name }} database for System Identifier {{ db_sid }}"
       ansible.builtin.stat:
         path:                          "{{ db_sid_backup_dir }}/INITIAL_{{ hana_tenant_database_name }}_BACKUP_databackup_0_1"
       register:                        tenant_backup_file
-#      failed_when:                     not tenant_backup_file.stat.exists
       changed_when:                    false
       when:
         - hana_has_tenant_db is defined
         - hana_has_tenant_db
 
-  when:                                ansible_hostname == primary_instance_name
-
 - name:                                "HANA HSR: - Ensure HANA is configured for System Replication"
+  when:                                ansible_hostname == primary_instance_name
   block:
-
     - name:                            "HANA HSR: - Check whether replication has already been set up"
       become_user:                     "{{ db_sid_admin_user }}"
       become:                          true
@@ -117,7 +114,6 @@
     PYTHONPATH:                        "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ virtual_host }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts:/usr/sap/{{ DB }}/exe/Python3/lib/python3.7"
     PATH:                              "/usr/sap/{{ DB }}/exe/krb5/bin:/usr/sap/{{ DB }}/exe/krb5/sbin:/usr/sap/{{ DB }}/{{ virtual_host }}:/usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/mdc:/usr/sap/{{ DB }}/exe/Python3/bin:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/HDB/home:/usr/sap/HDB/home/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/usr/lib/mit/bin"
     LD_LIBRARY_PATH:                   "/usr/sap/{{ DB }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ DB }}/exe/krb5/lib:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/filter:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/{{ DB }}/exe/plugins/afl:/usr/sap/{{ DB }}/exe/plugins/lcapps:/usr/sap/{{ DB }}/exe/plugins/repository:/usr/sap/{{ DB }}/exe/plugins/epmmds:/usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:/usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
-  when:                                ansible_hostname == primary_instance_name
 
 - name:                                "HANA HSR: - Set INI File values"
   ansible.builtin.import_tasks:        4.0.1.5.0-set_global_ini_values.yml
@@ -125,6 +121,7 @@
 - name:                                "HANA HSR: - Restart HANA"
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
+  when:                                ansible_hostname == primary_instance_name
   block:
     - name:                            "HANA HSR: - Stop HANA on {{ virtual_host }}"
       ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
@@ -146,7 +143,6 @@
     PYTHONPATH:                        "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ virtual_host }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts:/usr/sap/{{ DB }}/exe/Python3/lib/python3.7"
     PATH:                              "/usr/sap/{{ DB }}/exe/krb5/bin:/usr/sap/{{ DB }}/exe/krb5/sbin:/usr/sap/{{ DB }}/{{ virtual_host }}:/usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/mdc:/usr/sap/{{ DB }}/exe/Python3/bin:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/HDB/home:/usr/sap/HDB/home/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/usr/lib/mit/bin"
     LD_LIBRARY_PATH:                   "/usr/sap/{{ DB }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ DB }}/exe/krb5/lib:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/filter:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/{{ DB }}/exe/plugins/afl:/usr/sap/{{ DB }}/exe/plugins/lcapps:/usr/sap/{{ DB }}/exe/plugins/repository:/usr/sap/{{ DB }}/exe/plugins/epmmds:/usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:/usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
-  when:                                ansible_hostname == primary_instance_name
 
 - name:                                "HANA HSR: - Ensure System Replication is configured command on secondary"
   ansible.builtin.debug:
@@ -155,6 +151,9 @@
     verbosity:                         4
 
 - name:                                "HANA HSR: - Ensure System Replication is configured on secondary"
+  when:
+    - ansible_hostname == secondary_instance_name
+    - hana_system_replication_needed
   block:
 
     - name:                            "HANA HSR: - Stop HANA on {{ virtual_host }}"
@@ -169,6 +168,19 @@
         --operationMode={{ hana_operation_mode }} --name=SITEB
       register:                        hsr_secondary_registration
       changed_when:                    "'adding site' in hsr_secondary_registration.stdout"
+      args:
+        executable: /bin/bash
+
+    - name:                            "HANA HSR: - Configure HANA active/read-enabled system replication"
+      become_user:                     "{{ db_sid_admin_user }}"
+      become:                          true
+      when:                            database_active_active | default(false)
+      ansible.builtin.shell: >
+        {{ hdbnsutil_command }} -sr_register --remoteHost={{ hostvars[primary_instance_name]['virtual_host'] }}
+        --remoteInstance={{ db_instance_number }} --replicationMode={{ hana_replication_mode }}
+        --operationMode=logreplay_readaccess --name=SITEB
+      register:                        hsr_active_active_registration
+      changed_when:                    "'adding site' in hsr_active_active_registration.stdout"
       args:
         executable: /bin/bash
 
@@ -189,6 +201,3 @@
     PYTHONPATH:                        "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ virtual_host }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts:/usr/sap/{{ DB }}/exe/Python3/lib/python3.7"
     PATH:                              "/usr/sap/{{ DB }}/exe/krb5/bin:/usr/sap/{{ DB }}/exe/krb5/sbin:/usr/sap/{{ DB }}/{{ virtual_host }}:/usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/mdc:/usr/sap/{{ DB }}/exe/Python3/bin:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/HDB/home:/usr/sap/HDB/home/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/usr/lib/mit/bin"
     LD_LIBRARY_PATH:                   "/usr/sap/{{ DB }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ DB }}/exe/krb5/lib:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/filter:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/{{ DB }}/exe/plugins/afl:/usr/sap/{{ DB }}/exe/plugins/lcapps:/usr/sap/{{ DB }}/exe/plugins/repository:/usr/sap/{{ DB }}/exe/plugins/epmmds:/usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:/usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
-  when:
-    - ansible_hostname == secondary_instance_name
-    - hana_system_replication_needed
