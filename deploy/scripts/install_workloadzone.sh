@@ -12,9 +12,11 @@ full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
 #call stack has full scriptname when using source
+# shellcheck disable=SC1091
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
+# shellcheck disable=SC1091
 source "${script_directory}/helpers/script_helpers.sh"
 
 force=0
@@ -64,14 +66,14 @@ this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 
 deployer_environment=$(echo "${deployer_environment}" | tr "[:lower:]" "[:upper:]")
 
-echo "Deployer environment: $deployer_environment"
+echo "Deployer environment:                $deployer_environment"
 
 if [ 1 == $called_from_ado ] ; then
     this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
     export TF_VAR_Agent_IP=$this_ip
-    echo "Agent IP: $this_ip"
-fi
+    echo "Agent IP:                            $this_ip"
 
+fi
 
 workload_file_parametername=$(basename "${parameterfile}")
 
@@ -115,12 +117,24 @@ fi
 
 # Check that parameter files have environment and location defined
 validate_key_parameters "$workload_file_parametername"
+return_code=$?
 if [ 0 != $return_code ]; then
     exit $return_code
 fi
 
+# Convert the region to the correct code
+get_region_code "$region"
+
+
+if [ "${region_code}" == 'UNKN' ]; then
+  LOCATION_CODE=$(echo "$workload_file_parametername" | awk -F'-' '{print $2}' )
+  region_code=$(echo "${LOCATION_CODE}" | tr "[:lower:]" "[:upper:]" | xargs)
+fi
+
+echo "Region code:                         ${region_code}"
+
 load_config_vars "$workload_file_parametername" "network_logical_name"
-network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
+network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]" | xargs)
 
 if [ -z "${network_logical_name}" ]; then
     echo "#########################################################################################"
@@ -134,31 +148,25 @@ if [ -z "${network_logical_name}" ]; then
     return 64 #script usage wrong
 fi
 
-
-# Convert the region to the correct code
-region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
-get_region_code "$region"
-
 key=$(echo "${workload_file_parametername}" | cut -d. -f1)
 landscape_tfstate_key=${key}.terraform.tfstate
-
-echo "Deployment region: $region"
-echo "Deployment region code: $region_code"
-echo "Keyvault: $keyvault"
 
 #Persisting the parameters across executions
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 
-if [ $deployer_environment != $environment ]; then
+if [ "$deployer_environment" != "$environment" ]; then
     if [ -f "${automation_config_directory}"/"${environment}""${region_code}" ]; then
         # Add support for having multiple vnets in the same environment and zone - rename exiting file to support seamless transition
         mv "${automation_config_directory}"/"${environment}""${region_code}" "${automation_config_directory}"/"${environment}""${region_code}""${network_logical_name}"
     fi
 fi
 
-workload_config_information="${automation_config_directory}"/"${environment}""${region_code}""${network_logical_name}"
+workload_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
+deployer_config_information="${automation_config_directory}/${deployer_environment}${region_code}"
+save_config_vars "${workload_config_information}" \
+    STATE_SUBSCRIPTION REMOTE_STATE_SA subscription
 
 if [ "${force}" == 1 ]
 then
@@ -169,13 +177,20 @@ then
     rm -Rf .terraform terraform.tfstate*
 fi
 
-echo "Workload configuration file: $workload_config_information"
+echo ""
+echo "Configuration file:                  ${environment}${region_code}${network_logical_name}"
+echo "Deployment region:                   $region"
+echo "Deployment region code:              $region_code"
+echo "Deployment environment:              $deployer_environment"
+echo "Deployer Keyvault:                   $keyvault"
+echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
+echo "Remote state storage account:        $REMOTE_STATE_SA"
+echo "Target Subscription:                 $subscription"
 
-if [ -n "$STATE_SUBSCRIPTION" ]
+if [[ -n $STATE_SUBSCRIPTION ]]
 then
-    echo "Saving the state subscription"
     if is_valid_guid "$STATE_SUBSCRIPTION" ; then
-        echo "Valid subscription format"
+
         save_config_vars "${workload_config_information}" \
         STATE_SUBSCRIPTION
 
@@ -202,7 +217,6 @@ then
 fi
 
 if [ -n "$REMOTE_STATE_SA" ] ; then
-
     get_and_store_sa_details ${REMOTE_STATE_SA} ${workload_config_information}
 fi
 
@@ -265,7 +279,7 @@ then
     if [ -n "$deployer_environment" ]
     then
         deployer_config_information="${automation_config_directory}"/"${deployer_environment}""${region_code}"
-        echo "Deployer config file $deployer_config_information"
+        echo "Deployer config file:                $deployer_config_information"
         if [ -f "$deployer_config_information" ]
         then
             load_config_vars "${deployer_config_information}" "keyvault"
@@ -273,7 +287,7 @@ then
             load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
             load_config_vars "${deployer_config_information}" "tfstate_resource_id"
             load_config_vars "${deployer_config_information}" "deployer_tfstate_key"
-            echo "tfstate_resource_id: $tfstate_resource_id"
+
             save_config_vars "${workload_config_information}" \
             tfstate_resource_id
 
@@ -286,12 +300,15 @@ then
         fi
     fi
 else
-    echo "tfstate_resource_id $tfstate_resource_id"
+
+    echo "Terraform Storage Account Id:        $tfstate_resource_id"
+
     save_config_vars "${workload_config_information}" \
     tfstate_resource_id
 fi
 
 
+echo ""
 init "${automation_config_directory}" "${generic_config_information}" "${workload_config_information}"
 
 param_dirname=$(pwd)
@@ -301,7 +318,8 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 if [ -n "$subscription" ]
 then
     if is_valid_guid "$subscription"  ; then
-        echo "Valid subscription format"
+        echo ""
+        export ARM_SUBSCRIPTION_ID="${subscription}"
     else
         printf -v val %-40.40s "$subscription"
         echo "#########################################################################################"
@@ -319,7 +337,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
   if [ -n "$client_id" ]
   then
       if is_valid_guid "$client_id" ; then
-          echo "Valid spn id format"
+          echo ""
       else
           printf -v val %-40.40s "$client_id"
           echo "#########################################################################################"
@@ -334,7 +352,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
   if [ -n "$tenant_id" ]
   then
       if is_valid_guid "$tenant_id" ; then
-          echo "Valid tenant id format"
+          echo ""
       else
           printf -v val %-40.40s "$tenant_id"
           echo "#########################################################################################"
@@ -347,7 +365,12 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
 
   fi
   #setting the user environment variables
-  set_executing_user_environment_variables "${spn_secret}"
+  if [ -n "${spn_secret}" ]
+  then
+    set_executing_user_environment_variables "${spn_secret}"
+  else
+    set_executing_user_environment_variables "none"
+  fi
 else
   #setting the user environment variables
   set_executing_user_environment_variables "N/A"
@@ -419,10 +442,10 @@ fi
 useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
 if [ "$useSAS" = "true" ] ; then
-  echo "Authenticate storage using SAS"
+  echo "Storage Account authentication:       key"
   export ARM_USE_AZUREAD=false
 else
-  echo "Authenticate storage using Entra ID"
+  echo "Storage Account authentication:       Entra ID"
   export ARM_USE_AZUREAD=true
 fi
 
@@ -432,9 +455,9 @@ if [ 1 = "${deploy_using_msi_only:-}" ]; then
   then
       echo "Setting the secrets"
 
-      allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s --msi " "${environment}" "${region_code}" "${keyvault}"  "${subscription}" )
+      allParams=$(printf " --workload --environment %s --region %s --vault %s --keyvault_subscription %s --subscription %s --msi " "${environment}" "${region_code}" "${keyvault}"  "${STATE_SUBSCRIPTION}" "${ARM_SUBSCRIPTION_ID}" )
 
-      echo "Calling set_secrets with " "${allParams}"
+      echo "Calling set_secrets with:             ${allParams}"
 
       "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
 
@@ -456,13 +479,13 @@ else
 
       if [ -n "$spn_secret" ]
       then
-          allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret ***** --subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}"  "${subscription}" "${client_id}" "${tenant_id}" )
+          fixed_allParams=$(printf " --workload --environment %s --region %s --vault %s  --subscription %s --spn_secret ***** --keyvault_subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}"  "${ARM_SUBSCRIPTION_ID}"  "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}" )
 
-          echo "Calling set_secrets with " "${allParams}"
+          echo "Calling set_secrets with:             ${fixed_allParams}"
 
-          allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${subscription}" "${client_id}" "${tenant_id}" )
+          allParams=$(printf " --workload --environment %s --region %s --vault %s --spn_secret %s --subscription %s --keyvault_subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}"  "${ARM_SUBSCRIPTION_ID}" "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}" )
 
-          "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
+          "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh" ${allParams}
 
           if [ -f secret.err ]; then
               error_message=$(cat secret.err)
@@ -474,9 +497,9 @@ else
           read -p "Do you want to specify the Workload SPN Details Y/N?"  ans
           answer=${ans^^}
           if [ ${answer} == 'Y' ]; then
-              allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${subscription}" "${client_id}" )
+              allParams=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${STATE_SUBSCRIPTION}" "${client_id}" )
 
-              "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh ${allParams}
+              "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh ${allParams}"
               if [ $? -eq 255 ]
               then
                   exit $?
@@ -567,19 +590,29 @@ ok_to_proceed=false
 new_deployment=false
 
 #Plugins
-if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]
-then
+isInCloudShellCheck=$(checkIfCloudShell)
+
+if checkIfCloudShell; then
+  mkdir -p "${HOME}/.terraform.d/plugin-cache"
+  export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
+else
+  if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
     mkdir -p /opt/terraform/.terraform.d/plugin-cache
+    sudo chown -R "$USER" /opt/terraform
+  fi
+  export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 fi
-sudo chown -R $USER:$USER /opt/terraform
-export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 
 root_dirname=$(pwd)
 
-echo "     subscription_id=${STATE_SUBSCRIPTION}"
-echo " resource_group_name=${REMOTE_STATE_RG}"
-echo "storage_account_name=${REMOTE_STATE_SA}"
-
+echo ""
+echo "Terraform details"
+echo "-------------------------------------------------------------------------"
+echo "Subscription:                        ${STATE_SUBSCRIPTION}"
+echo "Storage Account:                     ${REMOTE_STATE_SA}"
+echo "Resource Group:                      ${REMOTE_STATE_RG}"
+echo "State file:                          ${key}.terraform.tfstate"
+echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
 
 if [ ! -d ./.terraform/ ];
 then
@@ -751,7 +784,7 @@ else
 fi
 return_value=$?
 
-echo "Terraform Plan return code: " $return_value
+echo "Terraform Plan return code:          $return_value"
 if [ 1 == $return_value ]
 then
     echo "#########################################################################################"
@@ -1063,9 +1096,11 @@ echo ""
 if [ -n "${spn_secret}" ]
 then
     az logout
-    echo "Login as SPN"
     az login --service-principal --username "${client_id}" --password="${spn_secret}" --tenant "${tenant_id}" --output none
 fi
+
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
 
 rg_name=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw created_resource_group_name | tr -d \")
 az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription "${subscription}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
@@ -1086,37 +1121,47 @@ Date : "${now}"
 
 EOF
 
+printf -v kvname '%-40s' "${workloadkeyvault}"
+echo ""
+echo "#########################################################################################"
+echo "#                                                                                       #"
+echo -e "# $cyan Please save these values: $resetformatting                                                           #"
+echo "#     - Key Vault: ${kvname}                             #"
+echo "#                                                                                       #"
+echo "#########################################################################################"
+
+
 if [ -f "${workload_config_information}".err ]; then
     cat "${workload_config_information}".err
 fi
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo -e "#             $cyan  Adding the subnets to storage account firewalls $resetformatting                        #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+# echo ""
+# echo "#########################################################################################"
+# echo "#                                                                                       #"
+# echo -e "#             $cyan  Adding the subnets to storage account firewalls $resetformatting                        #"
+# echo "#                                                                                       #"
+# echo "#########################################################################################"
+# echo ""
 
-subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw app_subnet_id | tr -d \")
+# subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw app_subnet_id | tr -d \")
 
-useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
-echo "useSAS = $useSAS"
+# useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
+# echo "Shared Access Key access:             $useSAS"
 
-if [ -n "${subnet_id}" ]; then
-  echo "Adding the app subnet"
-  az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
-  if [ -n "$SAPBITS" ] ; then
-    az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name $SAPBITS --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
-  fi
-fi
+# if [ -n "${subnet_id}" ]; then
+#   echo "Adding the application subnet to the storage account hosting the Terraform State files"
+#   az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
+#   if [ -n "$SAPBITS" ] ; then
+#     az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name $SAPBITS --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
+#   fi
+# fi
 
-subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw db_subnet_id | tr -d \")
+# subnet_id=$(terraform -chdir="${terraform_module_directory}"  output -no-color -raw db_subnet_id | tr -d \")
 
-if [ -n "${subnet_id}" ]; then
-  echo "Adding the db subnet"
-  az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
-fi
+# if [ -n "${subnet_id}" ]; then
+#   echo "Adding the db subnet"
+#   az storage account network-rule add --resource-group "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --subnet $subnet_id --output none
+# fi
 
 unset TF_DATA_DIR
 

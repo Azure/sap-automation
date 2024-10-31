@@ -5,6 +5,18 @@ boldred="\e[1;31m"
 cyan="\e[1;36m"
 resetformatting="\e[0m"
 
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+script_directory_parent="$(dirname "${script_directory}")"
+
+#call stack has full scriptname when using source
+source "${script_directory_parent}"/deploy_utils.sh
+
+if [[  -f /etc/profile.d/deploy_server.sh ]]; then
+    path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh  | awk -F'=' '{print $2}' | xargs)
+    export PATH=$path
+fi
+
 function control_plane_showhelp {
     echo ""
     echo "#################################################################################################################"
@@ -297,21 +309,21 @@ function validate_webapp_exports {
     fi
 
     if [ "${ARM_USE_MSI}" == "false" ]; then
-      if [ -z "$TF_VAR_webapp_client_secret" ]; then
-          echo ""
-          echo "#########################################################################################"
-          echo "#                                                                                       #"
-          echo -e "#            $boldred Missing environment variables (TF_VAR_webapp_client_secret)!!! $resetformatting           #"
-          echo "#                                                                                       #"
-          echo "#   Please export the following variables to successfully deploy the Webapp:            #"
-          echo "#      TF_VAR_app_registration_app_id (webapp registration application id)              #"
-          echo "#      TF_VAR_webapp_client_secret (webapp registration password / secret)              #"
-          echo "#                                                                                       #"
-          echo "#   If you do not wish to deploy the Webapp, unset the TF_VAR_use_webapp variable       #"
-          echo "#                                                                                       #"
-          echo "#########################################################################################"
-          return 65                                                                                           #data format error
-      fi
+        if [ -z "$TF_VAR_webapp_client_secret" ]; then
+            echo ""
+            echo "#########################################################################################"
+            echo "#                                                                                       #"
+            echo -e "#            $boldred Missing environment variables (TF_VAR_webapp_client_secret)!!! $resetformatting           #"
+            echo "#                                                                                       #"
+            echo "#   Please export the following variables to successfully deploy the Webapp:            #"
+            echo "#      TF_VAR_app_registration_app_id (webapp registration application id)              #"
+            echo "#      TF_VAR_webapp_client_secret (webapp registration password / secret)              #"
+            echo "#                                                                                       #"
+            echo "#   If you do not wish to deploy the Webapp, unset the TF_VAR_use_webapp variable       #"
+            echo "#                                                                                       #"
+            echo "#########################################################################################"
+            return 65                                                                                           #data format error
+        fi
     fi
 
     return 0
@@ -380,8 +392,28 @@ function missing {
 
 
 function validate_dependencies {
+    tfPath="/opt/terraform/bin/terraform"
+
+    if [ -f /opt/terraform/bin/terraform ]; then
+        tfPath="/opt/terraform/bin/terraform"
+    else
+        tfPath=$(which terraform)
+    fi
+
+    echo "Checking Terraform:                  $tfPath"
+
+    # if /opt/terraform exists, assign permissions to the user
+    if [ -d /opt/terraform ]; then
+        sudo chown -R "$USER" /opt/terraform
+    fi
+
     # Check terraform
-    tf=$(terraform -version | grep Terraform)
+    if checkIfCloudShell; then
+        tf=$(terraform --version | grep Terraform)
+    else
+        tf=$($tfPath --version | grep Terraform)
+    fi
+
     if [ -z "$tf" ]; then
         echo ""
         echo "#########################################################################################"
@@ -392,13 +424,18 @@ function validate_dependencies {
         echo ""
         return 2 #No such file or directory
     fi
-    # Set Terraform Plug in cache
-    if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]
-    then
-        mkdir -p /opt/terraform/.terraform.d/plugin-cache
+
+    if checkIfCloudShell; then
+        mkdir -p "${HOME}/.terraform.d/plugin-cache"
+        export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
+    else
+        if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
+            mkdir -p /opt/terraform/.terraform.d/plugin-cache
+        fi
+        export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
     fi
-    sudo chown -R $USER:$USER /opt/terraform
-    export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+    # Set Terraform Plug in cache
+
 
 
     az --version >stdout.az 2>&1
@@ -448,21 +485,15 @@ function validate_dependencies {
 }
 
 function validate_key_parameters {
-    echo "Validating $1"
-    ext=$(echo $1 | cut -d. -f2)
+    echo "Validating:                          $1"
 
     # Helper variables
-    if [ "${ext}" == json ]; then
-        export environment=$(jq --raw-output .infrastructure.environment $1)
-        export region=$(jq --raw-output .infrastructure.region $1)
-    else
-        load_config_vars $1 "environment"
-        environment=$(echo ${environment} | xargs | tr "[:lower:]" "[:upper:]" )
-        load_config_vars $1 "location"
-        region=$(echo ${location} | xargs)
-    fi
+    load_config_vars $1 "environment"
+    export environment=$(echo ${environment} | xargs | tr "[:lower:]" "[:upper:]" | tr -d '\r' )
+    load_config_vars $1 "location"
+    export region=$(echo ${location} | xargs | tr -d '\r')
 
-    if [ -z "${environment}" ]; then
+    if [ -z ${environment} ]; then
         echo "#########################################################################################"
         echo "#                                                                                       #"
         echo -e "#                         $boldred  Incorrect parameter file. $resetformatting                                  #"
@@ -474,7 +505,7 @@ function validate_key_parameters {
         return 64 #script usage wrong
     fi
 
-    if [ -z "${region}" ]; then
+    if [ -z ${region} ]; then
         echo "#########################################################################################"
         echo "#                                                                                       #"
         echo -e "#                          $boldred Incorrect parameter file. $resetformatting                                  #"

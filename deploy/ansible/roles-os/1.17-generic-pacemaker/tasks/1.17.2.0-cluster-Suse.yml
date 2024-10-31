@@ -185,7 +185,7 @@
 
     - name:                            "1.17 Generic Pacemaker - Enable Stonith"
       ansible.builtin.shell: |
-                                       crm configure property stonith-enabled=true \
+                                       crm configure property stonith-enabled=true
                                        crm configure property concurrent-fencing=true
       register:                        crm_configure_result
       failed_when:                     crm_configure_result.rc > 1
@@ -404,6 +404,26 @@
 
     - name:                            "1.17 Generic Pacemaker - Remove false positives"
       ansible.builtin.shell:           crm_resource -C
+
+    - name:                            "1.17 Generic Pacemaker - Ensure the Azure scheduled events resource is started"
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       crm status full | grep health-azure-events | grep Started | wc -l
+      register:                        azure_scheduled_events_status
+      retries:                         12
+      delay:                           10
+      until:                           azure_scheduled_events_status.stdout | int == ansible_play_hosts_all | length
+      when:                            inventory_hostname == primary_instance_name
+      failed_when:                     false
+
+    - name:                            "1.17 Generic Pacemaker - display output of Azure scheduled events"
+      when:                            inventory_hostname == primary_instance_name
+      ansible.builtin.debug:
+        msg:
+          - "output lines:             {{ azure_scheduled_events_status.stdout_lines }}"
+          - "output:                   {{ azure_scheduled_events_status.stdout | int }}"
+          - "output_truthiness:        {{ azure_scheduled_events_status.stdout | int == ansible_play_hosts_all | length }}"
+        verbosity:                     2
 
     - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode is disabled"
       ansible.builtin.shell:           crm configure property maintenance-mode=false

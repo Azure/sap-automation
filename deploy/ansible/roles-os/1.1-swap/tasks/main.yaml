@@ -34,10 +34,9 @@
     name:                              WALinuxAgent
     state:                             latest
   environment:
-    ZYPP_LOCK_TIMEOUT:                 "20"
-
+    ZYPP_LOCK_TIMEOUT:                 "60"
   when:
-    - ansible_os_family == 'Suse'
+    - distribution_id == 'sles_sap15'
   tags:
     - skip_ansible_lint
 

@@ -8,15 +8,15 @@ data "azurerm_client_config" "current" {}
 
 data "terraform_remote_state" "deployer" {
   backend                              = "azurerm"
+
   count                                = length(try(var.deployer_tfstate_key, "")) > 0 ? 1 : 0
   config                               = {
                                            resource_group_name  = local.saplib_resource_group_name
                                            storage_account_name = local.tfstate_storage_account_name
                                            container_name       = local.tfstate_container_name
-                                           key                  = var.deployer_tfstate_key
+                                           key                  = trimspace(var.deployer_tfstate_key)
                                            subscription_id      = local.saplib_subscription_id
-                                           use_msi              = var.use_spn ? false : true
-                                           use_azuread_auth     = true
+
                                          }
 }
 
@@ -68,8 +68,7 @@ data "azurerm_key_vault_secret" "cp_tenant_id" {
 }
 
 // Import current service principal
-data "azuread_service_principal" "sp" {
-  count                               = var.use_spn ? 1 : 0
-  client_id                           = local.spn.client_id
-}
-
+data "azuread_service_principal" "sp"             {
+                                                    count          = var.use_spn ? 1 : 0
+                                                    client_id      = local.spn.client_id
+                                                  }

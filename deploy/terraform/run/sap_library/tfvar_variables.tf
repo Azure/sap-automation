@@ -328,3 +328,8 @@ variable "dns_label"                             {
                                                    description = "DNS label"
                                                    default     = ""
                                                  }
+
+variable "tags"                                  {
+                                                   description = "If provided, tags for all resources"
+                                                   default     = {}
+                                                 }

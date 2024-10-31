@@ -120,6 +120,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "prevent_deletion_if_contains_resources",
+        "Required": false,
+        "Description": "Prevent deletion of resource group if there are Resources left within the Resource Group during deletion",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },

@@ -62,10 +62,10 @@ stages:
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
 
               echo -e "$green--- Configure devops CLI extension ---$reset"
-                az config set extension.use_dynamic_install=yes_without_prompt --output none
+                az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
                 export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
 
-                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none --only-show-errors
 
               echo -e "$green--- Validations ---$reset"
                 if [ ! -f ${environment_file_name} ]; then
@@ -95,12 +95,13 @@ stages:
 
               echo -e "$green--- az login ---$reset"
                 if [ "$USE_MSI" = "true" ]; then
-                  echo  "Using MSI"
+                  echo "Deployment credentials:              Managed Identity"
                   source /etc/profile.d/deploy_server.sh
 
                 else
                   az login --service-principal --username $ARM_CLIENT_ID --password=${ARM_CLIENT_SECRET} --tenant $ARM_TENANT_ID --output none
                   return_code=$?
+                  echo "Deployment credentials:              Service Principal"
                   if [ 0 != $return_code ]; then
                     echo -e "$boldred--- Login failed ---$reset"
                     echo "##vso[task.logissue type=error]az login failed."
@@ -112,18 +113,20 @@ stages:
 
               echo -e "$green--- Get key_vault name ---$reset"
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
+                printf -v val '%-15s' "$(variable_group) id:"
+                echo "$val                      $VARIABLE_GROUP_ID"
                 if [ -z ${VARIABLE_GROUP_ID} ]; then
                     echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                     exit 2
                 fi
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
                 if [ -n ${az_var} ]; then
                     kv_name=${az_var}; echo "Key Vault="$kv_name
                 else
-                    kv_name=$(cat .sap_deployment_automation/$(environment_code)$(location_code) | grep keyvault |awk -F'=' '{print $2}'); echo "Key Vault="$kv_name
+                    kv_name=$(cat .sap_deployment_automation/$(environment_code)$(location_code) | grep keyvault |awk -F'=' '{print $2}')
                 fi
 
+                echo "Keyvault:                            $kv_name"
                 echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$kv_name"
 
               echo -e "$green--- BoM $(bom) ---$reset"
@@ -202,10 +205,11 @@ stages:
                 fi
 
                 if [ "$USE_MSI" = "true" ]; then
-                  echo  "Using MSI"
+                  echo "Deployment credentials:              Managed Identity"
                   source /etc/profile.d/deploy_server.sh
 
                 else
+                  echo "Deployment credentials:              Service Principal"
                   if [ ! -n $ARM_CLIENT_ID ]; then
                     echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
                     exit 2

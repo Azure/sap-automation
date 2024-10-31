@@ -114,19 +114,11 @@ stages:
                     NETWORK=$(grep "^network_logical_name" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
                     SID=$(grep "^sid" $HOME_CONFIG/SYSTEM/$(sap_system_folder)/$(sap_system_configuration) | awk -F'=' '{print $2}' | xargs)
 
-                echo "Environment:           $ENVIRONMENT"
-                echo "Location:              $LOCATION"
-                echo "Network:               $NETWORK"
-                echo "SID:                   $SID"
-                echo "System TFvars          $sap_system_configuration"
-                echo ""
-                echo "Agent:                 $(this_agent)"
-                echo "Organization:          $(System.CollectionUri)"
-                echo "Project:               $(System.TeamProject)"
-                echo ""
-                echo "Azure CLI version:"
-                echo "-------------------------------------------------"
-                az --version
+                echo "Environment:                         $ENVIRONMENT"
+                echo "Location:                            $LOCATION"
+                echo "Network:                             $NETWORK"
+                echo "SID:                                 $SID"
+                echo "System TFvars:                       $(sap_system_configuration)"
 
                 ENVIRONMENT_IN_FILENAME=$(echo $(sap_system_folder) | awk -F'-' '{print $1}' | xargs) ;
                           LOCATION_CODE=$(echo $(sap_system_folder) | awk -F'-' '{print $2}' | xargs) ;
@@ -191,10 +183,20 @@ stages:
                   *) LOCATION_IN_FILENAME="westeurope" ;;
                 esac
 
-                echo "Environment(filename): $ENVIRONMENT_IN_FILENAME"
-                echo "Location(filename):    $LOCATION_IN_FILENAME"
-                echo "Network(filename):     $NETWORK_IN_FILENAME"
-                echo "SID(filename):         $SID_IN_FILENAME"
+                echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
+                echo "Location(filename):                  $LOCATION_IN_FILENAME"
+                echo "Network(filename):                   $NETWORK_IN_FILENAME"
+                echo "SID(filename):                       $SID_IN_FILENAME"
+
+                echo ""
+                echo "Agent:                               $(this_agent)"
+                echo "Organization:                        $(System.CollectionUri)"
+                echo "Project:                             $(System.TeamProject)"
+                echo ""
+                echo "Azure CLI version:"
+                echo "-------------------------------------------------"
+                az --version
+
 
                 if [ $ENVIRONMENT != $ENVIRONMENT_IN_FILENAME ]; then
                   echo "##vso[task.logissue type=error]The environment setting in $(sap_system_configuration) '$ENVIRONMENT' does not match the $(sap_system_configuration) file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
@@ -231,18 +233,20 @@ stages:
                 fi
               echo -e "$green--- Configure devops CLI extension ---$reset"
 
-                az config set extension.use_dynamic_install=yes_without_prompt --output none
+                az config set extension.use_dynamic_install=yes_without_prompt --output none  --only-show-errors
 
-                az extension add --name azure-devops --output none
+                az extension add --name azure-devops --output none --only-show-errors
 
-                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none --only-show-errors
 
                 export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
+
                 if [ -z ${VARIABLE_GROUP_ID} ]; then
                   echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
                   exit 2
                 fi
+                printf -v val '%-15s' "$(variable_group) id:"
+                echo "$val                      $VARIABLE_GROUP_ID"
               echo -e "$green--- Login ---$reset"
 
                 if [ -z $USE_MSI ]; then
@@ -255,72 +259,95 @@ stages:
                   fi
                 fi
 
+                echo -e "$cyan---Sourcing the deploy_server.sh file$reset"
+                . /etc/profile.d/deploy_server.sh
+                export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
                 if [ $USE_MSI != "true" ]; then
-                  echo "Using SPN"
 
-                  export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
-                  export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
-                  export ARM_TENANT_ID=$WL_ARM_TENANT_ID
-                  export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
-                  export ARM_USE_MSI=false
-                  az login --service-principal --username $WL_ARM_CLIENT_ID --password=$WL_ARM_CLIENT_SECRET --tenant $WL_ARM_TENANT_ID --output none
-                  return_code=$?
-                  if [ 0 != $return_code ]; then
-                    echo -e "$boldred--- Login failed ---$reset"
-                    echo "##vso[task.logissue type=error]az login failed."
-                    exit $return_code
-                  fi
+                    echo "Deployment credentials:              Service Principal"
+                    echo "Deployment credential ID (SPN):      $WL_ARM_CLIENT_ID"
+                    echo "Deployer subscription:               $STATE_SUBSCRIPTION"
+
+                    export ARM_CLIENT_ID=$WL_ARM_CLIENT_ID
+                    export ARM_CLIENT_SECRET=$WL_ARM_CLIENT_SECRET
+                    export ARM_OBJECT_ID=$WL_ARM_OBJECT_ID
+                    export ARM_TENANT_ID=$WL_ARM_TENANT_ID
+                    export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
+                    export ARM_USE_AZUREAD=true
+                    unset ARM_USE_MSI
+                    az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+
+                    return_code=$?
+                    if [ 0 != $return_code ]; then
+                        echo -e "$boldred--- Login failed ---$reset"
+                        echo "##vso[task.logissue type=error]az login failed."
+                        exit $return_code
+                    fi
+                    az account set --subscription $STATE_SUBSCRIPTION
+                    echo -e "$green --- Set secrets ---$reset"
+
+                    $SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh --workload --vault "${key_vault}" --environment "${ENVIRONMENT}"  \
+                    --region "${LOCATION}" --subscription $ARM_SUBSCRIPTION_ID --spn_id $ARM_CLIENT_ID --spn_secret "${ARM_CLIENT_SECRET}"  \
+                    --tenant_id $ARM_TENANT_ID --keyvault_subscription $STATE_SUBSCRIPTION
+                    secrets_set=$? ;
+                    echo "Set Secrets returned:                $secrets_set"
+
                 else
-                  export ARM_USE_MSI=true
-                  export ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
-                  unset ARM_TENANT_ID
-                  az login --identity --allow-no-subscriptions --output none
+                    echo "Deployment credentials:              Managed Identity"
+                    export ARM_USE_MSI=true
+                    export ARM_USE_AZUREAD=true
+                    unset ARM_CLIENT_SECRET
                 fi
 
               echo -e "$green--- Define variables ---$reset"
                 cd $HOME_CONFIG/SYSTEM/$(sap_system_folder)
 
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" | tr -d \")
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" --out tsv)
                 if [ -z ${az_var} ]; then
-                  export STATE_SUBSCRIPTION=$(grep STATE_SUBSCRIPTION ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                  export STATE_SUBSCRIPTION=$(grep STATE_SUBSCRIPTION ${environment_file_name} | awk -F'=' '{print $2}' | xargs)
                 else
-                  export STATE_SUBSCRIPTION=${az_var} ; echo 'Terraform state file subscription' $STATE_SUBSCRIPTION
+                  export STATE_SUBSCRIPTION=${az_var}
                 fi
 
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" | tr -d \")
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
                 if [ -z ${az_var} ]; then
-                  export REMOTE_STATE_SA=$(grep REMOTE_STATE_SA ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                  export REMOTE_STATE_SA=$(grep REMOTE_STATE_SA ${environment_file_name} | awk -F'=' '{print $2}' | xargs)
                 else
-                  export REMOTE_STATE_SA=${az_var} ; echo 'Terraform state file storage account' $REMOTE_STATE_SA
+                  export REMOTE_STATE_SA=${az_var}
                 fi
 
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" | tr -d \")
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" --out tsv)
                 if [ -z ${az_var} ]; then
-                  export deployer_tfstate_key=$(grep deployer_tfstate_key ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer State File' $deployer_tfstate_key
+                  export deployer_tfstate_key=$(grep deployer_tfstate_key ${environment_file_name} | awk -F'=' '{print $2}' | xargs)
                 else
-                  export deployer_tfstate_key=${az_var} ; echo 'Deployer State File' $deployer_tfstate_key
+                  export deployer_tfstate_key=${az_var}
                 fi
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Zone_State_FileName.value | tr -d \")
                 if [ -z ${az_var} ]; then
-                  export landscape_tfstate_key=$(grep landscape_tfstate_key= ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'landscape_tfstate_key' $landscape_tfstate_key
+                  export landscape_tfstate_key=$(grep landscape_tfstate_key= ${environment_file_name} | awk -F'=' '{print $2}' | xargs)
                 else
-                  export landscape_tfstate_key=${az_var} ; echo 'landscape_tfstate_key' $landscape_tfstate_key
+                  export landscape_tfstate_key=${az_var}
                 fi
 
-                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" | tr -d \")
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
                 if [ -z ${az_var} ]; then
-                  export key_vault=$(grep keyvault= ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'Deployer Key Vault' $key_vault
+                  export key_vault=$(grep keyvault= ${environment_file_name} | awk -F'=' '{print $2}' | xargs)
                 else
-                  export key_vault=${az_var} ; echo 'Deployer Key Vault' $key_vault
+                  export key_vault=${az_var}
                 fi
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value | tr -d \")
                 if [ -z ${az_var} ]; then
-                  export workload_key_vault=$(grep workloadkeyvault= ${environment_file_name} | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+                  export workload_key_vault=$(grep workloadkeyvault= ${environment_file_name} | awk -F'=' '{print $2}' | xargs)
                 else
-                  export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault}
+                  export workload_key_vault=${az_var}
                 fi
+
+                echo "Deployer state file:                 $deployer_tfstate_key"
+                echo "Deployer Key Vault:                  $key_vault"
+                echo "Workload Zone state file:            $landscape_tfstate_key"
+                echo "Workload Zone Key Vault:             $workload_key_vault"
 
               echo -e "$green--- Run the installer script that deploys the SAP System ---$reset"
 

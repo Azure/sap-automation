@@ -44,23 +44,28 @@ resource "azurerm_storage_account" "sapmnt" {
   public_network_access_enabled        = try(var.landscape_tfstate.public_network_access_enabled, true)
   tags                                 = var.tags
 
-  network_rules {
-                  default_action = "Deny"
-                  virtual_network_subnet_ids = compact(
-                    [
-                      try(var.landscape_tfstate.admin_subnet_id, ""),
-                      try(var.landscape_tfstate.app_subnet_id, ""),
-                      try(var.landscape_tfstate.db_subnet_id, ""),
-                      try(var.landscape_tfstate.web_subnet_id, ""),
-                      try(var.landscape_tfstate.subnet_mgmt_id, "")
-                    ]
-                  )
-                  ip_rules = compact(
-                    [
-                      length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                    ]
-                  )
-                }
+  dynamic "network_rules" {
+                             for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
+                             content {
+
+                                      default_action = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+                                      virtual_network_subnet_ids = compact(
+                                        [
+                                          try(var.landscape_tfstate.admin_subnet_id, ""),
+                                          try(var.landscape_tfstate.app_subnet_id, ""),
+                                          try(var.landscape_tfstate.db_subnet_id, ""),
+                                          try(var.landscape_tfstate.web_subnet_id, ""),
+                                          try(var.landscape_tfstate.subnet_mgmt_id, "")
+                                        ]
+                                      )
+                                      ip_rules = compact(
+                                        [
+                                          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+                                        ]
+                                      )
+
+                                    }
+                          }
 
 
 }

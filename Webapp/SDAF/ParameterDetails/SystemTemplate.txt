@@ -647,6 +647,10 @@ $$resourcegroup_name$$
 # The resourcegroup_name arm_id is optional, it can be used to provide an existing resource group for the deployment
 $$resourcegroup_arm_id$$
 
+# Prevent deletion of resource group if there are Resources left within the Resource Group during deletion
+$$prevent_deletion_if_contains_resources$$
+
+
 #########################################################################################
 #                                                                                       #
 #  Proximity Placement Group                                                            #

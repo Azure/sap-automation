@@ -3,7 +3,7 @@ terraform {
     azurerm = {
       source                = "hashicorp/azurerm"
       configuration_aliases = [azurerm.main, azurerm.dnsmanagement]
-      version               = "4.4.0"
+      version               = "4.7.0"
     }
   }
 }

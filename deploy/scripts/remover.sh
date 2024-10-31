@@ -29,13 +29,13 @@ function showhelp {
     echo "#   This file contains the logic to remove the different systems                        #"
     echo "#   The script expects the following exports:                                           #"
     echo "#                                                                                       #"
-    echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))                  #"
+    echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))              #"
     echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
     echo "#      REMOTE_STATE_RG (resource group name for storage account containing state files) #"
     echo "#      REMOTE_STATE_SA (storage account for state file)                                 #"
     echo "#                                                                                       #"
     echo "#   The script will persist the parameters needed between the executions in the         #"
-    echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder.                                                #"
+    echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder.                               #"
     echo "#                                                                                       #"
     echo "#                                                                                       #"
     echo "#   Usage: remover.sh                                                                   #"
@@ -56,7 +56,7 @@ function showhelp {
     echo "#   Example:                                                                            #"
     echo "#                                                                                       #"
     echo "#   [REPO-ROOT]deploy/scripts/remover.sh \                                              #"
-    echo "#      --parameterfile DEV-WEEU-SAP01-X00.json \                                        #"
+    echo "#      --parameterfile DEV-WEEU-SAP01-X00.tfvars \                                      #"
     echo "#      --type sap_system                                                                #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
@@ -105,16 +105,15 @@ done
 #variables
 tfstate_resource_id=""
 tfstate_parameter=""
-deployer_tfstate_key=""
+
 deployer_tfstate_key_parameter=""
-landscape_tfstate_key=""
 landscape_tfstate_key_parameter=""
 
 # unused variables
 #show_help=false
 #deployer_tfstate_key_exists=false
 #landscape_tfstate_key_exists=false
-echo "parameterfile: $parameterfile"
+echo "parameterfile:                       $parameterfile"
 
 working_directory=$(pwd)
 
@@ -193,11 +192,9 @@ fi
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 
-echo "Deployer environment: $deployer_environment"
-
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 export TF_VAR_Agent_IP=$this_ip
-echo "Agent IP: $this_ip"
+echo "Agent IP:                            $this_ip"
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
@@ -218,19 +215,36 @@ if [ "${deployment_system}" == sap_system ]; then
     system_config_information="${automation_config_directory}"/"${environment}""${region_code}""${network_logical_name}"
 fi
 
-echo "Configuration file: $system_config_information"
-echo "Deployment region: $region"
-echo "Deployment region code: $region_code"
+echo "Configuration file:                  $system_config_information"
+echo "Deployment region:                   $region"
+echo "Deployment region code:              $region_code"
 
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
-#Plugins
-if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]
-then
-    mkdir -p /opt/terraform/.terraform.d/plugin-cache
-fi
-export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+echo ""
+echo "Terraform details"
+echo "-------------------------------------------------------------------------"
+echo "Subscription:                        ${STATE_SUBSCRIPTION}"
+echo "Storage Account:                     ${REMOTE_STATE_SA}"
+echo "Resource Group:                      ${REMOTE_STATE_RG}"
+echo "State file:                          ${key}.terraform.tfstate"
+echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
+echo "Deployer State file:                 ${deployer_tfstate_key}"
+echo "Landscape State file:                ${landscape_tfstate_key}"
 
+#Plugins
+isInCloudShellCheck=$(checkIfCloudShell)
+
+if checkIfCloudShell; then
+    mkdir -p "${HOME}/.terraform.d/plugin-cache"
+    export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
+else
+    if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
+        mkdir -p /opt/terraform/.terraform.d/plugin-cache
+        sudo chown -R "$USER" /opt/terraform
+    fi
+    export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+fi
 
 init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
 var_file="${parameterfile_dirname}"/"${parameterfile}"
@@ -254,15 +268,15 @@ load_config_vars "${system_config_information}" "ARM_SUBSCRIPTION_ID"
 
 deployer_tfstate_key_parameter=''
 if [ "${deployment_system}" != sap_deployer ]; then
-    deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
+    deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key} "
 fi
 
 landscape_tfstate_key_parameter=''
 if [ "${deployment_system}" == sap_system ]; then
-    landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key}"
+    landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key} "
 fi
 
-tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id} "
 
 #setting the user environment variables
 set_executing_user_environment_variables "none"
@@ -302,13 +316,13 @@ fi
 useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
 if [ "$useSAS" = "true" ] ; then
-  echo "Authenticate storage using SAS"
+  echo "Storage Account Authentication:      Key"
   export ARM_USE_AZUREAD=false
 else
-  echo "Authenticate storage using Entra ID"
+  echo "Storage Account Authentication:      Entra ID"
+
   export ARM_USE_AZUREAD=true
 fi
-
 
 echo ""
 echo "#########################################################################################"
@@ -328,7 +342,7 @@ terraform -chdir="${terraform_module_directory}" init  -reconfigure \
     exit 1
 }
 
-
+export TF_VAR_tfstate_resource_id=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query id --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
 created_resource_group_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_id | tr -d \")
 created_resource_group_id_length=$(expr length "$created_resource_group_id")
@@ -341,7 +355,7 @@ else
     resource_group_exist=true
 fi
 
-if [ $resource_group_exist ];
+if [ "$resource_group_exist" ];
 then
     echo ""
     echo "#########################################################################################"
@@ -353,11 +367,11 @@ then
 
     if [ "$deployment_system" == "sap_deployer" ]; then
         terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
-        $deployer_tfstate_key_parameter
+        "$deployer_tfstate_key_parameter"
 
         echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
         terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" \
-        $deployer_tfstate_key_parameter
+        "$deployer_tfstate_key_parameter"
 
         elif [ "$deployment_system" == "sap_library" ]; then
         echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
@@ -376,28 +390,22 @@ then
         terraform -chdir="${terraform_bootstrap_directory}" init -upgrade=true -force-copy
 
         terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
-        $landscape_tfstate_key_parameter \
-        $deployer_tfstate_key_parameter
+        "$landscape_tfstate_key_parameter" \
+        "$deployer_tfstate_key_parameter"
 
-        terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" ${approve} \
-        $landscape_tfstate_key_parameter \
-        $deployer_tfstate_key_parameter
+        terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" "${approve}" \
+        "$landscape_tfstate_key_parameter" \
+        "$deployer_tfstate_key_parameter"
     else
 
         echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $resetformatting"
-        echo $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
+        echo "Calling destroy with:          -var-file=${var_file} $approve $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter"
+
         if [ -n "${approve}" ]
         then
-
-            terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" ${approve} \
-                $tfstate_parameter \
-                $landscape_tfstate_key_parameter \
-                $deployer_tfstate_key_parameter  -json  | tee -a  destroy_output.json
+            terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" $approve $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter  -json  | tee -a  destroy_output.json
         else
-            terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" ${approve} \
-                $tfstate_parameter \
-                $landscape_tfstate_key_parameter \
-                $deployer_tfstate_key_parameter
+            terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" $approve $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter
 
         fi
 
