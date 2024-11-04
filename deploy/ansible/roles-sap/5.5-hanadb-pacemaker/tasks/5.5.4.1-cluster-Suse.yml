@@ -5,6 +5,7 @@
 # Ref: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability
 
 - name:                                "5.5.4.1 HANA Pacemaker configuration - Ensure the Cluster STONITH is configured"
+  when:                                inventory_hostname == primary_instance_name
   block:
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure maintenance mode is enabled"
       ansible.builtin.command:         crm configure property maintenance-mode=true
@@ -145,14 +146,47 @@
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Set the priority fencing delay"
       ansible.builtin.shell:           crm configure property priority-fencing-delay=30
 
+    # HANA active/active
+    - name: "5.5.4.1 HANA Cluster configuration - Configure HANA active/read-enabled system replication"
+      when: database_active_active | default(false)
+      block:
+        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active Virtual IP resource is configured"
+          ansible.builtin.shell: >
+            crm configure primitive rsc_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }} ocf:heartbeat:IPaddr2
+            meta target-role="Started"
+            operations \$id="rsc_sap2_{{ db_sid | upper }}_HDB{{ db_instance_number }}-operations"
+            op monitor interval="10s" timeout="20s"
+            params ip="{{ database_active_active_loadbalancer_ip }}"
+          register:                    sec_rsc
+          failed_when:                 sec_rsc.rc > 1
+
+        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active azure-lb resource agent is configured"
+          ansible.builtin.shell: >
+            crm configure primitive rsc_secnc_{{ db_sid | upper }}_HDB{{ db_instance_number }} azure-lb port=626{{ db_instance_number }}
+            op monitor timeout=20s interval=10
+            meta resource-stickiness=0
+          register:                    sec_netcat
+          failed_when:                 sec_netcat.rc > 1
+
+        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active Group IP Address resource is configured"
+          ansible.builtin.shell: >
+            crm configure group g_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }} rsc_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }} rsc_secnc_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+          register:                    sec_group
+          failed_when:                 sec_group.rc > 1
+
+        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active co-Location constraint is configured"
+          ansible.builtin.shell: >
+            crm configure colocation col_saphana_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }} 4000: g_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Started
+            msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Slave
+          register:                    sec_colocation
+          failed_when:                 sec_colocation.rc > 1
+
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure maintenance mode is disabled"
       ansible.builtin.command:         crm configure property maintenance-mode=false
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Wait for a few minutes for the cluster to stabilize"
       ansible.builtin.wait_for:
         timeout:                       120
-
-  when:                                inventory_hostname == primary_instance_name
 
 - name:                            "Backward Compatibility - Check required Database HA variables"
   ansible.builtin.set_fact:
