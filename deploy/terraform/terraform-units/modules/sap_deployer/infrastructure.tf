@@ -67,6 +67,8 @@ resource "azurerm_subnet" "subnet_mgmt" {
                                            )) : (
                                          null)
 
+  flow_timeout_in_minutes               = var.infrastructure.vnets.management.flow_timeout_in_minutes
+
 }
 
 data "azurerm_subnet" "subnet_mgmt" {

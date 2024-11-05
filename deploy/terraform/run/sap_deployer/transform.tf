@@ -51,6 +51,13 @@ locals {
                                                 ),
                                                 ""
                                               )
+                                              flow_timeout_in_minutes = try(
+                                                coalesce(
+                                                  var.management_network_flow_timeout_in_minutes,
+                                                  try(var.infrastructure.vnets.management.flow_timeout_in_minutes, null)
+                                                ),
+                                                null
+                                              )
 
                                               subnet_mgmt = {
                                                 name = try(
