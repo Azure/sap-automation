@@ -98,6 +98,13 @@ variable "network_flow_timeout_in_minutes"      {
                                                   }
                                                 }
 
+variable "network_enable_route_propagation"     {
+                                                  description = "Enable network route table propagation"
+                                                  type = bool
+                                                  nullable = false
+                                                  default = true
+                                                }
+
 variable "use_private_endpoint"                 {
                                                   description = "Boolean value indicating if private endpoint should be used for the deployment"
                                                   default     = false
