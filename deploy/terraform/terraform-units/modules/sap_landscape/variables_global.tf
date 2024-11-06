@@ -44,7 +44,7 @@ variable "infrastructure"                               {
                                                            }
 
                                                            validation {
-                                                             condition     = var.infrastructure.vnets.sap.flow_timeout_in_minutes == null || (var.infrastructure.vnets.sap.flow_timeout_in_minutes >= 4 && var.infrastructure.vnets.sap.flow_timeout_in_minutes <= 30)
+                                                             condition     = var.infrastructure.vnets.sap.flow_timeout_in_minutes == null ? true : (var.infrastructure.vnets.sap.flow_timeout_in_minutes >= 4 && var.infrastructure.vnets.sap.flow_timeout_in_minutes <= 30)
                                                              error_message = "The flow timeout in minutes must be between 4 and 30 if set."
                                                            }
                                                         }
