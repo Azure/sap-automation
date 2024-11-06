@@ -36,6 +36,7 @@ resource "azurerm_virtual_network" "vnet_sap" {
                                            azurerm_resource_group.resource_group[0].name
                                          )
   address_space                        = local.network_address_space
+  flow_timeout_in_minutes              = local.network_flow_timeout_in_minutes
   tags                                 = var.tags
 }
 

@@ -245,11 +245,11 @@ locals {
 
   vnets                                = {  }
   sap                                  = {
-                                           name          = var.network_name
-                                           logical_name  = var.network_logical_name
-
-                                           arm_id        = var.network_arm_id
-                                           address_space = tolist(split(",", var.network_address_space))
+                                           name                    = var.network_name
+                                           logical_name            = var.network_logical_name
+                                           flow_timeout_in_minutes = var.network_flow_timeout_in_minutes
+                                           arm_id                  = var.network_arm_id
+                                           address_space           = tolist(split(",", var.network_address_space))
                                          }
 
   subnet_admin                         = merge((
