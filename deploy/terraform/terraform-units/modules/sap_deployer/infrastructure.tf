@@ -58,7 +58,7 @@ resource "azurerm_subnet" "subnet_mgmt" {
   virtual_network_name                 = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
   address_prefixes                     = [local.management_subnet_prefix]
 
-  private_endpoint_network_policies     = !var.use_private_endpoint ? "Enabled" : "Disabled"
+  private_endpoint_network_policies    = !var.use_private_endpoint ? "Enabled" : "Disabled"
 
   service_endpoints                    = var.use_service_endpoint ? (
                                            var.use_webapp ? (
@@ -66,6 +66,8 @@ resource "azurerm_subnet" "subnet_mgmt" {
                                              ["Microsoft.Storage", "Microsoft.KeyVault"]
                                            )) : (
                                          null)
+
+  flow_timeout_in_minutes              = var.infrastructure.vnets.management.flow_timeout_in_minutes
 
 }
 

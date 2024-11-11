@@ -86,6 +86,24 @@ variable "network_arm_id"                       {
                                                   default     = ""
                                                 }
 
+variable "network_flow_timeout_in_minutes"      {
+                                                  description = "The flow timeout in minutes of the virtual network"
+                                                  type = number
+                                                  nullable = true
+                                                  default = null
+                                                  validation {
+                                                    condition     = var.network_flow_timeout_in_minutes == null ? true : (var.network_flow_timeout_in_minutes >= 4 && var.network_flow_timeout_in_minutes <= 30)
+                                                    error_message = "The flow timeout in minutes must be between 4 and 30 if set."
+                                                  }
+                                                }
+
+variable "network_enable_route_propagation"     {
+                                                  description = "Enable network route table propagation"
+                                                  type = bool
+                                                  nullable = false
+                                                  default = true
+                                                }
+
 variable "use_private_endpoint"                 {
                                                   description = "Boolean value indicating if private endpoint should be used for the deployment"
                                                   default     = false
