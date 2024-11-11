@@ -247,7 +247,8 @@ locals {
   sap                                  = {
                                            name          = var.network_name
                                            logical_name  = var.network_logical_name
-
+                                           flow_timeout_in_minutes = var.network_flow_timeout_in_minutes
+                                           enable_route_propagation = var.network_enable_route_propagation
                                            arm_id        = var.network_arm_id
                                            address_space = tolist(split(",", var.network_address_space))
                                          }

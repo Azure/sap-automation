@@ -96,6 +96,10 @@ locals {
 
   network_address_space                           = local.SAP_virtualnetwork_exists ? [""] : var.infrastructure.vnets.sap.address_space
 
+  network_flow_timeout_in_minutes                 = var.infrastructure.vnets.sap.flow_timeout_in_minutes
+
+  network_enable_route_propagation                = var.infrastructure.vnets.sap.enable_route_propagation
+
   // By default, Ansible ssh key for SID uses generated public key.
   // Provide sshkey.path_to_public_key and path_to_private_key overides it
 

@@ -36,6 +36,7 @@ resource "azurerm_virtual_network" "vnet_sap" {
                                            azurerm_resource_group.resource_group[0].name
                                          )
   address_space                        = local.network_address_space
+  flow_timeout_in_minutes              = local.network_flow_timeout_in_minutes
   tags                                 = var.tags
 }
 
@@ -146,6 +147,7 @@ resource "azurerm_route_table" "rt" {
                                            var.naming.separator,
                                            local.resource_suffixes.routetable
                                          )
+  bgp_route_propagation_enabled        = local.network_enable_route_propagation
   resource_group_name                  = local.SAP_virtualnetwork_exists ? (
                                            data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
                                            azurerm_virtual_network.vnet_sap[0].resource_group_name
