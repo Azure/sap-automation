@@ -245,6 +245,10 @@ custom_cluster_sap_mon_timeout:        ""
 
 use_fence_kdump:                       false
 
+# For new we default to false unless the user chooses to enable it, when using
+# the SAP HANA-SR ANGI (A New Generation Interface)
+use_hanasr_angi:                       false
+
 # ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:
   - { tier: "scs",                swap_size_mb: "4096"  }

@@ -15,16 +15,33 @@
 # -------------------------------------+---------------------------------------8
 #
 # <Comment Header>
-#
+# When working with Ansible 2.17+ the target system's minimum python version is
+# 3.7+
+# See for more details:
+# https://github.com/ansible/ansible/issues/82068#issuecomment-2123567229
+# https://stackoverflow.com/a/78993118
 # -------------------------------------+---------------------------------------8
 
 # ----------------------------------------
 # BEGIN
 # ----------------------------------------
+- name:                                "1.7 chrony: - Set Python version {{ distribution_id }}"
+  ansible.builtin.set_fact:
+    python_version:                    "python2"
+  when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
 
 # TODO: This should probably be moved into the 1.4-packages role
 - name:                                "1.7 chrony: - Collect facts about installed packages"
   ansible.builtin.package_facts:
+  vars:
+    ansible_python_interpreter:        "{{ python_version }}"
+
+- name:                                "1.7 chrony: - Show package facts"
+  ansible.builtin.debug:
+    var:                               ansible_facts.packages
+    verbosity:                         2
+  vars:
+    ansible_python_interpreter:        "{{ python_version }}"
 
 # The ntp package should have been uninstalled during the execution
 # of the 1.4-packages role.

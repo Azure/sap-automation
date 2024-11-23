@@ -4,16 +4,34 @@
 # Ref: https://documentation.suse.com/sle-ha/12-SP4/html/SLE-HA-install-quick/index.html
 # Ref: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability
 
+# Summary:
+# This Ansible target-role configures SLES Pacemaker clustering for SAP HANA high availability.
+# The code caters to both SAPHanaSR and SAPHanaSR-angi configurations.
+# It performs the following high level tasks:
+# - Configures the cluster STONITH settings and sets up SAP HANA Pacemaker
+# - Configures HANA Active/Active (read-enabled) system replication resources
+# - Configures Azure NetApp Files (ANF) specific resources when relevant
+
 - name:                                "5.5.4.1 HANA Pacemaker configuration - Ensure the Cluster STONITH is configured"
-  when:                                inventory_hostname == primary_instance_name
+  when:
+                                       - inventory_hostname == primary_instance_name
+                                       - not is_certified_for_hanasr_angi | default(false)
   block:
-    - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure maintenance mode is enabled"
-      ansible.builtin.command:         crm configure property maintenance-mode=true
+    - name:                            "Get the cluster maintenance mode status"
+      ansible.builtin.shell:           crm configure get_property maintenance-mode
+      register:                        get_status_maintenance_mode
+      changed_when:                    false
+      ignore_errors:                   true
+
+    - name:                            "Set the cluster maintenance mode if not already in maintenance mode"
+      ansible.builtin.shell:           crm configure property maintenance-mode=true
+      when: >-
+        get_status_maintenance_mode.stdout is not search('true') or
+        get_status_maintenance_mode.stdout is search('false')
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure CIB Bootstrap Options are set"
       when:
-                                       - (database_cluster_type == "ASD")   or
-                                         (database_cluster_type == "ISCSI")
+                                       - database_cluster_type in ["ASD", "ISCSI"]
       ansible.builtin.command: >
                                        crm configure property \$id="cib-bootstrap-options"
                                          stonith-enabled="true"
@@ -147,37 +165,37 @@
       ansible.builtin.shell:           crm configure property priority-fencing-delay=30
 
     # HANA active/active
-    - name: "5.5.4.1 HANA Cluster configuration - Configure HANA active/read-enabled system replication"
-      when: database_active_active | default(false)
+    - name:                            "5.5.4.1 HANA Cluster configuration - Configure HANA active/read-enabled system replication"
+      when:                            database_active_active | default(false)
       block:
         - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active Virtual IP resource is configured"
           ansible.builtin.shell: >
-            crm configure primitive rsc_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }} ocf:heartbeat:IPaddr2
-            meta target-role="Started"
-            operations \$id="rsc_sap2_{{ db_sid | upper }}_HDB{{ db_instance_number }}-operations"
-            op monitor interval="10s" timeout="20s"
-            params ip="{{ database_active_active_loadbalancer_ip }}"
+                                       crm configure primitive rsc_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }} ocf:heartbeat:IPaddr2
+                                       meta target-role="Started"
+                                       operations \$id="rsc_sap2_{{ db_sid | upper }}_HDB{{ db_instance_number }}-operations"
+                                       op monitor interval="10s" timeout="20s"
+                                       params ip="{{ database_active_active_loadbalancer_ip }}"
           register:                    sec_rsc
           failed_when:                 sec_rsc.rc > 1
 
         - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active azure-lb resource agent is configured"
           ansible.builtin.shell: >
-            crm configure primitive rsc_secnc_{{ db_sid | upper }}_HDB{{ db_instance_number }} azure-lb port=626{{ db_instance_number }}
-            op monitor timeout=20s interval=10
-            meta resource-stickiness=0
+                                       crm configure primitive rsc_secnc_{{ db_sid | upper }}_HDB{{ db_instance_number }} azure-lb port=626{{ db_instance_number }}
+                                       op monitor timeout=20s interval=10
+                                       meta resource-stickiness=0
           register:                    sec_netcat
           failed_when:                 sec_netcat.rc > 1
 
         - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active Group IP Address resource is configured"
           ansible.builtin.shell: >
-            crm configure group g_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }} rsc_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }} rsc_secnc_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       crm configure group g_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }} rsc_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }} rsc_secnc_{{ db_sid | upper }}_HDB{{ db_instance_number }}
           register:                    sec_group
           failed_when:                 sec_group.rc > 1
 
         - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active co-Location constraint is configured"
           ansible.builtin.shell: >
-            crm configure colocation col_saphana_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }} 4000: g_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Started
-            msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Slave
+                                       crm configure colocation col_saphana_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }} 4000: g_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Started
+                                       msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Slave
           register:                    sec_colocation
           failed_when:                 sec_colocation.rc > 1
 
@@ -188,21 +206,22 @@
       ansible.builtin.wait_for:
         timeout:                       120
 
-- name:                            "Backward Compatibility - Check required Database HA variables"
-  ansible.builtin.set_fact:
-    database_high_availability:    "{{ db_high_availability | default(false) }}"
+- name:                                "5.5.4.1 HANA Pacemaker configuration - Backward Compatibility - Check required Database HA variables"
   when:
-    - db_high_availability is defined
-    - database_high_availability is not defined
+                                       - db_high_availability is defined
+                                       - database_high_availability is not defined
+  ansible.builtin.set_fact:
+    database_high_availability:        "{{ db_high_availability | default(false) }}"
 
 - name:                                "5.5.4.1 HANA Pacemaker configuration - Configure the ANF specific resources when relevant"
   when:
-    - database_high_availability
-    - NFS_provider == "ANF"
-    - hana_data_mountpoint | default("") | length > 1 or
-      hana_log_mountpoint  | default("") | length > 1 or
-      hana_shared_mountpoint  | default("") | length > 1
-    - inventory_hostname == primary_instance_name
+                                       - database_high_availability
+                                       - NFS_provider == "ANF"
+                                       - not is_certified_for_hanasr_angi | default(false)
+                                       - hana_data_mountpoint | default("") | length > 1 or
+                                         hana_log_mountpoint  | default("") | length > 1 or
+                                         hana_shared_mountpoint  | default("") | length > 1
+                                       - inventory_hostname == primary_instance_name
   block:
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Stop HANA System on both nodes"
       become_user:                     "{{ db_sid | lower }}adm"
@@ -256,3 +275,212 @@
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Remove false positives"
       ansible.builtin.shell:           crm_resource -C
+
+# SAPHanaSR-angi configuration
+- name:                                "5.5.4.1 HANA Pacemaker configuration - Configure SAPHanaSR-angi resources"
+  when:
+                                       - is_certified_for_hanasr_angi
+                                       - inventory_hostname == primary_instance_name
+  block:
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Get the cluster maintenance mode status [SAPHanaSR-angi]"
+      ansible.builtin.shell:           crm configure get_property maintenance-mode
+      register:                        get_status_maintenance_mode
+      changed_when:                    false
+      ignore_errors:                   true
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Set the cluster maintenance mode if not already in maintenance mode [SAPHanaSR-angi]"
+      ansible.builtin.shell:           crm configure property maintenance-mode=true
+      when: >-
+                                       get_status_maintenance_mode.stdout is not search('true') or
+                                       get_status_maintenance_mode.stdout is search('false')
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Configure SAPHanaTopology resource [SAPHanaSR-angi]"
+      ansible.builtin.command: >
+                                       crm configure primitive rsc_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} ocf:suse:SAPHanaTopology
+                                       op monitor interval="50" timeout="600"
+                                       op start interval="0" timeout="600"
+                                       op stop interval="0" timeout="300"
+                                       params SID="{{ db_sid | upper }}" InstanceNumber="{{ db_instance_number }}"
+      register:                        sap_hana_topology
+      failed_when: >-
+                                       sap_hana_topology.rc != 0 and
+                                       not (sap_hana_topology.stderr is search("Cannot create primitive with ID.*Found existing primitive with same ID"))
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Configure SAPHanaTopology clone resource [SAPHanaSR-angi]"
+      ansible.builtin.command: >
+                                       crm configure clone cln_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       rsc_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       meta clone-node-max="1" interleave="true"
+      register:                        sap_hana_topology_cln
+      failed_when: >-
+                                       sap_hana_topology_cln.rc != 0 and
+                                       not (sap_hana_topology_cln.stderr is search("Cannot create clone with ID.*Found existing clone with same ID"))
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Configure SAPHanaController resource [SAPHanaSR-angi]"
+      ansible.builtin.command: >
+                                       crm configure primitive rsc_SAPHanaCon_{{ db_sid | upper }}_HDB{{ db_instance_number }} ocf:suse:SAPHanaController
+                                       op start interval="0" timeout="3600"
+                                       op stop interval="0" timeout="3600"
+                                       op promote interval="0" timeout="3600"
+                                       op demote interval="0" timeout="320"
+                                       op monitor interval="60" role="Promoted" timeout="700"
+                                       op monitor interval="61" role="Unpromoted" timeout="700"
+                                       params SID="{{ db_sid | upper }}" InstanceNumber="{{ db_instance_number }}" PREFER_SITE_TAKEOVER="true"
+                                       DUPLICATE_PRIMARY_TIMEOUT="7200" AUTOMATED_REGISTER="true"
+                                       meta priority=100
+      register:                        sap_hana_controller
+      failed_when: >-
+                                       sap_hana_controller.rc != 0 and
+                                       not (sap_hana_controller.stderr is search("Cannot create primitive with ID.*Found existing primitive with same ID"))
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Configure SAPHanaController clone resource [SAPHanaSR-angi]"
+      ansible.builtin.command: >
+                                       crm configure clone mst_SAPHanaCon_{{ db_sid | upper }}_HDB{{ db_instance_number }} rsc_SAPHanaCon_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       meta clone-node-max="1" interleave="true" promotable="true"
+      register:                        sap_hana_controller_cln
+      failed_when: >-
+                                       sap_hana_controller_cln.rc != 0 and
+                                       not (sap_hana_controller_cln.stderr is search("Cannot create clone with ID.*Found existing clone with same ID"))
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Configure SAPHanaFilesystem resource [SAPHanaSR-angi]"
+      ansible.builtin.command: >
+                                       crm configure primitive rsc_SAPHanaFil_{{ db_sid | upper }}_HDB{{ db_instance_number }} ocf:suse:SAPHanaFilesystem
+                                       op start interval="0" timeout="10"
+                                       op stop interval="0" timeout="20"
+                                       op monitor interval="120" timeout="120"
+                                       params SID="{{ db_sid | upper }}" InstanceNumber="{{ db_instance_number }}" ON_FAIL_ACTION="fence"
+      register:                        sap_hana_filesystem
+      failed_when: >-
+                                       sap_hana_filesystem.rc != 0 and
+                                       not (sap_hana_filesystem.stderr is search("Cannot create primitive with ID.*Found existing primitive with same ID"))
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Configure SAPHanaFilesystem clone resource [SAPHanaSR-angi]"
+      ansible.builtin.command: >
+                                       crm configure clone cln_SAPHanaFil_{{ db_sid | upper }}_HDB{{ db_instance_number }} rsc_SAPHanaFil_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       meta clone-node-max="1" interleave="true"
+      register:                        sap_hana_filesystem_cln
+      failed_when: >-
+                                       sap_hana_filesystem_cln.rc != 0 and
+                                       not (sap_hana_filesystem_cln.stderr is search("Cannot create clone with ID.*Found existing clone with same ID"))
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Configure Virtual IP resource [SAPHanaSR-angi]"
+      ansible.builtin.command: >
+                                       crm configure primitive rsc_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }} ocf:heartbeat:IPaddr2
+                                       meta target-role="Started"
+                                       op monitor interval="10s" timeout="20s"
+                                       params ip="{{ database_loadbalancer_ip }}"
+      register:                        sap_hana_rsc_ip
+      failed_when: >-
+                                       sap_hana_rsc_ip.rc != 0 and
+                                       not (sap_hana_rsc_ip.stderr is search("Cannot create primitive with ID.*Found existing primitive with same ID"))
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Configure azure-lb resource agent [SAPHanaSR-angi]"
+      ansible.builtin.command: >
+                                       crm configure primitive rsc_nc_{{ db_sid | upper }}_HDB{{ db_instance_number }} azure-lb port=625{{ db_instance_number }}
+                                       op monitor timeout=20s interval=10
+                                       meta resource-stickiness=0
+      register:                        sap_hana_nc_ip
+      failed_when: >-
+                                       sap_hana_nc_ip.rc != 0 and
+                                       not (sap_hana_nc_ip.stderr is search("Cannot create primitive with ID.*Found existing primitive with same ID"))
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Configure Group IP Address resource [SAPHanaSR-angi]"
+      ansible.builtin.command: >
+                                       crm configure group g_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       rsc_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       rsc_nc_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+      register:                        sap_hana_g_ip
+      failed_when: >-
+                                       sap_hana_g_ip.rc != 0 and
+                                       not (sap_hana_g_ip.stderr is search("Cannot create group with ID.*Found existing group with same ID"))
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Configure Co-Location constraint [SAPHanaSR-angi]"
+      ansible.builtin.command: >
+                                       crm configure colocation col_saphana_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }} 4000:
+                                       g_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Started
+                                       mst_SAPHanaCon_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Promoted
+      register:                        sap_hana_g_col_ip
+      failed_when: >-
+                                       sap_hana_g_col_ip.rc != 0 and
+                                       not (sap_hana_g_col_ip.stderr is search("Cannot create colocation with ID.*Found existing colocation with same ID"))
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Configure Resource order [SAPHanaSR-angi]"
+      ansible.builtin.command: >
+                                       crm configure order ord_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} Optional:
+                                       cln_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       mst_SAPHanaCon_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+      register:                        sap_hana_ord_ip
+      failed_when: >-
+                                       sap_hana_ord_ip.rc != 0 and
+                                       not (sap_hana_ord_ip.stderr is search("Cannot create order with ID.*Found existing order with same ID"))
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Clean up HANA resources if required [SAPHanaSR-angi]"
+      ansible.builtin.command: >
+                                       crm resource cleanup rsc_SAPHanaCon_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Set priority fencing delay [SAPHanaSR-angi]"
+      ansible.builtin.command: >
+                                       crm configure property priority-fencing-delay=30
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Disable maintenance mode [SAPHanaSR-angi]"
+      ansible.builtin.command: >
+                                       crm configure property maintenance-mode=false
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Set resource defaults [SAPHanaSR-angi]"
+      ansible.builtin.command: >
+                                       crm configure rsc_defaults resource-stickiness=1000 migration-threshold=5000
+
+    # HANA Active/Active (Read-Enabled) Configuration
+    - name:                            "5.5.4.1 HANA Cluster configuration - Configure HANA active/read-enabled system replication"
+      when:                            database_active_active | default(false)
+      block:
+        - name:                            "Get the cluster maintenance mode status"
+          ansible.builtin.shell:           crm configure get_property maintenance-mode
+          register:                        get_status_maintenance_mode
+          changed_when:                    false
+          ignore_errors:                   true
+
+        - name:                            "Set the cluster maintenance mode if not already in maintenance mode"
+          ansible.builtin.shell:           crm configure property maintenance-mode=true
+          when: >-
+            get_status_maintenance_mode.stdout is not search('true') or
+            get_status_maintenance_mode.stdout is search('false')
+
+        - name:                        "5.5.4.1 HANA Cluster configuration - Configure the Active/Active Virtual IP resource"
+          ansible.builtin.shell: |
+                                       crm configure primitive rsc_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }} ocf:heartbeat:IPaddr2 \
+                                       op monitor interval="10s" timeout="20s" \
+                                       params ip="{{ database_active_active_loadbalancer_ip }}"
+          register:                    sec_rsc
+          failed_when:                 sec_rsc.rc > 1
+
+        - name:                        "5.5.4.1 HANA Cluster configuration - Configure the Active/Active azure-lb resource agent"
+          ansible.builtin.shell: |
+                                       crm configure primitive rsc_secnc_{{ db_sid | upper }}_HDB{{ db_instance_number }} azure-lb port=626{{ db_instance_number }} \
+                                       op monitor timeout=20s interval=10 \
+                                       meta resource-stickiness=0
+          register:                    sec_netcat
+          failed_when:                 sec_netcat.rc > 1
+
+        - name:                        "5.5.4.1 HANA Cluster configuration - Configure the Active/Active Group IP Address resource"
+          ansible.builtin.shell: |
+                                       crm configure group g_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
+                                       rsc_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
+                                       rsc_secnc_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+          register:                    sec_group
+          failed_when:                 sec_group.rc > 1
+
+        - name:                        "5.5.4.1 HANA Cluster configuration - Configure the Active/Active Co-Location constraint"
+          ansible.builtin.shell: |
+                                       crm configure colocation col_saphana_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }} 4000: \
+                                       g_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Started \
+                                       mst_SAPHanaCon_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Unpromoted
+          register:                    sec_colocation
+          failed_when:                 sec_colocation.rc > 1
+
+        - name:                        "5.5.4.1 HANA Cluster configuration - Disable maintenance mode"
+          ansible.builtin.command:     crm configure property maintenance-mode=false
+
+        - name:                        "5.5.4.1 HANA Cluster configuration - Wait for a few minutes for the cluster to stabilize"
+          ansible.builtin.wait_for:
+            timeout:                   120

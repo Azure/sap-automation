@@ -6,16 +6,22 @@
 # Ref: https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-netapp-files-suse#create-file-system-resources
 
 - name:                            "Backward Compatibility - Check required Database HA variables"
-  ansible.builtin.set_fact:
-    database_high_availability:    "{{ db_high_availability | default(false) }}"
   when:
     - db_high_availability is defined
     - database_high_availability is not defined
+  ansible.builtin.set_fact:
+    database_high_availability:    "{{ db_high_availability | default(false) }}"
 
+# When using SAPHanaSR-angi package and resource agent, it adds a new agent
+# SAPHanaFilesystem to monitor read/write access to /hana/shared/SID.
+# Filesystem /hana/shared is already mounted with entries in /etc/fstab on each host.
+# SAPHanaFilesystem and Pacemaker doesn't mount the filesystem for HANA and doesn't
+# need any additional mount or subdirectory pre-created.
 - name:                                "Configure the ANF specific resources when relevant"
   when:
     - database_high_availability
     - NFS_provider == "ANF"
+    - not is_certified_for_hanasr_angi | default(false)
     - hana_data_mountpoint is defined
     - hana_data_mountpoint | length > 1
     - hana_log_mountpoint is defined
