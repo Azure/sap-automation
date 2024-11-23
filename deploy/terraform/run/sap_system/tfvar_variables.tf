@@ -424,6 +424,12 @@ variable "use_fence_kdump_lun_scs"              {
                                                   default     = 4
                                                 }
 
+variable "use_sles_saphanasr_angi"              {
+                                                  description = "If true, the SAP HANA SR cluster will be configured with SAP HANA SR - An Next Generation Interface"
+                                                  type        = bool
+                                                  default     = false
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  Database tier variables                                                              #
