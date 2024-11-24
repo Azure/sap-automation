@@ -62,6 +62,7 @@ variable "database_server_secondary_ips"        { description = "List of seconda
 variable "database_shared_disks"                { description = "Database Azure Shared Disk" }
 variable "database_server_vm_names"             { description = "List of VM names for the database servers" }
 variable "is_use_fence_kdump"                   { description = "Use fence kdump for optional stonith configuration on RHEL" }
+
 variable "db_sid"                               { description = "Database SID" }
 variable "database_subnet_netmask"              { description = "netmask for the database subnet" }
 variable "disks"                                { description = "List of disks" }

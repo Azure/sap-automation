@@ -183,15 +183,8 @@
     - name:                            "1.17 Generic Pacemaker - Remove false positives"
       ansible.builtin.shell:           crm_resource -C
 
-    - name:                            "1.17 Generic Pacemaker - Enable Stonith"
-      ansible.builtin.shell: |
-                                       crm configure property stonith-enabled=true
-                                       crm configure property concurrent-fencing=true
-      register:                        crm_configure_result
-      failed_when:                     crm_configure_result.rc > 1
-
     - name:                            "1.17 Generic Pacemaker - Create Azure Fencing Agent"
-      ansible.builtin.shell:   >
+      ansible.builtin.shell: |
                                        crm configure primitive rsc_st_azure stonith:fence_azure_arm params \
                                        subscriptionId="{{ fencing_spn_subscription_id }}" \
                                        resourceGroup="{{ resource_group_name }}" \
@@ -207,10 +200,11 @@
                                        op monitor interval=3600 timeout=120
       when:
         - not use_msi_for_clusters or distribution_full_id in ["sles_sap12.4"]
+      register:                        crm_configure_result
       failed_when:                     crm_configure_result.rc > 1
 
     - name:                            "1.17 Generic Pacemaker - Create Azure Fencing Agent (MSI)"
-      ansible.builtin.shell:   >
+      ansible.builtin.shell: |
                                        crm configure primitive rsc_st_azure stonith:fence_azure_arm params \
                                        subscriptionId="{{ fencing_spn_subscription_id }}" \
                                        resourceGroup="{{ resource_group_name }}" \
@@ -222,6 +216,7 @@
                                        pcmk_delay_max=15 \
                                        pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}" \
                                        op monitor interval=3600 timeout=120
+      register:                        crm_configure_result
       failed_when:                     crm_configure_result.rc > 1
       when:
         - use_msi_for_clusters
@@ -231,6 +226,14 @@
     - name:                            "1.17 Generic Pacemaker - Stonith Timeout Property"
       become:                          true
       ansible.builtin.shell:           crm configure property stonith-timeout=900
+      register:                        crm_configure_result
+      failed_when:                     crm_configure_result.rc > 1
+
+    - name:                            "1.17 Generic Pacemaker - Enable Stonith"
+      ansible.builtin.shell: |
+                                       crm configure property stonith-enabled=true;
+                                       crm configure property concurrent-fencing=true
+      register:                        crm_configure_result
       failed_when:                     crm_configure_result.rc > 1
 
   when:
@@ -293,14 +296,14 @@
           ansible.builtin.shell:                 crm configure delete stonith-sbd
 
         - name:                                  "1.17 Generic Pacemaker - Recreate Stonith SBD in cluster"
-          ansible.builtin.shell: >-
+          ansible.builtin.shell: |
                                                  crm configure primitive stonith-sbd stonith:external/sbd \
                                                    params pcmk_delay_max="15" \
                                                    op monitor interval="600" timeout="15"
 
     - name:                                      "1.17 Generic Pacemaker - Ensure Stonith SBD is configured in cluster"
       when:                                      stonith_sbd_configured.rc != 0
-      ansible.builtin.shell: >-
+      ansible.builtin.shell: |
                                                  crm configure primitive stonith-sbd stonith:external/sbd \
                                                    params pcmk_delay_max="15" \
                                                    op monitor interval="600" timeout="15"
@@ -379,7 +382,7 @@
       ansible.builtin.shell:           crm configure property node-health-strategy=custom
 
     - name:                            "1.17 Generic Pacemaker - Set the pacemaker cluster node health constraint"
-      ansible.builtin.shell: >-
+      ansible.builtin.shell: |
                                        crm configure location loc_azure_health \
                                        /'!health-.*'/ rule '#health-azure': defined '#uname'
 
@@ -390,7 +393,7 @@
       ansible.builtin.shell:           crm_attribute --node {{ secondary_instance_name }} --name '#health-azure' --update 0
 
     - name:                            "1.17 Generic Pacemaker - Ensure Pacemaker resources for the Azure agent is created"
-      ansible.builtin.shell: >-
+      ansible.builtin.shell: |
                                        crm configure primitive health-azure-events ocf:heartbeat:azure-events-az \
                                        meta allow-unhealthy-nodes=true failure-timeout=120s \
                                        op start start-delay=90s \

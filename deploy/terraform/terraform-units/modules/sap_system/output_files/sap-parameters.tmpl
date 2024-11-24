@@ -137,6 +137,9 @@ database_active_active_loadbalancer_ip: ${database_active_active_loadbalancer_ip
 # use_simple_mount defines if simple mount is to be used
 use_simple_mount:              ${is_use_simple_mount}
 
+# use_hanasr_angi defines if the SAP HANA SR next generation interface is to be used
+use_hanasr_angi:               ${is_use_sles_hanasr_angi}
+
 # use_fence_kdump defines if optional kdump stonith device needs to be added for RHEL clusters.
 use_fence_kdump:               ${is_use_fence_kdump}
 

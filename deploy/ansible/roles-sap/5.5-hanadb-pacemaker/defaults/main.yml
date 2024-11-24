@@ -1,7 +1,18 @@
 ---
 
-iscsi_object: iqn.2006-04
+distro_name:                           "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+distribution_id:                       "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+distribution_full_id:                  "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
 
-iscsi_port: 3260
+iscsi_object:                          iqn.2006-04
+
+iscsi_port:                            3260
 
 sapcontrol_command:                    "sapcontrol -nr {{ db_instance_number }}"
+
+# minimum version numbers supported by SAPHanaSR-angi
+min_hana_major_version:                2
+min_hana_minor_version:                0
+min_hana_sps_level:                    50
+min_saphanaSR_version:                 "0.153"
+min_saphanaSR_version_suschk:          "0.161.1_BF"

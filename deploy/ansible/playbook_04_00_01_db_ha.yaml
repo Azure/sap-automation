@@ -6,7 +6,7 @@
 # +------------------------------------4--------------------------------------*/
 
 - hosts:                               localhost
-  name:                                Get SAP Password from KeyVault
+  name:                                "Get SAP Password from KeyVault"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
@@ -19,19 +19,20 @@
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                            Initialization
+    - name:                            "Initialization"
+      when:                            database_high_availability
       block:
 
-        - name:                        Create Progress folder
+        - name:                        "Create Progress folder"
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress"
             state:                     directory
             mode:                      0755
 
-        - name:                        Remove db-ha-done flag
+        - name:                        "Remove db-ha-done flag"
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress/db-ha-done"
-            state:                      absent
+            state:                     absent
 
         - name:                        "Ensure passlib is installed on the controller"
           become:                      true
@@ -54,46 +55,46 @@
         #   ansible.builtin.set_fact:
         #     tier:                         fencing
 
-        - name:                                 "Run the misc/password role"
+        - name:                        "Run the misc/password role"
           ansible.builtin.include_role:
-            name:                               roles-misc/0.1-passwords
-            public:                             true
+            name:                      roles-misc/0.1-passwords
+            public:                    true
           tags:
-                                                - 0.1-passwords
+                                       - 0.1-passwords
 
-        - name:                                 "OS configuration playbook: - Read password"
+        - name:                        "OS configuration playbook: - Read password"
           ansible.builtin.include_role:
-            name:                               roles-misc/0.1-passwords
-            tasks_from:                         windows.yaml
-            public:                             true
-          when:                                 platform == "SQLSERVER"
+            name:                      roles-misc/0.1-passwords
+            tasks_from:                windows.yaml
+            public:                    true
+          when:                        platform == "SQLSERVER"
           tags:
-                                                - 0.1-win-passwords
+                                       - 0.1-win-passwords
 
-        - name:                                 "WinCluster-Create: Get witness account details"
+        - name:                        "WinCluster-Create: Get witness account details"
           ansible.builtin.include_role:
-            name:                               roles-misc/0.2-kv-secrets
-            tasks_from:                         wincluster-witness.yaml
-            public:                             true
+            name:                      roles-misc/0.2-kv-secrets
+            tasks_from:                wincluster-witness.yaml
+            public:                    true
           vars:
-            operation:                          fencing
+            operation:                 fencing
           when:
-                                                - platform | upper == "SQLSERVER"
+                                       - platform | upper == "SQLSERVER"
           tags:
-                                                - 0.2-wincluster-witness
+                                       - 0.2-wincluster-witness
 
-        - name:                                 Run the keyvault role
+        - name:                        "Run the keyvault role"
           ansible.builtin.include_role:
-            name:                               roles-misc/0.2-kv-secrets
+            name:                      roles-misc/0.2-kv-secrets
           vars:
-            operation:                          fencing
+            operation:                 fencing
           tags:
-                                                - kv-secrets
+                                       - kv-secrets
 
-      when:                                     database_high_availability
+
 # +------------------------------------4--------------------------------------*/
 
-- hosts:                              "{{ sap_sid | upper }}_DB"
+- hosts:                               "{{ sap_sid | upper }}_DB"
   name:                                HANA DB HA Configuration
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true                                    # Important to collect hostvars information
@@ -107,11 +108,12 @@
   #
   # -------------------------------------+---------------------------------------8
     - name:                            "Backward Compatibility - Check required Database HA variables"
+      when:
+                                       - db_high_availability is defined
+                                       - database_high_availability is not defined
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
-      when:
-        - db_high_availability is defined
-        - database_high_availability is not defined
+
 
     - name:                            "0.0 Validations: - Gather facts for first time"
       ansible.builtin.setup:
@@ -120,6 +122,9 @@
 
     - name:                            "HANA HA Setup"
       become:                          true
+      when:
+                                       - database_high_availability
+                                       - platform == 'HANA'
       block:
         - name:                        "Install HANA System Replication"
           block:
@@ -129,7 +134,7 @@
                 use_proxy:             false
                 headers:
                   Metadata:            true
-              register: azmetadata
+              register:                azmetadata
 
             - name:                    "Show IMDS results"
               ansible.builtin.debug:
@@ -154,9 +159,9 @@
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.1-hdb-hsr
               when:
-                - node_tier == 'hana'
+                                       - node_tier == 'hana'
               tags:
-                - 4.0.1-hdb-hsr
+                                       - 4.0.1-hdb-hsr
 
         - name:                        "Install HANA Pacemaker resources"
           block:
@@ -173,35 +178,32 @@
                 fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{% endif %}"
                 fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{% endif %}"
               tags:
-                - always
+                                       - always
 
             - name:                    "HANA HA Setup: - Ensure the needed services are started"
               ansible.builtin.include_role:
                 name:                  roles-os/1.16-services
               tags:
-                - 1.16-services
+                                       - 1.16-services
 
             - name:                    "HANA HA Setup: - run the Pacemaker role"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.5-hanadb-pacemaker
               when:
-                - database_high_availability
-                - not database_scale_out
+                                       - database_high_availability
+                                       - not database_scale_out
               tags:
-                - 5.5-hanadb-pacemaker
+                                       - 5.5-hanadb-pacemaker
 
             - name:                    "HANA HA Setup: - run the Pacemaker role for scale out"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.8-hanadb-scaleout-pacemaker
               when:
-                - database_high_availability
-                - database_scale_out
+                                       - database_high_availability
+                                       - database_scale_out
               tags:
-                - 5.8-hanadb-scaleout-pacemaker
+                                       - 5.8-hanadb-scaleout-pacemaker
 
-      when:
-        - database_high_availability
-        - platform == 'HANA'
 
 # -------------------------------------+---------------------------------------8
 #

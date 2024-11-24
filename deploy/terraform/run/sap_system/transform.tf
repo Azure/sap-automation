@@ -109,6 +109,15 @@ locals {
                                            scale_out                       = var.database_HANA_use_scaleout_scenario
                                            stand_by_node_count             = var.stand_by_node_count
                                            zones                           = var.database_vm_zones
+                                           database_hana_use_saphanasr_angi =  upper(var.database_platform) == "HANA" ? (
+                                                                                 var.database_high_availability ? (
+                                                                                     var.use_sles_saphanasr_angi
+                                                                                     ) : (
+                                                                                       false
+                                                                                     )
+                                                                                 ) : (
+                                                                                   false
+                                                                                 )
                                          }
 
   db_os                             = {

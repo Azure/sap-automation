@@ -159,7 +159,7 @@ if [ true == "$use_deployer" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo "#                    Directory does not exist:  "${deployer_statefile_foldername}" #"
+    echo "#                    Directory does not exist:  ${deployer_statefile_foldername} #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     exit

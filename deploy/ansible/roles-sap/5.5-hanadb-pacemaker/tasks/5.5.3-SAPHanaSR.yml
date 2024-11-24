@@ -9,86 +9,131 @@
 # +------------------------------------4--------------------------------------*/
 # Note: Refer to https://access.redhat.com/articles/3004101 for RHEL hook installation for HSR ( scale up and scale out ) setups
 
-- name:                                HANA 2.0 only - Implement the Python system replication hook SAPHanaSR
+- name:                                "5.5 HANA Pacemaker - Display version numbers and package facts"
+  ansible.builtin.debug:
+    msg: |
+                                       - "hana_major_version:                 {{ hana_major_version }}"
+                                       - "hana_minor_version:                 {{ hana_minor_version }}"
+                                       - "hana_sps_level:                     {{ hana_sps_level }}"
+                                       - "saphanaSR_version:                  {{ saphanaSR_version }}"
+                                       - "saphanaSR_angi_version:             {{ saphanaSR_angi_version }}"
+
+- name:                                "5.5 HANA Pacemaker - Can the SLES distribution be used with SAPHanaSR-angi"
   when:
-    - hdb_version[0:2] == "2."
+                                       - ansible_os_family | upper == "SUSE"
+                                       - use_hanasr_angi | default(false)
+  ansible.builtin.set_fact:
+    is_certified_for_hanasr_angi:      "{{ distribution_full_id in ['sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6'] | default(false) }}"
+
+- name:                                "5.5 HANA Pacemaker - Check SAP HANA version requirements"
+  ansible.builtin.assert:
+    that:
+                                       - "hana_major_version is version(min_hana_major_version, '>=')"
+                                       - "hana_sps_level is version(min_hana_sps_level, '>=')"
+    success_msg: |
+                                       HANA version {{ hana_major_version }}.{{ hana_minor_version }} SPS{{ hana_sps_level }}
+                                       meets minimum requirement of {{ min_hana_major_version }}.{{ min_hana_minor_version }} SPS{{ min_hana_sps_level }}
+
+    fail_msg: |
+                                       HANA version {{ hana_major_version }}.{{ hana_minor_version }} SPS{{ hana_sps_level }}
+                                       does not meet minimum requirement of {{ min_hana_major_version }}.{{ min_hana_minor_version }} SPS{{ min_hana_sps_level }}
+
+  register: version_check
+
+- name:                                "5.5 HANA Pacemaker - Set fact for SAP HANA version status"
+  ansible.builtin.set_fact:
+    hana_version_ok:                   "{{ version_check is success }}"
+
+# For testing/debugging
+- name:                                "5.5 HANA Pacemaker - Display parsed SAP HANA version information"
+  ansible.builtin.debug:
+    msg: |
+                                       Parsed version details:
+                                         - Major version: {{ hana_major_version }}
+                                         - SPS level: {{ hana_sps_level }}
+                                         - Meets requirements: {{ hana_version_ok }}
+
+# Basic SAPHanaSR Python Hook Check
+- name:                                "5.5 HANA Pacemaker - Validate basic SAPHanaSR Python hook requirements"
+  when:
+                                       - hana_version_ok
+                                       - not is_certified_for_hanasr_angi | default(false)
+  ansible.builtin.assert:
+    that:
+                                       - "hana_major_version is version(min_hana_major_version, '>=')"
+                                       - "saphanaSR_version is version(min_saphanaSR_version, '>=')"
+    success_msg:                       "Basic SAPHanaSR Python hook requirements met"
+    fail_msg: |
+                                       Basic SAPHanaSR Python hook requirements not met:
+                                         - Required: HANA 2.0 or higher (Current: {{ hana_major_version }}.0)
+                                         - Required: SAPHanaSR {{ min_saphanaSR_version }} or higher (Current: {{ saphanaSR_version }})
+  register:                            basic_hook_check
+
+# susChkSrv Python Hook Check
+- name:                                "5.5 HANA Pacemaker - Validate susChkSrv Python hook requirements"
+  when:
+                                       - hana_version_ok
+                                       - not is_certified_for_hanasr_angi | default(false)
+                                       - ansible_os_family | upper == 'SUSE'
+  ansible.builtin.assert:
+    that:
+                                       - "hana_major_version is version(min_hana_major_version, '>=')"
+                                       - "hana_sps_level is version(min_hana_sps_level, '>=')"
+                                       - "saphanaSR_version is version(min_saphanaSR_version_suschk, '>=')"
+    success_msg:                       "susChkSrv Python hook requirements met"
+    fail_msg: |
+                                       susChkSrv Python hook requirements not met:
+                                       - Required: HANA 2.0 SPS 05 or higher (Current: {{ hana_major_version }}.0 SPS {{ hana_sps_level }})
+                                       - Required: SAPHanaSR {{ min_saphanaSR_version_suschk }} or higher (Current: {{ saphanaSR_version }})
+  register:                            suschk_hook_check
+
+# SAPHanaSR-angi Python Hook Check
+# currently we do not have any version requirements for SAPHanaSR-angi
+- name:                                "5.5 HANA Pacemaker - Validate SAPHanaSR-angi Python hook requirements"
+  when:
+                                       - ansible_os_family | upper == 'SUSE'
+                                       - is_certified_for_hanasr_angi | default(false)
+                                       - use_hanasr_angi | default(false)
+  ansible.builtin.assert:
+    that:
+                                       - "hana_major_version is version(min_hana_major_version, '>=')"
+                                       - "hana_sps_level is version(min_hana_sps_level, '>=')"
+                                       - "saphanaSR_angi_version is version('0.0.0', '>')"
+    success_msg:                       "SAPHanaSR-angi Python hook requirements met"
+    fail_msg: |
+                                       SAPHanaSR-angi Python hook requirements not met:
+                                         - Required: HANA 2.0 SPS 05 or higher (Current: {{ hana_major_version }}.0 SPS {{ hana_sps_level }})
+                                         - Required: SLES for SAP Applications 15 SP4, SP5, or SP6 (Current: {{ distribution_full_id }})
+                                         - Required: SAPHanaSR-angi, should be installed
+  register:                            angi_hook_check
+
+
+- name:                                "HANA 2.0 only - Implement the classic Python system replication hook SAPHanaSR"
+  when:
+                                       - hana_version_ok
+                                       - basic_hook_check is success
+                                       - not is_certified_for_hanasr_angi | default(false)
   block:
+    # Print validation summary report for debug
+    - name:                            "5.5 HANA Pacemaker - Display validation summary"
+      ansible.builtin.debug:
+        msg: |
+                                       HANA and SAPHanaSR Hook Requirements Validation Summary:
 
-    - name:                            Ensure a list of package version is available for checking the SAPHanaSR package version
-      ansible.builtin.package_facts:
+                                       Current System State:
+                                         - HANA Version:                  {{ hana_major_version }}.0 SPS {{ hana_sps_level }}
+                                         - SAPHanaSR Version:             {{ saphanaSR_version }}
 
-    # - name:                            Verify that package SAPHanaSR is at least version 0.153
-    #   ansible.builtin.package:
-    #     name:                          SAPHanaSR>=0.153
-    #     state:                         present
-    #   when:
-    #     - ansible_os_family | upper == "SUSE"
-    #     - ansible_facts.packages['SAPHanaSR'] is defined
-    #     - (ansible_facts.packages['SAPHanaSR'][0].version | float) < 0.153
+                                       Validation Results:
+                                         1. Basic SAPHanaSR Python Hook:  {{ 'PASSED' if basic_hook_check is success else 'FAILED' }}
+                                         2. susChkSrv Python Hook:        {{ 'PASSED' if suschk_hook_check is success else 'FAILED' }}
 
-    - name:                            "Ensure SAPHanaSR package is installed"
-      ansible.builtin.package:
-        name:                          SAPHanaSR
-        state:                         present
-      when:
-        - ansible_os_family | upper == "SUSE"
-        - ansible_facts.packages['SAPHanaSR'] is not defined
-
-    - name:                            "Verify SAPHanaSR package version is greater than 0.153"
-      ansible.builtin.assert:
-        that:
-          - ansible_facts.packages['SAPHanaSR'][0].version is version('0.153', '>=')
-        fail_msg:                      "SAPHanaSR version is not greater than 0.153"
-        success_msg:                   "SAPHanaSR version is greater than 0.153"
-      register:                        saphanasr_version
-      when:
-        - ansible_os_family | upper == "SUSE"
-        - ansible_facts.packages['SAPHanaSR'] is defined
-
-    - name:                            "HANA HSR: - Check HANA DB Version and register"
-      become_user:                     "{{ db_sid | lower }}adm"
-      become:                          true
-      ansible.builtin.command:         /hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/HDB version
-      register:                        hdb_version_output
-      changed_when:                    false
-
-    - name:                            "Extract SAP HANA version number"
-      ansible.builtin.set_fact:
-        hana_version_str: "{{ hdb_version_output.stdout | regex_search('version:\\s+([\\d\\.]+)', '\\1') | first }}"
-
-    - name:                            "Assert SAP HANA version is greater than SAP HANA 2.0 SP5"
-      ansible.builtin.assert:
-        that:
-          - hana_version_str is version('2.00.050', '>=')
-        fail_msg:                      "Installed HANA version is not greater than SAP HANA 2.0 SP5"
-        success_msg:                   "Installed HANA version is greater than SAP HANA 2.0 SP5"
-      register:                        hana_sp_version
-      when:
-        - ansible_os_family | upper == "SUSE"
-        - hdb_version_output.stdout is search("version")
-
-    - name:                            "Set fact (is_susChkSrv_ready) to determine if susChkSrv is ready to be configured"
-      ansible.builtin.set_fact:
-        is_susChkSrv_ready:            true
-      when:
-        - ansible_os_family | upper == "SUSE"
-        - hdb_version_output.stdout is search("version")
-        - saphanasr_version is defined
-        - saphanasr_version is success
-        - hana_sp_version is defined
-        - hana_sp_version is success
-
-    - name:                            "Set fact that susChkSrv is ready to be configured"
-      ansible.builtin.set_fact:
-        configure_susChkSrv:           "{{ (is_susChkSrv_ready is defined and is_susChkSrv_ready) | ternary(true, false) }}"
-
-
-    - name:                            Check if "myHooks" file exists in /hana/shared directory
+    - name:                            '5.5 HANA Pacemaker - Check if "myHooks" file exists in /hana/shared directory'
       ansible.builtin.stat:
         path:                          /hana/shared/myHooks
       register:                        my_hooks_stat
 
-    - name:                            Stop HANA System on both nodes
+    - name:                            "5.5 HANA Pacemaker - Stop HANA System on both nodes"
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
       ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem"
@@ -96,11 +141,14 @@
       changed_when:                    false
       register:                        hana_system_stopped
 
-    - name:                            Wait 2 minutes for SAP system to stop
+    - name:                            "5.5 HANA Pacemaker - Wait 2 minutes for SAP system to stop"
       ansible.builtin.pause:
         seconds:                       120
 
-    - name:                            copy SAPHanaSR.py (SUSE)
+    - name:                            "5.5 HANA Pacemaker - copy SAPHanaSR.py (SUSE)"
+      when:
+        - ansible_os_family | upper == "SUSE"
+        - not my_hooks_stat.stat.exists
       ansible.builtin.copy:
         src:                           /usr/share/SAPHanaSR/SAPHanaSR.py
         dest:                          /hana/shared/myHooks/
@@ -108,11 +156,12 @@
         owner:                         root
         group:                         root      # TODO - check the correct group once the python hook package is installed
         mode:                          '0644'
-      when:
-        - ansible_os_family | upper == "SUSE"
-        - not my_hooks_stat.stat.exists
 
-    - name:                            copy SAPHanaSR.py (RHEL)
+
+    - name:                            "5.5 HANA Pacemaker - copy SAPHanaSR.py (RHEL)"
+      when:
+        - ansible_os_family | upper == "REDHAT"
+        - not my_hooks_stat.stat.exists
       ansible.builtin.copy:
         src:                           /usr/share/SAPHanaSR/srHook/SAPHanaSR.py
         dest:                          /hana/shared/myHooks/
@@ -120,11 +169,8 @@
         owner:                         root
         group:                         root      # TODO - check the correct group once the python hook package is installed
         mode:                          '0644'
-      when:
-        - ansible_os_family | upper == "REDHAT"
-        - not my_hooks_stat.stat.exists
 
-    - name:                            Change ownership of the directory
+    - name:                            "5.5 HANA Pacemaker - Change ownership of the directory"
       ansible.builtin.file:
         path:                          /hana/shared/myHooks
         state:                         directory
@@ -132,7 +178,9 @@
         owner:                         "{{ db_sid | lower }}adm"
         group:                         sapsys
 
-    - name:                            Adjust global.ini on each cluster node
+    - name:                            "5.5 HANA Pacemaker - Adjust global.ini on each cluster node (RHEL)"
+      when:
+        - ansible_os_family | upper == "REDHAT"
       ansible.builtin.blockinfile:
         path:                          /hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini
         block: |
@@ -141,33 +189,56 @@
                                        path = /hana/shared/myHooks
                                        execution_order = 1
 
+                                       [ha_dr_provider_chksrv]
+                                       provider = ChkSrv
+                                       path = /hana/shared/myHooks
+                                       execution_order = 2
+                                       action_on_lost = kill
+
                                        [trace]
                                        ha_dr_saphanasr = info
-      when:
-        - not configure_susChkSrv
+                                       ha_dr_chksrv = info
 
-    - name:                            Adjust global.ini on each cluster node
+    - name:                            "5.5 HANA Pacemaker - Adjust global.ini on each cluster node (SLES)"
+      when:
+        - suschk_hook_check is success
+        - ansible_os_family | upper == "SUSE"
       ansible.builtin.blockinfile:
         path:                          /hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini
         block: |
                                        [ha_dr_provider_SAPHanaSR]
                                        provider = SAPHanaSR
-                                       path = /usr/share/SAPHanaSR
+                                       path = /hana/shared/myHooks
                                        execution_order = 1
 
                                        [ha_dr_provider_suschksrv]
                                        provider = susChkSrv
-                                       path = /usr/share/SAPHanaSR
+                                       path = /hana/shared/myHooks
                                        execution_order = 3
                                        action_on_lost = fence
 
                                        [trace]
                                        ha_dr_saphanasr = info
-      when:
-        - configure_susChkSrv
-        - ansible_os_family | upper == "SUSE"
 
-    - name:                            Start HANA System on both nodes
+    - name:                            "5.5 HANA Pacemaker - Create sudoers file 20-saphana for SLES"
+      when:                            ansible_os_family | upper == "SUSE"
+      ansible.builtin.template:
+        src:                           "20-saphana-suse.j2"
+        dest:                          "/etc/sudoers.d/20-saphana"
+        mode:                          "0440"
+        owner:                         root
+        group:                         root
+
+    - name:                            "5.5 HANA Pacemaker - Create sudoers file 20-saphana for RHEL"
+      when:                            ansible_os_family | upper == "REDHAT"
+      ansible.builtin.template:
+        src:                           "20-saphana-rhel.j2"
+        dest:                          "/etc/sudoers.d/20-saphana"
+        mode:                          "0440"
+        owner:                         root
+        group:                         root
+
+    - name:                            "5.5 HANA Pacemaker - Start HANA System on both nodes"
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
       ansible.builtin.command:         "{{ sapcontrol_command }} -function StartSystem"
@@ -175,20 +246,21 @@
       changed_when:                    false
       register:                        hana_system_started
 
-    - name:                           Start HANA Database
+    - name:                           "5.5 HANA Pacemaker - Start HANA Database"
       ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
     # old command:
     #     awk '/ha_dr_SAPHanaSR.*crm_attribute/ { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
     # Verify that the hook script is working as expected.
-    - name:                            Pause to give HANA replication time to stabilize
+    - name:                            "5.5 HANA Pacemaker - Pause to give HANA replication time to stabilize"
       ansible.builtin.pause:
         seconds:                       "{{ hsr_status_report_wait_in_s }}"
 
-    - name:                            Verify that the hook script is working as expected"
+    - name:                            "5.5 HANA Pacemaker - Verify that the hook script is working as expected"
       when:                            inventory_hostname == primary_instance_name
       block:
-        - name:                        "Verify the hook Installation"
+        - name:                        "5.5 HANA Pacemaker - Verify the hook Installation"
+          when:                        inventory_hostname == primary_instance_name
           become_user:                 "{{ db_sid | lower }}adm"
           become:                      true
           ansible.builtin.shell: |
@@ -197,17 +269,18 @@
                                        { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
           args:
             chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
-          register:                    saphanasr
-          until:                       saphanasr.stdout is search("SOK")
+          register:                    saphanasr_verification
+          until:                       saphanasr_verification.stdout is search("SOK")
           retries:                     10
           delay:                       30
-          when:                        inventory_hostname == primary_instance_name
+
       rescue:
-        - name:                        "[Rescue] - Pause to give HANA replication time to stabilize"
+        - name:                        "5.5 HANA Pacemaker - [Rescue] - Pause to give HANA replication time to stabilize"
           ansible.builtin.pause:
             seconds:                   "{{ rescue_hsr_status_report_wait_in_s }}"
 
-        - name:                        "[Rescue] - Verify the hook Installation"
+        - name:                        "5.5 HANA Pacemaker - [Rescue] - Verify the hook Installation"
+          when:                        inventory_hostname == primary_instance_name
           become_user:                 "{{ db_sid | lower }}adm"
           become:                      true
           ansible.builtin.shell: |
@@ -216,44 +289,292 @@
                                        { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
           args:
             chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
-          register:                    saphanasr
-          until:                       saphanasr.stdout is search("SOK")
+          register:                    saphanasr_verification
+          until:                       saphanasr_verification.stdout is search("SOK")
           retries:                     10
           delay:                       30
-          when:                        inventory_hostname == primary_instance_name
 
-    - name:                            "Log that the hook script is working as expected"
+
+    - name:                            "5.5 HANA Pacemaker - Log that the hook script is working as expected"
+      when:                            inventory_hostname == primary_instance_name
       block:
 
-        - name:                        "Debug (saphanasr)"
+        - name:                        "5.5 HANA Pacemaker - Debug (saphanasr_verification)"
           ansible.builtin.debug:
-            var:                       saphanasr
+            var:                       saphanasr_verification
             verbosity:                 2
 
-        - name:                        "set_fact (saphanasr)"
+        - name:                        "5.5 HANA Pacemaker - set_fact (saphanasr_verification)"
           ansible.builtin.set_fact:
-            hsr_result:                saphanasr.stdout
+            hsr_hook_verify_result:    saphanasr_verification.stdout
 
-        - name:                        "Debug (hsr_result)"
+        - name:                        "5.5 HANA Pacemaker - Debug (hsr_hook_verify_result)"
           ansible.builtin.debug:
-            var:                       hsr_result
+            var:                       hsr_hook_verify_result
             verbosity:                 2
 
-        - name:                        "Assert HSR Hook verification is successful"
+        - name:                        "5.5 HANA Pacemaker - Assert HSR Hook verification is successful"
           ansible.builtin.assert:
             that:
-              - "'SFAIL' != hsr_result"
+              - "'SFAIL' != hsr_hook_verify_result"
             fail_msg:                  "Unable to determine if HSR Hook is working"
-      when:                            inventory_hostname == primary_instance_name
+            success_msg:               "HSR Hook is working as expected"
 
-    - name:                                Verify the hook Installation
+    - name:                            "5.5 HANA Pacemaker - Verify the hook Installation"
       ansible.builtin.debug:
-        var:                               saphanasr
-        verbosity:                         2
+        var:                           saphanasr_verification
+        verbosity:                     2
 
-    # - name:                            "Ensure the cluster is started on all nodes"
-    #   ansible.builtin.command:         pcs cluster start --all
-    #   changed_when:                    false
-    #   when:                            inventory_hostname == primary_instance_name
 
-# End of configuration for SAPHanaSR python hook
+- name:                                "HANA 2.0 SPS5 only Only on SLES 15 SP4 and greater - Implement the SAPHanaSR-angi Python system replication hook"
+  when:
+                                       - hana_version_ok
+                                       - basic_hook_check is success
+                                       - suschk_hook_check is success
+                                       - angi_hook_check is success
+                                       - is_certified_for_hanasr_angi | default(false)
+                                       - ansible_os_family | upper == "SUSE" # redundant, need to remove it later.
+  block:
+    # Summary Report
+    - name:                            "5.5 HANA Pacemaker - Display validation summary"
+      ansible.builtin.debug:
+        msg: |
+                                       HANA and SAPHanaSR Hook Requirements Validation Summary:
+
+                                       Current System State:
+                                       - HANA Version:                    {{ hana_major_version }}.0 SPS {{ hana_sps_level }}
+                                       - SAPHanaSR-angi Version:          {{ saphanaSR_angi_version }}
+
+                                       Validation Results:
+                                         1. Basic SAPHanaSR Python Hook:  {{ 'PASSED' if basic_hook_check is success else 'FAILED' }}
+                                         2. SAPHanaSR-angi Python Hook:   {{ 'PASSED' if angi_hook_check is success else 'FAILED' }}
+                                         3. susChkSrv Python Hook:        {{ 'PASSED' if suschk_hook_check is success else 'FAILED' }}
+
+    # /*---------------------------------------------------------------------------8
+    # Note: The hook code updates automatically through OS updates or package
+    # updates.If you point parameter path to the default /usr/share/SAPHanaSR-angi
+    # location, the Python hook code updates automatically through OS updates or
+    # package updates.
+    #
+    # HANA uses the hook code updates when it next restarts. With an optional own
+    # path like /hana/shared/myHooks, you can decouple OS updates from the hook
+    # version that you use
+    # +------------------------------------4--------------------------------------*/
+    - name:                            '5.5 HANA Pacemaker - Check if "myHooks" file exists in /hana/shared directory'
+      ansible.builtin.stat:
+        path:                          /hana/shared/myHooks
+      register:                        my_hooks_stat
+
+    - name:                            "5.5 HANA Pacemaker - Stop HANA System on both nodes"
+      become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
+      ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem"
+      failed_when:                     false
+      changed_when:                    false
+      register:                        hana_system_stopped
+
+    - name:                            "5.5 HANA Pacemaker - Wait 2 minutes for SAP system to stop"
+      ansible.builtin.wait_for:
+        timeout:                       120
+        delay:                         10
+        # host:                          "{{ inventory_hostname }}"
+        # port:                          "{{ hana_instance_port }}"
+        # state:                         stopped
+
+    # If path is a directory, it is copied recursively. In this case, if path ends with “/”, only inside
+    # contents of that directory are copied to destination. Otherwise, if it does not end with “/”, the
+    # directory itself with all contents is copied. This behavior is similar to the rsync command line tool.
+    - name:                            "5.5 HANA Pacemaker - copy SAPHanaSR.py (SUSE)"
+      when:
+                                       - ansible_os_family | upper == "SUSE"
+                                       - not my_hooks_stat.stat.exists
+      become:                          true
+      ansible.builtin.copy:
+        src:                           /usr/share/SAPHanaSR-angi/
+        dest:                          /hana/shared/myHooks/
+        remote_src:                    true
+        owner:                         "{{ db_sid | lower }}adm"
+        group:                         sapsys      # TODO - check the correct group once the python hook package is installed
+        mode:                          '0755'
+
+    - name:                            "5.5 HANA Pacemaker - Adjust global.ini on each cluster node"
+      ansible.builtin.blockinfile:
+        path:                          /hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini
+        block: |
+                                       [ha_dr_provider_sushanasr]
+                                       provider = susHanaSR
+                                       path = /hana/shared/myHooks
+                                       execution_order = 1
+
+                                       [ha_dr_provider_suschksrv]
+                                       provider = susChkSrv
+                                       path = /hana/shared/myHooks
+                                       execution_order = 3
+                                       action_on_lost = fence
+
+                                       [trace]
+                                       ha_dr_sushanasr = info
+                                       ha_dr_saphanasr = info
+
+    - name:                            "5.5 HANA Pacemaker - Create sudoers file for SLES"
+      ansible.builtin.template:
+        src:                           "20-saphana-suse.j2"
+        dest:                          "/etc/sudoers.d/20-saphana"
+        mode:                          "0440"
+        owner:                         root
+        group:                         root
+
+    - name:                            "5.5 HANA Pacemaker - Start HANA System"
+      block:
+        - name:                        "5.5 HANA Pacemaker - Start HANA System on both nodes"
+          ansible.builtin.command:     "{{ sapcontrol_command }} -function StartSystem"
+          become:                      true
+          become_user:                 "{{ db_sid | lower }}adm"
+          register:                    hana_system_started
+          failed_when:                 hana_system_started.rc not in [0, 3]
+          changed_when:                hana_system_started.rc == 0
+
+        - name:                        "5.5 HANA Pacemaker - Display start status"
+          ansible.builtin.debug:
+            msg:                       "SAP System start command executed successfully"
+          when:                        hana_system_started.rc == 0
+
+      rescue:
+        - name:                        "5.5 HANA Pacemaker - Handle HANA System start failure"
+          when:                        hana_system_started.rc not in [0, 3]
+          ansible.builtin.fail:
+            msg: |
+                                       Failed to start SAP system:
+                                       Return code: {{ hana_system_started.rc }}
+                                       stdout: {{ hana_system_started.stdout }}
+                                       stderr: {{ hana_system_started.stderr }}
+
+
+    - name:                           "5.5 HANA Pacemaker - Start HANA Database"
+      ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+
+    - name:                            "5.5 HANA Pacemaker - Pause to give HANA replication time to stabilize"
+      ansible.builtin.wait_for:
+        timeout:                       "{{ hsr_status_report_wait_in_s }}"
+
+    - name:                            "5.5 HANA Pacemaker - Validate SAPHanaSR-angi Hook Configuration"
+      when:                            inventory_hostname == primary_instance_name
+      block:
+        # Step 1: Change to trace directory - /usr/sap/<SID>/HDB<instance>/<inventory_hostname>/trace
+        - name:                        "5.5 HANA Pacemaker - Get trace directory path"
+          ansible.builtin.set_fact:
+            cdtrace:                   "/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace"
+
+        # Step 2: Check SAPHanaSR-angi configuration
+        - name:                        "5.5 HANA Pacemaker - Check SAPHanaSR-angi load status"
+          ansible.builtin.shell:       "grep 'HADR.*load.*susHanaSR' nameserver_*.trc"
+          args:
+            chdir:                     "{{ cdtrace }}"
+          become:                      true
+          become_user:                 "{{ db_sid | lower }}adm"
+          register:                    sushanasr_load
+          changed_when:                false
+          failed_when:                 false
+
+        - name:                        "5.5 HANA Pacemaker - Check SAPHanaSR-angi initialization"
+          ansible.builtin.shell:       "grep 'susHanaSR.init' nameserver_*.trc"
+          args:
+            chdir:                     "{{ cdtrace }}"
+          become:                      true
+          become_user:                 "{{ db_sid | lower }}adm"
+          register:                    sushanasr_init
+          changed_when:                false
+          failed_when:                 false
+
+        # Step 3: Check susChkSrv.py configuration
+        - name:                        "5.5 HANA Pacemaker - Check susChkSrv.py load status"
+          ansible.builtin.shell:       "grep 'HADR.*load.*susChkSrv' nameserver_*.trc"
+          args:
+            chdir:                     "{{ cdtrace }}"
+          become:                      true
+          become_user:                 "{{ db_sid | lower }}adm"
+          register:                    suschksrv_load
+          changed_when:                false
+          failed_when:                 false
+
+        - name:                        "5.5 HANA Pacemaker - Check susChkSrv.py initialization"
+          ansible.builtin.shell:       "grep 'susChkSrv.init' nameserver_*.trc"
+          args:
+            chdir:                     "{{ cdtrace }}"
+          become:                      true
+          become_user:                 "{{ db_sid | lower }}adm"
+          register:                    suschksrv_init
+          changed_when:                false
+          failed_when:                 false
+
+        - name:                        "5.5 HANA Pacemaker - Check susChkSrv events"
+          ansible.builtin.shell: |
+                                       set -o pipefail;
+                                       egrep '(LOST:|STOP:|START:|DOWN:|init|load|fail)' nameserver_suschksrv.trc
+          args:
+            chdir:                     "{{ cdtrace }}"
+          become:                      true
+          become_user:                 "{{ db_sid | lower }}adm"
+          register:                    suschksrv_events
+          changed_when:                false
+          failed_when:                 false
+
+        # Step 4: Set validation results
+        - name:                        "5.5 HANA Pacemaker - Set hook configuration status"
+          ansible.builtin.set_fact:
+            hook_status:
+              susHanaSR:
+                loaded:                "{{ (sushanasr_load.stdout   | default('')) is search('HADR.*load.*susHanaSR') }}"
+                initialized:           "{{ (sushanasr_init.stdout   | default('')) is search('susHanaSR.init') }}"
+              susChkSrv:
+                loaded:                "{{ (suschksrv_load.stdout   | default('')) is search('HADR.*load.*susChkSrv') }}"
+                initialized:           "{{ (suschksrv_init.stdout   | default('')) is search('susChkSrv.init') }}"
+                events_found:          "{{ (suschksrv_events.stdout | default('')) is search('START:.*graceful .*(indexserver started)') }}"
+
+        # Step 5: Display validation results
+        - name:                        "5.5 HANA Pacemaker - Display hook configuration validation results"
+          ansible.builtin.debug:
+            msg: |
+                                       SAPHanaSR-angi Hook Configuration Status:
+
+                                       1. susHanaSR.py:
+                                           - Loaded:       {{ hook_status.susHanaSR.loaded }}
+                                           - Initialized:  {{ hook_status.susHanaSR.initialized }}
+
+                                       2. susChkSrv.py:
+                                           - Loaded:       {{ hook_status.susChkSrv.loaded }}
+                                           - Initialized:  {{ hook_status.susChkSrv.initialized }}
+                                           - Events Found: {{ hook_status.susChkSrv.events_found }}
+
+        # Step 6: Set overall validation status
+        - name:                        "5.5 HANA Pacemaker - Set overall hook validation status"
+          ansible.builtin.set_fact:
+            hooks_properly_configured: "{{
+                                         hook_status.susHanaSR.loaded and
+                                         hook_status.susHanaSR.initialized and
+                                         hook_status.susChkSrv.loaded and
+                                         hook_status.susChkSrv.initialized and
+                                         hook_status.susChkSrv.events_found
+                                       }}"
+
+        # Step 7: Display overall validation status
+        - name:                        "5.5 HANA Pacemaker - Display overall hook configuration status"
+          ansible.builtin.debug:
+            msg: |
+                                       SAPHanaSR-angi Hook Configuration Status: {{ 'PASSED' if hooks_properly_configured else 'FAILED' }}
+
+        - name:                        "5.5 HANA Pacemaker - Assert that the hook configuration is correct"
+          ansible.builtin.assert:
+            that:
+                                       - hooks_properly_configured
+            fail_msg:                  "Hook configuration is incorrect"
+            success_msg:               "Hook configuration is correct"
+
+      rescue:
+        - name:                        "5.5 HANA Pacemaker - Handle hook validation failure"
+          ansible.builtin.fail:
+            msg: |
+                                       Failed to validate hook configuration: {{ ansible_failed_task.name }}
+                                         {{ ansible_failed_result.msg | default('Unknown error occurred') }}
+
+# +------------------------------------4--------------------------------------*/
