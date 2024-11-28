@@ -3,10 +3,10 @@
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
-boldreduscore="\e[1;4;31m"
-boldred="\e[1;31m"
+bold_red_underscore="\e[1;4;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
-resetformatting="\e[0m"
+reset_formatting="\e[0m"
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"

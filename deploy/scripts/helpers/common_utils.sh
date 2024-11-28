@@ -114,7 +114,7 @@ function edit_json_template_for_path()
 }
 
 
-# This helper funciton checks if a JSON key is set to a non-empty string
+# This helper function checks if a JSON key is set to a non-empty string
 # the json_path argument must be in jq dot notation, e.g. '.software.downloader.credentials.sap_user'
 function check_json_value_is_not_empty()
 {

@@ -19,10 +19,10 @@
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
-boldreduscore="\e[1;4;31m"
-boldred="\e[1;31m"
+bold_red_underscore="\e[1;4;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
-resetformatting="\e[0m"
+reset_formatting="\e[0m"
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -154,7 +154,7 @@ step=0
 
 echo "#########################################################################################"
 echo "#                                                                                       #"
-echo -e "#                   $cyan Starting the control plane deployment $resetformatting                             #"
+echo -e "#                   $cyan Starting the control plane deployment $reset_formatting                             #"
 echo "#                                                                                       #"
 echo "#########################################################################################"
 
@@ -166,7 +166,7 @@ if [ -n "${subscription}" ]; then
         printf -v val %-40.40s "$subscription"
         echo "#########################################################################################"
         echo "#                                                                                       #"
-        echo -e "#   The provided subscription is not valid:$boldred ${val} $resetformatting#   "
+        echo -e "#   The provided subscription is not valid:$bold_red ${val} $reset_formatting#   "
         echo "#                                                                                       #"
         echo "#########################################################################################"
 
@@ -177,7 +177,7 @@ if [ -n "${subscription}" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#       $cyan Changing the subscription to: $subscription $resetformatting            #"
+    echo -e "#       $cyan Changing the subscription to: $subscription $reset_formatting            #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -198,7 +198,7 @@ load_config_vars "${deployer_config_information}" "keyvault"
 if [ $recover == 1 ]; then
     if [ -n "$REMOTE_STATE_SA" ]; then
         save_config_var "REMOTE_STATE_SA" "${deployer_config_information}"
-        get_and_store_sa_details ${REMOTE_STATE_SA} "${deployer_config_information}"
+        getAndStoreTerraformStateStorageAccountDetails ${REMOTE_STATE_SA} "${deployer_config_information}"
         #Support running prepare_region on new host when the resources are already deployed
         step=3
         save_config_var "step" "${deployer_config_information}"
@@ -210,7 +210,7 @@ if [ 0 == $step ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                          $cyan Bootstrapping the deployer $resetformatting                                 #"
+    echo -e "#                          $cyan Bootstrapping the deployer $reset_formatting                                 #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -254,7 +254,7 @@ if [ 0 == $step ]; then
 
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                         $cyan  Copying the parameterfiles $resetformatting                                 #"
+    echo -e "#                         $cyan  Copying the parameterfiles $reset_formatting                                 #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -270,7 +270,7 @@ if [ 0 == $step ]; then
             then
                 echo "#########################################################################################"
                 echo "#                                                                                       #"
-                echo -e "#                            $cyan Collecting secrets from KV $resetformatting                               #"
+                echo -e "#                            $cyan Collecting secrets from KV $reset_formatting                               #"
                 echo "#                                                                                       #"
                 echo "#########################################################################################"
                 echo ""
@@ -303,7 +303,7 @@ if [ 0 == $step ]; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
-        echo -e "#                          $cyan Deployer is bootstrapped $resetformatting                                   #"
+        echo -e "#                          $cyan Deployer is bootstrapped $reset_formatting                                   #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
@@ -315,7 +315,7 @@ cd "$root_dirname" || exit
 if [ 1 = "${only_deployer:-}" ]; then
     load_config_vars "${deployer_config_information}" deployer_public_ip_address
     echo ""
-    echo -e "Please ${cyan}login${resetformatting} to the deployer node (${boldred}${deployer_public_ip_address}${resetformatting}) and re-run ${boldred}$(basename ${0})${resetformatting} to continue."
+    echo -e "Please ${cyan}login${reset_formatting} to the deployer node (${bold_red}${deployer_public_ip_address}${reset_formatting}) and re-run ${bold_red}$(basename ${0})${reset_formatting} to continue."
     unset TF_DATA_DIR
     printf -v secretname '%-40s' "${environment}"-client-id
     printf -v secretname2 '%-40s' "${environment}"-client-secret
@@ -327,7 +327,7 @@ if [ 1 = "${only_deployer:-}" ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "# $cyan Please populate the keyvault: ${keyvault} $resetformatting                                   #"
+    echo -e "# $cyan Please populate the keyvault: ${keyvault} $reset_formatting                                   #"
     echo "#     with the following secrets:                                                       #"
     echo "#     - $secretname                                        #"
     echo "#     - $secretname2                                        #"
@@ -353,7 +353,7 @@ if [ 1 == $step ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                          $cyan Validating keyvault access $resetformatting                                 #"
+    echo -e "#                          $cyan Validating keyvault access $reset_formatting                                 #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -408,7 +408,7 @@ if [ 1 == $step ]; then
         printf -v val %-40.40s "$az_subscription_id"
         echo "#########################################################################################"
         echo "#                                                                                       #"
-        echo -e "#$boldred User account ${val} does not have access to: $keyvault  $resetformatting"
+        echo -e "#$bold_red User account ${val} does not have access to: $keyvault  $reset_formatting"
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo "User account ${val} does not have access to: $keyvault" > "${deployer_config_information}".err
@@ -425,7 +425,7 @@ if [ 2 == $step ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                          $cyan Bootstrapping the library $resetformatting                                  #"
+    echo -e "#                          $cyan Bootstrapping the library $reset_formatting                                  #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -452,7 +452,7 @@ if [ 2 == $step ]; then
     if [ "${TF_VAR_use_webapp}" = "true" ]; then
         echo "#########################################################################################"
         echo "#                                                                                       #"
-        echo -e "#                           $cyan Configuring the Web App $resetformatting                                   #"
+        echo -e "#                           $cyan Configuring the Web App $reset_formatting                                   #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
         terraform_module_directory="${DEPLOYMENT_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
@@ -467,7 +467,7 @@ else
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                           $cyan Library is bootstrapped $resetformatting                                   #"
+    echo -e "#                           $cyan Library is bootstrapped $reset_formatting                                   #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -485,7 +485,7 @@ if [ 3 == $step ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                          $cyan Migrating the deployer state $resetformatting                               #"
+    echo -e "#                          $cyan Migrating the deployer state $reset_formatting                               #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -529,7 +529,7 @@ if [ 4 == $step ]; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                          $cyan Migrating the library state $resetformatting                                #"
+    echo -e "#                          $cyan Migrating the library state $reset_formatting                                #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -557,7 +557,7 @@ printf -v storage_account '%-40s' "${REMOTE_STATE_SA}"
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
-echo -e "# $cyan Please save these values: $resetformatting                                                           #"
+echo -e "# $cyan Please save these values: $reset_formatting                                                           #"
 echo "#     - Key Vault: ${kvname}                             #"
 echo "#     - Deployer IP: ${dep_ip}                           #"
 echo "#     - Storage Account: ${storage_account}                       #"
@@ -602,7 +602,7 @@ if [ 5 == $step ]; then
             # Only run this when not on deployer
             echo "#########################################################################################"
             echo "#                                                                                       #"
-            echo -e "#                         $cyan  Copying the parameterfiles $resetformatting                                 #"
+            echo -e "#                         $cyan  Copying the parameterfiles $reset_formatting                                 #"
             echo "#                                                                                       #"
             echo "#########################################################################################"
             echo ""
