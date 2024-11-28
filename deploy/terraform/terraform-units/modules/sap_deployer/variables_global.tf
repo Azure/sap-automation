@@ -26,9 +26,7 @@ variable "use_service_endpoint"        { description = "Boolean value indicating
 #########################################################################################
 
 
-variable "firewall_deployment"         { description = "Boolean flag indicating if an Azure Firewall should be deployed" }
-variable "firewall_rule_subnets"       { description = "List of subnets that are part of the firewall rule" }
-variable "firewall_allowed_ipaddresses" { description = "List of allowed IP addresses to be part of the firewall rule" }
+variable "firewall"                    { description = "Dictionary of Firewall settings" }
 
 #########################################################################################
 #                                                                                       #

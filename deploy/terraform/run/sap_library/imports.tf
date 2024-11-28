@@ -4,17 +4,16 @@
 */
 
 data "terraform_remote_state" "deployer"          {
-                                                    backend = "azurerm"
-                                                    count   = length(var.deployer_tfstate_key) > 0 || local.use_spn ? 1 : 0
-                                                    config = {
-                                                               resource_group_name  = local.saplib_resource_group_name
-                                                               storage_account_name = local.tfstate_storage_account_name
-                                                               container_name       = local.tfstate_container_name
-                                                               key                  = local.deployer_tfstate_key
-                                                               subscription_id      = local.saplib_subscription_id
-                                                               use_msi              = var.use_spn ? false : true
-                                                               use_azuread_auth     = true
-                                                             }
+                                                    backend =    "azurerm"
+                                                    count        = length(var.deployer_tfstate_key) > 0 ? 1 : 0
+                                                    config       = {
+                                                                     resource_group_name  = local.saplib_resource_group_name
+                                                                     storage_account_name = local.tfstate_storage_account_name
+                                                                     container_name       = local.tfstate_container_name
+                                                                     key                  = local.deployer_tfstate_key
+                                                                     subscription_id      = local.saplib_subscription_id
+                                                                     use_msi              = var.use_spn ? false : true
+                                                                   }
                                                   }
 
 data "azurerm_key_vault_secret" "subscription_id" {

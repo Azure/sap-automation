@@ -56,6 +56,7 @@ module "sap_landscape" {
   vm_settings                                  = local.vm_settings
   witness_storage_account                      = local.witness_storage_account
   dns_settings                                 = local.dns_settings
+  data_plane_available                         = var.data_plane_available
 
 }
 
@@ -65,7 +66,7 @@ module "sap_namegenerator" {
   environment                                  = local.infrastructure.environment
   iscsi_server_count                           = try(local.infrastructure.iscsi.iscsi_count, 0)
   location                                     = local.infrastructure.region
-  random_id                                    = module.sap_landscape.random_id
+  random_id                                    = coalesce(var.custom_random_id, module.sap_landscape.random_id)
   sap_vnet_name                                = local.infrastructure.vnets.sap.logical_name
   utility_vm_count                             = var.utility_vm_count
 }

@@ -14,7 +14,7 @@ Description:
 */
 
 data "azurerm_client_config" "current" {
-                                         provider = azurerm.deployer
+                                         provider                   = azurerm.deployer
                                        }
 
 provider "azurerm"                     {
@@ -30,6 +30,9 @@ provider "azurerm"                     {
                                          features {
                                                     resource_group {
                                                                      prevent_deletion_if_contains_resources = true
+                                                                   }
+                                                    storage        {
+                                                                        data_plane_available = var.data_plane_available
                                                                    }
 
                                                   }
@@ -72,7 +75,7 @@ provider "azurerm"                     {
                                          client_secret              = local.use_spn ? local.spn.client_secret : null
                                          tenant_id                  = local.use_spn ? local.spn.tenant_id : null
                                          alias                      = "privatelinkdnsmanagement"
-                                         storage_use_azuread        = true
+                                         storage_use_azuread        = !var.shared_access_key_enabled
                                          use_msi                    = var.use_spn ? false : true
                                        }
 
@@ -105,7 +108,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.7.0"
+                                                                           version = "4.11.0"
                                                                          }
                                                             }
                                        }

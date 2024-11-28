@@ -14,7 +14,7 @@ Description:
 */
 
 data "azurerm_client_config" "current" {
-                                         provider = azurerm.deployer
+                                         provider                   = azurerm.deployer
                                        }
 
 provider "azurerm"                     {
@@ -23,10 +23,14 @@ provider "azurerm"                     {
                                                                      prevent_deletion_if_contains_resources = true
                                                                    }
 
+                                                    storage        {
+                                                                        data_plane_available = var.data_plane_available
+                                                                   }
                                                   }
 
                                          storage_use_azuread        = true
-                                         use_msi                    = var.use_spn ? false : true
+                                         use_msi                    = true
+                                         subscription_id            = var.subscription_id
 
                                        }
 
@@ -34,6 +38,9 @@ provider "azurerm"                     {
                                          features {
                                                     resource_group {
                                                                      prevent_deletion_if_contains_resources = true
+                                                                   }
+                                                    storage        {
+                                                                        data_plane_available = var.data_plane_available
                                                                    }
 
                                                   }
@@ -56,8 +63,14 @@ provider "azurerm"                     {
                                          alias                      = "deployer"
 
                                          storage_use_azuread        = true
-                                         use_msi                    = false
-                                         subscription_id            = var.use_deployer ? data.terraform_remote_state.deployer[0].outputs.created_resource_group_subscription_id : null
+                                         use_msi                    = var.use_spn ? false : true
+                                         subscription_id            = var.use_deployer ? (
+                                                                        coalesce(
+                                                                          var.subscription_id,
+                                                                          local.spn.subscription_id)
+                                                                          ) : (
+                                                                        null
+                                                                        )
                                        }
 
 provider "azurerm"                     {
@@ -85,9 +98,9 @@ provider "azurerm"                     {
                                        }
 
 provider "azuread"                     {
-                                         client_id     = local.spn.client_id
-                                         client_secret = local.spn.client_secret
-                                         tenant_id     = local.spn.tenant_id
+                                         client_id                  = local.spn.client_id
+                                         client_secret              = local.spn.client_secret
+                                         tenant_id                  = local.spn.tenant_id
                                        }
 
 terraform                              {
@@ -111,7 +124,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.7.0"
+                                                                           version = "4.11.0"
                                                                          }
                                                             }
                                        }

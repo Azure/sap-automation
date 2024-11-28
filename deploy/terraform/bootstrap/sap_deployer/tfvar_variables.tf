@@ -133,6 +133,13 @@ variable "firewall_allowed_ipaddresses"         {
                                                   default     = []
                                                 }
 
+variable "firewall_public_ip_tags"              {
+                                                   description = "Tags for the public_ip resource"
+                                                   type        = map(string)
+                                                   default     = null
+                                                 }
+
+
 #######################################4#######################################8
 #                                                                              #
 #                             Bastion Subnet variables                         #
@@ -253,11 +260,20 @@ variable "deployer_private_ip_address"          {
 
 variable "shared_access_key_enabled"            {
                                                   description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
-                                                  default     = true
+                                                  default     = false
                                                   type        = bool
                                                 }
 
+variable "data_plane_available"                 {
+                                                  description = "Boolean value indicating if storage account access is via data plane"
+                                                  default     = false
+                                                  type        = bool
+                                                }
 
+variable "custom_random_id"                     {
+                                                  description = "If provided, the value of the custom random id"
+                                                  default     = ""
+                                                }
 
 ###############################################################################
 #                                                                             #

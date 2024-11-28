@@ -129,6 +129,8 @@ locals {
     deploy_monitoring_extension        = var.deploy_monitoring_extension
     deploy_defender_extension          = var.deploy_defender_extension
 
+    custom_random_id                   = var.custom_random_id
+
                                         }
 
   deployer                             = {
@@ -212,9 +214,12 @@ locals {
                                             enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
                                          }
 
-  firewall_deployment                  = try(var.firewall_deployment, false)
-  firewall_rule_subnets                = try(var.firewall_rule_subnets, [])
-  firewall_allowed_ipaddresses         = try(var.firewall_allowed_ipaddresses, [])
+  firewall                             = {
+                                           deployment           = var.firewall_deployment
+                                           rule_subnets         = var.firewall_rule_subnets
+                                           allowed_ipaddresses  = var.firewall_allowed_ipaddresses
+                                           ip_tags              = var.firewall_public_ip_tags
+                                         }
 
   assign_subscription_permissions      = try(var.deployer_assign_subscription_permissions, false)
   app_service                          = {

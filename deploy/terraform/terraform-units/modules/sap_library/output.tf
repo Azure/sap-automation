@@ -74,11 +74,6 @@ output "random_id"                               {
                                                    value = random_id.post_fix.hex
                                                  }
 
-output "random_id_b64"                           {
-                                                   value = random_id.post_fix.b64_url
-                                                 }
-
-
 output "remote_state_storage_account_name"       {
                                                    description = "Storage account name for Terraform remote state"
                                                    value = local.sa_tfstate_exists ? (

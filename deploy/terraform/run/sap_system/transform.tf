@@ -207,6 +207,8 @@ locals {
                                                                           )
 
                                         avset_arm_ids                   = var.application_server_vm_avset_arm_ids
+                                        avset_arm_ids_count             = length(var.application_server_vm_avset_arm_ids)
+                                        app_zone_count                  = length(local.app_zones_temp)
                                         scs_server_count                = local.enable_app_tier_deployment ? (
                                                                             var.scs_server_count
                                                                             ) : (
@@ -229,6 +231,7 @@ locals {
                                                                             false) : (
                                                                             var.scs_server_use_avset
                                                                           )
+                                        scs_zone_count                  = length(local.scs_zones_temp)
                                         scs_cluster_disk_lun            = var.scs_cluster_disk_lun
                                         scs_cluster_disk_size           = var.scs_cluster_disk_size
                                         scs_cluster_disk_type           = var.scs_cluster_disk_type
@@ -249,6 +252,7 @@ locals {
                                                                             false) : (
                                                                             var.webdispatcher_server_use_avset
                                                                           )
+                                        web_zone_count                  = length(local.web_zones_temp)
 
                                         deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
                                         user_assigned_identity_id       = var.user_assigned_identity_id

@@ -33,7 +33,7 @@ locals {
 
   deployer_public_ip_address                      = try(var.deployer_tfstate.deployer_public_ip_address, "")
   deployer_subnet_management_id                   = try(var.deployer_tfstate.subnet_mgmt_id, "")
-  deployer_virtualnetwork_id                      = try(var.deployer_tfstate.vnet_mgmt_id, try(var.deployer_tfstate.vnet_mgmt.id, ""))
+  deployer_virtualnetwork_id                      = try(var.deployer_tfstate.vnet_mgmt_id, "")
   management_subnet_exists                        = length(local.deployer_subnet_management_id) > 0
 
 

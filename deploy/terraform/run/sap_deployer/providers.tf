@@ -18,12 +18,16 @@ provider "azurerm"                     {
                                                     resource_group {
                                                                      prevent_deletion_if_contains_resources = var.prevent_deletion_if_contains_resources
                                                                    }
-                                                    key_vault {
-                                                                 purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
-                                                                 purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
-                                                                 purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
-                                                                 purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
-                                                              }
+                                                    key_vault      {
+                                                                      purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
+                                                                      purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
+                                                                      purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
+                                                                      purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
+                                                                   }
+
+                                                    storage        {
+                                                                        data_plane_available = var.data_plane_available
+                                                                   }
                                                   }
                                          partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
                                          storage_use_azuread        = !var.shared_access_key_enabled
@@ -37,22 +41,25 @@ provider "azurerm"                     {
                                                     resource_group {
                                                                      prevent_deletion_if_contains_resources = true
                                                                    }
-                                                    key_vault {
-                                                                 purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
-                                                                 purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
-                                                                 purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
-                                                                 purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
-                                                              }
+                                                    key_vault      {
+                                                                      purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
+                                                                      purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
+                                                                      purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
+                                                                      purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
+                                                                   }
+                                                    storage        {
+                                                                        data_plane_available = var.data_plane_available
+                                                                   }
                                                   }
                                          partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
 
-                                         subscription_id            = data.azurerm_key_vault_secret.subscription_id[0].value
+                                         subscription_id            = var.subscription_id
                                          client_id                  = var.use_spn ? local.spn.client_id : null
                                          client_secret              = var.use_spn ? local.spn.client_secret: null
                                          tenant_id                  = var.use_spn ? local.spn.tenant_id: null
                                          use_msi                    = var.use_spn ? false : true
                                          alias                      = "main"
-                                         storage_use_azuread        = !var.shared_access_key_enabled
+                                         storage_use_azuread        = var.data_plane_available
                                        }
 
 provider "azurerm"                     {
@@ -87,7 +94,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.7.0"
+                                                                           version = "4.11.0"
                                                                          }
                                                             }
                                        }

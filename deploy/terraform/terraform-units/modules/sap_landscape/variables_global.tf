@@ -272,3 +272,10 @@ variable "use_AFS_for_shared_storage"                    {
                                                          }
 
 variable "tags"                                          { description = "List of tags to associate to all resources" }
+
+
+variable "data_plane_available"                          {
+                                                           description = "Boolean value indicating if storage account access is via data plane"
+                                                           default     = false
+                                                           type        = bool
+                                                         }

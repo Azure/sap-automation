@@ -23,10 +23,6 @@ variable "database_use_premium_v2_storage"              {
                                                           description = "If true, the database tier will use premium storage"
                                                           type        = bool
                                                         }
-variable "database_active_active"                       {
-                                                          description = "If true, database will deployed with Active/Active (read enabled) configuration"
-                                                          type        = bool
-                                                        }
 variable "database_vm_admin_nic_ips"                    { description = "If provided, the database tier will be configured with the specified IPs (admin subnet)" }
 variable "database_vm_db_nic_ips"                       { description = "If provided, the database tier will be configured with the specified IPs" }
 variable "database_vm_db_nic_secondary_ips"             { description = "If provided, the database tier will be configured with the specified IPs as secondary IPs" }

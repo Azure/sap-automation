@@ -90,10 +90,10 @@ resource "azurerm_storage_share" "hanashared" {
                                          ]
 
   name                                 = format("%s-%s-%01d", lower(local.sid),local.resource_suffixes.hanasharedafs, count.index+1)
-  storage_account_name                 = var.NFS_provider == "AFS" ? (
+  storage_account_id                   = var.NFS_provider == "AFS" ? (
                                            length(var.hanashared_id) > 0 ? (
-                                             data.azurerm_storage_account.hanashared[count.index].name) : (
-                                             azurerm_storage_account.hanashared[count.index].name
+                                             data.azurerm_storage_account.hanashared[count.index].id) : (
+                                             azurerm_storage_account.hanashared[count.index].id
                                            )
                                            ) : (
                                            ""

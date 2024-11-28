@@ -123,12 +123,6 @@ output "random_id" {
   value                                = random_id.deployer.hex
 }
 
-output "random_id_b64" {
-  description                          = "Random ID for deployer"
-  value                                = random_id.deployer.b64_url
-}
-
-
 output "user_vault_name" {
   description                          = "Key Vault Name"
   value                                = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
@@ -183,12 +177,12 @@ output "deployer_keyvault_user_arm_id" {
 
 output "firewall_ip" {
   description                          = "Firewall private IP address"
-  value                                = var.firewall_deployment ? azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address : ""
+  value                                = var.firewall.deployment ? azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address : ""
 }
 
 output "firewall_id" {
   description                          = "Firewall ID"
-  value                                = var.firewall_deployment ? azurerm_firewall.firewall[0].id : ""
+  value                                = var.firewall.deployment ? azurerm_firewall.firewall[0].id : ""
 }
 
 
@@ -201,20 +195,17 @@ output "firewall_id" {
 
 output "webapp_url_base" {
   description                          = "Webapp URL Base"
-  value                                = var.use_webapp ? (var.configure ? try(azurerm_windows_web_app.webapp[0].name, "") : "") : ""
+  value                                = var.use_webapp ? try(azurerm_windows_web_app.webapp[0].name, "") : ""
 }
 
 output "webapp_identity" {
   description                          = "Webapp Identity"
-  value                                = var.use_webapp ? (var.configure ? try(azurerm_windows_web_app.webapp[0].identity[0].principal_id, "") : "") : ""
+  value                                = var.use_webapp ? try(azurerm_windows_web_app.webapp[0].identity[0].principal_id, "") :  ""
 }
 
 output "webapp_id" {
   description                          = "Webapp ID"
-  value                                = var.use_webapp ? (
-                                           var.configure ? try(azurerm_windows_web_app.webapp[0].id, "") : "") : (
-                                           ""
-                                         )
+  value                                = var.use_webapp ? try(azurerm_windows_web_app.webapp[0].id, "") : ""
 }
 
 ###############################################################################

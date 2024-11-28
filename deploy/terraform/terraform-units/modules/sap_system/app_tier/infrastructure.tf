@@ -324,10 +324,8 @@ resource "azurerm_availability_set" "scs" {
 #######################################4#######################################8
 resource "azurerm_availability_set" "app" {
   provider                             = azurerm.main
-  count                                = local.use_app_avset && length(var.application_tier.avset_arm_ids) == 0 ? (
-                                           length(var.ppg)) : (
-                                           0
-                                         )
+  count                                = local.use_app_avset && var.application_tier.avset_arm_ids_count == 0 ? var.application_tier.app_zone_count : 0
+
   depends_on                           = [azurerm_virtual_machine_data_disk_attachment.scs]
   name                                 = format("%s%s%s",
                                            local.prefix,

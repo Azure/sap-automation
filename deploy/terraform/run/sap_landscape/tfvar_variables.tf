@@ -5,22 +5,22 @@
 #######################################4#######################################8
 
 
-variable "environment"                           {
-                                                   description = "This is the environment name for the deployment"
-                                                   type        = string
-                                                   default     = ""
-                                                 }
-
-variable "codename"                              {
-                                                   description = "This is the code name name for the deployment"
-                                                   type        = string
-                                                   default     = ""
-                                                 }
-
-variable "location"                              {
-                                                  description = "The Azure region for the resources"
+variable "environment"                          {
+                                                  description = "This is the environment name for the deployment"
                                                   type        = string
                                                   default     = ""
+                                                }
+
+variable "codename"                             {
+                                                  description = "This is the code name name for the deployment"
+                                                  type        = string
+                                                  default     = ""
+                                                }
+
+variable "location"                             {
+                                                 description = "The Azure region for the resources"
+                                                 type        = string
+                                                 default     = ""
                                                 }
 
 variable "name_override_file"                   {
@@ -38,6 +38,28 @@ variable "prevent_deletion_if_contains_resources" {
                                                     type        = bool
                                                     default     = true
                                                   }
+
+variable "Description"                          {
+                                                  description = "This is the description for the deployment"
+                                                  type        = string
+                                                  default     = ""
+                                                }
+
+
+variable "subscription"                         {
+                                                  description = "This is the target subscription for the deployment"
+                                                  type        = string
+                                                  default     = ""
+                                                }
+
+
+variable "management_subscription"              {
+                                                  description = "This is the management subscription used by the deployment"
+                                                  type        = string
+                                                  default     = ""
+                                                }
+
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitioms                          #
@@ -971,6 +993,17 @@ variable "shared_access_key_enabled"            {
 
 variable "shared_access_key_enabled_nfs"        {
                                                   description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
-                                                  default     = true
+                                                  default     = false
                                                   type        = bool
+                                                }
+
+variable "data_plane_available"                 {
+                                                  description = "Boolean value indicating if storage account access is via data plane"
+                                                  default     = false
+                                                  type        = bool
+                                                }
+
+variable "custom_random_id"                     {
+                                                  description = "If provided, the value of the custom random id"
+                                                  default     = ""
                                                 }

@@ -36,7 +36,7 @@ locals {
                                          )
 
   spn                                  = {
-                                           subscription_id = data.azurerm_key_vault_secret.subscription_id[0].value
+                                           subscription_id = coalesce(var.subscription_id, try(data.azurerm_key_vault_secret.subscription_id[0].value,null))
                                            client_id       = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null,
                                            client_secret   = var.use_spn ? data.azurerm_key_vault_secret.client_secret[0].value : null,
                                            tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
