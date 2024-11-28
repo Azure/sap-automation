@@ -35,6 +35,10 @@ parameters:
     type:                              string
     default:                           Control_Plane_Service_Connection
 
+  - name:                              force_reset
+    displayName:                       Force a re-install - may require multiple re-runs
+    type:                              boolean
+    default:                           false
 
 variables:
   - group:                             "SDAF-General"
@@ -50,16 +54,16 @@ variables:
   - name:                              use_webapp
     value:                             ${{ lower(parameters.use_webapp_param) }}
 
-  - name:                              deployerfolder
+  - name:                              deployer_foldername
     value:                             ${{ parameters.deployer }}
 
-  - name:                              deployerconfig
+  - name:                              deployer_tfvars_filename
     value:                             ${{ parameters.deployer }}.tfvars
 
-  - name:                              libraryfolder
+  - name:                              library_foldername
     value:                             ${{ parameters.library }}
 
-  - name:                              libraryconfig
+  - name:                              library_tfvars_filename
     value:                             ${{ parameters.library }}.tfvars
 
   - name:                              log
@@ -76,3 +80,6 @@ variables:
 
   - name:                              deployer_environment
     value:                             ${{ parameters.environment }}
+
+  - name:                              force_reset
+    value:                             ${{ parameters.force_reset }}

@@ -5,10 +5,10 @@ export PATH=/opt/terraform/bin:/opt/ansible/bin:${PATH}
 exit_status=0
 
 #colors for terminal
-boldreduscore="\e[1;4;31m"
-boldred="\e[1;31m"
+bold_red_underscore="\e[1;4;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
-resetformatting="\e[0m"
+reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
@@ -23,11 +23,11 @@ max() {
     min ${1}r ${@:2}
 }
 error() {
-    echo -e "${boldred}Error!!! ${@}${resetformatting}"
+    echo -e "${bold_red}Error!!! ${@}${reset_formatting}"
     exit_status=1
 }
 heading() {
-    echo -e "${cyan}${@}${resetformatting}"
+    echo -e "${cyan}${@}${reset_formatting}"
     echo "----------------------------------------------------------------------------"
 }
 
@@ -106,7 +106,7 @@ then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                 ${boldred}  Parameter file does not exist: ${val} ${resetformatting} #"
+    echo -e "#                 ${bold_red}  Parameter file does not exist: ${val} ${reset_formatting} #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     exit

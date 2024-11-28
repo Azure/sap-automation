@@ -48,6 +48,13 @@ variable "use_spn"                               {
                                                   default     = false
                                                  }
 
+variable "subscription_id"                       {
+                                                   description = "Defines the Azure subscription_id"
+                                                   type        = string
+                                                   default     = null
+                                                 }
+
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitioms                          #
@@ -228,6 +235,16 @@ variable "shared_access_key_enabled"            {
                                                   type        = bool
                                                 }
 
+variable "data_plane_available"                 {
+                                                  description = "Boolean value indicating if storage account access is via data plane"
+                                                  default     = false
+                                                  type        = bool
+                                                }
+
+variable "custom_random_id"                     {
+                                                  description = "If provided, the value of the custom random id"
+                                                  default     = ""
+                                                }
 
 #########################################################################################
 #                                                                                       #
@@ -298,7 +315,14 @@ variable "dns_zone_names"                        {
                                                      "table_dns_zone_name"  = "privatelink.table.core.windows.net"
                                                      "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
                                                    }
+
                                                  }
+
+variable "enable_firewall_for_keyvaults_and_storage" {
+                                                       description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+                                                       default     = true
+                                                       type        = bool
+                                                     }
 
 variable "register_storage_accounts_keyvaults_with_dns" {
                                                      description = "Boolean value indicating if storage accounts and key vaults should be registered to the corresponding dns zones"

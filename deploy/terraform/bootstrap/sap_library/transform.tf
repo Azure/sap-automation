@@ -34,31 +34,33 @@ locals {
                                             }
                                            shared_access_key_enabled = var.shared_access_key_enabled
                                            public_network_access_enabled = var.public_network_access_enabled
+                                           enable_firewall_for_keyvaults_and_storage = var.enable_firewall_for_keyvaults_and_storage
                                          }
 
   storage_account_tfstate              = {
-                                           arm_id                   = var.library_terraform_state_arm_id
-                                           name                     = var.library_terraform_state_name
-                                           account_tier             = var.library_terraform_state_account_tier
-                                           account_replication_type = var.library_terraform_state_account_replication_type
-                                           account_kind             = var.library_terraform_state_account_kind
-                                           tfstate_blob_container = {
-                                             is_existing            = var.library_terraform_state_blob_container_is_existing
-                                             name                   = var.library_terraform_state_blob_container_name
-                                           }
+                                           arm_id                                    = var.library_terraform_state_arm_id
+                                           name                                      = var.library_terraform_state_name
+                                           account_tier                              = var.library_terraform_state_account_tier
+                                           account_replication_type                  = var.library_terraform_state_account_replication_type
+                                           account_kind                              = var.library_terraform_state_account_kind
+                                           tfstate_blob_container =                  {
+                                                                                       is_existing            = var.library_terraform_state_blob_container_is_existing
+                                                                                       name                   = var.library_terraform_state_blob_container_name
+                                                                                     }
 
-                                           tfvars_blob_container = {
-                                             is_existing            = var.library_terraform_vars_blob_container_is_existing
-                                             name                   = var.library_terraform_vars_blob_container_name
-                                           }
+                                           tfvars_blob_container =                   {
+                                                                                       is_existing            = var.library_terraform_vars_blob_container_is_existing
+                                                                                       name                   = var.library_terraform_vars_blob_container_name
+                                                                                     }
 
-                                           ansible_blob_container = {
-                                             is_existing            = var.library_ansible_blob_container_is_existing
-                                             name                   = var.library_ansible_blob_container_name
-                                           }
+                                           ansible_blob_container =                  {
+                                                                                       is_existing            = var.library_ansible_blob_container_is_existing
+                                                                                       name                   = var.library_ansible_blob_container_name
+                                                                                     }
 
-                                           shared_access_key_enabled     = var.shared_access_key_enabled
-                                           public_network_access_enabled = var.public_network_access_enabled
+                                           shared_access_key_enabled                 = var.shared_access_key_enabled
+                                           public_network_access_enabled             = var.public_network_access_enabled
+                                           enable_firewall_for_keyvaults_and_storage = var.enable_firewall_for_keyvaults_and_storage
                                          }
 
 

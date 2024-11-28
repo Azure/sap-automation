@@ -2,10 +2,10 @@
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
-boldreduscore="\e[1;4;31m"
-boldred="\e[1;31m"
+bold_red_underscore="\e[1;4;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
-resetformatting="\e[0m"
+reset_formatting="\e[0m"
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -14,6 +14,9 @@ script_directory="$(dirname "${full_script_path}")"
 
 #call stack has full scriptname when using source
 source "${script_directory}/deploy_utils.sh"
+
+#helper files
+source "${script_directory}/helpers/script_helpers.sh"
 
 #Internal helper functions
 function showhelp {
@@ -24,16 +27,19 @@ function showhelp {
   echo "#   This file contains the logic to deploy the deployer.                                #"
   echo "#   The script experts the following exports:                                           #"
   echo "#                                                                                       #"
-  echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
-  echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation        #"
+  echo "#     ARM_SUBSCRIPTION_ID      to specify which subscription to deploy to               #"
+  echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing                        #"
+  echo "#                              the cloned sap-automation                                #"
   echo "#                                                                                       #"
   echo "#   The script will persist the parameters needed between the executions in the         #"
-  echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                                 #"
+  echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                #"
   echo "#                                                                                       #"
   echo "#                                                                                       #"
-  echo "#   Usage: install_deployer.sh                                                          #"
-  echo "#    -p deployer parameter file                                                         #"
-  echo "#    -i interactive true/false setting the value to false will not prompt before apply  #"
+  echo "#   Usage: install_library.sh                                                           #"
+  echo "#    -p or --parameterfile                    library parameter file                    #"
+  echo "#    -v or --keyvault                         Name of key vault containing credentiols  #"
+  echo "#    -s or --deployer_statefile_foldername    relative path to deployer folder          #"
+  echo "#    -i or --auto-approve                     if set will not prompt before apply       #"
   echo "#    -h Show help                                                                       #"
   echo "#                                                                                       #"
   echo "#   Example:                                                                            #"
@@ -47,7 +53,7 @@ function showhelp {
 }
 
 #process inputs - may need to check the option i for auto approve as it is not used
-INPUT_ARGUMENTS=$(getopt -n install_library -o p:d:ih --longoptions parameterfile:,deployer_statefile_foldername:,auto-approve,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n install_library -o p:d:v:ih --longoptions parameterfile:,deployer_statefile_foldername:,keyvault:,auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -59,7 +65,7 @@ eval set -- "$INPUT_ARGUMENTS"
 while :; do
   case "$1" in
   -p | --parameterfile)
-    parameterfile="$2"
+    parameterfile_name="$2"
     shift 2
     ;;
   -d | --deployer_statefile_foldername)
@@ -73,7 +79,10 @@ while :; do
   -h | --help)
     showhelp
     exit 3
-    shift
+    ;;
+  -v | --keyvault)
+    keyvault="$2"
+    shift 2
     ;;
   --)
     shift
@@ -85,20 +94,26 @@ done
 deployment_system=sap_library
 use_deployer=true
 
-if [ ! -f "${parameterfile}" ]; then
-  printf -v val %-40.40s "$parameterfile"
+if [ "$DEBUG" = True ]; then
+  set -x
+  set -o errexit
+fi
+
+if [ ! -f "${parameterfile_name}" ]; then
+  printf -v val %-40.40s "$parameterfile_name"
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
   echo "#               Parameter file does not exist: ${val} #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
-  exit
+  exit 65
 fi
 
-param_dirname=$(dirname "${parameterfile}")
+param_dirname=$(dirname "${parameterfile_name}")
+export TF_DATA_DIR="${param_dirname}"/.terraform
 
-if [ $param_dirname != '.' ]; then
+if [ "$param_dirname" != '.' ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -108,22 +123,23 @@ if [ $param_dirname != '.' ]; then
   exit 3
 fi
 
-ext=$(echo ${parameterfile} | cut -d. -f2)
-
-# Helper variables
-if [ "${ext}" == json ]; then
-  environment=$(jq --raw-output .infrastructure.environment "${parameterfile}")
-  region=$(jq --raw-output .infrastructure.region "${parameterfile}")
-  use_deployer=$(jq --raw-output .deployer.use "${parameterfile}")
-else
-
-  load_config_vars "${param_dirname}"/"${parameterfile}" "environment"
-  load_config_vars "${param_dirname}"/"${parameterfile}" "location"
-  region=$(echo ${location} | xargs)
-
+# Check that parameter files have environment and location defined
+validate_key_parameters "$parameterfile_name"
+return_code=$?
+if [ 0 != $return_code ]; then
+  echo "Missing parameters in $parameterfile_name"
+  exit $return_code
 fi
 
-key=$(echo "${parameterfile}" | cut -d. -f1)
+region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
+if valid_region_name "${region}"; then
+  # Convert the region to the correct code
+  get_region_code "${region}"
+else
+  echo "Invalid region: $region"
+  exit 2
+fi
+key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
 if [ -z "${environment}" ]; then
   echo "#########################################################################################"
@@ -151,7 +167,7 @@ fi
 
 # Convert the region to the correct code
 region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
-get_region_code $region
+get_region_code "$region"
 
 if [ true == "$use_deployer" ]; then
   if [ ! -d "${deployer_statefile_foldername}" ]; then
@@ -169,11 +185,9 @@ fi
 #Persisting the parameters across executions
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-library_config_information="${automation_config_directory}""${environment}""${region_code}"
+library_config_information="${automation_config_directory}${environment}${region_code}"
 
-#Plugins
-isInCloudShellCheck=$(checkIfCloudShell)
-
+# Terraform Plugins
 if checkIfCloudShell; then
   mkdir -p "${HOME}/.terraform.d/plugin-cache"
   export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
@@ -187,23 +201,19 @@ fi
 
 param_dirname=$(pwd)
 
-arm_config_stored=false
-
-param_dirname=$(pwd)
-
 init "${automation_config_directory}" "${generic_config_information}" "${library_config_information}"
 
 export TF_DATA_DIR="${param_dirname}"/.terraform
-var_file="${param_dirname}"/"${parameterfile}"
+var_file="${param_dirname}"/"${parameterfile_name}"
 
-if [ ! -n "${SAP_AUTOMATION_REPO_PATH}" ]; then
+if [ -z "${SAP_AUTOMATION_REPO_PATH}" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo "#   Missing environment variables (SAP_AUTOMATION_REPO_PATH)!!!                             #"
+  echo "#   Missing environment variables (SAP_AUTOMATION_REPO_PATH)!!!                         #"
   echo "#                                                                                       #"
-  echo "#   Please export the folloing variables:                                               #"
-  echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))                        #"
+  echo "#   Please export the following variables:                                              #"
+  echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))              #"
   echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
@@ -211,20 +221,14 @@ if [ ! -n "${SAP_AUTOMATION_REPO_PATH}" ]; then
   exit 4
 fi
 
-templen=$(echo "${ARM_SUBSCRIPTION_ID}" | wc -c)
-# Subscription length is 37
-if [ 37 != $templen ]; then
-  arm_config_stored=false
-fi
-
-if [ ! -n "$ARM_SUBSCRIPTION_ID" ]; then
+if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
   echo "#   Missing environment variables (ARM_SUBSCRIPTION_ID)!!!                              #"
   echo "#                                                                                       #"
-  echo "#   Please export the folloing variables:                                               #"
-  echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))                        #"
+  echo "#   Please export the following variables:                                              #"
+  echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))              #"
   echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
@@ -234,7 +238,7 @@ fi
 
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 
-if [ ! -d ${terraform_module_directory} ]; then
+if [ ! -d "${terraform_module_directory}" ]; then
   echo "#########################################################################################"
   echo "#                                                                                       #"
   echo "#   Incorrect system deployment type specified :" ${deployment_system} "            #"
@@ -248,8 +252,6 @@ if [ ! -d ${terraform_module_directory} ]; then
   exit 64
 fi
 
-reinitialized=0
-
 if [ -f ./backend-config.tfvars ]; then
   echo "#########################################################################################"
   echo "#                                                                                       #"
@@ -262,69 +264,66 @@ else
   sed -i /tfstate_resource_id/d "${library_config_information}"
 fi
 
+TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
+export TF_VAR_subscription_id
+
+if [ -n "${keyvault}" ]; then
+  TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+  export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+
+fi
+
 if [ ! -d ./.terraform/ ]; then
   echo "#########################################################################################"
   echo "#                                                                                       #"
   echo "#                                   New deployment                                      #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
-  terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
+  terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate"
   sed -i /REMOTE_STATE_RG/d "${library_config_information}"
   sed -i /REMOTE_STATE_SA/d "${library_config_information}"
   sed -i /tfstate_resource_id/d "${library_config_information}"
 
 else
   if [ -f ./.terraform/terraform.tfstate ]; then
-    if grep "azurerm" ./.terraform/terraform.tfstate; then
+    azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+    if [ -n "$azure_backend" ]; then
       echo "#########################################################################################"
       echo "#                                                                                       #"
       echo "#                     The state is already migrated to Azure!!!                         #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
 
-      if [ $approve == "--auto-approve" ]; then
-        tfstate_resource_id=$(az resource list --name $REINSTALL_ACCOUNTNAME --subscription $REINSTALL_SUBSCRIPTION --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-        if [ -n "${tfstate_resource_id}" ]; then
-          echo "Reinitializing against remote state"
-          terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
-          export TF_VAR_tfstate_resource_id=$tfstate_resource_id
-          terraform -chdir="${terraform_module_directory}" init -upgrade=true \
-            --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
-            --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
-            --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
-            --backend-config "container_name=tfstate" \
-            --backend-config "key=${key}.terraform.tfstate"
-          terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+      REINSTALL_SUBSCRIPTION=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+      REINSTALL_ACCOUNTNAME=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+      REINSTALL_RESOURCE_GROUP=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 
+      tfstate_resource_id=$(az resource list --name "$REINSTALL_ACCOUNTNAME" --subscription "$REINSTALL_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+      if [ -n "${tfstate_resource_id}" ]; then
+        echo "Reinitializing against remote state"
+        this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+        az storage account network-rule add --account-name "$REINSTALL_ACCOUNTNAME" --resource-group "$REINSTALL_RESOURCE_GROUP" --ip-address "${this_ip}" --only-show-errors --output none
+        echo "Sleeping for 30 seconds to allow the network rule to take effect"
+        sleep 30
+        export TF_VAR_tfstate_resource_id=$tfstate_resource_id
+
+        terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/sap_library"/
+
+        if terraform -chdir="${terraform_module_directory}" init \
+          --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
+          --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
+          --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
+          --backend-config "container_name=tfstate" \
+          --backend-config "key=${key}.terraform.tfstate"; then
+          terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" -input=false \
+            -var deployer_statefile_foldername="${deployer_statefile_foldername}"
         else
-          terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
-          terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+          return 10
         fi
       else
-
-        read -p "Do you want to re bootstrap the SAP library Y/N?" ans
-        answer=${ans^^}
-        if [ $answer == 'Y' ]; then
-          terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"
-          return_value=$?
-          if [ 0 != $return_value ]; then
-            echo ""
-            echo "#########################################################################################"
-            echo "#                                                                                       #"
-            echo -e "#                          $boldreduscore Errors during the init phase $resetformatting                               #"
-            echo "#                                                                                       #"
-            echo "#########################################################################################"
-            echo ""
-            unset TF_DATA_DIR
-            exit $return_value
-          fi
-        else
-          unset TF_DATA_DIR
-          exit 0
-        fi
+        terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
       fi
-    else
-      terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
     fi
   else
     terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
@@ -339,60 +338,56 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-if [ -n "${deployer_statefile_foldername}" ]; then
-  echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" >plan_output.log 2>&1
+if [ -f terraform.tfvars ]; then
+  extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 else
-  terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode -var-file="${var_file}" >plan_output.log 2>&1
+  unset extra_vars
 fi
-return_value=$?
 
-if [ 0 == $return_value ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo -e "#                          $cyan Infrastructure is up to date $resetformatting                               #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  echo ""
-  if [ -f plan_output.log ]; then
-    rm plan_output.log
+if [ -n "${deployer_statefile_foldername}" ]; then
+  echo "Deployer folder specified:           ${deployer_statefile_foldername}"
+  if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
+    -var-file="${var_file}" -input=false \
+    -var deployer_statefile_foldername="${deployer_statefile_foldername}" | tee -a plan_output.log 2>&1; then
+    return_value=$?
   fi
+  allParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
+  allImportParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
 
-  tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
-  STATE_SUBSCRIPTION=$(echo $tfstate_resource_id | cut -d/ -f3 | tr -d \" | xargs)
-
-  az account set --sub $STATE_SUBSCRIPTION
-
-  REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
-
-  get_and_store_sa_details ${REMOTE_STATE_SA} "${system_config_information}"
-
-  unset TF_DATA_DIR
-  exit $return_value
+else
+  if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
+    -var-file="${var_file}" -input=false | tee -a plan_output.log 2>&1; then
+    return_value=$?
+  fi
+  allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
+  allImportParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 fi
+
+return_value=$?
 
 if [ 1 == $return_value ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                          $boldreduscore Errors during the plan phase $resetformatting                               #"
+  echo -e "#                          $bold_red_underscore Errors during the plan phase $reset_formatting                               #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
 
-  if [ -f plan_output.log ]; then
-    cat plan_output.log
-    rm plan_output.log
-  fi
   unset TF_DATA_DIR
   exit $return_value
 fi
 
-if [ -f plan_output.log ]; then
-  cat plan_output.log
-  rm plan_output.log
+parallelism=10
+
+#Provide a way to limit the number of parallell tasks for Terraform
+if [[ -n "$TF_PARALLELLISM" ]]; then
+  parallelism=$TF_PARALLELLISM
 fi
+
+echo "Parallelism count:                   $parallelism"
+
+return_value=0
 
 echo ""
 echo "#########################################################################################"
@@ -402,136 +397,71 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-deployer_parameter=""
-if [ -n "${deployer_statefile_foldername}" ]; then
-  echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-  if [ -n "${approve}" ]; then
-    terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -auto-approve -json | tee -a apply_output.json
+if [ -n "${approve}" ]; then
+  # shellcheck disable=SC2086
+  if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters --auto-approve | tee -a apply_output.json; then
+    return_value=$?
+    if [ $return_value -eq 1 ]; then
+      echo "Errors when running Terraform apply"
+    else
+      # return code 2 is ok
+      return_value=0
+    fi
   else
-    terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}"
+    return_value=0
   fi
+
 else
-  if [ -n "${approve}" ]; then
-    terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -auto-approve -json | tee -a apply_output.json
-  else
-    terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}"
+  # shellcheck disable=SC2086
+  if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters; then
+    return_value=$?
+    if [ $return_value -eq 1 ]; then
+      echo "Errors when running Terraform apply"
+    else
+      # return code 2 is ok
+      return_value=0
+    fi
   fi
 fi
-return_value=$?
 
-rerun_apply=0
 if [ -f apply_output.json ]; then
   errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
-  # Check for resource that can be imported
-  existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
-  if [[ -n ${existing} ]]; then
-
-    readarray -t existing_resources < <(echo ${existing} | jq -c '.')
-    for item in "${existing_resources[@]}"; do
-      moduleID=$(jq -c -r '.address ' <<<"$item")
-      resourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-      echo "Trying to import" $resourceID "into" $moduleID
-
-      if [ -n "${deployer_statefile_foldername}" ]; then
-        echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" $moduleID $resourceID
-      else
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $moduleID $resourceID
-      fi
-
-    done
-    rerun_apply=1
-  fi
-  if [ $rerun_apply == 1 ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                          Re-running Terraform apply                                   #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    if [ -n "${deployer_statefile_foldername}" ]; then
-      echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-      terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -auto-approve -json | tee -a apply_output.json
-    else
-      terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -auto-approve -json | tee -a apply_output.json
-    fi
-    return_value=$?
-    rerun_apply=0
-  fi
-  errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
-
-  # Check for resource that can be imported
-  existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary}  | select(.summary | startswith("A resource with the ID"))' apply_output.json)
-  if [[ -n ${existing} ]]; then
-
-    readarray -t existing_resources < <(echo ${existing} | jq -c '.')
-    for item in "${existing_resources[@]}"; do
-      moduleID=$(jq -c -r '.address ' <<<"$item")
-      resourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
-      echo "Trying to import" $resourceID "into" $moduleID
-
-      if [ -n "${deployer_statefile_foldername}" ]; then
-        echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" $moduleID $resourceID
-      else
-        terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" $moduleID $resourceID
-      fi
-
-    done
-    rerun_apply=1
-  fi
-
-  if [ $rerun_apply == 1 ]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo "#                          Re-running Terraform apply                                   #"
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-    if [ -n "${deployer_statefile_foldername}" ]; then
-      echo "Deployer folder specified:             ${deployer_statefile_foldername}"
-      terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername}" -auto-approve -json | tee -a apply_output.json
-    else
-      terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" -auto-approve -json | tee -a apply_output.json
-    fi
-    return_value=$?
-    rerun_apply=0
-  fi
-  errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
-
   if [[ -n $errors_occurred ]]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                          $boldreduscore!Errors during the apply phase!$resetformatting                              #"
-
-    return_value=2
-    all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' apply_output.json)
-    if [[ -n ${all_errors} ]]; then
-      readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
-      for errors_string in "${errors_strings[@]}"; do
-        string_to_report=$(jq -c -r '.detail ' <<<"$errors_string")
-        if [[ -z ${string_to_report} ]]; then
-          string_to_report=$(jq -c -r '.summary ' <<<"$errors_string")
-        fi
-
-        echo -e "#                          $boldreduscore  $string_to_report $resetformatting"
-        echo "##vso[task.logissue type=error]${string_to_report}"
-
-      done
-
+    # shellcheck disable=SC2086
+    if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+      return_value=$?
     fi
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
 
+    if [ -f apply_output.json ]; then
+      # shellcheck disable=SC2086
+      if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+        return_value=$?
+      fi
+    fi
+
+    if [ -f apply_output.json ]; then
+      # shellcheck disable=SC2086
+      if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+        return_value=$?
+      fi
+    fi
+
+    if [ -f apply_output.json ]; then
+      # shellcheck disable=SC2086
+      if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+        return_value=$?
+      fi
+    fi
+
+    if [ -f apply_output.json ]; then
+      # shellcheck disable=SC2086
+      if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+        return_value=$?
+      fi
+    fi
   fi
-
 fi
-
 if [ -f apply_output.json ]; then
   rm apply_output.json
 fi
@@ -540,7 +470,7 @@ if [ 1 == $return_value ]; then
   echo ""
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                          $boldreduscore Errors during the apply phase $resetformatting                              #"
+  echo -e "#                          $bold_red_underscore Errors during the apply phase $reset_formatting                              #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -548,42 +478,36 @@ if [ 1 == $return_value ]; then
   exit $return_value
 fi
 
-REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
-temp=$(echo "${REMOTE_STATE_SA}" | grep -m1 "Warning")
-if [ -z "${temp}" ]; then
-  temp=$(echo "${REMOTE_STATE_SA}" | grep "Backend reinitialization required")
-  if [ -z "${temp}" ]; then
-    save_config_var "REMOTE_STATE_SA" "${library_config_information}"
-  fi
-fi
-
-tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
-temp=$(echo $tfstate_resource_id | grep -m1 "Warning")
-if [ -z "${temp}" ]; then
-  temp=$(echo "${tfstate_resource_id}" | grep "Backend reinitialization required")
-  if [ -z "${temp}" ]; then
-    save_config_var "tfstate_resource_id" "${library_config_information}"
-  fi
-fi
-
-REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
-temp=$(echo "${REMOTE_STATE_RG}" | grep -m1 "Warning")
-if [ -z "${temp}" ]; then
-  temp=$(echo "${REMOTE_STATE_RG}" | grep "Backend reinitialization required")
-  if [ -z "${temp}" ]; then
-    save_config_var "REMOTE_STATE_RG" "${library_config_information}"
+if ! terraform -chdir="${terraform_module_directory}" refresh $allParameters; then
+  return_value=$?
+  if [ $return_value -eq 1 ]; then
+    echo "Errors when running Terraform refresh"
+  else
+    # return code 2 is ok
     return_value=0
   fi
+else
+  return_value=0
 fi
 
-random_id_b64=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id_b64 | tr -d \")
-temp=$(echo "${random_id_b64}" | grep -m1 "Warning")
-if [ -z "${temp}" ]; then
-  temp=$(echo "${random_id_b64}" | grep "Backend reinitialization required")
-  if [ -z "${temp}" ]; then
-    save_config_var "library_random_id" "${random_id_b64}"
-    return_value=0
-  fi
+if [ "$DEBUG" = True ]; then
+  terraform -chdir="${terraform_module_directory}" output
+fi
+
+if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+
+  tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
+  STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
+
+  az account set --sub "$STATE_SUBSCRIPTION"
+
+  REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
+  export REMOTE_STATE_SA
+
+  getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${library_config_information}"
+  return_value=0
+else
+  return_value=20
 fi
 
 exit $return_value

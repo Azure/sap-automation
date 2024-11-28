@@ -10,7 +10,7 @@ module "sap_namegenerator" {
   environment                                   = local.infrastructure.environment
   location                                      = local.infrastructure.region
   codename                                      = lower(try(local.infrastructure.codename, ""))
-  random_id                                     = module.common_infrastructure.random_id
+  random_id                                     = coalesce(var.custom_random_id, module.common_infrastructure.random_id)
   sap_vnet_name                                 = local.vnet_logical_name
   sap_sid                                       = local.sap_sid
   db_sid                                        = local.db_sid
@@ -127,7 +127,6 @@ module "hdb_node" {
                                                     0
                                                   )
   database_use_premium_v2_storage               = var.database_use_premium_v2_storage
-  database_active_active                        = var.database_active_active
   database_vm_admin_nic_ips                     = var.database_vm_admin_nic_ips
   database_vm_db_nic_ips                        = var.database_vm_db_nic_ips
   database_vm_db_nic_secondary_ips              = var.database_vm_db_nic_secondary_ips
@@ -165,7 +164,7 @@ module "hdb_node" {
   use_private_endpoint                          = var.use_private_endpoint
   hanashared_private_endpoint_id                = var.hanashared_private_endpoint_id
   hanashared_id                                 = var.hanashared_id
-  random_id                                     = module.common_infrastructure.random_id
+  random_id                                     = coalesce(var.custom_random_id, module.common_infrastructure.random_id)
 }
 
 #########################################################################################
@@ -319,6 +318,9 @@ module "output_files" {
   save_naming_information                       = var.save_naming_information
   tfstate_resource_id                           = var.tfstate_resource_id
 
+  created_resource_group_name                   = module.common_infrastructure.created_resource_group_name
+  created_resource_group_subscription_id        = module.common_infrastructure.created_resource_group_subscription_id
+
   #########################################################################################
   #  Database tier                                                                        #
   #########################################################################################
@@ -330,8 +332,6 @@ module "output_files" {
   database_cluster_type                         = var.database_cluster_type
   database_cluster_ip                           = module.anydb_node.database_cluster_ip
   database_high_availability                    = local.database.high_availability
-  database_active_active                        = var.database_active_active
-  database_active_active_loadbalancer_ip        = try(module.hdb_node.database_loadbalancer_ip[1], "")
   database_loadbalancer_ip                      = upper(try(local.database.platform, "HANA")) == "HANA" ? (
                                                     module.hdb_node.database_loadbalancer_ip[0]) : (
                                                     module.anydb_node.database_loadbalancer_ip[0]

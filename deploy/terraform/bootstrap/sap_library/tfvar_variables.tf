@@ -47,6 +47,13 @@ variable "tags"                                  {
                                                    default     = {}
                                                  }
 
+variable "subscription_id"                       {
+                                                   description = "Defines the Azure subscription_id"
+                                                   type        = string
+                                                   default     = null
+                                                 }
+
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitioms                          #
@@ -229,6 +236,16 @@ variable "shared_access_key_enabled"            {
                                                   type        = bool
                                                 }
 
+variable "data_plane_available"                 {
+                                                  description = "Boolean value indicating if storage account access is via data plane"
+                                                  default     = false
+                                                  type        = bool
+                                                }
+
+variable "custom_random_id"                     {
+                                                  description = "If provided, the value of the custom random id"
+                                                  default     = ""
+                                                }
 
 #########################################################################################
 #                                                                                       #
@@ -313,3 +330,8 @@ variable "register_endpoints_with_dns"             {
                                                      default     = true
                                                      type        = bool
                                                    }
+variable "enable_firewall_for_keyvaults_and_storage" {
+                                                       description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+                                                       default     = true
+                                                       type        = bool
+                                                     }

@@ -63,6 +63,10 @@ resource "azurerm_public_ip" "bastion" {
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )
+
+  lifecycle                                    {
+                                                  create_before_destroy = true
+                                               }
 }
 
 # Create the Bastion Host

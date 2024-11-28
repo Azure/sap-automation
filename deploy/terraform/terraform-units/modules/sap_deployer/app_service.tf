@@ -57,7 +57,12 @@ data "azurerm_subnet" "webapp" {
 # Create the Windows App Service Plan
 resource "azurerm_service_plan" "appserviceplan" {
   count                                         = var.use_webapp ? 1 : 0
-  name                                          = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.DEPLOYER, var.naming.resource_suffixes.app_service_plan, substr(random_id.deployer.hex, 0, 3)))
+  name                                          = lower(format("%s%s%s%s",
+                                                    var.naming.resource_prefixes.app_service_plan,
+                                                    var.naming.prefix.DEPLOYER,
+                                                    var.naming.resource_suffixes.app_service_plan,
+                                                    coalesce(try(var.infrastructure.custom_random_id, ""), substr(random_id.deployer.hex, 0, 3)))
+                                                  )
   resource_group_name                           = local.resourcegroup_name
   location                                      = local.rg_appservice_location
   os_type                                       = "Windows"
@@ -68,7 +73,12 @@ resource "azurerm_service_plan" "appserviceplan" {
 # Create the app service with AD authentication and storage account connection string
 resource "azurerm_windows_web_app" "webapp" {
   count                                          = var.use_webapp ? 1 : 0
-  name                                           = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.LIBRARY, var.naming.resource_suffixes.webapp_url, substr(random_id.deployer.hex, 0, 3)))
+  name                                           = lower(format("%s%s%s%s",
+                                                    var.naming.resource_prefixes.app_service_plan,
+                                                    var.naming.prefix.LIBRARY,
+                                                    var.naming.resource_suffixes.webapp_url,
+                                                    coalesce(try(var.infrastructure.custom_random_id, ""), substr(random_id.deployer.hex, 0, 3)))
+                                                    )
   resource_group_name                            = local.resourcegroup_name
   location                                       = local.rg_appservice_location
   service_plan_id                                = azurerm_service_plan.appserviceplan[0].id
