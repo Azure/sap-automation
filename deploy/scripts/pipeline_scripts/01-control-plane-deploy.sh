@@ -268,11 +268,6 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
   unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
 
-if [ "$DEBUG" = True ]; then
-  ls -lart "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
-  ls -lart "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME"
-fi
-
 export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 
 sudo chmod +x "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh"
