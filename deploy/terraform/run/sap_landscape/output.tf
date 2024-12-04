@@ -250,13 +250,13 @@ output "storageaccount_rg_name"                  {
                                                  }
 
 output "transport_storage_account_id"            {
-                                                   description = "Transport storage account resource group name"
+                                                   description = "Transport storage account name"
                                                    value       = module.sap_landscape.transport_storage_account_id
                                                  }
 
 //Witness
 output "witness_storage_account"                 {
-                                                   description = "Transport storage account resource group name"
+                                                   description = "Witness storage account name"
                                                    value       = module.sap_landscape.witness_storage_account
                                                  }
 

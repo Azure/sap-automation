@@ -121,7 +121,7 @@ locals {
   user_key_vault_id                               = try(var.key_vault.kv_user_id, "")
   user_keyvault_exist                             = length(local.user_key_vault_id) > 0
 
-  enable_landscape_kv = !local.user_keyvault_exist
+  create_workloadzone_keyvault                    = !local.user_keyvault_exist
 
   // If the user specifies the secret name of key pair/password in input,
   // the secrets will be imported instead of creating new secrets
@@ -368,6 +368,8 @@ locals {
                                                       try(var.infrastructure.vnets.sap.subnet_app.prefix, "")) : (
                                                       ""
                                                     )
+
+  create_application_subnet                       = local.application_subnet_defined && !local.application_subnet_existing
 
   ##############################################################################################
   #

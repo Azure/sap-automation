@@ -18,6 +18,7 @@ module "sap_deployer" {
   Agent_IP                                     = var.add_Agent_IP ? var.Agent_IP : ""
   agent_pat                                    = var.agent_pat
   agent_pool                                   = var.agent_pool
+  agent_network_id                             = var.agent_network_id
   ansible_core_version                         = var.ansible_core_version
   app_registration_app_id                      = var.use_webapp ? var.app_registration_app_id : ""
   app_service                                  = local.app_service
@@ -38,7 +39,7 @@ module "sap_deployer" {
   key_vault                                    = local.key_vault
   options                                      = local.options
   place_delete_lock_on_resources               = var.place_delete_lock_on_resources
-  public_network_access_enabled                = var.public_network_access_enabled
+  public_network_access_enabled                = true # This can only be set once we have private DNS in place var.public_network_access_enabled
   sa_connection_string                         = var.sa_connection_string
   soft_delete_retention_days                   = var.soft_delete_retention_days
   set_secret_expiry                            = var.set_secret_expiry

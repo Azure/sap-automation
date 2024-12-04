@@ -85,21 +85,21 @@ variable "key_vault"                                    {
                                                           default = {}
                                                           validation {
                                                                        condition = (
-                                                                         contains(keys(var.key_vault), "kv_spn_id") ? (
-                                                                           length(split("/", var.key_vault.kv_spn_id)) == 9) : (
+                                                                         contains(keys(var.key_vault), "keyvault_id_for_deployment_credentials") ? (
+                                                                           length(split("/", var.key_vault.keyvault_id_for_deployment_credentials)) == 9) : (
                                                                            true
                                                                          )
                                                                        )
-                                                                       error_message = "If specified, the kv_spn_id needs to be a correctly formed Azure resource ID."
+                                                                       error_message = "If specified, the spn_keyvault_id needs to be a correctly formed Azure resource ID."
                                                                      }
                                                           validation {
                                                                        condition = (
-                                                                         contains(keys(var.key_vault), "kv_user_id") ? (
-                                                                           length(split("/", var.key_vault.kv_user_id)) == 9) : (
+                                                                         contains(keys(var.key_vault), "keyvault_id_for_system_credentials") ? (
+                                                                           length(split("/", var.key_vault.keyvault_id_for_system_credentials)) == 9) : (
                                                                            true
                                                                          )
                                                                        )
-                                                                       error_message = "If specified, the kv_user_id needs to be a correctly formed Azure resource ID."
+                                                                       error_message = "If specified, the user_keyvault_id needs to be a correctly formed Azure resource ID."
                                                                      }
 
                                                           validation {
@@ -173,7 +173,7 @@ variable "storage_account_replication_type"             {
 
 #######################################4#######################################8
 #                                                                              #
-#  Miscallaneous variables                                                     #
+#  Miscellaneous variables                                                     #
 #                                                                              #
 #######################################4#######################################8
 
@@ -218,6 +218,10 @@ variable "ANF_settings"                                 {
 
 variable "place_delete_lock_on_resources"                { description = "If defined, a delete lock will be placed on the key resources" }
 
+variable "agent_network_id"                              {
+                                                           description = "Agent Network resource ID"
+                                                           default     = ""
+                                                         }
 
 #########################################################################################
 #                                                                                       #

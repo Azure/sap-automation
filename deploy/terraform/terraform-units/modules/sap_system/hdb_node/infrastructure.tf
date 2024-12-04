@@ -53,28 +53,18 @@ resource "azurerm_lb" "hdb" {
   sku                                  = "Standard"
   tags                                 = var.tags
 
-  frontend_ip_configuration {
-                              name = format("%s%s%s%s",
-                                var.naming.resource_prefixes.db_alb_feip,
-                                local.prefix,
-                                var.naming.separator,
-                                local.resource_suffixes.db_alb_feip
-                              )
-                              subnet_id = var.database.scale_out ? var.admin_subnet.id :  var.db_subnet.id
-                              private_ip_address = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? (
-                                var.database.loadbalancer.frontend_ips[0]) : (
-                                var.database.use_DHCP ? (
-                                  null) : (
-                                  cidrhost(
-                                    var.database.scale_out ? var.admin_subnet.address_prefixes[0] :  var.db_subnet.address_prefixes[0],
-                                    tonumber(count.index) + local.hdb_ip_offsets.hdb_lb
-                                ))
-                              )
-                              private_ip_address_allocation = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? "Static" : "Dynamic"
 
-                              zones = ["1", "2", "3"]
-                            }
-
+  dynamic "frontend_ip_configuration" {
+                                        iterator = pub
+                                        for_each = local.frontend_ips
+                                        content {
+                                          name                          = pub.value.name
+                                          subnet_id                     = pub.value.subnet_id
+                                          private_ip_address            = pub.value.private_ip_address
+                                          private_ip_address_allocation = pub.value.private_ip_address_allocation
+                                          zones                         = ["1", "2", "3"]
+                                        }
+                                      }
 }
 
 resource "azurerm_lb_backend_address_pool" "hdb" {
@@ -154,3 +144,57 @@ resource "azurerm_private_dns_a_record" "db" {
   tags                                 = var.tags
 }
 
+# HANA Active/Active (Read Enabled) System Replication based on database_active_active variable
+resource "azurerm_lb_probe" "hdb_active_active" {
+  provider                             = azurerm.main
+  count                                = local.enable_db_lb_deployment && var.database_active_active ? 1 : 0
+  name                                 = format("%s%s%s%s",
+                                           var.naming.resource_prefixes.db_rlb_hp,
+                                           local.prefix,
+                                           var.naming.separator,
+                                           local.resource_suffixes.db_rlb_hp
+                                         )
+  loadbalancer_id                      = azurerm_lb.hdb[count.index].id
+  port                                 = "626${var.database.instance.number}"
+  protocol                             = "Tcp"
+  interval_in_seconds                  = 5
+  number_of_probes                     = 2
+  probe_threshold                      = 2
+}
+
+resource "azurerm_lb_rule" "hdb_active_active" {
+  provider                             = azurerm.main
+  count                                = local.enable_db_lb_deployment && var.database_active_active ? 1 : 0
+  name                                 = format("%s%s%s%s",
+                                           var.naming.resource_prefixes.db_rlb_rule,
+                                           local.prefix,
+                                           var.naming.separator,
+                                           local.resource_suffixes.db_rlb_rule
+                                         )
+  loadbalancer_id                      = azurerm_lb.hdb[count.index].id
+  protocol                             = "All"
+  frontend_port                        = 0
+  backend_port                         = 0
+
+  frontend_ip_configuration_name       = format("%s%s%s%s",
+                                           var.naming.resource_prefixes.db_rlb_feip,
+                                           local.prefix,
+                                           var.naming.separator,
+                                           local.resource_suffixes.db_rlb_feip
+                                         )
+  probe_id                             = azurerm_lb_probe.hdb_active_active[0].id
+  backend_address_pool_ids             = [azurerm_lb_backend_address_pool.hdb[0].id]
+  enable_floating_ip                   = true
+  idle_timeout_in_minutes              = 30
+}
+
+resource "azurerm_private_dns_a_record" "db_active_active" {
+  provider                             = azurerm.dnsmanagement
+  count                                = local.enable_db_lb_deployment && var.database_active_active && length(local.dns_label) > 0 && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
+  name                                 = lower(format("%s%sdb%sclr", var.sap_sid, local.database_sid, local.database_instance))
+  resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
+  zone_name                            = local.dns_label
+  ttl                                  = 300
+  records                              = [try(azurerm_lb.hdb[0].frontend_ip_configuration[1].private_ip_address, "")]
+  tags                                 = var.tags
+}

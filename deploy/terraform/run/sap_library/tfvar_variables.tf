@@ -348,6 +348,19 @@ variable "privatelink_dns_resourcegroup_name"    {
                                                    type        = string
                                                  }
 
+variable "create_privatelink_dns_zones"          {
+                                                   description = "Boolean value indicating if PrivateLink DNS Zones should be created"
+                                                   default     = true
+                                                   type        = bool
+                                                 }
+
+
+variable "agent_network_id"                      {
+                                                   description = "Agent Network resource ID"
+                                                   default     = ""
+                                                 }
+
+
 variable "dns_label"                             {
                                                    description = "DNS label"
                                                    default     = ""

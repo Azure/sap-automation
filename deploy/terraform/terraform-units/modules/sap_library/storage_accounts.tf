@@ -88,41 +88,41 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
             }
 }
 
-resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_private_endpoint && var.use_custom_dns_a_registration && !local.sa_tfstate_exists ? 1 : 0
-  depends_on                           = [
-                                           azurerm_private_dns_zone.blob
-                                         ]
-  name                                 = lower(azurerm_storage_account.storage_tfstate[0].name)
-  zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
-  resource_group_name                  = coalesce(
-                                           var.dns_settings.privatelink_dns_resourcegroup_name,
-                                           var.dns_settings.management_dns_resourcegroup_name,
-                                           local.resource_group_exists ? (
-                                             data.azurerm_resource_group.library[0].name
-                                             ) : (
-                                             azurerm_resource_group.library[0].name
-                                           )
-                                         )
-  ttl                                  = 3600
-  records                              = [azurerm_private_endpoint.storage_tfstate[0].private_service_connection[0].private_ip_address]
+# resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" {
+#   provider                             = azurerm.privatelinkdnsmanagement
+#   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_private_endpoint && var.use_custom_dns_a_registration && !local.sa_tfstate_exists ? 1 : 0
+#   depends_on                           = [
+#                                            azurerm_private_dns_zone.blob
+#                                          ]
+#   name                                 = lower(azurerm_storage_account.storage_tfstate[0].name)
+#   zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
+#   resource_group_name                  = coalesce(
+#                                            var.dns_settings.privatelink_dns_resourcegroup_name,
+#                                            var.dns_settings.management_dns_resourcegroup_name,
+#                                            local.resource_group_exists ? (
+#                                              data.azurerm_resource_group.library[0].name
+#                                              ) : (
+#                                              azurerm_resource_group.library[0].name
+#                                            )
+#                                          )
+#   ttl                                  = 3600
+#   records                              = [azurerm_private_endpoint.storage_tfstate[0].private_service_connection[0].private_ip_address]
 
-  lifecycle {
-              ignore_changes = [tags]
-            }
-}
+#   lifecycle {
+#               ignore_changes = [tags]
+#             }
+# }
 
-#Errors can occure when the dns record has not properly been activated, add a wait timer to give
+#Errors can occur when the dns record has not properly been activated, add a wait timer to give
 #it just a little bit more time
-resource "time_sleep" "wait_for_dns_refresh" {
-  create_duration                      = "120s"
+# resource "time_sleep" "wait_for_dns_refresh" {
+#   create_duration                      = "120s"
 
-  depends_on                           = [
-                                           azurerm_private_dns_a_record.storage_tfstate_pep_a_record_registry,
-                                           azurerm_private_dns_a_record.storage_sapbits_pep_a_record_registry
-                                         ]
-}
+#   depends_on                           = [
+#                                            azurerm_private_dns_a_record.storage_tfstate_pep_a_record_registry,
+#                                            azurerm_private_dns_a_record.storage_sapbits_pep_a_record_registry
+#                                          ]
+# }
 
 
 resource "azurerm_private_endpoint" "storage_tfstate" {
@@ -245,9 +245,7 @@ resource "azurerm_storage_container" "storagecontainer_tfstate" {
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.tfstate_blob_container.is_existing ? 0 : 1
   depends_on                           = [
-                                           time_sleep.wait_for_dns_refresh,
                                            azurerm_private_endpoint.storage_tfstate,
-                                           azurerm_private_dns_a_record.storage_tfstate_pep_a_record_registry
                                          ]
   name                                 = var.storage_account_tfstate.tfstate_blob_container.name
 
@@ -339,29 +337,29 @@ resource "azurerm_management_lock" "storage_sapbits" {
 }
 
 
-resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.use_private_endpoint && var.use_custom_dns_a_registration && !local.sa_sapbits_exists ? 1 : 0
-  depends_on                           = [
-                                           azurerm_private_dns_zone.blob
-                                         ]
+# resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" {
+#   provider                             = azurerm.privatelinkdnsmanagement
+#   count                                = var.use_private_endpoint && var.use_custom_dns_a_registration && !local.sa_sapbits_exists ? 1 : 0
+#   depends_on                           = [
+#                                            azurerm_private_dns_zone.blob
+#                                          ]
 
-  name                                 = lower(azurerm_storage_account.storage_sapbits[0].name)
-  zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
-  resource_group_name                  = coalesce(
-                                           var.dns_settings.privatelink_dns_resourcegroup_name,
-                                           var.dns_settings.management_dns_resourcegroup_name,
-                                            local.resource_group_exists ? (
-                                              data.azurerm_resource_group.library[0].name) : (
-                                              azurerm_resource_group.library[0].name)
-                                         )
-  ttl                                  = 3600
-  records                              = [azurerm_private_endpoint.storage_sapbits[0].private_service_connection[0].private_ip_address]
+#   name                                 = lower(azurerm_storage_account.storage_sapbits[0].name)
+#   zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
+#   resource_group_name                  = coalesce(
+#                                            var.dns_settings.privatelink_dns_resourcegroup_name,
+#                                            var.dns_settings.management_dns_resourcegroup_name,
+#                                             local.resource_group_exists ? (
+#                                               data.azurerm_resource_group.library[0].name) : (
+#                                               azurerm_resource_group.library[0].name)
+#                                          )
+#   ttl                                  = 3600
+#   records                              = [azurerm_private_endpoint.storage_sapbits[0].private_service_connection[0].private_ip_address]
 
-  lifecycle {
-              ignore_changes = [tags]
-            }
-}
+#   lifecycle {
+#               ignore_changes = [tags]
+#             }
+# }
 
 data "azurerm_storage_account" "storage_sapbits" {
   provider                             = azurerm.main
@@ -416,7 +414,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
                              }
 
   dynamic "private_dns_zone_group" {
-                                      for_each = range(var.use_private_endpoint && !var.use_custom_dns_a_registration ? 1 : 0)
+                                      for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0)
                                       content {
                                                 name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
                                                 private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.storage[0].id]

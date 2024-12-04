@@ -55,19 +55,6 @@ resource "azurerm_storage_account" "hanashared" {
 
 }
 
-
-data "azurerm_storage_account" "hanashared" {
-  provider                             = azurerm.main
-  count                                = var.NFS_provider == "AFS" && var.database.scale_out ? (
-                                           length(var.hanashared_id) > 0 ? (
-                                             length(var.hanashared_id)) : (
-                                             0
-                                           )) : (
-                                           0
-                                         )
-  name                                 = split("/", var.hanashared_id[count.index])[8]
-  resource_group_name                  = split("/", var.hanashared_id[count.index])[4]
-}
 #########################################################################################
 #                                                                                       #
 #  NFS share                                                                            #
@@ -92,7 +79,7 @@ resource "azurerm_storage_share" "hanashared" {
   name                                 = format("%s-%s-%01d", lower(local.sid),local.resource_suffixes.hanasharedafs, count.index+1)
   storage_account_id                   = var.NFS_provider == "AFS" ? (
                                            length(var.hanashared_id) > 0 ? (
-                                             data.azurerm_storage_account.hanashared[count.index].id) : (
+                                             var.hanashared_id[count.index]) : (
                                              azurerm_storage_account.hanashared[count.index].id
                                            )
                                            ) : (

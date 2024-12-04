@@ -90,7 +90,7 @@ output "deployer_user_assigned_identity" {
 // Details of management vnet that is deployed/imported
 output "vnet_mgmt_id" {
   description                          = "Management VNet ID"
-  value                                = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].id : azurerm_virtual_network.vnet_mgmt[0].id
+  value                                = local.management_virtual_network_exists ? data.azurerm_virtual_network.vnet_mgmt[0].id : azurerm_virtual_network.vnet_mgmt[0].id
 }
 
 // Details of management subnet that is deployed/imported

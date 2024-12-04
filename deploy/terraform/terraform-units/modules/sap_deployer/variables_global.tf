@@ -108,4 +108,16 @@ variable "ansible_core_version"        { description = "If provided, the version
 variable "Agent_IP"                    { description = "If provided, contains the IP address of the agent" }
 variable "spn_id"                      { description = "SPN ID to be used for the deployment" }
 
+
+#######################################4#######################################8
+#                                                                              #
+#  Miscellaneous settings                                                      #
+#                                                                              #
+#######################################4#######################################8
+
 variable "app_service"                 { description = "Details of the Application Service" }
+
+variable "agent_network_id"                          {
+                                                       description = "Agent Network resource ID"
+                                                       default     = ""
+                                                     }

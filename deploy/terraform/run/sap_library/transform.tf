@@ -64,17 +64,21 @@ locals {
                                          }
 
   dns_settings                         = {
-                                           use_custom_dns_a_registration = var.use_custom_dns_a_registration
-                                           dns_label = var.dns_label
-                                           dns_zone_names = var.dns_zone_names
+                                           use_custom_dns_a_registration             = var.use_custom_dns_a_registration
+                                           dns_label                                 = var.dns_label
+                                           dns_zone_names                            = var.dns_zone_names
 
-                                           management_dns_resourcegroup_name = trimspace(var.management_dns_resourcegroup_name)
-                                           management_dns_subscription_id = var.management_dns_subscription_id
+                                           management_dns_resourcegroup_name         = trimspace(var.management_dns_resourcegroup_name)
+                                           management_dns_subscription_id            = var.management_dns_subscription_id
 
-                                           privatelink_dns_subscription_id = var.privatelink_dns_subscription_id != var.management_dns_subscription_id ? var.privatelink_dns_subscription_id : var.management_dns_subscription_id
-                                           privatelink_dns_resourcegroup_name = var.management_dns_resourcegroup_name != var.privatelink_dns_resourcegroup_name ? var.privatelink_dns_resourcegroup_name : var.management_dns_resourcegroup_name
+                                           privatelink_dns_subscription_id           = var.privatelink_dns_subscription_id != var.management_dns_subscription_id ? var.privatelink_dns_subscription_id : var.management_dns_subscription_id
+                                           privatelink_dns_resourcegroup_name        = var.management_dns_resourcegroup_name != var.privatelink_dns_resourcegroup_name ? var.privatelink_dns_resourcegroup_name : var.management_dns_resourcegroup_name
 
                                            register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
-                                           register_endpoints_with_dns = var.register_endpoints_with_dns
+                                           register_endpoints_with_dns               = var.register_endpoints_with_dns
+
+                                           create_privatelink_dns_zones              = var.create_privatelink_dns_zones
+
+                                           agent_network_id                          = var.agent_network_id
                                          }
 }

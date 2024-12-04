@@ -79,6 +79,17 @@ variable "management_network_address_space"     {
                                                   default     = ""
                                                 }
 
+variable "network_flow_timeout_in_minutes"      {
+                                                  description = "The flow timeout in minutes of the virtual network"
+                                                  type = number
+                                                  nullable = true
+                                                  default = null
+                                                  validation {
+                                                    condition     = var.network_flow_timeout_in_minutes == null ? true : (var.network_flow_timeout_in_minutes >= 4 && var.network_flow_timeout_in_minutes <= 30)
+                                                    error_message = "The flow timeout in minutes must be between 4 and 30 if set."
+                                                  }
+                                                }
+
 #######################################4#######################################8
 #                                                                              #
 #                          Management Subnet variables                         #
@@ -134,11 +145,10 @@ variable "firewall_allowed_ipaddresses"         {
                                                 }
 
 variable "firewall_public_ip_tags"              {
-                                                   description = "Tags for the public_ip resource"
-                                                   type        = map(string)
-                                                   default     = null
-                                                 }
-
+                                                  description = "Tags for the public_ip resource attached to firewall"
+                                                  type        = map(string)
+                                                  default     = null
+                                                }
 
 #######################################4#######################################8
 #                                                                              #
@@ -167,6 +177,11 @@ variable "bastion_sku"                          {
                                                   default     = "Basic"
                                                 }
 
+variable "bastion_public_ip_tags"              {
+                                                  description = "Tags for the public_ip resource attached to bastion"
+                                                  type        = map(string)
+                                                  default     = null
+                                                }
 #######################################4#######################################8
 #                                                                              #
 #                           App Service Subnet variables                       #
@@ -212,6 +227,11 @@ variable "deployer_enable_public_ip"            {
                                                   type        = bool
                                                 }
 
+variable "deployer_public_ip_tags"              {
+                                                  description = "Tags for the public_ip resource attached to deployer"
+                                                  type        = map(string)
+                                                  default     = null
+                                                }
 ###############################################################################
 #                                                                             #
 #                            Deployer Information                             #
@@ -361,7 +381,7 @@ variable "set_secret_expiry"                          {
 
 #######################################4#######################################8
 #                                                                              #
-#  Miscallaneous settings                                                      #
+#  Miscellaneous settings                                                      #
 #                                                                              #
 #######################################4#######################################8
 
@@ -426,6 +446,12 @@ variable "tags"                                       {
                                                         description = "If provided, tags for all resources"
                                                         default     = {}
                                                       }
+
+variable "agent_network_id"                          {
+                                                       description = "Agent Network resource ID"
+                                                       default     = ""
+                                                     }
+
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #

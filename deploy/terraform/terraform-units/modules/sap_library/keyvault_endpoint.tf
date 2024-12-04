@@ -46,28 +46,3 @@ resource "azurerm_private_endpoint" "kv_user" {
                                    }
 
 }
-
-resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
-  provider                             = azurerm.dnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_private_endpoint ? 1 : 0
-  depends_on                           = [
-                                            azurerm_private_dns_zone.vault
-                                         ]
-
-  name                                 = format("%s%s%s%s",
-                                           var.naming.resource_prefixes.dns_link,
-                                           local.prefix,
-                                           var.naming.separator,
-                                           "vault"
-                                         )
-  resource_group_name                  = length(var.dns_settings.privatelink_dns_subscription_id) == 0 ? (
-                                           local.resource_group_exists ? (
-                                             split("/", var.infrastructure.resource_group.arm_id)[4]) : (
-                                             azurerm_resource_group.library[0].name
-                                           )) : (
-                                           var.dns_settings.privatelink_dns_resourcegroup_name
-                                         )
-  private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
-  virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
-  registration_enabled                 = false
-}
