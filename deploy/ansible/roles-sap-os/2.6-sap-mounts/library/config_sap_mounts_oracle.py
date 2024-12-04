@@ -1,4 +1,5 @@
-"""Settings Vars Module for SAP Mounts Oracle Role. This uses the AnsibleModule from the Ansible module_utils to set the parameters for the SAP mounts on Oracle.
+"""Configuring SAP Mount Variables for SAP Mounts Oracle Role. This uses the AnsibleModule from 
+    the Ansible module_utils to set the parameters for the SAP mounts on Oracle.
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -24,7 +25,6 @@ def run_module():
     result["nfs_server_temp"].append(module.params["nfs_server_temp"])
 
     module.exit_json(**result)
-
 
 if __name__ == "__main__":
     run_module()

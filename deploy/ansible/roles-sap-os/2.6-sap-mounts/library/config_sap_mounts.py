@@ -1,4 +1,5 @@
-"""Settings Vars Module for SAP Mounts Role. This uses the AnsibleModule from the Ansible module_utils to set the parameters for the SAP mounts.
+"""Configuring SAP Mount Variables Module for SAP Mounts Role. This uses the AnsibleModule from
+    the Ansible module_utils to set the parameters for the SAP mounts.
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -6,8 +7,10 @@ from ansible.module_utils.basic import AnsibleModule
 
 def run_module():
     """This function sets the parameters for the SAP mounts.
-    Input parameters are the SAP SID, HDBADM UID, platform, SIDADM UID, multi SIDs, asesidadm_uid(not required), SCS instance number, PAS instance number, APP instance number, server name and distribution full ID(not required).
-    The output parameters are the SID, all_sap_mounts, first_server_temp, mnt_options and nfs_service.
+        Input parameters are the SAP SID, HDBADM UID, platform, SIDADM UID, multi SIDs, 
+        asesidadm_uid(not required),SCS instance number, PAS instance number, APP instance number,
+        server name and distribution full ID(not required).The output parameters are the SID, 
+        all_sap_mounts, first_server_temp, mnt_options and nfs_service.
     """
     distro_versions = [
         "redhat8.4",
@@ -90,7 +93,6 @@ def run_module():
     )
 
     module.exit_json(**result)
-
 
 if __name__ == "__main__":
     run_module()

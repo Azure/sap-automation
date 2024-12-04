@@ -5,8 +5,8 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "calling setting variables python script"
-  setting_vars:
+- name:                                "calling config sap mounts python script"
+  config_sap_mounts:
     sap_sid: "{{ sap_sid }}"
     hdbadm_uid: "{{ hdbadm_uid }}"
     platform: "{{ platform }}"
@@ -21,13 +21,13 @@
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
-  register: setting_vars_output
+  register: config_sap_mounts_output
 
 - name: setting fact for input parameters for readability. Will use input vars throughout the playbook
   ansible.builtin.set_fact:
-    input_vars: "{{ setting_vars_output.results[0] }}"
+    input_vars: "{{ config_sap_mounts_output.results[0] }}"
 
-- name: Set first_server_temp to the value from setting_vars_output
+- name: Set first_server_temp to the value from config_sap_mounts_output
   ansible.builtin.set_fact:
     first_server_temp: "{{ input_vars['first_server_temp'] }}"
 

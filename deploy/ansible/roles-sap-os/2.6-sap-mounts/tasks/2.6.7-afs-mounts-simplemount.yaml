@@ -5,8 +5,8 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "calling setting variables python script"
-  setting_vars:
+- name:                                "calling config sap mounts python script"
+  config_sap_mounts:
     sap_sid: "{{ sap_sid }}"
     hdbadm_uid: "{{ hdbadm_uid }}"
     platform: "{{ platform }}"
@@ -21,11 +21,11 @@
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
-  register: setting_vars_output
+  register: config_sap_mounts_output
 
-- name: Set first_server_temp to the value from setting_vars_output
+- name: Set first_server_temp to the value from config_sap_mounts_output
   ansible.builtin.set_fact:
-    first_server_temp: "{{ setting_vars_output.results[0]['first_server_temp'] }}"
+    first_server_temp: "{{ config_sap_mounts_output.results[0]['first_server_temp'] }}"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -97,7 +97,7 @@
             owner:                     '{{ item.sidadm_uid }}'
             group:                     sapsys
             mode:                      0755
-          loop:                        "{{ setting_vars_output.results[0]['all_sap_mounts'] }}"
+          loop:                        "{{ config_sap_mounts_output.results[0]['all_sap_mounts'] }}"
 
         - name:                        "AFS Mount: Unmount file systems (sapmnt)"
           ansible.posix.mount:
@@ -116,7 +116,7 @@
           ansible.builtin.file:
             path:                      "/saptmp/sapmnt{{ item.sid | upper }}"
             state:                     absent
-          loop:                        "{{ setting_vars_output.results[0]['all_sap_mounts'] }}"
+          loop:                        "{{ config_sap_mounts_output.results[0]['all_sap_mounts'] }}"
 
         - name:                        "AFS Mount: Cleanup fstab and directory (sapmnt)"
           ansible.posix.mount:
@@ -166,7 +166,7 @@
         path:                          "/sapmnt/{{ item.sid }}"
         state:                         directory
       register:                        is_created_now
-      loop:                            "{{ setting_vars_output.results[0]['all_sap_mounts'] }}"
+      loop:                            "{{ config_sap_mounts_output.results[0]['all_sap_mounts'] }}"
 
     - name:                            "AFS Mount: Change attribute only when we create SAP Directories (sapmnt)"
       ansible.builtin.file:
@@ -197,7 +197,7 @@
       ansible.builtin.file:
         path:                          "{{ item.path }}"
         state:                         directory
-        owner:                         "{{ setting_vars_output.results[0]['this_sid']['sidadm_uid'] }}"
+        owner:                         "{{ config_sap_mounts_output.results[0]['this_sid']['sidadm_uid'] }}"
         group:                         sapsys
         mode:                          0755
       loop:
@@ -325,7 +325,7 @@
       'temppath':          'shared',
       'mount':             "{% if ansible_hostname in query('inventory_hostnames', '{{ sap_sid | upper }}_DB')[0::2] %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
       'opts':              'vers=4,minorversion=1,sec=syss',
-      'owner':             "{{ setting_vars_output.results[0]['this_sid']['sidadm_uid'] }}",
+      'owner':             "{{ config_sap_mounts_output.results[0]['this_sid']['sidadm_uid'] }}",
       'path':              '/hana/shared',
       'permissions':       '0775',
       'set_chattr_on_dir': false,
