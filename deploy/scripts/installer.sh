@@ -204,7 +204,8 @@ if checkIfCloudShell; then
   export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
 else
   if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
-    mkdir -p /opt/terraform/.terraform.d/plugin-cache
+
+    sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
     sudo chown -R "$USER" /opt/terraform
   fi
   export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
