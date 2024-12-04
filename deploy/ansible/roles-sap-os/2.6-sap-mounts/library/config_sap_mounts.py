@@ -49,9 +49,10 @@ def run_module():
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
-    distribution_full_id = module.params["distribution_full_id"]
+    try:
+        distribution_full_id = module.params["distribution_full_id"]
 
-    result["this_sid"] = {
+        result["this_sid"] = {
         "sid": module.params["sap_sid"].upper(),
         "dbsid_uid": module.params["hdbadm_uid"],
         "sidadm_uid": (
@@ -62,8 +63,8 @@ def run_module():
         "ascs_inst_no": module.params["scs_instance_number"],
         "pas_inst_no": module.params["pas_instance_number"],
         "app_inst_no": module.params["app_instance_number"],
-    }
-    try:
+        }
+        
         if module.params["multi_sids"] is not None:
             result["all_sap_mounts"] = module.params["multi_sids"]
 
