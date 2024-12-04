@@ -16,6 +16,7 @@
     scs_instance_number: "{{ scs_instance_number }}"
     pas_instance_number: "{{ pas_instance_number }}"
     app_instance_number: "{{ app_instance_number }}"
+    distribution_full_id: "{{ distribution_full_id }}"
     server_name: "{{ item }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"

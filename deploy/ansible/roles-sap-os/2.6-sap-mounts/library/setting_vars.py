@@ -1,7 +1,6 @@
 """Settings Vars Module for SAP Mounts Role. This uses the AnsibleModule from the Ansible module_utils to set the parameters for the SAP mounts.
 """
 from ansible.module_utils.basic import AnsibleModule
-
 def run_module():
     """This function sets the parameters for the SAP mounts.
         Input parameters are the SAP SID, HDBADM UID, platform, SIDADM UID, multi SIDs, asesidadm_uid(not required), SCS instance number, PAS instance number, APP instance number, server name and distribution full ID(not required). 
@@ -32,7 +31,7 @@ def run_module():
         pas_instance_number=dict(type="str", required=True),
         app_instance_number=dict(type="str", required=True),
         server_name=dict(type="str", required=True),
-        distribution_full_id=dict(type="str", required=False),
+        distribution_full_id=dict(type="str", required=True),
     )
 
     result = {
