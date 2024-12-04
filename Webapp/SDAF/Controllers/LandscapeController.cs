@@ -1,10 +1,10 @@
-using AutomationForm.Models;
-using AutomationForm.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
+using SDAFWebApp.Models;
+using SDAFWebApp.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,9 +12,9 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AutomationForm.Controllers
+namespace SDAFWebApp.Controllers
 {
-  public class LandscapeController : Controller
+    public class LandscapeController : Controller
   {
 
     private readonly ITableStorageService<LandscapeEntity> _landscapeService;

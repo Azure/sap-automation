@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AutomationForm.Models
+namespace SDAFWebApp.Models
 {
   public class SapObjectIndexModel<T>
   {

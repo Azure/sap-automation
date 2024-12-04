@@ -1,5 +1,3 @@
-using AutomationForm.Models;
-using AutomationForm.Services;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Microsoft.AspNetCore.Builder;
@@ -9,11 +7,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using SDAFWebApp.Models;
+using SDAFWebApp.Services;
 using System;
 
-namespace AutomationForm
+namespace SDAFWebApp
 {
-  public class Startup
+    public class Startup
   {
     public IConfiguration Configuration { get; }
 

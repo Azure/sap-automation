@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using static AutomationForm.Models.CustomValidators;
+using static SDAFWebApp.Models.CustomValidators;
 
-namespace AutomationForm.Models
+namespace SDAFWebApp.Models
 {
   public class SystemModel
   {
@@ -328,12 +328,14 @@ namespace AutomationForm.Models
     [IpAddressValidator]
     public string[] database_vm_storage_nic_ips { get; set; }
 
+    public bool? database_active_active { get; set; }
+
     /*---------------------------------------------------------------------------8
     |                                                                            |
     |                          App Tier information                              |
     |                                                                            |
     +------------------------------------4--------------------------------------*/
-    // Application Tier
+   // Application Tier
 
     public bool? enable_app_tier_deployment { get; set; } = true;
 

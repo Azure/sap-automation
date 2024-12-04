@@ -1,4 +1,4 @@
-using AutomationForm.Models;
+using SDAFWebApp.Models;
 using Azure.Data.Tables;
 using Azure.Identity;
 using Azure.Storage.Blobs;
@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Threading.Tasks;
 
-namespace AutomationForm.Services
+namespace SDAFWebApp.Services
 {
   public class TableStorageService
   {

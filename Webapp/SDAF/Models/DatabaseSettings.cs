@@ -1,4 +1,4 @@
-﻿namespace AutomationForm.Models
+﻿namespace SDAFWebApp.Models
 {
   public class DatabaseSettings : IDatabaseSettings
   {

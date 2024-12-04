@@ -3,7 +3,7 @@ using Azure.Data.Tables;
 using System;
 using System.Text.Json;
 
-namespace AutomationForm.Models
+namespace SDAFWebApp.Models
 {
   public class SystemEntity : ITableEntity
   {

@@ -36,6 +36,10 @@ $$environment$$
 # The location value is a mandatory field, it is used to control where the resources are deployed
 $$location$$
 
+
+# The subscription ID is used to control where the resources are deployed
+$$subscription_id$$
+
 # The sid value is a mandatory field that defines the SAP Application SID
 $$sid$$
 
@@ -62,10 +66,10 @@ $$Description$$
 #########################################################################################
 
 
-#If you want to provide a custom naming json use the following parameter.
+# If you want to provide a custom naming json use the following parameter.
 $$name_override_file$$
 
-#If you want to customize the disk sizes for VMs use the following parameter to specify the custom sizing file.
+# If you want to customize the disk sizes for VMs use the following parameter to specify the custom sizing file.
 $$custom_disk_sizes_filename$$
 
 # use_secondary_ips controls if the virtual machines should be deployed with two IP addresses. Required for SAP Virtual Hostname support
@@ -192,6 +196,9 @@ $$database_use_avset$$
 # Optional, Defines if the tags for the database virtual machines
 $$database_tags$$
 
+# If true, database will deployed with Active/Active (read enabled) configuration, only supported for HANA
+$$database_active_active$$
+
 #########################################################################################
 #                                                                                       #
 #  Application tier                                                                        #                                                                                       #
@@ -294,7 +301,7 @@ $$application_server_nic_secondary_ips$$
 # for the network interface cards connected to the admin subnet
 $$application_server_admin_nic_ips$$
 
-#If you want to customize the disk sizes for application tier use the following parameter.
+# If you want to customize the disk sizes for application tier use the following parameter.
 $$app_disk_sizes_filename$$
 
 # Optional, Defines the default authentication model for the Applicatiuon tier VMs (key/password)
@@ -354,7 +361,7 @@ $$webdispatcher_server_sku$$
 # webdispatcher_server_use_ppg defines the that the Web dispatcher virtual machines will be placed in a proximity placement group
 $$webdispatcher_server_use_ppg$$
 
-#webdispatcher_server_use_avset defines the that the Web dispatcher virtual machines will be placed in an availability set
+# webdispatcher_server_use_avset defines the that the Web dispatcher virtual machines will be placed in an availability set
 $$webdispatcher_server_use_avset$$
 
 # webdispatcher_server_tags, if defined provides the tags to be associated to the web dispatchers
@@ -404,25 +411,25 @@ $$patch_assessment_mode$$
 # scs_cluster_type defines cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI
 $$scs_cluster_type$$
 
-#scs_cluster_disk_lun defines the LUN number for the SAP Central Services cluster disk
+# scs_cluster_disk_lun defines the LUN number for the SAP Central Services cluster disk
 $$scs_cluster_disk_lun$$
 
-#scs_cluster_disk_size defines the size for the SAP Central Services cluster disk
+# scs_cluster_disk_size defines the size for the SAP Central Services cluster disk
 $$scs_cluster_disk_size$$
 
-#scs_cluster_disk_type defines the storage_account_type of the shared disk for the SAP Central Services cluster
+# scs_cluster_disk_type defines the storage_account_type of the shared disk for the SAP Central Services cluster
 $$scs_cluster_disk_type$$
 
 # database_cluster_type defines cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI
 $$database_cluster_type$$
 
-#database_cluster_disk_lun defines the LUN number for the database cluster disk
+# database_cluster_disk_lun defines the LUN number for the database cluster disk
 $$database_cluster_disk_lun$$
 
-#database_cluster_disk_size defines the size for the database cluster disk
+# database_cluster_disk_size defines the size for the database cluster disk
 $$database_cluster_disk_size$$
 
-#database_cluster_disk_type defines the storage_account_type of the shared disk for the Database cluster
+# database_cluster_disk_type defines the storage_account_type of the shared disk for the Database cluster
 $$database_cluster_disk_type$$
 
 # use_msi_for_clusters if defined will use managed service identity for the Pacemaker cluster fencing
@@ -864,7 +871,7 @@ $$deployer_tfstate_key$$
 $$landscape_tfstate_key$$
 
 # use_spn defines if the deployments are performed using Service Principals or the deployer's managed identiry, true=SPN, false=MSI
-$$use_spn$$
+$$ use_spn$$
 
 #########################################################################################
 #                                                                                       #
@@ -895,10 +902,10 @@ $$tags$$
 #                                                                                       #
 #########################################################################################
 
-#If true, the database tier will be configured for scale out scenario
+# If true, the database tier will be configured for scale out scenario
 $$database_HANA_use_scaleout_scenario$$
 
-#If true, the database scale out tier will not have a standby role
+# If true, the database scale out tier will not have a standby role
 $$database_HANA_no_standby_role$$
 
 # Defined the standby node count in a scale out scenario

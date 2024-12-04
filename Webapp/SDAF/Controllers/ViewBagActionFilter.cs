@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
 
-namespace AutomationForm.Controllers
+namespace SDAFWebApp.Controllers
 {
   public class ViewBagActionFilter : ActionFilterAttribute
   {

@@ -1,4 +1,4 @@
-using AutomationForm.Controllers;
+using SDAFWebApp.Controllers;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.FileSystemGlobbing.Internal;
 using System;
@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace AutomationForm.Models
+namespace SDAFWebApp.Models
 {
   public class CustomValidators
   {

@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using static AutomationForm.Models.CustomValidators;
+using static SDAFWebApp.Models.CustomValidators;
 
-namespace AutomationForm.Models
+namespace SDAFWebApp.Models
 {
   public class LandscapeModel
   {
@@ -75,6 +75,10 @@ namespace AutomationForm.Models
 
     [NetworkAddressValidator(ErrorMessage = "Invalid network address arm id")]
     public string network_arm_id { get; set; }
+
+    public int? network_flow_timeout_in_minutes { get; set; }
+
+    public bool? network_enable_route_propagation { get; set; }
 
     //[SubnetRequired(subnetType: "admin")]
     [AddressPrefixValidator(ErrorMessage = "Admin subnet address space must be a valid RFC 1918 address")]

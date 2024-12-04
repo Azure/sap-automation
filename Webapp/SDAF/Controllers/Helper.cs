@@ -1,5 +1,5 @@
-using AutomationForm.Models;
-using AutomationForm.Services;
+using SDAFWebApp.Models;
+using SDAFWebApp.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -16,7 +16,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace AutomationForm.Controllers
+namespace SDAFWebApp.Controllers
 {
   public class Helper : Controller
   {

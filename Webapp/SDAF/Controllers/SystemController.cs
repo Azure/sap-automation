@@ -1,5 +1,5 @@
-using AutomationForm.Models;
-using AutomationForm.Services;
+using SDAFWebApp.Models;
+using SDAFWebApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
@@ -13,7 +13,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AutomationForm.Controllers
+namespace SDAFWebApp.Controllers
 {
   public class SystemController : Controller
   {

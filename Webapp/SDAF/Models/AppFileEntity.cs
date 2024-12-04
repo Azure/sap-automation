@@ -2,7 +2,7 @@ using Azure;
 using Azure.Data.Tables;
 using System;
 
-namespace AutomationForm.Models
+namespace SDAFWebApp.Models
 {
   public class AppFileEntity : ITableEntity
   {
