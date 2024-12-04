@@ -45,6 +45,8 @@ def run_module():
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
+    distribution_id = module.params["distribution_id"]
+
     distribution_full_id = module.params["distribution_full_id"]
 
     result["this_sid"] = {
@@ -61,8 +63,6 @@ def run_module():
     }
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
-
-    distribution_full_id = module.params["distribution_full_id"]
 
     result["this_sid"] = {
         "sid": module.params["sap_sid"].upper(),
@@ -99,7 +99,7 @@ def run_module():
         "redhat7": "nfs",
         "oraclelinux8": "rpcbind",
     }
-    result["nfs_service"] = nfs_service_mapping.get(distribution_full_id, "nfsserver")
+    result["nfs_service"] = nfs_service_mapping.get(distribution_id.split('.')[0], "nfs-server")
 
     module.exit_json(**result)
 
