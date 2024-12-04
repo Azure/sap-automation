@@ -33,7 +33,6 @@ def run_module():
         app_instance_number=dict(type="str", required=True),
         server_name=dict(type="str", required=True),
         distribution_full_id=dict(type="str", required=False),
-        distribution_id=dict(type="str", required=False),
     )
 
     result = {
@@ -45,8 +44,6 @@ def run_module():
     }
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
-
-    distribution_id = module.params["distribution_id"]
 
     distribution_full_id = module.params["distribution_full_id"]
 
@@ -100,7 +97,7 @@ def run_module():
         "redhat7": "nfs",
         "oraclelinux8": "rpcbind",
     }
-    result["nfs_service"] = nfs_service_mapping.get(distribution_id.split('.')[0], "nfs-server")
+    result["nfs_service"] = nfs_service_mapping.get(distribution_full_id.split('.')[0], "nfs-server")
 
     module.exit_json(**result)
 
