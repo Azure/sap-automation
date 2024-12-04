@@ -29,7 +29,6 @@ tfvarsFile="SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FILENAME"
 echo -e "$green--- Checkout $BRANCH ---$reset"
 
 cd "${CONFIG_REPO_PATH}" || exit
-mkdir -p .sap_deployment_automation
 git checkout -q "$BRANCH"
 
 if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FILENAME" ]; then

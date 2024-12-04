@@ -13,13 +13,13 @@ script_directory="$(dirname "${full_script_path}")"
 #call stack has full scriptname when using source
 source "${script_directory}/helper.sh"
 
-debug=False
+DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
   DEBUG=True
-  export DEBUG
 fi
+export DEBUG
 set -eu
 
 ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
@@ -389,7 +389,7 @@ fi
 if [ 1 = $added ]; then
   git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
   git config --global user.name "$BUILD_REQUESTEDFOR"
-  if [ $debug = True ]; then
+  if [ $DEBUG = True ]; then
     git status --verbose
     if git commit --message --verbose "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"; then
       if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
