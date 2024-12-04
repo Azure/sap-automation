@@ -33,6 +33,7 @@ def run_module():
         app_instance_number=dict(type="str", required=True),
         server_name=dict(type="str", required=True),
         distribution_full_id=dict(type="str", required=False),
+        distribution_id=dict(type="str", required=False),
     )
 
     result = {
