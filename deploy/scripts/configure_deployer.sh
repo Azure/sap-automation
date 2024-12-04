@@ -303,7 +303,7 @@ ubuntu)
 	echo "we are inside ubuntu"
 	rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
 	if [ "$rel" == "22.04" ]; then
-		ansible_version="2.15"
+		ansible_version="2.16"
 		ansible_major="${ansible_version%%.*}"
 		ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
 	fi
