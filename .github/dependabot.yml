@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+
+  - package-ecosystem: nuget
+    directory: /Webapp/SDAF
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /Webapp
+    schedule:
+      interval: daily
