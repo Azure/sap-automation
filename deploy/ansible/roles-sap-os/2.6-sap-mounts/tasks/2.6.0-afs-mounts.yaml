@@ -5,39 +5,31 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "AFS Mount: Define this SID"
-  ansible.builtin.set_fact:
-    this_sid:
-      {
-        'sid': '{{ sap_sid | upper }}',
-        'dbsid_uid': '{{ hdbadm_uid }}',
-        'sidadm_uid': '{% if platform == "SYBASE" %}{{ asesidadm_uid }}{% else %}{{ sidadm_uid }}{% endif %}',
-        'ascs_inst_no': '{{ scs_instance_number }}',
-        'pas_inst_no': '{{ pas_instance_number }}',
-        'app_inst_no': '{{ app_instance_number }}'
-      }
-
-- name:                                "AFS Mount: Create list of all_sap_mounts to support "
-  ansible.builtin.set_fact:
-    all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts | default([]) + [this_sid] }}{% endif %}"
-
-- name:                                "AFS Mount: Get the Server name list"
-  ansible.builtin.set_fact:
-    first_server_temp:                 "{{ first_server_temp | default([]) + [item] }}"
+- name:                                "calling setting variables python script"
+  setting_vars:
+    sap_sid: "{{ sap_sid }}"
+    hdbadm_uid: "{{ hdbadm_uid }}"
+    platform: "{{ platform }}"
+    sidadm_uid: "{{ sidadm_uid }}"
+    multi_sids: "{{ multi_sids | default(omit) }}"
+    asesidadm_uid: "{{ asesidadm_uid | default(omit)}}"
+    scs_instance_number: "{{ scs_instance_number }}"
+    pas_instance_number: "{{ pas_instance_number }}"
+    app_instance_number: "{{ app_instance_number }}"
+    server_name: "{{ item }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
-
-- name:                                "AFS Mount: Set the NFSmount options"
-  ansible.builtin.set_fact:
-    afs_mnt_options:                   'noresvport,vers=4,minorversion=1,sec=sys'
+  register: setting_vars_output
 
 - name:                                "AFS Mount: Create list of all_sap_mounts to support"
   ansible.builtin.debug:
-    msg:
-      - "List of all the SAP mounts: {{ all_sap_mounts }}"
-      - "First server: {{ first_server_temp }}"
+    msg: "TESTING list output: {{ setting_vars_output.results[0]['all_sap_mounts'] }}"
     verbosity:                         2
+  
+- name: Set first_server_temp to the value from setting_vars_output
+  ansible.builtin.set_fact:
+    first_server_temp: "{{ setting_vars_output.results[0]['first_server_temp'] }}"
 
 - name:                                "AFS Mount: Create configuration file
                                         with additional optimization settings"
@@ -89,7 +81,7 @@
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
                 fstype:                "nfs4"
-                opts:                  "{{ afs_mnt_options }}"
+                opts:                  "{{ setting_vars_output.results[0]['mnt_options']['afs_mnt_options'] }}"
                 state:                 mounted
 
           rescue:
@@ -106,7 +98,7 @@
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
                 fstype:                "nfs4"
-                opts:                  "{{ afs_mnt_options }}"
+                opts:                  "{{ setting_vars_output.results[0]['mnt_options']['afs_mnt_options'] }}"
                 state:                 mounted
 
         - name:                        "AFS Mount: Create SAP Directories (AFS)"
@@ -129,7 +121,7 @@
             owner:                     '{{ item.sidadm_uid }}'
             group:                     sapsys
             mode:                      0755
-          loop:                        "{{ all_sap_mounts }}"
+          loop:                        "{{ setting_vars_output.results[0]['all_sap_mounts'] }}"
 
         - name:                        "AFS Mount: Unmount file systems (sapmnt)"
           ansible.posix.mount:
@@ -151,14 +143,14 @@
           ansible.builtin.file:
             path:                      "/saptmp/sapmnt{{ item.sid | upper }}"
             state:                     absent
-          loop:                        "{{ all_sap_mounts }}"
+          loop:                        "{{ setting_vars_output.results[0]['all_sap_mounts'] }}"
 
         - name:                        "AFS Mount: Cleanup fstab and directory (sapmnt)"
           ansible.posix.mount:
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
             fstype:                    "nfs4"
-            opts:                      "{{ afs_mnt_options }}"
+            opts:                      "{{ setting_vars_output.results[0]['mnt_options']['afs_mnt_options'] }}"
             state:                     absent
       when:
         - sap_mnt is defined
@@ -200,7 +192,7 @@
         path:                          "/sapmnt/{{ item.sid }}"
         state:                         directory
       register:                        is_created_now
-      loop:                            "{{ all_sap_mounts }}"
+      loop:                            "{{ setting_vars_output.results[0]['all_sap_mounts'] }}"
 
     - name:                            "AFS Mount: Change attribute only when we create SAP Directories (sapmnt)"
       ansible.builtin.file:
@@ -272,7 +264,7 @@
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
-        opts:                          "{{ afs_mnt_options }}"
+        opts:                          "{{ setting_vars_output.results[0]['mnt_options']['afs_mnt_options'] }}"
         state:                         mounted
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
@@ -282,7 +274,7 @@
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
-        opts:                          "{{ afs_mnt_options }}"
+        opts:                          "{{ setting_vars_output.results[0]['mnt_options']['afs_mnt_options'] }}"
         state:                         unmounted
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
@@ -299,7 +291,7 @@
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
-        opts:                          "{{ afs_mnt_options }}"
+        opts:                          "{{ setting_vars_output.results[0]['mnt_options']['afs_mnt_options'] }}"
         state:                         mounted
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
@@ -316,7 +308,7 @@
     src:                               "{{ sap_mnt }}/sapmnt{{ item.sid }}"
     path:                              "/sapmnt/{{ item.sid }}"
     fstype:                            'nfs4'
-    opts:                              "{{ afs_mnt_options }}"
+    opts:                              "{{ setting_vars_output.results[0]['mnt_options']['afs_mnt_options'] }}"
     state:                             mounted
   loop:                                "{{ MULTI_SIDS }}"
   when:
@@ -331,7 +323,7 @@
         src:                           "{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}"
         path:                          "/sapmnt/{{ sap_sid | upper }}"
         fstype:                        nfs4
-        opts:                          "{{ afs_mnt_options }}"
+        opts:                          "{{ setting_vars_output.results[0]['mnt_options']['afs_mnt_options'] }}"
         state:                         mounted
   rescue:
     - name:                            "AFS Mount: Pause for 15 seconds"
@@ -342,7 +334,7 @@
         src:                           "{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}"
         path:                          "/sapmnt/{{ sap_sid | upper }}"
         fstype:                        nfs4
-        opts:                          "{{ afs_mnt_options }}"
+        opts:                          "{{ setting_vars_output.results[0]['mnt_options']['afs_mnt_options'] }}"
         state:                         mounted
 
   when:
@@ -380,7 +372,7 @@
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
         fstype:                        "{{ item.type }}"
-        opts:                          "{{ afs_mnt_options }}"
+        opts:                          "{{ setting_vars_output.results[0]['mnt_options']['afs_mnt_options'] }}"
         state:                         mounted
 
       loop:
@@ -400,7 +392,7 @@
       'type':              'trans',
       'temppath':          'saptrans',
       'mount':             '{{ sap_trans }}',
-      'opts':              '{{ afs_mnt_options }}',
+      'opts':              '{{ setting_vars_output.results[0]["mnt_options"]["afs_mnt_options"] }}',
       'path':              '/usr/sap/trans',
       'owner':             "root",
       'permissions':       '0775',

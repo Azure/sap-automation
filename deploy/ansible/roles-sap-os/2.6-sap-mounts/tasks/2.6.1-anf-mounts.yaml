@@ -5,40 +5,34 @@
 # +------------------------------------4--------------------------------------*/
 ---
 
-- name:                                "ANF Mount: Set the NFS Service name"
-  ansible.builtin.set_fact:
-    nfs_service:                       "{% if distribution_id in ['redhat8', 'redhat9'] %}nfs-server{% else %}{% if distribution_id == 'redhat7' %}nfs{% else %}{% if distribution_id == 'oraclelinux8' %}rpcbind{% else %}nfsserver{% endif %}{% endif %}{% endif %}"
-
-- name:                                "ANF Mount: Set the NFSmount options"
-  ansible.builtin.set_fact:
-    mnt_options:                       'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys'
-  when: distribution_full_id not in ['redhat8.4', 'redhat8.6', 'redhat8.8', 'redhat9.0', 'redhat9.2', 'sles_sap15.2', 'sles_sap15.3', 'sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6']
-
-- name:                                "ANF Mount: Set the NFSmount options"
-  ansible.builtin.set_fact:
-    mnt_options:                       'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys,nconnect=8'
-  when: distribution_full_id in ['redhat8.4', 'redhat8.6', 'redhat8.8', 'redhat9.0', 'redhat9.2', 'sles_sap15.2', 'sles_sap15.3', 'sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6']
-
-- name:                                "ANF Mount: Define this SID"
-  ansible.builtin.set_fact:
-    this_sid:
-      {
-        'sid': '{{ sap_sid | upper }}',
-        'dbsid_uid': '{{ hdbadm_uid }}',
-        'sidadm_uid': '{{ sidadm_uid }}',
-        'ascs_inst_no': '{{ scs_instance_number }}',
-        'pas_inst_no': '{{ pas_instance_number }}',
-        'app_inst_no': '{{ app_instance_number }}'
-      }
+- name:                                "calling setting variables python script"
+  setting_vars:
+    sap_sid: "{{ sap_sid }}"
+    hdbadm_uid: "{{ hdbadm_uid }}"
+    platform: "{{ platform }}"
+    sidadm_uid: "{{ sidadm_uid }}"
+    multi_sids: "{{ multi_sids | default(omit) }}"
+    asesidadm_uid: "{{ asesidadm_uid | default(omit)}}"
+    scs_instance_number: "{{ scs_instance_number }}"
+    pas_instance_number: "{{ pas_instance_number }}"
+    app_instance_number: "{{ app_instance_number }}"
+    server_name: "{{ item }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+  register: setting_vars_output
 
 - name:                                "ANF Mount: Create list of all_sap_mounts to support "
   ansible.builtin.set_fact:
-    all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts | default([]) + [this_sid] }}{% endif %}"
     db_hosts:                          "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+- name: Set first_server_temp to the value from setting_vars_output
+  ansible.builtin.set_fact:
+    first_server_temp: "{{ setting_vars_output.results[0]['first_server_temp'] }}"
 
 - name:                                "ANF Mount: Ensure the NFS service is stopped"
   ansible.builtin.systemd:
-    name:                              "{{ nfs_service }}"
+    name:                              "{{ setting_vars_output.results[0]['nfs_service'] }}"
     state:                             stopped
   when:
     - "'scs' in supported_tiers"
@@ -118,7 +112,7 @@
         seconds:                       5
     - name:                            "ANF Mount: Ensure the NFS service is restarted"
       ansible.builtin.systemd:
-        name:                          "{{ nfs_service }}"
+        name:                          "{{ setting_vars_output.results[0]['nfs_service'] }}"
         state:                         restarted
   when:
     - id_mapping_changed is changed
@@ -271,7 +265,7 @@
     path:                              "/sapmnt/{{ item.sid }}"
     state:                             directory
   register: is_created_now
-  loop:                                "{{ all_sap_mounts }}"
+  loop:                                "{{ setting_vars_output.results[0]['all_sap_mounts'] }}"
   when:
     - tier == 'sapos'
     - node_tier in ['app','scs','ers', 'pas'] or 'scs' in supported_tiers
@@ -598,7 +592,7 @@
         'temppath':          'hanadata',
         'folder':            'hanadata',
         'mount':             '{{ hana_data_mountpoint[0] }}',
-        'opts':              '{{ mnt_options }}',
+        'opts':              '{{ setting_vars_output.results[0]["mnt_options"]["anf_mnt_options"] }}',
         'path':              '/hana/data',
         'permissions':       '0755',
         'set_chattr_on_dir': false,
@@ -620,7 +614,7 @@
         'temppath':            'hanalog',
         'folder':              'hanalog',
         'mount' :              '{{ hana_log_mountpoint[0] }}',
-        'opts':                '{{ mnt_options }}',
+        'opts':                '{{ setting_vars_output.results[0]["mnt_options"]["anf_mnt_options"] }}',
         'path' :               '/hana/log',
         'permissions':         '0755',
         'set_chattr_on_dir':   false,
@@ -642,7 +636,7 @@
         'temppath':          'hanashared',
         'folder':            'hanashared',
         'mount':             '{{ hana_shared_mountpoint[0] }}',
-        'opts':              '{{ mnt_options }}',
+        'opts':              '{{ setting_vars_output.results[0]["mnt_options"]["anf_mnt_options"] }}',
         'path':              '/hana/shared',
         'permissions':       '0775',
         'set_chattr_on_dir': false,
@@ -664,7 +658,7 @@
         'temppath':          'hanadata',
         'folder':            'hanadata',
         'mount':             '{{ hana_data_mountpoint[1] }}',
-        'opts':              '{{ mnt_options }}',
+        'opts':              '{{ setting_vars_output.results[0]["mnt_options"]["anf_mnt_options"] }}',
         'path':              '/hana/data',
         'permissions':       '0755',
         'set_chattr_on_dir': false,
@@ -687,7 +681,7 @@
         'temppath':            'hanalog',
         'folder':              'hanalog',
         'mount' :              '{{ hana_log_mountpoint[1] }}',
-        'opts':                '{{ mnt_options }}',
+        'opts':                '{{ setting_vars_output.results[0]["mnt_options"]["anf_mnt_options"] }}',
         'path' :               '/hana/log',
         'permissions':         '0755',
         'set_chattr_on_dir':   false,
@@ -710,7 +704,7 @@
         'temppath':          'hanashared',
         'folder':            'hanashared',
         'mount':             '{{ hana_shared_mountpoint[1] }}',
-        'opts':              '{{ mnt_options }}',
+        'opts':              '{{ setting_vars_output.results[0]["mnt_options"]["anf_mnt_options"] }}',
         'path':              '/hana/shared',
         'permissions':       '0775',
         'set_chattr_on_dir': false,
@@ -776,7 +770,7 @@
         # change folder to match the mount folder within the share
         'folder':            'shared',
         'mount':             '{{ hana_shared_mountpoint[0] }}',
-        'opts':              '{{ mnt_options }}',
+        'opts':              '{{ setting_vars_output.results[0]["mnt_options"]["anf_mnt_options"] }}',
         'path':              '{{ hana_shared_basepath }}',
         'permissions':       '0775',
         'set_chattr_on_dir': false,
@@ -803,7 +797,7 @@
         # Logic : hana_shared_mountpoint[0] goes on odd numbered HANA hosts and hana_shared_mountpoint[1] goes on even numbered HANA hosts.
 #        'mount':             "{% if ansible_hostname in query('inventory_hostnames', '{{ sap_sid | upper }}_DB')[0::2] %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
         'mount':             "{% if site | default('SITE1') == 'SITE1' %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
-        'opts':              '{{ mnt_options }}',
+        'opts':              '{{ setting_vars_output.results[0]["mnt_options"]["anf_mnt_options"] }}',
         'path':              '{{ hana_shared_basepath }}',
         'permissions':       '0775',
         'set_chattr_on_dir': false,
@@ -829,7 +823,7 @@
         'temppath':          'usrsap',
         'folder':            "usr-sap-hanadb{{ lookup('ansible.utils.index_of', db_hosts, 'eq', ansible_hostname)  }}",
         'mount':             '{{ hana_shared_mountpoint[0] }}',
-        'opts':              '{{ mnt_options }}',
+        'opts':              '{{ setting_vars_output.results[0]["mnt_options"]["anf_mnt_options"] }}',
         'path':              '{{ hana_usrsap_basepath }}',
         'permissions':       '0775',
         'set_chattr_on_dir': false,
@@ -865,7 +859,7 @@
                 temppath: 'hanadata',
                 folder:  'hanadata',
                 mount:             "{{ item }}",
-                opts:              "{{ mnt_options }}",
+                opts:              "{{ setting_vars_output.results[0]['mnt_options']['anf_mnt_options'] }}",
                 path:              "{{ hana_data_basepath + '/mnt0000' + ( my_index + 1 )| string }}",
                 permissions:       '0775',
                 set_chattr_on_dir: false,
@@ -917,7 +911,7 @@
                 temppath: 'hanalog',
                 folder:  'hanalog',
                 mount:             "{{ item }}",
-                opts:              "{{ mnt_options }}",
+                opts:              "{{ setting_vars_output.results[0]['mnt_options']['anf_mnt_options'] }}",
                 path:              "{{ '/hana/log/' + (db_sid | upper ) + '/mnt0000' + ( my_index + 1 )| string }}",
                 permissions:       '0775',
                 set_chattr_on_dir: false,
