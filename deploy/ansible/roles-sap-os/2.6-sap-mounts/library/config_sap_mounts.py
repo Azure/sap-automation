@@ -39,60 +39,60 @@ def run_module():
         distribution_full_id=dict(type="str", required=True),
     )
 
-    result = {
-        "this_sid": {},
-        "all_sap_mounts": [],
-        "first_server_temp": [],
-        "mnt_options": {},
-        "nfs_service": "",
-    }
+    class Result:
+        def __init__(self):
+            self.this_sid = {}
+            self.all_sap_mounts = []
+            self.first_server_temp = []
+            self.mnt_options = {}
+            self.nfs_service = ""
 
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
+    result = Result()
 
     try:
         distribution_full_id = module.params["distribution_full_id"]
 
-        result["this_sid"] = {
-        "sid": module.params["sap_sid"].upper(),
-        "dbsid_uid": module.params["hdbadm_uid"],
-        "sidadm_uid": (
-            module.params["asesidadm_uid"]
-            if module.params["platform"] == "SYSBASE"
-            else module.params["sidadm_uid"]
-        ),
-        "ascs_inst_no": module.params["scs_instance_number"],
-        "pas_inst_no": module.params["pas_instance_number"],
-        "app_inst_no": module.params["app_instance_number"],
+        result.this_sid = {
+            "sid": module.params["sap_sid"].upper(),
+            "dbsid_uid": module.params["hdbadm_uid"],
+            "sidadm_uid": (
+                module.params["asesidadm_uid"]
+                if module.params["platform"] == "SYSBASE"
+                else module.params["sidadm_uid"]
+            ),
+            "ascs_inst_no": module.params["scs_instance_number"],
+            "pas_inst_no": module.params["pas_instance_number"],
+            "app_inst_no": module.params["app_instance_number"],
         }
-        
-        if module.params["multi_sids"] is not None:
-            result["all_sap_mounts"] = module.params["multi_sids"]
 
+        if module.params["multi_sids"] is not None:
+            result.all_sap_mounts = module.params["multi_sids"]
         else:
-            result["all_sap_mounts"].append(result["this_sid"])
+            result.all_sap_mounts.append(result.this_sid)
+    
+        result.first_server_temp.append(module.params["server_name"])
+
+        result.mnt_options = {
+            "afs_mnt_options": "noresvport,vers=4,minorversion=1,sec=sys",
+            "anf_mnt_options": "rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys"
+            + (",nconnect=8" if distribution_full_id in distro_versions else ""),
+        }
+
+        nfs_service_mapping = {
+            "redhat8": "nfs-server",
+            "redhat9": "nfs-server",
+            "redhat7": "nfs",
+            "oraclelinux8": "rpcbind",
+        }
+        result.nfs_service = nfs_service_mapping.get(
+            distribution_full_id.split(".")[0], "nfs-server"
+        )
 
     except Exception as e:
-        module.fail_json(msg=str(e), **result)
+        module.fail_json(msg=str(e), **result.__dict__)
 
-    result["first_server_temp"].append(module.params["server_name"])
-
-    result["mnt_options"] = {
-        "afs_mnt_options": "noresvport,vers=4,minorversion=1,sec=sys",
-        "anf_mnt_options": "rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys"
-        + (",nconnect=8" if distribution_full_id in distro_versions else ""),
-    }
-
-    nfs_service_mapping = {
-        "redhat8": "nfs-server",
-        "redhat9": "nfs-server",
-        "redhat7": "nfs",
-        "oraclelinux8": "rpcbind",
-    }
-    result["nfs_service"] = nfs_service_mapping.get(
-        distribution_full_id.split(".")[0], "nfs-server"
-    )
-
-    module.exit_json(**result)
+    module.exit_json(**result.__dict__)
 
 if __name__ == "__main__":
     run_module()
