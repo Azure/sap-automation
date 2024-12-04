@@ -26,7 +26,7 @@
   ansible.builtin.debug:
     msg: "TESTING list output: {{ setting_vars_output.results[0]['all_sap_mounts'] }}"
     verbosity:                         2
-  
+
 - name: Set first_server_temp to the value from setting_vars_output
   ansible.builtin.set_fact:
     first_server_temp: "{{ setting_vars_output.results[0]['first_server_temp'] }}"
