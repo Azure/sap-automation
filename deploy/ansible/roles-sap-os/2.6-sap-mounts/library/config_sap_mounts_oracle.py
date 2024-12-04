@@ -1,9 +1,8 @@
-"""Configuring SAP Mount Variables for SAP Mounts Oracle Role. This uses the AnsibleModule from 
+"""Configuring SAP Mount Variables for SAP Mounts Oracle Role. This uses the AnsibleModule from
     the Ansible module_utils to set the parameters for the SAP mounts on Oracle.
 """
 
 from ansible.module_utils.basic import AnsibleModule
-
 
 def run_module():
     """This function sets the parameters for the SAP mounts on Oracle.
