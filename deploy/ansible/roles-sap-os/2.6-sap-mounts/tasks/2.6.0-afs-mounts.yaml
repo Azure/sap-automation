@@ -29,7 +29,7 @@
 - name: Set first_server_temp to the value from setting_vars_output
   ansible.builtin.set_fact:
     first_server_temp: "{{ input_vars['first_server_temp'] }}"
-  
+
 - name:                                "AFS Mount: Create configuration file
                                         with additional optimization settings"
   ansible.builtin.blockinfile:
@@ -55,7 +55,6 @@
 # |         Unmount and clean up temporary directory structure                 |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
 
 - name:                                "AFS Mount: Create local directories"
   block:
