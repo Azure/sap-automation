@@ -176,7 +176,7 @@ namespace SDAFWebApp.Controllers
             string postUri = $"{collectionUri}{project}/_apis/pipelines/{pipelineId}/runs?api-version=7.1";
 
             string requestJson = JsonSerializer.Serialize(requestBody, typeof(PipelineRequestBody), jsonSerializerOptions);
-            StringContent content = new(requestJson, Encoding.ASCII, "application/json");
+            StringContent content = new(requestJson, Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await client.PostAsync(postUri, content);
             string responseBody = await response.Content.ReadAsStringAsync();
