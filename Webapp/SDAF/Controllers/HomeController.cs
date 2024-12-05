@@ -1,9 +1,9 @@
-﻿using AutomationForm.Models;
+﻿using SDAFWebApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
-namespace AutomationForm.Controllers
+namespace SDAFWebApp.Controllers
 {
   public class HomeController : Controller
   {

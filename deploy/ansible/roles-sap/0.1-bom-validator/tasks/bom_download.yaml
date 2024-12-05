@@ -397,7 +397,9 @@
       # Description:
       #
         - name:                            "BOM: {{ bom_name }} Upload File {{ bom_media_entry.archive }} using SAS keys"
-
+          when:
+            - allowSharedKeyAccess
+            - sapbits_sas_token is defined
           ansible.builtin.command: >-
                                           az storage blob upload
                                             --account-name {{ account }}
@@ -414,11 +416,10 @@
             - azresult.rc != 0
             - azresult.stderr is defined
             - azresult.stderr.find("BlobAlreadyExists") == -1
-          when:
-            - sapbits_sas_token is defined
 
         - name:                            "BOM: {{ bom_name }} Upload File {{ bom_media_entry.archive }}"
-
+          when:
+            - not allowSharedKeyAccess
           ansible.builtin.command: >-
                                           az storage blob upload
                                             --account-name {{ account }}
@@ -435,8 +436,6 @@
             - azresult.rc != 0
             - azresult.stderr is defined
             - azresult.stderr.find("BlobAlreadyExists") == -1
-          when:
-            - sapbits_sas_token is undefined
 
       # Step: 05-04-01 - END
       # -------------------------------+---------------------------------------------8

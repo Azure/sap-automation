@@ -18,7 +18,7 @@
     "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main",
     "Parameters": [
       {
-        "Name": "subscription",
+        "Name": "subscription_id",
         "Required": false,
         "Description": "IMPORTANT: please provide a subscription id to enable dropdown functionality for various Azure resource ID parameters, such as resourcegroup_arm_id, network_arm_id, etc.",
         "Type": "lookup",
@@ -191,15 +191,6 @@
         "Required": false,
         "Description": "Defines a list of tags to be applied to all resources",
         "Type": "tag",
-        "Options": [],
-        "Overrules": "",
-        "Display": 2
-      },
-      {
-        "Name": "use_spn",
-        "Required": false,
-        "Description": " If set, the deployment is performed using the Service Principal defined for the workload zone, otherwise the managed identity of the deployer is used",
-        "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 2
@@ -735,6 +726,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "database_active_active",
+        "Required": false,
+        "Description": "If true, database will deployed with Active/Active (read enabled) configuration, only supported for HANA.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       }
     ]
   },

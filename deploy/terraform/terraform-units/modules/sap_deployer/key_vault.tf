@@ -30,7 +30,7 @@ resource "azurerm_key_vault" "kv_user" {
 
 
   dynamic "network_acls" {
-                           for_each                     = range(!var.public_network_access_enabled ? 1 : 0)
+                           for_each                     = range(var.public_network_access_enabled ? 1 : 0)
                            content {
 
                               bypass                     = "AzureServices"
@@ -46,11 +46,11 @@ resource "azurerm_key_vault" "kv_user" {
                                                           )
 
                               virtual_network_subnet_ids = compact(local.management_subnet_exists ? (var.use_webapp ? (
-                                                            flatten([data.azurerm_subnet.subnet_mgmt[0].id, data.azurerm_subnet.webapp[0].id, var.subnets_to_add])) : (
-                                                            flatten([data.azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add]))
+                                                            flatten([data.azurerm_subnet.subnet_mgmt[0].id, data.azurerm_subnet.webapp[0].id, var.subnets_to_add, var.agent_network_id])) : (
+                                                            flatten([data.azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add, var.agent_network_id]))
                                                             ) : (var.use_webapp ? (
-                                                              compact(flatten([azurerm_subnet.subnet_mgmt[0].id, try(azurerm_subnet.webapp[0].id, null), var.subnets_to_add]))) : (
-                                                              flatten([azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add])
+                                                              compact(flatten([azurerm_subnet.subnet_mgmt[0].id, try(azurerm_subnet.webapp[0].id, null), var.subnets_to_add, var.agent_network_id]))) : (
+                                                              flatten([azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add, var.agent_network_id])
                                                             )
                              ))
                            }
@@ -423,3 +423,69 @@ resource "azurerm_key_vault_secret" "subscription" {
                                            null
                                          )
 }
+
+ephemeral "azurerm_key_vault_secret" "test" {
+  count                                = !var.key_vault.kv_exists ? (1) : (0)
+
+  depends_on                           = [
+                                           azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_key_vault_access_policy.kv_user_systemidentity
+                                         ]
+
+  name                                 = format("%s-subscription-id-tester", upper(var.infrastructure.environment))
+  value                                = data.azurerm_client_config.deployer.subscription_id
+  key_vault_id                         = var.key_vault.kv_exists ? (
+                                           var.key_vault.kv_user_id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+
+  expiration_date                      = var.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+}
+# resource "azurerm_key_vault_secret" "tenant" {
+#   count                                = !var.key_vault.kv_exists ? (1) : (0)
+
+#   depends_on                           = [
+#                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
+#                                            azurerm_key_vault_access_policy.kv_user_msi,
+#                                            azurerm_key_vault_access_policy.kv_user_systemidentity
+#                                          ]
+
+#   name                                 = format("%s-tenant-id", upper(var.infrastructure.environment))
+#   value                                = data.azurerm_client_config.deployer.tenant_id
+#   key_vault_id                         = var.key_vault.kv_exists ? (
+#                                            var.key_vault.kv_user_id) : (
+#                                            azurerm_key_vault.kv_user[0].id
+#                                          )
+
+#   expiration_date                      = var.set_secret_expiry ? (
+#                                            time_offset.secret_expiry_date.rfc3339) : (
+#                                            null
+#                                          )
+# }
+
+
+# resource "azurerm_key_vault_secret" "spn" {
+#   count                                = !var.key_vault.kv_exists && length(var.spn_id) > 0 ? (1) : (0)
+
+#   depends_on                           = [
+#                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
+#                                            azurerm_key_vault_access_policy.kv_user_msi,
+#                                            azurerm_key_vault_access_policy.kv_user_systemidentity
+#                                          ]
+
+#   name                                 = format("%s-client-id", upper(var.infrastructure.environment))
+#   value                                = var.spn_id
+#   key_vault_id                         = var.key_vault.kv_exists ? (
+#                                            var.key_vault.kv_user_id) : (
+#                                            azurerm_key_vault.kv_user[0].id
+#                                          )
+
+#   expiration_date                      = var.set_secret_expiry ? (
+#                                            time_offset.secret_expiry_date.rfc3339) : (
+#                                            null
+#                                          )
+# }

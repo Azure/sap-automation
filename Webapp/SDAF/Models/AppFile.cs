@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace AutomationForm.Models
+namespace SDAFWebApp.Models
 {
   public class AppFile
   {

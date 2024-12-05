@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Collections.Generic;
 
-namespace AutomationForm.Controllers
+namespace SDAFWebApp.Controllers
 {
   public class ArmclientController : Controller
   {

@@ -211,12 +211,9 @@ locals {
 
   user_keyvault                        = var.user_keyvault_id
 
-  spn_keyvault_specified               = (
-                                           length(var.spn_keyvault_id) +
-                                           length(try(var.key_vault.kv_spn_id, ""))
-                                         ) > 0
+  spn_keyvault_specified               = length(var.spn_keyvault_id) > 0
 
-  spn_kv                               = local.spn_keyvault_specified ? (
+  keyvault_containing_the_spns         = local.spn_keyvault_specified ? (
                                            var.spn_keyvault_id
                                            ) : (
                                            ""
@@ -225,12 +222,12 @@ locals {
   key_vault                            = merge(local.key_vault_temp, (
                                           local.user_keyvault_specified ? (
                                             {
-                                              kv_user_id = local.user_keyvault
+                                              keyvault_id_for_system_credentials = local.user_keyvault
                                             }
                                           ) : null), (
                                           local.spn_keyvault_specified ? (
                                             {
-                                              kv_spn_id = local.spn_kv
+                                              keyvault_id_for_deployment_credentials = local.keyvault_containing_the_spns
                                             }
                                           ) : null
                                           )

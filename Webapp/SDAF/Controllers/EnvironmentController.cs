@@ -1,10 +1,10 @@
-using AutomationForm.Models;
+using SDAFWebApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Threading.Tasks;
 
-namespace AutomationForm.Controllers
+namespace SDAFWebApp.Controllers
 {
   public class EnvironmentController : Controller
   {

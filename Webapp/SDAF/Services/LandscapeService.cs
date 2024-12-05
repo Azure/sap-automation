@@ -1,4 +1,4 @@
-using AutomationForm.Models;
+using SDAFWebApp.Models;
 using Azure;
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AutomationForm.Services
+namespace SDAFWebApp.Services
 {
-  public class LandscapeService : ITableStorageService<LandscapeEntity>
+    public class LandscapeService : ITableStorageService<LandscapeEntity>
   {
     private readonly TableClient client;
     private readonly BlobContainerClient tfvarsBlobContainerClient;

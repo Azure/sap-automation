@@ -11,11 +11,11 @@ resource "azurerm_subnet" "webapp" {
 
   count                                         = var.use_webapp ? local.webapp_subnet_exists ? 0 : 1 : 0
   name                                          = local.webapp_subnet_name
-  resource_group_name                           = local.vnet_mgmt_exists ? (
+  resource_group_name                           = local.management_virtual_network_exists ? (
                                                     data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                     azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                   )
-  virtual_network_name                          = local.vnet_mgmt_exists ? (
+  virtual_network_name                          = local.management_virtual_network_exists ? (
                                                     data.azurerm_virtual_network.vnet_mgmt[0].name) : (
                                                     azurerm_virtual_network.vnet_mgmt[0].name
                                                   )
@@ -102,12 +102,15 @@ resource "azurerm_windows_web_app" "webapp" {
   app_settings = {
     "CollectionUri"                            = var.agent_ado_url
     "IS_PIPELINE_DEPLOYMENT"                   = false
-    "OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"   = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].client_id : azurerm_user_assigned_identity.deployer[0].client_id
+    "OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"   = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].client_id : null
     "WEBSITE_AUTH_CUSTOM_AUTHORIZATION"        = true
     "WHICH_ENV"                                = length(var.deployer.user_assigned_identity_id) > 0 ? "DATA" : "LOCAL"
     "AZURE_TENANT_ID"                          = data.azurerm_client_config.deployer.tenant_id
     "AUTHENTICATION_TYPE"                      = var.deployer.devops_authentication_type
-    "PAT"                                      = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
+    "PAT"                                      = var.use_private_endpoint ? (
+                                                  format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access)): (
+                                                  format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
+                                                 )
   }
 
   sticky_settings {
@@ -165,7 +168,10 @@ resource "azurerm_windows_web_app" "webapp" {
   connection_string                          {
     name                                        = "tfstate"
     type                                        = "Custom"
-    value                                       = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/tfstate/)", local.user_keyvault_name) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/tfstate/)", local.user_keyvault_name)
+    value                                       = var.use_private_endpoint ? (
+                                                    format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/tfstate/)", local.user_keyvault_name)) : (
+                                                    format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/tfstate/)", local.user_keyvault_name)
+                                                  )
                                              }
 
   lifecycle                                  {

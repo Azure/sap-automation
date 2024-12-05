@@ -41,10 +41,10 @@ locals {
 
   // Management vnet
   vnet_mgmt_arm_id                     = try(var.infrastructure.vnets.management.arm_id, "")
-  vnet_mgmt_exists                     = length(local.vnet_mgmt_arm_id) > 0
+  management_virtual_network_exists                     = length(local.vnet_mgmt_arm_id) > 0
 
   // If resource ID is specified extract the vnet name from it otherwise read it either from input of create using the naming convention
-  vnet_mgmt_name                      = local.vnet_mgmt_exists ? (
+  vnet_mgmt_name                      = local.management_virtual_network_exists ? (
                                           split("/", local.vnet_mgmt_arm_id)[8]) : (
                                           length(var.infrastructure.vnets.management.name) > 0 ? (
                                             var.infrastructure.vnets.management.name) : (
@@ -59,7 +59,7 @@ locals {
                                           )
                                         )
 
-  vnet_mgmt_addr                       = local.vnet_mgmt_exists ? "" : try(var.infrastructure.vnets.management.address_space, "")
+  vnet_mgmt_addr                       = local.management_virtual_network_exists ? "" : try(var.infrastructure.vnets.management.address_space, "")
 
   // Management subnet
   management_subnet_arm_id             = try(var.infrastructure.vnets.management.subnet_mgmt.arm_id, "")

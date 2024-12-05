@@ -20,33 +20,33 @@ source "${script_directory}/helpers/script_helpers.sh"
 
 #Internal helper functions
 function showhelp {
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo "#                                                                                       #"
-  echo "#   This file contains the logic to remove the deployer.                                #"
-  echo "#   The script experts the following exports:                                           #"
-  echo "#                                                                                       #"
-  echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
-  echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation  #"
-  echo "#                                                                                       #"
-  echo "#   The script will persist the parameters needed between the executions in the         #"
-  echo "#   ~/.sap_deployment_automation folder                                                 #"
-  echo "#                                                                                       #"
-  echo "#                                                                                       #"
-  echo "#   Usage: remove_deployer.sh                                                           #"
-  echo "#    -p deployer parameter file                                                         #"
-  echo "#                                                                                       #"
-  echo "#    -i interactive true/false setting the value to false will not prompt before apply  #"
-  echo "#    -h Show help                                                                       #"
-  echo "#                                                                                       #"
-  echo "#   Example:                                                                            #"
-  echo "#                                                                                       #"
-  echo "#   [REPO-ROOT]deploy/scripts/remove_deployer.sh \                                      #"
-  echo "#      -p PROD-WEEU-DEP00-INFRASTRUCTURE.json \                                         #"
-  echo "#      -i true                                                                          #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo "#                                                                                       #"
+	echo "#   This file contains the logic to remove the deployer.                                #"
+	echo "#   The script experts the following exports:                                           #"
+	echo "#                                                                                       #"
+	echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
+	echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation  #"
+	echo "#                                                                                       #"
+	echo "#   The script will persist the parameters needed between the executions in the         #"
+	echo "#   ~/.sap_deployment_automation folder                                                 #"
+	echo "#                                                                                       #"
+	echo "#                                                                                       #"
+	echo "#   Usage: remove_deployer.sh                                                           #"
+	echo "#    -p deployer parameter file                                                         #"
+	echo "#                                                                                       #"
+	echo "#    -i interactive true/false setting the value to false will not prompt before apply  #"
+	echo "#    -h Show help                                                                       #"
+	echo "#                                                                                       #"
+	echo "#   Example:                                                                            #"
+	echo "#                                                                                       #"
+	echo "#   [REPO-ROOT]deploy/scripts/remove_deployer.sh \                                      #"
+	echo "#      -p PROD-WEEU-DEP00-INFRASTRUCTURE.json \                                         #"
+	echo "#      -i true                                                                          #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
 }
 
 #process inputs - may need to check the option i for auto approve as it is not used
@@ -54,32 +54,37 @@ INPUT_ARGUMENTS=$(getopt -n remove_deployer -o p:ih --longoptions parameterfile:
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
-  showhelp
+	showhelp
 
 fi
 
 eval set -- "$INPUT_ARGUMENTS"
 while :; do
-  case "$1" in
-  -p | --parameterfile)
-    parameterfile="$2"
-    shift 2
-    ;;
-  -i | --auto-approve)
-    approve="--auto-approve"
-    shift
-    ;;
-  -h | --help)
-    showhelp
-    exit 3
-    shift
-    ;;
-  --)
-    shift
-    break
-    ;;
-  esac
+	case "$1" in
+	-p | --parameterfile)
+		parameterfile="$2"
+		shift 2
+		;;
+	-i | --auto-approve)
+		approve="--auto-approve"
+		shift
+		;;
+	-h | --help)
+		showhelp
+		exit 3
+		shift
+		;;
+	--)
+		shift
+		break
+		;;
+	esac
 done
+
+if [ "$DEBUG" = True ]; then
+	set -x
+	set -o errexit
+fi
 
 deployment_system=sap_deployer
 
@@ -88,31 +93,31 @@ param_dirname=$(dirname "${parameterfile}")
 echo "Parameter file:                       ${parameterfile}"
 
 if [ ! -f "${parameterfile}" ]; then
-  printf -v val %-40.40s "$parameterfile"
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo "#               Parameter file does not exist: ${val} #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  exit 2 #No such file or directory
+	printf -v val %-40.40s "$parameterfile"
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo "#               Parameter file does not exist: ${val} #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	exit 2 #No such file or directory
 fi
 
 if [ "$param_dirname" != '.' ]; then
-  echo ""
-  echo "#########################################################################################"
-  echo "#                                                                                       #"
-  echo "#   Please run this command from the folder containing the parameter file               #"
-  echo "#                                                                                       #"
-  echo "#########################################################################################"
-  exit 3
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo "#   Please run this command from the folder containing the parameter file               #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	exit 3
 fi
 
 # Check that parameter files have environment and location defined
 validate_key_parameters "$parameterfile"
 return_code=$?
 if [ 0 != $return_code ]; then
-  exit $return_code
+	exit $return_code
 fi
 
 region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
@@ -135,7 +140,7 @@ var_file="${param_dirname}"/"${parameterfile}"
 validate_exports
 return_code=$?
 if [ 0 != $return_code ]; then
-  exit $return_code
+	exit $return_code
 fi
 
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
@@ -146,16 +151,16 @@ export TF_DATA_DIR="${param_dirname}"/.terraform
 validate_dependencies
 return_code=$?
 if [ 0 != $return_code ]; then
-  exit $return_code
+	exit $return_code
 fi
 
-dir=$(pwd)
+current_directory=$(pwd)
 
-terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${dir}/terraform.tfstate"
+terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${current_directory}/terraform.tfstate"
 extra_vars=""
 
 if [ -f terraform.tfvars ]; then
-  extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
+	extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 fi
 
 echo ""
@@ -168,55 +173,69 @@ echo ""
 
 parallelism=10
 
-#Provide a way to limit the number of parallell tasks for Terraform
+#Provide a way to limit the number of parallel tasks for Terraform
 if [[ -n "$TF_PARALLELLISM" ]]; then
-  parallelism="$TF_PARALLELLISM"
+	parallelism="$TF_PARALLELLISM"
 fi
 
 if terraform -chdir="${terraform_module_directory}" destroy "${approve}" -lock=false -parallelism="${parallelism}" -json -var-file="${var_file}" "$extra_vars" | tee -a destroy_output.json; then
-  return_value=$?
+	return_value=$?
+	echo ""
+	echo -e "${bold_red}Terraform destroy: $reset_formatting                    succeeded"
+	echo ""
 else
-  return_value=$?
-  echo "Terraform destroy failed"
+	return_value=$?
+	echo ""
+	echo -e "${bold_red}Terraform destroy: $reset_formatting                    failed"
+	echo ""
 fi
 
 if [ -f destroy_output.json ]; then
-  errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
+	errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
 
-  if [[ -n $errors_occurred ]]; then
-    echo ""
-    echo "#########################################################################################"
-    echo "#                                                                                       #"
-    echo -e "#                         $bold_red_underscore!Errors during the destroy phase!$reset_formatting                             #"
+	if [[ -n $errors_occurred ]]; then
+		echo ""
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo -e "#                         $bold_red_underscore!Errors during the destroy phase!$reset_formatting                             #"
 
-    return_value=2
-    all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
-    if [[ -n ${all_errors} ]]; then
-      readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
-      for errors_string in "${errors_strings[@]}"; do
-        string_to_report=$(jq -c -r '.detail ' <<<"$errors_string")
-        if [[ -z ${string_to_report} ]]; then
-          string_to_report=$(jq -c -r '.summary ' <<<"$errors_string")
-        fi
+		return_value=2
+		all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
+		if [[ -n ${all_errors} ]]; then
+			readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
+			for errors_string in "${errors_strings[@]}"; do
+				string_to_report=$(jq -c -r '.detail ' <<<"$errors_string")
+				if [[ -z ${string_to_report} ]]; then
+					string_to_report=$(jq -c -r '.summary ' <<<"$errors_string")
+				fi
 
-        echo -e "#                          $bold_red_underscore  $string_to_report $reset_formatting"
-        echo "##vso[task.logissue type=error]${string_to_report}"
+				echo -e "#                          $bold_red_underscore  $string_to_report $reset_formatting"
+				echo "##vso[task.logissue type=error]${string_to_report}"
 
-      done
+			done
 
-    fi
-    echo "#                                                                                       #"
-    echo "#########################################################################################"
-    echo ""
-  fi
+		fi
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		echo ""
+	fi
 fi
 
 if [ -f destroy_output.json ]; then
-  rm destroy_output.json
+	rm destroy_output.json
 fi
 
-step=0
-save_config_var "step" "${deployer_config_information}"
+if [ 0 == $return_value ]; then
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo "#                             Deployer removed successfully                             #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+	step=0
+	save_config_var "step" "${deployer_config_information}"
+fi
 
 unset TF_DATA_DIR
 

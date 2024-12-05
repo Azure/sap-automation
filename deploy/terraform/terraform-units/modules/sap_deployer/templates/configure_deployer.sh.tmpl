@@ -71,7 +71,7 @@ AGENTNAME=$(hostname)
 #
 # Ansible Version settings
 #
-ansible_version="$${ansible_version:-2.13}"
+ansible_version="$${ansible_version:-2.16}"
 ansible_major="$${ansible_version%%.*}"
 ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
 
@@ -315,7 +315,7 @@ else
       echo "we are inside ubuntu  block"
       rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
       if [ "$rel" == "22.04" ]; then
-        ansible_version="$${ansible_version:-2.15}"
+        ansible_version="$${ansible_version:-2.16}"
         ansible_major="$${ansible_version%%.*}"
         ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
       fi
@@ -414,6 +414,7 @@ else
     esac
 
     # Install required packages as determined above
+    sleep 10
     set +o errexit
     pkg_mgr_install "$${required_pkgs[@]}"
 
@@ -424,7 +425,6 @@ else
 
     # Ensure our package metadata cache is up to date
     pkg_mgr_refresh
-
 
 
     # Prepare Azure SAP Automated Deployment folder structure

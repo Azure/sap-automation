@@ -78,6 +78,8 @@ function LogonToAzure() {
     echo "Deployment credential ID (SPN):      $ARM_CLIENT_ID"
     unset ARM_USE_MSI
     az login --service-principal --username "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
+		echo "Logged on as:"
+		az account show --query user --output yaml
     TF_VAR_use_spn=true
     export TF_VAR_use_spn
 

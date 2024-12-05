@@ -152,10 +152,10 @@ variable "firewall_allowed_ipaddresses"         {
                                                 }
 
 variable "firewall_public_ip_tags"              {
-                                                   description = "Tags for the public_ip resource"
-                                                   type        = map(string)
-                                                   default     = null
-                                                 }
+                                                  description = "Tags for the public_ip resource attached to firewall"
+                                                  type        = map(string)
+                                                  default     = null
+                                                }
 
 #######################################4#######################################8
 #                                                                              #
@@ -184,6 +184,12 @@ variable "bastion_sku"                          {
                                                   default     = "Basic"
                                                 }
 
+variable "bastion_public_ip_tags"              {
+                                                  description = "Tags for the public_ip resource attached to bastion"
+                                                  type        = map(string)
+                                                  default     = null
+                                                }
+
 #######################################4#######################################8
 #                                                                              #
 #                           App Service Subnet variables                       #
@@ -197,7 +203,7 @@ variable "webapp_subnet_arm_id"                 {
                                                 }
 
 variable "webapp_subnet_address_prefix"        {
-                                                  description = "Subnet adress range for the Web App subnet"
+                                                  description = "Subnet address range for the Web App subnet"
                                                   default     = ""
                                                 }
 
@@ -229,6 +235,11 @@ variable "deployer_enable_public_ip"            {
                                                   type        = bool
                                                 }
 
+variable "deployer_public_ip_tags"              {
+                                                  description = "Tags for the public_ip resource attached to deployer"
+                                                  type        = map(string)
+                                                  default     = null
+                                                }
 ###############################################################################
 #                                                                             #
 #                            Deployer Information                             #
@@ -366,7 +377,7 @@ variable "soft_delete_retention_days"                 {
 
 #######################################4#######################################8
 #                                                                              #
-#  Miscallaneous settings                                                      #
+#  Miscellaneous settings                                                      #
 #                                                                              #
 #######################################4#######################################8
 
@@ -437,6 +448,12 @@ variable "tags"                                 {
                                                   description = "If provided, tags for all resources"
                                                   default     = {}
                                                 }
+
+variable "agent_network_id"                          {
+                                                       description = "Agent Network resource ID"
+                                                       default     = ""
+                                                     }
+
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #
@@ -497,7 +514,7 @@ variable "agent_pool"                                 {
                                                       }
 
 variable "agent_pat" {
-  description = "If provided, contains the Personal Access Token to be used"
+                                                        description = "If provided, contains the Personal Access Token to be used"
                                                         default     = ""
                                                       }
 
@@ -508,7 +525,7 @@ variable "agent_ado_url"                              {
 
 variable "ansible_core_version"                       {
                                                         description = "If provided, the version of ansible core to be installed"
-                                                        default     = "2.15"
+                                                        default     = "2.16"
                                                       }
 
 #########################################################################################

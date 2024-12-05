@@ -1,8 +1,8 @@
-using AutomationForm.Models;
+using SDAFWebApp.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AutomationForm.Services
+namespace SDAFWebApp.Services
 {
   public interface ITableStorageService<T>
   {

@@ -15,9 +15,9 @@ source "${script_directory}/helper.sh"
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
-  set -x
-  set -o errexit
-  DEBUG=True
+	set -x
+	set -o errexit
+	DEBUG=True
 
 fi
 export DEBUG
@@ -34,58 +34,53 @@ mkdir -p .sap_deployment_automation
 git checkout -q "$BRANCH"
 
 if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FILENAME" ]; then
-  echo -e "$bold_red--- $SAP_SYSTEM_TFVARS_FILENAME was not found ---$reset"
-  echo "##vso[task.logissue type=error]File $SAP_SYSTEM_TFVARS_FILENAME was not found."
-  exit 2
+	echo -e "$bold_red--- $SAP_SYSTEM_TFVARS_FILENAME was not found ---$reset"
+	echo "##vso[task.logissue type=error]File $SAP_SYSTEM_TFVARS_FILENAME was not found."
+	exit 2
 fi
 
 echo -e "$green--- Validations ---$reset"
 if [ "$USE_MSI" != "true" ]; then
 
-  if [ -z "$WL_ARM_SUBSCRIPTION_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
-    exit 2
-  fi
+	if [ -z "$WL_ARM_SUBSCRIPTION_ID" ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
+		exit 2
+	fi
 
-  if [ "$WL_ARM_SUBSCRIPTION_ID" == '$$(ARM_SUBSCRIPTION_ID)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
-    exit 2
-  fi
+	if [ "$WL_ARM_SUBSCRIPTION_ID" == '$$(ARM_SUBSCRIPTION_ID)' ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
+		exit 2
+	fi
 
-  if [ -z "$WL_ARM_CLIENT_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
-    exit 2
-  fi
+	if [ -z "$WL_ARM_CLIENT_ID" ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
+		exit 2
+	fi
 
-  if [ "$WL_ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
-    exit 2
-  fi
+	if [ "$WL_ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
+		exit 2
+	fi
 
-  if [ -z "$WL_ARM_CLIENT_SECRET" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
-    exit 2
-  fi
+	if [ -z "$WL_ARM_CLIENT_SECRET" ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
+		exit 2
+	fi
 
-  if [ "$WL_ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
-    exit 2
-  fi
+	if [ "$WL_ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
+		exit 2
+	fi
 
-  if [ -z "$WL_ARM_TENANT_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
-    exit 2
-  fi
+	if [ -z "$WL_ARM_TENANT_ID" ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
+		exit 2
+	fi
 
-  if [ "$WL_ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
-    exit 2
-  fi
-
-  if [ -z "$CP_ARM_SUBSCRIPTION_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $(parent_variable_group) variable group."
-    exit 2
-  fi
+	if [ "$WL_ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
+		exit 2
+	fi
 fi
 
 # Set logon variables
@@ -100,17 +95,17 @@ export ARM_SUBSCRIPTION_ID
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-  configureNonDeployer "$(tf_version)" || true
-  echo -e "$green--- az login ---$reset"
-  LogonToAzure false || true
+	configureNonDeployer "$(tf_version)" || true
+	echo -e "$green--- az login ---$reset"
+	LogonToAzure false || true
 else
-  LogonToAzure "$USE_MSI" || true
+	LogonToAzure "$USE_MSI" || true
 fi
 return_code=$?
 if [ 0 != $return_code ]; then
-  echo -e "$bold_red--- Login failed ---$reset"
-  echo "##vso[task.logissue type=error]az login failed."
-  exit $return_code
+	echo -e "$bold_red--- Login failed ---$reset"
+	echo "##vso[task.logissue type=error]az login failed."
+	exit $return_code
 fi
 
 ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
@@ -156,23 +151,23 @@ echo "-------------------------------------------------"
 az --version
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-  exit 2
+	echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	exit 2
 fi
 
 if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The location setting in $SAP_SYSTEM_TFVARS_FILENAME '$LOCATION' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-  exit 2
+	echo "##vso[task.logissue type=error]The location setting in $SAP_SYSTEM_TFVARS_FILENAME '$LOCATION' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	exit 2
 fi
 
 if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The network_logical_name setting in $SAP_SYSTEM_TFVARS_FILENAME '$NETWORK' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-  exit 2
+	echo "##vso[task.logissue type=error]The network_logical_name setting in $SAP_SYSTEM_TFVARS_FILENAME '$NETWORK' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	exit 2
 fi
 
 if [ "$SID" != "$SID_IN_FILENAME" ]; then
-  echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_TFVARS_FILENAME '$SID' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
-  exit 2
+	echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_TFVARS_FILENAME '$SID' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
+	exit 2
 fi
 
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
@@ -188,8 +183,8 @@ az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYST
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 
 if [ -z "${VARIABLE_GROUP_ID}" ]; then
-  echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
-  exit 2
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
+	exit 2
 fi
 export VARIABLE_GROUP_ID
 
@@ -237,14 +232,14 @@ echo -e "$green--- Deploy the System ---$reset"
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 
 "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh" --parameterfile $SAP_SYSTEM_TFVARS_FILENAME --type sap_system \
-  --state_subscription "${STATE_SUBSCRIPTION}" --storageaccountname "${REMOTE_STATE_SA}" \
-  --deployer_tfstate_key "${deployer_tfstate_key}" --landscape_tfstate_key "${landscape_tfstate_key}" \
-  --ado --auto-approve
+	--state_subscription "${STATE_SUBSCRIPTION}" --storageaccountname "${REMOTE_STATE_SA}" \
+	--deployer_tfstate_key "${deployer_tfstate_key}" --landscape_tfstate_key "${landscape_tfstate_key}" \
+	--ado --auto-approve
 
 return_code=$?
 echo "Return code from deployment:         ${return_code}"
 if [ 0 != $return_code ]; then
-  echo "##vso[task.logissue type=error]Return code from installer $return_code."
+	echo "##vso[task.logissue type=error]Return code from installer $return_code."
 fi
 
 set +o errexit
@@ -262,64 +257,64 @@ git pull
 echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 
 if [ -f stdout.az ]; then
-  rm stdout.az
+	rm stdout.az
 fi
 
 added=0
 
 if [ -f .terraform/terraform.tfstate ]; then
-  git add -f .terraform/terraform.tfstate
-  added=1
+	git add -f .terraform/terraform.tfstate
+	added=1
 fi
 
 if [ -f sap-parameters.yaml ]; then
-  git add sap-parameters.yaml
-  added=1
+	git add sap-parameters.yaml
+	added=1
 fi
 
 if [ -f "${SID}_hosts.yaml" ]; then
-  git add -f "${SID}_hosts.yaml"
-  added=1
+	git add -f "${SID}_hosts.yaml"
+	added=1
 fi
 
 if [ -f "${SID}.md" ]; then
-  git add "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDERNAME/${SID}.md"
-  # echo "##vso[task.uploadsummary]./${SID}.md)"
-  added=1
+	git add "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDERNAME/${SID}.md"
+	# echo "##vso[task.uploadsummary]./${SID}.md)"
+	added=1
 fi
 
 if [ -f "${SID}_inventory.md" ]; then
-  git add "${SID}_inventory.md"
-  added=1
+	git add "${SID}_inventory.md"
+	added=1
 fi
 
 if [ -f "${SID}_resource_names.json" ]; then
-  git add "${SID}_resource_names.json"
-  added=1
+	git add "${SID}_resource_names.json"
+	added=1
 fi
 
 if [ -f $SAP_SYSTEM_TFVARS_FILENAME ]; then
-  git add $SAP_SYSTEM_TFVARS_FILENAME
-  added=1
+	git add $SAP_SYSTEM_TFVARS_FILENAME
+	added=1
 fi
 
 if [ -f "${SID}_virtual_machines.json" ]; then
-  git add "${SID}_virtual_machines.json"
-  added=1
+	git add "${SID}_virtual_machines.json"
+	added=1
 fi
 # Pull changes
 git pull -q origin "$BRANCH"
 
 if [ 1 == $added ]; then
-  git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
-  git config --global user.name "$BUILD_REQUESTEDFOR"
-  git commit -m "Added updates from SAP deployment of $SAP_SYSTEM_FOLDERNAME for $BUILD_BUILDNUMBER [skip ci]"
+	git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+	git config --global user.name "$BUILD_REQUESTEDFOR"
+	git commit -m "Added updates from SAP deployment of $SAP_SYSTEM_FOLDERNAME for $BUILD_BUILDNUMBER [skip ci]"
 
-  if git -c http.extraheader="AUTHORIZATION: bearer SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-    echo "##vso[task.logissue type=warning]Changes from SAP deployment of $SAP_SYSTEM_FOLDERNAME pushed to $BRANCH"
-  else
-    echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
-  fi
+	if git -c http.extraheader="AUTHORIZATION: bearer SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
+		echo "##vso[task.logissue type=warning]Changes from SAP deployment of $SAP_SYSTEM_FOLDERNAME pushed to $BRANCH"
+	else
+		echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+	fi
 fi
 
 # file_name=${SID}_inventory.md

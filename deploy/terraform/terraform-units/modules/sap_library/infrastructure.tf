@@ -26,24 +26,6 @@ data "azurerm_resource_group" "library" {
   name                                 = split("/", var.infrastructure.resource_group.arm_id)[4]
 }
 
-resource "azurerm_role_assignment" "library_sai" {
-  provider                             = azurerm.main
-  count                                = var.bootstrap ? 0 : try(var.deployer_tfstate.add_system_assigned_identity, false) ? 1 : 0
-  scope                                = local.resource_group_exists ? var.infrastructure.resource_group.arm_id : azurerm_resource_group.library[0].id
-  role_definition_name                 = "Storage Blob Data Contributor"
-  principal_id                         = var.deployer_tfstate.deployer_system_assigned_identity[count.index]
-}
-
-
-resource "azurerm_role_assignment" "library_webapp_system_assigned_identity" {
-  provider                             = azurerm.main
-  count                                = length(var.deployer_tfstate.webapp_identity) > 0 ? 1 : 0
-  scope                                = local.resource_group_exists ? var.infrastructure.resource_group.arm_id : azurerm_resource_group.library[0].id
-  role_definition_name                 = "Storage Blob Data Contributor"
-  principal_id                         = var.deployer_tfstate.webapp_identity
-}
-
-
 // TODO: Add management lock when this issue is addressed https://github.com/terraform-providers/terraform-provider-azurerm/issues/5473
 
 
@@ -95,4 +77,81 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
   registration_enabled                 = false
 }
 
+
+resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
+  provider                             = azurerm.dnsmanagement
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_private_endpoint ? 1 : 0
+  depends_on                           = [
+                                            azurerm_private_dns_zone.vault
+                                         ]
+
+  name                                 = format("%s%s%s%s",
+                                           var.naming.resource_prefixes.dns_link,
+                                           local.prefix,
+                                           var.naming.separator,
+                                           "vault"
+                                         )
+  resource_group_name                  = length(var.dns_settings.privatelink_dns_subscription_id) == 0 ? (
+                                           local.resource_group_exists ? (
+                                             split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+                                             azurerm_resource_group.library[0].name
+                                           )) : (
+                                           var.dns_settings.privatelink_dns_resourcegroup_name
+                                         )
+  private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
+  virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
+  registration_enabled                 = false
+}
+
+
+resource "azurerm_private_dns_zone_virtual_network_link" "vault_agent" {
+  provider                             = azurerm.dnsmanagement
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_private_endpoint && length(var.dns_settings.agent_network_id) > 0 ? 1 : 0
+  depends_on                           = [
+                                            azurerm_private_dns_zone.vault
+                                         ]
+
+  name                                 = format("%s%s%s%s",
+                                           var.naming.resource_prefixes.dns_link,
+                                           local.prefix,
+                                           var.naming.separator,
+                                           "vault-agent"
+                                         )
+  resource_group_name                  = length(var.dns_settings.privatelink_dns_subscription_id) == 0 ? (
+                                           local.resource_group_exists ? (
+                                             split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+                                             azurerm_resource_group.library[0].name
+                                           )) : (
+                                           var.dns_settings.privatelink_dns_resourcegroup_name
+                                         )
+  private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
+  virtual_network_id                   = var.dns_settings.agent_network_id
+  registration_enabled                 = false
+}
+
+
+resource "azurerm_private_dns_zone_virtual_network_link" "blob_agent" {
+  provider                             = azurerm.dnsmanagement
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_private_endpoint && length(var.dns_settings.agent_network_id) > 0 ? 1 : 0
+  depends_on                           = [
+                                            azurerm_private_dns_zone.vault
+                                         ]
+
+  name                                 = format("%s%s%s%s",
+                                           var.naming.resource_prefixes.dns_link,
+                                           local.prefix,
+                                           var.naming.separator,
+                                           "vault-agent"
+                                         )
+  resource_group_name                  = length(var.dns_settings.privatelink_dns_subscription_id) == 0 ? (
+                                           local.resource_group_exists ? (
+                                             split("/", var.infrastructure.resource_group.arm_id)[4]) : (
+                                             azurerm_resource_group.library[0].name
+                                           )) : (
+                                           var.dns_settings.privatelink_dns_resourcegroup_name
+                                         )
+  private_dns_zone_name                = var.dns_settings.dns_zone_names.blob_dns_zone_name
+  virtual_network_id                   = var.dns_settings.agent_network_id
+  registration_enabled                 = false
+}
 

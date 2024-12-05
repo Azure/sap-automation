@@ -14,7 +14,7 @@
 
 provider "azurerm"                     {
                                          features {}
-                                         subscription_id            = coalesce(var.management_subscription,var.subscription, local.deployer_subscription_id)
+                                         subscription_id            = coalesce(var.management_subscription,var.subscription_id, local.deployer_subscription_id)
                                          use_msi                    = var.use_spn ? false : true
 
                                          storage_use_azuread        = true
@@ -36,7 +36,7 @@ provider "azurerm"                     {
                                                                    }
 
                                                   }
-                                         subscription_id            = coalesce(var.subscription, data.azurerm_key_vault_secret.subscription_id.value)
+                                         subscription_id            = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value
                                          client_id                  = var.use_spn ? local.spn.client_id : null
                                          client_secret              = var.use_spn ? local.spn.client_secret : null
                                          tenant_id                  = var.use_spn ? local.spn.tenant_id : null

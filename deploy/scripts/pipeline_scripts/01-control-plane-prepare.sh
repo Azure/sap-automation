@@ -13,15 +13,15 @@ script_directory="$(dirname "${full_script_path}")"
 #call stack has full scriptname when using source
 source "${script_directory}/helper.sh"
 
+DEBUG=false
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
-  debug=true
-  export debug
-
+  DEBUG=true
   echo "Environment variables:"
   printenv
-
 fi
+
+export DEBUG
 set -eu
 
 file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate

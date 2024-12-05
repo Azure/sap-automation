@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace AutomationForm.Models
+namespace SDAFWebApp.Models
 {
 
   public class EnvironmentModel

@@ -35,18 +35,18 @@ locals {
   deployer_subscription_id           = length(local.spn_key_vault_arm_id) > 0 ? split("/", local.spn_key_vault_arm_id)[2] : ""
 
   spn                                = {
-                                         subscription_id = data.azurerm_key_vault_secret.subscription_id.value,
+                                         subscription_id = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value,
                                          client_id       = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null,
                                          client_secret   = var.use_spn ? data.azurerm_key_vault_secret.client_secret[0].value : null,
                                          tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
                                        }
 
   cp_spn                             = {
-                                        subscription_id = local.deployer_subscription_id
-                                        client_id       = var.use_spn ? try(coalesce(data.azurerm_key_vault_secret.cp_client_id[0].value, data.azurerm_key_vault_secret.client_id[0].value), null) : null,
-                                        client_secret   = var.use_spn ? try(coalesce(data.azurerm_key_vault_secret.cp_client_secret[0].value, data.azurerm_key_vault_secret.client_secret[0].value), null) : null,
-                                        tenant_id       = var.use_spn ? try(coalesce(data.azurerm_key_vault_secret.cp_tenant_id[0].value, data.azurerm_key_vault_secret.tenant_id[0].value), null) : null
-                                      }
+                                         subscription_id = local.deployer_subscription_id
+                                         client_id       = var.use_spn ? try(coalesce(data.azurerm_key_vault_secret.cp_client_id[0].value, data.azurerm_key_vault_secret.client_id[0].value), null) : null,
+                                         client_secret   = var.use_spn ? try(coalesce(data.azurerm_key_vault_secret.cp_client_secret[0].value, data.azurerm_key_vault_secret.client_secret[0].value), null) : null,
+                                         tenant_id       = var.use_spn ? try(coalesce(data.azurerm_key_vault_secret.cp_tenant_id[0].value, data.azurerm_key_vault_secret.tenant_id[0].value), null) : null
+                                       }
 
   service_principal                  = {
                                          subscription_id = local.spn.subscription_id,
@@ -55,7 +55,7 @@ locals {
                                        }
 
   account                            = {
-                                        subscription_id = data.azurerm_key_vault_secret.subscription_id.value,
+                                        subscription_id = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value,
                                         tenant_id       = var.use_spn ? data.azurerm_client_config.current.tenant_id : null,
                                         object_id       = var.use_spn ? data.azurerm_client_config.current.object_id : null
                                       }

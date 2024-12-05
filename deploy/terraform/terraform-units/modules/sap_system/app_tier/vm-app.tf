@@ -134,10 +134,10 @@ resource "azurerm_linux_virtual_machine" "app" {
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = var.application_tier.app_use_avset ? (
-                                           length(var.application_tier.avset_arm_ids) > 0 ? (
+                                           try(length(var.application_tier.avset_arm_ids) > 0 ? (
                                              var.application_tier.avset_arm_ids[count.index % max(length(var.application_tier.avset_arm_ids), 1)]) : (
                                              azurerm_availability_set.app[count.index % max(length(var.ppg), 1)].id
-                                           )) : (
+                                           ), null)) : (
                                            null
                                          )
 
@@ -286,10 +286,10 @@ resource "azurerm_windows_virtual_machine" "app" {
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = var.application_tier.app_use_avset ? (
-                                           length(var.application_tier.avset_arm_ids) > 0 ? (
+                                           try(length(var.application_tier.avset_arm_ids) > 0 ? (
                                              var.application_tier.avset_arm_ids[count.index % max(length(var.application_tier.avset_arm_ids), 1)]) : (
-                                             azurerm_availability_set.app[count.index % max(length(azurerm_availability_set.app), 1)].id
-                                           )) : (
+                                             azurerm_availability_set.app[count.index % max(length(var.ppg), 1)].id
+                                           ), null)) : (
                                            null
                                          )
 

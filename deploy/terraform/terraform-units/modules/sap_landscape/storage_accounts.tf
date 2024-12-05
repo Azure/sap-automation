@@ -25,28 +25,14 @@ resource "azurerm_storage_account" "storage_bootdiag" {
 
   account_replication_type             = "LRS"
   account_tier                         = "Standard"
-  https_traffic_only_enabled            = true
+  https_traffic_only_enabled           = true
+
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
   cross_tenant_replication_enabled     = false
   tags                                 = var.tags
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled
 
-}
-
-resource "azurerm_private_dns_a_record" "storage_bootdiag" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
-  name                                 = lower(local.storageaccount_name)
-
-  zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
-  resource_group_name                  = local.resource_group_exists ? (
-                                           data.azurerm_resource_group.resource_group[0].name) : (
-                                           azurerm_resource_group.resource_group[0].name
-                                         )
-  ttl                                  = 3600
-  records                              = [azurerm_private_endpoint.storage_bootdiag[count.index].private_service_connection[0].private_ip_address]
-  tags                                 = var.tags
 }
 
 data "azurerm_storage_account" "storage_bootdiag" {
@@ -153,7 +139,7 @@ resource "azurerm_storage_account" "witness_storage" {
   tags                                 = var.tags
   network_rules {
                   default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
-                  virtual_network_subnet_ids  = compact([
+                  virtual_network_subnet_ids  = var.public_network_access_enabled ? compact([
                                                   local.database_subnet_defined ? (
                                                     local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
                                                     null
@@ -161,29 +147,16 @@ resource "azurerm_storage_account" "witness_storage" {
                                                     local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
                                                     null
                                                   ),
-                                                  length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null
+                                                  length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null,
+                                                  length(var.agent_network_id) > 0 ? var.agent_network_id : null
                                                   ]
-                                                )
-                  ip_rules                   = compact([
+                                                ) : null
+                  ip_rules                   = var.public_network_access_enabled ? compact([
                                                  length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
                                                  length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                                ])
+                                                ]) : null
                 }
 
-
-}
-
-
-resource "azurerm_private_dns_a_record" "witness_storage" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
-  name                                 = lower(local.witness_storageaccount_name)
-  zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
-  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-  ttl                                  = 3600
-  records                              = [azurerm_private_endpoint.witness_storage[count.index].private_service_connection[0].private_ip_address]
-
-  tags                                 = var.tags
 
 }
 
@@ -303,7 +276,7 @@ resource "azurerm_storage_account" "transport" {
 
   network_rules {
                   default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
-                  virtual_network_subnet_ids  = compact([
+                  virtual_network_subnet_ids  = var.public_network_access_enabled ? compact([
                                                   local.database_subnet_defined ? (
                                                     local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
                                                     null
@@ -311,54 +284,20 @@ resource "azurerm_storage_account" "transport" {
                                                     local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
                                                     null
                                                   ),
-                                                  length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null
+                                                  length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null,
+                                                  length(var.agent_network_id) > 0 ? var.agent_network_id : null
                                                   ]
-                                                )
-                  ip_rules                   = compact([
+                                                ) : null
+                  ip_rules                   = var.public_network_access_enabled ? compact([
                                                  length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
                                                  length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                                ])
+                                                ]) : null
                 }
 
+
   tags                                 = var.tags
 
 }
-
-resource "azurerm_private_dns_a_record" "transport" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.use_private_endpoint && var.create_transport_storage && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
-  name                                 = replace(
-                                           lower(
-                                             format("%s", local.landscape_shared_transport_storage_account_name)
-                                           ),
-                                           "/[^a-z0-9]/",
-                                           ""
-                                         )
-  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-  ttl                                  = 10
-  records                              = [
-                                           length(var.transport_private_endpoint_id) > 0 ? (
-                                             data.azurerm_private_endpoint_connection.transport[0].private_service_connection[0].private_ip_address) : (
-                                             azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address  )
-                                         ]
-  tags                                 = var.tags
-}
-
-data "azurerm_private_dns_a_record" "transport" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.create_transport_storage && var.use_private_endpoint && length(var.transport_private_endpoint_id) > 0 ? 1 : 0
-  name                                 = replace(
-                                           lower(
-                                             format("%s", local.landscape_shared_transport_storage_account_name)
-                                           ),
-                                           "/[^a-z0-9]/",
-                                           ""
-                                         )
-  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-}
-
 
 resource "azurerm_storage_share" "transport" {
   provider                             = azurerm.main
@@ -371,7 +310,7 @@ resource "azurerm_storage_share" "transport" {
                                          )
   name                                 = format("%s", local.resource_suffixes.transport_volume)
 
-  storage_account_id                   = var.data_plane_available ? null : length(var.transport_storage_account_id) > 0 ? (
+  storage_account_id                   = length(var.transport_storage_account_id) > 0 ? (
                                            var.transport_storage_account_id
                                            ) : (
                                            azurerm_storage_account.transport[0].id
@@ -499,7 +438,9 @@ resource "azurerm_storage_account" "install" {
   depends_on                           = [
                                            azurerm_subnet.app,
                                            azurerm_subnet.db,
-                                           azurerm_subnet.web
+                                           azurerm_subnet.web,
+                                           azurerm_virtual_network_peering.peering_agent_sap,
+                                           azurerm_virtual_network_peering.peering_sap_agent
                                          ]
   name                                 = replace(
                                            lower(
@@ -542,12 +483,12 @@ resource "azurerm_storage_account_network_rules" "install" {
   storage_account_id                   = azurerm_storage_account.install[0].id
   default_action                       = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
 
-  ip_rules                             = compact([
+  ip_rules                             = var.public_network_access_enabled ? compact([
                                                  length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
                                                  length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                                ])
+                                                ]) : null
 
-  virtual_network_subnet_ids           = compact([
+  virtual_network_subnet_ids           = var.public_network_access_enabled ? compact([
                                                   local.database_subnet_defined ? (
                                                     local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
                                                     null
@@ -557,56 +498,12 @@ resource "azurerm_storage_account_network_rules" "install" {
                                                   ),
                                                   length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null
                                                   ]
-                                                )
+                                                ) : null
 
   lifecycle {
               ignore_changes = [virtual_network_subnet_ids]
             }
 }
-
-
-
-resource "azurerm_private_dns_a_record" "install" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.use_private_endpoint && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.install_private_endpoint_id) == 0 ? 1 : 0
-  name                                 = replace(
-                                           lower(
-                                             format("%s", local.landscape_shared_install_storage_account_name)
-                                           ),
-                                           "/[^a-z0-9]/",
-                                           ""
-                                         )
-  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-  ttl                                  = 10
-  records                              = [
-                                           length(var.install_private_endpoint_id) > 0 ? (
-                                             data.azurerm_private_endpoint_connection.install[0].private_service_connection[0].private_ip_address) : (
-                                             azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address)
-                                         ]
-
-  lifecycle {
-              ignore_changes = [tags]
-            }
-}
-
-
-data "azurerm_private_dns_a_record" "install" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.use_private_endpoint && length(var.install_private_endpoint_id) > 0 ? 1 : 0
-  name                                 = replace(
-                                          lower(
-                                            format("%s", local.landscape_shared_install_storage_account_name)
-                                          ),
-                                          "/[^a-z0-9]/",
-                                          ""
-                                        )
-  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-}
-
-
-
 data "azurerm_storage_account" "install" {
   provider                             = azurerm.main
   count                                = local.use_AFS_for_shared && length(var.install_storage_account_id) > 0 ? 1 : 0
@@ -752,7 +649,7 @@ resource "azurerm_storage_share" "install_smb" {
 
 #Private endpoint tend to take a while to be created, so we need to wait for it to be ready before we can use it
 resource "time_sleep" "wait_for_private_endpoints" {
-  create_duration                      = "120s"
+  create_duration                      = "60s"
 
   depends_on                           = [
                                            azurerm_private_endpoint.install,

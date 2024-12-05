@@ -1,6 +1,6 @@
-using AutomationForm.Models;
-using AutomationForm.Services;
-using AutomationForm.Controllers;
+using SDAFWebApp.Models;
+using SDAFWebApp.Services;
+using SDAFWebApp.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -18,7 +18,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 using System.Drawing.Drawing2D;
 using System.Collections.Concurrent;
 
-namespace AutomationForm.Controllers
+namespace SDAFWebApp.Controllers
 {
   public class FileController : Controller
   {

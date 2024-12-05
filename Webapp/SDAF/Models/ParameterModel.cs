@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Collections.Generic;
 
-namespace AutomationForm.Models
+namespace SDAFWebApp.Models
 {
   public class ParameterModel
   {
