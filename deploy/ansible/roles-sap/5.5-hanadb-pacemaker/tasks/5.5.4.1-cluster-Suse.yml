@@ -158,9 +158,6 @@
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure any required cluster resources are cleaned up"
       ansible.builtin.command:         "crm resource cleanup rsc_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}"
 
-    - name:                            "5.5.4.1 HANA Pacemaker configuration - cleanup cluster resources"
-      ansible.builtin.command:         "crm resource cleanup"
-
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Set the priority fencing delay"
       ansible.builtin.shell:           crm configure property priority-fencing-delay=30
 
@@ -198,6 +195,9 @@
                                        msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Slave
           register:                    sec_colocation
           failed_when:                 sec_colocation.rc > 1
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - cleanup cluster resources"
+      ansible.builtin.command:         "crm resource clear"
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure maintenance mode is disabled"
       ansible.builtin.command:         crm configure property maintenance-mode=false
@@ -422,6 +422,9 @@
       ansible.builtin.command: >
                                        crm configure property priority-fencing-delay=30
 
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - cleanup cluster resources"
+      ansible.builtin.command:         "crm resource clear"
+
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Disable maintenance mode [SAPHanaSR-angi]"
       ansible.builtin.command: >
                                        crm configure property maintenance-mode=false
@@ -434,17 +437,17 @@
     - name:                            "5.5.4.1 HANA Cluster configuration - Configure HANA active/read-enabled system replication"
       when:                            database_active_active | default(false)
       block:
-        - name:                            "Get the cluster maintenance mode status"
-          ansible.builtin.shell:           crm configure get_property maintenance-mode
-          register:                        get_status_maintenance_mode
-          changed_when:                    false
-          ignore_errors:                   true
+        - name:                        "5.5.4.1 HANA Cluster configuration - Get the cluster maintenance mode status"
+          ansible.builtin.shell:       crm configure get_property maintenance-mode
+          register:                    get_status_maintenance_mode
+          changed_when:                false
+          ignore_errors:               true
 
-        - name:                            "Set the cluster maintenance mode if not already in maintenance mode"
-          ansible.builtin.shell:           crm configure property maintenance-mode=true
+        - name:                        "5.5.4.1 HANA Cluster configuration - Set the cluster maintenance mode if not already in maintenance mode"
+          ansible.builtin.shell:       crm configure property maintenance-mode=true
           when: >-
-            get_status_maintenance_mode.stdout is not search('true') or
-            get_status_maintenance_mode.stdout is search('false')
+                                       get_status_maintenance_mode.stdout is not search('true') or
+                                       get_status_maintenance_mode.stdout is search('false')
 
         - name:                        "5.5.4.1 HANA Cluster configuration - Configure the Active/Active Virtual IP resource"
           ansible.builtin.shell: |
@@ -477,6 +480,9 @@
                                        mst_SAPHanaCon_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Unpromoted
           register:                    sec_colocation
           failed_when:                 sec_colocation.rc > 1
+
+        - name:                        "5.5.4.1 HANA Pacemaker configuration - cleanup cluster resources"
+          ansible.builtin.command:     "crm resource clear"
 
         - name:                        "5.5.4.1 HANA Cluster configuration - Disable maintenance mode"
           ansible.builtin.command:     crm configure property maintenance-mode=false
