@@ -27,7 +27,7 @@ else
 	echo "##[section]Running on an Azure DevOps agent..."
 	printenv
 
-	if [ '$ARM_CLIENT_ID' == $AZURE_CLIENT_ID ]; then
+	if [ '$(ARM_CLIENT_ID)' == $AZURE_CLIENT_ID ]; then
 		source /etc/profile.d/deploy_server.sh
 		noAccess=$(az account show --query name | grep "N/A(tenant level account)")
 
