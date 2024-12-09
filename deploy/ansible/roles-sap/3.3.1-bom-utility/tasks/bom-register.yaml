@@ -68,6 +68,7 @@
                                         {% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
         dest:                           "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
         mode:                           0644
+        validate_certs:                 false
       delegate_to:                      localhost
       become:                           "{{ bom_processing_become }}"
       ignore_errors:                    true

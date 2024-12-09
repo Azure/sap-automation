@@ -127,7 +127,7 @@
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
     tmp_dest:                          "{{ target_media_location }}/tmp"
     checksum:                          "{% if item.checksum is defined %}{% if item.checksum | trim | length > 1 %}sha256:{{ item.checksum | upper }}{% endif %}{% endif %}"
-    validate_certs:                    true
+    validate_certs:                    false
   register:                            result
   until:                               result is succeeded
   retries:                             2
@@ -151,7 +151,7 @@
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
     checksum:                          "{% if item.checksum is defined %}{% if item.checksum | trim | length > 1 %}sha256:{{ item.checksum | upper }}{% endif %}{% endif %}"
     tmp_dest:                          "{{ target_media_location }}/tmp"
-    validate_certs:                    true
+    validate_certs:                    false
   register:                            result
   until:                               result is succeeded
   retries:                             2

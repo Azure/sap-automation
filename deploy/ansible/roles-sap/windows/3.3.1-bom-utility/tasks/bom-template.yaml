@@ -51,6 +51,7 @@
     dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
     mode:                              0644
     force:                             true
+    validate_certs:                    false
   delegate_to:                         localhost
   become:                              "{{ bom_processing_become }}"
   register:                            result
@@ -64,6 +65,7 @@
     dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
     mode:                              0644
     force:                             true
+    validate_certs:                    false
   delegate_to:                         localhost
   become_user:                         root
   become:                              "{{ bom_processing_become }}"
