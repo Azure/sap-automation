@@ -72,7 +72,7 @@ az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
 echo -e "$green--- Get key_vault name ---$reset"
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 export VARIABLE_GROUP_ID
-printf -v val '%-15s' "$(variable_group) id:"
+printf -v val '%-15s' "$VARIABLE_GROUP_ID id:"
 echo "$val                      $VARIABLE_GROUP_ID"
 if [ -z "${VARIABLE_GROUP_ID}" ]; then
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
@@ -102,7 +102,7 @@ echo "sap_parameters_file:                 $parameters_filename"
 echo "Configuration file:                  $environment_file_name"
 
 echo -e "$green--- Get Files from the DevOps Repository ---$reset"
-cd "${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
+cd "$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
 
 echo -e "$green--- Add BOM Base Name and SAP FQDN to sap-parameters.yaml ---$reset"
 sed -i 's|bom_base_name:.*|bom_base_name:                 '"$BOM_BASE_NAME"'|' sap-parameters.yaml
@@ -123,7 +123,7 @@ echo "Workload Key Vault:                  ${workload_key_vault}"
 echo "Control Plane Subscription:          ${control_plane_subscription}"
 echo "Workload Prefix:                     ${workload_prefix}"
 
-if [[ $EXTRA_PARAMETERS = "'$(EXTRA_PARAMETERS)'" ]]; then
+if [ $EXTRA_PARAMETERS = '$(EXTRA_PARAMETERS)' ]; then
 	new_parameters=$PIPELINE_EXTRA_PARAMETERS
 else
 	echo "##vso[task.logissue type=warning]Extra parameters were provided - '$EXTRA_PARAMETERS'"
