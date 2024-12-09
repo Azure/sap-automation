@@ -25,7 +25,6 @@ if [ $USE_MSI != "true" ]; then
 	fi
 else
 	echo "##[section]Running on an Azure DevOps agent..."
-	printenv
 
 	if [ '$(ARM_CLIENT_ID)' == $AZURE_CLIENT_ID ]; then
 		source /etc/profile.d/deploy_server.sh
