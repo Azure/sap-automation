@@ -87,22 +87,22 @@ parameters:
     type:                              boolean
     default:                           false
 
-  - name:                             ams_provider
-    displayName:                      Configure AMS Provider
-    type:                             boolean
-    default:                          false
+  - name:                              ams_provider
+    displayName:                       Configure AMS Provider
+    type:                              boolean
+    default:                           false
 
 
 
 # 20220929 MKD - ACSS Registration <BEGIN>
-  - name:                             acss_registration
-    displayName:                      Register System in ACSS
-    type:                             boolean
-    default:                          true
+  - name:                              acss_registration
+    displayName:                       Register System in ACSS
+    type:                              boolean
+    default:                           true
 
-  - name:                             acss_environment
-    displayName:                      ACSS Prod/NonProd
-    type:                             string
+  - name:                              acss_environment
+    displayName:                       ACSS Prod/NonProd
+    type:                              string
     values:
       - NonProd
       - Prod
