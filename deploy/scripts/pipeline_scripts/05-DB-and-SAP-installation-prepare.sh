@@ -85,7 +85,7 @@ echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} u
 
 echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
 echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]sap-parameters.yaml"
-echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
+echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
 echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
 echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"
 
