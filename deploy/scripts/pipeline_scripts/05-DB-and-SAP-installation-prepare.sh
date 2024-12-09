@@ -47,7 +47,7 @@ if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
 fi
 
 if [ "azure pipelines" == "$THIS_AGENT" ]; then
-	echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$(environment_code) variable group"
+	echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$ENVIRONMENT variable group"
 	exit 2
 fi
 
