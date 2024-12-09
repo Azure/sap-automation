@@ -51,22 +51,20 @@
                                        - ansible_facts.packages['cloud-netconfig-azure']
                                        - ansible_facts.packages['cloud-netconfig-azure'][0].version is version('1.3', '<')
 
-- name:                            "1.17 Generic Pacemaker - Stop SBD service"
+- name:                                "1.17 Generic Pacemaker - Stop SBD service"
   ansible.builtin.systemd:
-    name:                          sbd
-    state:                         stopped
-  failed_when:                     false
+    name:                              sbd
+    state:                             stopped
+  failed_when:                         false
   when:
-                                    - (database_cluster_type == "ASD")   or
-                                      (database_cluster_type == "ISCSI") or
-                                      (scs_cluster_type      == "ASD")   or
-                                      (scs_cluster_type      == "ISCSI")
+                                       - (database_cluster_type == "ASD")   or
+                                         (database_cluster_type == "ISCSI") or
+                                         (scs_cluster_type      == "ASD")   or
+                                         (scs_cluster_type      == "ISCSI")
 
 - name:                                "1.17 Generic Pacemaker - Ensure Primary node initiates the Cluster"
   when:                                ansible_hostname == primary_instance_name
   block:
-    #    - name:                            "1.17 Generic Pacemaker - Ensure csync2 is configured"
-    #      ansible.builtin.shell:           crm cluster init -y csync2 --interface eth0
 
     - name:                            "1.17 Generic Pacemaker - Ensure corosync is configured"
       ansible.builtin.shell:           "crm cluster init -y -u corosync --interface eth0"
@@ -239,6 +237,19 @@
       register:                        crm_configure_result
       failed_when:                     crm_configure_result.rc > 1
 
+    - name:                            "1.17 Generic Pacemaker - wait for 30 seconds before resource cleanup"
+      ansible.builtin.wait_for:
+        timeout:                       30
+
+    # cleanup rsc_st_azure
+    - name:                            "1.17 Generic Pacemaker - Cleanup rsc_st_azure"
+      ansible.builtin.shell:           crm resource cleanup rsc_st_azure
+      register:                        crm_configure_result
+      failed_when:                     crm_configure_result.rc > 1
+
+    - name:                            "1.17 Generic Pacemaker - wait for 30 seconds after resource cleanup"
+      ansible.builtin.wait_for:
+        timeout:                       30
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Fencing - END                                                              |
@@ -314,6 +325,17 @@
     - name:                            "1.17 Generic Pacemaker - Enable Stonith"
       ansible.builtin.shell:           crm configure property stonith-enabled=true
 
+    - name:                            "1.17 Generic Pacemaker - wait for 30 seconds before resource cleanup"
+      ansible.builtin.wait_for:
+        timeout:                       30
+
+    - name:                            "1.17 Generic Pacemaker - SBD resource cleanup"
+      when:                            inventory_hostname == primary_instance_name
+      ansible.builtin.shell:           crm resource cleanup stonith-sbd
+
+    - name:                            "1.17 Generic Pacemaker - wait for 30 seconds after resource cleanup"
+      ansible.builtin.wait_for:
+        timeout:                       30
   always:
     - name:                            "1.17 Generic Pacemaker - SBD device configuration"
       when:                            inventory_hostname == primary_instance_name
@@ -400,13 +422,24 @@
                                        op monitor interval=10s
       register:                        crm_configure_result
       failed_when:
-        - "crm_configure_result.stderr | lower | regex_search('error|fail')" # Check if the resource is created successfully
+                                       - "crm_configure_result.stderr | lower | regex_search('error|fail')" # Check if the resource is created successfully
 
     - name:                            "1.17 Generic Pacemaker - Ensure clone resource azure-events is configured"
       ansible.builtin.shell:           crm configure clone health-azure-events-cln health-azure-events
 
     - name:                            "1.17 Generic Pacemaker - Remove false positives"
       ansible.builtin.shell:           crm_resource -C
+
+    - name:                            "1.17 Generic Pacemaker - wait for 30 seconds before resource cleanup"
+      ansible.builtin.wait_for:
+        timeout:                       30
+
+    - name:                            "1.17 Generic Pacemaker - Cleanup the health-azure-events resource"
+      ansible.builtin.shell:           crm resource cleanup health-azure-events
+
+    - name:                            "1.17 Generic Pacemaker - wait for 30 seconds after resource cleanup"
+      ansible.builtin.wait_for:
+        timeout:                       30
 
     - name:                            "1.17 Generic Pacemaker - Ensure the Azure scheduled events resource is started"
       ansible.builtin.shell: |
