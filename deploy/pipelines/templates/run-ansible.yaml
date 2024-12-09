@@ -3,6 +3,7 @@ parameters:
     azureClientSecret: ''
     azureTenantId: ''
     azureSubscriptionId: ''
+    CONTROL_PLANE_SUBSCRIPTION_ID: ''
     USE_MSI: ''
     displayName: ''
     ansibleFilePath: ''
@@ -30,6 +31,7 @@ steps:
       AZURE_TENANT_ID:                ${{ parameters.azureTenantId }}
       AZURE_SUBSCRIPTION_ID:          ${{ parameters.azureSubscriptionId }}
       USE_MSI:                        ${{ parameters.USE_MSI }}
+      CONTROL_PLANE_SUBSCRIPTION_ID:  "$(Terraform_Remote_Storage_Subscription)"
       ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
       ANSIBLE_PYTHON_INTERPRETER:     auto_silent
       ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
