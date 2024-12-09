@@ -12,7 +12,7 @@
 # +------------------------------------4--------------------------------------*/
 
 - name:                                "5.5.4.1 HANA Cluster configuration - Optimise the Pacemaker cluster for SAP HANA"
-  when: ansible_hostname == primary_instance_name
+  when:                                ansible_hostname == primary_instance_name
   block:
     - name:                            "5.5.4.1 HANA Cluster configuration - Get the cluster maintenance mode status"
       ansible.builtin.shell:           pcs property show maintenance-mode
@@ -236,6 +236,24 @@
           ansible.builtin.shell:       pcs constraint location  g_secip_{{ db_sid | upper }}_{{ db_instance_number }} rule score=4000 hana_{{ db_sid | lower }}_sync_state eq PRIM and hana_{{ db_sid | lower }}_roles eq 4:P:master1:master:worker:master
           register:                    sec_constraint
           failed_when:                 sec_constraint.rc > 1
+
+        # https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-rhel?tabs=lb-portal#add-a-secondary-virtual-ip-address-resource-for-an-activeread-enabled-setup
+        # Set the priority to primary IPaddr2 and azure-lb resource if priority-fencing-delay is configured
+        - name:                        "5.5.4.1 HANA Cluster configuration - Set priority for the Virtual IP and azure-lb resources"
+          when:
+                                       - database_active_active | default(false)
+                                       - not db_scale_out
+                                       - is_pcmk_ver_gt_204
+          block:
+            - name:                    "5.5.4.1 HANA Cluster configuration - Set priority for the Virtual IP resource"
+              ansible.builtin.shell:   pcs resource update vip_{{ db_sid | upper }}_{{ db_instance_number }} meta priority=5
+              register:                update_priority_vip
+              failed_when:             update_priority_vip.rc > 1
+
+            - name:                    "5.5.4.1 HANA Cluster configuration - Set priority for the azure-lb resource"
+              ansible.builtin.shell:   pcs resource update nc_{{ db_sid | upper }}_{{ db_instance_number }} meta priority=5
+              register:                update_priority_nc
+              failed_when:             update_priority_nc.rc > 1
 
     - name:                            "5.5.4.1 HANA Cluster configuration - Disable Maintenance mode for the cluster"
       ansible.builtin.shell:           pcs property set maintenance-mode=false

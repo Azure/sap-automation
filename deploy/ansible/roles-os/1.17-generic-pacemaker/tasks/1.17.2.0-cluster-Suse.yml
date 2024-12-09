@@ -51,22 +51,20 @@
                                        - ansible_facts.packages['cloud-netconfig-azure']
                                        - ansible_facts.packages['cloud-netconfig-azure'][0].version is version('1.3', '<')
 
-- name:                            "1.17 Generic Pacemaker - Stop SBD service"
+- name:                                "1.17 Generic Pacemaker - Stop SBD service"
   ansible.builtin.systemd:
-    name:                          sbd
-    state:                         stopped
-  failed_when:                     false
+    name:                              sbd
+    state:                             stopped
+  failed_when:                         false
   when:
-                                    - (database_cluster_type == "ASD")   or
-                                      (database_cluster_type == "ISCSI") or
-                                      (scs_cluster_type      == "ASD")   or
-                                      (scs_cluster_type      == "ISCSI")
+                                       - (database_cluster_type == "ASD")   or
+                                         (database_cluster_type == "ISCSI") or
+                                         (scs_cluster_type      == "ASD")   or
+                                         (scs_cluster_type      == "ISCSI")
 
 - name:                                "1.17 Generic Pacemaker - Ensure Primary node initiates the Cluster"
   when:                                ansible_hostname == primary_instance_name
   block:
-    #    - name:                            "1.17 Generic Pacemaker - Ensure csync2 is configured"
-    #      ansible.builtin.shell:           crm cluster init -y csync2 --interface eth0
 
     - name:                            "1.17 Generic Pacemaker - Ensure corosync is configured"
       ansible.builtin.shell:           "crm cluster init -y -u corosync --interface eth0"
@@ -126,17 +124,17 @@
 
 
 - name:                                "1.17 Generic Pacemaker - Ensure Secondary node joins the Cluster"
+  when:
+                                       - ansible_hostname == secondary_instance_name
   block:
-#    - name:                            Ensure the configuration files are synchronised
-#      ansible.builtin.shell:           "crm cluster join -y -c {{ primary_instance_name }} csync2"
+    # - name:                            Ensure the configuration files are synchronised
+    #   ansible.builtin.shell:           "crm cluster join -y -c {{ primary_instance_name }} csync2"
     - name:                            "1.17 Generic Pacemaker - Ensure Secondary node joins the Cluster"
       # ha-cluster-join is not supported in SLES 15 SP4 anymore, crm syntax required
       # ansible.builtin.shell:         "ha-cluster-join  -y -c {{ primary_instance_name }} --interface eth0"
       ansible.builtin.shell:           "crm cluster join -y -c {{ primary_instance_name }} --interface eth0"
       register:                        crm_init_result
       failed_when:                     crm_init_result.rc > 1
-  when:
-    - ansible_hostname == secondary_instance_name
 
 - name:                                "1.17 Generic Pacemaker - Ensure HA Cluster password is set to something secure"
   ansible.builtin.user:
@@ -178,6 +176,9 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 - name:                                "1.17 Generic Pacemaker - Ensure the STONITH Azure fence agent is created when SBD not used"
+  when:
+                                       - scs_cluster_type    == "AFA" or database_cluster_type == "AFA"       # scs_high_availability = true is already assumed
+                                       - inventory_hostname  == primary_instance_name
   block:
 
     - name:                            "1.17 Generic Pacemaker - Remove false positives"
@@ -236,9 +237,19 @@
       register:                        crm_configure_result
       failed_when:                     crm_configure_result.rc > 1
 
-  when:
-                                        - scs_cluster_type    == "AFA" or database_cluster_type == "AFA"       # scs_high_availability = true is already assumed
-                                        - inventory_hostname  == primary_instance_name
+    - name:                            "1.17 Generic Pacemaker - wait for 30 seconds before resource cleanup"
+      ansible.builtin.wait_for:
+        timeout:                       30
+
+    # cleanup rsc_st_azure
+    - name:                            "1.17 Generic Pacemaker - Cleanup rsc_st_azure"
+      ansible.builtin.shell:           crm resource cleanup rsc_st_azure
+      register:                        crm_configure_result
+      failed_when:                     crm_configure_result.rc > 1
+
+    - name:                            "1.17 Generic Pacemaker - wait for 30 seconds after resource cleanup"
+      ansible.builtin.wait_for:
+        timeout:                       30
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Fencing - END                                                              |
@@ -252,107 +263,118 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 # scs_high_availability = true is already assumed
-- name:                                           "1.17 Generic Pacemaker - Restart cluster services on all nodes before SBD roles are assigned"
+- name:                                "1.17 Generic Pacemaker - Restart cluster services on all nodes before SBD roles are assigned"
   when:
-                                                  - (database_cluster_type == "ASD")   or
-                                                    (database_cluster_type == "ISCSI") or
-                                                    (scs_cluster_type      == "ASD")   or
-                                                    (scs_cluster_type      == "ISCSI")
+                                       - (database_cluster_type == "ASD")   or
+                                         (database_cluster_type == "ISCSI") or
+                                         (scs_cluster_type      == "ASD")   or
+                                         (scs_cluster_type      == "ISCSI")
   block:
 
-    - name:                                      "1.17 Generic Pacemaker - Restart all cluster services on all members"
-      ansible.builtin.shell:                     crm cluster restart --all
+    - name:                            "1.17 Generic Pacemaker - Restart all cluster services on all members"
+      ansible.builtin.shell:           crm cluster restart --all
 
-    - name:                                      "1.17 Generic Pacemaker - wait for 120 seconds"
+    - name:                            "1.17 Generic Pacemaker - wait for 120 seconds"
       ansible.builtin.wait_for:
-        timeout:                                 120
+        timeout:                       120
 
-- name:                                           "1.17 Generic Pacemaker - Ensure that STONITH using SBD is created"
+- name:                                "1.17 Generic Pacemaker - Ensure that STONITH using SBD is created"
   when:
-                                                  - (database_cluster_type == "ASD")   or
-                                                    (database_cluster_type == "ISCSI") or
-                                                    (scs_cluster_type      == "ASD")   or
-                                                    (scs_cluster_type      == "ISCSI")
-                                                  - inventory_hostname  == primary_instance_name
+                                       - (database_cluster_type == "ASD")   or
+                                         (database_cluster_type == "ISCSI") or
+                                         (scs_cluster_type      == "ASD")   or
+                                         (scs_cluster_type      == "ISCSI")
+                                       - inventory_hostname  == primary_instance_name
   block:
 
-    - name:                                      "1.17 Generic Pacemaker - Check if Stonith SBD is configured in cluster"
-      ansible.builtin.shell:                     crm resource status stonith-sbd
-      register:                                  stonith_sbd_configured
-      failed_when:                               false
-      changed_when:                              false
+    - name:                            "1.17 Generic Pacemaker - Check if Stonith SBD is configured in cluster"
+      ansible.builtin.shell:           crm resource status stonith-sbd
+      register:                        stonith_sbd_configured
+      failed_when:                     false
+      changed_when:                    false
 
-    - name:                                      "1.17 Generic Pacemaker - Stonith SBD is already configured in cluster"
-      when:                                      stonith_sbd_configured.rc == 0
+    - name:                            "1.17 Generic Pacemaker - Stonith SBD is already configured in cluster"
+      when:                            stonith_sbd_configured.rc == 0
       block:
-        - name:                                  "1.17 Generic Pacemaker - Debug show Stonith SBD"
+        - name:                        "1.17 Generic Pacemaker - Debug show Stonith SBD"
           ansible.builtin.debug:
-            msg:                                 "Stonith SBD is already configured in cluster"
+            msg:                       "Stonith SBD is already configured in cluster"
 
-        - name:                                  "1.17 Generic Pacemaker - Stop Stonith SBD"
-          ansible.builtin.shell:                 crm resource stop stonith-sbd
+        - name:                        "1.17 Generic Pacemaker - Stop Stonith SBD"
+          ansible.builtin.shell:       crm resource stop stonith-sbd
 
-        - name:                                  "1.17 Generic Pacemaker - Delete Stonith SBD"
-          ansible.builtin.shell:                 crm configure delete stonith-sbd
+        - name:                        "1.17 Generic Pacemaker - Delete Stonith SBD"
+          ansible.builtin.shell:       crm configure delete stonith-sbd
 
-        - name:                                  "1.17 Generic Pacemaker - Recreate Stonith SBD in cluster"
+        - name:                        "1.17 Generic Pacemaker - Recreate Stonith SBD in cluster"
           ansible.builtin.shell: |
-                                                 crm configure primitive stonith-sbd stonith:external/sbd \
-                                                   params pcmk_delay_max="15" \
-                                                   op monitor interval="600" timeout="15"
+                                       crm configure primitive stonith-sbd stonith:external/sbd \
+                                         params pcmk_delay_max="15" \
+                                         op monitor interval="600" timeout="15"
 
-    - name:                                      "1.17 Generic Pacemaker - Ensure Stonith SBD is configured in cluster"
-      when:                                      stonith_sbd_configured.rc != 0
+    - name:                            "1.17 Generic Pacemaker - Ensure Stonith SBD is configured in cluster"
+      when:                            stonith_sbd_configured.rc != 0
       ansible.builtin.shell: |
-                                                 crm configure primitive stonith-sbd stonith:external/sbd \
-                                                   params pcmk_delay_max="15" \
-                                                   op monitor interval="600" timeout="15"
+                                       crm configure primitive stonith-sbd stonith:external/sbd \
+                                         params pcmk_delay_max="15" \
+                                         op monitor interval="600" timeout="15"
 
-    - name:                                      "1.17 Generic Pacemaker - Set the Stonith SBD Timeout Property"
-      ansible.builtin.shell:                     crm configure property stonith-timeout=144
+    - name:                            "1.17 Generic Pacemaker - Set the Stonith SBD Timeout Property"
+      ansible.builtin.shell:           crm configure property stonith-timeout=144
 
-    - name:                                      "1.17 Generic Pacemaker - Enable Stonith"
-      ansible.builtin.shell:                     crm configure property stonith-enabled=true
+    - name:                            "1.17 Generic Pacemaker - Enable Stonith"
+      ansible.builtin.shell:           crm configure property stonith-enabled=true
 
+    - name:                            "1.17 Generic Pacemaker - wait for 30 seconds before resource cleanup"
+      ansible.builtin.wait_for:
+        timeout:                       30
+
+    - name:                            "1.17 Generic Pacemaker - SBD resource cleanup"
+      when:                            inventory_hostname == primary_instance_name
+      ansible.builtin.shell:           crm resource cleanup stonith-sbd
+
+    - name:                            "1.17 Generic Pacemaker - wait for 30 seconds after resource cleanup"
+      ansible.builtin.wait_for:
+        timeout:                       30
   always:
-    - name:                                      "1.17 Generic Pacemaker - SBD device configuration"
-      when:                                      inventory_hostname == primary_instance_name
+    - name:                            "1.17 Generic Pacemaker - SBD device configuration"
+      when:                            inventory_hostname == primary_instance_name
       ansible.builtin.debug:
-        msg:                                      "SBD device configuration ends"
+        msg:                           "SBD device configuration ends"
 
-- name:                                           "1.17 Generic Pacemaker - configure SBD service and cluster restart"
+- name:                                "1.17 Generic Pacemaker - configure SBD service and cluster restart"
   when:
-                                                  - (database_cluster_type == "ASD")   or
-                                                    (database_cluster_type == "ISCSI") or
-                                                    (scs_cluster_type      == "ASD")   or
-                                                    (scs_cluster_type      == "ISCSI")
+                                       - (database_cluster_type == "ASD")   or
+                                         (database_cluster_type == "ISCSI") or
+                                         (scs_cluster_type      == "ASD")   or
+                                         (scs_cluster_type      == "ISCSI")
   block:
 
-    - name:                                      "systemctl enable sbd"
+    - name:                            "systemctl enable sbd"
       ansible.builtin.systemd:
-        name:                                    sbd
-        enabled:                                 true
-        daemon_reload:                           true
+        name:                          sbd
+        enabled:                       true
+        daemon_reload:                 true
 
     # restart cluster on primary node to ensure sbd is enabled
-    - name:                                      "1.17 Generic Pacemaker - stop cluster on both nodes to ensure sbd is enabled."
-      ansible.builtin.shell:                     crm cluster stop
+    - name:                            "1.17 Generic Pacemaker - stop cluster on both nodes to ensure sbd is enabled."
+      ansible.builtin.shell:           crm cluster stop
 
-    - name:                                      "1.17 Generic Pacemaker - wait for 60 seconds"
+    - name:                            "1.17 Generic Pacemaker - wait for 60 seconds"
       ansible.builtin.wait_for:
-        timeout:                                 60
+        timeout:                       60
 
-    - name:                                      "1.17 Generic Pacemaker - start cluster on both nodes to ensure sbd is enabled."
-      ansible.builtin.shell:                     crm cluster start
+    - name:                            "1.17 Generic Pacemaker - start cluster on both nodes to ensure sbd is enabled."
+      ansible.builtin.shell:           crm cluster start
 
-    - name:                                      "1.17 Generic Pacemaker - wait for 60 seconds"
+    - name:                            "1.17 Generic Pacemaker - wait for 60 seconds"
       ansible.builtin.wait_for:
-        timeout:                                 60
+        timeout:                       60
 
   always:
-    - name:                                      "1.17 Generic Pacemaker - SBD service configuration"
+    - name:                            "1.17 Generic Pacemaker - SBD service configuration"
       ansible.builtin.debug:
-        msg:                                     "SBD service configuration ends"
+        msg:                           "SBD service configuration ends"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -369,12 +391,12 @@
 - name:                                "1.17 Generic Pacemaker - Ensure Azure scheduled events is configured"
   when:                                inventory_hostname == primary_instance_name
   block:
-  # After configuring the Pacemaker resources for azure-events agent,
-  # when you place the cluster in or out of maintenance mode, you may get warning messages like:
-  #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
-  #   WARNING: cib-bootstrap-options: unknown attribute 'azure-events_globalPullState'
-  #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
-  # These warning messages can be ignored.
+    # After configuring the Pacemaker resources for azure-events agent,
+    # when you place the cluster in or out of maintenance mode, you may get warning messages like:
+    #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
+    #   WARNING: cib-bootstrap-options: unknown attribute 'azure-events_globalPullState'
+    #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
+    # These warning messages can be ignored.
     - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode is set"
       ansible.builtin.shell:           crm configure property maintenance-mode=true
 
@@ -400,13 +422,24 @@
                                        op monitor interval=10s
       register:                        crm_configure_result
       failed_when:
-        - "crm_configure_result.stderr | lower | regex_search('error|fail')" # Check if the resource is created successfully
+                                       - "crm_configure_result.stderr | lower | regex_search('error|fail')" # Check if the resource is created successfully
 
     - name:                            "1.17 Generic Pacemaker - Ensure clone resource azure-events is configured"
       ansible.builtin.shell:           crm configure clone health-azure-events-cln health-azure-events
 
     - name:                            "1.17 Generic Pacemaker - Remove false positives"
       ansible.builtin.shell:           crm_resource -C
+
+    - name:                            "1.17 Generic Pacemaker - wait for 30 seconds before resource cleanup"
+      ansible.builtin.wait_for:
+        timeout:                       30
+
+    - name:                            "1.17 Generic Pacemaker - Cleanup the health-azure-events resource"
+      ansible.builtin.shell:           crm resource cleanup health-azure-events
+
+    - name:                            "1.17 Generic Pacemaker - wait for 30 seconds after resource cleanup"
+      ansible.builtin.wait_for:
+        timeout:                       30
 
     - name:                            "1.17 Generic Pacemaker - Ensure the Azure scheduled events resource is started"
       ansible.builtin.shell: |
