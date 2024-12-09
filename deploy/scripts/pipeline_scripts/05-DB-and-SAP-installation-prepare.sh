@@ -41,12 +41,12 @@ if [ ! -f "${environment_file_name}" ]; then
 	exit 2
 fi
 
-if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
-	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
+	echo "##vso[task.logissue type=error]Variable AZURE_SUBSCRIPTION_ID was not defined."
 	exit 2
 fi
 
-if [ "azure pipelines" == $THIS_AGENT ]; then
+if [ "azure pipelines" == "$THIS_AGENT" ]; then
 	echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$(environment_code) variable group"
 	exit 2
 fi
@@ -67,7 +67,7 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
+az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
 
 echo -e "$green--- Get key_vault name ---$reset"
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
