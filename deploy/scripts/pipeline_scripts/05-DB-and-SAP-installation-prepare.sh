@@ -96,7 +96,7 @@ echo "Keyvault:                            $key_vault"
 echo "SAP Application BoM:                 $BOM_BASE_NAME"
 
 echo "SID:                                 ${SID}"
-echo "Folder:                              $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
+echo "Folder:                              $CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
 echo "Hosts file:                          ${SID}_hosts.yaml"
 echo "sap_parameters_file:                 $parameters_filename"
 echo "Configuration file:                  $environment_file_name"
