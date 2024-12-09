@@ -88,7 +88,7 @@ if [ -f "${filename}" ]; then
 	echo "##[section]Executing [$redacted_command]..."
 
 	command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey  -e 'kv_name=$VAULT_NAME' \
-            -e @$SAP_PARAMS -e 'download_directory=$(Agent.TempDirectory)' -e '_workspace_directory=$PARAMETERS_FOLDER' "$EXTRA_PARAMS"  \
+            -e @$SAP_PARAMS -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$PARAMETERS_FOLDER' "$EXTRA_PARAMS"  \
             -e ansible_ssh_pass='${password_secret}' $EXTRA_PARAM_FILE ${filename}"
 
 	eval $command
