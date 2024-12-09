@@ -139,7 +139,7 @@ stages:
         workspace:
           clean:                       all
         steps:
-          - template: templates\download.yaml
+          - template:                  templates\download.yaml
             parameters:
               getLatestFromBranch: true
           - task:                      PostBuildCleanup@4
@@ -185,6 +185,7 @@ stages:
               azureTenantId:                 $(ARM_TENANT_ID)
               azureSubscriptionId:           $(ARM_SUBSCRIPTION_ID)
               USE_MSI:                       $(USE_MSI)
+              CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.base_os_configuration, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -204,6 +205,7 @@ stages:
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.sap_os_configuration, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -223,6 +225,7 @@ stages:
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.bom_processing, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -242,6 +245,7 @@ stages:
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.scs_installation, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -261,6 +265,7 @@ stages:
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.database_install, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -280,6 +285,7 @@ stages:
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.db_load, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -299,6 +305,7 @@ stages:
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.high_availability_configuration, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -318,6 +325,7 @@ stages:
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.pas_installation, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -337,6 +345,7 @@ stages:
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.application_server_installation, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -356,6 +365,7 @@ stages:
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.webdispatcher_installation, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -375,6 +385,7 @@ stages:
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.post_configuration_actions, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -394,6 +405,7 @@ stages:
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.sap_on_azure_quality_checks, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -413,6 +425,7 @@ stages:
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.acss_registration, true) }}:
               - template:                    templates\acss-registration.yaml
                 parameters:
@@ -434,6 +447,7 @@ stages:
                   acssEnvironment:           ${{ parameters.acss_environment }}
                   acssSapProduct:            ${{ parameters.acss_sap_product }}
                   USE_MSI:                   $(USE_MSI)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.ams_provider, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
@@ -452,6 +466,7 @@ stages:
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - template:                        templates\collect-log-files.yaml
             parameters:
               logPath:                       ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
