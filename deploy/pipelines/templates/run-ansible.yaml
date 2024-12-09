@@ -36,6 +36,8 @@ steps:
 
     deployer_file=/etc/profile.d/deploy_server.sh
 
+    printenv
+
     if [ $(USE_MSI) != "true" ]; then
       echo "##[section]Running on a deployer..."
       source /etc/profile.d/deploy_server.sh
