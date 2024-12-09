@@ -29,7 +29,7 @@ SID=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $4}' | xargs)
 
 cd "$CONFIG_REPO_PATH" || exit
 
-environment_file_name=".sap_deployment_automation/$ENVIRONMENT_CODE$LOCATION$NETWORK"
+environment_file_name=".sap_deployment_automation/$ENVIRONMENT$LOCATION$NETWORK"
 parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml"
 
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
@@ -41,12 +41,12 @@ if [ ! -f "${environment_file_name}" ]; then
 	exit 2
 fi
 
-if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
-	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
+	echo "##vso[task.logissue type=error]Variable AZURE_SUBSCRIPTION_ID was not defined."
 	exit 2
 fi
 
-if [ "azure pipelines" == $THIS_AGENT ]; then
+if [ "azure pipelines" == "$THIS_AGENT" ]; then
 	echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$(environment_code) variable group"
 	exit 2
 fi
@@ -67,7 +67,7 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
+az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
 
 echo -e "$green--- Get key_vault name ---$reset"
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")

@@ -156,9 +156,9 @@ stages:
               SYSTEM_ACCESSTOKEN:            $(System.AccessToken)
               AZURE_DEVOPS_EXT_PAT:          $(System.AccessToken)
               ANSIBLE_HOST_KEY_CHECKING:     false
-              AZURE_CLIENT_ID:               $(WL_ARM_CLIENT_ID)
-              AZURE_CLIENT_SECRET:           $(WL_ARM_CLIENT_SECRET)
-              AZURE_TENANT_ID:               $(WL_ARM_TENANT_ID)
+              AZURE_CLIENT_ID:               $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:               $(ARM_TENANT_ID)
               AZURE_SUBSCRIPTION_ID:         $(Terraform_Remote_Storage_Subscription)
               ANSIBLE_COLLECTIONS_PATHS:     /opt/ansible/collections
               CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
@@ -180,10 +180,10 @@ stages:
               sapParams:                     "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
               sidHosts:                      $(Preparation.HOSTS)
               extraParams:                   "$(Preparation.NEW_PARAMETERS)"
-              azureClientId:                 $(WL_ARM_CLIENT_ID)
-              azureClientSecret:             $(WL_ARM_CLIENT_SECRET)
-              azureTenantId:                 $(WL_ARM_TENANT_ID)
-              azureSubscriptionId:           $(WL_ARM_SUBSCRIPTION_ID)
+              azureClientId:                 $(ARM_CLIENT_ID)
+              azureClientSecret:             $(ARM_CLIENT_SECRET)
+              azureTenantId:                 $(ARM_TENANT_ID)
+              azureSubscriptionId:           $(ARM_SUBSCRIPTION_ID)
               USE_MSI:                       $(USE_MSI)
           - ${{ if eq(parameters.base_os_configuration, true) }}:
               - template:                    templates\run-ansible.yaml
@@ -199,10 +199,10 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(WL_ARM_CLIENT_ID)
-                  azureClientSecret:         $(WL_ARM_CLIENT_SECRET)
-                  azureTenantId:             $(WL_ARM_TENANT_ID)
-                  azureSubscriptionId:       $(WL_ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.sap_os_configuration, true) }}:
               - template:                    templates\run-ansible.yaml
@@ -218,10 +218,10 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(WL_ARM_CLIENT_ID)
-                  azureClientSecret:         $(WL_ARM_CLIENT_SECRET)
-                  azureTenantId:             $(WL_ARM_TENANT_ID)
-                  azureSubscriptionId:       $(WL_ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.bom_processing, true) }}:
               - template:                    templates\run-ansible.yaml
@@ -237,10 +237,10 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(WL_ARM_CLIENT_ID)
-                  azureClientSecret:         $(WL_ARM_CLIENT_SECRET)
-                  azureTenantId:             $(WL_ARM_TENANT_ID)
-                  azureSubscriptionId:       $(WL_ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.scs_installation, true) }}:
               - template:                    templates\run-ansible.yaml
@@ -256,10 +256,10 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(WL_ARM_CLIENT_ID)
-                  azureClientSecret:         $(WL_ARM_CLIENT_SECRET)
-                  azureTenantId:             $(WL_ARM_TENANT_ID)
-                  azureSubscriptionId:       $(WL_ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.database_install, true) }}:
               - template:                    templates\run-ansible.yaml
@@ -275,10 +275,10 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(WL_ARM_CLIENT_ID)
-                  azureClientSecret:         $(WL_ARM_CLIENT_SECRET)
-                  azureTenantId:             $(WL_ARM_TENANT_ID)
-                  azureSubscriptionId:       $(WL_ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.db_load, true) }}:
               - template:                    templates\run-ansible.yaml
@@ -294,10 +294,10 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(WL_ARM_CLIENT_ID)
-                  azureClientSecret:         $(WL_ARM_CLIENT_SECRET)
-                  azureTenantId:             $(WL_ARM_TENANT_ID)
-                  azureSubscriptionId:       $(WL_ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.high_availability_configuration, true) }}:
               - template:                    templates\run-ansible.yaml
@@ -313,10 +313,10 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(WL_ARM_CLIENT_ID)
-                  azureClientSecret:         $(WL_ARM_CLIENT_SECRET)
-                  azureTenantId:             $(WL_ARM_TENANT_ID)
-                  azureSubscriptionId:       $(WL_ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.pas_installation, true) }}:
               - template:                    templates\run-ansible.yaml
@@ -332,10 +332,10 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(WL_ARM_CLIENT_ID)
-                  azureClientSecret:         $(WL_ARM_CLIENT_SECRET)
-                  azureTenantId:             $(WL_ARM_TENANT_ID)
-                  azureSubscriptionId:       $(WL_ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.application_server_installation, true) }}:
               - template:                    templates\run-ansible.yaml
@@ -351,10 +351,10 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(WL_ARM_CLIENT_ID)
-                  azureClientSecret:         $(WL_ARM_CLIENT_SECRET)
-                  azureTenantId:             $(WL_ARM_TENANT_ID)
-                  azureSubscriptionId:       $(WL_ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.webdispatcher_installation, true) }}:
               - template:                    templates\run-ansible.yaml
@@ -370,10 +370,10 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(WL_ARM_CLIENT_ID)
-                  azureClientSecret:         $(WL_ARM_CLIENT_SECRET)
-                  azureTenantId:             $(WL_ARM_TENANT_ID)
-                  azureSubscriptionId:       $(WL_ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.post_configuration_actions, true) }}:
               - template:                    templates\run-ansible.yaml
@@ -389,10 +389,10 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(WL_ARM_CLIENT_ID)
-                  azureClientSecret:         $(WL_ARM_CLIENT_SECRET)
-                  azureTenantId:             $(WL_ARM_TENANT_ID)
-                  azureSubscriptionId:       $(WL_ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.sap_on_azure_quality_checks, true) }}:
               - template:                    templates\run-ansible.yaml
@@ -408,10 +408,10 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(WL_ARM_CLIENT_ID)
-                  azureClientSecret:         $(WL_ARM_CLIENT_SECRET)
-                  azureTenantId:             $(WL_ARM_TENANT_ID)
-                  azureSubscriptionId:       $(WL_ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
           - ${{ if eq(parameters.acss_registration, true) }}:
               - template:                    templates\acss-registration.yaml
@@ -427,10 +427,10 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(WL_ARM_CLIENT_ID)
-                  azureClientSecret:         $(WL_ARM_CLIENT_SECRET)
-                  azureTenantId:             $(WL_ARM_TENANT_ID)
-                  azureSubscriptionId:       $(WL_ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   acssEnvironment:           ${{ parameters.acss_environment }}
                   acssSapProduct:            ${{ parameters.acss_sap_product }}
                   USE_MSI:                   $(USE_MSI)
@@ -448,10 +448,10 @@ stages:
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
                   extraParams:               ${{ parameters.extra_params }}
-                  azureClientId:             $(WL_ARM_CLIENT_ID)
-                  azureClientSecret:         $(WL_ARM_CLIENT_SECRET)
-                  azureTenantId:             $(WL_ARM_TENANT_ID)
-                  azureSubscriptionId:       $(WL_ARM_SUBSCRIPTION_ID)
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
           - template:                        templates\collect-log-files.yaml
             parameters:
               logPath:                       ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
