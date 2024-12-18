@@ -42,6 +42,11 @@ parameters:
     type:                              boolean
     default:                           false
 
+  - name:                              sapcal_high_availability_integration
+    displayName:                       SAP CAL High Availability Setup
+    type:                              boolean
+    default:                           true
+
 # 20220929 MKD - ACSS Registration <BEGIN>
   - name:                             acss_registration
     displayName:                      Register System in ACSS
@@ -383,8 +388,27 @@ stages:
           - ${{ if eq(parameters.sapcal_integration, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
-                  displayName:               "SAPCAL Integration"
+                  displayName:               "SAP CAL Integration"
                   ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_sapcal_integration.yaml
+                  secretName:                "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                 $(Preparation.VAULT_NAME)
+                  parametersFolder:          $(Preparation.FOLDER)
+                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                  $(Preparation.HOSTS)
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  sapcalProductName:         ${{ parameters.sap_cal_product_name }}
+                  USE_MSI:                   $(USE_MSI)
+          - ${{ if eq(parameters.sapcal_high_availability_integration, true) }}:
+              - template:                    templates\run-ansible.yaml
+                parameters:
+                  displayName:               "SAP CAL High Availability Integration"
+                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_sapcal_integration_ha.yaml
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
