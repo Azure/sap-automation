@@ -1,6 +1,6 @@
 #!/bin/bash
 #!/bin/bash
-echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $SAP_SYSTEM_FOLDERNAME"
+echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $SAP_SYSTEM_FOLDERNAME"
 
 green="\e[1;32m"
 reset="\e[0m"

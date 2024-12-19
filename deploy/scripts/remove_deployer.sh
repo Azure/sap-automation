@@ -197,7 +197,10 @@ if [ -f destroy_output.json ]; then
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
-		echo -e "#                         $bold_red_underscore!Errors during the destroy phase!$reset_formatting                             #"
+		echo -e "#                      $bold_red_underscore!!! Errors during the destroy phase !!!$reset_formatting                          #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		echo ""
 
 		return_value=2
 		all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
@@ -215,9 +218,6 @@ if [ -f destroy_output.json ]; then
 			done
 
 		fi
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
 	fi
 fi
 

@@ -337,7 +337,20 @@ else
 					return 10
 				fi
 			fi
+		else
+			if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
+				echo ""
+				echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+				echo ""
+			else
+				echo ""
+				echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
+				echo ""
+				return 10
+			fi
+
 		fi
+
 	else
 		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
 			echo ""
@@ -555,6 +568,16 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 	export REMOTE_STATE_SA
 
 	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${library_config_information}"
+
+	library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+	if [ -n "${library_random_id}" ]; then
+		save_config_var "library_random_id" "${library_config_information}"
+		custom_random_id="${library_random_id}"
+		sed -i -e "" -e /"custom_random_id"/d "${parameterfile}"
+		printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+
+	fi
+
 	return_value=0
 else
 	return_value=20

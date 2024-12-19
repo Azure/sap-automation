@@ -246,14 +246,14 @@ set +o errexit
 
 echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 cd "$CONFIG_REPO_PATH" || exit
-git pull
+echo -e "$green--- Pull the latest content from DevOps ---$reset"
+# Pull changes
+git pull -q origin "$BRANCH"
 
 # Pull changes if there are other deployment jobs
 
 cd "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 
-echo -e "$green--- Pull the latest content from DevOps ---$reset"
-git pull
 echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 
 if [ -f stdout.az ]; then
@@ -270,6 +270,8 @@ fi
 if [ -f sap-parameters.yaml ]; then
 	git add sap-parameters.yaml
 	added=1
+else
+	return_code=1
 fi
 
 if [ -f "${SID}_hosts.yaml" ]; then
@@ -302,8 +304,6 @@ if [ -f "${SID}_virtual_machines.json" ]; then
 	git add "${SID}_virtual_machines.json"
 	added=1
 fi
-# Pull changes
-git pull -q origin "$BRANCH"
 
 if [ 1 == $added ]; then
 	git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
