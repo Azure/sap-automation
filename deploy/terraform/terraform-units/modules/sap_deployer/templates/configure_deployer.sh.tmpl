@@ -654,7 +654,7 @@ else
     # Ensure that Python argcomplete is enabled for all users interactive shell sessions
     # sudo "$${ansible_bin}/activate-global-python-argcomplete"
 
-    # Install Ansible collections under the ANSIBLE_COLLECTIONS_PATHS for all users.
+    # Install Ansible collections under the ANSIBLE_COLLECTIONS_PATH for all users.
     sudo mkdir -p "$${ansible_collections}"
 
     set +o xtrace
@@ -687,7 +687,7 @@ else
 
     # Set env for ansible
     echo export ANSIBLE_HOST_KEY_CHECKING=False | sudo tee -a /etc/profile.d/deploy_server.sh
-    echo export ANSIBLE_COLLECTIONS_PATHS="$${ansible_collections}" | sudo tee -a /etc/profile.d/deploy_server.sh
+    echo export ANSIBLE_COLLECTIONS_PATH="$${ansible_collections}" | sudo tee -a /etc/profile.d/deploy_server.sh
 
     export DOTNET_INSTALL_DIR='/opt/dotnet'
 

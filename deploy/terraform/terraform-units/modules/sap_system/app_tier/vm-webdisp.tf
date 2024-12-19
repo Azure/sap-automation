@@ -16,7 +16,7 @@ resource "azurerm_network_interface" "web" {
                                          )
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
-  accelerated_networking_enabled        = local.web_sizing.compute.accelerated_networking
+  accelerated_networking_enabled       = local.web_sizing.compute.accelerated_networking
   tags                                 = var.tags
 
   dynamic "ip_configuration" {
@@ -29,7 +29,7 @@ resource "azurerm_network_interface" "web" {
                                           private_ip_address = try(pub.value.nic_ips[count.index],
                                             var.application_tier.use_DHCP ? (
                                               null) : (
-                                              local.web_subnet_defined ?
+                                              var.infrastructure.virtual_networks.sap.subnet_web.defined ?
                                               cidrhost(
                                                 local.web_subnet_prefix,
                                                 (tonumber(count.index) + local.ip_offsets.web_vm + pub.value.offset)

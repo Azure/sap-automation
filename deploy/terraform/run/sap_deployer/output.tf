@@ -30,6 +30,11 @@ output "created_resource_group_location"         {
                                                    value       = module.sap_deployer.created_resource_group_location
                                                  }
 
+output "random_id"                               {
+                                                   description = "Random ID for deployer"
+                                                   value       = substr(coalesce(var.custom_random_id, module.sap_deployer.random_id), 0, 3)
+                                                 }
+
 ###############################################################################
 #                                                                             #
 #                                 Deployer                                    #

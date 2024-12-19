@@ -18,7 +18,7 @@ module "sap_deployer" {
   Agent_IP                                     = var.add_Agent_IP ? var.Agent_IP : ""
   agent_pat                                    = var.agent_pat
   agent_pool                                   = var.agent_pool
-  agent_network_id                             = var.agent_network_id
+  additional_network_id                        = var.additional_network_id
   ansible_core_version                         = var.ansible_core_version
   app_registration_app_id                      = var.use_webapp ? var.app_registration_app_id : ""
   app_service                                  = local.app_service

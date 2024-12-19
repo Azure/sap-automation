@@ -127,7 +127,7 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
 
 resource "azurerm_private_endpoint" "storage_tfstate" {
   provider                             = azurerm.main
-  count                                = var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
+  count                                = var.deployer.use && var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
   name                                 = format("%s%s%s",
                                            var.naming.resource_prefixes.storage_private_link_tf,
                                            local.prefix,
@@ -184,7 +184,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
 
 resource "azurerm_private_endpoint" "table_tfstate" {
   provider                             = azurerm.main
-  count                                = var.use_private_endpoint && !local.sa_tfstate_exists && var.use_webapp ? 1 : 0
+  count                                = var.deployer.use && var.use_private_endpoint && !local.sa_tfstate_exists && var.use_webapp ? 1 : 0
   depends_on                           = [ azurerm_private_dns_zone.table ]
   name                                 = format("%s%s-table%s",
                                            var.naming.resource_prefixes.storage_private_link_tf,
@@ -371,7 +371,7 @@ data "azurerm_storage_account" "storage_sapbits" {
 
 resource "azurerm_private_endpoint" "storage_sapbits" {
   provider                             = azurerm.main
-  count                                = var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
+  count                                = var.deployer.use && var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
   name                                 = format("%s%s%s",
                                            var.naming.resource_prefixes.storage_private_link_sap,
                                            local.prefix,

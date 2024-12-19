@@ -80,7 +80,7 @@ locals {
 
                                            create_privatelink_dns_zones              = var.create_privatelink_dns_zones
 
-                                           agent_network_id                          = var.agent_network_id
+                                           additional_network_id                     = var.additional_network_id
                                          }
 
 

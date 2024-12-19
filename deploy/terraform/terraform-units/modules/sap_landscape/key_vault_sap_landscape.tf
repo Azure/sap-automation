@@ -14,8 +14,8 @@ resource "azurerm_key_vault" "kv_user" {
   depends_on                           = [
                                            azurerm_virtual_network_peering.peering_management_sap,
                                            azurerm_virtual_network_peering.peering_sap_management,
-                                           azurerm_virtual_network_peering.peering_agent_sap,
-                                           azurerm_virtual_network_peering.peering_sap_agent,
+                                           azurerm_virtual_network_peering.peering_additional_network_sap,
+                                           azurerm_virtual_network_peering.peering_sap_additional_network,
                                          ]
   name                                 = local.user_keyvault_name
   location                             = local.region
@@ -49,14 +49,14 @@ resource "azurerm_key_vault" "kv_user" {
                                        virtual_network_subnet_ids = compact(
                                         [
                                           local.database_subnet_defined ? (
-                                            local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
+                                            local.database_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
                                             ""
                                             ), local.application_subnet_defined ? (
-                                            local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
+                                            local.application_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
                                             ""
                                           ),
                                           local.deployer_subnet_management_id,
-                                          var.agent_network_id
+                                          var.additional_network_id
                                         ]
                                       )
                                     }
@@ -220,7 +220,8 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           time_sleep.wait_for_private_endpoints
                                          ]
   count                                = !local.sid_key_exist ? 1 : 0
   content_type                          = ""
@@ -248,7 +249,8 @@ resource "azurerm_key_vault_secret" "sid_pk" {
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           time_sleep.wait_for_private_endpoints
                                          ]
   count                                = !local.sid_key_exist ? 1 : 0
   content_type                         = ""
@@ -269,7 +271,8 @@ data "azurerm_key_vault_secret" "sid_pk" {
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           time_sleep.wait_for_private_endpoints
                                          ]
   count                                = (local.sid_key_exist) ? 1 : 0
   name                                 = local.sid_pk_name
@@ -283,7 +286,8 @@ resource "azurerm_key_vault_secret" "sid_username" {
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           time_sleep.wait_for_private_endpoints
                                          ]
   count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
   content_type                         = ""
@@ -304,7 +308,8 @@ data "azurerm_key_vault_secret" "sid_username" {
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           time_sleep.wait_for_private_endpoints
                                          ]
   count                                = (local.sid_credentials_secret_exist) ? 1 : 0
   name                                 = local.sid_username_secret_name
@@ -316,7 +321,8 @@ resource "azurerm_key_vault_secret" "sid_password" {
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           time_sleep.wait_for_private_endpoints
                                          ]
   count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
   name                                 = local.sid_password_secret_name
@@ -337,7 +343,8 @@ data "azurerm_key_vault_secret" "sid_password" {
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           time_sleep.wait_for_private_endpoints
                                          ]
   count                                = (local.sid_credentials_secret_exist) ? 1 : 0
   name                                 = local.sid_password_secret_name
@@ -351,7 +358,8 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           time_sleep.wait_for_private_endpoints
                                          ]
   count                                = 1
   content_type                         = ""
@@ -387,7 +395,8 @@ resource "azurerm_key_vault_secret" "witness_name" {
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           time_sleep.wait_for_private_endpoints
                                          ]
   count                                = 1
   content_type                         = ""
@@ -423,7 +432,8 @@ resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           time_sleep.wait_for_private_endpoints
                                          ]
   content_type                         = ""
   name                                 = "deployer-kv-name"

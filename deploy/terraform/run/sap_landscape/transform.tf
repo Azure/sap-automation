@@ -240,7 +240,7 @@ locals {
                                            arm_id = var.witness_storage_account_arm_id
                                          }
 
-  vnets                                = {  }
+  virtual_networks                     = {  }
   sap                                  = {
                                            name          = var.network_name
                                            logical_name  = var.network_logical_name
@@ -250,289 +250,144 @@ locals {
                                            address_space = tolist(split(",", var.network_address_space))
                                          }
 
-  subnet_admin                         = merge((
-                                           {
-                                             "name" = var.admin_subnet_name
-                                           }
-                                           ), (
-                                           local.subnet_admin_arm_id_defined ?
-                                           (
-                                             {
-                                               "arm_id" = var.admin_subnet_arm_id
-                                             }
-                                             ) : (
-                                             null
-                                           )), (
-                                           {
-                                             "prefix" = var.admin_subnet_address_prefix
-                                           }
-                                           ), (
-                                           local.subnet_admin_nsg_defined ? (
-                                             {
-                                               "nsg" = {
-                                                 "name"   = var.admin_subnet_nsg_name
-                                                 "arm_id" = var.admin_subnet_nsg_arm_id
-                                               }
-                                             }
-                                             ) : (
-                                             null
-                                           )
-                                           )
-                                         )
+  subnet_admin                         = {
+                                             "name"    = var.admin_subnet_name
+                                             "arm_id"  = var.admin_subnet_arm_id
+                                             "prefix"  = var.admin_subnet_address_prefix
+                                             "defined" = length(var.admin_subnet_address_prefix) > 0
+                                              "nsg" = {
+                                                        "name"   = var.admin_subnet_nsg_name
+                                                        "arm_id" = var.admin_subnet_nsg_arm_id
+                                                      }
+                                         }
 
-  subnet_db                            = merge(
-                                           (
-                                             {
-                                               "name" = var.db_subnet_name
-                                             }
-                                             ), (
-                                             local.subnet_db_arm_id_defined ? (
-                                               {
-                                                 "arm_id" = var.db_subnet_arm_id
-                                               }
-                                               ) : (
-                                             null)
-                                             ), (
-                                             {
-                                               "prefix" = var.db_subnet_address_prefix
-                                             }
-                                             ), (
-                                             local.subnet_db_nsg_defined ? (
-                                               {
-                                                 "nsg" = {
-                                                   "name"   = var.db_subnet_nsg_name
-                                                   "arm_id" = var.db_subnet_nsg_arm_id
-                                                 }
-                                               }
-                                             ) : null
-                                           )
-                                         )
+  subnet_db                            = {
+                                             "name"    = var.db_subnet_name
+                                             "arm_id"  = var.db_subnet_arm_id
+                                             "prefix"  = var.db_subnet_address_prefix
+                                             "defined" = length(var.db_subnet_address_prefix) > 0
+                                              "nsg" = {
+                                                        "name"   = var.db_subnet_nsg_name
+                                                        "arm_id" = var.db_subnet_nsg_arm_id
+                                                      }
+                                         }
 
-  subnet_app                           = merge(
-                                           (
-                                             {
-                                               "name" = var.app_subnet_name
-                                             }
-                                             ), (
-                                             local.subnet_app_arm_id_defined ? (
-                                               {
-                                                 "arm_id" = var.app_subnet_arm_id
-                                               }
-                                               ) : (
-                                               null
-                                             )), (
-                                             {
-                                               "prefix" = var.app_subnet_address_prefix
-                                             }
-                                             ), (
-                                             local.subnet_app_nsg_defined ? (
-                                               {
-                                                 "nsg" = {
-                                                   "name"   = var.app_subnet_nsg_name
-                                                   "arm_id" = var.app_subnet_nsg_arm_id
-                                                 }
-                                               }
-                                             ) : null
-                                           )
-                                         )
-
-  subnet_web                           = merge(
-                                           (
-                                             {
-                                               "name" = var.web_subnet_name
-                                             }
-                                             ), (
-                                             local.subnet_web_arm_id_defined ? (
-                                               {
-                                                 "arm_id" = var.web_subnet_arm_id
-                                               }
-                                               ) : (
-                                               null
-                                             )), (
-                                             {
-                                               "prefix" = var.web_subnet_address_prefix
-                                             }
-                                             ), (
-                                             local.subnet_web_nsg_defined ? (
-                                               {
-                                                 "nsg" = {
-                                                   "name"   = var.web_subnet_nsg_name
-                                                   "arm_id" = var.web_subnet_nsg_arm_id
-                                                 }
-                                               }
-                                             ) : null
-                                           )
-                                         )
-
-  subnet_storage                       = merge(
-                                           (
-                                             {
-                                               "name" = var.storage_subnet_name
-                                             }
-                                             ), (
-                                             local.subnet_storage_arm_id_defined ? (
-                                               {
-                                                 "arm_id" = var.storage_subnet_arm_id
-                                               }
-                                               ) : (
-                                               null
-                                             )), (
-                                             {
-                                               "prefix" = var.storage_subnet_address_prefix
-                                             }
-                                             ), (
-                                             local.subnet_storage_nsg_defined ? (
-                                               {
-                                                 "nsg" = {
-                                                   "name"   = var.storage_subnet_nsg_name
-                                                   "arm_id" = var.storage_subnet_nsg_arm_id
-                                                 }
-                                               }
-                                             ) : null
-                                           )
-                                         )
-
-  subnet_anf                           = merge(
-                                          (
-                                            {
-                                              "name" = var.anf_subnet_name
-                                            }
-                                            ), (
-                                            local.subnet_anf_arm_id_defined ? (
-                                              {
-                                                "arm_id" = var.anf_subnet_arm_id
+  subnet_app                           = {
+                                             "name" = var.app_subnet_name
+                                             "arm_id" = var.app_subnet_arm_id
+                                             "prefix" = var.app_subnet_address_prefix
+                                             "defined" = length(var.app_subnet_address_prefix) > 0
+                                              "nsg" = {
+                                                "name"   = var.app_subnet_nsg_name
+                                                "arm_id" = var.app_subnet_nsg_arm_id
                                               }
-                                              ) : (
-                                              null
-                                            )), (
-                                            {
-                                              "prefix" = var.anf_subnet_address_prefix
-                                            }
-                                            ), (
-                                            local.subnet_anf_nsg_defined ? (
-                                              {
-                                                "nsg" = {
-                                                  "name"   = var.anf_subnet_nsg_name
-                                                  "arm_id" = var.anf_subnet_nsg_arm_id
+                                         }
+
+  subnet_web                           = {
+                                             "name" = var.web_subnet_name
+                                             "arm_id" = var.web_subnet_arm_id
+                                             "prefix" = var.web_subnet_address_prefix
+                                             "defined" = length(var.web_subnet_address_prefix) > 0
+                                              "nsg" = {
+                                                "name"   = var.web_subnet_nsg_name
+                                                "arm_id" = var.web_subnet_nsg_arm_id
+                                              }
+                                         }
+
+  subnet_storage                       = {
+                                             "name" = var.storage_subnet_name
+                                             "arm_id" = var.storage_subnet_arm_id
+                                             "prefix" = var.storage_subnet_address_prefix
+                                             "defined" = length(var.storage_subnet_address_prefix) > 0
+                                             "nsg" = {
+                                                  "name"   = var.storage_subnet_nsg_name
+                                                  "arm_id" = var.storage_subnet_nsg_arm_id
                                                 }
-                                              }
-                                              ) : (
-                                              null
-                                            )
-                                          )
-                                        )
+                                          }
 
-  subnet_iscsi                         = merge(
-                                          (
-                                            {
-                                              "name" = var.iscsi_subnet_name
+  subnet_anf                           = {
+                                            "name" = var.anf_subnet_name
+                                            "arm_id" = var.anf_subnet_arm_id
+                                            "prefix" = var.anf_subnet_address_prefix
+                                            "defined" = length(var.anf_subnet_address_prefix) > 0
+                                            "nsg" = {
+                                              "name"   = var.anf_subnet_nsg_name
+                                              "arm_id" = var.anf_subnet_nsg_arm_id
                                             }
-                                            ), (
-                                            local.subnet_iscsi_arm_id_defined ? (
-                                              {
-                                                "arm_id" = var.iscsi_subnet_arm_id
-                                              }
-                                              ) : (
-                                              null
-                                            )), (
-                                            {
-                                              "prefix" = var.iscsi_subnet_address_prefix
-                                            }
-                                            ), (
-                                            local.subnet_iscsi_nsg_defined ? (
-                                              {
-                                                "nsg" = {
-                                                  "name"   = var.iscsi_subnet_nsg_name
-                                                  "arm_id" = var.iscsi_subnet_nsg_arm_id
-                                                }
-                                              }
-                                              ) : (
-                                              null
-                                            )
-                                          )
-                                        )
+                                         }
 
-  subnet_ams                         = merge(
-                                          (
-                                            {
-                                              "name" = var.ams_subnet_name
+  subnet_iscsi                         = {
+                                            "name" = var.iscsi_subnet_name
+                                            "arm_id" = var.iscsi_subnet_arm_id
+                                            "prefix" = var.iscsi_subnet_address_prefix
+                                            "defined" = length(var.iscsi_subnet_address_prefix) > 0
+                                            "nsg" = {
+                                              "name"   = var.iscsi_subnet_nsg_name
+                                              "arm_id" = var.iscsi_subnet_nsg_arm_id
                                             }
-                                            ), (
-                                            local.subnet_ams_arm_id_defined ? (
-                                              {
-                                                "arm_id" = var.ams_subnet_arm_id
-                                              }
-                                              ) : (
-                                              null
-                                            )), (
-                                            {
-                                              "prefix" = var.ams_subnet_address_prefix
-                                            }
-                                            ), (
-                                            local.subnet_web_nsg_defined ? (
-                                              {
-                                                "nsg" = {
+                                         }
+  subnet_ams                         =   {
+                                            "name" = var.ams_subnet_name
+                                            "arm_id" = var.ams_subnet_arm_id
+                                            "prefix" = var.ams_subnet_address_prefix
+                                            "defined" = length(var.ams_subnet_address_prefix) > 0
+                                            "nsg" = {
                                                   "name"   = var.ams_subnet_nsg_name
                                                   "arm_id" = var.ams_subnet_nsg_arm_id
                                                 }
-                                              }
-                                              ) : (
-                                              null
-                                            )
-                                          )
-                                        )
+                                         }
 
   all_subnets                          = merge(local.sap, (
-                                         local.subnet_admin_defined ? (
+                                         local.subnet_admin.defined ? (
                                            {
                                              "subnet_admin" = local.subnet_admin
                                            }
                                            ) : (
                                            null
                                          )), (
-                                         local.subnet_db_defined ? (
+                                         local.subnet_db.defined ? (
                                            {
                                              "subnet_db" = local.subnet_db
                                            }
                                            ) : (
                                            null
                                          )), (
-                                         local.subnet_app_defined ? (
+                                         local.subnet_app.defined ? (
                                            {
                                              "subnet_app" = local.subnet_app
                                            }
                                            ) : (
                                            null
                                          )), (
-                                         local.subnet_web_defined ? (
+                                         local.subnet_web.defined ? (
                                            {
                                              "subnet_web" = local.subnet_web
                                            }
                                            ) : (
                                            null
                                          )), (
-                                         local.subnet_storage_defined ? (
+                                         local.subnet_storage.defined ? (
                                            {
                                              "subnet_storage" = local.subnet_storage
                                            }
                                            ) : (
                                            null
                                          )), (
-                                         local.subnet_anf_defined ? (
+                                         local.subnet_anf.defined ? (
                                            {
                                              "subnet_anf" = local.subnet_anf
                                            }
                                            ) : (
                                            null
                                          )), (
-                                         local.subnet_ams_defined ? (
+                                         local.subnet_ams.defined ? (
                                            {
                                              "subnet_ams" = local.subnet_ams
                                            }
                                            ) : (
                                            null
                                          )), (
-                                         local.subnet_iscsi_defined ? (
+                                         local.subnet_iscsi.defined ? (
                                            {
                                              "subnet_iscsi" = local.subnet_iscsi
                                            }
@@ -541,8 +396,6 @@ locals {
                                          )
                                          )
                                        )
-
-  temp_vnet                            = merge(local.vnets, { "sap" = local.all_subnets })
 
 
   iscsi                                = {
@@ -576,7 +429,7 @@ locals {
                                             null
                                           )), (
                                           {
-                                            "vnets" = local.temp_vnet
+                                            "virtual_networks" = merge(local.virtual_networks, { "sap" = local.all_subnets })
                                           }
                                           ), (
                                           {

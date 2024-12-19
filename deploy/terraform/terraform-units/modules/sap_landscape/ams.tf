@@ -14,7 +14,7 @@ resource "azurerm_subnet_route_table_association" "ams" {
                                            azurerm_route_table.rt,
                                            azurerm_subnet.ams
                                          ]
-  subnet_id                            = local.ams_subnet_existing ? var.infrastructure.vnets.sap.subnet_ams.arm_id : azurerm_subnet.ams[0].id
+  subnet_id                            = local.ams_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_ams.arm_id : azurerm_subnet.ams[0].id
   route_table_id                       = azurerm_route_table.rt[0].id
 }
 

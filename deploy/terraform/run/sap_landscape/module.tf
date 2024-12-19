@@ -16,7 +16,7 @@ module "sap_landscape" {
 
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
   Agent_IP                                     = var.add_Agent_IP ? var.Agent_IP : ""
-  agent_network_id                             = var.agent_network_id
+  additional_network_id                        = var.additional_network_id
   ANF_settings                                 = local.ANF_settings
   authentication                               = local.authentication
   create_transport_storage                     = var.create_transport_storage
@@ -68,7 +68,7 @@ module "sap_namegenerator" {
   iscsi_server_count                           = try(local.infrastructure.iscsi.iscsi_count, 0)
   location                                     = local.infrastructure.region
   random_id                                    = coalesce(var.custom_random_id, module.sap_landscape.random_id)
-  sap_vnet_name                                = local.infrastructure.vnets.sap.logical_name
+  sap_vnet_name                                = local.infrastructure.virtual_networks.sap.logical_name
   utility_vm_count                             = var.utility_vm_count
 }
 

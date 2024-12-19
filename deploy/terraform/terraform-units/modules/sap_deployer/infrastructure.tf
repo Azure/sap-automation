@@ -135,10 +135,10 @@ resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" 
 
 resource "azurerm_virtual_network_peering" "peering_management_agent" {
   provider                             = azurerm.main
-  count                                = length(var.agent_network_id) > 0 ? 1 : 0
+  count                                = length(var.additional_network_id) > 0 ? 1 : 0
   name                                 = substr(
                                            format("%s_to_%s",
-                                             split("/", var.agent_network_id)[8],
+                                             split("/", var.additional_network_id)[8],
                                              local.management_virtual_network_exists ? (
                                                data.azurerm_virtual_network.vnet_mgmt[0].name) : (
                                                azurerm_virtual_network.vnet_mgmt[0].name
@@ -164,7 +164,7 @@ resource "azurerm_virtual_network_peering" "peering_management_agent" {
 
 resource "azurerm_virtual_network_peering" "peering_agent_management" {
   provider                             = azurerm.main
-  count                                = length(var.agent_network_id) > 0 ? 1:0
+  count                                = length(var.additional_network_id) > 0 ? 1:0
 
   name                                 = substr(
                                            format("%s_to_%s",
@@ -172,13 +172,13 @@ resource "azurerm_virtual_network_peering" "peering_agent_management" {
                                                 data.azurerm_virtual_network.vnet_mgmt[0].name) : (
                                                 azurerm_virtual_network.vnet_mgmt[0].name
                                              ),
-                                             split("/", var.agent_network_id)[8]
+                                             split("/", var.additional_network_id)[8]
                                            ),
                                            0,
                                            80
                                          )
-  resource_group_name                  = split("/", var.agent_network_id)[4]
-  virtual_network_name                 = split("/", var.agent_network_id)[8]
+  resource_group_name                  = split("/", var.additional_network_id)[4]
+  virtual_network_name                 = split("/", var.additional_network_id)[8]
   remote_virtual_network_id            = local.management_virtual_network_exists ? (
                                                data.azurerm_virtual_network.vnet_mgmt[0].id) : (
                                                azurerm_virtual_network.vnet_mgmt[0].id
@@ -189,9 +189,9 @@ resource "azurerm_virtual_network_peering" "peering_agent_management" {
 
 
 data "azurerm_virtual_network" "agent_virtual_network" {
-  count                                = length(var.agent_network_id) > 0 ? 1:0
-  name                                 = split("/", var.agent_network_id)[8]
-  resource_group_name                  = split("/", var.agent_network_id)[4]
+  count                                = length(var.additional_network_id) > 0 ? 1:0
+  name                                 = split("/", var.additional_network_id)[8]
+  resource_group_name                  = split("/", var.additional_network_id)[4]
 }
 
 

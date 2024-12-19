@@ -69,7 +69,10 @@ variable "use_secondary_ips"                            {
                                                           default     = false
                                                         }
 
-
+variable "enable_firewall_for_keyvaults_and_storage"    {
+                                                          description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+                                                          type        = bool
+                                                        }
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #

@@ -19,6 +19,10 @@ output "created_resource_group_subscription_id"  {
                                                    value       = module.sap_library.created_resource_group_subscription_id
                                                  }
 
+output "random_id"                               {
+                                                   description = "Random ID for library"
+                                                   value       = substr(coalesce(var.custom_random_id, module.sap_library.random_id), 0, 3)
+                                                 }
 
 ###############################################################################
 #                                                                             #

@@ -56,36 +56,23 @@ locals {
   #
   ##############################################################################################
 
-  application_subnet_defined           = length(try(var.infrastructure.vnets.sap.subnet_app, {})) > 0
-  application_subnet_prefix            = local.application_subnet_defined ? (
-                                           try(var.infrastructure.vnets.sap.subnet_app.prefix, "")) : (
-                                           ""
-                                         )
+  application_subnet_prefix            = var.infrastructure.virtual_networks.sap.subnet_app.prefix
 
-  application_subnet_arm_id            = local.application_subnet_defined ? (
-                                           try(var.infrastructure.vnets.sap.subnet_app.arm_id, "")
-                                           ) : (
-                                           var.landscape_tfstate.app_subnet_id
-                                         )
-  application_subnet_exists            = length(local.application_subnet_arm_id) > 0
+  application_subnet_arm_id            = var.infrastructure.virtual_networks.sap.subnet_app.arm_id
+  application_subnet_exists            = length(var.infrastructure.virtual_networks.sap.subnet_app.arm_id) > 0
 
-  application_subnet_name              = local.application_subnet_defined ? (
-                                           local.application_subnet_exists ? (
-                                             split("/", var.infrastructure.vnets.sap.subnet_app.arm_id)[10]) : (
-                                             length(var.infrastructure.vnets.sap.subnet_app.name) > 0 ? (
-                                               var.infrastructure.vnets.sap.subnet_app.name) : (
-                                               format("%s%s%s%s",
-                                                 var.naming.resource_prefixes.app_subnet,
-                                                 length(local.prefix) > 0 ? (
-                                                   local.prefix) : (
-                                                   var.infrastructure.environment
-                                                 ),
-                                                 var.naming.separator,
-                                                 local.resource_suffixes.app_subnet
-                                               )
-                                           ))) : (
-                                           ""
-                                         )
+  application_subnet_name              = var.infrastructure.virtual_networks.sap.subnet_app.defined ? coalesce(
+                                            var.infrastructure.virtual_networks.sap.subnet_app.name,
+                                            format("%s%s%s%s",
+                                              var.naming.resource_prefixes.app_subnet,
+                                              length(local.prefix) > 0 ? (
+                                                local.prefix) : (
+                                                var.infrastructure.environment
+                                              ),
+                                              var.naming.separator,
+                                              local.resource_suffixes.app_subnet
+                                            )
+                                         ) : ""
 
   ##############################################################################################
   #
@@ -93,19 +80,19 @@ locals {
   #
   ##############################################################################################
 
-  application_subnet_nsg_defined       = length(try(var.infrastructure.vnets.sap.subnet_app.nsg, {})) > 0
+  application_subnet_nsg_defined       = length(try(var.infrastructure.virtual_networks.sap.subnet_app.nsg, {})) > 0
 
   application_subnet_nsg_arm_id        = local.application_subnet_nsg_defined ? (
-                                           try(var.infrastructure.vnets.sap.subnet_app.nsg.arm_id, "")) : (
+                                           try(var.infrastructure.virtual_networks.sap.subnet_app.nsg.arm_id, "")) : (
                                            var.landscape_tfstate.app_nsg_id
                                          )
 
   application_subnet_nsg_exists        = length(local.application_subnet_nsg_arm_id) > 0
   application_subnet_nsg_name          = local.application_subnet_nsg_defined ? (
                                            local.application_subnet_nsg_exists ? (
-                                             split("/", var.infrastructure.vnets.sap.subnet_app.nsg.arm_id)[8]) : (
-                                             length(var.infrastructure.vnets.sap.subnet_app.nsg.name) > 0 ? (
-                                               var.infrastructure.vnets.sap.subnet_app.nsg.name) : (
+                                             split("/", var.infrastructure.virtual_networks.sap.subnet_app.nsg.arm_id)[8]) : (
+                                             length(var.infrastructure.virtual_networks.sap.subnet_app.nsg.name) > 0 ? (
+                                               var.infrastructure.virtual_networks.sap.subnet_app.nsg.name) : (
                                                format("%s%s%s%s",
                                                  var.naming.resource_prefixes.app_subnet_nsg,
                                                  length(local.prefix) > 0 ? (
@@ -125,33 +112,28 @@ locals {
   #
   ##############################################################################################
 
-  web_subnet_defined                   = length(try(var.infrastructure.vnets.sap.subnet_web, {})) > 0
-  web_subnet_prefix                    = local.web_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_web.prefix, "") : ""
+  web_subnet_prefix                    = var.infrastructure.virtual_networks.sap.subnet_web.prefix
 
-  web_subnet_arm_id                    = local.web_subnet_defined ? (
-                                           try(var.infrastructure.vnets.sap.subnet_web.arm_id, "")
-                                           ) : (
-                                           var.landscape_tfstate.web_subnet_id
-                                         )
+  web_subnet_arm_id                    = var.infrastructure.virtual_networks.sap.subnet_web.arm_id
   web_subnet_exists                    = length(local.web_subnet_arm_id) > 0
 
-  web_subnet_name                      = local.web_subnet_defined ? (
-                                           local.web_subnet_exists ? (
-                                             split("/", var.infrastructure.vnets.sap.subnet_web.arm_id)[10]) : (
-                                             length(var.infrastructure.vnets.sap.subnet_web.name) > 0 ? (
-                                               var.infrastructure.vnets.sap.subnet_web.name) : (
-                                               format("%s%s%s%s",
-                                                 var.naming.resource_prefixes.web_subnet,
-                                                 length(local.prefix) > 0 ? (
-                                                   local.prefix) : (
-                                                   var.infrastructure.environment
-                                                 ),
-                                                 var.naming.separator,
-                                                 local.resource_suffixes.web_subnet
-                                               )
-                                           ))) : (
-                                           ""
-                                         )
+  web_subnet_name                      = var.infrastructure.virtual_networks.sap.subnet_web.defined ? coalesce(
+                                           var.infrastructure.virtual_networks.sap.subnet_web.name,
+                                           format("%s%s%s%s",
+                                             var.naming.resource_prefixes.web_subnet,
+                                             length(local.prefix) > 0 ? (
+                                               local.prefix) : (
+                                               var.infrastructure.environment
+                                             ),
+                                             var.naming.separator,
+                                             local.resource_suffixes.web_subnet
+                                           )
+                                         ) : ""
+
+  web_subnet_deployed                  = local.web_subnet_exists ? (
+                                             data.azurerm_subnet.subnet_sap_web[0]) : (
+                                             azurerm_subnet.subnet_sap_web[0]
+                                           )
 
   ##############################################################################################
   #
@@ -159,18 +141,18 @@ locals {
   #
   ##############################################################################################
 
-  web_subnet_nsg_defined               = length(try(var.infrastructure.vnets.sap.subnet_web.nsg, {})) > 0
+  web_subnet_nsg_defined               = length(try(var.infrastructure.virtual_networks.sap.subnet_web.nsg, {})) > 0
   web_subnet_nsg_arm_id                = local.web_subnet_nsg_defined ? (
-                                           coalesce(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, var.landscape_tfstate.web_nsg_id, "")) : (
+                                           coalesce(var.infrastructure.virtual_networks.sap.subnet_web.nsg.arm_id, var.landscape_tfstate.web_nsg_id, "")) : (
                                            ""
                                          )
 
   web_subnet_nsg_exists                = length(local.web_subnet_nsg_arm_id) > 0
   web_subnet_nsg_name                  = local.web_subnet_nsg_defined ? (
                                            local.web_subnet_nsg_exists ? (
-                                             split("/", var.infrastructure.vnets.sap.subnet_web.nsg.arm_id)[8]) : (
-                                             length(var.infrastructure.vnets.sap.subnet_web.nsg.name) > 0 ? (
-                                               var.infrastructure.vnets.sap.subnet_web.nsg.name) : (
+                                             split("/", var.infrastructure.virtual_networks.sap.subnet_web.nsg.arm_id)[8]) : (
+                                             length(var.infrastructure.virtual_networks.sap.subnet_web.nsg.name) > 0 ? (
+                                               var.infrastructure.virtual_networks.sap.subnet_web.nsg.name) : (
                                                format("%s%s%s%s",
                                                  var.naming.resource_prefixes.web_subnet_nsg,
                                                  length(local.prefix) > 0 ? (
@@ -184,18 +166,7 @@ locals {
                                            ""
                                          )
 
-  web_subnet_deployed                  = try(local.web_subnet_defined ? (
-                                           local.web_subnet_exists ? (
-                                             data.azurerm_subnet.subnet_sap_web[0]) : (
-                                             azurerm_subnet.subnet_sap_web[0]
-                                           )) : (
-                                           local.application_subnet_exists ? (
-                                             data.azurerm_subnet.subnet_sap_app[0]) : (
-                                             azurerm_subnet.subnet_sap_app[0]
-                                           )), null
-                                         )
-
-  web_subnet_nsg_deployed              = try(local.web_subnet_defined ? (
+  web_subnet_nsg_deployed              = try(var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
                                            local.web_subnet_nsg_exists ? (
                                              data.azurerm_network_security_group.nsg_web[0]) : (
                                              azurerm_network_security_group.nsg_web[0]
@@ -259,16 +230,16 @@ locals {
                                            scs_lb = 4
                                            scs_vm = 6
                                            app_vm = 10
-                                           web_lb = local.web_subnet_defined ? (4 + 1) : 6
-                                           web_vm = local.web_subnet_defined ? (10) : 50
+                                           web_lb = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (4 + 1) : 6
+                                           web_vm = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (10) : 50
                                          }
 
   windows_ip_offsets                   = {
                                            scs_lb = 4
                                            scs_vm = 6 + 2 # Windows HA SCS may require 4 IPs
                                            app_vm = 10 + 2
-                                           web_lb = local.web_subnet_defined ? (4 + 1) : 6 + 2
-                                           web_vm = local.web_subnet_defined ? (10) : 50
+                                           web_lb = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (4 + 1) : 6 + 2
+                                           web_vm = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (10) : 50
                                          }
 
   win_ha_scs                           = local.scs_server_count > 0 && (var.application_tier.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS")
@@ -578,7 +549,7 @@ locals {
                                              name      = "IPConfig1"
                                              subnet_id = local.enable_deployment ? local.web_subnet_deployed.id : ""
 
-                                                                                    nic_ips                       = local.web_nic_ips
+                                             nic_ips                       = local.web_nic_ips
                                              private_ip_address_allocation = var.application_tier.use_DHCP ? "Dynamic" : "Static"
                                              offset                        = 0
                                              primary                       = true
