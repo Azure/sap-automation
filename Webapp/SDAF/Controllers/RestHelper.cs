@@ -191,7 +191,7 @@ namespace SDAFWebApp.Controllers
             string responseBody = await response.Content.ReadAsStringAsync();
             HandleResponse(response, responseBody);
 
-            List<string> fileNames = new();
+            List<string> fileNames = [];
 
             JsonElement values = JsonDocument.Parse(responseBody).RootElement;
             foreach (var value in values.EnumerateArray())
@@ -249,7 +249,7 @@ namespace SDAFWebApp.Controllers
         {
             JsonElement values = await GetVariableGroupsJson();
 
-            List<EnvironmentModel> variableGroups = new();
+            List<EnvironmentModel> variableGroups = [];
 
             foreach (var value in values.EnumerateArray())
             {
@@ -275,10 +275,10 @@ namespace SDAFWebApp.Controllers
         {
             JsonElement values = await GetVariableGroupsJson();
 
-            List<SelectListItem> variableGroups = new()
-      {
+            List<SelectListItem> variableGroups =
+      [
                 new SelectListItem { Text = "", Value = "" }
-            };
+            ];
 
             foreach (var value in values.EnumerateArray())
             {
@@ -463,10 +463,10 @@ namespace SDAFWebApp.Controllers
             }
         }
 
-        public static List<ProductInfoHeaderValue> AppUserAgent { get; } = new()
-        {
+        public static List<ProductInfoHeaderValue> AppUserAgent { get; } =
+        [
             new ProductInfoHeaderValue("SDAF")
-        };
+        ];
 
     }
 }

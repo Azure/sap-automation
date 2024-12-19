@@ -18,7 +18,7 @@
     "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone",
     "Parameters": [
       {
-        "Name": "subscription_id",
+        "Name": "subscription",
         "Required": false,
         "Description": "IMPORTANT: please provide a subscription id to enable dropdown functionality for various arm id parameters, such as resourcegroup_arm_id, network_arm_id, etc.",
         "Type": "lookup",

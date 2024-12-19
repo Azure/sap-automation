@@ -1,8 +1,8 @@
 namespace SDAFWebApp.Models
 {
-  public class ImageDropdown
-  {
-    public string name { get; set; }
-    public Image data { get; set; }
-  }
+    public class ImageDropdown
+    {
+        public string name { get; set; }
+        public Image data { get; set; }
+    }
 }

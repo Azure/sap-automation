@@ -344,7 +344,7 @@ function resetDropdowns(ids) {
 // set the subscription and virtual network to correct value based on one of the existing arm ids
 // required for the case that a user inputs valid arm ids without choosing a subscription or vnet and later wishes to edit
 function setDataFromResource() {
-    if (model["subscription"] == null || model["network_arm_id"] == null) {
+    if (model["subscription_id"] == null || model["network_arm_id"] == null) {
         var alreadySetArmId = null;
         for (i = 3; i < azureResourceIds.length; i++) {
             var currArmId = azureResourceIds[i];
@@ -354,7 +354,7 @@ function setDataFromResource() {
             }
         }
         if (alreadySetArmId != null) {
-            if (model["subscription"] == null) {
+            if (model["subscription_id"] == null) {
                 $.ajax({
                     type: "GET",
                     url: "/Armclient/GetSubscriptionFromResource",
@@ -362,7 +362,7 @@ function setDataFromResource() {
                         resourceId: alreadySetArmId
                     },
                     success: function (data) {
-                        model["subscription"] = data;
+                        model["subscription_id"] = data;
                     },
                     error: function () {
                         console.log("Couldn't get subscription from any existing resources");
@@ -448,7 +448,7 @@ function populateLocations(id, value) {
 // EVENT LISTENERS
 // ===============
 
-$("#subscription").on("change", function () {
+$("#subscription_id").on("change", function () {
     var subscriptionid = $(this).val();
     var dropdownsAffected = [
         {
