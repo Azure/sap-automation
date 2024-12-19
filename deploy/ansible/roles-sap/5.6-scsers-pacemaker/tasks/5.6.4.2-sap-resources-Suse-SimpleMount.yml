@@ -241,12 +241,12 @@
 
 - name:                                "5.6 SCSERS - SLES - Reboot and wait 5 minutes"
   ansible.builtin.debug:
-    msg:                               "Reboot and wait 5 minutes"
+    msg:                               "Reboot and wait 3 minutes"
 
 - name:                                "5.6 SCSERS - SUSE - Reboot the primary/secondary instance"
   ansible.builtin.reboot:
-    reboot_timeout:                    300
-    post_reboot_delay:                 300
+    reboot_timeout:                    90
+    post_reboot_delay:                 90
 
 - name:                                "5.6 SCSERS - SUSE - Set the Cluster out of maintenance mode"
   ansible.builtin.shell:               crm configure property maintenance-mode=false

@@ -39,6 +39,8 @@
     - domain | trim | length > 1
 
 - name:                                "WinCluster-Create: Create windows cluster on the first node"
+  when:
+    - ansible_hostname == primary_node
   become:                              true
   become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
@@ -51,14 +53,21 @@
   vars:
     ansible_winrm_transport:              credssp
     ansible_winrm_server_cert_validation: ignore
+  register: cluster_creation
+
+- name:                                "WinCluster-Create: Give DNS time to update info"
   when:
-    - ansible_hostname == primary_node
+    - cluster_creation is changed
+  ansible.builtin.debug:
+    msg:
+      - "Give DNS time 120 seconds to update"
 
 - name:                                "WinCluster-Create: Give DNS time to update"
-  ansible.builtin.pause:
-    seconds:                           240
   when:
     - ansible_hostname == primary_node
+    - cluster_creation is changed
+  ansible.builtin.pause:
+    seconds:                           120
 
 - name:                                "WinCluster-Create: Tasks for secondary nodes"
   become:                              true

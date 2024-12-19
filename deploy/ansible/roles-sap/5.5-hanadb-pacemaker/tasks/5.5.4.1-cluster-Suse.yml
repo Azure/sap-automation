@@ -197,7 +197,7 @@
           failed_when:                 sec_colocation.rc > 1
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - cleanup cluster resources"
-      ansible.builtin.command:         "crm resource clear"
+      ansible.builtin.command:         "crm resource cleanup"
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure maintenance mode is disabled"
       ansible.builtin.command:         crm configure property maintenance-mode=false
@@ -279,7 +279,7 @@
 # SAPHanaSR-angi configuration
 - name:                                "5.5.4.1 HANA Pacemaker configuration - Configure SAPHanaSR-angi resources"
   when:
-                                       - is_certified_for_hanasr_angi
+                                       - is_certified_for_hanasr_angi | default(false)
                                        - inventory_hostname == primary_instance_name
   block:
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Get the cluster maintenance mode status [SAPHanaSR-angi]"
@@ -423,7 +423,7 @@
                                        crm configure property priority-fencing-delay=30
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - cleanup cluster resources"
-      ansible.builtin.command:         "crm resource clear"
+      ansible.builtin.command:         "crm resource cleanup"
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Disable maintenance mode [SAPHanaSR-angi]"
       ansible.builtin.command: >
@@ -482,7 +482,7 @@
           failed_when:                 sec_colocation.rc > 1
 
         - name:                        "5.5.4.1 HANA Pacemaker configuration - cleanup cluster resources"
-          ansible.builtin.command:     "crm resource clear"
+          ansible.builtin.command:     "crm resource cleanup"
 
         - name:                        "5.5.4.1 HANA Cluster configuration - Disable maintenance mode"
           ansible.builtin.command:     crm configure property maintenance-mode=false

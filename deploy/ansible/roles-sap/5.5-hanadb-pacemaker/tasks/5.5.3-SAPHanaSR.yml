@@ -150,12 +150,12 @@
         - ansible_os_family | upper == "SUSE"
         - not my_hooks_stat.stat.exists
       ansible.builtin.copy:
-        src:                           /usr/share/SAPHanaSR/SAPHanaSR.py
+        src:                           /usr/share/SAPHanaSR/
         dest:                          /hana/shared/myHooks/
         remote_src:                    true
-        owner:                         root
-        group:                         root      # TODO - check the correct group once the python hook package is installed
-        mode:                          '0644'
+        owner:                         "{{ db_sid | lower }}adm"
+        group:                         sapsys      # TODO - check the correct group once the python hook package is installed
+        mode:                          '0755'
 
 
     - name:                            "5.5 HANA Pacemaker - copy SAPHanaSR.py (RHEL)"

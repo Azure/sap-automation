@@ -15,7 +15,11 @@
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/packages_installed.txt"
   register:                            packages_installed
 
-- name:                                "1.4 Packages: - Update packages"
+- name:                                "1.4 Packages: - Update packages on {{ distribution_full_id }}"
+  when:
+                                       - tier == 'os'
+                                       - ansible_distribution_version is version('8.6', '<=')
+                                       - ansible_distribution != "OracleLinux"
   become:                              true
   ansible.builtin.dnf:
     name:                              '*'
@@ -23,21 +27,23 @@
     skip_broken:                       true
     update_only:                       true
   register:                            reboot_output
+
+- name:                                "1.4 Packages: - Update packages on {{ distribution_full_id }}"
   when:
-    - tier == 'os'
-    - ansible_distribution != "OracleLinux"
+                                       - tier == 'os'
+                                       - ansible_distribution_version is version('8.8', '>=')
+                                       - ansible_distribution != "OracleLinux"
+  become:                              true
+  ansible.builtin.dnf:
+    name:                              '*'
+    state:                             latest
+    disablerepo:                       "epel*"
+    skip_broken:                       true
+    update_only:                       true
+  register:                            reboot_output
+
 # Analyse the package list for this distribution selecting only those
 # packages assigned to the active tier or 'all'.
-# - name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }}"  # noqa package-latest
-#   become:                              true
-#   ansible.builtin.dnf:
-#     name:                              '*'
-#     state:                             latest
-#     skip_broken:                       true
-#   register:                            reboot_output
-#   when:
-#     - tier == 'os'
-
 # - name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }} output"
 #   ansible.builtin.debug:
 #     var:                               reboot_output
