@@ -18,7 +18,7 @@
     "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main",
     "Parameters": [
       {
-        "Name": "subscription_id",
+        "Name": "subscription",
         "Required": false,
         "Description": "IMPORTANT: please provide a subscription id to enable dropdown functionality for various Azure resource ID parameters, such as resourcegroup_arm_id, network_arm_id, etc.",
         "Type": "lookup",
@@ -327,6 +327,7 @@
       {
         "Name": "shared_access_key_enabled_nfs",
         "Required": false,
+        "Description": "Storage account authorization using Shared Access Key (NFS shares).",
         "Description": "Storage account authorization using Shared Access Key (NFS shares).",
         "Type": "checkbox",
         "Options": [],
@@ -1582,6 +1583,15 @@
         "Name": "use_simple_mount",
         "Required": false,
         "Description": "If provided, defines that simple mounts are used (Applicable for SLES 15 SP# or newer)",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "use_sles_saphanasr_angi",
+        "Required": false,
+        "Description": "If true, the SAP HANA SR cluster will be configured with SAP HANA SR - An Next Generation Interface",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",

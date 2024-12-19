@@ -644,7 +644,7 @@ done
 # Ensure that Python argcomplete is enabled for all users interactive shell sessions
 sudo "${ansible_bin}"/activate-global-python-argcomplete
 
-# Install Ansible collections under the ANSIBLE_COLLECTIONS_PATHS for all users.
+# Install Ansible collections under the ANSIBLE_COLLECTIONS_PATH for all users.
 sudo mkdir -p "${ansible_collections}"
 set +o xtrace
 
@@ -701,7 +701,7 @@ export DEPLOYMENT_REPO_PATH="$HOME/Azure_SAP_Automated_Deployment/sap-automation
 
 # Set env for ansible
 export ANSIBLE_HOST_KEY_CHECKING=False
-export ANSIBLE_COLLECTIONS_PATHS=~/.ansible/collections:"${ansible_collections}"
+export ANSIBLE_COLLECTIONS_PATH=~/.ansible/collections:"${ansible_collections}"
 
 # Set env for MSI
 export ARM_USE_MSI=true
@@ -772,7 +772,7 @@ fi
 
 # Set env for ansible
 echo "export ANSIBLE_HOST_KEY_CHECKING=False" | tee -a /tmp/deploy_server.sh
-echo "export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections}" | tee -a /tmp/deploy_server.sh
+echo "export ANSIBLE_COLLECTIONS_PATH=${ansible_collections}" | tee -a /tmp/deploy_server.sh
 echo "export BOM_CATALOG=${asad_sample_dir}/SAP" | tee -a /tmp/deploy_server.sh
 
 # export DOTNET_ROOT

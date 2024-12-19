@@ -31,20 +31,20 @@ variable "infrastructure"                               {
 
                                                            validation {
                                                              condition = (
-                                                               length(trimspace(try(var.infrastructure.vnets.sap.logical_name, ""))) != 0
+                                                               length(trimspace(try(var.infrastructure.virtual_networks.sap.logical_name, ""))) != 0
                                                              )
-                                                             error_message = "Please specify the logical VNet identifier in the infrastructure.vnets.sap.name field. For deployments prior to version '2.3.3.1' please use the identifier 'sap'."
+                                                             error_message = "Please specify the logical VNet identifier in the infrastructure.virtual_networks.sap.name field. For deployments prior to version '2.3.3.1' please use the identifier 'sap'."
                                                            }
 
                                                            validation {
                                                              condition = (
-                                                               length(trimspace(try(var.infrastructure.vnets.sap.arm_id, ""))) != 0 || length(var.infrastructure.vnets.sap.address_space[0]) != 0
+                                                               length(trimspace(try(var.infrastructure.virtual_networks.sap.arm_id, ""))) != 0 || length(var.infrastructure.virtual_networks.sap.address_space[0]) != 0
                                                              )
-                                                             error_message = "Either the arm_id or (name and address_space) of the Virtual Network must be specified in the infrastructure.vnets.sap block."
+                                                             error_message = "Either the arm_id or (name and address_space) of the Virtual Network must be specified in the infrastructure.virtual_networks.sap block."
                                                            }
 
                                                            validation {
-                                                             condition     = var.infrastructure.vnets.sap.flow_timeout_in_minutes == null ? true : (var.infrastructure.vnets.sap.flow_timeout_in_minutes >= 4 && var.infrastructure.vnets.sap.flow_timeout_in_minutes <= 30)
+                                                             condition     = var.infrastructure.virtual_networks.sap.flow_timeout_in_minutes == null ? true : (var.infrastructure.virtual_networks.sap.flow_timeout_in_minutes >= 4 && var.infrastructure.virtual_networks.sap.flow_timeout_in_minutes <= 30)
                                                              error_message = "The flow timeout in minutes must be between 4 and 30 if set."
                                                            }
                                                         }
@@ -218,7 +218,7 @@ variable "ANF_settings"                                 {
 
 variable "place_delete_lock_on_resources"                { description = "If defined, a delete lock will be placed on the key resources" }
 
-variable "agent_network_id"                              {
+variable "additional_network_id"                         {
                                                            description = "Agent Network resource ID"
                                                            default     = ""
                                                          }

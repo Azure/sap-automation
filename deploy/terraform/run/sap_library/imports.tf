@@ -5,7 +5,7 @@
 
 data "terraform_remote_state" "deployer"          {
                                                     backend =    "azurerm"
-                                                    count        = length(var.deployer_tfstate_key) > 0 ? 1 : 0
+                                                    count        = var.use_deployer && length(var.deployer_tfstate_key) > 0 ? 1 : 0
                                                     config       = {
                                                                      resource_group_name  = local.saplib_resource_group_name
                                                                      storage_account_name = local.tfstate_storage_account_name
@@ -18,28 +18,28 @@ data "terraform_remote_state" "deployer"          {
 
 data "azurerm_key_vault_secret" "subscription_id" {
                                                     provider     = azurerm.deployer
-                                                    count        = local.use_spn ? 1 : 0
+                                                    count        = var.use_deployer && local.use_spn ? 1 : 0
                                                     name         = format("%s-subscription-id", upper(local.infrastructure.environment))
                                                     key_vault_id = local.key_vault.kv_spn_id
                                                   }
 
 data "azurerm_key_vault_secret" "client_id"       {
                                                     provider     = azurerm.deployer
-                                                    count        = local.use_spn ? 1 : 0
+                                                    count        = var.use_deployer && local.use_spn ? 1 : 0
                                                     name         = format("%s-client-id", upper(local.infrastructure.environment))
                                                     key_vault_id = local.key_vault.kv_spn_id
                                                   }
 
 data "azurerm_key_vault_secret" "client_secret"   {
                                                     provider     = azurerm.deployer
-                                                    count        = local.use_spn ? 1 : 0
+                                                    count        = var.use_deployer && local.use_spn ? 1 : 0
                                                     name         = format("%s-client-secret", upper(local.infrastructure.environment))
                                                     key_vault_id = local.key_vault.kv_spn_id
                                                   }
 
 data "azurerm_key_vault_secret" "tenant_id"       {
                                                     provider     = azurerm.deployer
-                                                    count        = local.use_spn ? 1 : 0
+                                                    count        = var.use_deployer && local.use_spn ? 1 : 0
                                                     name         = format("%s-tenant-id", upper(local.infrastructure.environment))
                                                     key_vault_id = local.key_vault.kv_spn_id
                                                   }

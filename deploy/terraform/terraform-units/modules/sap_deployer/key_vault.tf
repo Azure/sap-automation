@@ -46,11 +46,11 @@ resource "azurerm_key_vault" "kv_user" {
                                                           )
 
                               virtual_network_subnet_ids = compact(local.management_subnet_exists ? (var.use_webapp ? (
-                                                            flatten([data.azurerm_subnet.subnet_mgmt[0].id, data.azurerm_subnet.webapp[0].id, var.subnets_to_add, var.agent_network_id])) : (
-                                                            flatten([data.azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add, var.agent_network_id]))
+                                                            flatten([data.azurerm_subnet.subnet_mgmt[0].id, data.azurerm_subnet.webapp[0].id, var.subnets_to_add, var.additional_network_id])) : (
+                                                            flatten([data.azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add, var.additional_network_id]))
                                                             ) : (var.use_webapp ? (
-                                                              compact(flatten([azurerm_subnet.subnet_mgmt[0].id, try(azurerm_subnet.webapp[0].id, null), var.subnets_to_add, var.agent_network_id]))) : (
-                                                              flatten([azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add, var.agent_network_id])
+                                                              compact(flatten([azurerm_subnet.subnet_mgmt[0].id, try(azurerm_subnet.webapp[0].id, null), var.subnets_to_add, var.additional_network_id]))) : (
+                                                              flatten([azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add, var.additional_network_id])
                                                             )
                              ))
                            }
@@ -87,8 +87,7 @@ resource "azurerm_key_vault_secret" "ppk" {
   name                                 = local.ppk_secret_name
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_systemidentity
+                                           azurerm_key_vault_access_policy.kv_user_msi
                                          ]
   value                                = local.private_key
   key_vault_id                         = var.key_vault.kv_exists ? (
@@ -103,18 +102,10 @@ resource "azurerm_key_vault_secret" "ppk" {
 }
 
 resource "azurerm_key_vault_secret" "pk" {
-  count                                = (local.enable_key && !local.key_exist) ? (
-                                          (
-                                            !var.bootstrap || !var.key_vault.kv_exists) ? (
-                                            1) : (
-                                            0
-                                          )) : (
-                                          0
-                                        )
+  count                                = (local.enable_key && !local.key_exist) ? (1) : (0)
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_systemidentity
+                                           azurerm_key_vault_access_policy.kv_user_msi
                                          ]
 
   name                                 = local.pk_secret_name
@@ -129,7 +120,6 @@ resource "azurerm_key_vault_secret" "pk" {
                                            null
                                          )
 }
-
 resource "azurerm_key_vault_secret" "username" {
   count                                = (local.enable_key && !local.key_exist) ? (
                                           (
@@ -141,8 +131,7 @@ resource "azurerm_key_vault_secret" "username" {
                                         )
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_systemidentity
+                                           azurerm_key_vault_access_policy.kv_user_msi
                                          ]
 
   name                                 = local.username_secret_name
@@ -169,8 +158,7 @@ resource "azurerm_key_vault_secret" "pat" {
                                         )
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_systemidentity
+                                           azurerm_key_vault_access_policy.kv_user_msi
                                          ]
 
   name                                 = "PAT"
@@ -244,27 +232,29 @@ resource "azurerm_key_vault_secret" "pwd" {
 }
 
 data "azurerm_key_vault_secret" "pk" {
-  count                                = (local.enable_key && local.key_exist) ? 1 : 0
+  count                                = (local.enable_key && !local.key_exist) ? (1) : (0)
+  depends_on                           = [ azurerm_key_vault_secret.pk ]
+
   name                                 = local.pk_secret_name
-  key_vault_id                         = var.key_vault.kv_user_id
+  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.kv_user_id)
 }
 
 data "azurerm_key_vault_secret" "ppk" {
   count                                = (local.enable_key && local.key_exist) ? 1 : 0
   name                                 = local.ppk_secret_name
-  key_vault_id                         = var.key_vault.kv_user_id
+  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.kv_user_id)
 }
 
 data "azurerm_key_vault_secret" "username" {
   count                                = (local.username_exist) ? 1 : 0
   name                                 = local.username_secret_name
-  key_vault_id                         = var.key_vault.kv_user_id
+  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.kv_user_id)
 }
 
 data "azurerm_key_vault_secret" "pwd" {
   count                                = (local.enable_password && local.pwd_exist) ? 1 : 0
   name                                 = local.pwd_secret_name
-  key_vault_id                         = var.key_vault.kv_user_id
+  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.kv_user_id)
 }
 
 
@@ -424,27 +414,27 @@ resource "azurerm_key_vault_secret" "subscription" {
                                          )
 }
 
-ephemeral "azurerm_key_vault_secret" "test" {
-  count                                = !var.key_vault.kv_exists ? (1) : (0)
+# ephemeral "azurerm_key_vault_secret" "test" {
+#   count                                = !var.key_vault.kv_exists ? (1) : (0)
 
-  depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_systemidentity
-                                         ]
+#   depends_on                           = [
+#                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
+#                                            azurerm_key_vault_access_policy.kv_user_msi,
+#                                            azurerm_key_vault_access_policy.kv_user_systemidentity
+#                                          ]
 
-  name                                 = format("%s-subscription-id-tester", upper(var.infrastructure.environment))
-  value                                = data.azurerm_client_config.deployer.subscription_id
-  key_vault_id                         = var.key_vault.kv_exists ? (
-                                           var.key_vault.kv_user_id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
+#   name                                 = format("%s-subscription-id-tester", upper(var.infrastructure.environment))
+#   value                                = data.azurerm_client_config.deployer.subscription_id
+#   key_vault_id                         = var.key_vault.kv_exists ? (
+#                                            var.key_vault.kv_user_id) : (
+#                                            azurerm_key_vault.kv_user[0].id
+#                                          )
 
-  expiration_date                      = var.set_secret_expiry ? (
-                                           time_offset.secret_expiry_date.rfc3339) : (
-                                           null
-                                         )
-}
+#   expiration_date                      = var.set_secret_expiry ? (
+#                                            time_offset.secret_expiry_date.rfc3339) : (
+#                                            null
+#                                          )
+# }
 # resource "azurerm_key_vault_secret" "tenant" {
 #   count                                = !var.key_vault.kv_exists ? (1) : (0)
 

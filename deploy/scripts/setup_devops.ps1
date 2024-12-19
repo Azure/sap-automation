@@ -165,7 +165,7 @@ else {
   $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]").Replace("""", "")
   az devops configure --defaults organization=$ADO_ORGANIZATION project=$ADO_PROJECT
 
-  $repo_size=(az repos list --query "[].size | [0]")
+  $repo_size = (az repos list --query "[].size | [0]")
 
   if ($repo_size -eq 0) {
     Write-Host "Importing the repository from GitHub" -ForegroundColor Green
@@ -236,7 +236,7 @@ if ($confirmation -ne 'y') {
     Add-Content -Path $templatename "    - repository: sap-automation"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $templatename "      ref: refs/tags/v3.8.0.0"
+    Add-Content -Path $templatename "      ref: refs/tags/v3.13.0.1"
 
     $cont = Get-Content -Path $templatename -Raw
 
@@ -284,7 +284,7 @@ if ($confirmation -ne 'y') {
     Add-Content -Path $templatename "    - repository: sap-automation"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $templatename "      ref: refs/tags/v3.8.0.0"
+    Add-Content -Path $templatename "      ref: refs/tags/v3.13.0.1"
     Add-Content -Path $templatename "    - repository: sap-samples"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-samples"
@@ -367,7 +367,7 @@ else {
   Add-Content -Path $templatename "resources:"
   Add-Content -Path $templatename "  repositories:"
   Add-Content -Path $templatename "    - repository: sap-automation"
-  Add-Content -Path $templatename "      type: GitHub"
+  Add-Content -Path $templatename "      type: github"
   Add-Content -Path $templatename -Value ("      endpoint: " + $ghConn)
   Add-Content -Path $templatename "      name: Azure/sap-automation"
   Add-Content -Path $templatename "      ref: refs/heads/main"
@@ -416,12 +416,12 @@ else {
   Add-Content -Path $templatename "resources:"
   Add-Content -Path $templatename "  repositories:"
   Add-Content -Path $templatename "   - repository: sap-automation"
-  Add-Content -Path $templatename "     type: GitHub"
+  Add-Content -Path $templatename "     type: github"
   Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
   Add-Content -Path $templatename "     name: Azure/sap-automation"
   Add-Content -Path $templatename "     ref: refs/heads/main"
   Add-Content -Path $templatename "   - repository: sap-samples"
-  Add-Content -Path $templatename "     type: GitHub"
+  Add-Content -Path $templatename "     type: github"
   Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
   Add-Content -Path $templatename "     name: Azure/sap-automation-samples"
   Add-Content -Path $templatename "     ref: refs/heads/main"
@@ -702,8 +702,7 @@ if ($found_appRegistration.Length -ne 0) {
   if ($confirmation -eq 'y') {
     $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors)
   }
-  else
-  {
+  else {
     $WEB_APP_CLIENT_SECRET = Read-Host "Please enter the app registration secret"
   }
 
@@ -755,8 +754,7 @@ if ($found_appName.Length -gt 0) {
 
     $CP_ARM_CLIENT_SECRET = (az ad sp credential reset --id $CP_ARM_CLIENT_ID --append --query "password" --out tsv --only-show-errors).Replace("""", "")
   }
-  else
-  {
+  else {
     $CP_ARM_CLIENT_SECRET = Read-Host "Please enter the Control Plane Service Principal password"
   }
 

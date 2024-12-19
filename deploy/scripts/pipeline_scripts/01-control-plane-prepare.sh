@@ -189,7 +189,7 @@ else
   echo "Deployer Key Vault:                  undefined"
 fi
 
-if [ $FORCE_RESET = true ]; then
+if [ $FORCE_RESET == "true" ]; then
   echo "##vso[task.logissue type=warning]Forcing a re-install"
   echo "Running on:            $THIS_AGENT"
   sed -i 's/step=1/step=0/' "$deployer_environment_file_name"
@@ -290,14 +290,22 @@ cd "$CONFIG_REPO_PATH" || exit
 git pull -q origin "$BRANCH"
 
 echo -e "$green--- Update repo ---$reset"
+
 if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
   git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
   added=1
 fi
+
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name" ]; then
+  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name"
+  added=1
+fi
+
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
   added=1
 fi
+
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
   sudo apt-get install zip -y
   # shellcheck disable=SC2001
@@ -307,24 +315,50 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ];
   git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
   added=1
 fi
+
 if [ 1 = $added ]; then
   git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
   git config --global user.name "$BUILD_REQUESTEDFOR"
   git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
   if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-    echo "##vso[task.logissue type=error]Failed to push changes to the repository."
+    # echo "##vso[task.logissue type=error]Failed to push changes to the repository."
+		echo ""
   fi
 fi
+
 if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
   echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
 fi
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 if [ 0 = $return_code ]; then
 
-  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "$deployer_tfstate_key"
-  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "$file_key_vault"
-  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"
-  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneLocation" "$LOCATION"
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "$deployer_tfstate_key"; then
+		echo "Variable Deployer_State_FileName was added to the $VARIABLE_GROUP variable group."
+	else
+		echo "##vso[task.logissue type=error]Variable Deployer_State_FileName was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable Deployer_State_FileName was not added to the $VARIABLE_GROUP variable group."
+	fi
+
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "$file_key_vault"; then
+		echo "Variable Deployer_Key_Vault was added to the $VARIABLE_GROUP variable group."
+	else
+		echo "##vso[task.logissue type=error]Variable Deployer_Key_Vault was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable Deployer_Key_Vault was not added to the $VARIABLE_GROUP variable group."
+	fi
+
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"; then
+		echo "Variable ControlPlaneEnvironment was added to the $VARIABLE_GROUP variable group."
+	else
+		echo "##vso[task.logissue type=error]Variable ControlPlaneEnvironment was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable ControlPlaneEnvironment was not added to the $VARIABLE_GROUP variable group."
+	fi
+
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneLocation" "$LOCATION"; then
+		echo "Variable ControlPlaneLocation was added to the $VARIABLE_GROUP variable group."
+	else
+		echo "##vso[task.logissue type=error]Variable ControlPlaneLocation was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable ControlPlaneLocation was not added to the $VARIABLE_GROUP variable group."
+	fi
 
 fi
 exit $return_code

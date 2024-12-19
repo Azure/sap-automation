@@ -36,9 +36,7 @@ steps:
 
     deployer_file=/etc/profile.d/deploy_server.sh
 
-    printenv
-
-    if [ $(USE_MSI) != "true" ]; then
+    if [ $USE_MSI != "true" ]; then
       echo "##[section]Running on a deployer..."
       source /etc/profile.d/deploy_server.sh
       noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
@@ -49,7 +47,7 @@ steps:
     else
       echo "##[section]Running on an Azure DevOps agent..."
 
-      if ['$(ARM_CLIENT_ID)' == $AZURE_CLIENT_ID ]; then
+      if [ '$(ARM_CLIENT_ID)' == $AZURE_CLIENT_ID ]; then
         source /etc/profile.d/deploy_server.sh
         noAccess=$( az account show --query name | grep  "N/A(tenant level account)")
 
@@ -173,7 +171,7 @@ steps:
     AZURE_TENANT_ID:                ${{ parameters.azureTenantId }}
     AZURE_SUBSCRIPTION_ID:          ${{ parameters.azureSubscriptionId }}
     USE_MSI:                        ${{ parameters.USE_MSI }}
-    ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+    ANSIBLE_COLLECTIONS_PATH:       ~/.ansible/collections:/opt/ansible/collections
     ANSIBLE_PYTHON_INTERPRETER:     auto_silent
     ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
     ANSIBLE_HOST_KEY_CHECKING:      false

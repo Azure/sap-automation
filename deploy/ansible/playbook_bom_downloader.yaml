@@ -13,7 +13,7 @@
   gather_facts:                         true
   connection:                           local
   environment:
-    ANSIBLE_COLLECTIONS_PATHS:         "/opt/ansible/collections"
+    ANSIBLE_COLLECTIONS_PATH:           "/opt/ansible/collections"
   become:                               "{{ bom_processing_become }}"
   become_user:                          "{{ orchestration_ansible_user }}"
   vars_files:

@@ -105,6 +105,8 @@ data "azurerm_user_assigned_identity" "deployer" {
 // Linux Virtual Machine for Deployer
 resource "azurerm_linux_virtual_machine" "deployer" {
   count                                = var.deployer_vm_count
+  depends_on                           = [ data.azurerm_key_vault_secret.pk ]
+
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.vm,
                                            local.prefix,
@@ -172,7 +174,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
                                             for_each = range(local.public_key == null ? 0 : 1)
                                             content {
                                                       username   = local.username
-                                                      public_key = local.public_key
+                                                      public_key = try(data.azurerm_key_vault_secret.pk[0].value, local.public_key)
                                                     }
                                           }
 

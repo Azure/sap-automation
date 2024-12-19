@@ -30,6 +30,11 @@ output "public_network_access_enabled"          {
                                                   value = var.public_network_access_enabled || !var.use_private_endpoint
                                                 }
 
+output "random_id"                              {
+                                                  description = "Random ID for workload zone"
+                                                  value       = substr(coalesce(var.custom_random_id, module.sap_landscape.random_id),0,3)
+                                                }
+
 ###############################################################################
 #                                                                             #
 #                            Network                                          #
@@ -149,7 +154,7 @@ output "spn_kv_id"                               {
 
 output "workloadzone_kv_name"                    {
                                                    description = "Workload zone keyvault name"
-                                                   value       = length(var.user_keyvault_id) > 0 ? split("/", var.user_keyvault_id)[8] : try(split("/", module.sap_landscape.kv_user)[8], "")
+                                                   value       = lower(length(var.user_keyvault_id) > 0 ? split("/", var.user_keyvault_id)[8] : try(split("/", module.sap_landscape.kv_user)[8], ""))
                                                  }
 
 ###############################################################################

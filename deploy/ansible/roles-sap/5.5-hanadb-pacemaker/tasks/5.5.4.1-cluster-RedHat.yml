@@ -268,12 +268,12 @@
 
     # '*' is a special character in regexp and needs to be escaped for literal matching
     # if we are worried about character spacing across distros we can match for '\* Online:'
-    - name:                            "5.5.4.1 HANA Cluster configuration - Wait until cluster has stabilized on RHEL 8 or 9"
-      ansible.builtin.shell:           "set -o pipefail && pcs status nodes | grep '^ Online: ' | cut -d ':' -f2"
+    - name:                            "5.5.4.1 HANA Cluster configuration - Wait until cluster has stabilized on RHEL 8 and RHEL 9"
+      ansible.builtin.shell:           set -o pipefail && pcs status | grep '^  \* Online:'
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
-      until:                           "primary_instance_name in cluster_stable_check.stdout and secondary_instance_name in cluster_stable_check.stdout"
+      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
       when:                            ansible_distribution_major_version in ["8", "9"]
 
     # - name:                            Ensure Cluster resources are started
@@ -396,6 +396,7 @@
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
       when:                            ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9"
+
     # '*' is a special character in regexp and needs to be escaped for literal matching
     # if we are worried about character spacing across distros we can match for '\* Online:'
     - name:                            "5.5.4.1 HANA Cluster configuration - Wait until cluster has stabilized on RHEL 8 or 9"

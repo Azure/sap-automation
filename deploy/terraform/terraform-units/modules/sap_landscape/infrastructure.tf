@@ -38,6 +38,7 @@ resource "azurerm_virtual_network" "vnet_sap" {
   address_space                        = local.network_address_space
   flow_timeout_in_minutes              = local.network_flow_timeout_in_minutes
   tags                                 = var.tags
+  dns_servers                          = length(var.dns_settings.dns_server_list) > 0 ? var.dns_settings.dns_server_list : []
 }
 
 // Imports data of existing SAP VNET
@@ -141,7 +142,7 @@ resource "azurerm_private_endpoint" "kv_user" {
                                          )
 
   subnet_id                            = local.application_subnet_existing ? (
-                                           var.infrastructure.vnets.sap.subnet_app.arm_id) : (
+                                           var.infrastructure.virtual_networks.sap.subnet_app.arm_id) : (
                                            azurerm_subnet.app[0].id
                                          )
 
@@ -240,13 +241,13 @@ resource "azurerm_management_lock" "vnet_sap" {
             }
 }
 
-# // Peers management VNET to SAP VNET
-resource "azurerm_virtual_network_peering" "peering_agent_sap" {
+# // Peers additional VNET to SAP VNET
+resource "azurerm_virtual_network_peering" "peering_additional_network_sap" {
   provider                             = azurerm.peering
-  count                                = length(var.agent_network_id) > 0 ? 1:0
+  count                                = length(var.additional_network_id) > 0 ? 1:0
   name                                 = substr(
                                            format("%s_to_%s",
-                                             split("/", var.agent_network_id)[8],
+                                             split("/", var.additional_network_id)[8],
                                              local.SAP_virtualnetwork_exists ? (
                                                data.azurerm_virtual_network.vnet_sap[0].name) : (
                                                azurerm_virtual_network.vnet_sap[0].name
@@ -255,8 +256,8 @@ resource "azurerm_virtual_network_peering" "peering_agent_sap" {
                                            0,
                                            80
                                          )
-  virtual_network_name                 = split("/", var.agent_network_id)[8]
-  resource_group_name                  = split("/", var.agent_network_id)[4]
+  virtual_network_name                 = split("/", var.additional_network_id)[8]
+  resource_group_name                  = split("/", var.additional_network_id)[4]
   remote_virtual_network_id            = local.SAP_virtualnetwork_exists ? (
                                            data.azurerm_virtual_network.vnet_sap[0].id) : (
                                            azurerm_virtual_network.vnet_sap[0].id
@@ -266,15 +267,15 @@ resource "azurerm_virtual_network_peering" "peering_agent_sap" {
 }
 
 // Peers SAP VNET to management VNET
-resource "azurerm_virtual_network_peering" "peering_sap_agent" {
+resource "azurerm_virtual_network_peering" "peering_sap_additional_network" {
   provider                             = azurerm.main
-  count                                = length(var.agent_network_id) > 0 ? 1:0
+  count                                = length(var.additional_network_id) > 0 ? 1:0
   name                                 = substr(
                                            format("%s_to_%s",
                                              local.SAP_virtualnetwork_exists ? (
                                                data.azurerm_virtual_network.vnet_sap[0].name) : (
                                                azurerm_virtual_network.vnet_sap[0].name
-                                             ), split("/", var.agent_network_id)[8]
+                                             ), split("/", var.additional_network_id)[8]
                                            ),
                                            0,
                                            80
@@ -287,7 +288,7 @@ resource "azurerm_virtual_network_peering" "peering_sap_agent" {
                                            data.azurerm_virtual_network.vnet_sap[0].name) : (
                                            azurerm_virtual_network.vnet_sap[0].name
                                          )
-  remote_virtual_network_id            = var.agent_network_id
+  remote_virtual_network_id            = var.additional_network_id
   allow_virtual_network_access         = true
   allow_forwarded_traffic              = true
 }

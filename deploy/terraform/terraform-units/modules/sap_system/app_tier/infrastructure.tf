@@ -35,7 +35,7 @@ data "azurerm_subnet" "subnet_sap_app" {
 resource "azurerm_subnet_route_table_association" "app" {
   provider                             = azurerm.main
   count                                = (
-                                           local.application_subnet_defined && !local.application_subnet_exists && length(var.landscape_tfstate.route_table_id) > 0
+                                           var.infrastructure.virtual_networks.sap.subnet_app.defined && !local.application_subnet_exists && length(var.landscape_tfstate.route_table_id) > 0
                                            ) ? (
                                            1) : (
                                            0
@@ -57,7 +57,7 @@ resource "azurerm_subnet_route_table_association" "app" {
 #######################################4#######################################8
 resource "azurerm_subnet" "subnet_sap_web" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment && local.web_subnet_defined ? (local.web_subnet_exists ? 0 : 1) : 0
+  count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_web.defined ? (local.web_subnet_exists ? 0 : 1) : 0
   name                                 = local.web_subnet_name
   resource_group_name                  = split("/", var.landscape_tfstate.vnet_sap_arm_id)[4]
   virtual_network_name                 = split("/", var.landscape_tfstate.vnet_sap_arm_id)[8]
@@ -409,7 +409,7 @@ resource "azurerm_subnet_route_table_association" "subnet_sap_app" {
 
 resource "azurerm_subnet_route_table_association" "subnet_sap_web" {
   provider                             = azurerm.main
-  count                                = local.deploy_route_table && local.web_subnet_defined ? (
+  count                                = local.deploy_route_table && var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
                                            local.web_subnet_exists ? (
                                              0) : (
                                              1

@@ -62,7 +62,7 @@
   when:
     - iscsi_node_type == 'scs'
   block:
-    - name:                            "1.17.1 iSCSI configuration - replace InitiatorName - {{ primary_instance_name }}"
+    - name:                            "1.17.1 iSCSI configuration - replace InitiatorName for {{ iscsi_node_type }} - {{ primary_instance_name }}"
       ansible.builtin.replace:
         path:                          /etc/iscsi/initiatorname.iscsi
         regexp:                        '^InitiatorName=.*$'
@@ -71,7 +71,7 @@
       when:
         - inventory_hostname == primary_instance_name
 
-    - name:                            "1.17.1 iSCSI configuration - replace InitiatorName - {{ secondary_instance_name }}"
+    - name:                            "1.17.1 iSCSI configuration - replace InitiatorName for {{ iscsi_node_type }} - {{ secondary_instance_name }}"
       ansible.builtin.replace:
         path:                          /etc/iscsi/initiatorname.iscsi
         regexp:                        '^InitiatorName=.*$'
@@ -84,7 +84,7 @@
   when:
     - iscsi_node_type == 'db'
   block:
-    - name:                            "1.17.1 iSCSI configuration - replace InitiatorName - {{ primary_instance_name }}"
+    - name:                            "1.17.1 iSCSI configuration - replace InitiatorName for {{ iscsi_node_type }} - {{ primary_instance_name }}"
       ansible.builtin.replace:
         path:                          /etc/iscsi/initiatorname.iscsi
         regexp:                        '^InitiatorName=.*$'
@@ -93,7 +93,7 @@
       when:
         - inventory_hostname == primary_instance_name
 
-    - name:                            "1.17.1 iSCSI configuration - replace InitiatorName - {{ secondary_instance_name }}"
+    - name:                            "1.17.1 iSCSI configuration - replace InitiatorName for {{ iscsi_node_type }} - {{ secondary_instance_name }}"
       ansible.builtin.replace:
         path:                          /etc/iscsi/initiatorname.iscsi
         regexp:                        '^InitiatorName=.*$'
@@ -113,35 +113,58 @@
 - name:                                "1.17.1 iSCSI configuration block - iterate through the available iSCSI servers"
   when:
     - iscsi_node_type is defined
-    - iscsi_node_type in ['scs', 'db']
     - iscsi_initiator_name is defined
   block:
-    # - name:                            "1.17.1 iSCSI configuration - discovery, login and update node.startup"
-    #   when:
-    #     - iscsi_node_type == item.type
-    #     - iscsi_initiator_name == item.iqn
-    #   ansible.builtin.shell:
-    #     cmd: >-
-    #                                    iscsiadm -m discovery --type=st --portal={{ item.host }}:3260;
-    #                                    iscsiadm -m node -T {{ item.iqn }} --login --portal={{ item.host }}:3260;
-    #                                    iscsiadm -m node -T {{ item.iqn }} -p {{ item.host }}:3260 --op=update \
-    #                                              --name=node.startup --value=automatic
-    #   loop:                            "{{ iscsi_servers }}"
+    # error codes:
+    # https://github.com/open-iscsi/open-iscsi/blob/master/include/iscsi_err.h
+    # Old code:
+    # set -o errexit
+    # iscsiadm -m discovery --type=st --portal={{ item.host }}:3260
+    # iscsiadm -m node -T {{ item.iqn }} --login --portal={{ item.host }}:3260
+    # iscsiadm -m node -p {{ item.host }}:3260 -T {{ item.iqn }} --op=update --name=node.startup --value=automatic
 
-    - name:                            "1.17.1 iSCSI configuration - discovery, login and update node.startup using community.general.open_iscsi"
+    - name:                            "1.17.1 iSCSI configuration on cluster servers for {{ iscsi_node_type }} - discovery, login and update node.startup"
       community.general.open_iscsi:
         login:                         true
         portal:                        "{{ item.host }}"
-        auto_portal_startup:           true
+        # auto_portal_startup:           true
+        auto_node_startup:             true
         discover:                      true
         target:                        "{{ item.iqn }}"
+        rescan:                        true
       loop:                            "{{ iscsi_servers }}"
       register:                        iscsi_configuration_result
+      failed_when:                     false
       when:
-        - iscsi_node_type == item.type
+        # - iscsi_node_type == 'scs'
+        - iscsi_node_type in ['scs', 'db']
         - iscsi_initiator_name == item.iqn
 
-- name:                                "1.17.1 reload iSCSI"
+    - name:                                "1.17.1 iSCSI packages - print iSCSI configuration result"
+      when:
+        - iscsi_node_type is defined
+        - iscsi_node_type in ['scs', 'db']
+      ansible.builtin.debug:
+        msg:                               "{{ iscsi_configuration_result }}"
+        verbosity:                         2
+
+    # - name:                            "1.17.1 iSCSI configuration on cluster servers for {{ iscsi_node_type }} - discovery, login and update node.startup"
+    #   community.general.open_iscsi:
+    #     login:                         true
+    #     portal:                        "{{ item.host }}"
+    #     # auto_portal_startup:           true
+    #     auto_node_startup:             true
+    #     discover:                      true
+    #     target:                        "{{ item.iqn }}"
+    #     rescan:                        true
+    #   loop:                            "{{ iscsi_servers }}"
+    #   register:                        iscsi_configuration_result
+    #   failed_when:                     false
+    #   when:
+    #     - iscsi_node_type == 'db'
+    #     - iscsi_initiator_name == item.iqn
+
+- name:                                "1.17.1 reload iSCSI on cluster servers"
   ansible.builtin.systemd:
     name:                              "{{ item }}"
     enabled:                           true
@@ -150,16 +173,7 @@
     - iscsid
     - iscsi
 
-- name:                                "1.17.1 iSCSI packages - print iSCSI configuration result"
-  when:
-    - iscsi_node_type is defined
-    - iscsi_node_type in ['scs', 'db']
-    - iscsi_initiator_name is defined
-  ansible.builtin.debug:
-    msg:                               "{{ iscsi_configuration_result }}"
-    verbosity:                         2
-
-- name:                                "1.17.1 iSCSI packages - product of vms in group and iscsi_configuration_result devicenodes attribute"
+- name:                                "1.17.1 iSCSI packages - Select iscsi_configuration_result device nodes list"
   ansible.builtin.set_fact:
     iscsi_devices_on_client:           "{{ iscsi_configuration_result.results | selectattr('devicenodes', 'defined') |
                                            map(attribute='devicenodes') | select() | flatten(levels=1) |
@@ -167,14 +181,14 @@
   when:
     - iscsi_configuration_result is defined
 
-- name:                                "1.17.1 iSCSI packages - product of ansible_play_hosts_all in group and iscsi_configuration_result devices on client"
+- name:                                "1.17.1 iSCSI packages - Set product of ansible_play_hosts_all in group and iscsi_configuration_result devices on client"
   ansible.builtin.set_fact:
     iscsi_device_map:                  "{{ [ansible_hostname] | product(iscsi_devices_on_client) |
                                            default([]) | unique | list }}"
   when:
     - iscsi_configuration_result is defined
 
-- name:                                "1.17.1 iSCSI packages - product of vms in group and iscsi_configuration_result devicenodes attribute"
+- name:                                "1.17.1 iSCSI packages - Show product of servers in group and iscsi_configuration_result devicenodes attribute"
   ansible.builtin.debug:
     msg:
       - "iscsi_devices_on_client:      {{ iscsi_devices_on_client }}"
@@ -183,5 +197,11 @@
   when:
     - iscsi_configuration_result is defined
 
+- name:                                "1.17.1 iSCSI Check if iSCSI configuration was successful"
+  ansible.builtin.fail:
+    msg:                               "iSCSI configuration failed"
+  when:
+    - iscsi_devices_on_client == []
+    - iscsi_device_map == []
 
 ...

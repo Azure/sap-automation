@@ -75,9 +75,6 @@ $$custom_disk_sizes_filename$$
 # use_secondary_ips controls if the virtual machines should be deployed with two IP addresses. Required for SAP Virtual Hostname support
 $$use_secondary_ips$$
 
-# subscription is the subscription in which the system will be deployed (informational only)
-$$subscription$$
-
 # use_scalesets_for_deployment defines if Flexible Virtual Machine Scale Sets are used for the deployment
 $$use_scalesets_for_deployment$$
 
@@ -184,7 +181,7 @@ $$database_vm_zones$$
 # Optional, Defines the default authentication model for the Database VMs (key/password)
 $$database_vm_authentication_type$$
 
-# Optional, Defines the list of availability sets to deployt the Database VMs in
+# Optional, Defines the list of availability sets to deploy the Database VMs in
 $$database_vm_avset_arm_ids$$
 
 # Optional, Defines the that the database virtual machines will not be placed in a proximity placement group
@@ -456,6 +453,8 @@ $$use_fence_kdump_size_gb_scs$$
 # Default LUN number of the kdump disk which will be attached to the VMs which are part of SCS cluster
 $$use_fence_kdump_lun_scs$$
 
+# If true, the SAP HANA SR cluster will be configured with SAP HANA SR - An Next Generation Interface
+$$use_sles_saphanasr_angi$$
 
 #########################################################################################
 #                                                                                       #
@@ -869,9 +868,6 @@ $$deployer_tfstate_key$$
 
 # landscape_tfstate_key is the state file name for the workload deployment
 $$landscape_tfstate_key$$
-
-# use_spn defines if the deployments are performed using Service Principals or the deployer's managed identiry, true=SPN, false=MSI
-$$ use_spn$$
 
 #########################################################################################
 #                                                                                       #

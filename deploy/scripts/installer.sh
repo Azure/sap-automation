@@ -774,7 +774,6 @@ if [ 0 == $new_deployment ]; then
 
 				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
-
 				resourceGroupName=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "resourceGroup" --output tsv)
 				resourceType=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "type" --output tsv)
 				resourceName=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "name" --output tsv)
@@ -865,7 +864,7 @@ fi
 allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 # shellcheck disable=SC2086
-if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings | tee -a plan_output.log; then
+if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color| tee -a plan_output.log; then
 	return_value=$?
 	echo "Terraform Plan return code:          $return_value"
 
@@ -1041,51 +1040,68 @@ if ! testIfResourceWouldBeRecreated "module.sap_library.azurerm_storage_containe
 fi
 
 # HANA VM
-if ! testIfResourceWouldBeRecreated "vm_dbnode" "plan_output.log" "Database server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.hdb_node.azurerm_linux_virtual_machine.vm_dbnode" "plan_output.log" "Database server(s)"; then
 	fatal_errors=1
 fi
 
 # HANA VM disks
-if ! testIfResourceWouldBeRecreated "azurerm_managed_disk.data_disk" "plan_output.log" "Database server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.hdb_node.azurerm_managed_disk.data_disk" "plan_output.log" "Database server disk(s)"; then
 	fatal_errors=1
 fi
 
 # AnyDB server
-if ! testIfResourceWouldBeRecreated "dbserver" "plan_output.log" "Database server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_windows_virtual_machine.dbserver" "plan_output.log" "Database server(s)"; then
+	fatal_errors=1
+fi
+
+if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_linux_virtual_machine.dbserver" "plan_output.log" "Database server(s)"; then
 	fatal_errors=1
 fi
 
 # AnyDB disks
-if ! testIfResourceWouldBeRecreated "azurerm_managed_disk.disks" "plan_output.log" "Database server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.anydb_node.azurerm_managed_disk.disks" "plan_output.log" "Database server disk(s)"; then
 	fatal_errors=1
 fi
 
 # App server
-if ! testIfResourceWouldBeRecreated "virtual_machine.app" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_windows_virtual_machine.app" "plan_output.log" "Application server(s)"; then
+	fatal_errors=1
+fi
+
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machine.app" "plan_output.log" "Application server(s)"; then
 	fatal_errors=1
 fi
 
 # App server disks
-if ! testIfResourceWouldBeRecreated "azurerm_managed_disk.app" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.app" "plan_output.log" "Application server disk(s)"; then
 	fatal_errors=1
 fi
 
 # SCS server
-if ! testIfResourceWouldBeRecreated "virtual_machine.scs" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_windows_virtual_machine.scs" "plan_output.log" "SCS server(s)"; then
+	fatal_errors=1
+fi
+
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machine.scs" "plan_output.log" "SCS server(s)"; then
 	fatal_errors=1
 fi
 
 # SCS server disks
-if ! testIfResourceWouldBeRecreated "azurerm_managed_disk.scs" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.scs" "plan_output.log" "SCS server disk(s)"; then
 	fatal_errors=1
 fi
 
 # Web server
-if ! testIfResourceWouldBeRecreated "virtual_machine.web" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_windows_virtual_machine.web" "plan_output.log" "Web server(s)"; then
 	fatal_errors=1
 fi
+
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_linux_virtual_machine.web" "plan_output.log" "Web server(s)"; then
+	fatal_errors=1
+fi
+
 # Web dispatcher server disks
-if ! testIfResourceWouldBeRecreated "azurerm_managed_disk.web" "plan_output.log" "Application server(s)"; then
+if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.web" "plan_output.log" "Web server disk(s)"; then
 	fatal_errors=1
 fi
 
@@ -1100,6 +1116,20 @@ if [ "${TEST_ONLY}" == "True" ]; then
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 	echo ""
+
+	if [ $fatal_errors == 1 ]; then
+		apply_needed=0
+		echo ""
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo -e "#                               $bold_red_underscore!!! Risk for Data loss !!!$reset_formatting                              #"
+		echo "#                                                                                       #"
+		echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		echo ""
+		exit 10
+	fi
 	exit 0
 fi
 
@@ -1153,7 +1183,7 @@ if [ 1 == $apply_needed ]; then
 	echo "#########################################################################################"
 	echo ""
 
-	allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
+	      allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
 	allImportParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}")
 
 	if [ -n "${approve}" ]; then
@@ -1176,6 +1206,9 @@ if [ 1 == $apply_needed ]; then
 				return_value=0
 			fi
 		else
+			echo ""
+			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo ""
 			return_value=0
 		fi
 
@@ -1202,11 +1235,17 @@ if [ 1 == $apply_needed ]; then
 		errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 		if [[ -n $errors_occurred ]]; then
+			return_value=10
 			if [ -n "${approve}" ]; then
+				echo -e "${cyan}Retrying Terraform apply:$reset_formatting"
+
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 					return_value=$?
 				fi
+
+				sleep 10
+				echo -e "${cyan}Retrying Terraform apply:$reset_formatting"
 
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
@@ -1256,7 +1295,7 @@ if [ 1 == $return_value ]; then
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
-	echo -e "#                          $bold_red_underscore!Errors during the apply phase!$reset_formatting                              #"
+	echo -e "#                       $bold_red_underscore!!! Errors during the apply phase !!!$reset_formatting                           #"
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 	echo ""
@@ -1267,6 +1306,15 @@ fi
 if [ "${deployment_system}" == sap_deployer ]; then
 
 	# terraform -chdir="${terraform_module_directory}"  output
+
+	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+	if [ -n "${deployer_random_id}" ]; then
+		save_config_var "deployer_random_id" "${system_config_information}"
+		custom_random_id="${deployer_random_id}"
+		sed -i -e "" -e /"custom_random_id"/d "${parameterfile}"
+		printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+
+	fi
 
 	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
 	keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
@@ -1289,7 +1337,14 @@ if [ "${deployment_system}" == sap_deployer ]; then
 	return_value=0
 	if [ 1 == $called_from_ado ]; then
 
-		terraform -chdir="${terraform_module_directory}" output -json -no-color deployer_uai
+		if [ -n "${deployer_random_id}" ]; then
+			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_RANDOM_ID.value")
+			if [ -z "${az_var}" ]; then
+				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_RANDOM_ID --value "${deployer_random_id}" --output none --only-show-errors
+			else
+				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_RANDOM_ID --value "${deployer_random_id}" --output none --only-show-errors
+			fi
+		fi
 
 		if [ -n "${created_resource_group_name}" ]; then
 			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_RESOURCE_GROUP.value")
@@ -1393,6 +1448,14 @@ if [ "${deployment_system}" == sap_library ]; then
 	REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 	sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
 
+	library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+	if [ -n "${library_random_id}" ]; then
+		save_config_var "library_random_id" "${system_config_information}"
+		custom_random_id="${library_random_id}"
+		sed -i -e "" -e /"custom_random_id"/d "${parameterfile}"
+		printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+
+	fi
 	if [ 1 == $called_from_ado ]; then
 
 		if [ -n "${sapbits_storage_account_name}" ]; then
@@ -1401,6 +1464,14 @@ if [ "${deployment_system}" == sap_library ]; then
 				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "${sapbits_storage_account_name}" --output none --only-show-errors
 			else
 				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "${sapbits_storage_account_name}" --output none --only-show-errors
+			fi
+		fi
+		if [ -n "${library_random_id}" ]; then
+			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "LIBRARY_RANDOM_ID.value")
+			if [ -z "${az_var}" ]; then
+				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID --value "${library_random_id}" --output none --only-show-errors
+			else
+				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID --value "${library_random_id}" --output none --only-show-errors
 			fi
 		fi
 

@@ -18,13 +18,24 @@
     sql_agent_account_password_id:     "{{ secret_prefix }}-{{ sap_sid | upper }}-sql-agent-password"
 
 - name:                                "0.1 Password: - Get All secrets from key vault"
-  ansible.builtin.command: >-
-    az keyvault secret list
-      --vault-name {{ kv_name }}
-      --query [].name
-      --output yaml
-  changed_when:                        false
-  register:                            keyvault_secrets
+  block:
+    - name:                            "0.1 Password: - Get All secrets from key vault"
+      ansible.builtin.command: >-
+        az keyvault secret list
+          --vault-name {{ kv_name | lower }}
+          --query [].name
+          --output yaml
+      changed_when:                    false
+      register:                        keyvault_secrets
+  rescue:
+    - name:                            "0.1 Password: - Get All secrets from key vault"
+      ansible.builtin.command: >-
+        az keyvault secret list
+          --id https://{{ kv_name  | lower }}.vault.azure.net
+          --query [].name
+          --output yaml
+      changed_when:                    false
+      register:                        keyvault_secrets
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -41,7 +52,7 @@
     - name:                            "0.1 Password: - Get ({{ winsidadm_password_id }}) from key vault"
       ansible.builtin.command: >-
         az keyvault secret show
-          --vault-name {{ kv_name }}
+          --vault-name {{ kv_name | lower }}
           --name {{ winsidadm_password_id }}
           --query value
           --output tsv
@@ -81,7 +92,7 @@
     - name:                            "0.1 Password: - Get Windows svc from key vault  ({{ svcsidadm_password_id }})"
       ansible.builtin.command: >-
         az keyvault secret show
-          --vault-name {{ kv_name }}
+          --vault-name {{ kv_name | lower }}
           --name {{ svcsidadm_password_id }}
           --query value
           --output tsv
@@ -122,7 +133,7 @@
     - name:                            "0.1 Password: - Get ({{ adsvcadm_password_id }}) password from key vault "
       ansible.builtin.command: >-
         az keyvault secret show
-          --vault-name {{ kv_name }}
+          --vault-name {{ kv_name | lower }}
           --name {{ adsvcadm_password_id }}
           --query value
           --output tsv
@@ -166,7 +177,7 @@
     - name:                            "0.1 Password: - Get Service Account from key vault ({{ adsvcadm_account_id }})"
       ansible.builtin.command: >-
         az keyvault secret show
-          --vault-name {{ kv_name }}
+          --vault-name {{ kv_name | lower }}
           --name {{ adsvcadm_account_id }}
           --query value
           --output tsv
@@ -207,7 +218,7 @@
     - name:                            "0.1 Password: - Get SQL Service Account from key vault ({{ sql_account_id }})"
       ansible.builtin.command: >-
         az keyvault secret show
-          --vault-name {{ kv_name }}
+          --vault-name {{ kv_name | lower }}
           --name {{ sql_account_id }}
           --query value
           --output tsv
@@ -241,7 +252,7 @@
     - name:                            "0.1 Password: - Get Service SQL Service Account Password from key vault ({{ sql_account_password_id }})"
       ansible.builtin.command: >-
         az keyvault secret show
-          --vault-name {{ kv_name }}
+          --vault-name {{ kv_name | lower }}
           --name {{ sql_account_password_id }}
           --query value
           --output tsv
@@ -275,7 +286,7 @@
     - name:                            "0.1 Password: - Get SQL Agent Service Account from key vault ({{ sql_agent_account_id }})"
       ansible.builtin.command: >-
         az keyvault secret show
-          --vault-name {{ kv_name }}
+          --vault-name {{ kv_name | lower }}
           --name {{ sql_agent_account_id }}
           --query value
           --output tsv
@@ -309,7 +320,7 @@
     - name:                            "0.1 Password: - Get SQL Agent Service Account Password from ({{ sql_agent_account_password_id }})"
       ansible.builtin.command: >-
         az keyvault secret show
-          --vault-name {{ kv_name }}
+          --vault-name {{ kv_name | lower }}
           --name {{ sql_agent_account_password_id }}
           --query value
           --output tsv

@@ -358,7 +358,7 @@ $$user_keyvault_id$$
 # spn_keyvault_id is an optional parameter that if provided specifies the Azure resource identifier for an existing keyvault
 $$spn_keyvault_id$$
 
-# enable_purge_control_for_keyvaults is an optional parameter that czan be used to disable the purge protection fro Azure keyvaults
+# enable_purge_control_for_keyvaults is an optional parameter that can be used to disable the purge protection for Azure key vaults
 $$enable_purge_control_for_keyvaults$$
 
 # enable_rbac_authorization_for_keyvault Controls the access policy model for the workload zone keyvault.

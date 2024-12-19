@@ -46,14 +46,14 @@
       tags:
         - 0.1-win-passwords
 
-    - name:                                 "PAS Installation Playbook: - Read/Create key vault secrets"
+    - name:                            "PAS Installation Playbook: - Read/Create key vault secrets"
       ansible.builtin.include_role:
-        name:                               roles-misc/0.2-kv-secrets
-        public:                             true
+        name:                          roles-misc/0.2-kv-secrets
+        public:                        true
       vars:
-        operation:                          fencing
+        operation:                     fencing
       tags:
-                                            - 0.2-kv-secrets
+                                       - 0.2-kv-secrets
 
     - name:                            "PAS Installation Playbook: - Read storage account details"
       ansible.builtin.include_role:

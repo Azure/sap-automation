@@ -332,79 +332,11 @@ locals {
                                       }
   web_os_specified                     = (length(local.web_os.source_image_id) + length(local.web_os.publisher)) > 0
 
-  vnets                                = {  }
+  virtual_networks                     = {  }
 
   sap                                  = {
-                                           logical_name = try(coalesce(var.network_logical_name, try(var.infrastructure.vnets.sap.logical_name, "")), "")
+                                           logical_name = var.network_logical_name
                                          }
-
-  subnet_admin_defined                 = (
-                                           length(var.admin_subnet_address_prefix) +
-                                           length(var.admin_subnet_arm_id)
-                                         ) > 0
-
-  subnet_admin_arm_id_defined          = (
-                                           length(var.admin_subnet_arm_id)
-                                         ) > 0
-
-  subnet_admin_nsg_defined             = (
-                                           length(var.admin_subnet_nsg_name) +
-                                           length(var.admin_subnet_nsg_arm_id)
-                                         ) > 0
-
-  subnet_db_defined                    = (
-                                           length(var.db_subnet_address_prefix) +
-                                           length(var.db_subnet_arm_id)
-                                         ) > 0
-
-  subnet_db_arm_id_defined             = (
-                                          length(var.db_subnet_arm_id)
-                                        ) > 0
-
-  subnet_db_nsg_defined                = (
-                                           length(var.db_subnet_nsg_name) +
-                                           length(var.db_subnet_nsg_arm_id)
-                                         ) > 0
-
-  subnet_app_defined                   = (
-                                           length(var.app_subnet_address_prefix) +
-                                           length(var.app_subnet_arm_id)
-                                         ) > 0
-
-  subnet_app_arm_id_defined            = (
-                                           length(var.app_subnet_arm_id)
-                                         ) > 0
-
-  subnet_app_nsg_defined               = (
-                                           length(var.app_subnet_nsg_name) +
-                                           length(var.app_subnet_nsg_arm_id)
-                                         ) > 0
-
-  subnet_web_defined                   = (
-                                           length(var.web_subnet_address_prefix) +
-                                           length(var.web_subnet_arm_id)
-                                         ) > 0
-
-  subnet_web_arm_id_defined            = (
-                                           length(var.web_subnet_arm_id)
-                                         ) > 0
-
-  subnet_web_nsg_defined               = (
-                                           length(var.web_subnet_nsg_name) +
-                                           length(var.web_subnet_nsg_arm_id)
-                                         ) > 0
-
-  subnet_storage_defined                 = (
-                                           length(var.storage_subnet_address_prefix) +
-                                           length(var.storage_subnet_arm_id)
-                                         ) > 0
-
-  subnet_storage_arm_id_defined          = (length(var.storage_subnet_arm_id)) > 0
-
-  subnet_storage_nsg_defined             = (
-                                           length(var.storage_subnet_nsg_name) +
-                                           length(var.storage_subnet_nsg_arm_id)
-                                         ) > 0
 
   app_nic_ips                          = distinct(var.application_server_app_nic_ips)
   app_nic_secondary_ips                = distinct(var.application_server_app_nic_ips)
@@ -418,186 +350,127 @@ locals {
   web_admin_nic_ips                    = concat(var.webdispatcher_server_admin_nic_ips)
   webdispatcher_loadbalancer_ips       = concat(var.webdispatcher_server_loadbalancer_ips)
 
-  subnet_admin                         = merge((
+  subnet_admin                         = {
+                                             "name"    = try(coalesce(
+                                                           var.admin_subnet_name, split("/",
+                                                           data.terraform_remote_state.landscape.outputs.admin_subnet_id)[10]
+                                                        ), "")
+                                             "arm_id"  = try(coalesce(
+                                                          var.admin_subnet_arm_id,
+                                                          data.terraform_remote_state.landscape.outputs.admin_subnet_id
+                                                        ), "")
+                                             "prefix"  = var.admin_subnet_address_prefix
+                                             "defined" = length(var.admin_subnet_address_prefix) > 0
+                                              "nsg" = {
+                                                        "name"   = try(coalesce(
+                                                                     var.admin_subnet_nsg_name,
+                                                                     split("/",data.terraform_remote_state.landscape.outputs.admin_nsg_id)[8]
+                                                                   ), "")
+                                                        "arm_id" = try(coalesce(
+                                                                     var.admin_subnet_nsg_arm_id,
+                                                                     data.terraform_remote_state.landscape.outputs.admin_nsg_id
+                                                                   ), "")
+                                                      }
+                                         }
+
+  subnet_db                            = {
+                                             "name"    = try(coalesce(
+                                                          var.db_subnet_name,
+                                                          split("/",data.terraform_remote_state.landscape.outputs.db_subnet_id)[10]
+                                                        ), "")
+                                             "arm_id"  = try(coalesce(
+                                                          var.db_subnet_arm_id,
+                                                          data.terraform_remote_state.landscape.outputs.db_subnet_id
+                                                        ), "")
+                                             "prefix"  = var.db_subnet_address_prefix
+                                             "defined" = length(var.db_subnet_address_prefix) > 0
+                                              "nsg" = {
+                                                        "name"   = try(coalesce(
+                                                                     var.db_subnet_nsg_name,
+                                                                     split("/",data.terraform_remote_state.landscape.outputs.db_nsg_id)[8]
+                                                                   ), "")
+                                                        "arm_id" = try(coalesce(
+                                                                     var.db_subnet_nsg_arm_id,
+                                                                     data.terraform_remote_state.landscape.outputs.db_nsg_id
+                                                                     ), "")
+                                                      }
+                                         }
+
+  subnet_app                           = {
+                                             "name"    = try(coalesce(
+                                                              var.app_subnet_name,
+                                                              split("/",data.terraform_remote_state.landscape.outputs.app_subnet_id)[10]
+                                                            ), "")
+                                             "arm_id"  = try(coalesce(
+                                                              var.app_subnet_arm_id,
+                                                              data.terraform_remote_state.landscape.outputs.app_subnet_id
+                                                            ), "")
+                                             "prefix"  = var.app_subnet_address_prefix
+                                             "defined" = length(var.app_subnet_address_prefix) > 0
+                                              "nsg" = {
+                                                        "name"   = try(coalesce(
+                                                                         var.app_subnet_nsg_name,
+                                                                         split("/",data.terraform_remote_state.landscape.outputs.app_nsg_id)[8]
+                                                                      ), "")
+                                                        "arm_id" = try(coalesce(
+                                                                     var.app_subnet_nsg_arm_id,
+                                                                     data.terraform_remote_state.landscape.outputs.app_nsg_id
+                                                                  ), "")
+                                                      }
+                                         }
+
+  subnet_web                           = {
+                                             "name"    = try(coalesce(
+                                                          var.web_subnet_name,
+                                                          split("/",data.terraform_remote_state.landscape.outputs.web_subnet_id)[10],
+                                                          var.app_subnet_name,
+                                                          split("/",data.terraform_remote_state.landscape.outputs.app_subnet_id)[10]
+                                                          ), "")
+                                             "arm_id"  = try(coalesce(
+                                                          var.web_subnet_arm_id,
+                                                          data.terraform_remote_state.landscape.outputs.web_subnet_id,
+                                                          var.app_subnet_arm_id,
+                                                          data.terraform_remote_state.landscape.outputs.app_subnet_id
+                                                          ), "")
+                                             "prefix"  = var.web_subnet_address_prefix
+                                             "defined" = length(var.web_subnet_address_prefix) > 0
+                                              "nsg" = {
+                                                        "name"   = try(coalesce(
+                                                                     var.web_subnet_nsg_name,split("/",
+                                                                     data.terraform_remote_state.landscape.outputs.web_nsg_id)[8],
+                                                                     var.app_subnet_nsg_name,
+                                                                     split("/",data.terraform_remote_state.landscape.outputs.app_nsg_id)[8]
+                                                                   ), "")
+                                                        "arm_id" = try(coalesce(
+                                                                     var.web_subnet_nsg_arm_id,
+                                                                     data.terraform_remote_state.landscape.outputs.web_nsg_id,
+                                                                     var.app_subnet_nsg_arm_id,
+                                                                     data.terraform_remote_state.landscape.outputs.app_nsg_id
+                                                                   ), "")
+                                                      }
+                                         }
+
+  subnet_storage                       = {
+                                             "name"    = try(coalesce(var.storage_subnet_name, split("/",data.terraform_remote_state.landscape.outputs.storage_subnet_id)[10]), "")
+                                             "arm_id"  = try(coalesce(var.storage_subnet_arm_id,data.terraform_remote_state.landscape.outputs.storage_subnet_id), "")
+                                             "prefix"  = var.storage_subnet_address_prefix
+                                             "defined" = length(var.storage_subnet_address_prefix) > 0
+                                              "nsg" = {
+                                                        "name"   = try(coalesce(var.storage_subnet_nsg_name,split("/",data.terraform_remote_state.landscape.outputs.storage_nsg_id)[8]), "")
+                                                        "arm_id" = try(coalesce(var.storage_subnet_nsg_arm_id,data.terraform_remote_state.landscape.outputs.storage_nsg_id), "")
+                                                      }
+                                         }
+
+
+all_subnets                          = merge(local.sap, (
                                            {
-                                             "name" = var.admin_subnet_name
+                                             "subnet_admin"   = local.subnet_admin
+                                             "subnet_db"      = local.subnet_db
+                                             "subnet_app"     = local.subnet_app
+                                             "subnet_web"     = local.subnet_web
+                                             "subnet_storage" = local.subnet_storage
                                            }
-                                           ), (
-                                           local.subnet_admin_arm_id_defined ?
-                                           (
-                                             {
-                                               "arm_id" = var.admin_subnet_arm_id
-                                             }
-                                             ) : (
-                                             null
-                                           )), (
-                                           {
-                                             "prefix" = var.admin_subnet_address_prefix
-                                           }
-                                           ), (
-                                           local.subnet_admin_nsg_defined ? (
-                                             {
-                                               "nsg" = {
-                                                 "name"   = var.admin_subnet_nsg_name
-                                                 "arm_id" = var.admin_subnet_nsg_arm_id
-                                               }
-                                             }
-                                             ) : (
-                                             null
-                                           )
-                                           )
-                                         )
-
-  subnet_db                            = merge((
-                                             {
-                                               "name" = var.db_subnet_name
-                                             }
-                                             ), (
-                                             local.subnet_db_arm_id_defined ? (
-                                               {
-                                                 "arm_id" = var.db_subnet_arm_id
-                                               }
-                                               ) : (
-                                             null)
-                                             ), (
-                                             {
-                                               "prefix" = var.db_subnet_address_prefix
-                                             }
-                                             ), (
-                                             local.subnet_db_nsg_defined ? (
-                                               {
-                                                 "nsg" = {
-                                                           "name"   = var.db_subnet_nsg_name
-                                                           "arm_id" = var.db_subnet_nsg_arm_id
-                                                         }
-                                               }
-                                             ) : null
-                                           )
-                                         )
-  subnet_app                           = merge(
-                                           (
-                                               {
-                                                 "name"     = var.app_subnet_name
-                                               }
-                                             ), (
-                                             local.subnet_app_arm_id_defined ? (
-                                               {
-                                                 "arm_id"   = var.app_subnet_arm_id
-                                               }
-                                               ) : (
-                                               null
-                                             )), (
-                                               {
-                                                 "prefix"   = var.app_subnet_address_prefix
-                                               }
-                                             ), (
-                                             local.subnet_app_nsg_defined ? (
-                                               {
-                                                 "nsg" = {
-                                                           "name"   = var.app_subnet_nsg_name
-                                                           "arm_id" = var.app_subnet_nsg_arm_id
-                                                         }
-                                               }
-                                             ) : null
-                                           )
-                                         )
-  subnet_web                           = merge(
-                                           (
-                                             {
-                                               "name" = var.web_subnet_name
-                                             }
-                                             ), (
-                                             local.subnet_web_arm_id_defined ? (
-                                               {
-                                                 "arm_id" = var.web_subnet_arm_id
-                                               }
-                                               ) : (
-                                               null
-                                             )), (
-                                             {
-                                               "prefix" = var.web_subnet_address_prefix
-                                             }
-                                             ), (
-                                             local.subnet_web_nsg_defined ? (
-                                               {
-                                                 "nsg" = {
-                                                           "name"   = var.web_subnet_nsg_name
-                                                           "arm_id" = var.web_subnet_nsg_arm_id
-                                                         }
-                                               }
-                                             ) : null
-                                           )
-                                         )
-
-  subnet_storage                           = merge(
-                                           (
-                                             {
-                                               "name" = var.storage_subnet_name
-                                             }
-                                             ), (
-                                             local.subnet_storage_arm_id_defined ? (
-                                               {
-                                                 "arm_id" = var.storage_subnet_arm_id
-                                               }
-                                               ) : (
-                                               null
-                                             )), (
-                                             {
-                                               "prefix" = var.storage_subnet_address_prefix
-                                             }
-                                             ), (
-                                             local.subnet_storage_nsg_defined ? (
-                                               {
-                                                 "nsg" = {
-                                                           "name"   = var.storage_subnet_nsg_name
-                                                           "arm_id" = var.storage_subnet_nsg_arm_id
-                                                         }
-                                               }
-                                             ) : null
-                                           )
-                                         )
-
-  all_subnets                          = merge(local.sap, (
-                                          local.subnet_admin_defined ? (
-                                            {
-                                              "subnet_admin" = local.subnet_admin
-                                            }
-                                            ) : (
-                                            null
-                                          )), (
-                                          local.subnet_db_defined ? (
-                                            {
-                                              "subnet_db" = local.subnet_db
-                                            }
-                                            ) : (
-                                            null
-                                          )), (
-                                          local.subnet_app_defined ? (
-                                            {
-                                              "subnet_app" = local.subnet_app
-                                            }
-                                            ) : (
-                                            null
-                                          )), (
-                                          local.subnet_web_defined ? (
-                                            {
-                                              "subnet_web" = local.subnet_web
-                                            }
-                                            ) : (
-                                            null
-                                          )
-                                          ), (
-                                            local.subnet_storage_defined ? (
-                                              {
-                                                "subnet_storage" = local.subnet_storage
-                                              }
-                                            ): (
-                                              null
-                                            )
-                                          )
-                                        )
-
-  temp_vnet                            = merge(local.vnets, { sap = local.all_subnets })
+                                           ))
 
   user_keyvault_specified              = (length(var.user_keyvault_id) ) > 0
   user_keyvault                        = local.user_keyvault_specified ? (
@@ -624,7 +497,7 @@ locals {
                                            local.app_ppg_defined        ? { app_ppg = local.app_ppg } : null), (
                                            local.ppg_defined            ? { ppg = local.ppg } : null), (
                                            local.deploy_anchor_vm       ? { anchor_vms = local.anchor_vms } : null),
-                                           { vnets = local.temp_vnet }
+                                           { virtual_networks = merge(local.virtual_networks, { sap = local.all_subnets }) }
                                          )
 
   application_tier                     = merge(local.application_temp, (

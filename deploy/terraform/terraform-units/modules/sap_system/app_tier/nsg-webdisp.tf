@@ -7,7 +7,7 @@
 # Creates SAP web subnet nsg
 resource "azurerm_network_security_group" "nsg_web" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment && local.web_subnet_defined ? (
+  count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
                                            local.web_subnet_nsg_exists ? 0 : 1) : (
                                            0
                                          )
@@ -25,7 +25,7 @@ resource "azurerm_network_security_group" "nsg_web" {
 # Imports the SAP web subnet nsg data
 data "azurerm_network_security_group" "nsg_web" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment && local.web_subnet_defined ? (
+  count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
                                            local.web_subnet_nsg_exists ? 1 : 0) : (
                                            0
                                          )
@@ -37,7 +37,7 @@ data "azurerm_network_security_group" "nsg_web" {
 resource "azurerm_subnet_network_security_group_association" "Associate_nsg_web" {
   provider                             = azurerm.main
   depends_on                           = [azurerm_subnet.subnet_sap_web]
-  count                                = local.enable_deployment && local.web_subnet_defined ? (
+  count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
                                            signum(
                                              local.web_subnet_exists ? 0 : 1 +
                                              local.web_subnet_nsg_exists ? 0 : 1
@@ -55,7 +55,7 @@ resource "azurerm_subnet_network_security_group_association" "Associate_nsg_web"
 # NSG rule to deny internet access
 resource "azurerm_network_security_rule" "webRule_internet" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment && local.web_subnet_defined ? (
+  count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
                                           local.web_subnet_nsg_exists ? 0 : 1) : (
                                           0
                                         )

@@ -8,7 +8,7 @@
 
 resource "azurerm_private_endpoint" "kv_user" {
   provider                             = azurerm.main
-  count                                = var.use_private_endpoint ? 1 : 0
+  count                                = var.deployer.use && var.use_private_endpoint ? 1 : 0
   name                                 = format("%s%s%s",
                                           var.naming.resource_prefixes.keyvault_private_link,
                                           local.prefix,

@@ -448,7 +448,7 @@ function populateLocations(id, value) {
 // EVENT LISTENERS
 // ===============
 
-$("#subscription").on("change", function () {
+$("#subscription_id").on("change", function () {
     var subscriptionid = $(this).val();
     var dropdownsAffected = [
         {
