@@ -443,21 +443,29 @@ namespace SDAFWebApp.Controllers
                     type = 2;
                 }
 
-
-                byte[] byteContent = System.IO.File.ReadAllBytes("ParameterDetails/" + newName);
-
-                using (MemoryStream memory = new(byteContent))
+                if (newName.Contains("..") || newName.Contains("/") || newName.Contains("\\"))
                 {
-                    file = new AppFile()
-                    {
+                    throw new Exception("Invalid filename");
+                }
+                else
+                {
 
-                        Id = WebUtility.HtmlEncode(filename),
-                        Content = byteContent,
-                        UntrustedName = filename,
-                        Size = memory.Length,
-                        UploadDT = DateTime.UtcNow,
-                        FileType = type
-                    };
+
+                    byte[] byteContent = System.IO.File.ReadAllBytes("ParameterDetails/" + newName);
+
+                    using (MemoryStream memory = new(byteContent))
+                    {
+                        file = new AppFile()
+                        {
+
+                            Id = WebUtility.HtmlEncode(filename),
+                            Content = byteContent,
+                            UntrustedName = filename,
+                            Size = memory.Length,
+                            UploadDT = DateTime.UtcNow,
+                            FileType = type
+                        };
+                    }
                 }
             }
             return file ?? new AppFile();
