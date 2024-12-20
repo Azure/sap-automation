@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using static SDAFWebApp.Models.CustomValidators;

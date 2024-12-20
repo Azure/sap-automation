@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 # RHEL-3.10 Disable Transparent Hugepages (THP)
 # RHEL-3.12 Configure Processor C-States (not relevant for IBM Power LE (ppc64le))

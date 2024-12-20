@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 - name:                                Get the SCS Server name list
   ansible.builtin.set_fact:

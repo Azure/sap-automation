@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 function Read-KVNode {
     param(
         [Parameter(Mandatory = $true)][String]$source,

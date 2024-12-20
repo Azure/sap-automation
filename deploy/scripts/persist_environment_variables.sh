@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 tf_bin=$(which terraform)
 ansible_bin=$(which ansible)
 # Ensure that the user's account is logged in to Azure with specified creds

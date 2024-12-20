@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #!/bin/bash
 # Exit immediately if a command exits with a non-zero status.
 # Treat unset variables as an error when substituting.

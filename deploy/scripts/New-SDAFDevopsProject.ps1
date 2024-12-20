@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # Write-Host "<Experimental>..............." -ForegroundColor Cyan
 
 function Show-Menu($data) {

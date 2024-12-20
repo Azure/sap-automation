@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #----------------------
 # Set $Organization
 #   Input     or    $Env:ADO_ORGANIZATION

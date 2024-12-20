@@ -1,3 +1,6 @@
+{# Copyright (c) Microsoft Corporation.
+ # Licensed under the MIT License.
+#}
 Cmnd_Alias SITEA_SOK   = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_site_srHook_SITEA -v SOK -t crm_config -s SAPHanaSR
 Cmnd_Alias SITEA_SFAIL = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_site_srHook_SITEA -v SFAIL -t crm_config -s SAPHanaSR
 Cmnd_Alias SITEB_SOK   = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_site_srHook_SITEB -v SOK -t crm_config -s SAPHanaSR

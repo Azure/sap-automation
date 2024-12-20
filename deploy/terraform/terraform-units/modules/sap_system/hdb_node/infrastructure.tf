@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 // AVAILABILITY SET
 resource "azurerm_availability_set" "hdb" {
   provider                             = azurerm.main

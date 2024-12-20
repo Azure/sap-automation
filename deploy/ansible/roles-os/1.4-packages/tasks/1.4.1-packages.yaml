@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 - name:                                "1.4 Packages: - Import package list"
   ansible.builtin.include_vars:        os-packages.yaml
 

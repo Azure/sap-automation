@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # output "output_json" {
 #   value = local_file.output_json
 # }

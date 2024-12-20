@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 // Creates admin subnet of SAP VNET
 resource "azurerm_subnet" "admin" {
   provider                             = azurerm.main

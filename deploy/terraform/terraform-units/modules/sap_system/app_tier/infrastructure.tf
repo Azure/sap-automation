@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 // In brownfield scenarios the subnets are often defined in the workload
 // If subnet information is specified in the parameter file use it
 // As either of the arm_id or the prefix need to be specified to create

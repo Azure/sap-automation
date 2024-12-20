@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # Create ORA<SID> users for MULTI-SID Installation on Database Node.
 - name:                                "DBLoad (sharedHome): ORA{{ sid_to_be_deployed.sid }} User creation"
   ansible.builtin.user:

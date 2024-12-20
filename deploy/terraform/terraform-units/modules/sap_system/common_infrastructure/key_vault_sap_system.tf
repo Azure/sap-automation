@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ###############################################################################
 #                                                                             #
 #                Retrieve secrets from workload zone key vault                #

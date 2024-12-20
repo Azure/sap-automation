@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 output "naming" {
   description                          = "values for naming convention"
   value                                = {

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 // Create private KV with access policy
 data "azurerm_client_config" "deployer" {
   provider = azurerm.main
