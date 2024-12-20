@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 variable "subnet_cidr_anf"                    { description = "address prefix for the ANF subnet" }
 variable "ansible_user"                         {
                                                   description = "The ansible remote user account to use"

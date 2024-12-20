@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # -------------------------------------+---------------------------------------------------------------8
 #   DB2 - High Availabiliy Setup                                                                                       |
 #     a. Install DB2 on Primary Server                                                                               |

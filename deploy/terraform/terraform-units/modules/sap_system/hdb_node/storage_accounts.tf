@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 
 resource "azurerm_storage_account" "hanashared" {
   provider                             = azurerm.main
@@ -33,31 +36,19 @@ resource "azurerm_storage_account" "hanashared" {
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
   tags                                 = var.tags
 
-  dynamic "network_rules" {
-                             for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
-                             content {
-
-                                      default_action = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
-                                      virtual_network_subnet_ids = compact(
-                                        [
-                                          try(var.landscape_tfstate.admin_subnet_id, ""),
-                                          try(var.landscape_tfstate.app_subnet_id, ""),
-                                          try(var.landscape_tfstate.db_subnet_id, ""),
-                                          try(var.landscape_tfstate.web_subnet_id, ""),
-                                          try(var.landscape_tfstate.subnet_mgmt_id, "")
-                                        ]
-                                      )
-                                      ip_rules = compact(
-                                        [
-                                          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                        ]
-                                      )
-
-                                    }
-                          }
-
-
-
+  network_rules {
+                  default_action       = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+                  bypass               = ["Metrics", "Logging", "AzureServices"]
+            virtual_network_subnet_ids = compact(
+                                                 [
+                                                   try(var.landscape_tfstate.admin_subnet_id, ""),
+                                                   try(var.landscape_tfstate.app_subnet_id, ""),
+                                                   try(var.landscape_tfstate.db_subnet_id, ""),
+                                                   try(var.landscape_tfstate.web_subnet_id, ""),
+                                                   try(var.landscape_tfstate.subnet_mgmt_id, "")
+                                                 ]
+                                               )
+          }
 }
 
 #########################################################################################

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 locals {
 
   sdu_private_keyvault_name = format("%s%s%s%sp%s", replace(local.env_verified, "/[^A-Za-z0-9]/", ""), local.location_short, replace(local.sap_vnet_verified, "/[^A-Za-z0-9]/", ""), var.sap_sid, local.random_id_verified)

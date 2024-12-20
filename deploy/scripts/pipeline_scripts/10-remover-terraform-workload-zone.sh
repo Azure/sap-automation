@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #!/bin/bash
 #!/bin/bash
 echo "##vso[build.updatebuildnumber]Removing the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDERNAME"

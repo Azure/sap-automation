@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using SDAFWebApp.Models;
 using SDAFWebApp.Services;
 using Microsoft.AspNetCore.Mvc;

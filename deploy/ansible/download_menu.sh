@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #!/bin/bash
 
 export PATH=/opt/terraform/bin:/opt/ansible/bin:${PATH}

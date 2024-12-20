@@ -1,3 +1,6 @@
+{# Copyright (c) Microsoft Corporation.
+ # Licensed under the MIT License.
+#}
 /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +DATA/{{ db_sid | upper }}
 /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}
 /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir  +ARCH/{{ db_sid | upper }}/oraarch

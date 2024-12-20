@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # Install the DSC modules
 - name:                                "Ensure DSC modules are installed"
   community.windows.win_psmodule:

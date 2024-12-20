@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #!/bin/bash
 # we only want to source the file once
 if [[ $__isLibSourced ]]; then

@@ -1,3 +1,6 @@
+{# Copyright (c) Microsoft Corporation.
+ # Licensed under the MIT License.
+#}
 # Needed for susHanaSR and susChkSrv Python hooks
 Cmnd_Alias SOK_SITEA    = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_site_srHook_SITEA -v SOK   -t crm_config -s SAPHanaSR
 Cmnd_Alias SFAIL_SITEA  = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_site_srHook_SITEA -v SFAIL -t crm_config -s SAPHanaSR

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # https://github.com/hashicorp/terraform-provider-azurerm/issues/18741
 # public IP address for the natGateway
 resource "azurerm_public_ip" "ng_pip" {

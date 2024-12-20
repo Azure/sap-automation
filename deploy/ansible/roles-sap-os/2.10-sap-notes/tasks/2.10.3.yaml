@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 
 - name:                                "2.10.3 sap-notes: saptune - Register BoM"

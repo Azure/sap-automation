@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 // Imports data of existing AMS subnet
 data "azurerm_subnet" "ams" {
   provider                             = azurerm.main

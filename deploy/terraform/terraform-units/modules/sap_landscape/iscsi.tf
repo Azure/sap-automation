@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #######################################4#######################################8
 #                                                                              #
 #                                      iSCSI                                   #
@@ -261,15 +264,14 @@ resource "azurerm_key_vault_secret" "iscsi_ppk" {
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user
                                         ]
-  content_type                         = ""
+  content_type                         = "secret"
   name                                 = local.iscsi_ppk_name
   value                                = local.iscsi_private_key
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
-  expiration_date                       = var.key_vault.set_secret_expiry ? (
+  expiration_date                      = var.key_vault.set_secret_expiry ? (
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
-
 }
 
 resource "azurerm_key_vault_secret" "iscsi_pk" {
@@ -282,11 +284,11 @@ resource "azurerm_key_vault_secret" "iscsi_pk" {
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user
                                          ]
-  content_type                         = ""
+  content_type                         = "secret"
   name                                 = local.iscsi_pk_name
   value                                = local.iscsi_public_key
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
-  expiration_date                       = var.key_vault.set_secret_expiry ? (
+  expiration_date                      = var.key_vault.set_secret_expiry ? (
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
@@ -302,11 +304,11 @@ resource "azurerm_key_vault_secret" "iscsi_username" {
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user
                                          ]
-  content_type                         = ""
+  content_type                         = "configuration"
   name                                 = local.iscsi_username_name
   value                                = local.iscsi_auth_username
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
-  expiration_date                       = var.key_vault.set_secret_expiry ? (
+  expiration_date                      = var.key_vault.set_secret_expiry ? (
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
@@ -322,7 +324,7 @@ resource "azurerm_key_vault_secret" "iscsi_password" {
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user
                                          ]
-  content_type                         = ""
+  content_type                         = "secret"
   name                                 = local.iscsi_pwd_name
   value                                = local.iscsi_auth_password
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id

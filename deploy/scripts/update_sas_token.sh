@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # This is the SAP library’s storage account for sap binaries
 if [ ! -n "${SAP_LIBRARY_TF}" ] ;then
   read -p "Please provide the saplib storage account name (SAP_LIBRARY)? "  saplib

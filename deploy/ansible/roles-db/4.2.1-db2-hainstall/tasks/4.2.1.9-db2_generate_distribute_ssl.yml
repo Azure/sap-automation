@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 - name:                                "DB2: variables for SSL certificate"
   ansible.builtin.set_fact:

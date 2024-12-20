@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 
 #######################################4#######################################8
 #                                                                              #
@@ -25,6 +28,7 @@ resource "azurerm_key_vault_secret" "saplibrary_access_key" {
                                             azurerm_private_endpoint.kv_user,
                                             time_sleep.wait_for_private_endpoints
                                          ]
+  content_type                         = "secret"
   name                                 = "sapbits-access-key"
   value                                = local.sa_sapbits_exists ? (
                                            data.azurerm_storage_account.storage_sapbits[0].primary_access_key) : (
@@ -50,6 +54,7 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
                                             azurerm_private_endpoint.kv_user,
                                             time_sleep.wait_for_private_endpoints
                                          ]
+  content_type                         = "configuration"
   name                                 = "sapbits-location-base-path"
   value                                = format("https://%s.blob.core.windows.net/%s", length(var.storage_account_sapbits.arm_id) > 0 ?
                                               split("/", var.storage_account_sapbits.arm_id)[8] : local.sa_sapbits_name,
@@ -75,6 +80,7 @@ resource "azurerm_key_vault_secret" "sa_connection_string" {
                                             time_sleep.wait_for_private_endpoints
                                          ]
   count                                = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
+  content_type                         = "secret"
   name                                 = "sa-connection-string"
   value                                = local.sa_tfstate_exists ? (
                                            data.azurerm_storage_account.storage_tfstate[0].primary_connection_string) : (
@@ -98,6 +104,7 @@ resource "azurerm_key_vault_secret" "tfstate" {
                                             time_sleep.wait_for_private_endpoints
                                          ]
   count                                = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
+  content_type                         = "configuration"
   name                                 = "tfstate"
   value                                = format("https://%s.blob.core.windows.net", local.sa_tfstate_exists ? (data.azurerm_storage_account.storage_tfstate[0].name) : (azurerm_storage_account.storage_tfstate[0].name))
   key_vault_id                         = var.key_vault.kv_spn_id

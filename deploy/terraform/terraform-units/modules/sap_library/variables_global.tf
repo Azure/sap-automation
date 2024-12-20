@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 variable "infrastructure"              {
                                          description = "Details of the Azure infrastructure to deploy the SAP library into"
                                          default     = {}

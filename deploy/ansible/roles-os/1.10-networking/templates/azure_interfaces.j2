@@ -1,3 +1,6 @@
+{# Copyright (c) Microsoft Corporation.
+ # Licensed under the MIT License.
+#}
 {%- set _interfaces = [] -%}
 {%- for interface in azure_network_metadata.json -%}
 {%-   set _interface_name = "eth" + loop.index0|string -%}

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using SDAFWebApp.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;

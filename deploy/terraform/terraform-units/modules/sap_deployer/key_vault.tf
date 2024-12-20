@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 // Create private KV with access policy
 data "azurerm_client_config" "deployer" {
   provider = azurerm.main
@@ -20,41 +23,32 @@ resource "azurerm_key_vault" "kv_user" {
                                            azurerm_resource_group.deployer[0].location
                                          )
   tenant_id                            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].tenant_id : data.azurerm_user_assigned_identity.deployer[0].tenant_id
-
   soft_delete_retention_days           = var.soft_delete_retention_days
   purge_protection_enabled             = var.enable_purge_control_for_keyvaults
-
   sku_name                             = "standard"
-
   public_network_access_enabled        = var.public_network_access_enabled
 
-
-  dynamic "network_acls" {
-                           for_each                     = range(var.public_network_access_enabled ? 1 : 0)
-                           content {
-
-                              bypass                     = "AzureServices"
-                              default_action             = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
-
-                              ip_rules                   = compact(
-                                                            [
-                                                              local.enable_deployer_public_ip ? (
-                                                                azurerm_public_ip.deployer[0].ip_address) : (
-                                                              ""),
-                                                              length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                                            ]
-                                                          )
-
-                              virtual_network_subnet_ids = compact(local.management_subnet_exists ? (var.use_webapp ? (
-                                                            flatten([data.azurerm_subnet.subnet_mgmt[0].id, data.azurerm_subnet.webapp[0].id, var.subnets_to_add, var.additional_network_id])) : (
-                                                            flatten([data.azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add, var.additional_network_id]))
-                                                            ) : (var.use_webapp ? (
-                                                              compact(flatten([azurerm_subnet.subnet_mgmt[0].id, try(azurerm_subnet.webapp[0].id, null), var.subnets_to_add, var.additional_network_id]))) : (
-                                                              flatten([azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add, var.additional_network_id])
-                                                            )
-                             ))
-                           }
-                         }
+  network_acls {
+            bypass                     = "AzureServices"
+            default_action             = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+            ip_rules                   = compact(
+                                          [
+                                            local.enable_deployer_public_ip ? (
+                                              azurerm_public_ip.deployer[0].ip_address) : (
+                                            ""),
+                                            length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+                                          ]
+                                        )
+            virtual_network_subnet_ids = compact(local.management_subnet_exists ? (var.use_webapp ? (
+                                          flatten([data.azurerm_subnet.subnet_mgmt[0].id, data.azurerm_subnet.webapp[0].id, var.subnets_to_add, var.additional_network_id])) : (
+                                          flatten([data.azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add, var.additional_network_id]))
+                                          ) : (var.use_webapp ? (
+                                            compact(flatten([azurerm_subnet.subnet_mgmt[0].id, try(azurerm_subnet.webapp[0].id, null), var.subnets_to_add, var.additional_network_id]))) : (
+                                            flatten([azurerm_subnet.subnet_mgmt[0].id, var.subnets_to_add, var.additional_network_id])
+                                            )
+                                          )
+                                         )
+          }
 
   lifecycle                        {
                                      ignore_changes = [network_acls]
@@ -99,6 +93,7 @@ resource "azurerm_key_vault_secret" "ppk" {
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
+  content_type                         = "secret"
 }
 
 resource "azurerm_key_vault_secret" "pk" {
@@ -119,6 +114,7 @@ resource "azurerm_key_vault_secret" "pk" {
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
+  content_type                         = "secret"
 }
 resource "azurerm_key_vault_secret" "username" {
   count                                = (local.enable_key && !local.key_exist) ? (
@@ -145,6 +141,7 @@ resource "azurerm_key_vault_secret" "username" {
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
+  content_type                         = "configuration"
 }
 
 resource "azurerm_key_vault_secret" "pat" {
@@ -172,6 +169,7 @@ resource "azurerm_key_vault_secret" "pat" {
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
+  content_type                         = "secret"
 }
 
 # resource "azurerm_key_vault_secret" "web_pwd" {
@@ -229,6 +227,7 @@ resource "azurerm_key_vault_secret" "pwd" {
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
+  content_type                         = "secret"
 }
 
 data "azurerm_key_vault_secret" "pk" {

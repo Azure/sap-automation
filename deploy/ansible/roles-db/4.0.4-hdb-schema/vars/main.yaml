@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 hdb_schema_property_names:
   - "dbs/hdb/schema" # ABAP schema
   - "j2ee/dbschema" # JAVA schema

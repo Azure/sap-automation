@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 variable "admin_subnet"                                 { description = "Information about SAP admin subnet" }
 variable "anchor_vm"                                    {
                                                           description = "Deployed anchor VM"

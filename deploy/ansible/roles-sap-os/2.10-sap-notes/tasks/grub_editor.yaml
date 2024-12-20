@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 # SAP Note 2777782 - SAP HANA DB: Recommended OS Settings for RHEL 8
 # Generic editor to add or edit GRUB arguments

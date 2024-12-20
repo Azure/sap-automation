@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 function Show-Menu($data) {
   Write-Host "================ $Title ================"
   $i = 1

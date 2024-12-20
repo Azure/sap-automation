@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 
 distro_name:                           "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 name: OS Configuration and SAP Installation $(sap_system_folder) $(bom)
 
 parameters:

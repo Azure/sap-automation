@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #!/bin/bash
 # https://github.com/Microsoft/azure-pipelines-agent/releases
 

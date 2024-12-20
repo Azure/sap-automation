@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #!/bin/bash
 #colors for terminal
 bold_red_underscore="\e[1;4;31m"

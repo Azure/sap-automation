@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # Inputs:
 #   bom_name              - Name of BOM (ex: S41909SPS03_v0001ms)
 #

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 name: Deploying the SAP Workload zone defined in $(workload_zone_folder)
 
 parameters:

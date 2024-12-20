@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using SDAFWebApp.Controllers;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.FileSystemGlobbing.Internal;

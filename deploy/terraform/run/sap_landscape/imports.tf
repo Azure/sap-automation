@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 /*
     Description:
     Retrieve remote tfstate file of Deployer and current environment's SPN

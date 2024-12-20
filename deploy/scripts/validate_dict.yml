@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 - name: Determine list of dict keys
   ansible.builtin.set_fact:
