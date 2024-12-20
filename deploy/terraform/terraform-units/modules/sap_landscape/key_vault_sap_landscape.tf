@@ -35,35 +35,29 @@ resource "azurerm_key_vault" "kv_user" {
   public_network_access_enabled        = var.public_network_access_enabled
   tags                                 = var.tags
 
-  dynamic "network_acls" {
-                           for_each = range(var.enable_firewall_for_keyvaults_and_storage  ? 1 : 0)
-                           content {
-
-                                      bypass         = "AzureServices"
-                                      default_action = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
-
-                                       ip_rules = compact(
-                                        [
-                                          length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
-                                          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                        ]
-                                      )
-
-                                       virtual_network_subnet_ids = compact(
-                                        [
-                                          local.database_subnet_defined ? (
-                                            local.database_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
-                                            ""
-                                            ), local.application_subnet_defined ? (
-                                            local.application_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
-                                            ""
-                                          ),
-                                          local.deployer_subnet_management_id,
-                                          var.additional_network_id
-                                        ]
-                                      )
-                                    }
-                         }
+  network_acls {
+                        bypass         = "AzureServices"
+                        default_action = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+                        ip_rules       = compact(
+                                            [
+                                              length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+                                              length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+                                            ]
+                                          )
+            virtual_network_subnet_ids = compact(
+                                            [
+                                              local.database_subnet_defined ? (
+                                                local.database_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
+                                                ""
+                                                ), local.application_subnet_defined ? (
+                                                local.application_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
+                                                ""
+                                              ),
+                                              local.deployer_subnet_management_id,
+                                              var.additional_network_id
+                                            ]
+                                          )
+            }
 
   lifecycle {
     ignore_changes = [
@@ -227,14 +221,14 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
                                            time_sleep.wait_for_private_endpoints
                                          ]
   count                                = !local.sid_key_exist ? 1 : 0
-  content_type                          = ""
-  name                                  = local.sid_ppk_name
-  value                                 = local.sid_private_key
-  key_vault_id                          = local.user_keyvault_exist ? (
+  content_type                         = "secret"
+  name                                 = local.sid_ppk_name
+  value                                = local.sid_private_key
+  key_vault_id                         = local.user_keyvault_exist ? (
                                             data.azurerm_key_vault.kv_user[0].id) : (
                                             azurerm_key_vault.kv_user[0].id
                                           )
-  expiration_date                       = var.key_vault.set_secret_expiry ? (
+  expiration_date                      = var.key_vault.set_secret_expiry ? (
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
@@ -256,14 +250,14 @@ resource "azurerm_key_vault_secret" "sid_pk" {
                                            time_sleep.wait_for_private_endpoints
                                          ]
   count                                = !local.sid_key_exist ? 1 : 0
-  content_type                         = ""
+  content_type                         = "secret"
   name                                 = local.sid_pk_name
   value                                = local.sid_public_key
   key_vault_id                         = local.user_keyvault_exist ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
-  expiration_date                       = var.key_vault.set_secret_expiry ? (
+  expiration_date                      = var.key_vault.set_secret_expiry ? (
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
@@ -293,14 +287,14 @@ resource "azurerm_key_vault_secret" "sid_username" {
                                            time_sleep.wait_for_private_endpoints
                                          ]
   count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
-  content_type                         = ""
+  content_type                         = "configuration"
   name                                 = local.sid_username_secret_name
   value                                = local.input_sid_username
   key_vault_id                         = local.user_keyvault_exist ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
-  expiration_date                       = var.key_vault.set_secret_expiry ? (
+  expiration_date                      = var.key_vault.set_secret_expiry ? (
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
@@ -329,7 +323,7 @@ resource "azurerm_key_vault_secret" "sid_password" {
                                          ]
   count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
   name                                 = local.sid_password_secret_name
-  content_type                         = ""
+  content_type                         = "secret"
   value                                = local.input_sid_password
   key_vault_id                         = local.user_keyvault_exist ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
@@ -365,7 +359,7 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
                                            time_sleep.wait_for_private_endpoints
                                          ]
   count                                = 1
-  content_type                         = ""
+  content_type                         = "secret"
   name                                 = replace(
                                           format("%s%s%s",
                                             length(local.prefix) > 0 ? (
@@ -402,7 +396,7 @@ resource "azurerm_key_vault_secret" "witness_name" {
                                            time_sleep.wait_for_private_endpoints
                                          ]
   count                                = 1
-  content_type                         = ""
+  content_type                         = "configuration"
   name                                 = replace(
                                            format("%s%s%s",
                                              length(local.prefix) > 0 ? (
@@ -438,7 +432,7 @@ resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
                                            azurerm_private_endpoint.kv_user,
                                            time_sleep.wait_for_private_endpoints
                                          ]
-  content_type                         = ""
+  content_type                         = "configuration"
   name                                 = "deployer-kv-name"
   value                                = local.deployer_keyvault_user_name
   key_vault_id                         = local.user_keyvault_exist ? (

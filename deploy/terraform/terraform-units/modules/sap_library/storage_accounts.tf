@@ -85,7 +85,7 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
                                        )
 
   virtual_network_subnet_ids           = local.virtual_additional_network_ids
-
+  bypass                               = ["Metrics", "Logging", "AzureServices"]
   lifecycle {
               ignore_changes = [virtual_network_subnet_ids]
             }
@@ -321,6 +321,7 @@ resource "azurerm_storage_account_network_rules" "storage_sapbits" {
                                            ]
                                          )
   virtual_network_subnet_ids           = local.virtual_additional_network_ids
+  bypass                               = ["Metrics", "Logging", "AzureServices"]
 
   lifecycle {
               ignore_changes = [virtual_network_subnet_ids]

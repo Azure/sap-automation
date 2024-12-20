@@ -100,6 +100,7 @@ resource "azurerm_storage_account" "deployer" {
    network_rules {
     default_action                     = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
     virtual_network_subnet_ids         = var.use_service_endpoint ? [(local.management_subnet_exists) ? local.management_subnet_arm_id : azurerm_subnet.subnet_mgmt[0].id] : null
+    bypass                             = ["Metrics", "Logging", "AzureServices"]
   }
 
 }

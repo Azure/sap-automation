@@ -36,6 +36,31 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   tags                                 = var.tags
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled
   public_network_access_enabled        = var.public_network_access_enabled
+  network_rules {
+                default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+                virtual_network_subnet_ids  = var.public_network_access_enabled ? compact([
+                                                local.database_subnet_defined ? (
+                                                  local.database_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
+                                                  null
+                                                  ), local.application_subnet_defined ? (
+                                                  local.application_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
+                                                  null
+                                                ), local.web_subnet_defined ? (
+                                                  local.web_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_web.arm_id : azurerm_subnet.web[0].id) : (
+                                                  null
+                                                ), local.enable_sub_iscsi ? (
+                                                  local.sub_iscsi_exists ? var.infrastructure.virtual_networks.sap.subnet_iscsi.arm_id : azurerm_subnet.iscsi[0].id) : (
+                                                  null
+                                                ), length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null,
+                                                length(var.additional_network_id) > 0 ? var.additional_network_id : null
+                                                ]
+                                              ) : null
+                ip_rules                   = var.public_network_access_enabled ? compact([
+                                               length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+                                               length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+                                              ]) : null
+                bypass                     = ["Metrics", "Logging", "AzureServices"]
+              }
 
 }
 
@@ -159,6 +184,7 @@ resource "azurerm_storage_account" "witness_storage" {
                                                  length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
                                                  length(var.Agent_IP) > 0 ? var.Agent_IP : ""
                                                 ]) : null
+                  bypass                     = ["Metrics", "Logging", "AzureServices"]
                 }
 
 
@@ -296,6 +322,7 @@ resource "azurerm_storage_account" "transport" {
                                                  length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
                                                  length(var.Agent_IP) > 0 ? var.Agent_IP : ""
                                                 ]) : null
+                  bypass                     = ["Metrics", "Logging", "AzureServices"]
                 }
 
 
@@ -503,7 +530,7 @@ resource "azurerm_storage_account_network_rules" "install" {
                                                   length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null
                                                   ]
                                                 ) : null
-
+  bypass                               = ["Metrics", "Logging", "AzureServices"]
   lifecycle {
               ignore_changes = [virtual_network_subnet_ids]
             }
