@@ -1,7 +1,6 @@
+#!/bin/bash
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-
-#!/usr/bin/env bash
 
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.

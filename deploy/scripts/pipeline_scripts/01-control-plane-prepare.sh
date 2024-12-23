@@ -1,7 +1,7 @@
+#!/bin/bash
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#!/bin/bash
 echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 green="\e[1;32m"
 reset="\e[0m"

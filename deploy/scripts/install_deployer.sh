@@ -1,7 +1,7 @@
+#!/bin/bash
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#!/bin/bash
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
@@ -433,46 +433,47 @@ if [ 0 != $return_value ]; then
 	exit $return_value
 fi
 
-terraform -chdir="${terraform_module_directory}" output
+if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
-keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-temp=$(echo "${keyvault}" | grep "Warning")
-if [ -z "${temp}" ]; then
-	temp=$(echo "${keyvault}" | grep "Backend reinitialization required")
+	keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+	temp=$(echo "${keyvault}" | grep "Warning")
 	if [ -z "${temp}" ]; then
-		touch "${deployer_config_information}"
-		printf -v val %-.20s "$keyvault"
+		temp=$(echo "${keyvault}" | grep "Backend reinitialization required")
+		if [ -z "${temp}" ]; then
+			touch "${deployer_config_information}"
+			printf -v val %-.20s "$keyvault"
 
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                Keyvault to use for SPN details:$cyan $val $reset_formatting                 #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+			echo ""
+			echo "#########################################################################################"
+			echo "#                                                                                       #"
+			echo -e "#                Keyvault to use for SPN details:$cyan $val $reset_formatting                 #"
+			echo "#                                                                                       #"
+			echo "#########################################################################################"
+			echo ""
 
-		save_config_var "keyvault" "${deployer_config_information}"
-		return_value=0
-	else
-		return_value=2
+			save_config_var "keyvault" "${deployer_config_information}"
+			return_value=0
+		else
+			return_value=2
+		fi
 	fi
-fi
 
-sshsecret=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_sshkey_secret_name | tr -d \")
-if [ -n "${sshsecret}" ]; then
-	save_config_var "sshsecret" "${deployer_config_information}"
-fi
+	sshsecret=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_sshkey_secret_name | tr -d \")
+	if [ -n "${sshsecret}" ]; then
+		save_config_var "sshsecret" "${deployer_config_information}"
+	fi
 
-deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
-if [ -n "${deployer_public_ip_address}" ]; then
-	save_config_var "deployer_public_ip_address" "${deployer_config_information}"
-fi
+	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
+	if [ -n "${deployer_public_ip_address}" ]; then
+		save_config_var "deployer_public_ip_address" "${deployer_config_information}"
+	fi
 
-deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-if [ -n "${deployer_random_id}" ]; then
-	save_config_var "deployer_random_id" "${deployer_config_information}"
-	custom_random_id="${deployer_random_id}"
-	save_config_var "custom_random_id" ${parameterfile}
+	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+	if [ -n "${deployer_random_id}" ]; then
+		save_config_var "deployer_random_id" "${deployer_config_information}"
+		custom_random_id="${deployer_random_id}"
+		save_config_var "custom_random_id" ${parameterfile}
+	fi
 fi
 
 unset TF_DATA_DIR

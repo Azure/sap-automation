@@ -1,7 +1,7 @@
+#!/bin/bash
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#!/bin/bash
 # we only want to source the file once
 if [[ $__isLibSourced ]]; then
     return
@@ -71,12 +71,12 @@ function __init_log() {
 
     # set default log level mapper to INFO
     log_level_mapper["default"]=3
-    
+
     # initialize log files and redirect stdout and stderr to log files
-    printf "Execution started at : %s\n" "${DATETIME}" > "${INFOLOGFILENAME}" 
+    printf "Execution started at : %s\n" "${DATETIME}" > "${INFOLOGFILENAME}"
     printf "Execution started at : %s\n" "${DATETIME}" > "${DEBUGLOGFILENAME}"
     exec 3>&1 4>&2
-    
+
     tail -f "${INFOLOGFILENAME}" &
 
     readonly PROCESS_OF_LOG="$$"
@@ -184,7 +184,7 @@ function _writelog_to_file() {
 
 }
 
-#placeholder, we need to decide if we ever need to _printlog_from_file() 
+#placeholder, we need to decide if we ever need to _printlog_from_file()
 
 
 # main logging functions
