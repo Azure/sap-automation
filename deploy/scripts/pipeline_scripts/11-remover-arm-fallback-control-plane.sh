@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
@@ -172,6 +173,16 @@ if [ 0 == $return_code ]; then
       variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "INSTALLATION_MEDIA_ACCOUNT.value" --out tsv)
       if [ ${#variable_value} != 0 ]; then
         az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --yes --only-show-errors
+      fi
+
+      variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_RANDOM_ID.value" --out tsv)
+      if [ ${#variable_value} != 0 ]; then
+        az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_RANDOM_ID --yes --only-show-errors
+      fi
+
+      variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "LIBRARY_RANDOM_ID.value" --out tsv)
+      if [ ${#variable_value} != 0 ]; then
+        az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID --yes --only-show-errors
       fi
 
     fi
