@@ -347,11 +347,6 @@ if [ -n "${subscription}" ]; then
 
 		cd "${deployer_dirname}" || exit
 
-		if [ -n "${FORCE_RESET}" ]; then
-			step=0
-			save_config_var "step" "${deployer_config_information}"
-		fi
-
 		echo "Calling install_deployer.sh:         $allParameters"
 		echo "Deployer State File:                 ${deployer_tfstate_key}"
 
@@ -403,7 +398,7 @@ if [ -n "${subscription}" ]; then
 			echo "Bootstrapping of the deployer failed" >"${deployer_config_information}".err
 			exit 10
 		fi
-		if [ -n "${FORCE_RESET}" ]; then
+		if [ "$FORCE_RESET" = True ]; then
 			step=0
 			save_config_var "step" "${deployer_config_information}"
 			exit 0
