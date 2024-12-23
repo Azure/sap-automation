@@ -54,6 +54,7 @@ parameters:
   - name:                              force_reset
     displayName:                       Force a re-install - may require multiple re-runs
     type:                              boolean
+
 stages:
   - stage:                             Prepare_Deployer
     condition:                         and(not(failed()), not(canceled()))
@@ -65,6 +66,7 @@ stages:
           environment:                 ${{ parameters.environment }}
           use_webapp_param:            ${{ parameters.use_webapp_param }}
           use_deployer:                ${{ parameters.use_deployer }}
+          force_reset:                 ${{ parameters.force_reset }}
     displayName:                       Prepare the self hosted agent(s)
 
     jobs:
