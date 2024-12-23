@@ -133,6 +133,7 @@ stages:
           environment:                 ${{ parameters.environment }}
           use_webapp_param:            ${{ parameters.use_webapp_param }}
           use_deployer:                ${{ parameters.use_deployer }}
+          force_reset:                 ${{ parameters.force_reset }}
     displayName:                       Deploy the control plane
 
     jobs:

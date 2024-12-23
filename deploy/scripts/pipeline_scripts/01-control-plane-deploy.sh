@@ -19,8 +19,11 @@ source "${script_directory}/helper.sh"
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
-	set -x
-	DEBUG=True
+  set -x
+  DEBUG=True
+  echo "Environment variables:"
+	printenv | sort
+
 fi
 export DEBUG
 set -eu

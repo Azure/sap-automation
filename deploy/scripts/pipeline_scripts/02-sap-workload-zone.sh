@@ -13,9 +13,13 @@ source "sap-automation/deploy/pipelines/helper.sh"
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
-	set -x
-	set -o errexit
-	DEBUG=True
+  set -x
+  set -o errexit
+  DEBUG=True
+	echo "Environment variables:"
+	printenv | sort
+
+
 fi
 export DEBUG
 

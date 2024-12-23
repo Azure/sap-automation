@@ -21,6 +21,8 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
 	set -o errexit
 	DEBUG=True
+	echo "Environment variables:"
+	printenv | sort
 
 fi
 export DEBUG
