@@ -321,12 +321,12 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ];
 fi
 
 if [ 1 = $added ]; then
-  git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
-  git config --global user.name "$BUILD_REQUESTEDFOR"
-  git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
-  if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-    echo "##vso[task.logissue type=error]Failed to push changes to the repository."
-  fi
+	git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+	git config --global user.name "$BUILD_REQUESTEDFOR"
+	git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
+	if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
+		echo "##vso[task.logissue type=error]Failed to push changes to the repository."
+	fi
 fi
 
 if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
@@ -335,10 +335,10 @@ fi
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 if [ 0 = $return_code ]; then
 
-  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "$deployer_tfstate_key"
-  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "$file_key_vault"
-  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"
-  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneLocation" "$LOCATION"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "$deployer_tfstate_key"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "$file_key_vault"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneLocation" "$LOCATION"
 
 fi
 exit $return_code
