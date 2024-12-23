@@ -26,7 +26,6 @@ fi
 
 export DEBUG
 set -eu
-
 file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 
@@ -51,6 +50,8 @@ if [ "$FORCE_RESET" == "True" ]; then
 else
 	if [ -f "${deployer_environment_file_name}" ]; then
 		step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
+	else
+		step=0
 	fi
 fi
 echo "Step:                                $step"
