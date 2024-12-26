@@ -350,13 +350,15 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 			added=1
 		fi
 	else
-		echo "Remote Terraform state"
+		echo "Deployer: Remote Terraform state"
 		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
 			git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+			echo "Removed the deployer state file"
 			added=1
 		fi
 		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 			git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+			echo "Removed the deployer state zip file"
 			added=1
 		fi
 	fi
@@ -385,12 +387,14 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 			added=1
 		fi
 	else
-		echo "Remote Terraform state"
+		echo "Library: Remote Terraform state"
 		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
+		    echo "Removing the library state file"
 			git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
 			added=1
 		fi
 		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
+			echo "Removing the library state zip file"
 			git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
 			added=1
 		fi
