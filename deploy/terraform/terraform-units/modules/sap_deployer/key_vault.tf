@@ -10,6 +10,10 @@ data "azurerm_client_config" "deployer" {
 resource "time_offset" "secret_expiry_date" {
   offset_months = 12
 }
+
+resource "time_sleep" "wait_for_keyvault" {
+  create_duration                      = "120s"
+}
 // Create user KV with access policy
 resource "azurerm_key_vault" "kv_user" {
   count                                = (var.key_vault.kv_exists) ? 0 : 1
@@ -232,7 +236,9 @@ resource "azurerm_key_vault_secret" "pwd" {
 
 data "azurerm_key_vault_secret" "pk" {
   count                                = (local.enable_key && !local.key_exist) ? (1) : (0)
-  depends_on                           = [ azurerm_key_vault_secret.pk ]
+  depends_on                           = [ azurerm_key_vault.kv,
+                                           azurerm_key_vault_secret.pk,
+                                           time_sleep.wait_for_keyvault ]
 
   name                                 = local.pk_secret_name
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.kv_user_id)
