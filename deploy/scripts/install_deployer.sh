@@ -240,20 +240,10 @@ else
 			echo ""
 		else
 			echo ""
-			echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
+			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 			echo ""
 			exit 10
 		fi
-	fi
-	if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
-		echo ""
-		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-		echo ""
-	else
-		echo ""
-		echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
-		echo ""
-		exit 10
 	fi
 	echo "Parameters:                          $allParameters"
 	terraform -chdir="${terraform_module_directory}" refresh $allParameters
