@@ -225,7 +225,7 @@ else
 
 					export TF_VAR_recover=true
 
-					az keyvault update --name "$keyvault" --resource-group "$keyvault_resource_group" --subscription "$keyvault_subscription" --public-network-access Enabled  --only-show-errors --output none
+					az keyvault update --name "$keyvault" --resource-group "$keyvault_resource_group" --subscription "$keyvault_subscription" --public-network-access Enabled --only-show-errors --output none
 					echo "Sleeping for 30 seconds to allow the key vault network rule to take effect"
 					sleep 30
 				else
@@ -243,17 +243,17 @@ else
 					exit 10
 				fi
 			fi
-		fi
-	else
-		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
-			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-			echo ""
 		else
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
-			exit 10
+			if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
+				echo ""
+				echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+				echo ""
+			else
+				echo ""
+				echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
+				echo ""
+				exit 10
+			fi
 		fi
 	fi
 	echo "Parameters:                          $allParameters"
@@ -376,7 +376,7 @@ if [ -f apply_output.json ]; then
 	errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 	if [[ -n $errors_occurred ]]; then
-	  return_value=10
+		return_value=10
 		if [ -n "${approve}" ]; then
 
 			# shellcheck disable=SC2086
