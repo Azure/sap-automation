@@ -223,8 +223,10 @@ else
 					keyvault_resource_group=$(echo "$keyvault_id" | cut -d / -f5)
 					keyvault_subscription=$(echo "$keyvault_id" | cut -d / -f3)
 
+					export TF_VAR_recover=true
+
 					az keyvault update --name "$keyvault" --resource-group "$keyvault_resource_group" --subscription "$keyvault_subscription" --public-network-access Enabled
-					echo "Sleeping for 30 seconds to allow the network rule to take effect"
+					echo "Sleeping for 30 seconds to allow the key vault network rule to take effect"
 					sleep 30
 				else
 					echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
