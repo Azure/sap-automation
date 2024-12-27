@@ -82,6 +82,7 @@ resource "tls_private_key" "deployer" {
 
 resource "azurerm_key_vault_secret" "ppk" {
   count                                = (local.enable_key && !local.key_exist) ? 1 : 0
+  depends_on                           = [ time_sleep.wait_for_keyvault ]
   name                                 = local.ppk_secret_name
   value                                = local.private_key
   key_vault_id                         = var.key_vault.kv_exists ? (
@@ -98,7 +99,7 @@ resource "azurerm_key_vault_secret" "ppk" {
 
 resource "azurerm_key_vault_secret" "pk" {
   count                                = (local.enable_key && !local.key_exist) ? (1) : (0)
-
+  depends_on                           = [ time_sleep.wait_for_keyvault ]
   name                                 = local.pk_secret_name
   value                                = local.public_key
   key_vault_id                         = var.key_vault.kv_exists ? (
@@ -121,6 +122,7 @@ resource "azurerm_key_vault_secret" "username" {
                                           )) : (
                                           0
                                         )
+  depends_on                           = [ time_sleep.wait_for_keyvault ]
 
   name                                 = local.username_secret_name
   value                                = local.username
@@ -146,6 +148,7 @@ resource "azurerm_key_vault_secret" "pat" {
                                           0
                                         )
 
+  depends_on                           = [ time_sleep.wait_for_keyvault ]
   name                                 = "PAT"
   value                                = var.agent_pat
   key_vault_id                         = var.key_vault.kv_exists ? (
@@ -199,6 +202,7 @@ resource "azurerm_key_vault_secret" "pwd" {
                                          )
 
 
+  depends_on                           = [ time_sleep.wait_for_keyvault ]
   name                                 = local.pwd_secret_name
   value                                = local.password
   key_vault_id                         = var.key_vault.kv_exists ? (
