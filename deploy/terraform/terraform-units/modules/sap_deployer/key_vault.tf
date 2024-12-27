@@ -30,7 +30,7 @@ resource "azurerm_key_vault" "kv_user" {
   soft_delete_retention_days           = var.soft_delete_retention_days
   purge_protection_enabled             = var.enable_purge_control_for_keyvaults
   sku_name                             = "standard"
-  public_network_access_enabled        = var.public_network_access_enabled
+  public_network_access_enabled        = var.bootstrap ? true : var.public_network_access_enabled
 
   network_acls {
             bypass                     = "AzureServices"

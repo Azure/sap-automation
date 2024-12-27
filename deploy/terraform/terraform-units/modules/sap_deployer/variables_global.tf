@@ -8,19 +8,19 @@
 #######################################4#######################################8
 
 variable "assign_subscription_permissions" { description = "Assign permissions on the subscription" }
-variable "authentication"              { description = "Dictionary of authentication information" }
-variable "bastion_deployment"          { description = "Value indicating if Azure Bastion should be deployed" }
-variable "bastion_sku"                 { description = "The SKU of the Bastion Host. Accepted values are Basic or Standard" }
-variable "bootstrap"                   { description = "Defines the phase of deployment" }
-variable "configure"                   { description = "Value indicating if deployer should be configured" }
-variable "infrastructure"              { description = "Dictionary of information about the common infrastructure" }
-variable "naming"                      { description = "Defines the names for the resources" }
-variable "options"                     { description = "Dictionary of miscallaneous parameters" }
-variable "place_delete_lock_on_resources" { description = "If defined, a delete lock will be placed on the key resources" }
-variable "ssh-timeout"                 { description = "SSH timeout" }
-variable "tf_version"                  { description = "Terraform version to install on deployer" }
-variable "use_private_endpoint"        { description = "Boolean value indicating if private endpoint should be used for the deployment" }
-variable "use_service_endpoint"        { description = "Boolean value indicating if service endpoints should be used for the deployment" }
+variable "authentication"                  { description = "Dictionary of authentication information" }
+variable "bastion_deployment"              { description = "Value indicating if Azure Bastion should be deployed" }
+variable "bastion_sku"                     { description = "The SKU of the Bastion Host. Accepted values are Basic or Standard" }
+variable "bootstrap"                       { description = "Defines the phase of deployment" }
+variable "configure"                       { description = "Value indicating if deployer should be configured" }
+variable "infrastructure"                  { description = "Dictionary of information about the common infrastructure" }
+variable "naming"                          { description = "Defines the names for the resources" }
+variable "options"                         { description = "Dictionary of miscallaneous parameters" }
+variable "place_delete_lock_on_resources"  { description = "If defined, a delete lock will be placed on the key resources" }
+variable "ssh-timeout"                     { description = "SSH timeout" }
+variable "tf_version"                      { description = "Terraform version to install on deployer" }
+variable "use_private_endpoint"            { description = "Boolean value indicating if private endpoint should be used for the deployment" }
+variable "use_service_endpoint"            { description = "Boolean value indicating if service endpoints should be used for the deployment" }
 
 #########################################################################################
 #                                                                                       #
