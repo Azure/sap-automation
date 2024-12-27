@@ -217,6 +217,14 @@ else
 					echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 					echo ""
 					terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+					keyvault_id=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_arm_id | tr -d \")
+					keyvault=$(echo "$keyvault_id" | cut -d / -f9)
+					keyvault_resource_group=$(echo "$tfstate_resource_id" | cut -d / -f5)
+					keyvault_subscription=$(echo "$tfstate_resource_id" | cut -d / -f3)
+
+					az keyvault update --name "$keyvault" --resource-group "$keyvault_resource_group" --subscription "$keyvault_subscription" --public-network-access Enabled
+					echo "Sleeping for 30 seconds to allow the network rule to take effect"
+					sleep 30
 				else
 					echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
 					exit 10

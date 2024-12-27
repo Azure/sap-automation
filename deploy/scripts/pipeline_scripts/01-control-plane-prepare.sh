@@ -242,6 +242,7 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 	pass=${SYSTEM_COLLECTIONID//-/}
 	echo "Unzipping state.zip"
 	unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
+	sudo rm "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 fi
 
 export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
