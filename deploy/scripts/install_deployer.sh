@@ -225,7 +225,7 @@ else
 
 					export TF_VAR_recover=true
 
-					az keyvault update --name "$keyvault" --resource-group "$keyvault_resource_group" --subscription "$keyvault_subscription" --public-network-access Enabled
+					az keyvault update --name "$keyvault" --resource-group "$keyvault_resource_group" --subscription "$keyvault_subscription" --public-network-access Enabled  --only-show-errors --output none
 					echo "Sleeping for 30 seconds to allow the key vault network rule to take effect"
 					sleep 30
 				else
