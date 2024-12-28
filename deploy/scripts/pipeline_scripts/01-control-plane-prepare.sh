@@ -131,20 +131,28 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
 	ARM_CLIENT_ID="$servicePrincipalId"
 	export ARM_CLIENT_ID
+	TF_VAR_spn_id=$ARM_CLIENT_ID
+	export TF_VAR_spn_id
 
 	ARM_OIDC_TOKEN="$idToken"
-	export ARM_OIDC_TOKEN
+	if [ -n "$ARM_OIDC_TOKEN" ]; then
+		export ARM_OIDC_TOKEN
+		ARM_USE_OIDC=true
+		export ARM_USE_OIDC
+		unset ARM_CLIENT_SECRET
+	else
+		unset ARM_OIDC_TOKEN
+		ARM_CLIENT_SECRET="$servicePrincipalKey"
+		export ARM_CLIENT_SECRET
+	fi
 
 	ARM_TENANT_ID="$tenantId"
 	export ARM_TENANT_ID
 
-	ARM_USE_OIDC=true
-	export ARM_USE_OIDC
-
 	ARM_USE_AZUREAD=true
 	export ARM_USE_AZUREAD
 
-	unset ARM_CLIENT_SECRET
+
 
 else
 	echo -e "$green--- az login ---$reset"
@@ -303,8 +311,8 @@ if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
 fi
 
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name" ]; then
-  git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name"
-  added=1
+	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name"
+	added=1
 fi
 
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
