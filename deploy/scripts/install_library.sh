@@ -381,16 +381,18 @@ if [ -f terraform.tfvars ]; then
 else
 	unset extra_vars
 fi
+return_value=0
 
 if [ -n "${deployer_statefile_foldername}" ]; then
 	echo "Deployer folder specified:           ${deployer_statefile_foldername}"
 	if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
 		-var-file="${var_file}" -input=false \
 		-var deployer_statefile_foldername="${deployer_statefile_foldername}" | tee -a plan_output.log 2>&1; then
+		return_value=$?
 		echo ""
 		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
 		echo ""
-		return_value=$?
+
 	else
 		echo ""
 		echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
@@ -407,7 +409,7 @@ else
 		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
 		echo ""
 	else
-	  return_value=$?
+		return_value=$?
 		echo ""
 		echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
 		echo ""
@@ -415,7 +417,6 @@ else
 	allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 	allImportParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 fi
-
 
 if [ 1 == $return_value ]; then
 	echo ""
