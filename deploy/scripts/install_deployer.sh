@@ -450,23 +450,25 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 		fi
 	fi
 
-	sshsecret=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_sshkey_secret_name | tr -d \")
-	if [ -n "${sshsecret}" ]; then
-		save_config_var "sshsecret" "${deployer_config_information}"
-	fi
+	if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+		sshsecret=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_sshkey_secret_name | tr -d \")
+		if [ -n "${sshsecret}" ]; then
+			save_config_var "sshsecret" "${deployer_config_information}"
+		fi
 
-	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
-	if [ -n "${deployer_public_ip_address}" ]; then
-		save_config_var "deployer_public_ip_address" "${deployer_config_information}"
-	fi
+		deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
+		if [ -n "${deployer_public_ip_address}" ]; then
+			save_config_var "deployer_public_ip_address" "${deployer_config_information}"
+		fi
 
-	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-	if [ -n "${deployer_random_id}" ]; then
-		save_config_var "deployer_random_id" "${deployer_config_information}"
-		custom_random_id="${deployer_random_id}"
-		sed -i -e /"custom_random_id"/d "${parameterfile}"
-		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+		deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+		if [ -n "${deployer_random_id}" ]; then
+			save_config_var "deployer_random_id" "${deployer_config_information}"
+			custom_random_id="${deployer_random_id}"
+			sed -i -e /"custom_random_id"/d "${parameterfile}"
+			printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
+		fi
 	fi
 fi
 
