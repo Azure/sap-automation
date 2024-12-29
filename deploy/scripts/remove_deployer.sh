@@ -185,12 +185,12 @@ fi
 if terraform -chdir="${terraform_module_directory}" destroy "${approve}" -lock=false -parallelism="${parallelism}" -json -var-file="${var_file}" "$extra_vars" | tee -a destroy_output.json; then
 	return_value=$?
 	echo ""
-	echo -e "${bold_red}Terraform destroy: $reset_formatting                    succeeded"
+	echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
 	echo ""
 else
 	return_value=$?
 	echo ""
-	echo -e "${bold_red}Terraform destroy: $reset_formatting                    failed"
+	echo -e "${bold_red}Terraform destroy:                     failed$reset_formatting"
 	echo ""
 fi
 

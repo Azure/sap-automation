@@ -283,15 +283,16 @@ echo ""
 # shellcheck disable=SC2086
 
 if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee -a plan_output.log; then
+	return_value=$?
 	echo ""
 	echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
 	echo ""
 	return_value=0
 else
+	return_value=$?
 	echo ""
 	echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
 	echo ""
-	return_value=$?
 	exit $return_value
 fi
 
