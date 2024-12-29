@@ -271,7 +271,6 @@ if [ -z "${storage_account}" ]; then
 	if [ -n "${STATE_SUBSCRIPTION}" ]; then
 		subscription="${STATE_SUBSCRIPTION}"
 		az account set --sub "${STATE_SUBSCRIPTION}"
-
 	fi
 
 	if [ -n "${REMOTE_STATE_SA}" ]; then
@@ -313,10 +312,10 @@ if [ -f init_error.log ]; then
 	rm init_error.log
 fi
 
-if [ -f ./.terraform/terraform.tfstate ]; then
+if [ -f .terraform/terraform.tfstate ]; then
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 	if [ -n "$azure_backend" ]; then
-		echo "State is stored in Azure"
+		echo  "Terraform state:                       remote"
 
 		# Initialize the state file and copy to local
 
@@ -382,7 +381,12 @@ if [ 0 != $return_value ]; then
 	unset TF_DATA_DIR
 	exit 10
 fi
-var_file="${param_dirname}/${deployer_tfvars_filename}"
+
+if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+  keyvault_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
+	TF_VAR_spn_keyvault_id="${keyvault_id}"
+	export TF_VAR_spn_keyvault_id
+fi
 
 cd "${current_directory}" || exit
 
