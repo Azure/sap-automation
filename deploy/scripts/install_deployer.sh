@@ -284,19 +284,20 @@ echo ""
 
 if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee -a plan_output.log; then
 	return_value=$?
+	echo "Terraform plan return code:          $return_value"
 	echo ""
 	echo -e "${cyan}Terraform plan:                      succeeded$reset_formatting"
 	echo ""
 	return_value=0
 else
 	return_value=$?
+	echo "Terraform plan return code:          $return_value"
 	echo ""
 	echo -e "${bold_red}Terraform plan:                      failed$reset_formatting"
 	echo ""
 	exit $return_value
 fi
 
-echo "Terraform Plan return code:          $return_value"
 
 if [ 1 == $return_value ]; then
 	echo ""
@@ -342,6 +343,7 @@ if [ -n "${approve}" ]; then
 	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
 		$allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee -a apply_output.json; then
 		return_value=$?
+		echo "Terraform apply return code:         $return_value"
 		if [ $return_value -eq 1 ]; then
 			echo ""
 			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
@@ -359,6 +361,7 @@ else
 	# shellcheck disable=SC2086
 	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters | tee -a apply_output.json; then
 		return_value=$?
+		echo "Terraform apply return code:         $return_value"
 		if [ $return_value -eq 1 ]; then
 			echo ""
 			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
