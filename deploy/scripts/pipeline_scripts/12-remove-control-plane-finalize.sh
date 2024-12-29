@@ -248,16 +248,6 @@ if [ 0 == $return_code ]; then
 		changed=1
 	fi
 
-	if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/.terraform" ]; then
-		git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
-		changed=1
-	fi
-
-	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
-		git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
-		changed=1
-	fi
-
 	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}" ]; then
 		rm ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
 		git rm -q --ignore-unmatch ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
@@ -266,11 +256,6 @@ if [ 0 == $return_code ]; then
 	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}.md" ]; then
 		rm ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}.md"
 		git rm -q --ignore-unmatch ".sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}.md"
-		changed=1
-	fi
-
-	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars" ]; then
-		git rm -q --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars"
 		changed=1
 	fi
 
