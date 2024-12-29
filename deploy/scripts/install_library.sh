@@ -361,7 +361,7 @@ else
 			echo ""
 		else
 			echo ""
-			echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
+			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 			echo ""
 			return 10
 		fi
@@ -407,6 +407,7 @@ else
 		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
 		echo ""
 	else
+	  return_value=$?
 		echo ""
 		echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
 		echo ""
@@ -415,7 +416,6 @@ else
 	allImportParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 fi
 
-return_value=$?
 
 if [ 1 == $return_value ]; then
 	echo ""
