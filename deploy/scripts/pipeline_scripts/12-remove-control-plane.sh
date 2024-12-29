@@ -257,7 +257,7 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
 	sudo apt-get -qq install zip
 	pass=${SYSTEM_COLLECTIONID//-/}
 
-	if zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"; then
+	if zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"; then
 		git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 		changed=1
 	fi

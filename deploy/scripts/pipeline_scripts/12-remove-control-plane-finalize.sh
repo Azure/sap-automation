@@ -39,7 +39,6 @@ echo ""
 echo -e "$cyan Starting the removal of the deployer and its associated infrastructure $reset"
 echo ""
 
-exit 10
 echo -e "$green--- File Validations ---$reset"
 
 if [ ! -f "$deployerTFvarsFile" ]; then
