@@ -251,6 +251,7 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
 	changed=1
 fi
+
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
 	echo "Compressing the state file."
 	sudo apt-get -qq install zip
