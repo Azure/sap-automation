@@ -370,9 +370,11 @@ if [ -n "${subscription}" ]; then
 		fi
 		return_code=$?
 
-		echo "Return code from install_Deployer:   ${return_code}"
+		echo "Return code from install_deployer:   ${return_code}"
 		if [ 0 != $return_code ]; then
 			echo "Bootstrapping of the deployer failed" >"${deployer_config_information}".err
+			step=0
+			save_config_var "step" "${deployer_config_information}"
 			exit 10
 		else
 			step=1
