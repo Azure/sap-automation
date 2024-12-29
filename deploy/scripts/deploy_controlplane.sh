@@ -548,9 +548,6 @@ else
 	echo -e "#                       $bold_red  Key vault not found $reset_formatting                                      #"
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
-	exit $return_code
-	step=1
-	save_config_var "step" "${deployer_config_information}"
 fi
 
 ##########################################################################################
@@ -603,33 +600,38 @@ if [ 2 == $step ]; then
 			--parameterfile "${library_file_parametername}" \
 			--deployer_statefile_foldername "${relative_path}" \
 			--keyvault "${keyvault}"; then
+			return_code=$?
 			echo "Bootstrapping of the SAP Library failed"
+
 			step=2
 			save_config_var "step" "${deployer_config_information}"
 			exit 20
 		else
+			return_code=$?
 			step=3
 			save_config_var "step" "${deployer_config_information}"
 		fi
 	fi
-	return_code=$?
-	if [ -z "$REMOTE_STATE_SA" ]; then
-		REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name | tr -d \")
-	fi
-	if [ -z "$REMOTE_STATE_SA" ]; then
-		REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
-	fi
-	if [ -z "$STATE_SUBSCRIPTION" ]; then
-		STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
-	fi
 
-	if [ "${ado_flag}" != "--ado" ]; then
-		az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address "${this_ip}" --output none
+	if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+
+		if [ -z "$REMOTE_STATE_SA" ]; then
+			REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name | tr -d \")
+		fi
+		if [ -z "$REMOTE_STATE_SA" ]; then
+			REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
+		fi
+		if [ -z "$STATE_SUBSCRIPTION" ]; then
+			STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
+		fi
+
+		if [ "${ado_flag}" != "--ado" ]; then
+			az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address "${this_ip}" --output none
+		fi
+
+		TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
+		export TF_VAR_sa_connection_string
 	fi
-
-	TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
-	export TF_VAR_sa_connection_string
-
 	if [ -n "${tfstate_resource_id}" ]; then
 		TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
 		export TF_VAR_tfstate_resource_id
@@ -666,7 +668,7 @@ echo "##vso[task.setprogress value=80;]Progress Indicator"
 #                                                                                        #
 #                                                                                        #
 ##########################################################################################
-
+exit 0
 if [ 3 == "$step" ]; then
 	echo ""
 	echo "#########################################################################################"
