@@ -318,7 +318,7 @@ if [ -f ./.terraform/terraform.tfstate ]; then
 	if [ -n "$azure_backend" ]; then
 		echo "State is stored in Azure"
 
-		#Initialize the statefile and copy to local
+		# Initialize the state file and copy to local
 
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
 		echo ""
@@ -383,26 +383,6 @@ if [ 0 != $return_value ]; then
 	exit 10
 fi
 var_file="${param_dirname}/${deployer_tfvars_filename}"
-
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                     Running Terraform apply (deployer - local)                              #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
-
-if terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" "${approve_parameter}"; then
-	return_value=$?
-	echo ""
-	echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
-	echo ""
-else
-	return_value=$?
-	echo ""
-	echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-	echo ""
-fi
 
 cd "${current_directory}" || exit
 

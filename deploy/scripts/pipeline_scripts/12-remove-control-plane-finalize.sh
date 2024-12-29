@@ -187,7 +187,7 @@ echo "Deployer Key Vault:                  $key_vault"
 
 key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 if [ -n "${key_vault_id}" ]; then
-	if [ "azure pipelines" = "$(this_agent)" ]; then
+	if [ "azure pipelines" = "$THIS_AGENT" ]; then
 		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 		az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --only-show-errors --output none
 	fi
