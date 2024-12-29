@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
@@ -203,11 +204,13 @@ echo "Deployer Key Vault:                  ${key_vault}"
 if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
   pass=${SYSTEM_COLLECTIONID//-/}
   unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME"
+	sudo rm -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
 fi
 
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
   pass=${SYSTEM_COLLECTIONID//-/}
   unzip -qq -o -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
+	sudo rm -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 fi
 
 echo -e "$green--- Running the remove region script that destroys deployer VM and SAP library ---$reset"
@@ -226,7 +229,6 @@ else
   return_code=$?
   echo "Control Plane $DEPLOYER_FOLDERNAME removal step 1 failed."
 fi
-return_code=$?
 
 echo "Return code from remove_controlplane: $return_code."
 
@@ -240,24 +242,26 @@ if [ -f "$deployer_environment_file_name" ]; then
   changed=1
 fi
 
+if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile" ]; then
+  sed -i /"custom_random_id"/d "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile"
+	git add -f "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile"
+	changed=1
+fi
+
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
   changed=1
-  local_backend=$(grep "\"type\": \"local\"" "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" || true)
-  if [ -n "${local_backend}" ]; then
-
-    if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
-      echo "Compressing the state file."
-      sudo apt-get -qq install zip
-      pass=${SYSTEM_COLLECTIONID//-/}
-
-      if zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"; then
-        git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
-      fi
-    fi
-  fi
 fi
+if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
+	echo "Compressing the state file."
+	sudo apt-get -qq install zip
+	pass=${SYSTEM_COLLECTIONID//-/}
 
+	if zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"; then
+		git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+		changed=1
+	fi
+fi
 if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
   changed=1

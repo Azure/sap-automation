@@ -464,7 +464,9 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 	if [ -n "${deployer_random_id}" ]; then
 		save_config_var "deployer_random_id" "${deployer_config_information}"
 		custom_random_id="${deployer_random_id}"
-		save_config_var "custom_random_id" ${parameterfile}
+		sed -i -e /"custom_random_id"/d "${parameterfile}"
+		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+
 	fi
 fi
 
