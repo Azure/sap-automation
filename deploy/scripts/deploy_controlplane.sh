@@ -2,7 +2,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-
 ################################################################################################
 #                                                                                              #
 #   This file contains the logic to deploy the environment to support SAP workloads.           #
@@ -65,8 +64,6 @@ while :; do
 		;;
 	-c | --spn_id)
 		client_id="$2"
-		TF_VAR_spn_id="$client_id"
-		export TF_VAR_spn_id
 		shift 2
 		;;
 	-d | --deployer_parameter_file)
@@ -127,6 +124,13 @@ while :; do
 		;;
 	esac
 done
+
+if [ -n "${client_id}" ]; then
+	TF_VAR_spn_id="$client_id"
+	export TF_VAR_spn_id
+else
+	unset TF_VAR_spn_id
+fi
 
 if [ "$DEBUG" = True ]; then
 	# Enable debugging
@@ -207,7 +211,6 @@ save_config_var "deployer_tfstate_key" "${deployer_config_information}"
 if [ -z "${keyvault}" ]; then
 	load_config_vars "${deployer_config_information}" "keyvault"
 fi
-
 
 # Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
