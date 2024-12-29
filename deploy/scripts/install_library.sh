@@ -455,20 +455,19 @@ if [ -n "${approve}" ]; then
 		return_value=$?
 		if [ $return_value -eq 1 ]; then
 			echo ""
-			echo -e "${bold_red}Terraform apply: $reset_formatting                      failed"
+			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
 			echo ""
 		else
 			# return code 2 is ok
 			echo ""
-			echo -e "${cyan}Terraform apply: $reset_formatting                      succeeded"
+			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 			echo ""
 			return_value=0
 		fi
 	else
-
 		return_value=0
 		echo ""
-		echo -e "${cyan}Terraform apply: $reset_formatting                      succeeded"
+		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 		echo ""
 	fi
 
@@ -478,13 +477,13 @@ else
 		return_value=$?
 		if [ $return_value -eq 1 ]; then
 			echo ""
-			echo -e "${bold_red}Terraform apply: $reset_formatting                      failed"
+			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
 			echo ""
 		else
 			# return code 2 is ok
 			return_value=0
 			echo ""
-			echo -e "${cyan}Terraform apply: $reset_formatting                      succeeded"
+			echo -e "${cyan} Terraform apply:                    succeeded$reset_formatting"
 			echo ""
 		fi
 	fi

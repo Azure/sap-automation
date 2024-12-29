@@ -285,13 +285,13 @@ echo ""
 if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee -a plan_output.log; then
 	return_value=$?
 	echo ""
-	echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
+	echo -e "${cyan}Terraform plan:                      succeeded$reset_formatting"
 	echo ""
 	return_value=0
 else
 	return_value=$?
 	echo ""
-	echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
+	echo -e "${bold_red}Terraform plan:                      failed$reset_formatting"
 	echo ""
 	exit $return_value
 fi
@@ -344,12 +344,13 @@ if [ -n "${approve}" ]; then
 		return_value=$?
 		if [ $return_value -eq 1 ]; then
 			echo ""
-			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
 			echo ""
 		else
 			# return code 2 is ok
 			echo ""
-			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo -e "${cyan} Terraform apply:                    succeeded$reset_formatting"
+
 			echo ""
 			return_value=0
 		fi
@@ -360,12 +361,12 @@ else
 		return_value=$?
 		if [ $return_value -eq 1 ]; then
 			echo ""
-			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
 			echo ""
 		else
 			# return code 2 is ok
 			echo ""
-			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 			echo ""
 			return_value=0
 		fi

@@ -1026,13 +1026,13 @@ if [ 1 == $apply_needed ]; then
 			else
 				# return code 2 is ok
 				echo ""
-				echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+				echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 				echo ""
 				return_value=0
 			fi
 		else
 			echo ""
-			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+				echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 			echo ""
 			return_value=0
 		fi
@@ -1048,13 +1048,14 @@ if [ 1 == $apply_needed ]; then
 			else
 				# return code 2 is ok
 				echo ""
-				echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+				echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 				echo ""
 				return_value=0
 			fi
 		else
 			echo ""
-			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
+
 			echo ""
 			return_value=0
 		fi
