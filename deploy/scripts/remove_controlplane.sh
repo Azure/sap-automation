@@ -342,10 +342,10 @@ if [ -f ./.terraform/terraform.tfstate ]; then
 	else
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
 		if terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"; then
+			return_value=$?
 			echo ""
 			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 			echo ""
-			return_value=$?
 		else
 			return_value=$?
 			echo ""
@@ -367,7 +367,6 @@ else
 		echo ""
 	fi
 fi
-return_value=$?
 
 deployer_statefile_foldername_path="${param_dirname}"
 if [ 0 != $return_value ]; then
