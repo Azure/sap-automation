@@ -271,7 +271,9 @@ else
 		--subscription "$ARM_SUBSCRIPTION_ID" --auto-approve --ado --only_deployer --msi
 fi
 return_code=$?
-echo "Deploy_controlplane returned:           $return_code"
+echo ""
+echo -e "${cyan}Deploy_controlplane returned:        $return_code${reset_formatting}"
+echo ""
 
 set -eu
 
@@ -281,10 +283,10 @@ if [ -f "${deployer_environment_file_name}" ]; then
 		deployer_tfstate_key=$file_deployer_tfstate_key
 		export deployer_tfstate_key
 	fi
-	echo "Deployer State File                   $deployer_tfstate_key"
+	echo "Deployer State File:                 $deployer_tfstate_key"
 
 	file_key_vault=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	echo "Deployer Key Vault:                   ${file_key_vault}"
+	echo "Deployer Key Vault:                  ${file_key_vault}"
 
 	file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${file_REMOTE_STATE_SA}" ]; then
@@ -322,8 +324,6 @@ fi
 
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
 	sudo apt-get install zip -y
-	# shellcheck disable=SC2001
-	# shellcheck disable=SC2005
 	pass=${SYSTEM_COLLECTIONID//-/}
 	zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
 	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"

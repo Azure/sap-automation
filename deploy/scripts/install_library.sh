@@ -543,18 +543,6 @@ if [ 1 == $return_value ]; then
 	exit $return_value
 fi
 
-if ! terraform -chdir="${terraform_module_directory}" refresh $allParameters; then
-	return_value=$?
-	if [ $return_value -eq 1 ]; then
-		echo "Errors when running Terraform refresh"
-	else
-		# return code 2 is ok
-		return_value=0
-	fi
-else
-	return_value=0
-fi
-
 if [ "$DEBUG" = True ]; then
 	terraform -chdir="${terraform_module_directory}" output
 fi
@@ -579,8 +567,6 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
 	fi
-
-	return_value=0
 else
 	return_value=20
 fi
