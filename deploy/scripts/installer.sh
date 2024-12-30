@@ -572,15 +572,6 @@ TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 export TF_VAR_subscription_id
 
 check_output=0
-if [ -f terraform.tfstate ]; then
-	echo "Local Terraform state file exists"
-	if [ -f ./.terraform/terraform.tfstate ]; then
-		if ! grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate; then
-			echo "State file is in Azure"
-
-		fi
-	fi
-fi
 
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
@@ -588,9 +579,11 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 new_deployment=0
 
 if [ ! -d ./.terraform/ ]; then
-	echo "New deployment"
+  echo ""
+	echo -e "${cyan}New deployment${reset_formatting}"
+	echo ""
 	deployment_parameter=" -var deployment=new "
-	check_output=false
+	check_output=0
 
 	if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
 		--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
@@ -611,12 +604,13 @@ if [ ! -d ./.terraform/ ]; then
 
 else
 	new_deployment=1
-	check_output=true
+	check_output=1
 
 	if [ -f .terraform/terraform.tfstate ]; then
 
 		local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
 		if [ -n "$local_backend" ]; then
+			echo "Terraform state:                       local"
 			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
 				--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 				--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
@@ -636,6 +630,7 @@ else
 			fi
 
 		else
+		echo "Terraform state:                       remote"
 			STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
 			REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 			REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
@@ -648,7 +643,7 @@ else
 			echo "#########################################################################################"
 			echo ""
 
-			check_output=true
+			check_output=1
 			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
 				-reconfigure \
 				--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
@@ -690,7 +685,7 @@ else
 		fi
 	fi
 fi
-if [ "true" == "$check_output" ]; then
+if [ 1 == "$check_output" ]; then
 	if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
@@ -700,7 +695,7 @@ if [ "true" == "$check_output" ]; then
 
 		deployment_parameter=" -var deployment=new "
 		new_deployment=1
-		check_output=false
+		check_output=0
 
 	else
 		echo ""
