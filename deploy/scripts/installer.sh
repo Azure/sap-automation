@@ -569,8 +569,6 @@ echo "Terraform state resource ID:         ${tfstate_resource_id}"
 echo "Current directory:                   $(pwd)"
 echo ""
 
-ls -lart
-
 TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 export TF_VAR_subscription_id
 
@@ -722,7 +720,7 @@ if [ 1 == "$check_output" ]; then
 		check_output=true
 	fi
 fi
-exit 10
+
 if [ 0 == $new_deployment ]; then
 	deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \" || true)
 	if [ -z "${deployed_using_version}" ]; then
