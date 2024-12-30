@@ -616,18 +616,27 @@ else
 		echo "#                                                                                       #"
 		echo "#########################################################################################"
 		echo ""
-		if ! terraform -chdir="${terraform_module_directory}" init -force-copy \
+
+		if ! terraform -chdir="${terraform_module_directory}" init ; then
+			return_value=$?
+			echo ""
+			echo -e "${bold_red}Terraform local init:                  failed$reset_formatting"
+			echo ""
+			exit $return_value
+		else
+			return_value=$?
+			echo ""
+			echo -e "${cyan}Terraform local init:                  succeeded$reset_formatting"
+			echo ""
+			terraform -chdir="${terraform_module_directory}" state list
+		fi
+
+		if terraform -chdir="${terraform_module_directory}" init -force-copy \
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
-			return_value=$?
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
-			exit $return_value
-		else
 			return_value=$?
 			echo ""
 			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
@@ -638,6 +647,12 @@ else
 
 
 			terraform -chdir="${terraform_module_directory}" state list
+		else
+			return_value=$?
+			echo ""
+			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
+			echo ""
+			exit $return_value
 		fi
 
 	else
