@@ -621,7 +621,7 @@ else
 
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
 
-		if ! terraform -chdir="${terraform_module_directory}" init  --backend-config "path=${param_dirname}/terraform.tfstate" ; then
+		if ! terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate" ; then
 			return_value=$?
 			echo ""
 			echo -e "${bold_red}Terraform local init:                  failed$reset_formatting"
