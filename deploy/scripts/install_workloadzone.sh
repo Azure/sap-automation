@@ -1032,7 +1032,7 @@ if [ 1 == $apply_needed ]; then
 			fi
 		else
 			echo ""
-				echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
+			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 			echo ""
 			return_value=0
 		fi
@@ -1077,9 +1077,9 @@ if [ -f apply_output.json ]; then
 			fi
 
 			sleep 10
-			echo -e "${cyan}Retrying Terraform apply:$reset_formatting"
 
 			if [ -f apply_output.json ]; then
+				echo -e "${cyan}Retrying Terraform apply:$reset_formatting"
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 					return_value=$?
