@@ -307,7 +307,6 @@ resource "azurerm_key_vault_secret" "subscription" {
 resource "azurerm_key_vault_secret" "ppk" {
   count                                = (local.enable_key && !local.key_exist) ? 1 : 0
   depends_on                           = [ azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_secret.pk,
                                            time_sleep.wait_for_keyvault,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer
@@ -329,7 +328,6 @@ resource "azurerm_key_vault_secret" "ppk" {
 resource "azurerm_key_vault_secret" "pk" {
   count                                = (local.enable_key && !local.key_exist) ? (1) : (0)
   depends_on                           = [ azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_secret.pk,
                                            time_sleep.wait_for_keyvault,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer
@@ -357,7 +355,6 @@ resource "azurerm_key_vault_secret" "username" {
                                           0
                                         )
   depends_on                           = [ azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_secret.pk,
                                            time_sleep.wait_for_keyvault,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer
@@ -388,7 +385,6 @@ resource "azurerm_key_vault_secret" "pat" {
                                         )
 
   depends_on                           = [ azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_secret.pk,
                                            time_sleep.wait_for_keyvault,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer
@@ -447,7 +443,6 @@ resource "azurerm_key_vault_secret" "pwd" {
 
 
   depends_on                           = [ azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_secret.pk,
                                            time_sleep.wait_for_keyvault,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer
@@ -468,13 +463,6 @@ resource "azurerm_key_vault_secret" "pwd" {
 
 data "azurerm_key_vault_secret" "pk" {
   count                                = (local.enable_key && !local.key_exist) ? (1) : (0)
-  depends_on                           = [ azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_secret.pk,
-                                           time_sleep.wait_for_keyvault,
-                                           azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_key_vault_access_policy.kv_user_pre_deployer
-                                         ]
-
   name                                 = local.pk_secret_name
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.kv_user_id)
 }
