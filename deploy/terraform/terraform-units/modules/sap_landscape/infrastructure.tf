@@ -62,6 +62,7 @@ resource "azurerm_virtual_network_dns_servers" "vnet_sap_dns_servers" {
 # // Peers management VNET to SAP VNET
 resource "azurerm_virtual_network_peering" "peering_management_sap" {
   provider                             = azurerm.peering
+  depends_on                           = [ azurerm_subnet.admin, azurerm_subnet.app, azurerm_subnet.db, azurerm_subnet.web ]
   count                                = var.peer_with_control_plane_vnet ? (
                                            local.SAP_virtualnetwork_exists || !var.use_deployer ? 0 : 1) : (
                                            0
@@ -87,6 +88,7 @@ resource "azurerm_virtual_network_peering" "peering_management_sap" {
 // Peers SAP VNET to management VNET
 resource "azurerm_virtual_network_peering" "peering_sap_management" {
   provider                             = azurerm.main
+  depends_on                           = [ azurerm_subnet.admin, azurerm_subnet.app, azurerm_subnet.db, azurerm_subnet.web ]
   count                                = var.peer_with_control_plane_vnet ? (
                                            local.SAP_virtualnetwork_exists || !var.use_deployer ? 0 : 1) : (
                                            0
