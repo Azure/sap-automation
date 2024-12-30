@@ -664,7 +664,6 @@ unset TF_DATA_DIR
 cd "$root_dirname" || exit
 echo "##vso[task.setprogress value=80;]Progress Indicator"
 
-exit 0
 ##########################################################################################
 #                                                                                        #
 #                                      STEP 3                                            #

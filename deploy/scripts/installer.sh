@@ -578,7 +578,7 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 
 new_deployment=0
 
-if [ ! -d ./.terraform/ ]; then
+if [ ! -d .terraform/ ]; then
 	echo ""
 	echo -e "${cyan}New deployment${reset_formatting}"
 	echo ""
@@ -689,6 +689,8 @@ else
 		fi
 	fi
 fi
+
+exit 0
 if [ 1 == "$check_output" ]; then
 	if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 		echo "#########################################################################################"
