@@ -194,11 +194,11 @@ generic_config_information="${automation_config_directory}"/config
 deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
 load_config_vars "${deployer_config_information}" "step"
-if [ 1 == "$step" ]; then
+if [ 1 -eq $step ]; then
 	exit 0
 fi
 
-if [ 0 == "$step" ]; then
+if [ 0 -eq $step ]; then
 	exit 0
 fi
 

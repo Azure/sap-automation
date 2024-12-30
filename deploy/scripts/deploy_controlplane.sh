@@ -337,7 +337,7 @@ if [ -n "${subscription}" ]; then
 	#                                                                                        #
 	##########################################################################################
 
-	if [ 0 == "$step" ]; then
+	if [ 0 -eq $step ]; then
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
@@ -448,7 +448,7 @@ export TF_DATA_DIR
 
 cd "${deployer_dirname}" || exit
 
-if [ 1 == $step ] || [ 3 == $step ]; then
+if [ 1 -eq $step ] || [ 3 -eq $step ]; then
 	# If the keyvault is not set, check the terraform state file
 	if [ -z "$keyvault" ]; then
 		key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
@@ -477,7 +477,7 @@ if [ 1 == $step ] || [ 3 == $step ]; then
 		fi
 	fi
 
-	if [ 1 == $step ] && [ -n "$client_secret" ]; then
+	if [ 1 -eq $step ] && [ -n "$client_secret" ]; then
 
 		if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
 			--environment "${environment}" \
@@ -539,7 +539,7 @@ az account set --subscription "$ARM_SUBSCRIPTION_ID"
 if validate_key_vault "$keyvault" "$ARM_SUBSCRIPTION_ID"; then
 	echo "Key vault:                           ${keyvault}"
 	save_config_var "keyvault" "${deployer_config_information}"
-	if [ 1 == $step ]; then
+	if [ 1 -eq $step ]; then
 		export step=2
 		save_config_var "step" "${deployer_config_information}"
 	fi
@@ -561,7 +561,7 @@ fi
 #                                                                                        #
 ##########################################################################################
 
-if [ 2 == $step ]; then
+if [ 2 -eq $step ]; then
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -671,7 +671,7 @@ echo "##vso[task.setprogress value=80;]Progress Indicator"
 #                                                                                        #
 #                                                                                        #
 ##########################################################################################
-if [ 3 == "$step" ]; then
+if [ 3 -eq "$step" ]; then
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -767,7 +767,7 @@ load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
 #                                                                                        #
 ##########################################################################################
 
-if [ 4 == $step ]; then
+if [ 4 -eq $step ]; then
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -867,7 +867,7 @@ fi
 terraform_state_storage_account="${REMOTE_STATE_SA}"
 export terraform_state_storage_account
 
-if [ 5 == $step ]; then
+if [ 5 -eq $step ]; then
 	if [ "${ado_flag}" != "--ado" ]; then
 		cd "${current_directory}" || exit
 
