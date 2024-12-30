@@ -131,20 +131,28 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
 	ARM_CLIENT_ID="$servicePrincipalId"
 	export ARM_CLIENT_ID
+	TF_VAR_spn_id=$ARM_CLIENT_ID
+	export TF_VAR_spn_id
 
 	ARM_OIDC_TOKEN="$idToken"
-	export ARM_OIDC_TOKEN
+	if [ -n "$ARM_OIDC_TOKEN" ]; then
+		export ARM_OIDC_TOKEN
+		ARM_USE_OIDC=true
+		export ARM_USE_OIDC
+		unset ARM_CLIENT_SECRET
+	else
+		unset ARM_OIDC_TOKEN
+		ARM_CLIENT_SECRET="$servicePrincipalKey"
+		export ARM_CLIENT_SECRET
+	fi
 
 	ARM_TENANT_ID="$tenantId"
 	export ARM_TENANT_ID
 
-	ARM_USE_OIDC=true
-	export ARM_USE_OIDC
-
 	ARM_USE_AZUREAD=true
 	export ARM_USE_AZUREAD
 
-	unset ARM_CLIENT_SECRET
+
 
 else
 	echo -e "$green--- az login ---$reset"
@@ -262,7 +270,9 @@ else
 		--subscription "$ARM_SUBSCRIPTION_ID" --auto-approve --ado --only_deployer --msi
 fi
 return_code=$?
-echo "Deploy_controlplane returned          $return_code."
+echo ""
+echo -e "${cyan}Deploy_controlplane returned:        $return_code${reset_formatting}"
+echo ""
 
 set -eu
 
@@ -272,10 +282,10 @@ if [ -f "${deployer_environment_file_name}" ]; then
 		deployer_tfstate_key=$file_deployer_tfstate_key
 		export deployer_tfstate_key
 	fi
-	echo "Deployer State File                   $deployer_tfstate_key"
+	echo "Deployer State File:                 $deployer_tfstate_key"
 
 	file_key_vault=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	echo "Deployer Key Vault:                   ${file_key_vault}"
+	echo "Deployer Key Vault:                  ${file_key_vault}"
 
 	file_REMOTE_STATE_SA=$(grep -m1 "^REMOTE_STATE_SA" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${file_REMOTE_STATE_SA}" ]; then
@@ -301,23 +311,21 @@ if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
 	added=1
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name" ]; then
-  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name"
-  added=1
-fi
-
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
-	git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
+if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name" ]; then
+	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name"
 	added=1
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
+if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
+	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
+	added=1
+fi
+
+if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
 	sudo apt-get install zip -y
-	# shellcheck disable=SC2001
-	# shellcheck disable=SC2005
 	pass=${SYSTEM_COLLECTIONID//-/}
-	zip -q -j -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
-	git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+	zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 	added=1
 fi
 
@@ -325,7 +333,7 @@ if [ 1 = $added ]; then
 	git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 	git config --global user.name "$BUILD_REQUESTEDFOR"
 	git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
-	if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
+	if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
 		echo "##vso[task.logissue type=error]Failed to push changes to the repository."
 	fi
 fi

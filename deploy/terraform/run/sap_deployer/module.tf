@@ -37,12 +37,12 @@ module "sap_deployer" {
   deployer_vm_count                             = var.deployer_count
   enable_firewall_for_keyvaults_and_storage     = var.enable_firewall_for_keyvaults_and_storage
   enable_purge_control_for_keyvaults            = var.enable_purge_control_for_keyvaults
-  firewall                                     = local.firewall
+  firewall                                      = local.firewall
   infrastructure                                = local.infrastructure
   key_vault                                     = local.key_vault
   options                                       = local.options
   place_delete_lock_on_resources                = var.place_delete_lock_on_resources
-  public_network_access_enabled                 = var.public_network_access_enabled
+  public_network_access_enabled                 = var.recover ? true : var.public_network_access_enabled
   sa_connection_string                          = var.sa_connection_string
   set_secret_expiry                             = var.set_secret_expiry
   soft_delete_retention_days                    = var.soft_delete_retention_days

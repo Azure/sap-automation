@@ -609,6 +609,12 @@ variable "custom_random_id"                          {
                                                        default     = ""
                                                      }
 
+variable "recover"                                   {
+                                                       description = "Defines if in recovery mode"
+                                                       default     = false
+                                                     }
+
+
 ###############################################################################
 #                                                                             #
 #                                  Identity                                   #

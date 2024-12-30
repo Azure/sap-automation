@@ -8,6 +8,10 @@ reset="\e[0m"
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors --output none
 
+deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+
+
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
   debug=true
@@ -81,7 +85,19 @@ if [ 0 == $return_code ]; then
   git checkout -q $BRANCH
   git pull
   changed=0
+
   echo "##vso[build.updatebuildnumber]Removing control plane $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
+	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile" ]; then
+		sed -i /"custom_random_id"/d "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile"
+		git add -f "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile"
+		changed=1
+	fi
+
+	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile" ]; then
+		sed -i /"custom_random_id"/d "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile"
+		git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile"
+		changed=1
+	fi
 
   if [ -d "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform" ]; then
     git rm -q -r --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform"

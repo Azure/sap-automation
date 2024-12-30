@@ -217,6 +217,17 @@ else
 					echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 					echo ""
 					terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
+					keyvault_id=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_arm_id | tr -d \")
+					echo "$keyvault_id"
+					keyvault=$(echo "$keyvault_id" | cut -d / -f9)
+					keyvault_resource_group=$(echo "$keyvault_id" | cut -d / -f5)
+					keyvault_subscription=$(echo "$keyvault_id" | cut -d / -f3)
+
+					export TF_VAR_recover=true
+
+					az keyvault update --name "$keyvault" --resource-group "$keyvault_resource_group" --subscription "$keyvault_subscription" --public-network-access Enabled --only-show-errors --output none
+					echo "Sleeping for 30 seconds to allow the key vault network rule to take effect"
+					sleep 30
 				else
 					echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
 					exit 10
@@ -232,28 +243,18 @@ else
 					exit 10
 				fi
 			fi
-		fi
-	else
-		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
-			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-			echo ""
 		else
-			echo ""
-			echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
-			echo ""
-			exit 10
+			if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
+				echo ""
+				echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+				echo ""
+			else
+				echo ""
+				echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
+				echo ""
+				exit 10
+			fi
 		fi
-	fi
-	if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
-		echo ""
-		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-		echo ""
-	else
-		echo ""
-		echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
-		echo ""
-		exit 10
 	fi
 	echo "Parameters:                          $allParameters"
 	terraform -chdir="${terraform_module_directory}" refresh $allParameters
@@ -282,19 +283,21 @@ echo ""
 # shellcheck disable=SC2086
 
 if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee -a plan_output.log; then
+	return_value=$?
+	echo "Terraform plan return code:          $return_value"
 	echo ""
-	echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
+	echo -e "${cyan}Terraform plan:                      succeeded$reset_formatting"
 	echo ""
 	return_value=0
 else
-	echo ""
-	echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
-	echo ""
 	return_value=$?
+	echo "Terraform plan return code:          $return_value"
+	echo ""
+	echo -e "${bold_red}Terraform plan:                      failed$reset_formatting"
+	echo ""
 	exit $return_value
 fi
 
-echo "Terraform Plan return code:          $return_value"
 
 if [ 1 == $return_value ]; then
 	echo ""
@@ -340,14 +343,16 @@ if [ -n "${approve}" ]; then
 	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
 		$allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee -a apply_output.json; then
 		return_value=$?
+		echo "Terraform apply return code:         $return_value"
 		if [ $return_value -eq 1 ]; then
 			echo ""
-			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
 			echo ""
 		else
 			# return code 2 is ok
 			echo ""
-			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo -e "${cyan} Terraform apply:                    succeeded$reset_formatting"
+
 			echo ""
 			return_value=0
 		fi
@@ -356,14 +361,15 @@ else
 	# shellcheck disable=SC2086
 	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters | tee -a apply_output.json; then
 		return_value=$?
+		echo "Terraform apply return code:         $return_value"
 		if [ $return_value -eq 1 ]; then
 			echo ""
-			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
 			echo ""
 		else
 			# return code 2 is ok
 			echo ""
-			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 			echo ""
 			return_value=0
 		fi
@@ -375,44 +381,35 @@ if [ -f apply_output.json ]; then
 	errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 	if [[ -n $errors_occurred ]]; then
+		return_value=10
 		if [ -n "${approve}" ]; then
 
 			# shellcheck disable=SC2086
 			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 				return_value=$?
-			else
-				return_value=0
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					return_value=$?
-				else
-					return_value=0
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					return_value=$?
-				else
-					return_value=0
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					return_value=$?
-				else
-					return_value=0
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					return_value=$?
-				else
-					return_value=0
 				fi
 			fi
 		else
@@ -458,21 +455,23 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 		fi
 	fi
 
-	sshsecret=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_sshkey_secret_name | tr -d \")
-	if [ -n "${sshsecret}" ]; then
-		save_config_var "sshsecret" "${deployer_config_information}"
-	fi
+		sshsecret=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_sshkey_secret_name | tr -d \")
+		if [ -n "${sshsecret}" ]; then
+			save_config_var "sshsecret" "${deployer_config_information}"
+		fi
 
-	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
-	if [ -n "${deployer_public_ip_address}" ]; then
-		save_config_var "deployer_public_ip_address" "${deployer_config_information}"
-	fi
+		deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
+		if [ -n "${deployer_public_ip_address}" ]; then
+			save_config_var "deployer_public_ip_address" "${deployer_config_information}"
+		fi
 
-	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-	if [ -n "${deployer_random_id}" ]; then
-		save_config_var "deployer_random_id" "${deployer_config_information}"
-		custom_random_id="${deployer_random_id}"
-		save_config_var "custom_random_id" ${parameterfile}
+		deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+		if [ -n "${deployer_random_id}" ]; then
+			save_config_var "deployer_random_id" "${deployer_config_information}"
+			custom_random_id="${deployer_random_id:0:3}"
+			sed -i -e /"custom_random_id"/d "${var_file}"
+			printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+
 	fi
 fi
 

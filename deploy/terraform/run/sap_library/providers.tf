@@ -32,7 +32,7 @@ provider "azurerm"                     {
 provider "azurerm"                     {
                                          features {
                                                     resource_group {
-                                                                     prevent_deletion_if_contains_resources = true
+                                                                     prevent_deletion_if_contains_resources = var.prevent_deletion_if_contains_resources
                                                                    }
                                                     storage        {
                                                                         data_plane_available = var.data_plane_available
