@@ -617,6 +617,8 @@ else
 		echo "#########################################################################################"
 		echo ""
 
+		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
+
 		if ! terraform -chdir="${terraform_module_directory}" init ; then
 			return_value=$?
 			echo ""
@@ -630,6 +632,8 @@ else
 			echo ""
 			terraform -chdir="${terraform_module_directory}" state list
 		fi
+
+		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 
 		if terraform -chdir="${terraform_module_directory}" init -force-copy \
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
