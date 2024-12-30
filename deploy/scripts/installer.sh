@@ -619,7 +619,7 @@ else
 
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
 
-		if ! terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate" ; then
+		if ! terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"; then
 			return_value=$?
 			echo ""
 			echo -e "${bold_red}Terraform local init:                  failed$reset_formatting"
@@ -1192,26 +1192,7 @@ if [ 1 == $apply_needed ]; then
 		# shellcheck disable=SC2086
 		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee -a apply_output.json; then
 			return_value=$?
-			echo ""
-			echo "Terraform return code:                 $return_value"
-			echo ""
-			if [ $return_value -eq 1 ]; then
-				echo ""
-				echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-				echo ""
-				exit $return_value
-			else
-				# return code 2 is ok
-				echo ""
-				echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-				echo ""
-				return_value=0
-			fi
 		else
-			echo ""
-			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-
-			echo ""
 			return_value=0
 		fi
 
@@ -1219,19 +1200,27 @@ if [ 1 == $apply_needed ]; then
 		# shellcheck disable=SC2086
 		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters | tee -a apply_output.json; then
 			return_value=$?
-			if [ $return_value -eq 1 ]; then
-				echo ""
-				echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-				echo ""
-				exit $return_value
-			else
-				# return code 2 is ok
-				echo ""
-				echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-				echo ""
-				return_value=0
-			fi
+		else
+			return_value=0
 		fi
+	fi
+
+	if [ $return_value -eq 1 ]; then
+		echo ""
+		echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+		echo ""
+		exit $return_value
+	elif [ $return_value -eq 2 ]; then
+		# return code 2 is ok
+		echo ""
+		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
+		echo ""
+		return_value=0
+	else
+		echo ""
+		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
+		echo ""
+		return_value=0
 	fi
 
 	if [ -f apply_output.json ]; then

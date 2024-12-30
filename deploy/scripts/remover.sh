@@ -536,31 +536,35 @@ if [ "$resource_group_exist" ]; then
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
 				return_value=$?
-				echo ""
-				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
-				echo ""
 			else
 				return_value=$?
-				echo ""
-				echo -e "${bold_red}Terraform destroy:                     failed$reset_formatting"
-				echo ""
-				exit 1
 			fi
+			if [ -f destroy_output.json ]; then
+				errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
+				if [[ -n $errors_occurred ]]; then
+					return_value=10
+				fi
+			fi
+
 		else
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
 				return_value=$?
-				echo ""
-				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
-				echo ""
 			else
 				return_value=$?
-				echo ""
-				echo -e "${bold_red}Terraform destroy:                     failed$reset_formatting"
-				echo ""
-				exit 1
 			fi
 		fi
+		if [ 0 -eq $return_value ]; then
+			echo ""
+			echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
+			echo ""
+		else
+			echo ""
+			echo -e "${bold_red}Terraform destroy:                     failed$reset_formatting"
+			echo ""
+			exit 1
+		fi
+
 	else
 
 		echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $reset_formatting"
