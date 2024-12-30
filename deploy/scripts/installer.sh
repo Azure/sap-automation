@@ -627,6 +627,10 @@ else
 				echo ""
 				echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 				echo ""
+
+				allParameters=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}"  "${deployer_parameter}")
+				# shellcheck disable=SC2086
+				terraform -chdir="${terraform_module_directory}" refresh  $allParameters
 			fi
 
 		else
