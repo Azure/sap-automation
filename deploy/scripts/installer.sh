@@ -566,6 +566,7 @@ echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
 echo "Deployer state file:                 ${deployer_tfstate_key}"
 echo "Workload zone state file:            ${landscape_tfstate_key}"
 echo "Terraform state resource ID:         ${tfstate_resource_id}"
+echo "Current directory:                   $(pwd)"
 echo ""
 
 TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
@@ -578,7 +579,7 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 
 new_deployment=0
 
-if [ ! -d .terraform/ ]; then
+if [ ! -f .terraform/terraform.tfstate ]; then
 	echo ""
 	echo -e "${cyan}New deployment${reset_formatting}"
 	echo ""
