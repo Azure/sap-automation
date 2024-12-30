@@ -569,6 +569,8 @@ echo "Terraform state resource ID:         ${tfstate_resource_id}"
 echo "Current directory:                   $(pwd)"
 echo ""
 
+ls -lart
+
 TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 export TF_VAR_subscription_id
 
@@ -612,7 +614,7 @@ else
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
-		echo "#                              ${cyan}Migrating the state to Azure${reset_formatting}                             #"
+		echo -e "#                              ${cyan}Migrating the state to Azure${reset_formatting}                             #"
 		echo "#                                                                                       #"
 		echo "#########################################################################################"
 		echo ""
