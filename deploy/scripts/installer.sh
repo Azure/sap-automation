@@ -630,7 +630,7 @@ else
 			echo ""
 			echo -e "${cyan}Terraform local init:                  succeeded$reset_formatting"
 			echo ""
-			terraform -chdir="${terraform_module_directory}" state list
+			# terraform -chdir="${terraform_module_directory}" state list
 		fi
 
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
@@ -647,10 +647,8 @@ else
 			echo ""
 
 			allParameters=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}" "${deployer_parameter}")
-			# shellcheck disable=SC2086
 
-
-			terraform -chdir="${terraform_module_directory}" state list
+			# terraform -chdir="${terraform_module_directory}" state list
 		else
 			return_value=$?
 			echo ""
