@@ -328,6 +328,7 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
 	zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
 	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 	added=1
+	cat "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
 fi
 
 if [ 1 = $added ]; then
