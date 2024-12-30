@@ -607,71 +607,47 @@ else
 	new_deployment=1
 	check_output=1
 
-	if [ -f .terraform/terraform.tfstate ]; then
-
-		local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
-		if [ -n "$local_backend" ]; then
-			echo "Terraform state:                       local"
-			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -force-copy \
-				--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-				--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-				--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
-				--backend-config "container_name=tfstate" \
-				--backend-config "key=${key}.terraform.tfstate"; then
-				return_value=$?
-				echo ""
-				echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-				echo ""
-				exit $return_value
-			else
-				return_value=$?
-				echo ""
-				echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-				echo ""
-
-				allParameters=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}"  "${deployer_parameter}")
-				# shellcheck disable=SC2086
-				terraform -chdir="${terraform_module_directory}" refresh  $allParameters
-			fi
-
+	local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
+	if [ -n "$local_backend" ]; then
+		echo "Terraform state:                       local"
+		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -force-copy \
+			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
+			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+			--backend-config "container_name=tfstate" \
+			--backend-config "key=${key}.terraform.tfstate"; then
+			return_value=$?
+			echo ""
+			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
+			echo ""
+			exit $return_value
 		else
-			echo "Terraform state:                       remote"
-			STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
-			REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-			REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-
+			return_value=$?
 			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#            $cyan The system has already been deployed and the statefile is in Azure $reset_formatting       #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
+			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 			echo ""
 
-			check_output=1
-			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
-				-reconfigure \
-				--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-				--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-				--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
-				--backend-config "container_name=tfstate" \
-				--backend-config "key=${key}.terraform.tfstate"; then
-				return_value=$?
-				echo ""
-				echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-				echo ""
-				exit $return_value
-			else
-				return_value=$?
-				echo ""
-				echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-				echo ""
-			fi
-
+			allParameters=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}" "${deployer_parameter}")
+			# shellcheck disable=SC2086
+			terraform -chdir="${terraform_module_directory}" refresh $allParameters
 		fi
+
 	else
-		if ! terraform -chdir="${terraform_module_directory}" init \
-			-upgrade=true -reconfigure \
+		echo "Terraform state:                       remote"
+		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+
+		echo ""
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo -e "#            $cyan The system has already been deployed and the statefile is in Azure $reset_formatting       #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		echo ""
+
+		check_output=1
+		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
