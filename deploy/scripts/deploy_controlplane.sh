@@ -668,7 +668,6 @@ echo "##vso[task.setprogress value=80;]Progress Indicator"
 #                                                                                        #
 #                                                                                        #
 ##########################################################################################
-exit 0
 if [ 3 == "$step" ]; then
 	echo ""
 	echo "#########################################################################################"
@@ -679,11 +678,6 @@ if [ 3 == "$step" ]; then
 	echo ""
 
 	cd "${deployer_dirname}" || exit
-
-	# Remove the script file
-	if [ -f post_deployment.sh ]; then
-		rm post_deployment.sh
-	fi
 
 	if [[ -z $REMOTE_STATE_SA ]]; then
 		load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
@@ -723,13 +717,13 @@ if [ 3 == "$step" ]; then
 			--storageaccountname "${REMOTE_STATE_SA}" \
 			$ado_flag \
 			--auto-approve; then
-			echo "Migrating the Deployer state failed"
+			echo ""
+			echo -e "{bold_red}Migrating the Deployer state failed${reset_formatting}"
 			step=3
 			save_config_var "step" "${deployer_config_information}"
 			exit 30
 		else
-			step=4
-			save_config_var "step" "${deployer_config_information}"
+			return_code=0
 
 		fi
 	else
@@ -737,16 +731,17 @@ if [ 3 == "$step" ]; then
 			--type sap_deployer \
 			--parameterfile ${deployer_file_parametername} \
 			--storageaccountname "${REMOTE_STATE_SA}"; then
-			echo "Migrating the SAP Library state failed"
+			echo -e "{bold_red}Migrating the Deployer state failed${reset_formatting}"
 			step=3
 			save_config_var "step" "${deployer_config_information}"
 			exit 30
 		else
 			step=4
 			save_config_var "step" "${deployer_config_information}"
+			return_code=0
 		fi
 	fi
-	return_code=$?
+
 
 	cd "${current_directory}" || exit
 	export step=4
@@ -763,8 +758,8 @@ load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
 
 ##########################################################################################
 #                                                                                        #
-#                                      STEP 3                                            #
-#                           Migrating the state file for the deployer                    #
+#                                      STEP 4                                            #
+#                           Migrating the state file for the library                     #
 #                                                                                        #
 #                                                                                        #
 ##########################################################################################
@@ -800,6 +795,8 @@ if [ 4 == $step ]; then
 			step=4
 			save_config_var "step" "${deployer_config_information}"
 			exit 40
+		else
+			return_code=$?
 		fi
 	else
 		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
@@ -811,9 +808,11 @@ if [ 4 == $step ]; then
 			step=4
 			save_config_var "step" "${deployer_config_information}"
 			exit 40
+		else
+			return_code=$?
 		fi
 	fi
-	return_code=$?
+
 
 	cd "$root_dirname" || exit
 
