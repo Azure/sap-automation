@@ -691,7 +691,6 @@ else
 	fi
 fi
 
-exit 0
 if [ 1 == "$check_output" ]; then
 	if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 		echo "#########################################################################################"
