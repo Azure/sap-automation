@@ -692,7 +692,7 @@ else
 	fi
 fi
 
-if [ 1 == "$check_output" ]; then
+if [ 1 -eq "$check_output" ]; then
 	if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
@@ -719,7 +719,7 @@ if [ 1 == "$check_output" ]; then
 	fi
 fi
 
-if [ 0 == $new_deployment ]; then
+if [ 0 -eq $new_deployment ]; then
 	deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \" || true)
 	if [ -z "${deployed_using_version}" ]; then
 		echo ""
