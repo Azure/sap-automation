@@ -574,7 +574,7 @@ export TF_VAR_subscription_id
 
 check_output=0
 
-terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
+terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
 new_deployment=0
@@ -609,8 +609,14 @@ else
 
 	local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
 	if [ -n "$local_backend" ]; then
-		echo "Terraform state:                       local"
-		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -force-copy \
+		echo ""
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo "#                              ${cyan}Migrating the state to Azure${reset_formatting}                             #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		echo ""
+		if ! terraform -chdir="${terraform_module_directory}" init -force-copy \
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -629,7 +635,9 @@ else
 
 			allParameters=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}" "${deployer_parameter}")
 			# shellcheck disable=SC2086
-			terraform -chdir="${terraform_module_directory}" refresh $allParameters
+
+
+			terraform -chdir="${terraform_module_directory}" state list
 		fi
 
 	else
@@ -666,7 +674,7 @@ else
 		fi
 	fi
 fi
-
+exit 0
 if [ 1 == "$check_output" ]; then
 	if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 		echo "#########################################################################################"
