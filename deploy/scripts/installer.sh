@@ -579,7 +579,7 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 new_deployment=0
 
 if [ ! -d ./.terraform/ ]; then
-  echo ""
+	echo ""
 	echo -e "${cyan}New deployment${reset_formatting}"
 	echo ""
 	deployment_parameter=" -var deployment=new "
@@ -611,7 +611,7 @@ else
 		local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
 		if [ -n "$local_backend" ]; then
 			echo "Terraform state:                       local"
-			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
+			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -force-copy \
 				--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 				--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 				--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -630,7 +630,7 @@ else
 			fi
 
 		else
-		echo "Terraform state:                       remote"
+			echo "Terraform state:                       remote"
 			STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
 			REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 			REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
@@ -710,8 +710,6 @@ if [ 1 == "$check_output" ]; then
 		new_deployment=0
 		check_output=true
 	fi
-else
-	new_deployment=1
 fi
 
 if [ 0 == $new_deployment ]; then
