@@ -27,6 +27,12 @@ resource "azurerm_subnet" "iscsi" {
                                          )
   address_prefixes                     = [local.sub_iscsi_prefix]
 
+  service_endpoints                    = var.use_service_endpoint ? (
+                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
+                                           ) : (
+                                           null
+                                         )
+
 }
 
 // Imports data of existing SAP iSCSI subnet
