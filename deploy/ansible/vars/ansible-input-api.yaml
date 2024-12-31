@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 # API Input template with defaults
 
@@ -233,6 +236,8 @@ use_simple_mount:                       false
 database_scale_out:                    false
 database_cluster_type:                 "AFA"
 database_no_standby:                   false                                    # when set to true, will deploy the scale out - ANF cluster without a standby node.
+database_active_active:                false                                    # when set to true, database will deployed with Active/Active (read enabled) configuration (HANA only)
+database_active_active_loadbalancer_ip: ""
 # scs_high_availability:                 false
 scs_cluster_type:                      "AFA"
 # Configure pacemaker for Azure scheduled events
@@ -242,6 +247,10 @@ custom_cluster_fs_mon_timeout:         ""
 custom_cluster_sap_mon_timeout:        ""
 
 use_fence_kdump:                       false
+
+# For new we default to false unless the user chooses to enable it, when using
+# the SAP HANA-SR ANGI (A New Generation Interface)
+use_hanasr_angi:                       false
 
 # ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:

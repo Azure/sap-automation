@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 
 #######################################4#######################################8
 #                                                                              #
@@ -25,6 +28,11 @@ output "environment"                   {
 output "automation_version"            {
                                          description = "Defines the version of the terraform templates used in the deloyment"
                                          value       = local.version_label
+                                       }
+
+output "random_id"                     {
+                                         description = "Random ID for system"
+                                         value       = substr(coalesce(var.custom_random_id, module.common_infrastructure.random_id), 0, 3)
                                        }
 
 #######################################4#######################################8

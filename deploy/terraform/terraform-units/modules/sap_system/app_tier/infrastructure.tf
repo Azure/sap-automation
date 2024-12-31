@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 // In brownfield scenarios the subnets are often defined in the workload
 // If subnet information is specified in the parameter file use it
 // As either of the arm_id or the prefix need to be specified to create
@@ -35,7 +38,7 @@ data "azurerm_subnet" "subnet_sap_app" {
 resource "azurerm_subnet_route_table_association" "app" {
   provider                             = azurerm.main
   count                                = (
-                                           local.application_subnet_defined && !local.application_subnet_exists && length(var.landscape_tfstate.route_table_id) > 0
+                                           var.infrastructure.virtual_networks.sap.subnet_app.defined && !local.application_subnet_exists && length(var.landscape_tfstate.route_table_id) > 0
                                            ) ? (
                                            1) : (
                                            0
@@ -57,7 +60,7 @@ resource "azurerm_subnet_route_table_association" "app" {
 #######################################4#######################################8
 resource "azurerm_subnet" "subnet_sap_web" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment && local.web_subnet_defined ? (local.web_subnet_exists ? 0 : 1) : 0
+  count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_web.defined ? (local.web_subnet_exists ? 0 : 1) : 0
   name                                 = local.web_subnet_name
   resource_group_name                  = split("/", var.landscape_tfstate.vnet_sap_arm_id)[4]
   virtual_network_name                 = split("/", var.landscape_tfstate.vnet_sap_arm_id)[8]
@@ -324,10 +327,8 @@ resource "azurerm_availability_set" "scs" {
 #######################################4#######################################8
 resource "azurerm_availability_set" "app" {
   provider                             = azurerm.main
-  count                                = local.use_app_avset && length(var.application_tier.avset_arm_ids) == 0 ? (
-                                           length(var.ppg)) : (
-                                           0
-                                         )
+  count                                = local.use_app_avset && var.application_tier.avset_arm_ids_count == 0 ? max(var.application_tier.app_zone_count, 1) : 0
+
   depends_on                           = [azurerm_virtual_machine_data_disk_attachment.scs]
   name                                 = format("%s%s%s",
                                            local.prefix,
@@ -338,7 +339,7 @@ resource "azurerm_availability_set" "app" {
   resource_group_name                  = var.resource_group[0].name
   platform_update_domain_count         = 20
   platform_fault_domain_count          = local.faultdomain_count
-  proximity_placement_group_id         = var.ppg[count.index]
+  proximity_placement_group_id         = try(var.ppg[count.index], null)
   managed                              = true
   tags                                 = var.tags
 }
@@ -411,7 +412,7 @@ resource "azurerm_subnet_route_table_association" "subnet_sap_app" {
 
 resource "azurerm_subnet_route_table_association" "subnet_sap_web" {
   provider                             = azurerm.main
-  count                                = local.deploy_route_table && local.web_subnet_defined ? (
+  count                                = local.deploy_route_table && var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
                                            local.web_subnet_exists ? (
                                              0) : (
                                              1

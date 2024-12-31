@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 locals {
   base_app_data_disk_per_node          = (local.application_server_count > 0) ? flatten(
                                            [

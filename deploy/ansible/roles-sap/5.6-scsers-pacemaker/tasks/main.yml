@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 - name:                                "5.6 SCSERS Pacemaker - set_runtime_facts"
   ansible.builtin.include_tasks:

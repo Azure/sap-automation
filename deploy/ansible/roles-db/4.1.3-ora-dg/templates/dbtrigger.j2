@@ -1,3 +1,6 @@
+{# Copyright (c) Microsoft Corporation.
+ # Licensed under the MIT License.
+#}
 exec dbms_service.create_service(service_name=>'{{ db_sid | upper }}_HA',network_name=>'{{ db_sid | upper }}_HA');
 exec dbms_service.start_service('{{ db_sid | upper }}_HA');
 CREATE OR REPLACE TRIGGER {{ db_sid | lower }}_HA_SERVICE

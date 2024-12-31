@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 
 # RHEL Clustering - Deploy HANA cluster resources
@@ -9,10 +12,10 @@
 # SAP HANA Cluster resources
 # https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability-rhel#create-sap-hana-cluster-resources
 
-
 # +------------------------------------4--------------------------------------*/
 
 - name:                                "5.5.4.1 HANA Cluster configuration - Optimise the Pacemaker cluster for SAP HANA"
+  when:                                ansible_hostname == primary_instance_name
   block:
     - name:                            "5.5.4.1 HANA Cluster configuration - Get the cluster maintenance mode status"
       ansible.builtin.shell:           pcs property show maintenance-mode
@@ -157,7 +160,6 @@
       when:
         - database_high_availability
         - NFS_provider == "ANF"
-        - ansible_hostname == primary_instance_name
         - hana_data_mountpoint is defined
         - hana_data_mountpoint | length > 1
         - hana_log_mountpoint is defined
@@ -207,79 +209,54 @@
                 loop_var:              item
               failed_when:             constraint.rc > 1
 
-    # /*---------------------------------------------------------------------------8
-    # |                                                                            |
-    # | Systemd-Based SAP Startup Framework - BEGIN                                |
-    # |                                                                            |
-    # +------------------------------------4--------------------------------------*/
-    # Follow steps described in https://access.redhat.com/articles/6884531
-
-    - name:                                "5.5.4.1 HANA Cluster configuration - check if the OS version is RHEL 8.2 or newer"
-      ansible.builtin.set_fact:
-        is_rhel_82_or_newer:               "{{ ansible_distribution_version is version('8.2', '>=') | default(false) }}"
-
-    - name:                                "5.5.4.1 HANA Cluster configuration - (systemd) Creating drop-in file"
-      become:                              true
+    # HANA active/active
+    - name:                            "5.5.4.1 HANA Cluster configuration - Configure HANA active/read-enabled system replication"
       when:
-        - is_rhel_82_or_newer is defined
-        - is_rhel_82_or_newer
+        - database_active_active | default(false)
+        - not db_scale_out
       block:
-        - name:                            "5.5.4.1 HANA Cluster configuration - (systemd) Create drop-in file"
-          ansible.builtin.lineinfile:
-            path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
-            create:                        true
-            backup:                        true
-            owner:                         root
-            group:                         root
-            mode:                          '0644'
-            line:                          "[Unit]"
+        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active netcat resource for the Load Balancer Healthprobe is created"
+          ansible.builtin.shell:       pcs resource create secnc_{{ db_sid | upper }}_{{ db_instance_number }} azure-lb port=626{{ db_instance_number }}
+          register:                    sec_netcat
+          failed_when:                 sec_netcat.rc > 1
 
-        - name:                            "5.5.4.1 HANA Cluster configuration - (systemd) Update drop-in file"
-          ansible.builtin.lineinfile:
-            path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
-            create:                        true
-            backup:                        true
-            owner:                         root
-            group:                         root
-            mode:                          '0644'
-            insertafter:                   '^[Unit]$'
-            line:                          "Description=Pacemaker needs the SAP HANA instance service"
+        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active Virtual IP resource for the Load Balancer Front End IP is created"
+          ansible.builtin.shell:       pcs resource create secvip_{{ db_sid | upper }}_{{ db_instance_number }} IPaddr2 ip="{{ database_active_active_loadbalancer_ip }}"
+          register:                    sec_vip
+          failed_when:                 sec_vip.rc > 1
 
-        - name:                            "5.5.4.1 HANA Cluster configuration - (systemd) Update drop-in file"
-          ansible.builtin.lineinfile:
-            path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
-            create:                        true
-            backup:                        true
-            owner:                         root
-            group:                         root
-            mode:                          '0644'
-            insertafter:                   '^Description=Pacemaker needs the SAP HANA instance service$'
-            line:                          "Wants=SAP{{ db_sid | upper }}_{{ db_instance_number }}.service"
+        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active Virtual IP group resource is created"
+          ansible.builtin.shell:       pcs resource group add g_secip_{{ db_sid | upper }}_{{ db_instance_number }} secnc_{{ db_sid | upper }}_{{ db_instance_number }} secvip_{{ db_sid | upper }}_{{ db_instance_number }}
+          register:                    sec_vip_g
+          failed_when:                 sec_vip_g.rc > 1
 
-        - name:                            "5.5.4.1 HANA Cluster configuration - (systemd) Update drop-in file"
-          ansible.builtin.lineinfile:
-            path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
-            create:                        true
-            backup:                        true
-            owner:                         root
-            group:                         root
-            mode:                          '0644'
-            insertafter:                   '^Wants=SAP{{ db_sid | upper }}_{{ db_instance_number }}.service$'
-            line:                          "After=SAP{{ db_sid | upper }}_{{ db_instance_number }}.service"
-          register:                        dropinfile
+        - name:                        "5.5.4.1 HANA Cluster configuration - Configure constraints between g_secip_SID_XX"
+          ansible.builtin.shell:       pcs constraint location  g_secip_{{ db_sid | upper }}_{{ db_instance_number }} rule score=INFINITY hana_{{ db_sid | lower }}_sync_state eq SOK and hana_{{ db_sid | lower }}_roles eq 4:S:master1:master:worker:master
+          register:                    sec_constraint
+          failed_when:                 sec_constraint.rc > 1
 
-        - name:                            "5.5.4.1 HANA Cluster configuration - systemd reload"
-          ansible.builtin.systemd:
-            daemon_reload:                true
+        - name:                        "5.5.4.1 HANA Cluster configuration - Configure constraints between g_secip_SID_XX"
+          ansible.builtin.shell:       pcs constraint location  g_secip_{{ db_sid | upper }}_{{ db_instance_number }} rule score=4000 hana_{{ db_sid | lower }}_sync_state eq PRIM and hana_{{ db_sid | lower }}_roles eq 4:P:master1:master:worker:master
+          register:                    sec_constraint
+          failed_when:                 sec_constraint.rc > 1
+
+        # https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-rhel?tabs=lb-portal#add-a-secondary-virtual-ip-address-resource-for-an-activeread-enabled-setup
+        # Set the priority to primary IPaddr2 and azure-lb resource if priority-fencing-delay is configured
+        - name:                        "5.5.4.1 HANA Cluster configuration - Set priority for the Virtual IP and azure-lb resources"
           when:
-            - dropinfile.changed
+                                       - database_active_active | default(false)
+                                       - not db_scale_out
+                                       - is_pcmk_ver_gt_204
+          block:
+            - name:                    "5.5.4.1 HANA Cluster configuration - Set priority for the Virtual IP resource"
+              ansible.builtin.shell:   pcs resource update vip_{{ db_sid | upper }}_{{ db_instance_number }} meta priority=5
+              register:                update_priority_vip
+              failed_when:             update_priority_vip.rc > 1
 
-    # /*---------------------------------------------------------------------------8
-    # |                                                                            |
-    # | Systemd-Based SAP Startup Framework - END                                  |
-    # |                                                                            |
-    # +------------------------------------4--------------------------------------*/
-
+            - name:                    "5.5.4.1 HANA Cluster configuration - Set priority for the azure-lb resource"
+              ansible.builtin.shell:   pcs resource update nc_{{ db_sid | upper }}_{{ db_instance_number }} meta priority=5
+              register:                update_priority_nc
+              failed_when:             update_priority_nc.rc > 1
 
     - name:                            "5.5.4.1 HANA Cluster configuration - Disable Maintenance mode for the cluster"
       ansible.builtin.shell:           pcs property set maintenance-mode=false
@@ -291,14 +268,15 @@
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
       when:                            ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9"
+
     # '*' is a special character in regexp and needs to be escaped for literal matching
     # if we are worried about character spacing across distros we can match for '\* Online:'
-    - name:                            "5.5.4.1 HANA Cluster configuration - Wait until cluster has stabilized on RHEL 8 or 9"
-      ansible.builtin.shell:           "set -o pipefail && pcs status nodes | grep '^ Online: ' | cut -d ':' -f2"
+    - name:                            "5.5.4.1 HANA Cluster configuration - Wait until cluster has stabilized on RHEL 8 and RHEL 9"
+      ansible.builtin.shell:           set -o pipefail && pcs status | grep '^  \* Online:'
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
-      until:                           "primary_instance_name in cluster_stable_check.stdout and secondary_instance_name in cluster_stable_check.stdout"
+      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
       when:                            ansible_distribution_major_version in ["8", "9"]
 
     # - name:                            Ensure Cluster resources are started
@@ -332,7 +310,6 @@
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
       when:                            ansible_distribution_major_version in ["8", "9"]
-  when: ansible_hostname == primary_instance_name
 
 # End of HANA clustering resources
 
@@ -422,6 +399,7 @@
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
       when:                            ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9"
+
     # '*' is a special character in regexp and needs to be escaped for literal matching
     # if we are worried about character spacing across distros we can match for '\* Online:'
     - name:                            "5.5.4.1 HANA Cluster configuration - Wait until cluster has stabilized on RHEL 8 or 9"
@@ -471,136 +449,7 @@
 # | Systemd-Based SAP Startup Framework - BEGIN                                |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-# Follow steps described in https://access.redhat.com/articles/6884531
-
-- name:                                "5.5.4.1 HANA Cluster configuration - check if the OS version is RHEL 8.2 or newer"
-  ansible.builtin.set_fact:
-    is_rhel_82_or_newer:               "{{ ansible_distribution_version is version('8.2', '>=') | default(false) }}"
-
-- name:                                "5.5.4.1 HANA Cluster configuration - (systemd) Creating drop-in file"
-  become:                              true
-  when:
-    - is_rhel_82_or_newer is defined
-    - is_rhel_82_or_newer
-    - ansible_hostname == primary_instance_name
-  block:
-    - name:                            "5.5.4.1 HANA Cluster configuration - (systemd) Create drop-in file"
-      ansible.builtin.lineinfile:
-        path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
-        create:                        true
-        backup:                        true
-        owner:                         root
-        group:                         root
-        mode:                          '0644'
-        line:                          "[Unit]"
-
-    - name:                            "5.5.4.1 HANA Cluster configuration - (systemd) Update drop-in file"
-      ansible.builtin.lineinfile:
-        path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
-        create:                        true
-        backup:                        true
-        owner:                         root
-        group:                         root
-        mode:                          '0644'
-        insertafter:                   '^[Unit]$'
-        line:                          "Description=Pacemaker needs the SAP HANA instance service"
-
-    - name:                            "5.5.4.1 HANA Cluster configuration - (systemd) Update drop-in file"
-      ansible.builtin.lineinfile:
-        path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
-        create:                        true
-        backup:                        true
-        owner:                         root
-        group:                         root
-        mode:                          '0644'
-        insertafter:                   '^Description=Pacemaker needs the SAP HANA instance service$'
-        line:                          "Wants=SAP{{ db_sid | upper }}_{{ db_instance_number }}.service"
-
-    - name:                            "5.5.4.1 HANA Cluster configuration - (systemd) Update drop-in file"
-      ansible.builtin.lineinfile:
-        path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
-        create:                        true
-        backup:                        true
-        owner:                         root
-        group:                         root
-        mode:                          '0644'
-        insertafter:                   '^Wants=SAP{{ db_sid | upper }}_{{ db_instance_number }}.service$'
-        line:                          "After=SAP{{ db_sid | upper }}_{{ db_instance_number }}.service"
-      register:                        dropinfile
-
-    - name:                            "5.5.4.1 HANA Cluster configuration - systemd reload"
-      ansible.builtin.systemd:
-        daemon_reload:                 true
-      when:
-        - dropinfile.changed
-
-    # /*---------------------------------------------------------------------------8
-    # |                                                                            |
-    # | Systemd-Based SAP Startup Framework - END                                  |
-    # |                                                                            |
-    # +------------------------------------4--------------------------------------*/
-
-
-    - name:                            "5.5.4.1 HANA Cluster configuration - Disable Maintenance mode for the cluster"
-      ansible.builtin.shell:           pcs property set maintenance-mode=false
-
-    - name:                            "5.5.4.1 HANA Cluster configuration - Wait until cluster has stabilized on RHEL 7"
-      ansible.builtin.shell:           set -o pipefail && pcs status | grep '^Online:'
-      register:                        cluster_stable_check
-      retries:                         12
-      delay:                           10
-      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
-      when:                            ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9"
-    # '*' is a special character in regexp and needs to be escaped for literal matching
-    # if we are worried about character spacing across distros we can match for '\* Online:'
-    - name:                            "5.5.4.1 HANA Cluster configuration - Wait until cluster has stabilized on RHEL 8 or 9"
-      ansible.builtin.shell:           set -o pipefail && pcs status | grep '^  \* Online:'
-      register:                        cluster_stable_check
-      retries:                         12
-      delay:                           10
-      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
-      when:                            ansible_distribution_major_version in ["8", "9"]
-
-    # - name:                            Ensure Cluster resources are started
-    #   ansible.builtin.shell:           pcs status | grep '\* Started:'
-    #   register:                        hana_pcs_cluster_resource_check
-    #   when:                            ansible_distribution_major_version == "8"
-
-    # - name:                            Ensure Cluster resources are started
-    #   ansible.builtin.shell:           pcs status | grep '^Started '
-    #   register:                        hana_pcs_cluster_resource_check
-    #   when:                            ansible_distribution_major_version != "8"
-
-
-    # - name:                            Ensure Cluster resources are started
-    # ansible.builtin.debug:
-    #   var:                           hana_pcs_cluster_resource_check
-
-    # the leading spaces are irrelevant here as we are looking for *<space>Started:
-    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure Cluster resources are started on RHEL 7"
-      ansible.builtin.shell:           set -o pipefail && pcs resource show | grep '    Started:'
-      register:                        hana_cluster_resource_check
-      retries:                         12
-      delay:                           10
-      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
-      when:                            ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9"
-
-    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure Cluster resources are started on RHEL 8 or 9"
-      ansible.builtin.shell:           set -o pipefail && pcs resource status | grep '\* Started:'
-      register:                        hana_cluster_resource_check
-      retries:                         12
-      delay:                           10
-      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
-      when:                            ansible_distribution_major_version in ["8", "9"]
-
-# End of HANA clustering resources
-
-# /*---------------------------------------------------------------------------8
-# |                                                                            |
-# | Systemd-Based SAP Startup Framework - BEGIN                                |
-# |                                                                            |
-# +------------------------------------4--------------------------------------*/
-# Follow steps described in https://access.redhat.com/articles/6884531
+# Follow steps described in https://access.redhat.com/solutions/7029705
 
 - name:                                "5.5.4.1 HANA Cluster configuration - check if the OS version is RHEL 8.2 or newer"
   ansible.builtin.set_fact:
@@ -612,55 +461,31 @@
     - is_rhel_82_or_newer is defined
     - is_rhel_82_or_newer
   block:
+    - name:                            "5.5.4.1 HANA Cluster configuration - (systemd) Create override directory"
+      ansible.builtin.file:
+        path:                          /etc/systemd/system/pacemaker.service.d
+        state:                         directory
+        owner:                         root
+        group:                         root
+        mode:                          '0755'
+
     - name:                            "5.5.4.1 HANA Cluster configuration - (systemd) Create drop-in file"
-      ansible.builtin.lineinfile:
-        path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
-        create:                        true
-        backup:                        true
+      ansible.builtin.copy:
+        content: |-
+          [Unit]
+          Description=Pacemaker needs the SAP HANA instance service
+          Wants=SAP{{ db_sid | upper }}_{{ db_instance_number }}.service
+          After=SAP{{ db_sid | upper }}_{{ db_instance_number }}.service
+        dest:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
         owner:                         root
         group:                         root
         mode:                          '0644'
-        line:                          "[Unit]"
-
-    - name:                            "5.5.4.1 HANA Cluster configuration - (systemd) Update drop-in file"
-      ansible.builtin.lineinfile:
-        path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
-        create:                        true
-        backup:                        true
-        owner:                         root
-        group:                         root
-        mode:                          '0644'
-        insertafter:                   '^[Unit]$'
-        line:                          "Description=Pacemaker needs the SAP HANA instance service"
-
-    - name:                            "5.5.4.1 HANA Cluster configuration - (systemd) Update drop-in file"
-      ansible.builtin.lineinfile:
-        path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
-        create:                        true
-        backup:                        true
-        owner:                         root
-        group:                         root
-        mode:                          '0644'
-        insertafter:                   '^Description=Pacemaker needs the SAP HANA instance service$'
-        line:                          "Wants=SAP{{ db_sid | upper }}_{{ db_instance_number }}.service"
-
-    - name:                            "5.5.4.1 HANA Cluster configuration - (systemd) Update drop-in file"
-      ansible.builtin.lineinfile:
-        path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
-        create:                        true
-        backup:                        true
-        owner:                         root
-        group:                         root
-        mode:                          '0644'
-        insertafter:                   '^Wants=SAP{{ db_sid | upper }}_{{ db_instance_number }}.service$'
-        line:                          "After=SAP{{ db_sid | upper }}_{{ db_instance_number }}.service"
       register:                        dropinfile
 
     - name:                            "5.5.4.1 HANA Cluster configuration - systemd reload"
+      when: dropinfile.changed
       ansible.builtin.systemd:
         daemon_reload:                 true
-      when:
-        - dropinfile.changed
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |

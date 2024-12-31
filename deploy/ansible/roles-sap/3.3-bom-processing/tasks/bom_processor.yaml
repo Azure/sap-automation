@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -127,7 +130,7 @@
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
     tmp_dest:                          "{{ target_media_location }}/tmp"
     checksum:                          "{% if item.checksum is defined %}{% if item.checksum | trim | length > 1 %}sha256:{{ item.checksum | upper }}{% endif %}{% endif %}"
-    validate_certs:                    true
+    validate_certs:                    false
   register:                            result
   until:                               result is succeeded
   retries:                             2
@@ -151,7 +154,7 @@
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
     checksum:                          "{% if item.checksum is defined %}{% if item.checksum | trim | length > 1 %}sha256:{{ item.checksum | upper }}{% endif %}{% endif %}"
     tmp_dest:                          "{{ target_media_location }}/tmp"
-    validate_certs:                    true
+    validate_certs:                    false
   register:                            result
   until:                               result is succeeded
   retries:                             2
@@ -262,16 +265,25 @@
 # Description:  Process BOM dependencies.
 #               Call BOM processor, passing dependent BOM names.
 #
-- name:                                "3.3 BoM Processing: - Process dependent BOMs"
+# bom_processor.yaml
+# Gather Dependencies
+- name:                                "3.3 BoM Processing: - Gather all dependencies"
+  ansible.builtin.set_fact:
+    current_dependencies:              "{{ bom.materials.dependencies | default([]) }}"
+
+# Process Dependencies
+- name:                                "3.3 BoM Processing: - Process each dependency"
   ansible.builtin.include_tasks:       "bom_processor.yaml"
   vars:
-    bom_name:                          "{{ bom_dependency.name }}"
-  loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
+    bom_name:                          "{{ current_dep.name }}"
+    dependencies_processed:            true
+  loop:                                "{{ current_dependencies | flatten(levels=1) }}"
   loop_control:
-    loop_var:                          bom_dependency
+    loop_var:                          current_dep
   when:
-    - bom.materials.dependencies is defined
-    - bom.materials.dependencies | length>0
+                                       - current_dependencies | length > 0
+                                       - dependencies_processed is not defined
+
 # -------------------------------------+---------------------------------------8
 
 

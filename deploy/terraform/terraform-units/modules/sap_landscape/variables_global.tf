@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #######################################4#######################################8
 #                                                                              #
 # This file contains the input variables for the SAP landscape module          #
@@ -31,16 +34,21 @@ variable "infrastructure"                               {
 
                                                            validation {
                                                              condition = (
-                                                               length(trimspace(try(var.infrastructure.vnets.sap.logical_name, ""))) != 0
+                                                               length(trimspace(try(var.infrastructure.virtual_networks.sap.logical_name, ""))) != 0
                                                              )
-                                                             error_message = "Please specify the logical VNet identifier in the infrastructure.vnets.sap.name field. For deployments prior to version '2.3.3.1' please use the identifier 'sap'."
+                                                             error_message = "Please specify the logical VNet identifier in the infrastructure.virtual_networks.sap.name field. For deployments prior to version '2.3.3.1' please use the identifier 'sap'."
                                                            }
 
                                                            validation {
                                                              condition = (
-                                                               length(trimspace(try(var.infrastructure.vnets.sap.arm_id, ""))) != 0 || length(var.infrastructure.vnets.sap.address_space[0]) != 0
+                                                               length(trimspace(try(var.infrastructure.virtual_networks.sap.arm_id, ""))) != 0 || length(var.infrastructure.virtual_networks.sap.address_space[0]) != 0
                                                              )
-                                                             error_message = "Either the arm_id or (name and address_space) of the Virtual Network must be specified in the infrastructure.vnets.sap block."
+                                                             error_message = "Either the arm_id or (name and address_space) of the Virtual Network must be specified in the infrastructure.virtual_networks.sap block."
+                                                           }
+
+                                                           validation {
+                                                             condition     = var.infrastructure.virtual_networks.sap.flow_timeout_in_minutes == null ? true : (var.infrastructure.virtual_networks.sap.flow_timeout_in_minutes >= 4 && var.infrastructure.virtual_networks.sap.flow_timeout_in_minutes <= 30)
+                                                             error_message = "The flow timeout in minutes must be between 4 and 30 if set."
                                                            }
                                                         }
 
@@ -80,21 +88,21 @@ variable "key_vault"                                    {
                                                           default = {}
                                                           validation {
                                                                        condition = (
-                                                                         contains(keys(var.key_vault), "kv_spn_id") ? (
-                                                                           length(split("/", var.key_vault.kv_spn_id)) == 9) : (
+                                                                         contains(keys(var.key_vault), "keyvault_id_for_deployment_credentials") ? (
+                                                                           length(split("/", var.key_vault.keyvault_id_for_deployment_credentials)) == 9) : (
                                                                            true
                                                                          )
                                                                        )
-                                                                       error_message = "If specified, the kv_spn_id needs to be a correctly formed Azure resource ID."
+                                                                       error_message = "If specified, the spn_keyvault_id needs to be a correctly formed Azure resource ID."
                                                                      }
                                                           validation {
                                                                        condition = (
-                                                                         contains(keys(var.key_vault), "kv_user_id") ? (
-                                                                           length(split("/", var.key_vault.kv_user_id)) == 9) : (
+                                                                         contains(keys(var.key_vault), "keyvault_id_for_system_credentials") ? (
+                                                                           length(split("/", var.key_vault.keyvault_id_for_system_credentials)) == 9) : (
                                                                            true
                                                                          )
                                                                        )
-                                                                       error_message = "If specified, the kv_user_id needs to be a correctly formed Azure resource ID."
+                                                                       error_message = "If specified, the user_keyvault_id needs to be a correctly formed Azure resource ID."
                                                                      }
 
                                                           validation {
@@ -168,7 +176,7 @@ variable "storage_account_replication_type"             {
 
 #######################################4#######################################8
 #                                                                              #
-#  Miscallaneous variables                                                     #
+#  Miscellaneous variables                                                     #
 #                                                                              #
 #######################################4#######################################8
 
@@ -213,6 +221,10 @@ variable "ANF_settings"                                 {
 
 variable "place_delete_lock_on_resources"                { description = "If defined, a delete lock will be placed on the key resources" }
 
+variable "additional_network_id"                         {
+                                                           description = "Agent Network resource ID"
+                                                           default     = ""
+                                                         }
 
 #########################################################################################
 #                                                                                       #
@@ -267,3 +279,10 @@ variable "use_AFS_for_shared_storage"                    {
                                                          }
 
 variable "tags"                                          { description = "List of tags to associate to all resources" }
+
+
+variable "data_plane_available"                          {
+                                                           description = "Boolean value indicating if storage account access is via data plane"
+                                                           default     = false
+                                                           type        = bool
+                                                         }

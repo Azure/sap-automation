@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #######################################4#######################################8
 #                                                                              #
 #              Bastion subnet - Check if locally provided                      #
@@ -13,11 +16,11 @@ resource "azurerm_subnet" "bastion" {
                                                  0
                                                )
   name                                       = "AzureBastionSubnet"
-  resource_group_name                        = local.vnet_mgmt_exists ? (
+  resource_group_name                        = local.management_virtual_network_exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )
-  virtual_network_name                       = local.vnet_mgmt_exists ? (
+  virtual_network_name                       = local.management_virtual_network_exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].name
                                                )
@@ -55,14 +58,19 @@ resource "azurerm_public_ip" "bastion" {
                                                )
   allocation_method                          = "Static"
   sku                                        = "Standard"
-  location                                   = local.vnet_mgmt_exists ? (
+  location                                   = local.management_virtual_network_exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].location) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].location
                                                )
-  resource_group_name                        = local.vnet_mgmt_exists ? (
+  resource_group_name                        = local.management_virtual_network_exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )
+  zones                                      = [1,2,3]
+  ip_tags                                    = var.infrastructure.bastion_public_ip_tags
+  lifecycle                                  {
+                                                  create_before_destroy = true
+                                              }
 }
 
 # Create the Bastion Host
@@ -75,11 +83,11 @@ resource "azurerm_bastion_host" "bastion" {
                                                 var.naming.resource_suffixes.bastion_host
                                                )
   sku                                        = var.bastion_sku
-  location                                   = local.vnet_mgmt_exists ? (
+  location                                   = local.management_virtual_network_exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].location) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].location
                                                )
-  resource_group_name                        = local.vnet_mgmt_exists ? (
+  resource_group_name                        = local.management_virtual_network_exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )

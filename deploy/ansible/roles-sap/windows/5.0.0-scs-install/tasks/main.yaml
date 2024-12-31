@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |             SAP: Register BOM                                              |
@@ -61,10 +64,15 @@
         path:                          '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\cluster_config_done.txt'
         state:                         touch
 
+    - name:                                "SCS Install"
+      ansible.builtin.debug:
+        msg:
+          - "SCS Install: Reboot Cluster nodes"
+
     - name:                            "SCS Install: Reboot Cluster nodes"
       ansible.windows.win_reboot:
-        reboot_timeout:                600
-        post_reboot_delay:             120
+        reboot_timeout:                120
+        post_reboot_delay:             60
 
 # End: call cluster configuration only if cluster is enabled
 # /*---------------------------------------------------------------------------8

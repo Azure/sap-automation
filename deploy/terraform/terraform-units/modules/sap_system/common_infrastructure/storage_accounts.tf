@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 
 #######################################4#######################################8
 #                                                                              #
@@ -44,12 +47,10 @@ resource "azurerm_storage_account" "sapmnt" {
   public_network_access_enabled        = try(var.landscape_tfstate.public_network_access_enabled, true)
   tags                                 = var.tags
 
-  dynamic "network_rules" {
-                             for_each = range(var.enable_firewall_for_keyvaults_and_storage ? 1 : 0)
-                             content {
-
-                                      default_action = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
-                                      virtual_network_subnet_ids = compact(
+  network_rules {
+                  default_action       = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+                  bypass               = ["Metrics", "Logging", "AzureServices"]
+            virtual_network_subnet_ids = compact(
                                         [
                                           try(var.landscape_tfstate.admin_subnet_id, ""),
                                           try(var.landscape_tfstate.app_subnet_id, ""),
@@ -58,15 +59,7 @@ resource "azurerm_storage_account" "sapmnt" {
                                           try(var.landscape_tfstate.subnet_mgmt_id, "")
                                         ]
                                       )
-                                      ip_rules = compact(
-                                        [
-                                          length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                        ]
-                                      )
-
-                                    }
-                          }
-
+          }
 
 }
 
@@ -187,10 +180,10 @@ resource "azurerm_storage_share" "sapmnt" {
                                          ]
 
   name                                 = format("%s", local.resource_suffixes.sapmnt)
-  storage_account_name                 = var.NFS_provider == "AFS" ? (
+  storage_account_id                   = var.NFS_provider == "AFS" ? (
                                            length(var.azure_files_sapmnt_id) > 0 ? (
-                                             data.azurerm_storage_account.sapmnt[0].name) : (
-                                             azurerm_storage_account.sapmnt[0].name
+                                             data.azurerm_storage_account.sapmnt[0].id) : (
+                                             azurerm_storage_account.sapmnt[0].id
                                            )
                                            ) : (
                                            ""
@@ -222,7 +215,7 @@ resource "azurerm_storage_share" "sapmnt_smb" {
                                         ]
 
   name                                 = format("%s", local.resource_suffixes.sapmnt_smb)
-  storage_account_name                 = var.NFS_provider == "AFS" ? azurerm_storage_account.sapmnt[0].name : ""
+  storage_account_id                   = var.NFS_provider == "AFS" ? azurerm_storage_account.sapmnt[0].id : ""
   enabled_protocol                     = "SMB"
 
   quota                                = var.sapmnt_volume_size

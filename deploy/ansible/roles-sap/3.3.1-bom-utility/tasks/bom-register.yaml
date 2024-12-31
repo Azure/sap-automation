@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # Inputs:
 #   bom_name              - Name of BOM (ex: S41909SPS03_v0001ms)
 #
@@ -68,6 +71,7 @@
                                         {% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
         dest:                           "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
         mode:                           0644
+        validate_certs:                 false
       delegate_to:                      localhost
       become:                           "{{ bom_processing_become }}"
       ignore_errors:                    true

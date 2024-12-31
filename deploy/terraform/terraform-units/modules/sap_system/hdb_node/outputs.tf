@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #######################################4#######################################8
 #                                                                              #
 #                               AnyDB definitions                              #
@@ -91,12 +94,18 @@ output "database_disks"                {
 
 output "database_loadbalancer_ip"      {
                                          description = "Database loadbalancer IP information"
-                                         value       = [
-                                                         local.enable_db_lb_deployment ? (
-                                                           try(azurerm_lb.hdb[0].frontend_ip_configuration[0].private_ip_address, "")) : (
-                                                           ""
-                                                         )
-                                                       ]
+                                         value       = local.enable_db_lb_deployment ? (
+                                                        compact(
+                                                          concat(
+                                                            [
+                                                              try(azurerm_lb.hdb[0].frontend_ip_configuration[0].private_ip_address, "")
+                                                            ],
+                                                            [
+                                                              try(azurerm_lb.hdb[0].frontend_ip_configuration[1].private_ip_address, "")
+                                                            ]
+                                                          )
+                                                        )
+                                                       ) : [""]
                                        }
 
 output "database_loadbalancer_id"      {
@@ -299,7 +308,7 @@ output "hana_shared_afs_path"          {
                                                                try(azurerm_private_endpoint.hanashared[0].private_dns_zone_configs[0].record_sets[0].fqdn,
                                                                  try(azurerm_private_endpoint.hanashared[0].private_service_connection[0].private_ip_address,"")
                                                                ),
-                                                             length(var.hanashared_id) > 0 ? (
+                                                             length(try(var.hanashared_id, "")) > 0 ? (
                                                                split("/", var.hanashared_id[0])[8]
                                                                ) : (
                                                                azurerm_storage_account.hanashared[0].name
@@ -311,7 +320,7 @@ output "hana_shared_afs_path"          {
                                                                try(azurerm_private_endpoint.hanashared[1].private_dns_zone_configs[0].record_sets[0].fqdn,
                                                                  try(azurerm_private_endpoint.hanashared[1].private_service_connection[0].private_ip_address,"")
                                                                ),
-                                                             length(var.hanashared_id) > 0 ? (
+                                                             length(try(var.hanashared_id, "")) > 0 ? (
                                                                split("/", var.hanashared_id[1])[8]
                                                                ) : (
                                                                azurerm_storage_account.hanashared[1].name

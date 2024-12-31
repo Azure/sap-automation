@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 # This playbook is used to check for issues identified in the system.
 # based on issues identified for other systems, check if any services are using

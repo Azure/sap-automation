@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #!/usr/bin/env python3.9
 from __future__ import absolute_import, division, print_function
 

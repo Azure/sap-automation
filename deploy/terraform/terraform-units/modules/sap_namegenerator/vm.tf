@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 locals {
 
   db_oscode     = upper(var.db_ostype) == "LINUX" ? "l" : "w"

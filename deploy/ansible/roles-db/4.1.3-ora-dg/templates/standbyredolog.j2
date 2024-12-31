@@ -1,3 +1,6 @@
+{# Copyright (c) Microsoft Corporation.
+ # Licensed under the MIT License.
+#}
 alter database rename file 'broken0' to '/oracle/{{ db_sid | upper }}/mirrlogA/log_g11m2.dbf';
 alter database rename file 'broken1' to '/oracle/{{ db_sid | upper }}/origlogA/log_g11m1.dbf';
 alter database rename file 'broken2' to '/oracle/{{ db_sid | upper }}/mirrlogB/log_g12m2.dbf';

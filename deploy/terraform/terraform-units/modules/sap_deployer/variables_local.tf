@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 
 ###############################################################################
 #                                                                             #
@@ -41,10 +44,10 @@ locals {
 
   // Management vnet
   vnet_mgmt_arm_id                     = try(var.infrastructure.vnets.management.arm_id, "")
-  vnet_mgmt_exists                     = length(local.vnet_mgmt_arm_id) > 0
+  management_virtual_network_exists                     = length(local.vnet_mgmt_arm_id) > 0
 
   // If resource ID is specified extract the vnet name from it otherwise read it either from input of create using the naming convention
-  vnet_mgmt_name                      = local.vnet_mgmt_exists ? (
+  vnet_mgmt_name                      = local.management_virtual_network_exists ? (
                                           split("/", local.vnet_mgmt_arm_id)[8]) : (
                                           length(var.infrastructure.vnets.management.name) > 0 ? (
                                             var.infrastructure.vnets.management.name) : (
@@ -59,7 +62,7 @@ locals {
                                           )
                                         )
 
-  vnet_mgmt_addr                       = local.vnet_mgmt_exists ? "" : try(var.infrastructure.vnets.management.address_space, "")
+  vnet_mgmt_addr                       = local.management_virtual_network_exists ? "" : try(var.infrastructure.vnets.management.address_space, "")
 
   // Management subnet
   management_subnet_arm_id             = try(var.infrastructure.vnets.management.subnet_mgmt.arm_id, "")
@@ -173,22 +176,10 @@ locals {
                                            ""
                                          )
 
-  // By default use generated public key. Provide authentication.path_to_public_key and path_to_private_key overides it
-  public_key                           = local.enable_key ? (
-                                           local.key_exist ? (
-                                             data.azurerm_key_vault_secret.pk[0].value) : (
-                                             try(file(var.authentication.path_to_public_key), tls_private_key.deployer[0].public_key_openssh)
-                                           )) : (
-                                           null
-                                         )
+  // By default use generated public key. Provide authentication.path_to_public_key and path_to_private_key overrides it
+  public_key                           = local.enable_key ? try(file(var.authentication.path_to_public_key), tls_private_key.deployer[0].public_key_openssh) : null
 
-  private_key                          = local.enable_key ? (
-                                           local.key_exist ? (
-                                             data.azurerm_key_vault_secret.ppk[0].value) : (
-                                             try(file(var.authentication.path_to_private_key), tls_private_key.deployer[0].private_key_pem)
-                                           )) : (
-                                           null
-                                         )
+  private_key                          = local.enable_key ? try(file(var.authentication.path_to_private_key), tls_private_key.deployer[0].private_key_pem) : ( null )
 
   // If the user specifies arm id of key vaults in input, the key vault will be imported instead of creating new key vaults
   prvt_key_vault_id                    = try(var.key_vault.kv_prvt_id, "")

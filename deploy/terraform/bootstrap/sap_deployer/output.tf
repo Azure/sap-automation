@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitioms                          #
@@ -28,6 +31,11 @@ output "environment"                             {
 output "created_resource_group_location"         {
                                                    description = "Created resource group's location"
                                                    value       = module.sap_deployer.created_resource_group_location
+                                                 }
+
+output "random_id"                               {
+                                                   description = "Random ID for deployer"
+                                                   value       = substr(coalesce(var.custom_random_id, module.sap_deployer.random_id), 0, 3)
                                                  }
 
 ###############################################################################
@@ -211,18 +219,6 @@ output "webapp_id"                               {
 output "deployer_extension_ids"                  {
                                                    description = "List of extension IDs"
                                                    value       = module.sap_deployer.extension_ids
-                                                 }
-
-###############################################################################
-#                                                                             #
-#                                    Random                                   #
-#                                                                             #
-###############################################################################
-
-output "random_id_b64"                           {
-                                                   description = "The random ID used for the naming of resources"
-                                                   sensitive   = true
-                                                   value       = format("DEPLOYER_%s",module.sap_deployer.random_id_b64)
                                                  }
 
 output "Agent_IP"                                {

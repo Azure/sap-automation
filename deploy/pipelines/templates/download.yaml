@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 parameters:
   includeAnsibleData: false
   getLatestFromBranch: false
@@ -27,11 +30,12 @@ steps:
           export currentFolder=$(pwd)
 
           cd $(Build.SourcesDirectory)/config
+          git config --global user.email "$(Build.RequestedForEmail)"
+          git config --global user.name "$(Build.RequestedFor)"
+
           git checkout -q $(Build.SourceBranchName)
           git pull
 
-          git config --global user.email "$(Build.RequestedForEmail)"
-          git config --global user.name "$(Build.RequestedFor)"
 
           cd $currentFolder
         displayName: Get latest from branch

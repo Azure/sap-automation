@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -93,13 +96,13 @@ stages:
           - group:                     SDAF-${{ parameters.workload_environment }}
         steps:
           - task:                      AzureResourceManagerTemplateDeployment@3
-            displayName:               Remove Resource Group $(sap_system_folder)
+            displayName:               Remove Resource Group $(sap_system_foldername)
             inputs:
               deploymentScope:                "Resource Group"
               azureResourceManagerConnection: ${{ parameters.workload_zone_connection }}
-              subscriptionId:                 "$(ARM_SUBSCRIPTION_ID)"
+              subscriptionId:                 "$(WL_ARM_SUBSCRIPTION_ID)"
               action:                         "DeleteRG"
-              resourceGroupName:              "$(sap_system_folder)"
+              resourceGroupName:              "$(sap_system_foldername)"
 
       - job:                           Remove_sap_deployment_artifacts_in_WORKSPACES
         displayName:                   Remove SAP System deployment artifacts from WORKSPACES
@@ -107,53 +110,18 @@ stages:
           - group:                     SDAF-${{ parameters.workload_environment }}
         steps:
           - template:                  templates\download.yaml
-          - bash: |
-              #!/bin/bash
-              green="\e[1;32m" ; reset="\e[0m"
-
-              echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
-                cd $CONFIG_REPO_PATH
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
-
-                echo "##vso[build.updatebuildnumber]Removing $(sap_system_folder)"
-
-                changed=0
-                if [ -d SYSTEM/$(sap_system_folder)/.terraform ]; then
-                  git rm -q  --ignore-unmatch -r SYSTEM/$(sap_system_folder)/.terraform
-                  changed=1
-                fi
-                if [ -f  SYSTEM/$(sap_system_folder)/sap-parameters.yaml ]; then
-                  git rm -q  --ignore-unmatch SYSTEM/$(sap_system_folder)/sap-parameters.yaml
-                  changed=1
-                fi
-
-                if [ $(ls SYSTEM/$(sap_system_folder)/*_hosts.yaml | wc -l ) -gt 0 ] ; then
-                  git rm -q  --ignore-unmatch   SYSTEM/$(sap_system_folder)/*_hosts.yaml
-                  changed=1
-                fi
-
-                if [ $(ls SYSTEM/$(sap_system_folder)/*.md | wc -l ) -gt 0 ] ; then
-                  git rm -q  --ignore-unmatch   SYSTEM/$(sap_system_folder)/*.md
-                  changed=1
-                fi
-
-                if [ $(ls SYSTEM/$(sap_system_folder)/logs/*.zip | wc -l ) -gt 0 ] ; then
-                  git rm -q   --ignore-unmatch  SYSTEM/$(sap_system_folder)/logs/*.zip
-                  changed=1
-                fi
-
-                if [ 1 == $changed ]; then
-                  git commit -m "Removed filed from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
-                fi
-
-            displayName:               Remove SAP System deployment artifacts from WORKSPACES
+          - task:                      PostBuildCleanup@4
+          - task:                      Bash@3
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-system.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+            displayName:               Remove_SAP_infrastructure
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-            failOnStderr:              false
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
 
   - stage:                             Remove_SAP_workload_zone
     displayName:                       Remove SAP workload zone
@@ -181,9 +149,9 @@ stages:
             inputs:
               deploymentScope:                "Resource Group"
               azureResourceManagerConnection: ${{ parameters.workload_zone_connection }}
-              subscriptionId:                 "$(ARM_SUBSCRIPTION_ID)"
+              subscriptionId:                 "$(WL_ARM_SUBSCRIPTION_ID)"
               action:                         "DeleteRG"
-              resourceGroupName:              "$(zone_folder)"
+              resourceGroupName:              "$(workload_zone_foldername)"
 
       - job:                           Remove_zone_deployment_artifacts_in_WORKSPACES
         displayName:                   Remove Workload Zone deployment artifacts
@@ -191,90 +159,18 @@ stages:
           - group:                     SDAF-${{ parameters.workload_environment }}
         steps:
           - template:                  templates\download.yaml
-          - bash: |
-              #!/bin/bash
-              green="\e[1;32m" ; reset="\e[0m"
-
-              echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
-                export ENVIRONMENT=$(echo $(zone_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
-                export    LOCATION=$(echo $(zone_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
-                export     NETWORK=$(echo $(zone_folder) | awk -F'-' '{print $3}' | xargs) ; echo Network     $NETWORK
-
-                cd $CONFIG_REPO_PATH
-                git config --global user.email "$(Build.RequestedForEmail)"
-                git config --global user.name "$(Build.RequestedFor)"
-                git checkout -q $(Branch)
-                git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" pull
-
-                echo "##vso[build.updatebuildnumber]Removing workload zone $(zone_folder)"
-                changed=0
-
-                if [ -d LANDSCAPE/$(zone_folder)/.terraform ]; then
-                  git rm -r -f  --ignore-unmatch LANDSCAPE/$(zone_folder)/.terraform
-                  changed=1
-                fi
-                if [ -f  .sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK} ]; then
-                  git rm   --ignore-unmatch  -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}
-                  changed=1
-                fi
-                if [ -f  .sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}.md ]; then
-                  git rm   --ignore-unmatch  -f .sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}.md
-                  changed=1
-                fi
-
-                if [ 1 == $changed ] ; then
-                  git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                  git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
-                fi
-              echo -e "$green--- Configure devops CLI extension ---$reset"
-                az config set extension.use_dynamic_install=yes_without_prompt
-
-                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
-                if [ -n $(PAT) ]; then
-                  export AZURE_DEVOPS_EXT_PAT=$(PAT)
-                else
-                  export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
-                fi
-
-                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
-
-                echo "Variable Group: " $VARIABLE_GROUP_ID
-
-                if [ -n $VARIABLE_GROUP_ID ]; then
-                  echo "Deleting variables"
-                  if [ -n $(Terraform_Remote_Storage_Account_Name) ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors
-                  fi
-
-                  if [ -n $(Terraform_Remote_Storage_Subscription) ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --yes --only-show-errors >/dev/null 2>&1
-                  fi
-
-                  if [ -n $(Deployer_State_FileName) ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName               --yes --only-show-errors >/dev/null 2>&1
-                  fi
-
-                  if [ -n $(Deployer_Key_Vault) ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors >/dev/null 2>&1
-                  fi
-
-                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query $NETWORK"Workload_Key_Vault.value")
-                  if [ -n "${az_var}" ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name $NETWORK"Workload_Key_Vault"           --yes --only-show-errors
-                  fi
-
-                  az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query $NETWORK"Workload_Zone_State_FileName.value")
-                  if [ -n "${az_var}" ]; then
-                    az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name $NETWORK"Workload_Zone_State_FileName" --yes --only-show-errors
-                  fi
-                fi
-
+          - task:                      PostBuildCleanup@4
+          - task:                      Bash@3
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-workload-zone.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Remove SAP Workload Zone deployment artifacts from WORKSPACES
             env:
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-            failOnStderr:              false
 
   - stage:                             Remove_Control_plane
     displayName:                       Remove Control Plane
@@ -297,167 +193,23 @@ stages:
           - group:                     SDAF-${{ parameters.deployer_environment }}
         steps:
           - template:                  templates\download.yaml
+          - task:                      PostBuildCleanup@4
           - task:                      AzureCLI@2
             continueOnError:           false
             inputs:
-              azureSubscription:       Control_Plane_Service_Connection
+              azureSubscription:       ${{ parameters.control_plane_connection }}
               scriptType:              bash
-              scriptLocation:          inlineScript
+              scriptLocation:          'scriptPath'
+              scriptPath:              "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-control-plane.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
               addSpnToEnvironment:     true
-              inlineScript: |
-                #!/bin/bash
-                green="\e[1;32m" ; reset="\e[0m"
-                echo -e "$green--- Configure devops CLI extension ---$reset"
-                  az config set extension.use_dynamic_install=yes_without_prompt
-
-                  az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
-                  if [ -n $(PAT) ]; then
-                    export AZURE_DEVOPS_EXT_PAT=$(PAT)
-                  else
-                    export AZURE_DEVOPS_EXT_PAT=$(System.AccessToken)
-                  fi
-                  return_code=0
-
-                  export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(parent_variable_group)'].id | [0]"); echo "Variable group: " $VARIABLE_GROUP_ID
-                  variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "CP_ARM_SUBSCRIPTION_ID.value" --out tsv)
-                  if [ -z $variable_value ]; then
-                    subscription=$ARM_SUBSCRIPTION_ID
-                  else
-                    subscription=$variable_value
-                  fi
-                  echo "Subscription: $subscription"
-
-                  rg=$(az group list --subscription $subscription --query "[?name=='$(library_folder)'].name | [0]" | grep $(library_folder))
-                  if [ ${#rg} != 0 ]; then
-                    echo "Deleting resource group: $(library_folder)"
-                    echo "##vso[task.setprogress value=0;]Progress Indicator"
-
-                    az group delete --subscription $subscription --name $(library_folder) --yes --only-show-errors
-                    echo "##vso[task.setprogress value=30;]Progress Indicator"
-                    return_code=$?
-                  else
-                    echo "Resource group $(library_folder) does not exist."
-                  fi
-
-                  rg=$(az group list --subscription $subscription --query "[?name=='$(deployer_folder)'].name  | [0]" | grep $(deployer_folder))
-                  if [ ${#rg} != 0 ]; then
-                    echo "Deleting resource group: $(deployer_folder)"
-                    echo "##vso[task.setprogress value=60;]Progress Indicator"
-                    az group delete --subscription $subscription --name $(deployer_folder) --yes --only-show-errors
-                    return_code=$?
-                  else
-                    echo "Resource group $(deployer_folder) does not exist"
-                  fi
-
-
-                echo -e "$green--- Removing deployment automation configuration from devops repository ---$reset"
-                  export  ENVIRONMENT=$(echo $(deployer_folder) | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
-                  export LOCATION=$(echo $(deployer_folder) | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
-
-                  echo "##vso[task.setprogress value=90;]Progress Indicator"
-
-                  if [ 0 == $return_code ] ; then
-                    cd $CONFIG_REPO_PATH
-                    git checkout -q $(Build.SourceBranchName)
-                    git pull
-                    changed=0
-                    echo "##vso[build.updatebuildnumber]Removing control plane $(deployer_folder) $(library_folder)"
-                      if [ -d "DEPLOYER/$(deployer_folder)/.terraform" ]; then
-                        git rm -q -r  --ignore-unmatch DEPLOYER/$(deployer_folder)/.terraform
-                        changed=1
-                      fi
-
-                      if [ -f "DEPLOYER/$(deployer_folder)/state.zip" ]; then
-                        git rm -q  --ignore-unmatch DEPLOYER/$(deployer_folder)/state.zip
-                        changed=1
-                      fi
-
-                      if [ -d LIBRARY/$(library_folder)/.terraform ]; then
-                        git rm -q -r  --ignore-unmatch LIBRARY/$(library_folder)/.terraform
-                        changed=1
-                      fi
-
-                      if [ -f LIBRARY/$(library_folder)/state.zip ]; then
-                        git rm -q  --ignore-unmatch LIBRARY/$(library_folder)/state.zip
-                        changed=1
-                      fi
-
-                      if [ -f  .sap_deployment_automation/${ENVIRONMENT}${LOCATION} ]; then
-                        git rm -q   --ignore-unmatch  .sap_deployment_automation/${ENVIRONMENT}${LOCATION}
-                        changed=1
-                      fi
-                      if [ -f  .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md ]; then
-                        git rm -q   --ignore-unmatch  .sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md
-                        changed=1
-                      fi
-
-                      if [ -f  LIBRARY/$(library_folder)/backend-config.tfvars ]; then
-                        git rm -q   --ignore-unmatch  LIBRARY/$(library_folder)/backend-config.tfvars
-                        changed=1
-                      fi
-
-                      if [ 1 == $changed ] ; then
-                        git config --global user.email "$(Build.RequestedForEmail)"
-                        git config --global user.name "$(Build.RequestedFor)"
-                        git commit -m "Added updates from devops deployment $(Build.DefinitionName) [skip ci]"
-                        git -c http.extraheader="AUTHORIZATION: bearer $(System.AccessToken)" push
-                      fi
-                    echo -e "$green--- Deleting variables ---$reset"
-                      if [ ${#VARIABLE_GROUP_ID} != 0 ]; then
-                        echo "Deleting variables"
-
-                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
-                        if [ ${#variable_value} != 0 ]; then
-                          az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors
-                        fi
-
-                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Resource_Group_Name.value" --out tsv)
-                        if [ ${#variable_value} != 0 ]; then
-                          az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Resource_Group_Name --yes --only-show-errors
-                        fi
-
-                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Terraform_Remote_Storage_Subscription.value" --out tsv)
-                        if [ ${#variable_value} != 0 ]; then
-                          az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Terraform_Remote_Storage_Subscription --yes --only-show-errors
-                        fi
-
-                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_State_FileName.value" --out tsv)
-                        if [ ${#variable_value} != 0 ]; then
-                          az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_State_FileName               --yes --only-show-errors
-                        fi
-
-                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "Deployer_Key_Vault.value" --out tsv)
-                        if [ ${#variable_value} != 0 ]; then
-                          az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name Deployer_Key_Vault                    --yes --only-show-errors
-                        fi
-
-                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_URL_BASE.value" --out tsv)
-                        if [ ${#variable_value} != 0 ]; then
-                          az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_URL_BASE                       --yes --only-show-errors
-                        fi
-
-                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_IDENTITY.value" --out tsv)
-                        if [ ${#variable_value} != 0 ]; then
-                          az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_IDENTITY                       --yes --only-show-errors
-                        fi
-
-                        variable_value=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "WEBAPP_ID.value" --out tsv)
-                        if [ ${#variable_value} != 0 ]; then
-                          az pipelines variable-group variable delete --group-id ${VARIABLE_GROUP_ID} --name WEBAPP_ID                            --yes --only-show-errors
-                        fi
-
-                      fi
-
-                  fi
-
-                  echo "##vso[task.setprogress value=100;]Progress Indicator"
-
-                  exit $return_code
+              visibleAzLogin:          false
 
             displayName:               Remove Control Plane deployment artifacts from WORKSPACES
             env:
               ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
-              AZURE_DEVOPS_EXT_PAT:     $(PAT)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               USE_MSI:                  $(Use_MSI)
+              PAT:                      $(PAT)

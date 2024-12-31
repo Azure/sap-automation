@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 
 resource "local_file" "naming" {
   count                = var.save_naming_information ? 1 : 0

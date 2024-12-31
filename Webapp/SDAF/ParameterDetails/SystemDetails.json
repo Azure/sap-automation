@@ -196,15 +196,6 @@
         "Display": 2
       },
       {
-        "Name": "use_spn",
-        "Required": false,
-        "Description": " If set, the deployment is performed using the Service Principal defined for the workload zone, otherwise the managed identity of the deployer is used",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 2
-      },
-      {
         "Name": "prevent_deletion_if_contains_resources",
         "Required": false,
         "Description": "Prevent deletion of resource group if there are Resources left within the Resource Group during deletion",
@@ -336,6 +327,7 @@
       {
         "Name": "shared_access_key_enabled_nfs",
         "Required": false,
+        "Description": "Storage account authorization using Shared Access Key (NFS shares).",
         "Description": "Storage account authorization using Shared Access Key (NFS shares).",
         "Type": "checkbox",
         "Options": [],
@@ -735,6 +727,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "database_active_active",
+        "Required": false,
+        "Description": "If true, database will deployed with Active/Active (read enabled) configuration, only supported for HANA.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       }
     ]
   },
@@ -1582,6 +1583,15 @@
         "Name": "use_simple_mount",
         "Required": false,
         "Description": "If provided, defines that simple mounts are used (Applicable for SLES 15 SP# or newer)",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "use_sles_saphanasr_angi",
+        "Required": false,
+        "Description": "If true, the SAP HANA SR cluster will be configured with SAP HANA SR - An Next Generation Interface",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",

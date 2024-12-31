@@ -1,10 +1,12 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 - name:                                "1.4 Packages: - Import package list"
   ansible.builtin.include_vars:        os-packages.yaml
 
 - name:                                "1.4 Packages: - Installing packages for tier"
   ansible.builtin.debug:
     msg:                               "Installing packages for tier {{ tier }} on {{ distribution_id }}"
-
 
 # Analyse the package list for this distribution selecting only those
 # packages assigned to the active tier or 'all'.
@@ -15,36 +17,58 @@
                                           selectattr('node_tier', 'in', ['all', node_tier]) |
                                           list }}"
 
+# Initialize packages_for_specific_tier with an empty list
+- name:                                "1.4 Packages: - Initialize specific tier packages"
+  ansible.builtin.set_fact:
+    packages_for_specific_tier:        []
+
 # Analyse the package list for this distribution selecting only those
-# packages assigned to the active tier or 'all'.
+# packages assigned to the active tier or 'all'. This is used for
+# distributions that have a specific package list.
 - name:                                "1.4 Packages: - Determine packages appropriate for tier on: {{ distribution_full_id }}"
+  when:                                packages[distribution_full_id] is defined
   ansible.builtin.set_fact:
     packages_for_specific_tier:        "{{ packages[distribution_full_id] |
                                           selectattr('tier', 'in', ['all', tier]) |
-                                          selectattr('node_tier', 'in', ['all', node_tier]) |
+                                          selectattr('node_tier', 'in', ['all', node_tier]) | default([]) |
                                           list }}"
-    when: packages | selectattr(distribution_full_id, "defined") | list | length > 0
 
-# Print list of matching packages if verbosity it 1 or greater
-- name:                                "1.4 Packages: - Show packages"
+- name:                                "1.4 Packages: - Debug - output packages for a specific tier"
   ansible.builtin.debug:
     msg:
-      - "Packages for {{ distribution_id }} : {{ packages_for_tier }}"
-      - "Packages for {{ distribution_full_id }} : {{ packages_for_specific_tier }}"
+                                       - "Distribution        : {{ distribution_id }}"
+                                       - "Distribution Full Id: {{ distribution_full_id }}"
+                                       - "Tier                : {{ tier }}"
+                                       - "Node Tier           : {{ node_tier }}"
+                                       - "Packages            : {{ packages | selectattr(distribution_full_id, 'defined') }}"
+                                       - "Available keys      : {{ packages.keys() | list }}"
+                                       - "Key exists 1        : {{ distribution_full_id in packages }}"
+                                       - "Key exists 2        : {{ packages[distribution_full_id] is defined }}"
+                                       - "Packages for {{ distribution_id }} : {{ packages_for_tier }}"
+                                       - "Packages for {{ distribution_full_id }} : {{ packages_for_specific_tier }}"
     verbosity:                         2
-  when:                                packages_for_tier is defined
 
-
-# Extract the list of package names whose state match the specified value and
-# pass them as the argument to the name parameter; this is the recommended
-# approach as it only calls the underlying distro specific package manager
-# once per state value.
-# TODO: Do we want to remap 'present' to 'latest' to install latest version
-# for packages that may not be up-to-date?
 - name:                                "1.4 Packages: - Update OS packages: {{ distro_name }}"
   block:
+    - name:                            "1.4 Packages: - Update OS packages RHEL: {{ distro_name }}"
+      when:                            ansible_os_family | upper == "REDHAT"
+      ansible.builtin.dnf:
+        name:                          "{{ packages_for_tier |
+                                           selectattr('state', 'equalto', item.state) |
+                                           map(attribute='package') |
+                                           list }}"
+        state:                         "{{ item.state }}"
+        disablerepo:                   "epel*"
+        skip_broken:                   true
+        nobest:                        true
+      register:                        package_result
+      loop:
+                                       - { state: 'latest'  }  # Update necessary packages
+                                       - { state: 'present' }  # Install required packages
+                                       - { state: 'absent'  }  # Then remove packages that we don't want
 
-    - name:                            "1.4 Packages: - Update OS packages: {{ distro_name }}"
+    - name:                            "1.4 Packages: - Update OS packages SLES: {{ distro_name }}"
+      when:                            ansible_os_family | upper == "SUSE"
       ansible.builtin.package:
         name:                          "{{ packages_for_tier |
                                            selectattr('state', 'equalto', item.state) |
@@ -55,9 +79,10 @@
         ZYPP_LOCK_TIMEOUT:             "20"
       register:                        package_result
       loop:
-        - { state: 'latest' }  # Update necessary packages
-        - { state: 'present' }  # Install required packages
-        - { state: 'absent' }   # Then remove packages that we don't want
+                                       - { state: 'latest'  }  # Update necessary packages
+                                       - { state: 'present' }  # Install required packages
+                                       - { state: 'absent'  }  # Then remove packages that we don't want
+
   rescue:
     - name:                            "1.4 Packages: - Show result from packages module"
       ansible.builtin.debug:
@@ -68,152 +93,85 @@
       ansible.builtin.pause:
         seconds:                       60
 
-    - name:                           "1.4 Packages: -  Update OS packages: {{ distro_name }} and rescue"
+    - name:                            "1.4 Packages: - Update OS packages: {{ distro_name }} and rescue"
       block:
-        - name:                            "1.4 Packages: -  Update OS packages: {{ distro_name }}"
-          ansible.builtin.package:
-            name:                          "{{ packages_for_tier |
-                                              selectattr('state', 'equalto', item.state) |
-                                              map(attribute='package') |
-                                              list }}"
-            state:                         "{{ item.state }}"
-          environment:
-            ZYPP_LOCK_TIMEOUT:             "20"
-          register:                        package_result
+        - name:                        "1.4 Packages: - Update OS packages RHEL: {{ distro_name }}"
+          ansible.builtin.dnf:
+            name:                      "{{ packages_for_tier |
+                                          selectattr('state', 'equalto', item.state) |
+                                          map(attribute='package') |
+                                          list }}"
+            state:                     "{{ item.state }}"
+            disablerepo:              "epel*"
+            skip_broken:              true
+            nobest:                   true
+          register:                    package_result
           loop:
             - { state: 'latest' }  # Update necessary packages
             - { state: 'present' }  # Install required packages
             - { state: 'absent' }   # Then remove packages that we don't want
-      rescue:
-        - name:                           "Print stderr before getting error code"
-          ansible.builtin.debug:
-            msg:                          "debug statement: {{ package_result }}"
+          when:                        ansible_os_family | upper == "REDHAT"
 
-        - name:                           "Error handling for 1.4 Packages: -  Update OS packages: {{ distro_name }}"
-          ansible.builtin.debug:
-            msg:                          "{{ package_result | try_get_error_code_results(task_tag='update_os_packages') }}"
-
-- name:                                "1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
-  block:
-    - name:                            "1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
-      ansible.builtin.package:
-        name:                          "{{ packages_for_specific_tier |
-                                           selectattr('state', 'equalto', item.state) |
-                                           map(attribute='package') |
-                                           list }}"
-        state:                         "{{ item.state }}"
-      environment:
-        ZYPP_LOCK_TIMEOUT:             "20"
-      register:                        package_result
-      loop:
-        - { state: 'latest' }  # Update necessary packages
-        - { state: 'present' }  # Install required packages
-        - { state: 'absent' }   # Then remove packages that we don't want
-
-  rescue:
-    - name:                            "1.4 Packages: - Print return value"
-      ansible.builtin.debug:
-        var:                           package_result
-
-    - name:                            "1.4 Packages: - Performing rescue action"
-      ansible.builtin.pause:
-        seconds:                       60
-
-    - name:                              "1.4 Packages: - Update OS packages: {{ distribution_full_id }} and rescue"
-      block:
-        - name:                            "1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
-          ansible.builtin.package:
-            name:                          "{{ packages_for_specific_tier |
-                                              selectattr('state', 'equalto', item.state) |
-                                              map(attribute='package') |
-                                              list }}"
-            state:                         "{{ item.state }}"
-          environment:
-            ZYPP_LOCK_TIMEOUT:             "20"
-          register:                         package_result
-          loop:
-            - { state: 'latest' }  # Update necessary packages
-            - { state: 'present' }  # Install required packages
-            - { state: 'absent' }   # Then remove packages that we don't want
-      rescue:
-        - name:                         "Print stderr before getting error code"
-          ansible.builtin.debug:
-            msg:                        "debug statement: {{ package_result }}"
-
-        - name:                         "Error handling for 1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
-          ansible.builtin.fail:
-            msg:                        "{{ package_result | try_get_error_code_results(task_tag='update_os_packages') }}"
-
-
-- name:                                "1.4 Packages: - Update OS packages: {{ distro_name }} on node: {{ node_tier }}"
-  block:
-
-    - name:                            "1.4 Packages: - Update OS packages: {{ distro_name }} on node: {{ node_tier }}"
-      ansible.builtin.package:
-        name:                          "{{ packages_for_tier |
-                                           selectattr('state', 'equalto', item.state) |
-                                           map(attribute='package') |
-                                           list }}"
-        state:                         "{{ item.state }}"
-      environment:
-        ZYPP_LOCK_TIMEOUT:             "20"
-      register:                        package_result
-      loop:
-        - { state: 'latest' }  # Update necessary packages
-        - { state: 'present' }  # Install required packages
-        - { state: 'absent' }   # Then remove packages that we don't want
-  rescue:
-    - name:                            "1.4 Packages: - Show result from packages module"
-      ansible.builtin.debug:
-        var:                           package_result
-        verbosity:                     2
-
-    - name:                            "1.4 Packages: - Performing rescue action"
-      ansible.builtin.pause:
-        seconds:                       60
-
-    - name:                              "1.4 Packages: -  Update OS packages: {{ distro_name }} on node: {{ node_tier }} and rescue"
-      block:
-        - name:                            "1.4 Packages: -  Update OS packages: {{ distro_name }} on node: {{ node_tier }}"
+        - name:                        "1.4 Packages: - Update OS packages SLES: {{ distro_name }}"
           ansible.builtin.package:
             name:                      "{{ packages_for_tier |
-                                              selectattr('state', 'equalto', item.state) |
-                                              map(attribute='package') |
-                                              list }}"
-            state:                         "{{ item.state }}"
+                                          selectattr('state', 'equalto', item.state) |
+                                          map(attribute='package') |
+                                          list }}"
+            state:                     "{{ item.state }}"
           environment:
-            ZYPP_LOCK_TIMEOUT:             "20"
-          register:                        package_result
+            ZYPP_LOCK_TIMEOUT:         "20"
+          register:                    package_result
           loop:
             - { state: 'latest' }  # Update necessary packages
             - { state: 'present' }  # Install required packages
             - { state: 'absent' }   # Then remove packages that we don't want
+          when:                        ansible_os_family | upper == "SUSE"
+
       rescue:
-        - name:                         "Print stderr before getting error code"
+        - name:                        "1.4 Packages: - Print stderr before getting error code"
           ansible.builtin.debug:
-            msg:                        "debug statement: {{ package_result }}"
+            msg:                       "debug statement: {{ package_result }}"
 
-        - name:                         "Error handling for 1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
-          ansible.builtin.fail:
-            msg:                        "{{ package_result | try_get_error_code_results(task_tag='update_os_packages') }}"
+        - name:                        "1.4 Packages: - Error handling for Packages: - Update OS packages: {{ distro_name }}"
+          ansible.builtin.debug:
+            msg:                       "{{ package_result | try_get_error_code_results(task_tag='update_os_packages') }}"
 
-
-- name:                                "1.4 Packages: - Update OS packages: {{ distribution_full_id }} {{ node_tier }}"
+# Similar pattern for distribution_full_id...
+- name:                                "1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
   block:
-    - name:                            "1.4 Packages: - Update OS packages: {{ distribution_full_id }} {{ node_tier }}"
+    - name:                            "1.4 Packages: - Update OS packages RHEL: {{ distribution_full_id }}"
+      when:                            ansible_os_family | upper == "REDHAT"
+      ansible.builtin.dnf:
+        name:                          "{{ packages_for_specific_tier |
+                                           selectattr('state', 'equalto', item.state) |
+                                           map(attribute='package') |
+                                           list }}"
+        state:                         "{{ item.state }}"
+        disablerepo:                   "epel*"
+        skip_broken:                   true
+        nobest:                        true
+      register:                        package_result
+      loop:
+                                       - { state: 'latest'  }  # Update necessary packages
+                                       - { state: 'present' }  # Install required packages
+                                       - { state: 'absent'  }  # Then remove packages that we don't want
+
+    - name:                            "1.4 Packages: - Update OS packages SLES: {{ distribution_full_id }}"
+      when:                            ansible_os_family | upper == "SUSE"
       ansible.builtin.package:
         name:                          "{{ packages_for_specific_tier |
                                            selectattr('state', 'equalto', item.state) |
-                                           map(attribute='package') | selectattr('node_tier', 'defined') | selectattr('node_tier', 'equalto', node_tier) |
+                                           map(attribute='package') |
                                            list }}"
         state:                         "{{ item.state }}"
       environment:
         ZYPP_LOCK_TIMEOUT:             "20"
       register:                        package_result
       loop:
-        - { state: 'latest' }  # Update necessary packages
-        - { state: 'present' }  # Install required packages
-        - { state: 'absent' }   # Then remove packages that we don't want
+                                       - { state: 'latest'  }  # Update necessary packages
+                                       - { state: 'present' }  # Install required packages
+                                       - { state: 'absent'  }  # Then remove packages that we don't want
 
   rescue:
     - name:                            "1.4 Packages: - Print return value"
@@ -226,24 +184,44 @@
 
     - name:                            "1.4 Packages: - Update OS packages: {{ distribution_full_id }} and rescue"
       block:
-        - name:                        "1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
+        - name:                        "1.4 Packages: - Update OS packages RHEL: {{ distribution_full_id }}"
+          when:                        ansible_os_family | upper == "REDHAT"
+          ansible.builtin.dnf:
+            name:                      "{{ packages_for_specific_tier |
+                                          selectattr('state', 'equalto', item.state) |
+                                          map(attribute='package') |
+                                          list }}"
+            state:                     "{{ item.state }}"
+            disablerepo:               "epel*"
+            skip_broken:               true
+            nobest:                    true
+          register:                    package_result
+          loop:
+                                       - { state: 'latest'  }  # Update necessary packages
+                                       - { state: 'present' }  # Install required packages
+                                       - { state: 'absent'  }  # Then remove packages that we don't want
+
+        - name:                        "1.4 Packages: - Update OS packages SLES: {{ distribution_full_id }}"
+          when:                        ansible_os_family | upper == "SUSE"
           ansible.builtin.package:
             name:                      "{{ packages_for_specific_tier |
-                                              selectattr('state', 'equalto', item.state) |
-                                              map(attribute='package') | selectattr('node_tier', 'defined') | selectattr('node_tier', 'equalto', node_tier) |
-                                              list }}"
-            state:                         "{{ item.state }}"
+                                          selectattr('state', 'equalto', item.state) |
+                                          map(attribute='package') |
+                                          list }}"
+            state:                     "{{ item.state }}"
           environment:
-            ZYPP_LOCK_TIMEOUT:             "20"
+            ZYPP_LOCK_TIMEOUT:         "20"
+          register:                    package_result
           loop:
-            - { state: 'latest' }  # Update necessary packages
-            - { state: 'present' }  # Install required packages
-            - { state: 'absent' }   # Then remove packages that we don't want
+                                       - { state: 'latest'  }  # Update necessary packages
+                                       - { state: 'present' }  # Install required packages
+                                       - { state: 'absent'  }  # Then remove packages that we don't want
+
       rescue:
-        - name:                        "Print stderr before getting error code"
+        - name:                        "1.4 Packages: - Print stderr before getting error code"
           ansible.builtin.debug:
             msg:                       "debug statement: {{ package_result }}"
 
-        - name:                        "Error handling for 1.4 Packages: - Update OS packages: {{ distribution_full_id }}"
+        - name:                        "1.4 Packages: - Error handling for Packages: - Update OS packages: {{ distribution_full_id }}"
           ansible.builtin.fail:
             msg:                       "{{ package_result | try_get_error_code_results(task_tag='update_os_packages') }}"

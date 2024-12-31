@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 
 # This user must have the permission to create the CNO (Cluster Name Object)
@@ -96,7 +99,7 @@
     path:                              "{{ shared_disk_drive_letter }}:\\usr\\sap\\{{ sap_sid | upper }}\\SYS\\profile\\{{ sap_sid | upper }}_ASCS{{ scs_instance_number }}_{{ scs_cluster_hostname }}"
     regex:                             "^enque/encni/set_so_keepalive"
     insertbefore:                      "^rdisp/enqname"
-    line:                              "enque/encni/set_so_keepalive = true"
+    line:                              "enque/encni/set_so_keepalive = TRUE"
     state:                             present
   when:
     - ansible_hostname == primary_node

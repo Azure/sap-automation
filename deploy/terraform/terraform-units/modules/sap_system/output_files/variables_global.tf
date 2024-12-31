@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 variable "subnet_cidr_anf"                    { description = "address prefix for the ANF subnet" }
 variable "ansible_user"                         {
                                                   description = "The ansible remote user account to use"
@@ -25,10 +28,12 @@ variable "bom_name"                             {
                                                   description = "Name of Bill of Materials file"
                                                   default     = ""
                                                 }
-variable "subnet_cidr_app"                    { description = "address prefix for the app subnet" }
-variable "subnet_cidr_db"                     { description = "address prefix for the db subnet" }
-variable "subnet_cidr_client"                 { description = "address prefix for the client subnet" }
+variable "subnet_cidr_app"                      { description = "address prefix for the app subnet" }
+variable "subnet_cidr_db"                       { description = "address prefix for the db subnet" }
+variable "subnet_cidr_client"                   { description = "address prefix for the client subnet" }
 variable "configuration_settings"               { description = "This is a dictionary that will contain values persisted to the sap-parameters.file" }
+variable "created_resource_group_name"          { description = "Name of the resource group" }
+variable "created_resource_group_subscription_id" { description = "Subscription ID of the resource group" }
 variable "database_admin_ips"                   { description = "List of Admin NICs for the DB VMs" }
 variable "database_cluster_type"                {
                                                   description   = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
@@ -44,6 +49,11 @@ variable "database_authentication_type"         {
                                                   default = "key"
                                                 }
 variable "database_cluster_ip"                  { description = "This is a Cluster IP address for Windows load balancer for the database" }
+variable "database_active_active"               { description = "If true, database will deployed with Active/Active (read enabled) configuration (HANA only)" }
+variable "database_active_active_loadbalancer_ip" {
+                                                  description = "DB Active Active Load Balancer IP"
+                                                  default     = ""
+                                                }
 variable "database_loadbalancer_ip"             {
                                                   description = "DB Load Balancer IP"
                                                   default     = ""
@@ -57,6 +67,7 @@ variable "database_server_secondary_ips"        { description = "List of seconda
 variable "database_shared_disks"                { description = "Database Azure Shared Disk" }
 variable "database_server_vm_names"             { description = "List of VM names for the database servers" }
 variable "is_use_fence_kdump"                   { description = "Use fence kdump for optional stonith configuration on RHEL" }
+
 variable "db_sid"                               { description = "Database SID" }
 variable "database_subnet_netmask"              { description = "netmask for the database subnet" }
 variable "disks"                                { description = "List of disks" }

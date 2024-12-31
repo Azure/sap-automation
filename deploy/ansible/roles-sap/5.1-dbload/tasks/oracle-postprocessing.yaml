@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 - name:                                "ORACLE Post Processing: Set Variables"
   ansible.builtin.set_fact:
     PAS:                               'pas'

@@ -1,3 +1,8 @@
+#!/bin/bash
+
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 tf_bin=$(which terraform)
 ansible_bin=$(which ansible)
 # Ensure that the user's account is logged in to Azure with specified creds
@@ -17,7 +22,7 @@ echo export "PATH=${ansible_bin}:${tf_bin}:"'${PATH}':$HOME/Azure_SAP_Automated_
 
 # Set env for ansible
 echo export ANSIBLE_HOST_KEY_CHECKING=False | sudo tee -a /etc/profile.d/deploy_server.sh
-echo export ANSIBLE_COLLECTIONS_PATHS=${ansible_collections} | sudo tee -a /etc/profile.d/deploy_server.sh
+echo export ANSIBLE_COLLECTIONS_PATH=${ansible_collections} | sudo tee -a /etc/profile.d/deploy_server.sh
 
 # Set env for MSI
 echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh

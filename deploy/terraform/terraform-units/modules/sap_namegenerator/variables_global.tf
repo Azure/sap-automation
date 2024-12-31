@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 
 variable "environment" {
   description = "Environment type (Prod, Test, Sand, QA)"
@@ -271,6 +274,9 @@ variable "resource_prefixes" {
     "db_clst_feip"                   = ""
     "db_alb_hp"                      = ""
     "db_alb_rule"                    = ""
+    "db_rlb_feip"                    = ""
+    "db_rlb_hp"                      = ""
+    "db_rlb_rule"                    = ""
     "db_asg"                         = ""
     "db_avset"                       = ""
     "db_nic"                         = ""
@@ -405,6 +411,9 @@ variable "resource_suffixes" {
     "db_clst_feip"                   = "dbClst-feip"
     "db_alb_hp"                      = "dbAlb-hp"
     "db_alb_rule"                    = "dbAlb-rule"
+    "db_rlb_feip"                    = "dbRlb-feip"
+    "db_rlb_hp"                      = "dbRlb-hp"
+    "db_rlb_rule"                    = "dbRlb-rule"
     "db_asg"                         = "db-asg"
     "db_avset"                       = "db-avset"
     "db_nic"                         = "-db-nic"

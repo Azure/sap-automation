@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 
 #######################################4#######################################8
 #                                                                              #
@@ -28,6 +31,11 @@ output "workload_zone_prefix"                   {
 output "public_network_access_enabled"          {
                                                   description = "Defines if the public access should be enabled for keyvaults and storage"
                                                   value = var.public_network_access_enabled || !var.use_private_endpoint
+                                                }
+
+output "random_id"                              {
+                                                  description = "Random ID for workload zone"
+                                                  value       = substr(coalesce(var.custom_random_id, module.sap_landscape.random_id),0,3)
                                                 }
 
 ###############################################################################
@@ -149,7 +157,7 @@ output "spn_kv_id"                               {
 
 output "workloadzone_kv_name"                    {
                                                    description = "Workload zone keyvault name"
-                                                   value       = length(var.user_keyvault_id) > 0 ? split("/", var.user_keyvault_id)[8] : try(split("/", module.sap_landscape.kv_user)[8], "")
+                                                   value       = lower(length(var.user_keyvault_id) > 0 ? split("/", var.user_keyvault_id)[8] : try(split("/", module.sap_landscape.kv_user)[8], ""))
                                                  }
 
 ###############################################################################
@@ -250,13 +258,13 @@ output "storageaccount_rg_name"                  {
                                                  }
 
 output "transport_storage_account_id"            {
-                                                   description = "Transport storage account resource group name"
+                                                   description = "Transport storage account name"
                                                    value       = module.sap_landscape.transport_storage_account_id
                                                  }
 
 //Witness
 output "witness_storage_account"                 {
-                                                   description = "Transport storage account resource group name"
+                                                   description = "Witness storage account name"
                                                    value       = module.sap_landscape.witness_storage_account
                                                  }
 

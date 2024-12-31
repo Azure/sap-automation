@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 - name:                                "aggregate_bom: - Informational"
   ansible.builtin.debug:

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $url = "https://aka.ms/sdaf-ansible"
 $file = "$env:temp\ConfigureRemotingForAnsible.ps1"

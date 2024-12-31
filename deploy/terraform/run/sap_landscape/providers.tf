@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 /*
   Description:
   Constraining provider versions
@@ -14,7 +17,7 @@
 
 provider "azurerm"                     {
                                          features {}
-                                         subscription_id            = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
+                                         subscription_id            = coalesce(var.management_subscription,var.subscription_id, local.deployer_subscription_id)
                                          use_msi                    = var.use_spn ? false : true
 
                                          storage_use_azuread        = true
@@ -25,22 +28,26 @@ provider "azurerm"                     {
                                                     resource_group {
                                                                      prevent_deletion_if_contains_resources = var.prevent_deletion_if_contains_resources
                                                                    }
-                                                    key_vault {
-                                                                 purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
-                                                                 purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
-                                                                 purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
-                                                                 purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
-                                                              }
-                                                  }
-                                         subscription_id     = data.azurerm_key_vault_secret.subscription_id.value
-                                         client_id           = var.use_spn ? local.spn.client_id : null
-                                         client_secret       = var.use_spn ? local.spn.client_secret : null
-                                         tenant_id           = var.use_spn ? local.spn.tenant_id : null
-                                         use_msi             = var.use_spn ? false : true
-                                         storage_use_azuread = true
+                                                    key_vault      {
+                                                                      purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
+                                                                      purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
+                                                                      purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
+                                                                      purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
+                                                                   }
+                                                    storage        {
+                                                                        data_plane_available = var.data_plane_available
+                                                                   }
 
-                                         partner_id          = "25c87b5f-716a-4067-bcd8-116956916dd6"
-                                         alias               = "workload"
+                                                  }
+                                         subscription_id            = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value
+                                         client_id                  = var.use_spn ? local.spn.client_id : null
+                                         client_secret              = var.use_spn ? local.spn.client_secret : null
+                                         tenant_id                  = var.use_spn ? local.spn.tenant_id : null
+                                         use_msi                    = var.use_spn ? false : true
+                                         storage_use_azuread        = true
+
+                                         partner_id                 = "25c87b5f-716a-4067-bcd8-116956916dd6"
+                                         alias                      = "workload"
 
                                        }
 
@@ -64,22 +71,6 @@ provider "azurerm"                     {
                                          tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
                                          use_msi                    = var.use_spn ? false : true
                                          storage_use_azuread        = true
-                                       }
-
-/*
-based on https://github.com/hashicorp/terraform-provider-azurerm/issues/22515
-ignoring the kubernetes provider registration.
-*/
-provider "azurerm"                     {
-                                         features {}
-                                         alias                      = "kubernetes"
-                                         subscription_id            = coalesce(var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
-                                         client_id                  = var.use_spn ? local.cp_spn.client_id : null
-                                         client_secret              = var.use_spn ? local.cp_spn.client_secret : null
-                                         tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
-                                         use_msi                    = var.use_spn ? false : true
-                                         storage_use_azuread        = true
-
                                        }
 
 provider "azurerm"                     {
@@ -131,10 +122,10 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.7.0"
+                                                                           version = "4.11.0"
                                                                          }
                                                               azapi =    {
-                                                                           source  = "Azure/azapi"
+                                                                           source  = "azure/azapi"
                                                                          }
                                                             }
                                        }

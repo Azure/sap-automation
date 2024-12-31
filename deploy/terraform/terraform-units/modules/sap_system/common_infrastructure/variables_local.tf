@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 /*
   Description:
   Define local variables
@@ -185,13 +188,13 @@ locals {
   #
   ##############################################################################################
 
-  admin_subnet_defined                 = length(try(var.infrastructure.vnets.sap.subnet_admin, {})) > 0
+  admin_subnet_defined                 = length(try(var.infrastructure.virtual_networks.sap.subnet_admin, {})) > 0
   admin_subnet_prefix                  = local.admin_subnet_defined ? (
-                                           try(var.infrastructure.vnets.sap.subnet_admin.prefix, "")) : (
+                                           try(var.infrastructure.virtual_networks.sap.subnet_admin.prefix, "")) : (
                                            ""
                                          )
   admin_subnet_arm_id                  = local.admin_subnet_defined ? (
-                                           try(var.infrastructure.vnets.sap.subnet_admin.arm_id, "")) : (
+                                           try(var.infrastructure.virtual_networks.sap.subnet_admin.arm_id, "")) : (
                                            var.landscape_tfstate.admin_subnet_id
                                          )
 
@@ -210,9 +213,9 @@ locals {
 
   admin_subnet_name                    = local.admin_subnet_defined ? (
                                            local.admin_subnet_exists ? (
-                                             split("/", var.infrastructure.vnets.sap.subnet_admin.arm_id)[10]) : (
-                                             length(var.infrastructure.vnets.sap.subnet_admin.name) > 0 ? (
-                                               var.infrastructure.vnets.sap.subnet_admin.name) : (
+                                             split("/", var.infrastructure.virtual_networks.sap.subnet_admin.arm_id)[10]) : (
+                                             length(var.infrastructure.virtual_networks.sap.subnet_admin.name) > 0 ? (
+                                               var.infrastructure.virtual_networks.sap.subnet_admin.name) : (
                                                format("%s%s%s%s",
                                                  var.naming.resource_prefixes.admin_subnet,
                                                  length(local.prefix) > 0 ? (
@@ -232,18 +235,18 @@ locals {
   #
   ##############################################################################################
 
-  admin_subnet_nsg_defined             = length(try(var.infrastructure.vnets.sap.subnet_admin.nsg, {})) > 0
+  admin_subnet_nsg_defined             = length(try(var.infrastructure.virtual_networks.sap.subnet_admin.nsg, {})) > 0
   admin_subnet_nsg_arm_id              = local.admin_subnet_nsg_defined ? (
-                                           try(var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id, "")) : (
+                                           try(var.infrastructure.virtual_networks.sap.subnet_admin.nsg.arm_id, "")) : (
                                            var.landscape_tfstate.admin_nsg_id
                                          )
   admin_subnet_nsg_exists              = length(local.admin_subnet_nsg_arm_id) > 0
 
   admin_subnet_nsg_name                = local.admin_subnet_nsg_defined ? (
                                           local.admin_subnet_nsg_exists ? (
-                                            split("/", var.infrastructure.vnets.sap.subnet_admin.nsg.arm_id)[8]) : (
-                                            length(var.infrastructure.vnets.sap.subnet_admin.nsg.name) > 0 ? (
-                                              var.infrastructure.vnets.sap.subnet_admin.nsg.name) : (
+                                            split("/", var.infrastructure.virtual_networks.sap.subnet_admin.nsg.arm_id)[8]) : (
+                                            length(var.infrastructure.virtual_networks.sap.subnet_admin.nsg.name) > 0 ? (
+                                              var.infrastructure.virtual_networks.sap.subnet_admin.nsg.name) : (
                                               format("%s%s%s%s",
                                                 var.naming.resource_prefixes.admin_subnet_nsg,
                                                 length(local.prefix) > 0 ? (
@@ -263,13 +266,13 @@ locals {
   #
   ##############################################################################################
 
-  database_subnet_defined              = length(try(var.infrastructure.vnets.sap.subnet_db, {})) > 0
+  database_subnet_defined              = length(try(var.infrastructure.virtual_networks.sap.subnet_db, {})) > 0
   database_subnet_prefix               = local.database_subnet_defined ? (
-                                           try(var.infrastructure.vnets.sap.subnet_db.prefix, "")) : (
+                                           try(var.infrastructure.virtual_networks.sap.subnet_db.prefix, "")) : (
                                            ""
                                          )
   database_subnet_arm_id               = local.database_subnet_defined ? (
-                                           try(var.infrastructure.vnets.sap.subnet_db.arm_id, "")) : (
+                                           try(var.infrastructure.virtual_networks.sap.subnet_db.arm_id, "")) : (
                                            var.landscape_tfstate.db_subnet_id
                                          )
 
@@ -277,9 +280,9 @@ locals {
 
   database_subnet_name                 = local.database_subnet_defined ? (
                                            local.database_subnet_exists ? (
-                                             split("/", var.infrastructure.vnets.sap.subnet_db.arm_id)[10]) : (
-                                             length(var.infrastructure.vnets.sap.subnet_db.name) > 0 ? (
-                                               var.infrastructure.vnets.sap.subnet_db.name) : (
+                                             split("/", var.infrastructure.virtual_networks.sap.subnet_db.arm_id)[10]) : (
+                                             length(var.infrastructure.virtual_networks.sap.subnet_db.name) > 0 ? (
+                                               var.infrastructure.virtual_networks.sap.subnet_db.name) : (
                                                format("%s%s%s%s",
                                                  var.naming.resource_prefixes.db_subnet,
                                                  length(local.prefix) > 0 ? (
@@ -299,18 +302,18 @@ locals {
   #
   ##############################################################################################
 
-  database_subnet_nsg_defined          = length(try(var.infrastructure.vnets.sap.subnet_db.nsg, {})) > 0
+  database_subnet_nsg_defined          = length(try(var.infrastructure.virtual_networks.sap.subnet_db.nsg, {})) > 0
   database_subnet_nsg_arm_id           = local.database_subnet_nsg_defined ? (
-                                           try(var.infrastructure.vnets.sap.subnet_db.nsg.arm_id, "")) : (
+                                           try(var.infrastructure.virtual_networks.sap.subnet_db.nsg.arm_id, "")) : (
                                            var.landscape_tfstate.db_nsg_id
                                          )
 
   database_subnet_nsg_exists           = length(local.database_subnet_nsg_arm_id) > 0
   database_subnet_nsg_name             = local.database_subnet_nsg_defined ? (
                                            local.database_subnet_nsg_exists ? (
-                                             split("/", var.infrastructure.vnets.sap.subnet_db.nsg.arm_id)[8]) : (
-                                             length(var.infrastructure.vnets.sap.subnet_db.nsg.name) > 0 ? (
-                                               var.infrastructure.vnets.sap.subnet_db.nsg.name) : (
+                                             split("/", var.infrastructure.virtual_networks.sap.subnet_db.nsg.arm_id)[8]) : (
+                                             length(var.infrastructure.virtual_networks.sap.subnet_db.nsg.name) > 0 ? (
+                                               var.infrastructure.virtual_networks.sap.subnet_db.nsg.name) : (
                                                format("%s%s%s%s",
                                                  var.naming.resource_prefixes.db_subnet_nsg,
                                                  length(local.prefix) > 0 ? (
@@ -330,10 +333,10 @@ locals {
   # #
   # ##############################################################################################
 
-  # application_subnet_defined = length(try(var.infrastructure.vnets.sap.subnet_app, {})) > 0
-  # application_subnet_prefix  = local.application_subnet_defined ? try(var.infrastructure.vnets.sap.subnet_app.prefix, "") : ""
+  # application_subnet_defined = length(try(var.infrastructure.virtual_networks.sap.subnet_app, {})) > 0
+  # application_subnet_prefix  = local.application_subnet_defined ? try(var.infrastructure.virtual_networks.sap.subnet_app.prefix, "") : ""
   # application_subnet_arm_id = local.application_subnet_defined ? (
-  #   try(var.infrastructure.vnets.sap.subnet_app.arm_id, "")) : (
+  #   try(var.infrastructure.virtual_networks.sap.subnet_app.arm_id, "")) : (
   #   var.landscape_tfstate.app_subnet_id
   # )
 
@@ -341,9 +344,9 @@ locals {
 
   # application_subnet_name = local.application_subnet_defined ? (
   #   local.application_subnet_exists ? (
-  #     split("/", var.infrastructure.vnets.sap.subnet_app.arm_id)[10]) : (
-  #     length(var.infrastructure.vnets.sap.subnet_app.name) > 0 ? (
-  #       var.infrastructure.vnets.sap.subnet_app.arm_id) : (
+  #     split("/", var.infrastructure.virtual_networks.sap.subnet_app.arm_id)[10]) : (
+  #     length(var.infrastructure.virtual_networks.sap.subnet_app.name) > 0 ? (
+  #       var.infrastructure.virtual_networks.sap.subnet_app.arm_id) : (
   #       format("%s%s%s",
   #         local.prefix,
   #         var.naming.separator,
@@ -353,12 +356,12 @@ locals {
   #   ""
   # )
 
-  # sub_app_nsg_arm_id = try(var.infrastructure.vnets.sap.subnet_app.nsg.arm_id, try(var.landscape_tfstate.app_nsg_id, ""))
+  # sub_app_nsg_arm_id = try(var.infrastructure.virtual_networks.sap.subnet_app.nsg.arm_id, try(var.landscape_tfstate.app_nsg_id, ""))
   # sub_app_nsg_exists = length(local.application_subnet_nsg_arm_id) > 0
   # sub_app_nsg_name = local.application_subnet_nsg_exists ? (
   #   try(split("/", local.application_subnet_nsg_arm_id)[8], "")) : (
-  #   length(try(var.infrastructure.vnets.sap.subnet_app.nsg.name, "")) > 0 ? (
-  #     var.infrastructure.vnets.sap.subnet_app.nsg.name) : (
+  #   length(try(var.infrastructure.virtual_networks.sap.subnet_app.nsg.name, "")) > 0 ? (
+  #     var.infrastructure.virtual_networks.sap.subnet_app.nsg.name) : (
   #     format("%s%s%s",
   #       local.prefix,
   #       var.naming.separator,
@@ -370,19 +373,19 @@ locals {
   //Storage subnet
 
   sub_storage_defined                  = (
-                                           length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, "")) +
-                                           length(try(var.infrastructure.vnets.sap.subnet_storage.prefix, ""))
+                                           length(try(var.infrastructure.virtual_networks.sap.subnet_storage.arm_id, "")) +
+                                           length(try(var.infrastructure.virtual_networks.sap.subnet_storage.prefix, ""))
                                          ) > 0
   sub_storage_arm_id                   = local.sub_storage_defined ? (
-                                           try(var.infrastructure.vnets.sap.subnet_storage.arm_id, "")) : (
+                                           try(var.infrastructure.virtual_networks.sap.subnet_storage.arm_id, "")) : (
                                            try(var.landscape_tfstate.storage_subnet_id, "")
                                          )
 
   sub_storage_exists                   = length(local.sub_storage_arm_id) > 0
   sub_storage_name                     = local.sub_storage_exists ? (
                                            try(split("/", local.sub_storage_arm_id)[10], "")) : (
-                                           length(try(var.infrastructure.vnets.sap.subnet_storage.name, "")) > 0 ? (
-                                             var.infrastructure.vnets.sap.subnet_storage.name) : (
+                                           length(try(var.infrastructure.virtual_networks.sap.subnet_storage.name, "")) > 0 ? (
+                                             var.infrastructure.virtual_networks.sap.subnet_storage.name) : (
                                              format("%s%s%s%s",
                                                var.naming.resource_prefixes.storage_subnet,
                                                length(local.prefix) > 0 ? (
@@ -396,16 +399,16 @@ locals {
 
                                          )
   sub_storage_prefix                   = local.sub_storage_defined ? (
-                                           try(var.infrastructure.vnets.sap.subnet_storage.prefix, "")) : (
+                                           try(var.infrastructure.virtual_networks.sap.subnet_storage.prefix, "")) : (
                                            ""
                                          )
 
   //Storage NSG
-  sub_storage_nsg_exists               = length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id, "")) > 0
+  sub_storage_nsg_exists               = length(try(var.infrastructure.virtual_networks.sap.subnet_storage.nsg.arm_id, "")) > 0
   sub_storage_nsg_name                 = local.sub_storage_nsg_exists ? (
-                                          try(split("/", var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id)[8], "")) : (
-                                          length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.name, "")) > 0 ? (
-                                            var.infrastructure.vnets.sap.subnet_storage.nsg.name) : (
+                                          try(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.nsg.arm_id)[8], "")) : (
+                                          length(try(var.infrastructure.virtual_networks.sap.subnet_storage.nsg.name, "")) > 0 ? (
+                                            var.infrastructure.virtual_networks.sap.subnet_storage.nsg.name) : (
                                             format("%s%s%s%s",
                                               var.naming.resource_prefixes.storage_subnet_nsg,
                                               length(local.prefix) > 0 ? (

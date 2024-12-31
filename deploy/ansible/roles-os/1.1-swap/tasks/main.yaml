@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
 # |            Role for ensuring the swap space is configured correctly         |
@@ -19,26 +22,26 @@
   notify:
     - Restart waagent
 
-- name:                                "1.1 Swap: - Update WAAgent on {{ ansible_os_family }}"
-  ansible.builtin.dnf:
-    name:                              WALinuxAgent
-    state:                             latest
+# - name:                                "1.1 Swap: - Update WAAgent on {{ ansible_os_family }}"
+#   ansible.builtin.dnf:
+#     name:                              WALinuxAgent
+#     state:                             latest
 
-  when:
-    - ansible_os_family == 'RedHat'
-  tags:
-    - skip_ansible_lint
+#   when:
+#     - ansible_os_family == 'RedHat'
+#   tags:
+#     - skip_ansible_lint
 
-- name:                                "1.1 Swap: - Update WAAgent on {{ ansible_os_family }}"
-  community.general.zypper:
-    name:                              WALinuxAgent
-    state:                             latest
-  environment:
-    ZYPP_LOCK_TIMEOUT:                 "60"
-  when:
-    - distribution_id == 'sles_sap15'
-  tags:
-    - skip_ansible_lint
+# - name:                                "1.1 Swap: - Update WAAgent on {{ ansible_os_family }}"
+#   community.general.zypper:
+#     name:                              WALinuxAgent
+#     state:                             latest
+#   environment:
+#     ZYPP_LOCK_TIMEOUT:                 "60"
+#   when:
+#     - distribution_id == 'sles_sap15'
+#   tags:
+#     - skip_ansible_lint
 
 - name:                                "1.1 Swap: - Restart WAAgent on {{ distro_name }}"
   ansible.builtin.service:

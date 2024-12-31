@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #######################################4#######################################8
 #                                                                              #
 #                             Network security groups                          #
@@ -30,7 +33,7 @@ resource "azurerm_subnet_network_security_group_association" "admin" {
                                         ]
 
   subnet_id                            = local.admin_subnet_existing ? (
-                                          var.infrastructure.vnets.sap.subnet_admin.arm_id) : (
+                                          var.infrastructure.virtual_networks.sap.subnet_admin.arm_id) : (
                                           azurerm_subnet.admin[0].id
                                           )
   network_security_group_id            = azurerm_network_security_group.admin[0].id
@@ -61,7 +64,7 @@ resource "azurerm_subnet_network_security_group_association" "db" {
   depends_on = [
     azurerm_subnet.db
   ]
-  subnet_id                 = local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id
+  subnet_id                 = local.database_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_db.arm_id : azurerm_subnet.db[0].id
   network_security_group_id = azurerm_network_security_group.db[0].id
 }
 
@@ -90,7 +93,7 @@ resource "azurerm_subnet_network_security_group_association" "app" {
   depends_on                           = [
                                            azurerm_subnet.app
                                          ]
-  subnet_id                            = local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id
+  subnet_id                            = local.application_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_app.arm_id : azurerm_subnet.app[0].id
   network_security_group_id            = azurerm_network_security_group.app[0].id
 }
 
@@ -118,7 +121,7 @@ resource "azurerm_network_security_group" "web" {
 resource "azurerm_subnet_network_security_group_association" "web" {
   provider                             = azurerm.main
   count                                = local.web_subnet_defined && !local.web_subnet_nsg_exists ? 1 : 0
-  subnet_id                            = local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id
+  subnet_id                            = local.web_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_web.arm_id : azurerm_subnet.web[0].id
   network_security_group_id            = azurerm_network_security_group.web[0].id
 }
 
@@ -146,7 +149,7 @@ resource "azurerm_network_security_group" "storage" {
 resource "azurerm_subnet_network_security_group_association" "storage" {
   provider                             = azurerm.main
   count                                = local.storage_subnet_defined && !local.storage_subnet_nsg_exists ? 1 : 0
-  subnet_id                            = local.storage_subnet_existing ? var.infrastructure.vnets.sap.subnet_storage.arm_id : azurerm_subnet.storage[0].id
+  subnet_id                            = local.storage_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_storage.arm_id : azurerm_subnet.storage[0].id
   network_security_group_id            = azurerm_network_security_group.storage[0].id
 }
 

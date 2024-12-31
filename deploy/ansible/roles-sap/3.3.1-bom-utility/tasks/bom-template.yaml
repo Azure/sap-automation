@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 
 # -------------------------------------+---------------------------------------8
@@ -54,6 +57,7 @@
     dest:                              "{{ download_directory }}/bom/{{ sap_inifile_template }}"
     mode:                              0644
     force:                             true
+    validate_certs:                    false
   delegate_to:                         localhost
   become:                              "{{ bom_processing_become }}"
   register:                            result
@@ -91,6 +95,7 @@
 # -------------------------------------+---------------------------------------8
 
 - name:                                "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template on disk"
+  when:                                result is failed or always_upload_jinja_templates
   block:
     - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template"
       ansible.builtin.stat:
@@ -100,12 +105,12 @@
       become:                          "{{ bom_processing_become }}"
 
     - name:                            "{{ task_prefix }} Create ini file {{ sap_inifile }}"
+      when:                            microsoft_supplied_bom_template.stat.exists
       ansible.builtin.template:
         src:                           "{{ microsoft_supplied_bom_template.stat.path }}"
         dest:                          "{{ param_directory }}/{{ sap_inifile }}"
         mode:                          0644
         force:                         true
-      when:                            microsoft_supplied_bom_template.stat.exists
 
 # -------------------------------------+---------------------------------------8
 #
@@ -114,6 +119,7 @@
 # -------------------------------------+---------------------------------------8
 
     - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template from archive on disk"
+      when:                            not microsoft_supplied_bom_template.stat.exists
       block:
 
         - name:                        "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) ini file in archive"
@@ -130,9 +136,6 @@
             mode:                      0644
             force:                     true
           when:                        microsoft_supplied_bom_template_archive.stat.exists
-      when:                            not microsoft_supplied_bom_template.stat.exists
-
-  when:                                result is failed or always_upload_jinja_templates
 
 ...
 # /*---------------------------------------------------------------------------8

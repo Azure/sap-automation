@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #######################################4#######################################8
 #                                                                              #
 #                           Environment definitioms                            #
@@ -37,6 +40,13 @@ variable "place_delete_lock_on_resources"        {
                                                    default     = false
                                                  }
 
+variable "prevent_deletion_if_contains_resources" {
+                                                    description = "Controls if resource groups are deleted even if they contain resources"
+                                                    type        = bool
+                                                    default     = true
+                                                  }
+
+
 variable "use_spn"                               {
                                                   description = "Log in using a service principal when performing the deployment"
                                                   default     = false
@@ -46,6 +56,13 @@ variable "tags"                                  {
                                                    description = "If provided, tags for all resources"
                                                    default     = {}
                                                  }
+
+variable "subscription_id"                       {
+                                                   description = "Defines the Azure subscription_id"
+                                                   type        = string
+                                                   default     = null
+                                                 }
+
 
 #######################################4#######################################8
 #                                                                              #
@@ -229,6 +246,16 @@ variable "shared_access_key_enabled"            {
                                                   type        = bool
                                                 }
 
+variable "data_plane_available"                 {
+                                                  description = "Boolean value indicating if storage account access is via data plane"
+                                                  default     = false
+                                                  type        = bool
+                                                }
+
+variable "custom_random_id"                     {
+                                                  description = "If provided, the value of the custom random id"
+                                                  default     = ""
+                                                }
 
 #########################################################################################
 #                                                                                       #
@@ -313,3 +340,19 @@ variable "register_endpoints_with_dns"             {
                                                      default     = true
                                                      type        = bool
                                                    }
+variable "enable_firewall_for_keyvaults_and_storage" {
+                                                       description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+                                                       default     = true
+                                                       type        = bool
+                                                     }
+
+variable "create_privatelink_dns_zones"              {
+                                                       description = "Boolean value indicating if PrivateLink DNS Zones should be created"
+                                                       default     = true
+                                                       type        = bool
+                                                     }
+
+variable "additional_network_id"                     {
+                                                       description = "Agent Network resource ID"
+                                                       default     = ""
+                                                     }
