@@ -1,11 +1,16 @@
+#!/bin/bash
+
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#!/bin/bash
 green="\e[1;32m"
 reset="\e[0m"
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors --output none
+
+deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+
 
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
@@ -80,7 +85,19 @@ if [ 0 == $return_code ]; then
   git checkout -q $BRANCH
   git pull
   changed=0
+
   echo "##vso[build.updatebuildnumber]Removing control plane $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
+	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile" ]; then
+		sed -i /"custom_random_id"/d "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile"
+		git add -f "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile"
+		changed=1
+	fi
+
+	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile" ]; then
+		sed -i /"custom_random_id"/d "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile"
+		git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile"
+		changed=1
+	fi
 
   if [ -d "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform" ]; then
     git rm -q -r --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform"
@@ -172,6 +189,16 @@ if [ 0 == $return_code ]; then
       variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "INSTALLATION_MEDIA_ACCOUNT.value" --out tsv)
       if [ ${#variable_value} != 0 ]; then
         az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --yes --only-show-errors
+      fi
+
+      variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_RANDOM_ID.value" --out tsv)
+      if [ ${#variable_value} != 0 ]; then
+        az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_RANDOM_ID --yes --only-show-errors
+      fi
+
+      variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "LIBRARY_RANDOM_ID.value" --out tsv)
+      if [ ${#variable_value} != 0 ]; then
+        az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID --yes --only-show-errors
       fi
 
     fi

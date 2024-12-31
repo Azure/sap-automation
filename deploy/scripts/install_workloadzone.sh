@@ -1,7 +1,6 @@
+#!/bin/bash
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-
-#!/bin/bash
 
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
@@ -1027,13 +1026,13 @@ if [ 1 == $apply_needed ]; then
 			else
 				# return code 2 is ok
 				echo ""
-				echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+				echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 				echo ""
 				return_value=0
 			fi
 		else
 			echo ""
-			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 			echo ""
 			return_value=0
 		fi
@@ -1041,24 +1040,28 @@ if [ 1 == $apply_needed ]; then
 		# Using if so that no zero return codes don't fail -o errexit
 		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters -input=false; then
 			return_value=$?
-			if [ $return_value -eq 1 ]; then
-				echo ""
-				echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-				echo ""
-				exit $return_value
-			else
-				# return code 2 is ok
-				echo ""
-				echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
-				echo ""
-				return_value=0
-			fi
+		else
+			return_value=0
+		fi
+
+		if [ $return_value -eq 1 ]; then
+			echo ""
+			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+			echo ""
+			exit $return_value
+		elif [ $return_value -eq 2 ]; then
+			# return code 2 is ok
+			echo ""
+			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
+			echo ""
+			return_value=0
 		else
 			echo ""
-			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 			echo ""
 			return_value=0
 		fi
+
 	fi
 
 fi
@@ -1077,9 +1080,9 @@ if [ -f apply_output.json ]; then
 			fi
 
 			sleep 10
-			echo -e "${cyan}Retrying Terraform apply:$reset_formatting"
 
 			if [ -f apply_output.json ]; then
+				echo -e "${cyan}Retrying Terraform apply:$reset_formatting"
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 					return_value=$?
@@ -1145,9 +1148,9 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 	workload_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 	if [ -n "${workload_random_id}" ]; then
 		save_config_var "workload_random_id" "${workload_config_information}"
-		custom_random_id="${workload_random_id}"
-		sed -i -e "" -e /"custom_random_id"/d "${parameterfile}"
-		printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+		custom_random_id="${workload_random_id:0:3}"
+		sed -i -e /"custom_random_id"/d "${parameterfile}"
+		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 	fi
 
 	resourceGroupName=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")

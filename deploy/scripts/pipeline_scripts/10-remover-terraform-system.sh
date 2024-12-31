@@ -1,8 +1,6 @@
+#!/bin/bash
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-
-#!/bin/bash
-#!/bin/bash
 echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $SAP_SYSTEM_FOLDERNAME"
 
 green="\e[1;32m"

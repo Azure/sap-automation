@@ -54,6 +54,7 @@ parameters:
   - name:                              force_reset
     displayName:                       Force a re-install - may require multiple re-runs
     type:                              boolean
+
 stages:
   - stage:                             Prepare_Deployer
     condition:                         and(not(failed()), not(canceled()))
@@ -65,6 +66,7 @@ stages:
           environment:                 ${{ parameters.environment }}
           use_webapp_param:            ${{ parameters.use_webapp_param }}
           use_deployer:                ${{ parameters.use_deployer }}
+          force_reset:                 ${{ parameters.force_reset }}
     displayName:                       Prepare the self hosted agent(s)
 
     jobs:
@@ -131,6 +133,7 @@ stages:
           environment:                 ${{ parameters.environment }}
           use_webapp_param:            ${{ parameters.use_webapp_param }}
           use_deployer:                ${{ parameters.use_deployer }}
+          force_reset:                 ${{ parameters.force_reset }}
     displayName:                       Deploy the control plane
 
     jobs:
@@ -176,6 +179,7 @@ stages:
               LOGON_USING_SPN:         $(Logon_Using_SPN)
               USE_MSI:                 $(Use_MSI)
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
+              FORCE_RESET:             ${{ lower(parameters.force_reset) }}
 
 
   - stage:                             Web_App_Deployment

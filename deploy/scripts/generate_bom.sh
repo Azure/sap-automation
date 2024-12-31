@@ -1,7 +1,7 @@
+#!/bin/bash
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#!/bin/bash
 
 # Requires:
 # - a stack XML file (*.xml)
@@ -65,12 +65,12 @@ BEGIN {
   sequence["SPAT"] = "CC";  # others
   RScopy = RS;
   RS = "\n";
-    
+
   count = 0;
   #printf("\n%s\n", downloadmanifestfile);
 
   while ( getline line < valuesfile ) {
-   
+
     if ( match($0, /"Value":/ ) == 0) {
       split(line, value_split, /"/);
       #printf("\n%s", "value split:" value_split[2]);
@@ -86,9 +86,9 @@ BEGIN {
         seq = ("ZZ" result[2]);  # Unknown flag
       }
       references[result[3]] = sprintf("%-6s,%s", seq, result[1]);
-      
+
     }
-    
+
   }
   close(downloadmanifestfile);
   RS = RScopy;
@@ -110,7 +110,7 @@ END {
       #printf("\n%s", "value of basketresults[1]" basketresults[1]);
       #printf("\n%s", "value of basketresults[2]" basketresults[2]);
       #printf("\n%s", "value of basketresults[3]" basketresults[3]);
-      
+
       if ( references[componentref] != "" ) {
         split(references[componentref], referenceresults, ",");
       } else if ( references[component] != "" ) {
@@ -118,7 +118,7 @@ END {
       } else {
         split(references[filename], referenceresults, ",");
       }
-      
+
       sapurl = referenceresults[2];
       seq = referenceresults[1];
       if ( sapurl == "" ) seq = "CC";

@@ -1,7 +1,7 @@
+#!/bin/bash
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#!/bin/bash
 
 #
 # configure_deployer.sh

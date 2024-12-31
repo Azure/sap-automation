@@ -1,7 +1,7 @@
+#!/bin/bash
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#!/bin/bash
 
 function getVariableFromVariableGroup() {
 	local variable_group_id="$1"

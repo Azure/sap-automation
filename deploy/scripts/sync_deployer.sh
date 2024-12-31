@@ -1,7 +1,7 @@
+#!/bin/bash
+
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-
-#!/bin/bash
 
 #error codes include those from /usr/include/sysexits.h
 

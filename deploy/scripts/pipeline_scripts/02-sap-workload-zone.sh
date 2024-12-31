@@ -1,7 +1,7 @@
+#!/bin/bash
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#!/bin/bash
 green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
@@ -13,9 +13,13 @@ source "sap-automation/deploy/pipelines/helper.sh"
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
-	set -x
-	set -o errexit
-	DEBUG=True
+  set -x
+  set -o errexit
+  DEBUG=True
+	echo "Environment variables:"
+	printenv | sort
+
+
 fi
 export DEBUG
 

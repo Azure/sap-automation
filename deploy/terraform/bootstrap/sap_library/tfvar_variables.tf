@@ -40,6 +40,13 @@ variable "place_delete_lock_on_resources"        {
                                                    default     = false
                                                  }
 
+variable "prevent_deletion_if_contains_resources" {
+                                                    description = "Controls if resource groups are deleted even if they contain resources"
+                                                    type        = bool
+                                                    default     = true
+                                                  }
+
+
 variable "use_spn"                               {
                                                   description = "Log in using a service principal when performing the deployment"
                                                   default     = false

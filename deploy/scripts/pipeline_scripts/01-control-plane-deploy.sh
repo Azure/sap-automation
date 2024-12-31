@@ -1,7 +1,7 @@
+#!/bin/bash
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#!/bin/bash
 echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 green="\e[1;32m"
 reset="\e[0m"
@@ -21,6 +21,9 @@ DEBUG=False
 if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
 	DEBUG=True
+	echo "Environment variables:"
+	printenv | sort
+
 fi
 export DEBUG
 set -eu
@@ -288,6 +291,7 @@ if [ "$USE_MSI" != "true" ]; then
 		"${storage_account_parameter}" "${keyvault_parameter}"; then
 		return_code=$?
 		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
+		echo "Return code from deploy_controlplane $return_code."
 	fi
 else
 	export TF_VAR_use_spn=false
@@ -300,6 +304,7 @@ else
 		"${storage_account_parameter}" "${keyvault_parameter}"; then
 		return_code=$?
 		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
+		echo "Return code from deploy_controlplane $return_code."
 	fi
 
 fi
@@ -335,7 +340,8 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	local_backend=$(grep "\"type\": \"local\"" DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate || true)
 
 	if [ -n "$local_backend" ]; then
-		echo "Local Terraform state"
+		echo "Deployer Terraform state:              local"
+
 		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
 			echo "Compressing the deployer state file"
 			sudo apt-get -qq install zip
@@ -347,14 +353,19 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 			added=1
 		fi
 	else
-		echo "Remote Terraform state"
+		echo "Deployer Terraform state:              remote"
 		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
 			git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+			echo "Removed the deployer state file"
 			added=1
 		fi
 		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
-			git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
-			added=1
+			if [ 0 == $return_code ]; then
+				echo "Removing the deployer state zip file"
+				git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+
+				added=1
+			fi
 		fi
 	fi
 fi
@@ -370,7 +381,7 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	# || true suppresses the exitcode of grep. To not trigger the strict exit on error
 	local_backend=$(grep "\"type\": \"local\"" LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate || true)
 	if [ -n "$local_backend" ]; then
-		echo "Local Terraform state"
+		echo "Library Terraform state:               local"
 		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
 			sudo apt-get -qq install zip
 
@@ -382,12 +393,16 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 			added=1
 		fi
 	else
-		echo "Remote Terraform state"
+		echo "Library Terraform state:               remote"
 		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
-			git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
-			added=1
+			if [ 0 == $return_code ]; then
+				echo "Removing the library state file"
+				git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+				added=1
+			fi
 		fi
 		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
+			echo "Removing the library state zip file"
 			git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
 			added=1
 		fi

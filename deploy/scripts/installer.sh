@@ -1,7 +1,6 @@
+#!/bin/bash
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-
-#!/usr/bin/env bash
 
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
@@ -567,31 +566,25 @@ echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
 echo "Deployer state file:                 ${deployer_tfstate_key}"
 echo "Workload zone state file:            ${landscape_tfstate_key}"
 echo "Terraform state resource ID:         ${tfstate_resource_id}"
+echo "Current directory:                   $(pwd)"
 echo ""
 
 TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 export TF_VAR_subscription_id
 
 check_output=0
-if [ -f terraform.tfstate ]; then
-	echo "Local Terraform state file exists"
-	if [ -f ./.terraform/terraform.tfstate ]; then
-		if ! grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate; then
-			echo "State file is in Azure"
 
-		fi
-	fi
-fi
-
-terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/"${deployment_system}"/
+terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
 new_deployment=0
 
-if [ ! -d ./.terraform/ ]; then
-	echo "New deployment"
+if [ ! -f .terraform/terraform.tfstate ]; then
+	echo ""
+	echo -e "${cyan}New deployment${reset_formatting}"
+	echo ""
 	deployment_parameter=" -var deployment=new "
-	check_output=false
+	check_output=0
 
 	if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
 		--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
@@ -612,67 +605,71 @@ if [ ! -d ./.terraform/ ]; then
 
 else
 	new_deployment=1
-	check_output=true
+	check_output=1
 
-	if [ -f .terraform/terraform.tfstate ]; then
+	local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
+	if [ -n "$local_backend" ]; then
+		echo ""
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo -e "#                              ${cyan}Migrating the state to Azure${reset_formatting}                             #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		echo ""
 
-		local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
-		if [ -n "$local_backend" ]; then
-			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
-				--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-				--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-				--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
-				--backend-config "container_name=tfstate" \
-				--backend-config "key=${key}.terraform.tfstate"; then
-				return_value=$?
-				echo ""
-				echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-				echo ""
-				exit $return_value
-			else
-				return_value=$?
-				echo ""
-				echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-				echo ""
-			fi
+		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
 
+		if ! terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			return_value=$?
+			echo ""
+			echo -e "${bold_red}Terraform local init:                  failed$reset_formatting"
+			echo ""
+			exit $return_value
 		else
-			STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
-			REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-			REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-
+			return_value=$?
 			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#            $cyan The system has already been deployed and the statefile is in Azure $reset_formatting       #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
+			echo -e "${cyan}Terraform local init:                  succeeded$reset_formatting"
 			echo ""
-
-			check_output=true
-			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
-				-reconfigure \
-				--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-				--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-				--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
-				--backend-config "container_name=tfstate" \
-				--backend-config "key=${key}.terraform.tfstate"; then
-				return_value=$?
-				echo ""
-				echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-				echo ""
-				exit $return_value
-			else
-				return_value=$?
-				echo ""
-				echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-				echo ""
-			fi
-
+			# terraform -chdir="${terraform_module_directory}" state list
 		fi
+
+		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
+
+		if terraform -chdir="${terraform_module_directory}" init -force-copy \
+			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
+			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+			--backend-config "container_name=tfstate" \
+			--backend-config "key=${key}.terraform.tfstate"; then
+			return_value=$?
+			echo ""
+			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+			echo ""
+
+			allParameters=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}" "${deployer_parameter}")
+
+			# terraform -chdir="${terraform_module_directory}" state list
+		else
+			return_value=$?
+			echo ""
+			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
+			echo ""
+			exit $return_value
+		fi
+
 	else
-		if ! terraform -chdir="${terraform_module_directory}" init \
-			-upgrade=true -reconfigure \
+		echo "Terraform state:                     remote"
+
+		echo ""
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo -e "#            $cyan The system has already been deployed and the statefile is in Azure $reset_formatting       #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		echo ""
+
+		check_output=1
+		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -691,7 +688,8 @@ else
 		fi
 	fi
 fi
-if [ "true" == "$check_output" ]; then
+
+if [ 1 -eq "$check_output" ]; then
 	if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
@@ -700,8 +698,8 @@ if [ "true" == "$check_output" ]; then
 		echo "#########################################################################################"
 
 		deployment_parameter=" -var deployment=new "
-		new_deployment=1
-		check_output=false
+		new_deployment=0
+		check_output=0
 
 	else
 		echo ""
@@ -716,17 +714,15 @@ if [ "true" == "$check_output" ]; then
 		new_deployment=0
 		check_output=true
 	fi
-else
-	new_deployment=1
 fi
 
-if [ 0 == $new_deployment ]; then
+if [ 1 -eq $new_deployment ]; then
 	deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \" || true)
 	if [ -z "${deployed_using_version}" ]; then
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
-		echo -e "#   $bold_red The environment was deployed using an older version of the Terrafrom templates$reset_formatting     #"
+		echo -e "#   $bold_red The environment was deployed using an older version of the Terraform templates$reset_formatting     #"
 		echo "#                                                                                       #"
 		echo "#                               !!! Risk for Data loss !!!                              #"
 		echo "#                                                                                       #"
@@ -867,7 +863,7 @@ fi
 allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 # shellcheck disable=SC2086
-if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color| tee -a plan_output.log; then
+if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee -a plan_output.log; then
 	return_value=$?
 	echo "Terraform Plan return code:          $return_value"
 
@@ -1186,32 +1182,14 @@ if [ 1 == $apply_needed ]; then
 	echo "#########################################################################################"
 	echo ""
 
-	      allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
+	allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
 	allImportParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}")
 
 	if [ -n "${approve}" ]; then
 		# shellcheck disable=SC2086
 		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee -a apply_output.json; then
 			return_value=$?
-			echo ""
-			echo "Terraform return code:                 $return_value"
-			echo ""
-			if [ $return_value -eq 1 ]; then
-				echo ""
-				echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-				echo ""
-				exit $return_value
-			else
-				# return code 2 is ok
-				echo ""
-				echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
-				echo ""
-				return_value=0
-			fi
 		else
-			echo ""
-			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
-			echo ""
 			return_value=0
 		fi
 
@@ -1219,19 +1197,27 @@ if [ 1 == $apply_needed ]; then
 		# shellcheck disable=SC2086
 		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters | tee -a apply_output.json; then
 			return_value=$?
-			if [ $return_value -eq 1 ]; then
-				echo ""
-				echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-				echo ""
-				exit $return_value
-			else
-				# return code 2 is ok
-				echo ""
-				echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
-				echo ""
-				return_value=0
-			fi
+		else
+			return_value=0
 		fi
+	fi
+
+	if [ $return_value -eq 1 ]; then
+		echo ""
+		echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+		echo ""
+		exit $return_value
+	elif [ $return_value -eq 2 ]; then
+		# return code 2 is ok
+		echo ""
+		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
+		echo ""
+		return_value=0
+	else
+		echo ""
+		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
+		echo ""
+		return_value=0
 	fi
 
 	if [ -f apply_output.json ]; then
@@ -1309,14 +1295,15 @@ fi
 if [ "${deployment_system}" == sap_deployer ]; then
 
 	# terraform -chdir="${terraform_module_directory}"  output
+	if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
-	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-	if [ -n "${deployer_random_id}" ]; then
-		save_config_var "deployer_random_id" "${system_config_information}"
-		custom_random_id="${deployer_random_id}"
-		sed -i -e "" -e /"custom_random_id"/d "${parameterfile}"
-		printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
-
+		deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+		if [ -n "${deployer_random_id}" ]; then
+			save_config_var "deployer_random_id" "${system_config_information}"
+			custom_random_id="${deployer_random_id:0:3}"
+			sed -i -e /"custom_random_id"/d "${parameterfile}"
+			printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+		fi
 	fi
 
 	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
@@ -1454,9 +1441,9 @@ if [ "${deployment_system}" == sap_library ]; then
 	library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 	if [ -n "${library_random_id}" ]; then
 		save_config_var "library_random_id" "${system_config_information}"
-		custom_random_id="${library_random_id}"
-		sed -i -e "" -e /"custom_random_id"/d "${parameterfile}"
-		printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+		custom_random_id="${library_random_id:0:3}"
+		sed -i -e /"custom_random_id"/d "${parameterfile}"
+		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
 	fi
 	if [ 1 == $called_from_ado ]; then

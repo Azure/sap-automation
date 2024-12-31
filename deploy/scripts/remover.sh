@@ -1,7 +1,8 @@
+#!/bin/bash
+
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#!/bin/bash
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
@@ -273,7 +274,6 @@ echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
 echo "Deployer State file:                 ${deployer_tfstate_key}"
 echo "Landscape State file:                ${landscape_tfstate_key}"
 
-
 export TF_VAR_subscription_id="${ARM_SUBSCRIPTION_ID}"
 # Terraform Plugins
 if checkIfCloudShell; then
@@ -484,63 +484,87 @@ if [ "$resource_group_exist" ]; then
 		allParameters=$(printf " -var-file=%s %s %s  %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
 		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_ppk"
-		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-			echo "Secret 'sid_ppk' removed from state"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'sid_ppk' removed from state"
+			fi
 		fi
+
 		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_pk"
-		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-			echo "Secret 'sid_pk' removed from state"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'sid_pk' removed from state"
+			fi
 		fi
-		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_username"
-		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-			echo "Secret 'sid_username' removed from state"
+
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_username"
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'sid_username' removed from state"
+			fi
 		fi
+
 		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_password"
-		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-			echo "Secret 'sid_password' removed from state"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'sid_password' removed from state"
+			fi
 		fi
+
 		moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_access_key"
-		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-			echo "Secret 'witness_access_key' removed from state"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'witness_access_key' removed from state"
+			fi
 		fi
+
 		moduleID="module.sap_landscape.azurerm_key_vault_secret.deployer_keyvault_user_name"
-		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-			echo "Secret 'deployer_keyvault_user_name' removed from state"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'deployer_keyvault_user_name' removed from state"
+			fi
 		fi
+
 		moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_name"
-		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-			echo "Secret 'witness_name' removed from state"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'witness_name' removed from state"
+			fi
 		fi
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
 				return_value=$?
-				echo ""
-				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
-				echo ""
 			else
 				return_value=$?
-				echo ""
-				echo -e "${bold_red}Terraform destroy:                     failed$reset_formatting"
-				echo ""
-				exit 1
 			fi
+			if [ -f destroy_output.json ]; then
+				errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
+				if [[ -n $errors_occurred ]]; then
+					return_value=10
+				fi
+			fi
+
 		else
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
 				return_value=$?
-				echo ""
-				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
-				echo ""
 			else
 				return_value=$?
-				echo ""
-				echo -e "${bold_red}Terraform destroy:                     failed$reset_formatting"
-				echo ""
-				exit 1
 			fi
 		fi
+		if [ 0 -eq $return_value ]; then
+			echo ""
+			echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
+			echo ""
+		else
+			echo ""
+			echo -e "${bold_red}Terraform destroy:                     failed$reset_formatting"
+			echo ""
+			exit 1
+		fi
+
 	else
 
 		echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $reset_formatting"

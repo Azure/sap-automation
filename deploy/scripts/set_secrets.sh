@@ -1,7 +1,7 @@
+#!/bin/bash
+
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-
-#!/bin/bash
 
 #error codes include those from /usr/include/sysexits.h
 
@@ -25,14 +25,16 @@ function setSecretValue {
 	local subscription=$2
 	local secret_name=$3
 	local value=$4
-	if az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none; then
+	local type=$5
+	if az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}" ; then
 		return_value=$?
 	else
 		return_value=$?
 		if [ 1 = "${return_value}" ]; then
 			az keyvault secret recover --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}"
 			sleep 10
-			az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)"  --output none
+			az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)"  --output none --content-type "${type}"
+			return_value=$?
 		else
 			echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
 		fi
@@ -340,7 +342,7 @@ secret_name="${environment}"-subscription-id
 #     upn=$(az account show | grep name | grep @ | cut -d: -f2 | cut -d, -f1 -o tsv | xargs)
 #     az keyvault set-policy -n "${keyvault}" --secret-permissions get list recover restore set --upn "${upn}"
 # fi
-if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${STATE_SUBSCRIPTION}"; then
+if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${STATE_SUBSCRIPTION}" "configuration"; then
 	echo "Secret ${secret_name} set in keyvault ${keyvault}"
 else
 	echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
@@ -351,7 +353,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
 
 	#turn off output, we do not want to show the details being uploaded to keyvault
 	secret_name="${environment}"-client-id
-	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_id}"; then
+	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_id}" "configuration"; then
 		echo "Secret ${secret_name} set in keyvault ${keyvault}"
 	else
 		echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
@@ -359,14 +361,14 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
 	fi
 
 	secret_name="${environment}"-tenant-id
-	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${tenant_id}"; then
+	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${tenant_id}" "configuration"; then
 		echo "Secret ${secret_name} set in keyvault ${keyvault}"
 	else
 		echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
 		exit 20
 	fi
 	secret_name="${environment}"-client-secret
-	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_secret}"; then
+	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_secret}" "secret"; then
 		echo "Secret ${secret_name} set in keyvault ${keyvault}"
 	else
 		echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"

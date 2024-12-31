@@ -538,13 +538,15 @@ function ImportAndReRunApply {
 						return_value=$?
 						echo "Error when importing resource"
 						echo "Terraform import:                      failed"
-
+						if [ -f "$fileName" ]; then
+							rm "$fileName"
+						fi
 						return $return_value
 					else
 						echo "Terraform import:                      succeeded"
 					fi
 				done
-				rm "$fileName"
+
         # shellcheck disable=SC2086
 				if ! terraform -chdir="${terraform_module_directory}" plan -input=false $allImportParameters ; then
 						echo ""

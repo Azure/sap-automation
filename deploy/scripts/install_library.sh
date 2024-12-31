@@ -1,7 +1,7 @@
+#!/bin/bash
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#!/bin/bash
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
@@ -361,7 +361,7 @@ else
 			echo ""
 		else
 			echo ""
-			echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
+			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 			echo ""
 			return 10
 		fi
@@ -381,16 +381,18 @@ if [ -f terraform.tfvars ]; then
 else
 	unset extra_vars
 fi
+return_value=0
 
 if [ -n "${deployer_statefile_foldername}" ]; then
 	echo "Deployer folder specified:           ${deployer_statefile_foldername}"
 	if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
 		-var-file="${var_file}" -input=false \
 		-var deployer_statefile_foldername="${deployer_statefile_foldername}" | tee -a plan_output.log 2>&1; then
+		return_value=$?
 		echo ""
 		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
 		echo ""
-		return_value=$?
+
 	else
 		echo ""
 		echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
@@ -407,6 +409,7 @@ else
 		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
 		echo ""
 	else
+		return_value=$?
 		echo ""
 		echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
 		echo ""
@@ -414,8 +417,6 @@ else
 	allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 	allImportParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 fi
-
-return_value=$?
 
 if [ 1 == $return_value ]; then
 	echo ""
@@ -455,20 +456,19 @@ if [ -n "${approve}" ]; then
 		return_value=$?
 		if [ $return_value -eq 1 ]; then
 			echo ""
-			echo -e "${bold_red}Terraform apply: $reset_formatting                      failed"
+			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
 			echo ""
 		else
 			# return code 2 is ok
 			echo ""
-			echo -e "${cyan}Terraform apply: $reset_formatting                      succeeded"
+			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 			echo ""
 			return_value=0
 		fi
 	else
-
 		return_value=0
 		echo ""
-		echo -e "${cyan}Terraform apply: $reset_formatting                      succeeded"
+		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 		echo ""
 	fi
 
@@ -478,13 +478,13 @@ else
 		return_value=$?
 		if [ $return_value -eq 1 ]; then
 			echo ""
-			echo -e "${bold_red}Terraform apply: $reset_formatting                      failed"
+			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
 			echo ""
 		else
 			# return code 2 is ok
 			return_value=0
 			echo ""
-			echo -e "${cyan}Terraform apply: $reset_formatting                      succeeded"
+			echo -e "${cyan} Terraform apply:                    succeeded$reset_formatting"
 			echo ""
 		fi
 	fi
@@ -544,18 +544,6 @@ if [ 1 == $return_value ]; then
 	exit $return_value
 fi
 
-if ! terraform -chdir="${terraform_module_directory}" refresh $allParameters; then
-	return_value=$?
-	if [ $return_value -eq 1 ]; then
-		echo "Errors when running Terraform refresh"
-	else
-		# return code 2 is ok
-		return_value=0
-	fi
-else
-	return_value=0
-fi
-
 if [ "$DEBUG" = True ]; then
 	terraform -chdir="${terraform_module_directory}" output
 fi
@@ -575,13 +563,11 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 	library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 	if [ -n "${library_random_id}" ]; then
 		save_config_var "library_random_id" "${library_config_information}"
-		custom_random_id="${library_random_id}"
-		sed -i -e "" -e /"custom_random_id"/d "${parameterfile}"
-		printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+		custom_random_id="${library_random_id:0:3}"
+		sed -i -e /"custom_random_id"/d "${var_file}"
+		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
 	fi
-
-	return_value=0
 else
 	return_value=20
 fi
