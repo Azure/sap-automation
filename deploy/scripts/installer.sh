@@ -698,7 +698,7 @@ if [ 1 -eq "$check_output" ]; then
 		echo "#########################################################################################"
 
 		deployment_parameter=" -var deployment=new "
-		new_deployment=1
+		new_deployment=0
 		check_output=0
 
 	else
