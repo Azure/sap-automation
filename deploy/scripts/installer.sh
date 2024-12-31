@@ -722,7 +722,7 @@ if [ 1 -eq $new_deployment ]; then
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
-		echo -e "#   $bold_red The environment was deployed using an older version of the Terrafrom templates$reset_formatting     #"
+		echo -e "#   $bold_red The environment was deployed using an older version of the Terraform templates$reset_formatting     #"
 		echo "#                                                                                       #"
 		echo "#                               !!! Risk for Data loss !!!                              #"
 		echo "#                                                                                       #"
