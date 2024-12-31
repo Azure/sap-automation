@@ -716,7 +716,7 @@ if [ 1 -eq "$check_output" ]; then
 	fi
 fi
 
-if [ 0 -eq $new_deployment ]; then
+if [ 1 -eq $new_deployment ]; then
 	deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \" || true)
 	if [ -z "${deployed_using_version}" ]; then
 		echo ""
