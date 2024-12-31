@@ -315,7 +315,7 @@ fi
 if [ -f .terraform/terraform.tfstate ]; then
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 	if [ -n "$azure_backend" ]; then
-		echo  "Terraform state:                       remote"
+		echo  "Terraform state:                     remote"
 
 		# Initialize the state file and copy to local
 

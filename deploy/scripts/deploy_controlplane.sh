@@ -456,7 +456,7 @@ if [ 1 -eq $step ] || [ 3 -eq $step ]; then
 		if [ -f ./.terraform/terraform.tfstate ]; then
 			azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 			if [ -n "$azure_backend" ]; then
-			  echo "Terraform state:                       remote"
+			  echo "Terraform state:                     remote"
 
 				terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
 				terraform -chdir="${terraform_module_directory}" init -upgrade=true
@@ -464,7 +464,7 @@ if [ 1 -eq $step ] || [ 3 -eq $step ]; then
 				keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
 				save_config_var "keyvault" "${deployer_config_information}"
 			else
-				echo "Terraform state:                       local"
+				echo "Terraform state:                     local"
 			fi
 		fi
 	fi
