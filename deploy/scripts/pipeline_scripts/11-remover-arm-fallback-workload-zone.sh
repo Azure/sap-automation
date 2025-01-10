@@ -43,7 +43,7 @@ git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 git config --global user.name "$BUILD_REQUESTEDFOR"
 git commit -m "Added updates from devops deployment $BUILD_BUILDNUMBER [skip ci]"
 
-git checkout -q "$BRANCH"
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
 git clean -d -f -X
 
 

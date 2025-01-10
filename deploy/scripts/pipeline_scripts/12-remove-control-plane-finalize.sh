@@ -220,7 +220,7 @@ return_code=$?
 echo "Return code from remove_deployer: $return_code."
 
 echo -e "$green--- Remove Control Plane Part 2 ---$reset"
-git checkout -q "$BRANCH"
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
 git pull -q
 
 if [ 0 == $return_code ]; then
@@ -263,12 +263,12 @@ if [ 0 == $return_code ]; then
 		git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 		git config --global user.name "$BUILD_REQUESTEDFOR"
 		if git commit -m "Control Plane $DEPLOYER_FOLDERNAME removal step 2[skip ci]"; then
-			if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
+			if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
 				return_code=$?
-				echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 updated in $BRANCH"
+				echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 updated in $BUILD_SOURCEBRANCHNAME"
 			else
 				return_code=$?
-				echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+				echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
 			fi
 		fi
 	fi

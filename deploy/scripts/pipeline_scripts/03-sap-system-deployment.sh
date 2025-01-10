@@ -32,11 +32,11 @@ echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $SAP_SYS
 
 tfvarsFile="SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FILENAME"
 
-echo -e "$green--- Checkout $BRANCH ---$reset"
+echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
 
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
-git checkout -q "$BRANCH"
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FILENAME" ]; then
 	echo -e "$bold_red--- $SAP_SYSTEM_TFVARS_FILENAME was not found ---$reset"
@@ -253,7 +253,7 @@ echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 cd "$CONFIG_REPO_PATH" || exit
 echo -e "$green--- Pull the latest content from DevOps ---$reset"
 # Pull changes
-git pull -q origin "$BRANCH"
+git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 # Pull changes if there are other deployment jobs
 
@@ -315,10 +315,10 @@ if [ 1 == $added ]; then
 	git config --global user.name "$BUILD_REQUESTEDFOR"
 	git commit -m "Added updates from SAP deployment of $SAP_SYSTEM_FOLDERNAME for $BUILD_BUILDNUMBER [skip ci]"
 
-	if git -c http.extraheader="AUTHORIZATION: bearer SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-		echo "##vso[task.logissue type=warning]Changes from SAP deployment of $SAP_SYSTEM_FOLDERNAME pushed to $BRANCH"
+	if git -c http.extraheader="AUTHORIZATION: bearer SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+		echo "##vso[task.logissue type=warning]Changes from SAP deployment of $SAP_SYSTEM_FOLDERNAME pushed to $BUILD_SOURCEBRANCHNAME"
 	else
-		echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+		echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
 	fi
 fi
 

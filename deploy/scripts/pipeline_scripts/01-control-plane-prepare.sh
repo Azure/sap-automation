@@ -61,8 +61,8 @@ if [ 0 != "${step}" ]; then
 	exit 0
 fi
 
-echo -e "$green--- Checkout $BRANCH ---$reset"
-git checkout -q "$BRANCH"
+echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
@@ -302,7 +302,7 @@ added=0
 cd "$CONFIG_REPO_PATH" || exit
 
 # Pull changes
-git pull -q origin "$BRANCH"
+git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 echo -e "$green--- Update repo ---$reset"
 
@@ -333,7 +333,7 @@ if [ 1 = $added ]; then
 	git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 	git config --global user.name "$BUILD_REQUESTEDFOR"
 	git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
-	if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
+	if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
 		echo "##vso[task.logissue type=error]Failed to push changes to the repository."
 	fi
 fi
