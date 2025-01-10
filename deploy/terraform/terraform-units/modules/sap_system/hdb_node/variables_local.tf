@@ -192,10 +192,10 @@ locals {
                                           },
                                           {
                                             name = format("%s%s%s%s",
-                                              var.naming.resource_prefixes.db_rlb_feip,
+                                              try(var.naming.resource_prefixes.db_rlb_feip, ""),
                                               local.prefix,
                                               var.naming.separator,
-                                              local.resource_suffixes.db_rlb_feip
+                                              try(local.resource_suffixes.db_rlb_feip, "dbRlb-feip")
                                             )
                                             subnet_id = var.database.scale_out ? var.admin_subnet.id : var.db_subnet.id
                                             private_ip_address = length(try(var.database.loadbalancer.frontend_ips[1], "")) > 0 ? (

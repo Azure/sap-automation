@@ -35,11 +35,11 @@ if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_
 	exit 2
 fi
 
-echo -e "$green--- Checkout $BRANCH ---$reset"
+echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
 
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
-git checkout -q "$BRANCH"
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 echo -e "$green--- Validations ---$reset"
 if [ "$USE_MSI" != "true" ]; then
@@ -473,7 +473,7 @@ echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 
 cd "$CONFIG_REPO_PATH" || exit
 # Pull changes
-git pull -q origin "$BRANCH"
+git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 added=0
 if [ -f ".sap_deployment_automation/${prefix}" ]; then
@@ -506,10 +506,10 @@ if [ 1 == $added ]; then
 	git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 	git config --global user.name "$BUILD_REQUESTEDFOR"
 	git commit -m "Added updates from devops deployment $BUILD_BUILDNUMBER of $WORKLOAD_ZONE_FOLDERNAME [skip ci]"
-	if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-		echo "##vso[task.logissue type=warning]Workload deployment $WORKLOAD_ZONE_FOLDERNAME pushed to $BRANCH"
+	if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+		echo "##vso[task.logissue type=warning]Workload deployment $WORKLOAD_ZONE_FOLDERNAME pushed to $BUILD_SOURCEBRANCHNAME"
 	else
-		echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+		echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
 	fi
 
 fi
