@@ -294,9 +294,9 @@ UIDs:
   HANA:
     uid:                               "{{ sidadm_uid }}"
   ORACLE:
-    uid:                               "{{ orasid_uid }}"
+    uid:                               "{{ sidadm_uid }}"
   ORACLE-ASM:
-    uid:                               "{{ orasid_uid }}"
+    uid:                               "{{ sidadm_uid }}"
   SYBASE:
     uid:                               "{{ asesidadm_uid }}"
   DB2:
