@@ -145,8 +145,8 @@ backupdba_gid:                         3106
 dgdba_gid:                             3107
 kmdba_gid:                             3108
 racdba_gid:                            3109
-orasid_uid:                            3100
-oracle_uid:                            3101
+orasid_uid:                            3200
+oracle_uid:                            3201
 hdbshm_gid:                            2002
 observer_uid:                          4000
 
