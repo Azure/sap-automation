@@ -300,4 +300,4 @@ UIDs:
   SYBASE:
     uid:                               "{{ asesidadm_uid }}"
   DB2:
-    uid:                               "{{ db2sidadm_uid }}"
+    uid:                               "{{ sidadm_uid }}"
