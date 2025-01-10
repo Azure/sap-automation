@@ -80,7 +80,7 @@
   block:
     - name:                             "3.3 BoM Processing: - Check if the item has dynamic property"
       ansible.builtin.fail:
-        msg:                            "INSTALL:0023:Error while donwloading BOM contents. Invalid BOM structure detected."
+        msg:                            "INSTALL:0023:Error while downloading BOM contents. Invalid BOM structure detected."
       when:
         - item.download is undefined or item.download
         - item.dynamic is defined or item.archive is undefined

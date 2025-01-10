@@ -87,12 +87,12 @@
       ansible.builtin.set_fact:
         this_sid:
           {
-            'sid': '{{ sap_sid | upper }}',
-            'dbsid_uid': '{{ hdbadm_uid }}',
-            'sidadm_uid': '{% if platform == "SYBASE" %}{{ asesidadm_uid }}{% else %}{{ sidadm_uid }}{% endif %}',
-            'ascs_inst_no': '{{ scs_instance_number }}',
-            'pas_inst_no': '{{ pas_instance_number }}',
-            'app_inst_no': '{{ app_instance_number }}'
+              'sid':          '{{ sap_sid | upper }}',
+              'dbsid_uid':    '{{ hdbadm_uid }}',
+              'sidadm_uid':   '{{ UIDs[ platform ].uid }}',
+              'ascs_inst_no': '{{ scs_instance_number }}',
+              'pas_inst_no':  '{{ pas_instance_number }}',
+              'app_inst_no':  '{{ app_instance_number }}'
           }
 
     - name:                            "PAS Installation Playbook: - Set 'pas' tier facts"
@@ -163,12 +163,12 @@
       ansible.builtin.set_fact:
         this_sid:
           {
-            'sid': '{{ sap_sid | upper }}',
-            'dbsid_uid': '{{ hdbadm_uid }}',
-            'sidadm_uid': '{% if platform == "SYBASE" %}{{ asesidadm_uid }}{% else %}{{ sidadm_uid }}{% endif %}',
-            'ascs_inst_no': '{{ scs_instance_number }}',
-            'pas_inst_no': '{{ pas_instance_number }}',
-            'app_inst_no': '{{ app_instance_number }}'
+                'sid':          '{{ sap_sid | upper }}',
+                'dbsid_uid':    '{{ hdbadm_uid }}',
+                'sidadm_uid':   '{{ UIDs[ platform ].uid }}',
+                'ascs_inst_no': '{{ scs_instance_number }}',
+                'pas_inst_no':  '{{ pas_instance_number }}',
+                'app_inst_no':  '{{ app_instance_number }}'
           }
 
     - name:                            "PAS Installation Playbook: Define list of SIDs"

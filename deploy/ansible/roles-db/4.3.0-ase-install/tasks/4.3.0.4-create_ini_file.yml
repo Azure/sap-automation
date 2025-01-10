@@ -27,13 +27,17 @@
   ansible.builtin.find:
     paths:                             "{{ db_unarchived_folder }}"
     file_type:                         directory
-    patterns:                          'BD_SYBASE_ASE_*._BS_'
+    patterns:                          'SYBASE_LINUX_X86_64'
     recurse:                           true
   register:                            sybase_media_exist
 
+- name:                                "SAP Sybase: Show path"
+  ansible.builtin.debug:
+    var:                               sybase_media_exist
+
 - name:                                "SAP Sybase: Store SAP ASE software folder full path"
   ansible.builtin.set_fact:
-    db_install_media_path:             "{{ sybase_media_exist.files[0].path }}"
+    db_install_media_path:             "{{ sybase_media_exist.files[0].path | regex_replace('/SYBASE_LINUX_X86_64', '') }}"
   when:                                sybase_media_exist.matched >= 1
 
 - name:                                "SAP Sybase: Show all facts"
@@ -45,7 +49,7 @@
 - name:                                "SAP ASE Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-dbload-inifile-param.j2"
+    sap_inifile_template:              "dbload-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sap_sid | upper }}-params"
     mem_size:                          7000
     vm_core_count:                     '{% if ansible_facts.processor_vcpus is defined %}{{ ansible_facts.processor_vcpus }}{% else %}{{ ansible_facts.processor_cores }}{% endif %}'

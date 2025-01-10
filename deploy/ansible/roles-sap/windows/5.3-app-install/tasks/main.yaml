@@ -13,7 +13,7 @@
 - name:                                "APP Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-app-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-app-inifile-param.j2"
+    sap_inifile_template:              "app-inifile-param.j2"
     dir_params:                        '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
     product_catalog:                   '{{ download_directory_windows }}\SWPM\product.catalog'
 
@@ -98,14 +98,12 @@
     task_prefix:                       "APP Install: "
     sa_enabled:                        true
 
-- name:                                "APP Install: Include roles-sap/windows/3.3.1-bom-utility role"
-  ansible.builtin.include_role:
-    name:                              roles-sap/windows/3.3.1-bom-utility
-    tasks_from:                        bom-template
+- name:                               "APP Install: Create ini file {{ sap_inifile }}"
+  ansible.windows.win_template:
+    src:                              "{{ sap_inifile_template }}"
+    dest:                             '{{ dir_params }}\{{ sap_inifile }}'
+    force:                            true
   vars:
-    task_prefix:                       "APP Install: "
-    always_upload_jinja_templates:     false
-    bom_name:                          "{{ bom_base_name }}"
     sap_cd_package_hdbclient:          '{{ download_directory_windows }}\CD_HDBCLIENT\SAP_HANA_CLIENT'
     sap_cd_package_cd1:                '{{ download_directory_windows }}\CD_EXPORT'
     sap_cd_package_cd2:
