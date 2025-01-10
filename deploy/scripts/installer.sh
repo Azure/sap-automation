@@ -1182,7 +1182,7 @@ if [ 1 == $apply_needed ]; then
 	echo "#########################################################################################"
 	echo ""
 
-	allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
+	      allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
 	allImportParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}")
 
 	if [ -n "${approve}" ]; then
@@ -1190,6 +1190,9 @@ if [ 1 == $apply_needed ]; then
 		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee -a apply_output.json; then
 			return_value=$?
 		else
+			echo ""
+			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo ""
 			return_value=0
 		fi
 
@@ -1304,6 +1307,15 @@ if [ "${deployment_system}" == sap_deployer ]; then
 			sed -i -e /"custom_random_id"/d "${parameterfile}"
 			printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 		fi
+	fi
+
+	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+	if [ -n "${deployer_random_id}" ]; then
+		save_config_var "deployer_random_id" "${system_config_information}"
+		custom_random_id="${deployer_random_id}"
+		sed -i -e "" -e /"custom_random_id"/d "${parameterfile}"
+		printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+
 	fi
 
 	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
