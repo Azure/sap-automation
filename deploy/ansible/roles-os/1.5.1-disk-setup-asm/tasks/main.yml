@@ -204,18 +204,19 @@
         name:
           - "{{ target_media_location }}/downloads/compat-libcap1-1.10-7.el7.x86_64.rpm"
           - "{{ target_media_location }}/downloads/compat-libstdc++-33-3.2.3-72.el7.x86_64.rpm"
+          - "{{ target_media_location }}/downloads/libbpf-0.6.0-6.el8.x86_64.rpm"
         state:                         present
         disable_gpg_check:             true
 
     - name:                            "ORACLE ASM: check for v3 RPMS"
       ansible.builtin.stat:
-        path:                          "{{ target_media_location }}/downloads/oracleasmlib-3.0.0-13.el8.x86_64.RPM"
+        path:                          "{{ target_media_location }}/downloads/oracleasmlib-3.0.0-13.el8.x86_64.rpm"
       register:                        oracleasm_v3
 
     - name:                            "ORACLE ASM: Install RPM Packages v3"
       ansible.builtin.dnf:
         name:
-          - "{{ target_media_location }}/downloads/oracleasmlib-3.0.0-13.el8.x86_64.RPM"
+          - "{{ target_media_location }}/downloads/oracleasmlib-3.0.0-13.el8.x86_64.rpm"
           - "{{ target_media_location }}/downloads/oracleasm-support-3.0.0-6.el8.x86_64.rpm"
         state:                         present
         disable_gpg_check:             true
