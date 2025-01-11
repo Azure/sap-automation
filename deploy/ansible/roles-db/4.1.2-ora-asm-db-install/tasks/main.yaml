@@ -96,7 +96,7 @@
         executable:                    /bin/csh
 
     # Debug for testing
-    - name:                            "Oracle ASM: Debug: installer prechecks output"
+    - name:                            "Oracle ASM: Debug: installer pre checks output"
       ansible.builtin.debug:
         var:                           oraprecheck_results.stdout_lines
         verbosity:                     2
@@ -292,72 +292,72 @@
 
 # MOPATCH for GRID
 
-    - name:                            "Oracle ASM: Find MOPatch for GRID"
-      ansible.builtin.find:
-        paths:                         "{{ target_media_location }}/SBP/GSBP/SGR19P"
-        patterns:                      ["MOPatch"]
-        file_type:                     directory
-        recurse:                       true
-      register:                        mopatch_grid_directory
+    # - name:                            "Oracle ASM: Find MOPatch for GRID"
+    #   ansible.builtin.find:
+    #     paths:                         "{{ target_media_location }}/SBP/GSBP/SGR19P"
+    #     patterns:                      ["MOPatch"]
+    #     file_type:                     directory
+    #     recurse:                       true
+    #   register:                        mopatch_grid_directory
 
-    - name:                            "Oracle ASM: Find MOPatch for GRID"
-      ansible.builtin.fail:
-        msg:                           "Too many MOPatches found"
-      when:                            mopatch_grid_directory.matched != 1
+    # - name:                            "Oracle ASM: Find MOPatch for GRID"
+    #   ansible.builtin.fail:
+    #     msg:                           "Too many MOPatches found"
+    #   when:                            mopatch_grid_directory.matched != 1
 
-    - name:                            "Oracle ASM: MOPatch path"
-      ansible.builtin.set_fact:
-        mopatch_grid_path:             "{{ mopatch_grid_directory.files[0].path }}"
-      when:                            mopatch_grid_directory.matched == 1
-
-
-    - name:                            "Oracle ASM: copy MOPatch for GRID"
-      # become:                              true
-      # become_user:                         "oracle"
-      ansible.builtin.copy:
-        src:                           "{{  mopatch_grid_path }}"
-        dest:                          /oracle/GRID/{{ ora_version }}
-        remote_src:                    true
-        mode:                          '0755'
-        owner:                         oracle
-        group:                         oinstall
-
-    # Backup the existing Opatch and then copy the new Opatch from the downloads folder
-
-    - name:                            "Oracle ASM: Check if 'OPatch.bck' exists for GRID"
-      ansible.builtin.stat:
-        path:                          /oracle/GRID/{{ ora_version }}/OPatch.bck
-      register:                        opatchgrid_stat
-
-    - name:                            "Oracle ASM: backup OPatch"
-      ansible.builtin.copy:
-        src:                           /oracle/GRID/{{ ora_version }}/OPatch
-        dest:                          /oracle/GRID/{{ ora_version }}/OPatch.bck
-        remote_src:                    true
-        mode:                          '0755'
-        owner:                         oracle
-        group:                         oinstall
-      when:
-        - not opatchgrid_stat.stat.exists
+    # - name:                            "Oracle ASM: MOPatch path"
+    #   ansible.builtin.set_fact:
+    #     mopatch_grid_path:             "{{ mopatch_grid_directory.files[0].path }}"
+    #   when:                            mopatch_grid_directory.matched == 1
 
 
-    - name:                            "Oracle ASM: remove old OPatch"
-      ansible.builtin.file:
-        path:                          /oracle/GRID/{{ ora_version }}/OPatch
-        state:                         absent
-      when:
-        - not opatchgrid_stat.stat.exists
+    # - name:                            "Oracle ASM: copy MOPatch for GRID"
+    #   # become:                              true
+    #   # become_user:                         "oracle"
+    #   ansible.builtin.copy:
+    #     src:                           "{{  mopatch_grid_path }}"
+    #     dest:                          /oracle/GRID/{{ ora_version }}
+    #     remote_src:                    true
+    #     mode:                          '0755'
+    #     owner:                         oracle
+    #     group:                         oinstall
 
-    - name:                            "Oracle ASM: copy OPatch for GRID"
-      # become:                              true
-      # become_user:                         "oracle"
-      ansible.builtin.copy:
-        src:                           "{{ target_media_location }}/SBP/GSBP/OPATCH/OPatch"
-        dest:                          /oracle/GRID/{{ ora_version }}
-        remote_src:                    true
-        mode:                          '0755'
-        owner:                         oracle
-        group:                         oinstall
+    # # Backup the existing Opatch and then copy the new Opatch from the downloads folder
+
+    # - name:                            "Oracle ASM: Check if 'OPatch.bck' exists for GRID"
+    #   ansible.builtin.stat:
+    #     path:                          /oracle/GRID/{{ ora_version }}/OPatch.bck
+    #   register:                        opatchgrid_stat
+
+    # - name:                            "Oracle ASM: backup OPatch"
+    #   ansible.builtin.copy:
+    #     src:                           /oracle/GRID/{{ ora_version }}/OPatch
+    #     dest:                          /oracle/GRID/{{ ora_version }}/OPatch.bck
+    #     remote_src:                    true
+    #     mode:                          '0755'
+    #     owner:                         oracle
+    #     group:                         oinstall
+    #   when:
+    #     - not opatchgrid_stat.stat.exists
+
+
+    # - name:                            "Oracle ASM: remove old OPatch"
+    #   ansible.builtin.file:
+    #     path:                          /oracle/GRID/{{ ora_version }}/OPatch
+    #     state:                         absent
+    #   when:
+    #     - not opatchgrid_stat.stat.exists
+
+    # - name:                            "Oracle ASM: copy OPatch for GRID"
+    #   # become:                              true
+    #   # become_user:                         "oracle"
+    #   ansible.builtin.copy:
+    #     src:                           "{{ target_media_location }}/SBP/GSBP/OPATCH/OPatch"
+    #     dest:                          /oracle/GRID/{{ ora_version }}
+    #     remote_src:                    true
+    #     mode:                          '0755'
+    #     owner:                         oracle
+    #     group:                         oinstall
 
 # Commenting the SBP GRID Patching code till the issue is resolved.
     # - name:                            "Oracle ASM: Prepare for GRID SBP Patching"
