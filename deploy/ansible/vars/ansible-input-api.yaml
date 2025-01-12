@@ -301,3 +301,5 @@ UIDs:
     uid:                               "{{ asesidadm_uid }}"
   DB2:
     uid:                               "{{ sidadm_uid }}"
+  SQLSERVER:
+    uid:                               "{{ sidadm_uid }}"
