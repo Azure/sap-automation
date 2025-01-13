@@ -272,7 +272,7 @@ lss_user_home=/usr/sap/${sid}/lss/home
 lss_user_shell=/bin/sh
 
 # Local Secure Store Auto Backup Password
-lss_backup_password=
+lss_backup_password={{ pwd_os_sidadm }}
 
 [streaming]
 
