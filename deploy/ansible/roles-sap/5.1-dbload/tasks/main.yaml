@@ -234,9 +234,10 @@
         src:                           "{{ dir_params }}/{{ sap_inifile }}"
       register:                        profilefile
 
-    - name:                            "DBLoad: install variables"
+    - name:                            "DBLoad: Inifile"
       ansible.builtin.debug:
         msg:                           "{{ profilefile['content'] | b64decode }}"
+        verbosity:                     4
 
 
     - name:                            "DBLoad: install variables"
