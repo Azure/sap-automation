@@ -60,6 +60,8 @@ sap_fqdn:                              ""                                      #
 sapadm_uid:                            2100
 sapinst_gid:                           2001
 sapsys_gid:                            2000
+lss_uid:                               2040
+lss_gid:                               2050
 drop_schema:                           false
 
 sap_trans_permissions:                 775

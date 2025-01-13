@@ -260,10 +260,10 @@ lss_inst_path=/lss/shared
 lss_user_password={{ pwd_os_sidadm }}
 
 # Local Secure Store User ID
-lss_userid={{ hdbadm_uid }}
+lss_userid={{ lss_uid }}
 
 # Local Secure Store User Group ID
-lss_groupid={{ sapsys_gid }}
+lss_groupid={{ lss_gid }}
 
 # Local Secure Store User Home Directory ( Default: /usr/sap/${sid}/lss/home )
 lss_user_home=/usr/sap/${sid}/lss/home
