@@ -25,7 +25,7 @@ verify_signature=n
 components={{ _rsp_components }}
 
 # Install Execution Mode ( Default: standard; Valid values: standard | optimized )
-install_execution_mode=standard
+install_execution_mode=optimized
 
 # Ignore failing prerequisite checks
 ignore=
@@ -257,13 +257,13 @@ xs_trust_pem=
 lss_inst_path=/lss/shared
 
 # Local Secure Store User Password
-lss_user_password=
+lss_user_password={{ pwd_os_sidadm }}
 
 # Local Secure Store User ID
-lss_userid=
+lss_userid={{ hdbadm_uid }}
 
 # Local Secure Store User Group ID
-lss_groupid=
+lss_groupid={{ sapsys_gid }}
 
 # Local Secure Store User Home Directory ( Default: /usr/sap/${sid}/lss/home )
 lss_user_home=/usr/sap/${sid}/lss/home
