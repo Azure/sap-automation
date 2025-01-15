@@ -342,7 +342,7 @@ secret_name="${environment}"-subscription-id
 #     upn=$(az account show | grep name | grep @ | cut -d: -f2 | cut -d, -f1 -o tsv | xargs)
 #     az keyvault set-policy -n "${keyvault}" --secret-permissions get list recover restore set --upn "${upn}"
 # fi
-if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${STATE_SUBSCRIPTION}" "configuration"; then
+if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${subscription}" "configuration"; then
 	echo "Secret ${secret_name} set in keyvault ${keyvault}"
 else
 	echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
