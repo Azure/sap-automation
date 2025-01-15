@@ -595,5 +595,3 @@
         path:                          "/etc/sap_deployment_automation/asm_disk_initialised.txt"
         state:                         touch
         mode:                          0755
-
-
