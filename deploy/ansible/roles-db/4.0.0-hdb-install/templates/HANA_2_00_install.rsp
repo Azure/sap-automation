@@ -108,7 +108,7 @@ pmempath=/hana/pmem/${sid}
 custom_cfg=
 
 # SAP HANA Database secure store ( Default: ssfs; Valid values: ssfs | localsecurestore )
-secure_store=ssfs
+secure_store=localsecurestore
 
 # Restrict maximum memory allocation?
 restrict_max_mem=
