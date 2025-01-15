@@ -61,6 +61,10 @@
     scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
     public:                            true
 
+- name:                                "SCS Install: register additional variables"
+  ansible.builtin.set_fact:
+    installGateway:                    "{% if scs_bom_instance_type == 'ABAP' %}true{% else %}false{% endif %}"
+
 - name:                                "SCS HA Install"
   block:
 
@@ -83,7 +87,7 @@
       vars:
         sap_scs_hostname:              "{{ scs_virtual_hostname }}"
         param_directory:               "{{ dir_params }}"
-        set_ascsInstallGateway:        "{{ ascsInstallGateway | default(true) | bool | lower }}"
+        set_ascsInstallGateway:        "{{ installGateway | bool | lower }}"
         set_ascsInstallWebDispatcher:  "{{ ascsInstallWebDispatcher | default(false) | bool | lower }}"
 
     - name:                            "SCS HA Install: check if installed"

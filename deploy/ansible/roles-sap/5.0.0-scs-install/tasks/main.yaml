@@ -96,8 +96,11 @@
 - name:                                "SCS Install: register variables"
   ansible.builtin.set_fact:
     scs_bom_id:                        "{{ bom.product_ids.scs }}"
-    scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
-    public:                            true
+    scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType | upper }}{% else %}ABAP{% endif %}"
+
+- name:                                "SCS Install: register additional variables"
+  ansible.builtin.set_fact:
+    installGateway:                    "{% if scs_bom_instance_type == 'ABAP' %}true{% else %}false{% endif %}"
 
 - name:                                "SCS Install"
   block:
@@ -129,7 +132,7 @@
         sap_sid:                       "{{ sid_to_be_deployed.sid }}"
         scs_instance_number:           "{{ sid_to_be_deployed.ascs_inst_no }}"
         sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
-        set_ascsInstallGateway:        "{{ ascsInstallGateway | default(true) | bool | lower }}"
+        set_ascsInstallGateway:        "{{ installGateway | bool | lower }}"
         set_ascsInstallWebDispatcher:  "{{ ascsInstallWebDispatcher | default(false) | bool | lower }}"
 
     - name:                            "SCS Install: install variables"
