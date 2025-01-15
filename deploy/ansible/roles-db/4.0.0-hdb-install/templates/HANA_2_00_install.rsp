@@ -25,7 +25,7 @@ verify_signature=n
 components={{ _rsp_components }}
 
 # Install Execution Mode ( Default: standard; Valid values: standard | optimized )
-install_execution_mode=optimized
+install_execution_mode=standard
 
 # Ignore failing prerequisite checks
 ignore=
@@ -108,7 +108,7 @@ pmempath=/hana/pmem/${sid}
 custom_cfg=
 
 # SAP HANA Database secure store ( Default: ssfs; Valid values: ssfs | localsecurestore )
-secure_store=localsecurestore
+secure_store=ssfs
 
 # Restrict maximum memory allocation?
 restrict_max_mem=
