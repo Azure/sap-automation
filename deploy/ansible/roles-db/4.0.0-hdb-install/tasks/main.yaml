@@ -79,11 +79,6 @@
   ansible.builtin.debug:
     msg:                               "HANA Components: {{ hana_components }}"
 
-- name:                                "SAP HANA: check sp version is greater than or equal to SPS08"
-  ansible.builtin.fail:
-    msg:                               "INSTALL:0002:SPS08 or higher is required for HANA installation"
-  when: "manifest_hana_sp is version('080', '>=')"
-
 - name:                                "HANA Install"
   block:
 
