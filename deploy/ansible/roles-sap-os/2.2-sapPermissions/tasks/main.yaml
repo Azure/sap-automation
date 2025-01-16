@@ -19,7 +19,7 @@
     - { node_tier: 'pas', path:  '/sapmnt', mode: '0755', owner: '{% if platform == "SYBASE" %}{{ asesidadm_uid }}{% else %}{{ sidadm_uid }}{% endif %}', group: 'sapsys', state: 'directory' }
     - { node_tier: 'app', path:  '/sapmnt', mode: '0755', owner: '{% if platform == "SYBASE" %}{{ asesidadm_uid }}{% else %}{{ sidadm_uid }}{% endif %}', group: 'sapsys', state: 'directory' }
     - { node_tier: 'scs', path:  '/sapmnt', mode: '0755', owner: '{% if platform == "SYBASE" %}{{ asesidadm_uid }}{% else %}{{ sidadm_uid }}{% endif %}', group: 'sapsys', state: 'directory' }
-    - { node_tier: 'hana', path: '/hana',   mode: '0755', owner: '{{ sidadm_uid }}',                                                                      group: 'sapsys', state: 'directory' }
+    - { node_tier: 'hana', path: '/hana',   mode: '0755', owner: '{{ hdbadm_uid }}',                                                                      group: 'sapsys', state: 'directory' }
   when:
     - item.node_tier == "all" or item.node_tier == node_tier
     - not users_created.stat.exists
