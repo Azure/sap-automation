@@ -15,7 +15,7 @@
 
 
   <ItemGroup>
-    <PackageReference Include="Azure.Data.Tables" Version="12.9.1" />
+    <PackageReference Include="Azure.Data.Tables" Version="12.10.0" />
     <PackageReference Include="Azure.Identity" Version="1.13.1" />
     <PackageReference Include="Azure.ResourceManager" Version="1.13.0" />
     <PackageReference Include="Azure.ResourceManager.Compute" Version="1.7.0" />
