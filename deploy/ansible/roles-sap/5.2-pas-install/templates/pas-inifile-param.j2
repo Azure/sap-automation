@@ -19,6 +19,9 @@ NW_Unpack.sapExeSar                                                   = {{ targe
 
 archives.downloadBasket                                               = {{ target_media_location }}/download_basket
 
+# Solution Manager
+UmeConfiguration.adminPassword                                        = {{ main_password }}
+
 {% if platform | upper == 'HANA' %}
 HDB_Schema_Check_Dialogs.schemaName                                   = {{ db_schema }}
 HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
@@ -33,6 +36,11 @@ NW_HDB_getDBInfo.systemDbPassword                                     = {{ main_
 NW_HDB_getDBInfo.systemid                                             = {{ db_sid | upper }}
 NW_HDB_getDBInfo.systemPassword                                       = {{ main_password }}
 NW_HDB_getDBInfo.usingSSL                                             = true
+
+
+storageBasedCopy.hdb.instanceNumber                                   = {{ db_instance_number }}
+storageBasedCopy.hdb.systemPassword                                   = {{ main_password }}
+
 {% endif %}
 
 NW_CI_Instance.ascsVirtualHostname                                    = {{ sap_scs_hostname }}
@@ -81,9 +89,6 @@ nwUsers.sapadmUID                                                     = {{ sapad
 nwUsers.sapsysGID                                                     = {{ sapsys_gid }}
 nwUsers.sidAdmUID                                                     = {{ sidadm_uid }}
 NW_Delete_Sapinst_Users.removeUsers                                   = true
-
-storageBasedCopy.hdb.instanceNumber                                   = {{ db_instance_number }}
-storageBasedCopy.hdb.systemPassword                                   = {{ main_password }}
 
 NW_DB6_DB.db6.abap.connect.user                                       = sap{{ db_sid | lower }}
 NW_DB6_DB.db6.abap.schema                                             = sap{{ db_sid | lower }}
