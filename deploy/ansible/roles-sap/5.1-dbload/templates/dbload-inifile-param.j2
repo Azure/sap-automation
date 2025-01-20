@@ -47,6 +47,11 @@ NW_Recovery_Install_HDB.extractParallelJobs                           = 24
 NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid | lower }}adm
 NW_Recovery_Install_HDB.sidAdmPassword                                = {{ main_password }}
 
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
+SAPINST.CD.PACKAGE.CD4                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP4
+
 {% endif %}
 
 NW_checkMsgServer.abapMSPort                                          = 36{{ scs_instance_number }}
@@ -92,6 +97,7 @@ storageBasedCopy.ora.swowner                                          = oracle
 SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
 SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
 SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
+SAPINST.CD.PACKAGE.CD4                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP4
 
 {% endif %}
 
