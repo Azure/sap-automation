@@ -47,10 +47,6 @@ NW_Recovery_Install_HDB.extractParallelJobs                           = 24
 NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid | lower }}adm
 NW_Recovery_Install_HDB.sidAdmPassword                                = {{ main_password }}
 
-SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
-SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
-SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
-SAPINST.CD.PACKAGE.CD4                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP4
 
 {% endif %}
 
@@ -68,11 +64,13 @@ NW_ABAP_Import_Dialog.dbCodepage                                      = 4103
 NW_ABAP_Import_Dialog.migmonLoadArgs                                  = -stop_on_error -loadprocedure fast
 
 {% if platform | upper == 'HANA' %}
-SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
+SAPINST.CD.PACKAGE.CD4                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP4
 {% endif %}
 
 {% if platform | upper == 'ORACLE-ASM' %}
-# Oracle parameters
 SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
 
 storageBasedCopy.ora.serverVersion                                    = {{ ora_release}}
@@ -102,7 +100,6 @@ SAPINST.CD.PACKAGE.CD4                                                = {{ targe
 {% endif %}
 
 {% if platform | upper == 'ORACLE' %}
-# Oracle parameters
 SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
 
 storageBasedCopy.ora.serverVersion                                    = {{ ora_release}}
