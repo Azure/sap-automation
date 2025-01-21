@@ -4,6 +4,11 @@
 archives.downloadBasket                                               = {{ target_media_location }}/download_basket
 
 SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP3
+SAPINST.CD.PACKAGE.CD4                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP4
+
 
 nwUsers.sapadmUID                                                     = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                     = {{ sapsys_gid }}
@@ -63,12 +68,6 @@ NW_ABAP_Import_Dialog.migmonJobNum                                    = 20
 NW_ABAP_Import_Dialog.dbCodepage                                      = 4103
 NW_ABAP_Import_Dialog.migmonLoadArgs                                  = -stop_on_error -loadprocedure fast
 
-{% if platform | upper == 'HANA' %}
-SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
-SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
-SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
-SAPINST.CD.PACKAGE.CD4                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP4
-{% endif %}
 
 {% if platform | upper == 'ORACLE-ASM' %}
 SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
