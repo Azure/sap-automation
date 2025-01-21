@@ -41,7 +41,7 @@
 
     - name:                            "1.5 Expand Volumes - Extract free size of the VG"
       ansible.builtin.set_fact:
-        vg_free_size:                         "{{ vg_info.stdout | float }}"
+        vg_free_size:                  "{{ vg_info.stdout | float }}"
       when:
         - vg_info is defined
         - vg_info.stdout is defined
@@ -51,14 +51,14 @@
         sufficient_vg_space:           "{{ vg_free_size | default(0) | float > 20.0 }}"
       when:
         - vg_free_size is defined
-        - node_tier not in ['oracle', 'oracle-asm', 'ase', 'hana', 'db2']
+        - node_tier not in ['oracle', 'oracle-asm', 'hana', 'db2']
 
     - name:                            "1.5 Expand Volumes - Check if free size is more than 30 GB (DB)"
       ansible.builtin.set_fact:
         sufficient_vg_space_db:        "{{ vg_free_size | default(0) | float > 30.0 }}"
       when:
         - vg_free_size is defined
-        - node_tier in ['oracle', 'oracle-asm', 'sybase', 'hana', 'db2']
+        - node_tier in ['oracle', 'oracle-asm', 'hana', 'db2']
 
 
     # ------------------<DEBUGGING>-------------------
@@ -87,7 +87,7 @@
         - { vg: '{{ vg_root }}',    lv: 'tmplv',     size: '{{ lv_tmp_size }}'  }
       when:
         - sufficient_vg_space | default(false)
-        - node_tier not in ['oracle', 'oracle-asm', 'sybase', 'hana', 'db2']
+        - node_tier not in ['oracle', 'oracle-asm', 'hana', 'db2']
 
     - name:                        "1.5 Expand Volumes - Extend the logical volumes and resize the FS (DB)"
       community.general.lvol:
@@ -103,7 +103,7 @@
         - { vg: '{{ vg_root }}',    lv: 'tmplv',     size: '{{ lv_tmp_size }}'  }
       when:
         - sufficient_vg_space_db | default(false)
-        - node_tier in ['oracle', 'oracle-asm', 'sybase', 'hana', 'db2']
+        - node_tier in ['oracle', 'oracle-asm', 'hana', 'db2']
 
 
     # ------------------<DEBUGGING>-------------------

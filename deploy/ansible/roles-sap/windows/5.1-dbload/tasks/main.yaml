@@ -43,7 +43,7 @@
 - name:                                "DBLoad: - Set dbload facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-dbload-inifile-param.j2"
+    sap_inifile_template:              "dbload-inifile-param.j2"
     scs_server:                        "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
     db_virtual_hostname:               "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
     scs_sapmnt_server:                 "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
@@ -108,7 +108,7 @@
     post_reboot_delay:                 120
   when: vcredist2017_output.reboot_required
 
-- name:                                "DBLoad: - Include 3.3.1-bom-utility role"
+- name:                                "DBLoad: Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/windows/3.3.1-bom-utility
     tasks_from:                        bom-register
@@ -131,17 +131,12 @@
       - "SQL DATA Disks:               {{ vm_data_disks }}"
       - "SQL LOG Disks:                {{ vm_log_disks }}"
 
-
-- name:                                "DBLoad: - Include roles-sap/3.3.1-bom-utility role"
-  ansible.builtin.include_role:
-    name:                              roles-sap/windows/3.3.1-bom-utility
-    tasks_from:                        bom-template
+- name:                                "DBLoad:  Create ini file {{ sap_inifile }}"
+  ansible.windows.win_template:
+    src:                               "{{ sap_inifile_template }}"
+    dest:                              '{{ dir_params }}\{{ sap_inifile }}'
+    force:                             true
   vars:
-    task_prefix:                       "DBLoad: "
-    always_upload_jinja_templates:     false
-    bom_name:                          "{{ bom_base_name }}"
-    # sap_cd_package_hdbclient:          '{{ download_directory_windows }}\CD_HDBCLIENT\SAP_HANA_CLIENT'
-    # sap_cd_package_cd1:                '{{ download_directory_windows }}\CD_EXPORT'
     sap_cd_package_cd2:
     sap_cd_package_cd3:
     sap_cd_package_cd4:

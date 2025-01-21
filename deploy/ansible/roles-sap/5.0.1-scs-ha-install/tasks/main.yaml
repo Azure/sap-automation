@@ -18,7 +18,7 @@
 - name:                                 "SCS HA Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                        "{{ bom_base_name }}-scsha-{{ ansible_hostname }}.params"
-    sap_inifile_template:               "{{ bom_base_name }}{{ bom_suffix }}-scsha-inifile-param.j2"
+    sap_inifile_template:               "scsha-inifile-param.j2"
     dir_params:                         "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
 
 #   0x) Create hidden directory for parameter files
@@ -61,6 +61,10 @@
     scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
     public:                            true
 
+- name:                                "SCS Install: register additional variables"
+  ansible.builtin.set_fact:
+    installGateway:                    "{% if scs_bom_instance_type == 'ABAP' %}true{% else %}false{% endif %}"
+
 - name:                                "SCS HA Install"
   block:
 
@@ -74,32 +78,17 @@
         msg:                           "INSTALL:0003:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
-    - name:                            "SCS HA Install: Register BoM templates"
-      ansible.builtin.include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-template
+    - name:                            "SCS HA Install: Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
+      ansible.builtin.template:
+        src:                           "{{ sap_inifile_template }}"
+        dest:                          "{{ dir_params }}/{{ sap_inifile }}"
+        mode:                          0644
+        force:                         true
       vars:
-        task_prefix:                   "SCS HA Install: "
-        always_upload_jinja_templates: false
-        bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
-        sap_cd_package_cd1:
-        sap_cd_package_cd2:
-        sap_cd_package_cd3:
-        sap_cd_package_cd4:
-        sap_cd_package_cd5:
-        sap_cd_package_hdbclient:
-        sap_ciInstanceNumber:
-        app_instance_number:
-        sap_ciDialogWPNumber:
-        sap_ciBtcWPNumber:
-        sap_installSAPHostAgent:
-        sap_profile_dir:
         sap_scs_hostname:              "{{ scs_virtual_hostname }}"
-        sap_db_hostname:
-        sap_ciVirtualHostname:
-        sap_appVirtualHostname:
         param_directory:               "{{ dir_params }}"
-        hdb_instance_number:           "{{ db_instance_number }}"
+        set_ascsInstallGateway:        "{{ installGateway | bool | lower }}"
+        set_ascsInstallWebDispatcher:  "{{ ascsInstallWebDispatcher | default(false) | bool | lower }}"
 
     - name:                            "SCS HA Install: check if installed"
       ansible.builtin.debug:

@@ -1,7 +1,8 @@
+#!/bin/bash
+
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#!/bin/bash
 #colors for terminal
 bold_red_underscore="\e[1;4;31m"
 bold_red="\e[1;31m"
@@ -546,7 +547,6 @@ function ImportAndReRunApply {
 						echo "Terraform import:                      succeeded"
 					fi
 				done
-
         # shellcheck disable=SC2086
 				if ! terraform -chdir="${terraform_module_directory}" plan -input=false $allImportParameters ; then
 						echo ""

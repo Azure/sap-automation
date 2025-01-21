@@ -34,7 +34,7 @@
       - "sga_max_size:         {{ ora_sga }}"
       - "pga_aggregate_target: {{ ora_pga }}"
 
-- name:                                "Set the SGA and PGA Sizes for RAM > 4TB"
+- name:                                "ORACLE Post Processing: Set the SGA and PGA Sizes for RAM > 4TB"
   ansible.builtin.set_fact:
     ora_sga:                           "{{ (ansible_memory_mb.real.total * 0.65) | round | int }}"
     ora_pga:                           "{{ ((ansible_memory_mb.real.total*0.65)*0.2) | round | int }}"
@@ -44,7 +44,7 @@
     - supported_tiers == "scs"
 
 # Block to check if a reboot has been performed already after updating SGA & PGS
-- name:                                "DBLoad: - check if DBLoad is performed for {{ sid_to_be_deployed.sid | upper }}"
+- name:                                "ORACLE Post Processing: DBLoad: - check if DBLoad is performed for {{ sid_to_be_deployed.sid | upper }}"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/ora_sga_updated.txt"
   register:                            sga_update_status

@@ -8,7 +8,7 @@ become_user_name:                       root
 oracle_user_name:                       oracle
 orchestration_ansible_user:             azureadm
 # ------------------- Begin - SDAF Ansible Version ---------------------------8
-SDAF_Version:                           "3.13.1.0"
+SDAF_Version:                           "3.14.1.0"
 
 # ------------------- End - SDAF Ansible Version ---------------------------8
 
@@ -60,6 +60,8 @@ sap_fqdn:                              ""                                      #
 sapadm_uid:                            2100
 sapinst_gid:                           2001
 sapsys_gid:                            2000
+lss_uid:                               2040
+lss_gid:                               2050
 drop_schema:                           false
 
 sap_trans_permissions:                 775
@@ -145,13 +147,15 @@ backupdba_gid:                         3106
 dgdba_gid:                             3107
 kmdba_gid:                             3108
 racdba_gid:                            3109
-orasid_uid:                            3100
-oracle_uid:                            3101
+orasid_uid:                            3200
+oracle_uid:                            3201
 hdbshm_gid:                            2002
 observer_uid:                          4000
+
 scs_instance_number:                   "00"                                    # SAP Install
 ers_instance_number:                   "02"
 app_instance_number:                   "00"
+
 sidadm_uid:                            2003
 hdbadm_uid:                            2200
 scs_lb_ip:                             ""                                      # SAP HA
@@ -286,3 +290,18 @@ lv_tmp_size:                            10g
 # ------------------- End - SAP CAL Integration variables ----------------------8
 
 python_version:                        "python3"
+
+
+UIDs:
+  HANA:
+    uid:                               "{{ sidadm_uid }}"
+  ORACLE:
+    uid:                               "{{ sidadm_uid }}"
+  ORACLE-ASM:
+    uid:                               "{{ sidadm_uid }}"
+  SYBASE:
+    uid:                               "{{ asesidadm_uid }}"
+  DB2:
+    uid:                               "{{ sidadm_uid }}"
+  SQLSERVER:
+    uid:                               "{{ sidadm_uid }}"

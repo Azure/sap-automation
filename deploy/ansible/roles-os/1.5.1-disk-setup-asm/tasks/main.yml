@@ -191,21 +191,50 @@
 
 - name:                                "ORACLE ASM: check if DISKS are already initialised"
   ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/asmdiskinitialised.txt"
+    path:                              "/etc/sap_deployment_automation/asm_disk_initialised.txt"
   register:                            oracleasm_initialised
 
 # STEP1 Install ASMLIB and ASMSUPPORT Packages
 - name:                                "ORACLE ASM: Disk Initialisation"
+  when: not oracleasm_initialised.stat.exists
   block:
 
-    - name:                            "ORACLE ASM: Install RPM Packages"
+    - name:                            "ORACLE ASM: Install Compat Packages"
+      ansible.builtin.dnf:
+        name:
+          - "{{ target_media_location }}/downloads/compat-libcap1-1.10-7.el7.x86_64.rpm"
+          - "{{ target_media_location }}/downloads/compat-libstdc++-33-3.2.3-72.el7.x86_64.rpm"
+          - "{{ target_media_location }}/downloads/libbpf-0.6.0-6.el8.x86_64.rpm"
+        state:                         present
+        disable_gpg_check:             true
+
+    - name:                            "ORACLE ASM: check for v3 RPMS"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/downloads/oracleasmlib-3.0.0-13.el8.x86_64.rpm"
+      register:                        oracleasm_v3
+
+    - name:                            "ORACLE ASM: Install RPM Packages v3"
+      ansible.builtin.dnf:
+        name:
+          - "{{ target_media_location }}/downloads/oracleasmlib-3.0.0-13.el8.x86_64.rpm"
+          - "{{ target_media_location }}/downloads/oracleasm-support-3.0.0-6.el8.x86_64.rpm"
+        state:                         present
+        disable_gpg_check:             true
+      when:                            oracleasm_v3.stat.exists
+
+    - name:                            "ORACLE ASM: check for v2 RPMS"
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/downloads/oracleasmlib-2.0.17-1.el8.x86_64.rpm"
+      register:                        oracleasm_v2
+
+    - name:                            "ORACLE ASM: Install RPM Packages v2"
       ansible.builtin.dnf:
         name:
           - "{{ target_media_location }}/downloads/oracleasmlib-2.0.17-1.el8.x86_64.rpm"
           - "{{ target_media_location }}/downloads/oracleasm-support-2.1.12-1.el8.x86_64.rpm"
-          - "{{ target_media_location }}/downloads/compat-libcap1-1.10-7.el7.x86_64.rpm"
         state:                         present
         disable_gpg_check:             true
+      when:                            oracleasm_v2.stat.exists
 
     # STEP2 Configure and init ORACLEASM
     # The loop has to be run per host as the sap-parameters file has all the disks.
@@ -230,7 +259,7 @@
         creates:          /etc/sap_deployment_automation/asmconfigure.txt
 
 
-    # STEP3 Initialise Disks for ASM
+    # STEP3 Initialize Disks for ASM
 
     # Need to map the LUN id from SAP Parameters file to the scsi1 list to get the list to be used for creating ASM Disks.
     # Capture the list of disks to create list for DATA disk group.
@@ -531,14 +560,6 @@
         var:                           recodiskcreated
         verbosity:                     2
 
-
-    - name:                            "ORACLE ASM: Create sbp_installed.txt"
-      ansible.builtin.file:
-        path:                          "/etc/sap_deployment_automation/asmdiskinitialised.txt"
-        state:                         touch
-        mode:                          0755
-
-
     - name:                            "ORACLE ASM: Make oracle:oinstall are the owners for ASM Data Disks "
       become:                          true
       become_user:                     root
@@ -569,4 +590,8 @@
         mode:                          '755'
       loop:                            '{{ recodisklist }}'
 
-  # when: not oracleasm_initialised.stat.exists
+    - name:                            "ORACLE ASM: Create asm_disk_initialised.txt"
+      ansible.builtin.file:
+        path:                          "/etc/sap_deployment_automation/asm_disk_initialised.txt"
+        state:                         touch
+        mode:                          0755

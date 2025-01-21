@@ -14,14 +14,15 @@
 - name:                                     "1.17 Generic Pacemaker - Set Runtime Facts"
   ansible.builtin.import_tasks:             1.17.1.1-iSCSI.yml
   when:
-                                            - (scs_cluster_type == 'ISCSI') or
+                                            - ansible_os_family | upper == "SUSE" and
+                                              (scs_cluster_type == 'ISCSI') or
                                               (database_cluster_type == 'ISCSI')
-
 
 - name:                                     "1.17 Generic Pacemaker - SBD Devices"
   ansible.builtin.import_tasks:             1.17.1.2-sbd.yaml
   when:
-                                            - (database_cluster_type == "ASD")   or
+                                            - ansible_os_family | upper == "SUSE" and
+                                              (database_cluster_type == "ASD")   or
                                               (database_cluster_type == "ISCSI") or
                                               (scs_cluster_type      == "ASD")   or
                                               (scs_cluster_type      == "ISCSI")
