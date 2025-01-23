@@ -84,6 +84,8 @@ function configureNonDeployer() {
 
 function LogonToAzure() {
 	local useMSI=$1
+	local subscriptionId=$ARM_SUBSCRIPTION_ID
+
 	if [ "$useMSI" != "true" ]; then
 		echo "Deployment credentials:              Service Principal"
 		echo "Deployment credential ID (SPN):      $ARM_CLIENT_ID"
@@ -100,6 +102,12 @@ function LogonToAzure() {
 		TF_VAR_use_spn=false
 		export TF_VAR_use_spn
 
+		# sourcing deploy_server.sh overwrites ARM_SUBSCRIPTION_ID with control plane subscription id
+		# ensure we are exporting the right ARM_SUBSCRIPTION_ID when authenticating against workload zones.
+		if [[ "$ARM_SUBSCRIPTION_ID" != "$subscriptionId" ]]; then
+			ARM_SUBSCRIPTION_ID=$subscriptionId
+			export ARM_SUBSCRIPTION_ID
+		fi
 	fi
 
 }
