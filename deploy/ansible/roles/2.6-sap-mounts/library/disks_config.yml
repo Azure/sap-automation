@@ -1,0 +1,433 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+
+# Dynamically determine list of unique disk types associated with
+# current node.
+disktypes: >-
+  {{ disks | selectattr('host', 'defined') |
+      selectattr('host', 'equalto', inventory_hostname) |
+      map(attribute='type') | sort | unique |
+      list }}
+
+# Dynamically determine list of volume groups associated with
+# the current node.
+volume_groups: "{{ lookup('template', 'volume_groups.j2') }}"
+
+# Mapping table from disk type to volume group name suffix
+disk_type_to_name_map:
+  data:            '{{ node_tier | lower }}_data'
+  log:             '{{ node_tier | lower }}_log'
+  backup:          '{{ node_tier | lower }}_backup'
+  shared:          '{{ node_tier | lower }}_shared'
+  sapdata1:        '{{ node_tier | lower }}_sapdata1'
+  sapdata2:        '{{ node_tier | lower }}_sapdata2'
+  sapdata3:        '{{ node_tier | lower }}_sapdata3'
+  sapdata4:        '{{ node_tier | lower }}_sapdata4'
+  origloga:        '{{ node_tier | lower }}_origlogA'
+  origlogb:        '{{ node_tier | lower }}_origlogB'
+  mirrloga:        '{{ node_tier | lower }}_mirrlogA'
+  mirrlogb:        '{{ node_tier | lower }}_mirrlogB'
+  oraarch:         '{{ node_tier | lower }}_oraarch'
+  oraflash:        '{{ node_tier | lower }}_oraflash'
+  # orabackup: '{{ node_tier | lower }}_orabackup'
+  # ------------------- Begin - disktypes required for DB2 -------------------8
+  sapdata:         '{{ node_tier | lower }}_sapdata'
+  log_dir:         '{{ node_tier | lower }}_log_dir'
+  offline_log_dir: '{{ node_tier | lower }}_offline_logdir'
+  saptmp:          '{{ node_tier | lower }}_saptmp'
+  # ------------------- End - disktypes required for DB2 ---------------------8
+  kdump:           '{{ node_tier | lower }}_kdump'
+  # ------------------- Begin - disktypes required for ASE -------------------8
+  sapdata_1:      '{{ node_tier | lower }}_sapdata_1'
+  saplog_1:       '{{ node_tier | lower }}_saplog_1'
+  sybdb:          '{{ node_tier | lower }}_sybdb'
+  saptemp:        '{{ node_tier | lower }}_saptemp'
+  sapdiag:        '{{ node_tier | lower }}_sapdiag'
+  sybsystem:      '{{ node_tier | lower }}_sybsystem'
+  sybtemp:        '{{ node_tier | lower }}_sybtemp'
+  # ------------------- End - disktypes required for ASE ---------------------8
+#
+# Table of possible logical volumes that need to be managed.
+#
+# Each table entry must have the following attributes:
+#
+#   node_tier:
+#       the node tier associated with the entry
+#   lv:
+#       the name of the LV
+#   vg:
+#       the name of the VG hosting the LV
+#   size:
+#       the size of the LV
+#
+# Optionally table entries can contain the following attributes:
+#
+#   stripesize:
+#       the size of the stripe to use; the stripe count will be
+#       dynamically determined from the number of PVs associated
+#       with the VG.
+#
+#   fstype:
+#       the type of file system that the LV should be formatted
+#       as; if not specified then no file system will be created
+#       on the LV.
+#
+#   fsopts:
+#       additional options, if any, that should be passed to the
+#       mkfs command when formatting the file system.
+#
+logical_volumes:
+  # ---------------------- Begin - disks required for WD  ---------------------8
+  - tier:       'sapos'
+    node_tier:  'web'
+    vg:         'vg_sap'
+    lv:         'lv_sapmnt'
+    size:       '1g'
+    fstype:     'xfs'
+  # ----------------------- End - disks required for WD  ----------------------8
+
+  # ---------------------- Begin - disks required for kdump--------------------8
+  - tier:       'sapos'
+    node_tier:  'all'
+    supported_tiers: ['scs','hana','db2','ers']
+    vg:         'vg_{{ node_tier | lower }}_kdump'
+    lv:         'lv_{{ node_tier | lower }}_kdump'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  # ----------------------- End - disks required for kdump --------------------8
+
+  # --------------------- Begin - disks required for usrsap -------------------8
+  - tier:       'sapos'
+    node_tier:  'all'
+    vg:         'vg_sap'
+    lv:         'lv_usrsap'
+    size:       "{% if sap_mnt is defined and usr_sap_install_mountpoint is defined %}100%FREE{% elif sap_mnt is defined %}50%FREE{% else %}{{ usrsap_volume_size }}{% endif %}"
+    fstype:     'xfs'
+  # ---------------------- End - disks required for usrsap --------------------8
+
+  # --------------------- Begin - disks required for HANA ---------------------8
+  - tier:       'sapos'
+    node_tier:  'hana'
+    vg:         'vg_hana_data'
+    lv:         'lv_hana_data'
+    size:       '100%FREE'
+    stripesize: "{{ hana_data_stripe_size }}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'hana'
+    vg:         'vg_hana_log'
+    lv:         'lv_hana_log'
+    size:       '100%FREE'
+    stripesize: "{{ hana_log_stripe_size }}"
+    fstype:     'xfs'
+  # Add a default stripesize of 1MB for the hana backup volume.
+  # There are essentially two sizes we can consider:
+  # 1. Use the same stripesize as the data volume
+  # 2. Use 1MB stripe size based on older recommendations
+  # Note: Most customers are moving away from disk based backup solutions.
+  # So, this might get removed in the future.
+  - tier:       'sapos'
+    node_tier:  'hana'
+    vg:         'vg_hana_backup'
+    lv:         'lv_hana_backup'
+    size:       '100%FREE'
+    stripesize: "{{ hana_bkp_stripe_size }}"
+    fstype:     'xfs'
+  # ---------------------- End - disks required for HANA ---------------------8
+
+  # --------------- Begin - disks required for Oracle(non-ASM) ---------------8
+  # Adding Tier and disk types for Oracle installation non-ASM.
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_sapdata1'
+    lv:         'lv_oracle_sapdata1'
+    size:       '100%FREE'
+    stripesize: "{{ oracle_data_stripe_size }}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_sapdata2'
+    lv:         'lv_oracle_sapdata2'
+    size:       '100%FREE'
+    stripesize: "{{ oracle_data_stripe_size }}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_sapdata3'
+    lv:         'lv_oracle_sapdata3'
+    size:       '100%FREE'
+    stripesize: "{{ oracle_data_stripe_size }}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_sapdata4'
+    lv:         'lv_oracle_sapdata4'
+    size:       '100%FREE'
+    stripesize: "{{ oracle_data_stripe_size }}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_origlogA'
+    lv:         'lv_oracle_origlogA'
+    size:       '100%FREE'
+    stripesize: "{{ oracle_log_stripe_size }}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_origlogB'
+    lv:         'lv_oracle_origlogB'
+    size:       '100%FREE'
+    stripesize: "{{ oracle_log_stripe_size }}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_mirrlogA'
+    lv:         'lv_oracle_mirrlogA'
+    size:       '100%FREE'
+    stripesize: "{{ oracle_log_stripe_size }}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_mirrlogB'
+    lv:         'lv_oracle_mirrlogB'
+    size:       '100%FREE'
+    stripesize: "{{ oracle_log_stripe_size }}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_oraarch'
+    lv:         'lv_oracle_oraarch'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle'
+    lv:         'lv_oracle'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+#  Add disk for Oracle Flash Recovery Area
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_oracle_oraflash'
+    lv:         'lv_oracle_oraflash'
+    size:       '100%FREE'
+    stripesize: "{{ oracle_log_stripe_size }}"
+    fstype:     'xfs'
+
+
+  - tier:       'sapos'
+    node_tier:  'oracle'
+    vg:         'vg_orabackup'
+    lv:         'lv_orabackup'
+    size:       '64g'
+    fstype:     'xfs'
+  # ---------------- End - disks required for Oracle(non-ASM) ----------------8
+
+  # --------------------- Begin - disks required for DB2 ---------------------8
+  - tier:       'sapos'
+    node_tier:  'db2'
+    vg:         'vg_db2'
+    lv:         'lv_db2'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'db2'
+    vg:         'vg_db2_sapdata'
+    lv:         'lv_db2_sapdata1'
+    size:       '25%VG'
+    stripesize: "{{ db2_data_stripe_size }}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'db2'
+    vg:         'vg_db2_sapdata'
+    lv:         'lv_db2_sapdata2'
+    size:       '25%VG'
+    stripesize: "{{ db2_data_stripe_size }}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'db2'
+    vg:         'vg_db2_sapdata'
+    lv:         'lv_db2_sapdata3'
+    size:       '25%VG'
+    stripesize: "{{ db2_data_stripe_size }}"
+    fstype:     'xfs'
+  # Here we are left with 25%VG so we assign 100%FREE so as to not fail because
+  # the calculated size is less than what is available on disk xD
+  - tier:       'sapos'
+    node_tier:  'db2'
+    vg:         'vg_db2_sapdata'
+    lv:         'lv_db2_sapdata4'
+    size:       '100%FREE'
+    stripesize: "{{ db2_data_stripe_size }}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'db2'
+    vg:         'vg_db2_log_dir'
+    lv:         'lv_db2_log_dir'
+    size:       '100%FREE'
+    stripesize: "{{ db2_log_stripe_size }}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'db2'
+    vg:         'vg_db2_offline_logdir'
+    lv:         'lv_db2_offline_logdir'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'db2'
+    vg:         'vg_db2_saptmp'
+    lv:         'lv_db2_saptmp'
+    size:       '100%FREE'
+    stripesize: "{{ db2_temp_stripe_size }}"
+    fstype:     'xfs'
+  # ----------------------- End - disks required for DB2 ----------------------8
+
+  # --------------------- Begin - disks required for ASE ---------------------8
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sapdata_1'
+    lv:         'lv_sybase_sapdata_1'
+    size:       '100%VG'
+    stripesize: "{{ sybase_data_stripe_size }}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_saplog_1'
+    lv:         'lv_sybase_saplog_1'
+    size:       '100%FREE'
+    stripesize: "{{ sybase_log_stripe_size }}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sybdb'
+    lv:         'lv_sybase_sybdb'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_saptemp'
+    lv:         'lv_sybase_saptemp'
+    size:       '100%FREE'
+    stripesize: "{{ sybase_temp_stripe_size }}"
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sybsystem'
+    lv:         'lv_sybase_sybsystem'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sybtemp'
+    lv:         'lv_sybase_sybtemp'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_sapdiag'
+    lv:         'lv_sybase_sapdiag'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'sybase'
+    vg:         'vg_sybase_backup'
+    lv:         'lv_sybase_backup'
+    size:       '100%FREE'
+    fstype:     'xfs'
+  # ----------------------- End - disks required for ASE ----------------------8
+
+  # ---------------------- Begin - disks required for SCS ---------------------8
+
+  - tier:       'sapos'
+    node_tier:  'oracle-asm'
+    vg:         'vg_oracle'
+    lv:         'lv_oracle'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+  - tier:       'sapos'
+    node_tier:  'oracle-asm'
+    vg:         'vg_sap'
+    lv:         'lv_usrsap'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+logical_volumes_sapmnt:
+  - tier:       'sapos'
+    node_tier:  'scs'
+    vg:         'vg_sap'
+    lv:         'lv_sapmnt'
+    size:       "{% if sapmnt_volume_size is defined %}{{ sapmnt_volume_size }}{% else %}32g{% endif %}"
+    fstype:     'xfs'
+
+logical_volumes_install:
+  - tier:       'sapos'
+    node_tier:  'scs'
+    vg:         'vg_sap'
+    lv:         'lv_usrsapinstall'
+    size:       '100%FREE'
+    fstype:     'xfs'
+
+logical_volumes_hanashared:
+  - tier:       'sapos'
+    node_tier:  'hana'
+    vg:         "{% if shareddisk == '1' %}vg_hana_shared{% else %}vg_sap{% endif %}"
+    lv:         'lv_hana_shared'
+    size:       "{% if shareddisk == '1' %}100%FREE{% else %}{{ hanashared_volume_size }}{% endif %}"
+    fstype:     'xfs'
+
+
+# Adding Tier and disk types for Oracle installation ASM.
+
+
+# Define a dynamic expression based upon the 'item' fact that can
+# only be used within a loop, that determines the number of PVs
+# in associated with the associated VG.
+vg_stripecount_from_lv_item: >-
+  {{ ((volume_groups | default([{}]) |
+       selectattr('vg', 'equalto', item.vg) |
+       list | first).pvs | default([])) | count }}
+
+# Define a dynamic expression based upon the 'item' fact that can
+# only be used within a loop, that determines the options string
+# to pass to the lvol action's opts argument. Will evaluate to
+# '-i <num_vg_pvs> -I <stripesize>' only when the LV 'item' has
+# stripesize specified, otherwise it will be an empty string.
+lvol_opts_from_lv_item: >-
+  {{ ('stripesize' in item or vg_stripecount_from_lv_item | int > 1) |
+     ternary('-i ' ~ vg_stripecount_from_lv_item ~
+             ' -I ' ~ (item.stripesize | default(default_stripe_size)),
+             '') }}
+
+# Define a dynamic expression based upon the 'item' fact that can
+# only be used within a loop, that determines the device path for
+# a LV device.
+dev_path_from_lv_item: >-
+  {{ ['/dev', item.vg, item.lv] | join('/') }}
