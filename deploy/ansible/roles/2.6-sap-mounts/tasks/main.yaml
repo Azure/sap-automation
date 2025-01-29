@@ -1,0 +1,54 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Disk system mounts                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+pre_tasks:
+  - name:                                "1.5 Disk setup - Load the disk configuration settings"
+    ansible.builtin.include_vars:        disks_config.yml
+    when:                                logical_volumes is not defined
+
+  - name:                                "2.6 SAP Mounts: - Show MULTI_SIDS"
+    ansible.builtin.debug:
+      var:                               MULTI_SIDS
+      verbosity:                         4
+
+  - name:                                "2.6 SAP Mounts: - set run time facts"
+    ansible.builtin.include_tasks:
+      file:                              "utils/2.6-set-runtime-facts.yaml"
+
+tasks:
+  - name:                                "2.6 SAP Mounts: Pre-mounting Checks"
+    ansible.builtin.include_tasks:
+      file:                              "2.6-mount-setup.yaml"
+
+  - name:                                "2.6 SAP Mounts: mounting handler"
+    ansible.builtin.include_tasks:
+      file:                              "2.6-mount-handler.yaml"
+
+  - name:                                "2.6 SAP Mounts: storage handler"
+    ansible.builtin.include_tasks:
+      file:                              "2.6-storage-handler.yaml"
+
+  - name:                                "2.6 SAP Mounts: setting permissions"
+    ansible.builtin.include_tasks:
+      file:                              "utils/2.6-setting-permissions.yaml"
+
+  # Import custom NFS mounts.
+  - name:                                "2.6 Custom Mounts"
+    ansible.builtin.include_tasks:       "components/2.6.9-custom-mounts.yaml"
+    loop:                                "{{ custom_mounts }}"
+    loop_control:
+      loop_var:                          custom_mount
+    when:
+      - custom_mounts is defined
+
+post_tasks:
+  # Call SAP Note 3119751 to ensure create symlink after the mounts.
+  - name:                                "Calling SAP Note 3119751"
+    ansible.builtin.include_tasks:       "components/2.10.3119751.yaml"
+    when:
+      - platform == 'HANA'
+      - distribution_id in ['redhat8', 'redhat9']
+...

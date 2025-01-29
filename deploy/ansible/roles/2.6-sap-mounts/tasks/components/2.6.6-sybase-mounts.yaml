@@ -1,0 +1,162 @@
+---
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Disk system mounts                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# Mount Filesystems
+
+- name:                                "SYBASE: Get Logical volumes created in 1.5"
+  ansible.builtin.include_vars:        disks_config.yml
+
+- name:                                "SYBASE: Check if LVs exists."
+  ansible.builtin.stat:
+    path:                              "{{ dev_path_from_lv_item }}"
+  loop:                                "{{ logical_volumes }}"
+  register:                            sybasevolstat
+
+- name:                                "SYBASE: Debug - Show volume information"
+  ansible.builtin.debug:
+    var:                               sybasevolstat
+    verbosity:                         2
+
+- name:                                "SYBASE: Gather existing LVs"
+  ansible.builtin.set_fact:
+    lvexists:                          "{{ sybasevolstat.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item.lv') | list }}"
+
+- name:                                "SYBASE: Show lvexists"
+  ansible.builtin.debug:
+    var:                               lvexists
+    verbosity:                         2
+
+# Mount Filesystems
+- name:                                "SYBASE: Mount Filesystems for SYBASE"
+  ansible.posix.mount:
+    src:                               "{{ dev_path_from_lv_item }}"
+    path: >-
+                                        {%- set lv_parts = item.lv.split('_') -%}
+                                        {%- if ('sapdata' in lv_parts) and
+                                            (lv_parts| length == 4) -%}
+                                        {%- set _path = ['/' ~ lv_parts[-3],
+                                          db_sid | upper,
+                                          lv_parts[-2:] | join('_') ] |
+                                          join('/') -%}
+                                        {%- elif ('saplog' in lv_parts) and
+                                            (lv_parts| length == 4) -%}
+                                        {%- set _path = ['/' ~ lv_parts[-3],
+                                          db_sid | upper,
+                                          lv_parts[-2:] | join('_') ] |
+                                          join('/') -%}
+                                        {%- elif ('sybdb' in lv_parts) and
+                                            (lv_parts| length == 3 ) -%}
+                                        {%- set _path = ['/' ~ lv_parts[-2],
+                                          db_sid | upper] |
+                                          join('/') -%}
+                                        {%- else -%}
+                                        {%- set _path = ['/' ~ lv_parts[-2],
+                                          db_sid | upper, lv_parts[-1]] |
+                                          join('/') -%}
+                                        {%- endif -%}
+                                        {{- _path -}}
+    fstype:                            "{{ item.fstype }}"
+    opts:                              defaults
+    state:                             mounted
+  loop:                                "{{ logical_volumes |
+                                            sort(attribute='lv') }}"
+  register:  sybasefsmounts
+  when:
+    - item.node_tier == "sybase"
+    - item.lv in  lvexists
+
+- name:                                "SYBASE: Create sap_deployment_automation
+                                        folder"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              0755
+    state:                             directory
+
+# Debug - Fail
+# - name:                                "SYBASE: fail here"
+#   ansible.builtin.fail:
+#     msg:                               "Fail after printing lv details"
+
+- name:                                "SYBASE: Make sybsid:sapsys as owners for SYBASE
+                                        directories - check flag file"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation/filepermission.txt
+  register:                            sybase_permissions_set
+
+- name:                                "SYBASE: Make syb<sid>:sapsys as owners for SYBASE directories"
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    owner:                             "{{ item.owner }}"
+    group:                             "{{ item.group }}"
+    recurse:                           true
+    mode:                              u=rwX,g=rX,o=rX
+  loop:
+    - { path: '/sybase', group: '{{ sapsys_gid }}', owner: '{{ asesidadm_uid }}' }
+  when:
+    - not sybase_permissions_set.stat.exists
+
+- name:                                "SYBASE: Create sap_deployment_automation
+                                        folder"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation
+    mode:                              0755
+    state:                             directory
+
+- name:                                "SYBASE: Create filepermission.txt"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/filepermission.txt
+    mode:                              0644
+    state:                             touch
+
+- name:                                "SYBASE: Set NFS Server variable"
+  ansible.builtin.set_fact:
+    sapmnt_nfs_mount: >-
+                                        {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}{{ sap_mnt }}{% else %}{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}:/sapmnt/{{ sap_sid | upper }}{% endif %}
+
+- name:                                "SYBASE: Set NFS Server variable"
+  ansible.builtin.debug:
+    var:  sapmnt_nfs_mount
+
+- name:                                "SYBASE: Set NFS Server options"
+  ansible.builtin.set_fact:
+    sapmnt_nfs_opts: >-
+                                        {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp{% else %}defaults{% endif %}
+
+- name:                                "SYBASE: Set NFS Server options"
+  ansible.builtin.debug:
+    var:  sapmnt_nfs_opts
+
+# Mount Filesystems
+- name:                                "Mount SAP Filesystems on Database for installation"
+  ansible.posix.mount:
+    src:                               "{{ item.src }}"
+    path:                              "{{ item.path }}"
+    fstype:                            "{{ item.type }}"
+    opts:                              "{{ item.opts }}"
+    state:                             mounted
+  loop:
+    - {   tier: 'sybase'
+          , type: 'nfs4'
+          , src: '{{ sapmnt_nfs_mount }}'
+          , path: '/sapmnt/{{ sap_sid | upper }}'
+          , opts: '{{ sapmnt_nfs_opts }}'
+    }
+  when:
+    - item.tier == "sybase"
+    - sap_mnt is undefined
+
+# Debug for testing
+- name:                                "SYBASE: Print filesystems"
+  ansible.builtin.debug:
+    var:                               sybasefsmounts
+    verbosity:                         2
+
+...

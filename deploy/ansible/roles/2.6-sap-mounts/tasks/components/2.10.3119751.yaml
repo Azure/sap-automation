@@ -1,0 +1,59 @@
+- name:                                "SAP Note 3119751 make directory"
+  become:                              true
+  ansible.builtin.file:
+    path:                              /usr/sap/lib
+    state:                             directory
+    mode:                              0755
+    owner:                             '{{ sidadm_uid }}'
+    group:                             sapsys
+
+- name:                                "SAP Note 3119751 check if version 10 of compat-sap-c++ is installed"
+  ansible.builtin.stat:
+    path:                              /opt/rh/SAP/lib64/compat-sap-c++-10.so
+  register:                            compat_sap_c10_version
+
+- name:                                "SAP Note 3119751 check if version 11 of compat-sap-c++ is installed"
+  ansible.builtin.stat:
+    path:                              /opt/rh/SAP/lib64/compat-sap-c++-11.so
+  register:                            compat_sap_c11_version
+
+- name:                                "SAP Note 3119751 create symlink"
+  become:                              true
+  ansible.builtin.file:
+    src:                               /opt/rh/SAP/lib64/compat-sap-c++-10.so
+    dest:                              /usr/sap/lib/libstdc++.so.6
+    state:                             link
+    follow:                            false
+    mode:                              0755
+    owner:                             '{{ sidadm_uid }}'
+    group:                             sapsys
+  when:                                compat_sap_c10_version.stat.exists
+
+- name:                                "SAP Note 3119751 create symlink"
+  become:                              true
+  ansible.builtin.file:
+    src:                               /opt/rh/SAP/lib64/compat-sap-c++-11.so
+    dest:                              /usr/sap/lib/libstdc++.so.6
+    state:                             link
+    follow:                            false
+    mode:                              0755
+    owner:                             '{{ sidadm_uid }}'
+    group:                             sapsys
+  when:                                compat_sap_c11_version.stat.exists
+
+- name:                                "SAP Note 3119751 check if version 12 of compat-sap-c++ is installed"
+  ansible.builtin.stat:
+    path:                              /opt/rh/SAP/lib64/compat-sap-c++-12.so
+  register:                            compat_sap_c12_version
+
+- name:                                "SAP Note 3119751 create symlink"
+  become:                              true
+  ansible.builtin.file:
+    src:                               /opt/rh/SAP/lib64/compat-sap-c++-12.so
+    dest:                              /usr/sap/lib/libstdc++.so.6
+    state:                             link
+    follow:                            false
+    mode:                              0755
+    owner:                             '{{ sidadm_uid }}'
+    group:                             sapsys
+  when:                                compat_sap_c12_version.stat.exists
