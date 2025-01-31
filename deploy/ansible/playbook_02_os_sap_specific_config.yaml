@@ -301,7 +301,7 @@
 
         - name:                        "SAP OS configuration playbook: - Mount the file systems"
           ansible.builtin.include_role:
-            name:                      roles/2.6-sap-mounts/tasks
+            name:                      roles/2.6-sap-mounts
           tags:
             - 2.6-sap-mounts
 

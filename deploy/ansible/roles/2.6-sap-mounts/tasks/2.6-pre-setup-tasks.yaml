@@ -1,0 +1,14 @@
+---
+- name:                                "1.5 Disk setup - Load the disk configuration settings"
+  ansible.builtin.include_vars:        ../library/disks_config.yml
+  when:                                logical_volumes is not defined
+
+- name:                                "2.6 SAP Mounts: - Show MULTI_SIDS"
+  ansible.builtin.debug:
+    var:                               MULTI_SIDS
+    verbosity:                         4
+
+- name:                                "2.6 SAP Mounts: - set run time facts"
+  ansible.builtin.include_tasks:
+    file:                              "utils/2.6-set-runtime-facts.yaml"
+...

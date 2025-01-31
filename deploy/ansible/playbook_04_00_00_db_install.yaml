@@ -620,7 +620,7 @@
 
         - name:                        "Database Installation Playbook: - Check for file system mounts"
           ansible.builtin.include_role:
-            name:                      roles/2.6-sap-mounts/tasks
+            name:                      roles/2.6-sap-mounts
 
         - name:                        "Database Installation Playbook: - run Oracle installer"
           ansible.builtin.include_role:
@@ -662,7 +662,7 @@
 
         - name:                        Check for file system mounts
           ansible.builtin.include_role:
-            name:                      roles/2.6-sap-mounts/tasks
+            name:                      roles/2.6-sap-mounts
           when:                        node_tier == 'oracle-multi-sid'
 
         - name:                        Installing Oracle
@@ -717,7 +717,7 @@
 
         - name:                        Mount the file systems for ASM installation
           ansible.builtin.include_role:
-            name:                      roles/2.6-sap-mounts/tasks
+            name:                      roles/2.6-sap-mounts
 
         - name:                        Include 1.5.1-disk-setup-asm role
           ansible.builtin.include_role:
@@ -725,7 +725,7 @@
 
         - name:                        Check for file system mounts
           ansible.builtin.include_role:
-            name:                      roles/2.6-sap-mounts/tasks
+            name:                      roles/2.6-sap-mounts
 
         - name:                        Installing Oracle ASM Grid
           ansible.builtin.include_role:
@@ -794,7 +794,7 @@
 
         - name:                        "DB2 : Check for file system mounts"
           ansible.builtin.include_role:
-            name:                      roles/2.6-sap-mounts/tasks
+            name:                      roles/2.6-sap-mounts
 
         - name:                        Installing DB2
           ansible.builtin.include_role:
@@ -863,7 +863,7 @@
 
         - name:                        "DB2 Installation Play: Check for file system mounts"
           ansible.builtin.include_role:
-            name:                      roles/2.6-sap-mounts/tasks
+            name:                      roles/2.6-sap-mounts
 
         - name:                        "DB2 Installation Play: Installing DB2"
           ansible.builtin.include_role:
@@ -931,7 +931,7 @@
 
         - name:                        "ASE Installation Play: Check for file system mounts"
           ansible.builtin.include_role:
-            name:                      roles/2.6-sap-mounts/tasks
+            name:                      roles/2.6-sap-mounts
 
         - name:                        "ASE Installation Play: Installing ASE"
           ansible.builtin.include_role:

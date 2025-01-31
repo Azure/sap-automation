@@ -1,0 +1,8 @@
+---
+  # Call SAP Note 3119751 to ensure create symlink after the mounts.
+  - name:                                "Calling SAP Note 3119751"
+    ansible.builtin.include_tasks:       "components/2.10.3119751.yaml"
+    when:
+      - platform == 'HANA'
+      - distribution_id in ['redhat8', 'redhat9']
+...
