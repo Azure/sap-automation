@@ -88,7 +88,7 @@ locals {
                                            database_cluster_type           = var.database_cluster_type
                                            database_server_count           = var.database_high_availability ? 2 * var.database_server_count : var.database_server_count
                                            database_vm_sku                 = var.database_vm_sku
-                                           db_sizing_key                   = coalesce(var.db_sizing_dictionary_key, var.database_size)
+                                           db_sizing_key                   = coalesce(var.db_sizing_dictionary_key, var.database_size, "Optimized")
                                            deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
                                            dual_nics                       = var.database_dual_nics
                                            high_availability               = var.database_high_availability
@@ -192,7 +192,7 @@ locals {
                                         enable_deployment               = local.enable_app_tier_deployment
                                         use_DHCP                        = var.app_tier_use_DHCP
                                         dual_nics                       = var.app_tier_dual_nics
-                                        vm_sizing_dictionary_key        = coalesce(var.app_tier_sizing_dictionary_key, "Optimized")
+                                        vm_sizing_dictionary_key        = coalesce(var.app_tier_sizing_dictionary_key, var.application_size, "Optimized")
                                         app_instance_number             = coalesce(var.app_instance_number, "00")
                                         application_server_count        = local.enable_app_tier_deployment ? (
                                                                             var.application_server_count

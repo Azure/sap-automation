@@ -656,6 +656,11 @@ variable "observer_nic_ips"                     {
 #                                                                                       #
 #########################################################################################
 
+variable "application_size"                     {
+                                                  description = "Dictionary key value to sizing json"
+                                                  default     = ""
+                                                }
+
 variable "enable_app_tier_deployment"           {
                                                   description = "If true, the application tier will be deployed"
                                                   default     = true

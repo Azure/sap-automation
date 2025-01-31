@@ -30,7 +30,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
-  public_network_access_enabled        = true #var.storage_account_sapbits.public_network_access_enabled
+  public_network_access_enabled        = var.storage_account_sapbits.public_network_access_enabled
 
   https_traffic_only_enabled            = true
 
@@ -57,6 +57,18 @@ resource "azurerm_storage_account" "storage_tfstate" {
   #     "enable_firewall_for_keyvaults_and_storage" = local.enable_firewall_for_keyvaults_and_storage
   #     "public_network_access_enabled" = var.storage_account_sapbits.public_network_access_enabled
   #   }
+
+}
+
+data "azuread_client_config" "current" {}
+
+resource "azurerm_role_assignment" "storage_tfstate" {
+  provider                             = azurerm.main
+  count                                = local.sa_tfstate_exists ? 0 : 1
+  # count                                = var.enable_storage_role_assignment && !local.sa_tfstate_exists ? 1 : 0
+  scope                                = azurerm_storage_account.storage_tfstate[0].id
+  role_definition_name                 = "Storage Blob Data Contributor"
+  principal_id                         = data.azuread_client_config.current.object_id
 
 }
 
@@ -305,6 +317,15 @@ resource "azurerm_storage_account" "storage_sapbits" {
             }
 }
 
+resource "azurerm_role_assignment" "storage_sapbits" {
+  provider                             = azurerm.main
+  count                                = local.sa_tfstate_exists ? 0 : 1
+  # count                                = var.enable_storage_role_assignment && !local.sa_tfstate_exists ? 1 : 0
+  scope                                = azurerm_storage_account.storage_sapbits[0].id
+  role_definition_name                 = "Storage Blob Data Contributor"
+  principal_id                         = data.azuread_client_config.current.object_id
+
+}
 
 resource "azurerm_storage_account_network_rules" "storage_sapbits" {
   provider                             = azurerm.main
