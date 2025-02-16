@@ -175,6 +175,8 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
 
   tags                                 = merge(local.tags, var.tags)
 
+  encryption_at_host_enabled                             = var.temp_infrastructure.encryption_at_host_enabled
+
   dynamic "admin_ssh_key" {
                             for_each = range(var.deployment == "new" ? 1 : (local.enable_auth_password ? 0 : 1))
                             content {
@@ -317,6 +319,8 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   admin_password                       = var.sid_password
 
   tags                                 = merge(local.tags, var.tags)
+
+  encryption_at_host_enabled                             = var.temp_infrastructure.encryption_at_host_enabled
 
   dynamic "os_disk" {
                       iterator = disk

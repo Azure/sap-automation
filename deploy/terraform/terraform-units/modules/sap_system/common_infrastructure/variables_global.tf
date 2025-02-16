@@ -110,6 +110,8 @@ variable "infrastructure"                        {
                                                   }
                                                  }
 
+variable "temp_infrastructure"                   { description = "Dictionary of information about temp infrastructure"}
+
 variable "options"                               {}
 variable "authentication"                        {}
 variable "key_vault"                             {

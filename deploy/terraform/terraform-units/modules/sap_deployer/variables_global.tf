@@ -97,6 +97,8 @@ variable "deployer_vm_count"           {
                                        }
 variable "arm_client_id"               { description = "ARM client id" }
 
+
+
 #########################################################################################
 #                                                                                       #
 #  ADO definitioms                                                                      #
@@ -111,3 +113,7 @@ variable "Agent_IP"                    { description = "If provided, contains th
 variable "spn_id"                      { description = "SPN ID to be used for the deployment" }
 
 variable "app_service"                 { description = "Details of the Application Service" }
+
+
+
+

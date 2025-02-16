@@ -38,6 +38,13 @@ variable "prevent_deletion_if_contains_resources" {
                                                     type        = bool
                                                     default     = true
                                                   }
+
+variable "encryption_at_host_enabled"             {
+                                                    description = "Enables host encryption for sap landscape vms"
+                                                    default     = false
+                                                    type        = bool
+                                                  }
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitioms                          #

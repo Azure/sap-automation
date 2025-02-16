@@ -420,6 +420,12 @@ variable "tags"                                 {
                                                   description = "If provided, tags for all resources"
                                                   default     = {}
                                                 }
+
+variable "encryption_at_host_enabled"           {
+                                                  description = "Enable or disable host encryption for the deployer"
+                                                  default     = false
+                                                  type        = bool
+                                                }                                                  
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #

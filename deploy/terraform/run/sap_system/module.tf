@@ -94,6 +94,7 @@ module "common_infrastructure" {
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   dns_settings                                  = local.dns_settings
   enable_firewall_for_keyvaults_and_storage     = var.enable_firewall_for_keyvaults_and_storage
+  temp_infrastructure                           = var.local.temp_infrastructure
 }
 
 #-------------------------------------------------------------------------------
@@ -165,6 +166,7 @@ module "hdb_node" {
   hanashared_private_endpoint_id                = var.hanashared_private_endpoint_id
   hanashared_id                                 = var.hanashared_id
   random_id                                     = module.common_infrastructure.random_id
+  temp_infrastructure                           = var.local.temp_infrastructure
 }
 
 #########################################################################################
@@ -218,6 +220,7 @@ module "app_tier" {
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
   dns_settings                                  = local.dns_settings
+  temp_infrastructure                           = var.local.temp_infrastructure
 }
 
 #########################################################################################
@@ -282,6 +285,7 @@ module "anydb_node" {
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
   dns_settings                                  = local.dns_settings
+  temp_infrastructure                           = var.local.temp_infrastructure
 }
 
 #########################################################################################

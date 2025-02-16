@@ -188,6 +188,7 @@ locals {
                                            user_assigned_identity_id           = var.user_assigned_identity_id
                                            shared_access_key_enabled           = var.shared_access_key_enabled
                                            devops_authentication_type          = var.app_service_devops_authentication_type
+                                           encryption_at_host_enabled          = var.encryption_at_host_enabled
 
 
                                          }

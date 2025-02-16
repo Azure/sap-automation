@@ -257,7 +257,11 @@ variable "shared_access_key_enabled"            {
                                                   type        = bool
                                                 }
 
-
+variable "encryption_at_host_enabled"           {
+                                                  description = "Enable or disable host encryption for the deployer"
+                                                  default     = false
+                                                  type        = bool
+                                                }   
 
 ###############################################################################
 #                                                                             #
