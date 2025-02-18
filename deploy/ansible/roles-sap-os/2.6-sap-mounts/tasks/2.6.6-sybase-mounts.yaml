@@ -121,12 +121,25 @@
 
 - name:                                "SYBASE: Set NFS Server variable"
   ansible.builtin.set_fact:
-    sapmnt_nfs_mount: >-
-                                        {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}{{ sap_mnt }}{% else %}{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}:/sapmnt/{{ sap_sid | upper }}{% endif %}
+    nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
+  when:
+    - NFS_provider == "NONE"
+    - sap_mnt is not defined
+    - node_tier != 'scs'
+    - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2', 'sybase']
 
-- name:                                "SYBASE: Set NFS Server variable"
+- name:                                "SYBASE: Set NFS Mount variable"
+  ansible.builtin.set_fact:
+    sapmnt_nfs_mount: >-
+                                        {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}{{ sap_mnt }}{% else %}{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}{% endif %}
+  when:
+    - (nfs_server is defined and nfs_server != ansible_hostname) or nfs_server is not defined
+
+- name:                                "SYBASE: Debug NFS Mount variable"
   ansible.builtin.debug:
     var:  sapmnt_nfs_mount
+  when:
+    - sapmnt_nfs_mount is defined
 
 - name:                                "SYBASE: Set NFS Server options"
   ansible.builtin.set_fact:
@@ -155,6 +168,7 @@
   when:
     - item.tier == "sybase"
     - sap_mnt is undefined
+    - sapmnt_nfs_mount is defined
 
 # Debug for testing
 - name:                                "SYBASE: Print filesystems"
