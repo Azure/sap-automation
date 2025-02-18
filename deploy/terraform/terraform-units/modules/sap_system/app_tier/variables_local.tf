@@ -133,10 +133,12 @@ locals {
                                            )
                                          ) : ""
 
-  web_subnet_deployed                  = local.web_subnet_exists ? (
+  web_subnet_deployed                  = local.enable_deployment ? ( local.web_subnet_exists ? (
                                              data.azurerm_subnet.subnet_sap_web[0]) : (
                                              azurerm_subnet.subnet_sap_web[0]
-                                           )
+                                         )) : (
+                                            ""
+                                         )
 
   ##############################################################################################
   #
