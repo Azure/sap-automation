@@ -161,7 +161,7 @@ resource "azurerm_windows_virtual_machine" "anchor" {
   admin_username                       = local.sid_auth_username
   admin_password                       = local.sid_auth_password
 
-  encryption_at_host_enabled           = var.temp_infrastructure.encryption_at_host_enabled
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
   os_disk {
     name                               = format("%s%s%s%s%s",
