@@ -24,7 +24,6 @@ variable "idle_timeout_scs_ers"                         {
                                                           default     = 4
                                                         }
 variable "infrastructure"                               { description = "Dictionary of information about the common infrastructure" }
-variable "temp_infrastructure"                          { description = "Dictionary of information about temp infrastructure"}
 variable "landscape_tfstate"                            { description = "Terraform output from the workload zone" }
 variable "license_type"                                 { description = "Specifies the license type for the OS" }
 variable "naming"                                       { description = "Defines the names for the resources" }
