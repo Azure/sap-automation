@@ -178,7 +178,7 @@ resource "azurerm_linux_virtual_machine" "app" {
 
   tags             =  merge(var.application_tier.app_tags, var.tags)
 
-  encryption_at_host_enabled           = var.temp_infrastructure.encryption_at_host_enabled
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
   dynamic "admin_ssh_key" {
                             for_each = range(var.deployment == "new" ? 1 : (local.enable_auth_password ? 0 : 1))
