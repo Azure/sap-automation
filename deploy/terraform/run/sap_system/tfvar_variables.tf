@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #######################################4#######################################8
 #                                                                              #
 #                           Environment definitioms                            #
@@ -137,7 +140,7 @@ variable "shared_access_key_enabled"            {
 
 variable "shared_access_key_enabled_nfs"        {
                                                   description = "Indicates whether the storage account used for NFS permits requests to be authorized with the account access key via Shared Key."
-                                                  default     = true
+                                                  default     = false
                                                   type        = bool
                                                 }
 
@@ -152,6 +155,16 @@ variable "encryption_at_host_enabled"           {
                                                   default     = false
                                                   type        = bool
                                                 }                                                     
+variable "data_plane_available"                 {
+                                                  description = "Boolean value indicating if storage account access is via data plane"
+                                                  default     = false
+                                                  type        = bool
+                                                }
+
+variable "custom_random_id"                     {
+                                                  description = "If provided, the value of the custom random id"
+                                                  default     = ""
+                                                }
 
 #########################################################################################
 #                                                                                       #
@@ -430,6 +443,12 @@ variable "use_fence_kdump_lun_scs"              {
                                                   default     = 4
                                                 }
 
+variable "use_sles_saphanasr_angi"              {
+                                                  description = "If true, the SAP HANA SR cluster will be configured with SAP HANA SR - An Next Generation Interface"
+                                                  type        = bool
+                                                  default     = false
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  Database tier variables                                                              #
@@ -605,6 +624,11 @@ variable "database_vm_storage_nic_ips"          {
 
 variable "database_use_premium_v2_storage"      {
                                                   description = "If true, the database tier will use premium storage v2"
+                                                  default     = false
+                                                }
+
+variable "database_active_active"               {
+                                                  description = "If true, database will deployed with Active/Active (read enabled) configuration, only supported for HANA"
                                                   default     = false
                                                 }
 
@@ -1391,7 +1415,7 @@ variable "anchor_vm_accelerated_networking"     {
                                                   default     = true
                                                 }
 
-variable "subscription"                         {
+variable "subscription_id"                      {
                                                   description = "Target subscription"
                                                   default     = ""
                                                 }

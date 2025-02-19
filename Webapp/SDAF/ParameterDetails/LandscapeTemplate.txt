@@ -33,8 +33,11 @@ $$location$$
 # Description of the Workload zone.
 $$Description$$
 
-#If you want to provide a custom naming json use the following parameter.
+# If you want to provide a custom naming json use the following parameter.
 $$name_override_file$$
+
+# The subscription ID is used to control where the resources are deployed
+$$subscription_id$$
 
 #########################################################################################
 #                                                                                       #
@@ -75,7 +78,7 @@ $$use_private_endpoint$$
 # use_service_endpoint is a boolean flag controlling if the key vaults and storage accounts have service endpoints
 $$use_service_endpoint$$
 
-#Defines if the SAP VNet will be peered with the control plane VNet
+# Defines if the SAP VNet will be peered with the control plane VNet
 $$peer_with_control_plane_vnet$$
 
 # Defines if access to the key vaults and storage accounts is restricted to the SAP and deployer VNets
@@ -86,6 +89,12 @@ $$public_network_access_enabled$$
 
 # place_delete_lock_on_resources, If defined, a delete lock will be placed on the key resources
 $$place_delete_lock_on_resources$$
+
+# The flow timeout in minutes of the virtual network
+$$network_flow_timeout_in_minutes$$
+
+# Enable network route table propagation.
+$$network_enable_route_propagation$$
 
 #########################################################################################
 #                                                                                       #
@@ -204,7 +213,6 @@ $$anf_subnet_nsg_arm_id$$
 #                                                                         #
 ###########################################################################
 
-/* iscsi subnet information */
 # If defined these parameters control the subnet name and the subnet prefix
 # iscsi_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
 $$iscsi_subnet_name$$
@@ -227,7 +235,6 @@ $$iscsi_subnet_nsg_name$$
 #                                                                         #
 ###########################################################################
 
-/* ams subnet information */
 # If defined these parameters control the subnet name and the subnet prefix
 # ams_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
 $$ams_subnet_name$$
@@ -251,7 +258,6 @@ $$ams_subnet_nsg_name$$
 #                                                                         #
 ###########################################################################
 
-/* storage subnet information */
 # If defined these parameters control the subnet name and the subnet prefix
 # storage_subnet_name is an optional parameter and should only be used if the default naming is not acceptable
 $$storage_subnet_name$$
@@ -267,7 +273,6 @@ $$storage_subnet_nsg_arm_id$$
 
 # storage_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
 $$storage_subnet_nsg_name$$
-
 
 #########################################################################################
 #                                                                                       #
@@ -353,7 +358,7 @@ $$user_keyvault_id$$
 # spn_keyvault_id is an optional parameter that if provided specifies the Azure resource identifier for an existing keyvault
 $$spn_keyvault_id$$
 
-# enable_purge_control_for_keyvaults is an optional parameter that czan be used to disable the purge protection fro Azure keyvaults
+# enable_purge_control_for_keyvaults is an optional parameter that can be used to disable the purge protection for Azure key vaults
 $$enable_purge_control_for_keyvaults$$
 
 # enable_rbac_authorization_for_keyvault Controls the access policy model for the workload zone keyvault.
@@ -451,7 +456,7 @@ $$install_create_smb_shares$$
 # If defined provides the DNS label for the Virtual Network
 $$dns_label$$
 
-#If defined provides the lsit of DNS servers to attach to the Virtual NEtwork
+# If defined provides the list of DNS servers to attach to the Virtual NEtwork
 $$dns_server_list$$
 
 #########################################################################################
@@ -478,22 +483,22 @@ $$use_AFS_for_shared_storage$$
 # ANF_account_name is the name for the Netapp Account
 $$ANF_account_name$$
 
-#ANF_service_level is the service level for the NetApp pool
+# ANF_service_level is the service level for the NetApp pool
 $$ANF_service_level$$
 
-#ANF_pool_name is the ANF pool name
+# ANF_pool_name is the ANF pool name
 $$ANF_pool_name$$
 
-#ANF_pool_size is the pool size in TB for the NetApp pool
+# ANF_pool_size is the pool size in TB for the NetApp pool
 $$ANF_pool_size$$
 
-#ANF_qos_type defines the Quality of Service type of the pool (Auto or Manual)
+# ANF_qos_type defines the Quality of Service type of the pool (Auto or Manual)
 $$ANF_qos_type$$
 
 # ANF_account_arm_id is the Azure resource identifier for an existing Netapp Account
 $$ANF_account_arm_id$$
 
-#ANF_use_existing_pool defines if an existing pool is used
+# ANF_use_existing_pool defines if an existing pool is used
 $$ANF_use_existing_pool$$
 
 #########################################################################################
@@ -523,16 +528,16 @@ $$ANF_transport_volume_zone$$
 #                                                                                       #
 #########################################################################################
 
-#ANF_install_volume_use_existing defines if an existing volume is used for install
+# ANF_install_volume_use_existing defines if an existing volume is used for install
 $$ANF_install_volume_use_existing$$
 
-#ANF_install_volume_name is the name of the install volume
+# ANF_install_volume_name is the name of the install volume
 $$ANF_install_volume_name$$
 
-#ANF_install_volume_throughput is the throughput for the install volume
+# ANF_install_volume_throughput is the throughput for the install volume
 $$ANF_install_volume_throughput$$
 
-#ANF_install_volume_size is the size for the install volume
+# ANF_install_volume_size is the size for the install volume
 $$ANF_install_volume_size$$
 
 # ANF_install_volume_zone is the zone for the transport volume
@@ -582,9 +587,6 @@ $$tfstate_resource_id$$
 
 # deployer_tfstate_key is the state file name for the deployer
 $$deployer_tfstate_key$$
-
-# use_spn defines if the deployments are performed using Service Principals or the deployer's managed identiry, true=SPN, false=MSI
-$$use_spn$$
 
 
 #########################################################################################

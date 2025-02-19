@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 /*
   Description:
   Setup sap library
@@ -37,5 +40,5 @@ module "sap_namegenerator" {
   environment                       = local.infrastructure.environment
   location                          = local.infrastructure.region
   management_vnet_name              = ""
-  random_id                         = module.sap_library.random_id
+  random_id                         = coalesce(var.custom_random_id, module.sap_library.random_id)
 }

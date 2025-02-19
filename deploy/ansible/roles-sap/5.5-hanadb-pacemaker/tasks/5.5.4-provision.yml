@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ###########################################################################################
 # This file calls the OS specific tasks to configure HANA specific clustering resources  #8
 ###########################################################################################

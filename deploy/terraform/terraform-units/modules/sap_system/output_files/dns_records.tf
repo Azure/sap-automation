@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 resource "azurerm_private_dns_a_record" "app_secondary" {
   provider            = azurerm.dnsmanagement
   count               = var.dns_a_records_for_secondary_names && var.use_secondary_ips && !var.use_custom_dns_a_registration && length(var.dns) > 0 ? var.app_server_count : 0

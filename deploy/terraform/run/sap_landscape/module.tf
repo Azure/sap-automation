@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 /*
   Description:
   Setup common infrastructure
@@ -16,6 +19,7 @@ module "sap_landscape" {
 
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
   Agent_IP                                     = var.add_Agent_IP ? var.Agent_IP : ""
+  additional_network_id                        = var.additional_network_id
   ANF_settings                                 = local.ANF_settings
   authentication                               = local.authentication
   create_transport_storage                     = var.create_transport_storage
@@ -56,7 +60,7 @@ module "sap_landscape" {
   vm_settings                                  = local.vm_settings
   witness_storage_account                      = local.witness_storage_account
   dns_settings                                 = local.dns_settings
-  temp_infrastructure                          = local.temp_infrastructure
+  data_plane_available                         = var.data_plane_available
 }
 
 module "sap_namegenerator" {
@@ -65,8 +69,8 @@ module "sap_namegenerator" {
   environment                                  = local.infrastructure.environment
   iscsi_server_count                           = try(local.infrastructure.iscsi.iscsi_count, 0)
   location                                     = local.infrastructure.region
-  random_id                                    = module.sap_landscape.random_id
-  sap_vnet_name                                = local.infrastructure.vnets.sap.logical_name
+  random_id                                    = coalesce(var.custom_random_id, module.sap_landscape.random_id)
+  sap_vnet_name                                = local.infrastructure.virtual_networks.sap.logical_name
   utility_vm_count                             = var.utility_vm_count
 }
 

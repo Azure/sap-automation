@@ -1,0 +1,267 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+#
+#   2482103 - Installation with SWPM in unattended mode using parameter input file fails
+#   2393060 - SAPinst Framework 749 Central Note
+
+archives.downloadBasket                                               = {{ target_media_location }}/download_basket
+
+SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP3
+SAPINST.CD.PACKAGE.CD4                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP4
+
+
+nwUsers.sapadmUID                                                     = {{ sapadm_uid }}
+nwUsers.sapsysGID                                                     = {{ sapsys_gid }}
+nwUsers.sidAdmUID                                                     = {{ sidadm_uid }}
+nwUsers.sidadmPassword                                                = {{ main_password }}
+
+NW_Delete_Sapinst_Users.removeUsers                                   = true
+NW_GetMasterPassword.masterPwd                                        = {{ main_password }}
+
+{% if database_scale_out | bool %}
+hanadb.landscape.reorg.useCheckProcedureFile                          = DONOTUSEFILE
+hanadb.landscape.reorg.useParameterFile                               = DONOTUSEFILE
+{% endif %}
+
+{% if drop_schema | bool %}
+HDB_Schema_Check_Dialogs.dropSchema                                   = true
+{% endif %}
+
+NW_ABAP_Import_Dialog.migmonJobNum                                    = 12
+hanadb.landscape.reorg.useParameterFile                               = DONOTUSEFILE
+
+{% if platform | upper == 'HANA' %}
+
+
+HDB_Schema_Check_Dialogs.schemaName                                   = {{ hana_schema }}
+HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
+
+NW_HDB_DB.abapSchemaName                                              = {{ hana_schema }}
+NW_HDB_DB.abapSchemaPassword                                          = {{ main_password }}
+NW_HDB_DBClient.clientPathStrategy                                    = SAPCPE
+NW_HDB_getDBInfo.dbhost                                               = {{ sap_db_hostname }}
+NW_HDB_getDBInfo.dbsid                                                = {{ db_sid | upper }}
+NW_HDB_getDBInfo.instanceNumber                                       = {{ db_instance_number }}
+NW_HDB_getDBInfo.systemDbPassword                                     = {{ main_password }}
+NW_HDB_getDBInfo.systemPassword                                       = {{ main_password }}
+NW_HDB_getDBInfo.systemid                                             = {{ db_sid | upper }}
+NW_HDB_getDBInfo.usingSSL                                             = true
+
+NW_Recovery_Install_HDB.extractLocation                               = {{ hana_backup_path }}/{{ db_sid | upper }}/HDB{{ db_instance_number }}/backup/data/DB_{{ db_sid | upper }}{{ db_instance_number }}
+NW_Recovery_Install_HDB.extractParallelJobs                           = 24
+NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid | lower }}adm
+NW_Recovery_Install_HDB.sidAdmPassword                                = {{ main_password }}
+
+
+{% endif %}
+
+NW_checkMsgServer.abapMSPort                                          = 36{{ scs_instance_number }}
+NW_getLoadType.loadType                                               = SAP
+NW_readProfileDir.profileDir                                          = {{ sap_profile_dir }}
+NW_readProfileDir.profilesAvailable                                   = true
+NW_getUnicode.isUnicode                                               = true
+
+NW_getDBInfoGeneric.dbhost                                            = {{ sap_db_hostname }}
+NW_getDBInfoGeneric.dbsid                                             = {{ db_sid | upper }}
+
+NW_ABAP_Import_Dialog.migmonJobNum                                    = 20
+NW_ABAP_Import_Dialog.dbCodepage                                      = 4103
+NW_ABAP_Import_Dialog.migmonLoadArgs                                  = -stop_on_error -loadprocedure fast
+
+
+{% if platform | upper == 'ORACLE-ASM' %}
+SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
+
+storageBasedCopy.ora.serverVersion                                    = {{ ora_release}}
+storageBasedCopy.ora.clientVersion                                    = {{ ora_release}}
+ora.SysPassword                                                       = {{ main_password }}
+ora.SystemPassword                                                    = {{ main_password }}
+ora.createStatisticsCodeABAP                                          = CREATE
+ora.dbhome                                                            = /oracle/{{ db_sid|upper }}/{{ ora_release }}
+ora.grid.ORACLE_HOME                                                  = /oracle/GRID/{{ ora_version }}
+ora.grid.ORACLE_SID                                                   = +ASM
+ora.multitenant.installMT                                             = FALSE
+ora.multitenant.pdbsid                                                = {{ db_sid|upper }}
+ora.rbDatabase                                                        = CREATEDB
+ora.whatIsASM                                                         = isASM
+ora.whatIsInstance                                                    = isSingle
+ora.whatIsOracleUser                                                  = true
+ora.whatIsSHOH                                                        = false
+storageBasedCopy.abapSchemaPassword                                   = {{ main_password }}
+storageBasedCopy.javaSchemaPassword                                   = {{ main_password }}
+storageBasedCopy.ora.swowner                                          = oracle
+
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
+SAPINST.CD.PACKAGE.CD4                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP4
+
+{% endif %}
+
+{% if platform | upper == 'ORACLE' %}
+SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
+
+storageBasedCopy.ora.serverVersion                                    = {{ ora_release}}
+storageBasedCopy.ora.clientVersion                                    = {{ ora_release}}
+ora.SysPassword                                                       = {{ main_password }}
+ora.SystemPassword                                                    = {{ main_password }}
+ora.createStatisticsCodeABAP                                          = CREATE
+ora.dbhome                                                            = /oracle/{{ db_sid|upper }}/{{ ora_release }}
+ora.grid.ORACLE_HOME                                                  = /oracle/GRID/{{ ora_version }}
+ora.grid.ORACLE_SID                                                   = +ASM
+ora.multitenant.installMT                                             = FALSE
+ora.multitenant.pdbsid                                                = {{ db_sid|upper }}
+ora.rbDatabase                                                        = CREATEDB
+ora.whatIsASM                                                         = isNonASM
+ora.whatIsInstance                                                    = isSingle
+ora.whatIsOracleUser                                                  = true
+ora.whatIsSHOH                                                        = false
+storageBasedCopy.abapSchemaPassword                                   = {{ main_password }}
+storageBasedCopy.javaSchemaPassword                                   = {{ main_password }}
+storageBasedCopy.ora.swowner                                          = oracle
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
+{% endif %}
+
+
+
+{% if platform | upper == 'ASE' %}
+
+# Sort order configuration of the database server
+SYB.NW_DB.aseSortOrder                                                  = binaryalt
+
+# Only if you use the 'autoextend' feature: Increment size for the SAP database default segment in GB
+SYB.NW_DB.autoExpandSAPGrowDefault                                      = 10
+
+# Only if you use the 'autoextend' feature: Increment size for the SAP database log segment in GB
+SYB.NW_DB.autoExpandSAPGrowLog                                          = 5
+
+# Only if you use the 'autoextend' feature: Free space threshold size for the SAP database default segment in GB
+SYB.NW_DB.autoExpandSAPThresholdDefault                                 = 10
+
+# Only if you use the 'autoextend' feature: Free space threshold size for the SAP database log segment in GB
+SYB.NW_DB.autoExpandSAPThresholdLog                                     = 5
+
+# Only if you use the 'autoextend' feature: Increment size for the saptools database default segment in GB
+SYB.NW_DB.autoExpandSaptoolsGrowDefault                                 = 2
+
+# Only if you use the 'autoextend' feature: Increment size for the saptools database log segment in GB
+SYB.NW_DB.autoExpandSaptoolsGrowLog                                     = 2
+
+# Only if you use the 'autoextend' feature: Free space threshold size for the saptools database default segment in GB
+SYB.NW_DB.autoExpandSaptoolsThresholdDefault                            = 2
+
+# Only if you use the 'autoextend' feature: Free space threshold size for the saptools database log segment in GB
+SYB.NW_DB.autoExpandSaptoolsThresholdLog                                = 2
+
+
+# Database device information like 'type','folder','size','maxsize','growsize','name'
+SYB.NW_DB.databaseDevices = data device for SAP,/sybase/{{ db_sid | upper }}/sapdata_1,64,,10,{{ db_sid | upper }}_data_001,log device for SAP,/sybase/{{ db_sid | upper }}/saplog_1,32,,5,{{ db_sid | upper }}_log_001,data device for saptools,/sybase/{{ db_sid | upper }}/sapdiag,14,,2,saptools_data_001,log device for saptools,/sybase/{{ db_sid | upper }}/sapdiag,8,,2,saptools_log_001,data device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,8,,,sybsecurity_data_001,data device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,8,,,sybsecurity_data_002,log device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,4,,,sybsecurity_log_001,temp device for SAP,/sybase/{{ db_sid | upper }}/saptemp,8,,,saptempdb_data_001,
+
+
+# Type of SAP ASE
+SYB.NW_DB.databaseType                                                  = ase
+
+# Enable database 'autoextend' feature
+SYB.NW_DB.enableDataDeviceAutoExpansion                                 = true
+
+
+# Setup granular permissions for administrative tasks
+SYB.NW_DB.enableGranularPermissions                                     = true
+
+
+# Enable strong cipher suites for SSL encrypted data transfer
+SYB.NW_DB.enableStrongCipherSuitesForSSL                                = false
+
+# Path to ASE database software
+SYB.NW_DB.folderDatabaseSoftware                                        = /sybase/{{ db_sid | upper }}
+
+# Path to diagnostic database devices
+SYB.NW_DB.folderDiagDevice                                              = /sybase/{{ db_sid | upper }}/sapdiag
+
+# Path to SAP tempdb device
+SYB.NW_DB.folderSAPTempdbDevice                                         = /sybase/{{ db_sid | upper }}/saptemp
+
+# Path to sybsecurity device
+SYB.NW_DB.folderSecurityDevices                                         = /sybase/{{ db_sid | upper }}/sybsecurity
+
+# Path to data server 'system' devices
+SYB.NW_DB.folderSystemDevices                                           = /sybase/{{ db_sid | upper }}/sybsystem
+
+# Path to data server 'temp' device
+SYB.NW_DB.folderTempdbDevice                                            = /sybase/{{ db_sid | upper }}/sybtemp
+
+# Number of consumers used by the 'create index with consumers' command
+SYB.NW_DB.indexConsumers                                                = 3
+
+# Initialize the default system encryption password with the database encryption master password
+SYB.NW_DB.initializeDefaultSystemEncryptionPassword                     = false
+
+# Database server-wide maximum number of worker processes allowed per query used by the 'create index with consumers' and 'update stats with consumers' commands
+SYB.NW_DB.maxIndexParallelDegree                                        = 10
+
+# Database server-wide maximum number of worker processes allowed per query
+SYB.NW_DB.maxQueryParallelDegree                                        = 10
+
+# Maximum number of worker processes that can be used at any one time for all simultaneously running parallel queries
+SYB.NW_DB.numberWorkerProcesses                                         = 50
+
+# Port number of the backup server
+SYB.NW_DB.portBackupServer                                              = 4902
+
+# Port number of the database server
+SYB.NW_DB.portDatabaseServer                                            = 4901
+
+# Port number of the job scheduler
+SYB.NW_DB.portJobScheduler                                              = 4903
+
+# Port number of the xp server
+SYB.NW_DB.portXPServer                                                  = 4904
+
+# Password of database user for administration
+SYB.NW_DB.sa_pass                                                       = {{ main_password }}
+
+# Password of the database user 'sapsa'
+SYB.NW_DB.sapsa_pass                                                    = {{ main_password }}
+
+# Password of the technical database user for the ABAP application server
+SYB.NW_DB.sapsr3_pass                                                   = {{ main_password }}
+
+# Password of the technical database user for the Java application server
+SYB.NW_DB.sapsr3db_pass                                                 = {{ main_password }}
+
+# Password of the database user 'sapsso'
+SYB.NW_DB.sapsso_pass                                                   = {{ main_password }}
+
+# Number of database connections
+SYB.NW_DB.sqlServerConnections                                          = 200
+
+# Number of CPU cores for the database server
+SYB.NW_DB.sqlServerCores                                                = {{ core_count }}
+
+# Host name of the database server
+SYB.NW_DB.sqlServerHostname                                             = {{ sap_db_hostname }}
+
+# Physical memory (in GB) for the database server
+SYB.NW_DB.sqlServerMemory                                               = {{ sybase_memory }}
+
+# Password for SSL encrypted data transfer
+SYB.NW_DB.sslPassword                                                   = {{ main_password }}
+
+# Path to folder for sybmgmtdb database data device
+SYB.NW_DB.sybmgmtdbDataDeviceFolder                                     = /sybase/{{ db_sid | upper }}/sybsystem
+
+# Path to folder for sybmgmtdb database log device
+SYB.NW_DB.sybmgmtdbLogDeviceFolder                                      = /sybase/{{ db_sid | upper }}/sybsystem
+
+# Host name in the SAP ASE user store location path
+SYB.NW_DB.userstore_hostname                                            = {{ sap_db_hostname }}
+
+# Master key password for database encryption
+SYB.NW_DB.encryptionMasterKeyPassword                                   = {{ main_password }}
+
+{% endif %}

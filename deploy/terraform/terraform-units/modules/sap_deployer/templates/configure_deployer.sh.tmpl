@@ -1,5 +1,6 @@
 #!/bin/bash
-
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 #
 # configure_deployer.sh
 #
@@ -71,7 +72,7 @@ AGENTNAME=$(hostname)
 #
 # Ansible Version settings
 #
-ansible_version="$${ansible_version:-2.13}"
+ansible_version="$${ansible_version:-2.16}"
 ansible_major="$${ansible_version%%.*}"
 ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
 
@@ -315,7 +316,7 @@ else
       echo "we are inside ubuntu  block"
       rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
       if [ "$rel" == "22.04" ]; then
-        ansible_version="$${ansible_version:-2.15}"
+        ansible_version="$${ansible_version:-2.16}"
         ansible_major="$${ansible_version%%.*}"
         ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
       fi
@@ -382,6 +383,7 @@ else
             apt-transport-https
             lsb-release
             software-properties-common
+            zip
         )
         ;;
     (sles)
@@ -413,6 +415,7 @@ else
     esac
 
     # Install required packages as determined above
+    sleep 10
     set +o errexit
     pkg_mgr_install "$${required_pkgs[@]}"
 
@@ -423,7 +426,6 @@ else
 
     # Ensure our package metadata cache is up to date
     pkg_mgr_refresh
-
 
 
     # Prepare Azure SAP Automated Deployment folder structure
@@ -653,7 +655,7 @@ else
     # Ensure that Python argcomplete is enabled for all users interactive shell sessions
     # sudo "$${ansible_bin}/activate-global-python-argcomplete"
 
-    # Install Ansible collections under the ANSIBLE_COLLECTIONS_PATHS for all users.
+    # Install Ansible collections under the ANSIBLE_COLLECTIONS_PATH for all users.
     sudo mkdir -p "$${ansible_collections}"
 
     set +o xtrace
@@ -686,7 +688,7 @@ else
 
     # Set env for ansible
     echo export ANSIBLE_HOST_KEY_CHECKING=False | sudo tee -a /etc/profile.d/deploy_server.sh
-    echo export ANSIBLE_COLLECTIONS_PATHS="$${ansible_collections}" | sudo tee -a /etc/profile.d/deploy_server.sh
+    echo export ANSIBLE_COLLECTIONS_PATH="$${ansible_collections}" | sudo tee -a /etc/profile.d/deploy_server.sh
 
     export DOTNET_INSTALL_DIR='/opt/dotnet'
 
@@ -716,7 +718,7 @@ else
 
     (echo export ARM_CLIENT_ID="$${client_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
     (echo export ARM_SUBSCRIPTION_ID="$${subscription_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
-#    (echo export ARM_TENANT_ID="$${tenant_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
+    (echo export ARM_TENANT_ID="$${tenant_id}" | sudo tee -a /etc/profile.d/deploy_server.sh) > /dev/null 2>&1
 
     # if [[ -n $${TOKEN} ]]; then
     #     echo export AZURE_DEVOPS_EXT_PAT=$${TOKEN} | sudo tee -a /etc/profile.d/deploy_server.sh
@@ -777,8 +779,8 @@ else
         fi
 
         (echo "$${agent_home}/config.sh"  --unattended --url "$${DEVURL}" --auth pat --token "$${TOKEN}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a "$${agent_home}/config_fixed_params.sh") > /dev/null 2>&1
-        sudo chmod +x "$${agent_home}/config_fixed_params.sh"
         sudo chown "$${local_user}" "$${agent_home}/config_fixed_params.sh"
+        sudo chmod +x "$${agent_home}/config_fixed_params.sh"
 
         echo "Installing Agent"
 

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 
 locals {
 
@@ -57,7 +60,7 @@ locals {
   enable_firewall_for_keyvaults_and_storage = try(var.deployer_tfstate.enable_firewall_for_keyvaults_and_storage, false)
 
   use_local_private_dns                     = (length(var.dns_settings.dns_label) > 0 && !var.use_custom_dns_a_registration && length(trimspace(var.dns_settings.management_dns_resourcegroup_name)) == 0)
-  use_local_privatelink_dns                 = !var.use_custom_dns_a_registration && length(trimspace(var.dns_settings.privatelink_dns_resourcegroup_name)) == 0
+  use_local_privatelink_dns                 = var.dns_settings.create_privatelink_dns_zones && !var.use_custom_dns_a_registration && length(trimspace(var.dns_settings.privatelink_dns_resourcegroup_name)) == 0
 
   keyvault_id                               = try(var.deployer_tfstate.deployer_kv_user_arm_id, "")
 

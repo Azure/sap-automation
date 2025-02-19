@@ -1,31 +1,34 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #######################################4#######################################8
 #                                                                              #
 #              Firewall subnet - Check if locally provided                     #
 #                                                                              #
 #######################################4#######################################8
 resource "azurerm_subnet" "firewall" {
-  count                                      = var.firewall_deployment && !local.firewall_subnet_exists ? 1 : 0
+  count                                      = var.firewall.deployment && !local.firewall_subnet_exists ? 1 : 0
   name                                       = local.firewall_subnet_name
   address_prefixes                           = [local.firewall_subnet_prefix]
-  resource_group_name                        = local.vnet_mgmt_exists ? (
+  resource_group_name                        = local.management_virtual_network_exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )
-  virtual_network_name                       = local.vnet_mgmt_exists ? (
+  virtual_network_name                       = local.management_virtual_network_exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].name
                                                )
 }
 
 data "azurerm_subnet" "firewall" {
-  count                                      = var.firewall_deployment && local.firewall_subnet_exists ? 1 : 0
+  count                                      = var.firewall.deployment && local.firewall_subnet_exists ? 1 : 0
   name                                       = split("/", local.firewall_subnet_arm_id)[10]
   resource_group_name                        = split("/", local.firewall_subnet_arm_id)[4]
   virtual_network_name                       = split("/", local.firewall_subnet_arm_id)[8]
 }
 
 resource "azurerm_public_ip" "firewall" {
-  count                                      = var.firewall_deployment ? 1 : 0
+  count                                      = var.firewall.deployment ? 1 : 0
   name                                       = format("%s%s%s%s%s",
                                                  var.naming.resource_prefixes.pip,
                                                  local.prefix,
@@ -36,19 +39,24 @@ resource "azurerm_public_ip" "firewall" {
   allocation_method                          = "Static"
   sku                                        = "Standard"
 
-  location                                   = local.vnet_mgmt_exists ? (
+  location                                   = local.management_virtual_network_exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].location) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].location
                                                )
 
-  resource_group_name                        = local.vnet_mgmt_exists ? (
+  resource_group_name                        = local.management_virtual_network_exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )
+  zones                                      = [1,2,3] # - optional property.
+  ip_tags                                    = var.firewall.ip_tags
+  lifecycle                                  {
+                                                create_before_destroy = true
+                                             }
 }
 
 resource "azurerm_firewall" "firewall" {
-  count                                      = var.firewall_deployment ? 1 : 0
+  count                                      = var.firewall.deployment ? 1 : 0
   name                                       = format("%s%s%s%s",
                                                 var.naming.resource_prefixes.firewall,
                                                 local.prefix,
@@ -66,19 +74,23 @@ resource "azurerm_firewall" "firewall" {
                                                  azurerm_resource_group.deployer[0].location
                                                )
 
-  ip_configuration                           {
-                                               name                 = "ipconfig1"
-                                               subnet_id            = local.firewall_subnet_exists ? (
-                                                                        data.azurerm_subnet.firewall[0].id) : (
-                                                                        azurerm_subnet.firewall[0].id
-                                                                      )
-                                               public_ip_address_id = azurerm_public_ip.firewall[0].id
-                                             }
+  ip_configuration                             {
+                                                 name                 = "ipconfig1"
+                                                 subnet_id            = local.firewall_subnet_exists ? (
+                                                                          data.azurerm_subnet.firewall[0].id) : (
+                                                                          azurerm_subnet.firewall[0].id
+                                                                        )
+                                                 public_ip_address_id = azurerm_public_ip.firewall[0].id
+                                               }
+  lifecycle                                    {
+                                                  create_before_destroy = true
+                                               }
+
 }
 
 //Route table
 resource "azurerm_route_table" "rt" {
-  count                                      = var.firewall_deployment ? 1 : 0
+  count                                      = var.firewall.deployment ? 1 : 0
   name                                       = format("%s%s%s%s",
                                                  var.naming.resource_prefixes.routetable,
                                                  local.prefix,
@@ -97,7 +109,7 @@ resource "azurerm_route_table" "rt" {
 }
 
 resource "azurerm_route" "admin" {
-  count                                      = var.firewall_deployment && !local.firewall_subnet_exists ? 1 : 0
+  count                                      = var.firewall.deployment && !local.firewall_subnet_exists ? 1 : 0
   name                                       = format("%s%s%s%s",
                                                  var.naming.resource_prefixes.fw_route,
                                                  local.prefix,
@@ -133,7 +145,7 @@ resource "random_integer" "priority" {
 }
 
 resource "azurerm_firewall_network_rule_collection" "firewall-azure" {
-  count                                      = var.firewall_deployment ? 1 : 0
+  count                                      = var.firewall.deployment ? 1 : 0
   name                                       = format("%s%s%s%s",
                                                  var.naming.resource_prefixes.firewall_rule_app,
                                                  local.prefix,
@@ -163,10 +175,10 @@ resource "azurerm_firewall_network_rule_collection" "firewall-azure" {
                                                  protocols             = ["Any"]
                                                }
   dynamic "rule"                               {
-                                                 for_each = range(length(try(var.firewall_rule_subnets, [])) > 0 ? 1 : 0)
+                                                 for_each = range(length(try(var.firewall.rule_subnets, [])) > 0 ? 1 : 0)
                                                  content {
                                                              name                  = "CustomSubnets"
-                                                             source_addresses      = var.firewall_rule_subnets
+                                                             source_addresses      = var.firewall.rule_subnets
                                                              destination_ports     = ["*"]
                                                              destination_addresses = ["*"]
                                                              protocols             = ["Any"]
@@ -174,10 +186,10 @@ resource "azurerm_firewall_network_rule_collection" "firewall-azure" {
                                                }
 
   dynamic "rule"                               {
-                                                 for_each = range(length(try(var.firewall_allowed_ipaddresses, [])) > 0 ? 1 : 0)
+                                                 for_each = range(length(try(var.firewall.allowed_ipaddresses, [])) > 0 ? 1 : 0)
                                                  content {
                                                              name                  = "CustomIpAddresses"
-                                                             source_addresses      = var.firewall_allowed_ipaddresses
+                                                             source_addresses      = var.firewall.allowed_ipaddresses
                                                              destination_ports     = ["*"]
                                                              destination_addresses = ["*"]
                                                              protocols             = ["Any"]

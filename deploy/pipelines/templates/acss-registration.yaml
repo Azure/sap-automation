@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 parameters:
     azureClientId: ''
     azureClientSecret: ''
@@ -153,7 +156,7 @@ steps:
     AZURE_CLIENT_SECRET:            ${{ parameters.azureClientSecret }}
     AZURE_SUBSCRIPTION_ID:          ${{ parameters.azureSubscriptionId }}
     AZURE_TENANT_ID:                ${{ parameters.azureTenantId }}
-    ANSIBLE_COLLECTIONS_PATHS:      ~/.ansible/collections:/opt/ansible/collections
+    ANSIBLE_COLLECTIONS_PATH:       ~/.ansible/collections:/opt/ansible/collections
     ANSIBLE_PYTHON_INTERPRETER:     auto_silent
     ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
     ANSIBLE_HOST_KEY_CHECKING:      false

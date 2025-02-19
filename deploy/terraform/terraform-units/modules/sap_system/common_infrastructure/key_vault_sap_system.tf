@@ -1,17 +1,18 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ###############################################################################
 #                                                                             #
 #                Retrieve secrets from workload zone key vault                #
 #                                                                             #
 ###############################################################################
 data "azurerm_key_vault_secret" "sid_pk" {
-  provider                             = azurerm.main
   count                                = local.use_local_credentials ? 0 : 1
   name                                 = var.landscape_tfstate.sid_public_key_secret_name
   key_vault_id                         = local.user_key_vault_id
 }
 
 data "azurerm_key_vault_secret" "sid_username" {
-  provider                             = azurerm.main
   count                                = local.use_local_credentials ? 0 : 1
   name                                 = try(
                                            var.landscape_tfstate.sid_username_secret_name,
@@ -21,7 +22,6 @@ data "azurerm_key_vault_secret" "sid_username" {
 }
 
 data "azurerm_key_vault_secret" "sid_password" {
-  provider                             = azurerm.main
   count                                = local.use_local_credentials ? 0 : 1
   name                                 = try(
                                            var.landscape_tfstate.sid_password_secret_name,
@@ -107,6 +107,7 @@ resource "random_password" "password" {
 resource "azurerm_key_vault_secret" "auth_username" {
   provider                             = azurerm.main
   count                                = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
+  content_type                         = "configuration"
   name                                 = format("%s-username", try(coalesce(var.naming.resource_prefixes.sdu_secret, local.prefix), ""))
   value                                = local.sid_auth_username
   key_vault_id                         = length(local.user_key_vault_id) > 0 ? data.azurerm_key_vault.sid_keyvault_user[0].id : azurerm_key_vault.sid_keyvault_user[0].id
@@ -117,6 +118,7 @@ resource "azurerm_key_vault_secret" "auth_username" {
 resource "azurerm_key_vault_secret" "auth_password" {
   provider                             = azurerm.main
   count                                = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
+  content_type                         = "secret"
   name                                 = format("%s-password", try(coalesce(var.naming.resource_prefixes.sdu_secret, local.prefix), ""))
   value                                = local.sid_auth_password
   key_vault_id                         = length(local.user_key_vault_id) > 0 ? data.azurerm_key_vault.sid_keyvault_user[0].id : azurerm_key_vault.sid_keyvault_user[0].id
@@ -137,6 +139,7 @@ resource "tls_private_key" "sdu" {
 resource "azurerm_key_vault_secret" "sdu_private_key" {
   provider                             = azurerm.main
   count                                = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
+  content_type                         = "secret"
   name                                 = format("%s-sshkey", try(coalesce(var.naming.resource_prefixes.sdu_secret, local.prefix), ""))
   value                                = local.sid_private_key
   key_vault_id                         = length(local.user_key_vault_id) > 0 ? data.azurerm_key_vault.sid_keyvault_user[0].id : azurerm_key_vault.sid_keyvault_user[0].id
@@ -146,6 +149,7 @@ resource "azurerm_key_vault_secret" "sdu_private_key" {
 resource "azurerm_key_vault_secret" "sdu_public_key" {
   provider                             = azurerm.main
   count                                = local.enable_sid_deployment && local.use_local_credentials ? 1 : 0
+  content_type                         = "secret"
   name                                 = format("%s-sshkey-pub", try(coalesce(var.naming.resource_prefixes.sdu_secret, local.prefix), ""))
   value                                = local.sid_public_key
   key_vault_id                         = length(local.user_key_vault_id) > 0 ? data.azurerm_key_vault.sid_keyvault_user[0].id : azurerm_key_vault.sid_keyvault_user[0].id

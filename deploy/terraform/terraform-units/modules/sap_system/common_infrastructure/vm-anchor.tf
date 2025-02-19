@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 
 # Create Anchor VM
 resource "azurerm_network_interface" "anchor" {

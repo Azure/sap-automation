@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #######################################4#######################################8
 #                                                                              #
 #                           Environment definitioms                            #
@@ -37,6 +40,13 @@ variable "place_delete_lock_on_resources"        {
                                                    default     = false
                                                  }
 
+variable "prevent_deletion_if_contains_resources" {
+                                                    description = "Controls if resource groups are deleted even if they contain resources"
+                                                    type        = bool
+                                                    default     = true
+                                                  }
+
+
 variable "short_named_endpoints_nics"            {
                                                    description = "If defined, uses short names for private endpoints nics"
                                                    default     = false
@@ -47,6 +57,13 @@ variable "use_spn"                               {
                                                   description = "Log in using a service principal when performing the deployment"
                                                   default     = false
                                                  }
+
+variable "subscription_id"                       {
+                                                   description = "Defines the Azure subscription_id"
+                                                   type        = string
+                                                   default     = null
+                                                 }
+
 
 #######################################4#######################################8
 #                                                                              #
@@ -228,6 +245,16 @@ variable "shared_access_key_enabled"            {
                                                   type        = bool
                                                 }
 
+variable "data_plane_available"                 {
+                                                  description = "Boolean value indicating if storage account access is via data plane"
+                                                  default     = false
+                                                  type        = bool
+                                                }
+
+variable "custom_random_id"                     {
+                                                  description = "If provided, the value of the custom random id"
+                                                  default     = ""
+                                                }
 
 #########################################################################################
 #                                                                                       #
@@ -298,7 +325,14 @@ variable "dns_zone_names"                        {
                                                      "table_dns_zone_name"  = "privatelink.table.core.windows.net"
                                                      "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
                                                    }
+
                                                  }
+
+variable "enable_firewall_for_keyvaults_and_storage" {
+                                                       description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+                                                       default     = true
+                                                       type        = bool
+                                                     }
 
 variable "register_storage_accounts_keyvaults_with_dns" {
                                                      description = "Boolean value indicating if storage accounts and key vaults should be registered to the corresponding dns zones"
@@ -323,6 +357,19 @@ variable "privatelink_dns_resourcegroup_name"    {
                                                    default     = ""
                                                    type        = string
                                                  }
+
+variable "create_privatelink_dns_zones"          {
+                                                   description = "Boolean value indicating if PrivateLink DNS Zones should be created"
+                                                   default     = true
+                                                   type        = bool
+                                                 }
+
+
+variable "additional_network_id"                {
+                                                   description = "Agent Network resource ID"
+                                                   default     = ""
+                                                 }
+
 
 variable "dns_label"                             {
                                                    description = "DNS label"

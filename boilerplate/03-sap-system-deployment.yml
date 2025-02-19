@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 name: SAP Infrastructure Deployment $(sap_system_folder)
 
 parameters:

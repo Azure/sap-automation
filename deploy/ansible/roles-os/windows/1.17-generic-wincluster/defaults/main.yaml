@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 
 cluster_ip_address: "{{ sap_cluster_ip_address }}"

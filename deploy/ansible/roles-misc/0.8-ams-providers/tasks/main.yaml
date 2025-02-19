@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 
 - name:                                "0.8.1 ams provider creation: - Set Python version {{ distribution_id }}"

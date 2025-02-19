@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 - name:                                "SDAF: Check if running on deployer"
   delegate_to:                         localhost
   become:                              false

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |     Storage account helpers                                                |
@@ -56,7 +59,7 @@
 
 - name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS (temp)"
   ansible.builtin.set_fact:
-    subscription_parameter:            "{%if control_plane_subscription_id | length > 0 %}--subscription {{ control_plane_subscription_id }}{% else %}{% endif %}"
+    subscription_parameter:            "{% if control_plane_subscription_id | length > 0 %}--subscription {{ control_plane_subscription_id }}{% else %}{% endif %}"
 
 - name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account secrets"
   block:
@@ -85,7 +88,7 @@
 
 - name:                                "0.4 Installation Media: - Extract Shared Key Access token flag"
   ansible.builtin.set_fact:
-    allowSharedKeyAccess:             true
+    allowSharedKeyAccess:             false
 
 - name:                                "0.4 Installation Media: - Check Binaries Storage Account for Shared Key Access with Control Plane Subscription"
   when:
@@ -107,14 +110,13 @@
 - name:                                "Parameter review..."
   ansible.builtin.debug:
     msg:                               # Best method for formatting output with Azure Devops Logs
-                                       - "account_name:                    {{ account_name }}"
-                                       - "allowSharedKeyAccess:            {{ allowSharedKeyAccess | default(true) }}"
-    verbosity:                         2
+                                       - "Storage account_name:            {{ account_name }}"
+                                       - "allowSharedKeyAccess:            {{ allowSharedKeyAccess }}"
 
 - name:                                "0.4 Installation Media: - Retrieve Access Key secret"
   when:
+   - allowSharedKeyAccess
    - sapbits_access_key is not defined
-   - allowSharedKeyAccess | default(true)
   block:
     - name:                            "0.4 Installation Media: - Check if Access Key secret exists"
       ansible.builtin.command: >-
@@ -216,7 +218,7 @@
       ansible.builtin.set_fact:
         sapbits_sas_token:             "{{ az_sapbits_sas_token.stdout }}"
 
-- name:                                 "0.4 Installation Media: - Create SAP Binaries Storage Account SAS token"
+- name:                                 "0.4 Installation Media: - Create User delegation SAP Binaries Storage Account SAS token"
   when:
     - sapbits_sas_token is not defined or (sapbits_sas_token | string | length == 0)
   block:
@@ -229,7 +231,7 @@
       ansible.builtin.command:          "date +'%Y-%m-%d' -d '+3 days'"
       register:                         expiry
 
-    - name:                            "0.4 Installation Media: - Create USer delegation SAP Binaries Storage Account SAS in Control Plane subscription"
+    - name:                            "0.4 Installation Media: - Create User delegation SAP Binaries Storage Account SAS in Control Plane subscription"
       ansible.builtin.command: >-
                                        az storage container generate-sas \
                                          --account-name {{ account_name }} \

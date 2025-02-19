@@ -1,3 +1,6 @@
+{# Copyright (c) Microsoft Corporation.
+ # Licensed under the MIT License.
+#}
 
 Cmnd_Alias SOK = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_glob_srHook -v SOK -t crm_config -s SAPHanaSR
 Cmnd_Alias SFAIL = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_glob_srHook -v SFAIL -t crm_config -s SAPHanaSR

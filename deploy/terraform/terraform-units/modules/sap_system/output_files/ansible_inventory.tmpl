@@ -10,6 +10,8 @@ ${sid}_DB:
       become_user         : ${db_become_user}
       os_type             : ${db_os_type}
       vm_name             : ${db_vmnodes[idx]}
+      resource_group_name : ${created_resource_group_name}
+      subscription_id     : ${created_resource_group_subscription_id}
 %{~ if scale_out }
       site                : ${site[idx]}
 %{~ endif }
@@ -37,6 +39,8 @@ ${sid}_SCS:
       become_user         : ${scs_become_user}
       os_type             : ${scs_os_type}
       vm_name             : ${scs_vmnodes[idx]}
+      resource_group_name : ${created_resource_group_name}
+      subscription_id     : ${created_resource_group_subscription_id}
 %{~ if scs_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
@@ -61,6 +65,8 @@ ${sid}_ERS:
       become_user         : ${scs_become_user}
       os_type             : ${scs_os_type}
       vm_name             : ${ers_vmnodes[idx]}
+      resource_group_name : ${created_resource_group_name}
+      subscription_id     : ${created_resource_group_subscription_id}
 %{~ if ers_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
@@ -85,6 +91,8 @@ ${sid}_PAS:
       become_user         : ${app_become_user}
       os_type             : ${app_os_type}
       vm_name             : ${pas_vmnodes[idx]}
+      resource_group_name : ${created_resource_group_name}
+      subscription_id     : ${created_resource_group_subscription_id}
 %{~ if app_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
@@ -109,6 +117,8 @@ ${sid}_APP:
       become_user         : ${app_become_user}
       os_type             : ${app_os_type}
       vm_name             : ${app_vmnodes[idx]}
+      resource_group_name : ${created_resource_group_name}
+      subscription_id     : ${created_resource_group_subscription_id}
 %{~ if app_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
@@ -133,6 +143,8 @@ ${sid}_WEB:
       become_user         : ${web_become_user}
       os_type             : ${web_os_type}
       vm_name             : ${web_vmnodes[idx]}
+      resource_group_name : ${created_resource_group_name}
+      subscription_id     : ${created_resource_group_subscription_id}
 %{~ if web_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
@@ -156,6 +168,8 @@ ${sid}_OBSERVER_DB:
       virtual_host        : ${observers[idx]}
       become_user         : ${db_become_user}
       os_type             : ${db_os_type}
+      resource_group_name : ${created_resource_group_name}
+      subscription_id     : ${created_resource_group_subscription_id}
 %{~ if db_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
@@ -177,6 +191,8 @@ ${sid}_ISCSI:
       ansible_connection  : ssh
       connection_type     : key
       virtual_host        : ${iscsi_servers[idx]}
+      resource_group_name : ${created_resource_group_name}
+      subscription_id     : ${created_resource_group_subscription_id}
       become_user         : root
       os_type             : linux
 

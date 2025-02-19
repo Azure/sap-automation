@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 locals {
 
   location_short = upper(try(var.region_mapping[var.location], "unkn"))

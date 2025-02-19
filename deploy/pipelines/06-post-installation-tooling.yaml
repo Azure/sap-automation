@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -261,7 +264,7 @@ stages:
               ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
+              ANSIBLE_COLLECTIONS_PATH:      ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           false
 
   - stage:                             Software_Acquisition
@@ -310,7 +313,7 @@ stages:
               ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
+              ANSIBLE_COLLECTIONS_PATH:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           false
 
   - stage:                             HCMT
@@ -388,7 +391,7 @@ stages:
               ANSIBLE_HOST_KEY_CHECKING:     false
               ANSIBLE_PYTHON_INTERPRETER:    auto_silent
               DEPLOYMENT_REPO_PATH:          $(DEPLOYMENT_REPO_PATH)
-              ANSIBLE_COLLECTIONS_PATHS:     ~/.ansible/collections:/opt/ansible/collections
+              ANSIBLE_COLLECTIONS_PATH:     ~/.ansible/collections:/opt/ansible/collections
             continueOnError:           false
 
   - stage: Post_Installation_Steps

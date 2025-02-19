@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # Analyse the repo list for this distribution selecting only those
 # packages assigned to the active tier or 'all'.
 - name:                                "1.3 Repository - Determine custom repos appropriate for tier {{ distribution_full_id }}"

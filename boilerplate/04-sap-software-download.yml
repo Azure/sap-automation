@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 name: SAP Software download $(bom) $(environment_code) $(location_code)
 
 parameters:

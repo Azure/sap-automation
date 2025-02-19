@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 # Set 'sap' as tuned profile
 # Disable SELinux

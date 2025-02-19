@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 /*
 Description:
 
@@ -36,6 +39,14 @@ resource "azurerm_public_ip" "deployer" {
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
+  # zones                                      = [1,2,3] - optional property.
+  ip_tags                              = var.deployer.deployer_public_ip_tags
+  lifecycle                            {
+                                              ignore_changes = [
+                                                ip_tags
+                                              ]
+                                              create_before_destroy = true
+                                        }
 }
 
 resource "azurerm_network_interface" "deployer" {
@@ -94,19 +105,10 @@ data "azurerm_user_assigned_identity" "deployer" {
   resource_group_name                  = split("/", var.deployer.user_assigned_identity_id)[4]
 }
 
-
-# // Add role to be able to deploy resources
-resource "azurerm_role_assignment" "sub_contributor" {
-  provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions && length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 0
-  scope                                = data.azurerm_subscription.primary.id
-  role_definition_name                 = "Reader"
-  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
-}
-
 // Linux Virtual Machine for Deployer
 resource "azurerm_linux_virtual_machine" "deployer" {
   count                                = var.deployer_vm_count
+
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.vm,
                                            local.prefix,

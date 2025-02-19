@@ -4,17 +4,52 @@
 root = true
 
 [*]
-indent_style = space
-indent_size = 2
 end_of_line = lf
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
+indent_style = space
+indent_size = 2
 
-[*.yml, *.yaml]
-indent_style = space
-indent_size = 2
+# Python files
+[*.py]
 end_of_line = lf
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
+indent_style = space
+indent_size = 4
+
+[*.{y{a,}ml}]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+
+[*.{diff,md}]
+trim_trailing_whitespace = false
+insert_final_newline = false
+
+[*.{sh,bat}]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+indent_style = tab
+
+[*.cs]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+
+# reference: https://github.com/microsoft/vscode-python/blob/main/.editorconfig
+# The indent size used in the `package.json` file cannot be changed
+# https://github.com/npm/npm/pull/3180#issuecomment-16336516
+[{.travis.yml,npm-shrinkwrap.json,package.json}]
+indent_style = space
+indent_size = 4

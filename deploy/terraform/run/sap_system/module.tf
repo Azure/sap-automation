@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 
 #########################################################################################
 #                                                                                       #
@@ -10,7 +13,7 @@ module "sap_namegenerator" {
   environment                                   = local.infrastructure.environment
   location                                      = local.infrastructure.region
   codename                                      = lower(try(local.infrastructure.codename, ""))
-  random_id                                     = module.common_infrastructure.random_id
+  random_id                                     = coalesce(var.custom_random_id, module.common_infrastructure.random_id)
   sap_vnet_name                                 = local.vnet_logical_name
   sap_sid                                       = local.sap_sid
   db_sid                                        = local.db_sid
@@ -51,7 +54,6 @@ module "sap_namegenerator" {
 module "common_infrastructure" {
   source                                        = "../../terraform-units/modules/sap_system/common_infrastructure"
   providers                                     = {
-                                                    azurerm.deployer                 = azurerm
                                                     azurerm.main                     = azurerm.system
                                                     azurerm.dnsmanagement            = azurerm.dnsmanagement
                                                     azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
@@ -119,6 +121,7 @@ module "hdb_node" {
   cloudinit_growpart_config                     = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   database                                      = local.database
+  database_active_active                        = var.database_active_active
   database_dual_nics                            = try(module.common_infrastructure.admin_subnet, null) == null ? false : var.database_dual_nics
   database_server_count                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
                                                     local.database.high_availability ? (
@@ -136,8 +139,12 @@ module "hdb_node" {
   db_subnet                                     = module.common_infrastructure.db_subnet
   deploy_application_security_groups            = var.deploy_application_security_groups
   deployment                                    = var.deployment
+  dns_settings                                  = local.dns_settings
+  enable_firewall_for_keyvaults_and_storage     = var.enable_firewall_for_keyvaults_and_storage
   fencing_role_name                             = var.fencing_role_name
   hana_ANF_volumes                              = local.hana_ANF_volumes
+  hanashared_id                                 = length(var.hanashared_id) > 0 ? (length(var.hanashared_id[0]) > 0 ? var.hanashared_id : []) : []
+  hanashared_private_endpoint_id                = length(var.hanashared_private_endpoint_id) > 0 ? (length(var.hanashared_private_endpoint_id[0]) > 0 ? var.hanashared_private_endpoint_id : []) : []
   infrastructure                                = local.infrastructure
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   license_type                                  = var.license_type
@@ -145,6 +152,7 @@ module "hdb_node" {
   NFS_provider                                  = var.NFS_provider
   options                                       = local.options
   ppg                                           = module.common_infrastructure.ppg
+  random_id                                     = coalesce(var.custom_random_id, module.common_infrastructure.random_id)
   resource_group                                = module.common_infrastructure.resource_group
   sap_sid                                       = local.sap_sid
   scale_set_id                                  = length(var.scaleset_id) > 0 ? var.scaleset_id : module.common_infrastructure.scale_set_id
@@ -159,14 +167,9 @@ module "hdb_node" {
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_observer                                  = var.database_HANA_use_scaleout_scenario && local.database.high_availability
+  use_private_endpoint                          = var.use_private_endpoint
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
-  dns_settings                                  = local.dns_settings
-  use_private_endpoint                          = var.use_private_endpoint
-  hanashared_private_endpoint_id                = var.hanashared_private_endpoint_id
-  hanashared_id                                 = var.hanashared_id
-  random_id                                     = module.common_infrastructure.random_id
-  temp_infrastructure                           = var.local.temp_infrastructure
 }
 
 #########################################################################################
@@ -322,6 +325,9 @@ module "output_files" {
   save_naming_information                       = var.save_naming_information
   tfstate_resource_id                           = var.tfstate_resource_id
 
+  created_resource_group_name                   = module.common_infrastructure.created_resource_group_name
+  created_resource_group_subscription_id        = module.common_infrastructure.created_resource_group_subscription_id
+
   #########################################################################################
   #  Database tier                                                                        #
   #########################################################################################
@@ -333,6 +339,8 @@ module "output_files" {
   database_cluster_type                         = var.database_cluster_type
   database_cluster_ip                           = module.anydb_node.database_cluster_ip
   database_high_availability                    = local.database.high_availability
+  database_active_active                        = var.database_active_active
+  database_active_active_loadbalancer_ip        = try(module.hdb_node.database_loadbalancer_ip[1], "")
   database_loadbalancer_ip                      = upper(try(local.database.platform, "HANA")) == "HANA" ? (
                                                     module.hdb_node.database_loadbalancer_ip[0]) : (
                                                     module.anydb_node.database_loadbalancer_ip[0]
@@ -362,7 +370,6 @@ module "output_files" {
   subnet_cidr_client                          = module.common_infrastructure.subnet_cidr_client
   subnet_cidr_db                              = module.common_infrastructure.subnet_cidr_db
   subnet_cidr_storage                         = module.common_infrastructure.subnet_cidr_storage
-
 
   #########################################################################################
   #  SAP Application information                                                          #

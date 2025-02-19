@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #######################################4#######################################8
 #                                                                              #
 #                                      iSCSI                                   #
@@ -23,6 +26,12 @@ resource "azurerm_subnet" "iscsi" {
                                            azurerm_virtual_network.vnet_sap[0].name
                                          )
   address_prefixes                     = [local.sub_iscsi_prefix]
+
+  service_endpoints                    = var.use_service_endpoint ? (
+                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
+                                           ) : (
+                                           null
+                                         )
 
 }
 
@@ -68,7 +77,7 @@ resource "azurerm_subnet_route_table_association" "iscsi" {
                                            azurerm_route_table.rt,
                                            azurerm_subnet.iscsi
                                          ]
-  subnet_id                            = local.sub_iscsi_exists ? var.infrastructure.vnets.sap.sub_iscsi.arm_id : azurerm_subnet.iscsi[0].id
+  subnet_id                            = local.sub_iscsi_exists ? var.infrastructure.virtual_networks.sap.sub_iscsi.arm_id : azurerm_subnet.iscsi[0].id
   route_table_id                       = azurerm_route_table.rt[0].id
 }
 
@@ -255,38 +264,39 @@ data "template_cloudinit_config" "config_growpart" {
 
 resource "azurerm_key_vault_secret" "iscsi_ppk" {
   provider                             = azurerm.main
-  count                                = (local.enable_landscape_kv && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
+  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_role_assignment.role_assignment_spn,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_key_vault_access_policy.kv_user_msi
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_private_endpoint.kv_user
                                         ]
-  content_type                         = ""
+  content_type                         = "secret"
   name                                 = local.iscsi_ppk_name
   value                                = local.iscsi_private_key
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
-  expiration_date                       = var.key_vault.set_secret_expiry ? (
+  expiration_date                      = var.key_vault.set_secret_expiry ? (
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
-
 }
 
 resource "azurerm_key_vault_secret" "iscsi_pk" {
   provider                             = azurerm.main
-  count                                = (local.enable_landscape_kv && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
+  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_role_assignment.role_assignment_spn,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_key_vault_access_policy.kv_user_msi
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_private_endpoint.kv_user
                                          ]
-  content_type                         = ""
+  content_type                         = "secret"
   name                                 = local.iscsi_pk_name
   value                                = local.iscsi_public_key
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
-  expiration_date                       = var.key_vault.set_secret_expiry ? (
+  expiration_date                      = var.key_vault.set_secret_expiry ? (
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
@@ -294,18 +304,19 @@ resource "azurerm_key_vault_secret" "iscsi_pk" {
 
 resource "azurerm_key_vault_secret" "iscsi_username" {
   provider                             = azurerm.main
-  count                                = (local.enable_landscape_kv && local.enable_iscsi && !local.iscsi_username_exist) ? 1 : 0
+  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi && !local.iscsi_username_exist) ? 1 : 0
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_role_assignment.role_assignment_spn,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_key_vault_access_policy.kv_user_msi
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_private_endpoint.kv_user
                                          ]
-  content_type                         = ""
+  content_type                         = "configuration"
   name                                 = local.iscsi_username_name
   value                                = local.iscsi_auth_username
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
-  expiration_date                       = var.key_vault.set_secret_expiry ? (
+  expiration_date                      = var.key_vault.set_secret_expiry ? (
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
@@ -313,14 +324,15 @@ resource "azurerm_key_vault_secret" "iscsi_username" {
 
 resource "azurerm_key_vault_secret" "iscsi_password" {
   provider                             = azurerm.main
-  count                                = (local.enable_landscape_kv && local.enable_iscsi_auth_password && !local.iscsi_pwd_exist) ? 1 : 0
+  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi_auth_password && !local.iscsi_pwd_exist) ? 1 : 0
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_role_assignment.role_assignment_spn,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_key_vault_access_policy.kv_user_msi
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_private_endpoint.kv_user
                                          ]
-  content_type                         = ""
+  content_type                         = "secret"
   name                                 = local.iscsi_pwd_name
   value                                = local.iscsi_auth_password
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
@@ -332,7 +344,7 @@ resource "azurerm_key_vault_secret" "iscsi_password" {
 
 // Generate random password if password is set as authentication type and user doesn't specify a password, and save in KV
 resource "random_password" "iscsi_password" {
-  count                                = (local.enable_landscape_kv && local.enable_iscsi_auth_password  && !local.iscsi_pwd_exist  && try(var.authentication.password, null) == null) ? 1 : 0
+  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi_auth_password  && !local.iscsi_pwd_exist  && try(var.authentication.password, null) == null) ? 1 : 0
   length                               = 32
   min_upper                            = 2
   min_lower                            = 2
@@ -344,28 +356,28 @@ resource "random_password" "iscsi_password" {
 // Import secrets about iSCSI
 data "azurerm_key_vault_secret" "iscsi_pk" {
   provider                             = azurerm.main
-  count                                = (local.enable_landscape_kv && local.enable_iscsi_auth_key && local.iscsi_key_exist) ? 1 : 0
+  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi_auth_key && local.iscsi_key_exist) ? 1 : 0
   name                                 = local.iscsi_pk_name
   key_vault_id                         = local.user_key_vault_id
 }
 
 data "azurerm_key_vault_secret" "iscsi_ppk" {
   provider                             = azurerm.main
-  count                                = (local.enable_landscape_kv && local.enable_iscsi_auth_key && local.iscsi_key_exist) ? 1 : 0
+  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi_auth_key && local.iscsi_key_exist) ? 1 : 0
   name                                 = local.iscsi_ppk_name
   key_vault_id                         = local.user_key_vault_id
 }
 
 data "azurerm_key_vault_secret" "iscsi_password" {
   provider                             = azurerm.main
-  count                                = (local.enable_landscape_kv && local.enable_iscsi_auth_password && local.iscsi_pwd_exist) ? 1 : 0
+  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi_auth_password && local.iscsi_pwd_exist) ? 1 : 0
   name                                 = local.iscsi_pwd_name
   key_vault_id                         = local.user_key_vault_id
 }
 
 data "azurerm_key_vault_secret" "iscsi_username" {
   provider                             = azurerm.main
-  count                                = (local.enable_landscape_kv && local.enable_iscsi && local.iscsi_username_exist) ? 1 : 0
+  count                                = (local.create_workloadzone_keyvault && local.enable_iscsi && local.iscsi_username_exist) ? 1 : 0
   name                                 = local.iscsi_username_name
   key_vault_id                         = local.user_key_vault_id
 }
@@ -373,7 +385,7 @@ data "azurerm_key_vault_secret" "iscsi_username" {
 // Using TF tls to generate SSH key pair for iscsi devices and store in user KV
 resource "tls_private_key" "iscsi" {
   count                                = (
-                                           local.enable_landscape_kv
+                                           local.create_workloadzone_keyvault
                                            && local.enable_iscsi_auth_key
                                            && !local.iscsi_key_exist
                                            && try(file(var.authentication.path_to_public_key), null) == null

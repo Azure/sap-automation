@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 /*
 Description:
 
@@ -18,6 +21,7 @@ module "sap_deployer" {
   Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
   agent_pat                                     = var.agent_pat
   agent_pool                                    = var.agent_pool
+  additional_network_id                         = var.additional_network_id
   ansible_core_version                          = var.ansible_core_version
   app_registration_app_id                       = var.use_webapp ? var.app_registration_app_id : ""
   app_service                                   = local.app_service
@@ -33,14 +37,12 @@ module "sap_deployer" {
   deployer_vm_count                             = var.deployer_count
   enable_firewall_for_keyvaults_and_storage     = var.enable_firewall_for_keyvaults_and_storage
   enable_purge_control_for_keyvaults            = var.enable_purge_control_for_keyvaults
-  firewall_deployment                           = local.firewall_deployment
-  firewall_rule_subnets                         = local.firewall_rule_subnets
-  firewall_allowed_ipaddresses                  = local.firewall_allowed_ipaddresses
+  firewall                                      = local.firewall
   infrastructure                                = local.infrastructure
   key_vault                                     = local.key_vault
   options                                       = local.options
   place_delete_lock_on_resources                = var.place_delete_lock_on_resources
-  public_network_access_enabled                 = var.public_network_access_enabled
+  public_network_access_enabled                 = var.recover ? true : var.public_network_access_enabled
   sa_connection_string                          = var.sa_connection_string
   set_secret_expiry                             = var.set_secret_expiry
   soft_delete_retention_days                    = var.soft_delete_retention_days
@@ -67,5 +69,6 @@ module "sap_namegenerator" {
                                                           var.management_network_logical_name,
                                                           local.vnet_mgmt_name_part
                                                         )
-  random_id                                            = module.sap_deployer.random_id
+  random_id                                            = coalesce(var.custom_random_id, module.sap_deployer.random_id)
+
 }

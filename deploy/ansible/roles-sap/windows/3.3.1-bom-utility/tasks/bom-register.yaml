@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # Inputs:
 #   bom_name              - Name of BOM (ex: S41909SPS03_v0001ms)
 #
@@ -45,6 +48,7 @@
     dest:                              "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
     force:                             true
     mode:                              0644
+    validate_certs:                    false
   delegate_to:                         localhost
   become:                              "{{ bom_processing_become }}"
   ignore_errors:                       true

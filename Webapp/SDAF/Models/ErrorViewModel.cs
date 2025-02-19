@@ -1,9 +1,12 @@
-namespace AutomationForm.Models
-{
-  public class ErrorViewModel
-  {
-    public string RequestId { get; set; }
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
 
-    public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
-  }
+namespace SDAFWebApp.Models
+{
+    public class ErrorViewModel
+    {
+        public string RequestId { get; set; }
+
+        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    }
 }

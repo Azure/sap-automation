@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #--------------------------------------+---------------------------------------8
 #                                                                              |
 # Defines the parameters and variables for the Control Plane removal           |
@@ -21,16 +24,16 @@ variables:
   - name:                              run_on
     value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
 
-  - name:                              deployer_folder
+  - name:                              deployer_foldername
     value:                             ${{ parameters.deployer }}
 
-  - name:                              deployer_configuration_file
+  - name:                              deployer_tfvars_filename
     value:                             ${{ parameters.deployer }}.tfvars
 
-  - name:                              library_folder
+  - name:                              library_foldername
     value:                             ${{ parameters.library }}
 
-  - name:                              library_configuration_file
+  - name:                              library_tfvars_filename
     value:                             ${{ parameters.library }}.tfvars
 
   - name:                              tf_url

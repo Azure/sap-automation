@@ -25,7 +25,7 @@ verify_signature=n
 components={{ _rsp_components }}
 
 # Install Execution Mode ( Default: standard; Valid values: standard | optimized )
-install_execution_mode=standard
+install_execution_mode=optimized
 
 # Ignore failing prerequisite checks
 ignore=
@@ -251,19 +251,20 @@ xs_cert_key=
 # XS Advanced Trust Certificate
 xs_trust_pem=
 
+
 [lss]
 
 # Installation Path for Local Secure Store ( Default: /lss/shared )
 lss_inst_path=/lss/shared
 
 # Local Secure Store User Password
-lss_user_password=
+lss_user_password={{ pwd_os_sidadm }}
 
 # Local Secure Store User ID
-lss_userid=
+lss_userid={{ lss_uid }}
 
 # Local Secure Store User Group ID
-lss_groupid=
+lss_groupid={{ lss_gid }}
 
 # Local Secure Store User Home Directory ( Default: /usr/sap/${sid}/lss/home )
 lss_user_home=/usr/sap/${sid}/lss/home
@@ -272,7 +273,7 @@ lss_user_home=/usr/sap/${sid}/lss/home
 lss_user_shell=/bin/sh
 
 # Local Secure Store Auto Backup Password
-lss_backup_password=
+lss_backup_password={{ pwd_os_sidadm }}
 
 [streaming]
 

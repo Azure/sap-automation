@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 # VARS file - TBC
 db_sid_backup_dir:                     "{{ target_media_location }}/db2backup"
 

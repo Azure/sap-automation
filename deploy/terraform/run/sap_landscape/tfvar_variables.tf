@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #######################################4#######################################8
 #                                                                              #
 #                           Environment definitioms                            #
@@ -5,22 +8,22 @@
 #######################################4#######################################8
 
 
-variable "environment"                           {
-                                                   description = "This is the environment name for the deployment"
-                                                   type        = string
-                                                   default     = ""
-                                                 }
-
-variable "codename"                              {
-                                                   description = "This is the code name name for the deployment"
-                                                   type        = string
-                                                   default     = ""
-                                                 }
-
-variable "location"                              {
-                                                  description = "The Azure region for the resources"
+variable "environment"                          {
+                                                  description = "This is the environment name for the deployment"
                                                   type        = string
                                                   default     = ""
+                                                }
+
+variable "codename"                             {
+                                                  description = "This is the code name name for the deployment"
+                                                  type        = string
+                                                  default     = ""
+                                                }
+
+variable "location"                             {
+                                                 description = "The Azure region for the resources"
+                                                 type        = string
+                                                 default     = ""
                                                 }
 
 variable "name_override_file"                   {
@@ -44,6 +47,25 @@ variable "encryption_at_host_enabled"             {
                                                     default     = false
                                                     type        = bool
                                                   }
+variable "Description"                          {
+                                                  description = "This is the description for the deployment"
+                                                  type        = string
+                                                  default     = ""
+                                                }
+
+
+variable "subscription_id"                      {
+                                                  description = "This is the target subscription for the deployment"
+                                                  type        = string
+                                                  default     = ""
+                                                }
+
+
+variable "management_subscription"              {
+                                                  description = "This is the management subscription used by the deployment"
+                                                  type        = string
+                                                  default     = ""
+                                                }
 
 #######################################4#######################################8
 #                                                                              #
@@ -91,6 +113,24 @@ variable "network_address_space"                {
 variable "network_arm_id"                       {
                                                   description = "If provided, the Azure resource id of the virtual network"
                                                   default     = ""
+                                                }
+
+variable "network_flow_timeout_in_minutes"      {
+                                                  description = "The flow timeout in minutes of the virtual network"
+                                                  type = number
+                                                  nullable = true
+                                                  default = null
+                                                  validation {
+                                                    condition     = var.network_flow_timeout_in_minutes == null ? true : (var.network_flow_timeout_in_minutes >= 4 && var.network_flow_timeout_in_minutes <= 30)
+                                                    error_message = "The flow timeout in minutes must be between 4 and 30 if set."
+                                                  }
+                                                }
+
+variable "network_enable_route_propagation"     {
+                                                  description = "Enable network route table propagation"
+                                                  type = bool
+                                                  nullable = false
+                                                  default = true
                                                 }
 
 variable "use_private_endpoint"                 {
@@ -697,7 +737,7 @@ variable "use_AFS_for_shared_storage"              {
 
 #########################################################################################
 #                                                                                       #
-#  iSCSI definitioms                                                                    #
+#  iSCSI definitions                                                                    #
 #                                                                                       #
 #########################################################################################
 
@@ -960,6 +1000,22 @@ variable "shared_access_key_enabled"            {
 
 variable "shared_access_key_enabled_nfs"        {
                                                   description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
-                                                  default     = true
+                                                  default     = false
                                                   type        = bool
                                                 }
+
+variable "data_plane_available"                 {
+                                                  description = "Boolean value indicating if storage account access is via data plane"
+                                                  default     = false
+                                                  type        = bool
+                                                }
+
+variable "custom_random_id"                     {
+                                                  description = "If provided, the value of the custom random id"
+                                                  default     = ""
+                                                }
+
+variable "additional_network_id"                {
+                                                   description = "Agent Network resource ID"
+                                                   default     = ""
+                                                 }

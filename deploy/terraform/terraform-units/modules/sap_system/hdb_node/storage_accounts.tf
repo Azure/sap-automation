@@ -1,8 +1,11 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 
 resource "azurerm_storage_account" "hanashared" {
   provider                             = azurerm.main
   count                                = var.NFS_provider == "AFS" && var.database.scale_out ? (
-                                           length(var.hanashared_id) > 0 ? (
+                                           try(length(var.hanashared_id) > 0, false) ? (
                                              0) : (
                                              length(var.database.zones)
                                            )) : (
@@ -12,7 +15,7 @@ resource "azurerm_storage_account" "hanashared" {
                                            lower(
                                              format("%s%s%01d%s",
                                                lower(local.sid),
-                                               local.resource_suffixes.hanasharedafs, count.index,var.random_id
+                                               local.resource_suffixes.hanasharedafs, count.index,substr(var.random_id,0,3)
                                              )
                                            ),
                                            "/[^a-z0-9]/",
@@ -29,45 +32,25 @@ resource "azurerm_storage_account" "hanashared" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
   cross_tenant_replication_enabled     = false
-  shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
 
-  public_network_access_enabled        = try(var.landscape_tfstate.public_network_access_enabled, true)
+  shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
   tags                                 = var.tags
 
   network_rules {
-                  default_action = "Deny"
-                  virtual_network_subnet_ids = compact(
-                    [
-                      try(var.landscape_tfstate.admin_subnet_id, ""),
-                      try(var.landscape_tfstate.app_subnet_id, ""),
-                      try(var.landscape_tfstate.db_subnet_id, ""),
-                      try(var.landscape_tfstate.web_subnet_id, ""),
-                      try(var.landscape_tfstate.subnet_mgmt_id, "")
-                    ]
-                  )
-                  ip_rules = compact(
-                    [
-                      length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                    ]
-                  )
-                }
-
-
+                  default_action       = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+                  bypass               = ["Metrics", "Logging", "AzureServices"]
+            virtual_network_subnet_ids = compact(
+                                                 [
+                                                   try(var.landscape_tfstate.admin_subnet_id, ""),
+                                                   try(var.landscape_tfstate.app_subnet_id, ""),
+                                                   try(var.landscape_tfstate.db_subnet_id, ""),
+                                                   try(var.landscape_tfstate.web_subnet_id, ""),
+                                                   try(var.landscape_tfstate.subnet_mgmt_id, "")
+                                                 ]
+                                               )
+          }
 }
 
-
-data "azurerm_storage_account" "hanashared" {
-  provider                             = azurerm.main
-  count                                = var.NFS_provider == "AFS" && var.database.scale_out ? (
-                                           length(var.hanashared_id) > 0 ? (
-                                             length(var.hanashared_id)) : (
-                                             0
-                                           )) : (
-                                           0
-                                         )
-  name                                 = split("/", var.hanashared_id[count.index])[8]
-  resource_group_name                  = split("/", var.hanashared_id[count.index])[4]
-}
 #########################################################################################
 #                                                                                       #
 #  NFS share                                                                            #
@@ -77,7 +60,7 @@ data "azurerm_storage_account" "hanashared" {
 resource "azurerm_storage_share" "hanashared" {
   provider                             = azurerm.main
    count                                = var.NFS_provider == "AFS" && var.database.scale_out ? (
-                                           length(var.hanashared_id) > 0 ? (
+                                           length(try(var.hanashared_id, "")) > 0 ? (
                                              0) : (
                                              length(var.database.zones)
                                            )) : (
@@ -90,10 +73,10 @@ resource "azurerm_storage_share" "hanashared" {
                                          ]
 
   name                                 = format("%s-%s-%01d", lower(local.sid),local.resource_suffixes.hanasharedafs, count.index+1)
-  storage_account_name                 = var.NFS_provider == "AFS" ? (
-                                           length(var.hanashared_id) > 0 ? (
-                                             data.azurerm_storage_account.hanashared[count.index].name) : (
-                                             azurerm_storage_account.hanashared[count.index].name
+  storage_account_id                   = var.NFS_provider == "AFS" ? (
+                                           length(try(var.hanashared_id, "")) > 0 ? (
+                                             var.hanashared_id[count.index]) : (
+                                             azurerm_storage_account.hanashared[count.index].id
                                            )
                                            ) : (
                                            ""
@@ -106,7 +89,7 @@ resource "azurerm_storage_share" "hanashared" {
 resource "azurerm_private_endpoint" "hanashared" {
   provider                             = azurerm.main
   count                                = var.NFS_provider == "AFS" && var.use_private_endpoint && var.database.scale_out ? (
-                                          length(var.hanashared_private_endpoint_id) > 0 ? (
+                                          length(try(var.hanashared_private_endpoint_id, "")) > 0 ? (
                                             0) : (
                                             length(var.database.zones)
                                           )) : (
@@ -144,7 +127,7 @@ resource "azurerm_private_endpoint" "hanashared" {
                                 local.resource_suffixes.storage_privatelink_hanashared
                               )
                               is_manual_connection = false
-                              private_connection_resource_id = length(var.hanashared_id) > 0 ? (
+                              private_connection_resource_id = length(try(var.hanashared_id, "")) > 0 ? (
                                 var.hanashared_id[count.index]) : (
                                 azurerm_storage_account.hanashared[count.index].id
                               )
@@ -177,7 +160,7 @@ resource "time_sleep" "wait_for_private_endpoints" {
 
 data "azurerm_private_endpoint_connection" "hanashared" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "AFS" && var.use_private_endpoint && var.database.scale_out ? (
+  count                                = var.NFS_provider == "AFS" && var.use_private_endpoint && var.database.scale_out && try(length(var.hanashared_private_endpoint_id) > 0, false) ? (
                                            length(var.hanashared_private_endpoint_id) > 0 ? (
                                              length(var.database.zones)) : (
                                              0

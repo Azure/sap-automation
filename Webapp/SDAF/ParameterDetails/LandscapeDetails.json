@@ -146,15 +146,6 @@
         "Display": 2
       },
       {
-        "Name": "use_spn",
-        "Required": false,
-        "Description": "If set, the deployment is performed using the Service Principal defined for the workload zone, otherwise the managed identity of the deployer is used",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 2
-      },
-      {
         "Name": "shared_access_key_enabled",
         "Required": false,
         "Description": "Storage account authorization using Shared Access Key.",
@@ -319,6 +310,25 @@
         "Overrules": "network_address_space",
         "Display": 3
       },
+      {
+        "Name": "network_flow_timeout_in_minutes",
+        "Required": false,
+        "Description": "The flow timeout in minutes of the virtual network",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "network_enable_route_propagation",
+        "Required": false,
+        "Description": "Enable network route table propagation.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+
       {
         "Name": "use_private_endpoint",
         "Required": false,

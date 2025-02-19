@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 variable "application_tier" {
   description = "Details of the Application layer"
   default = {

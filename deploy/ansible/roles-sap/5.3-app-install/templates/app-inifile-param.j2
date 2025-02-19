@@ -1,0 +1,126 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+#
+#   2482103 - Installation with SWPM in unattended mode using parameter input file fails
+#   2393060 - SAPinst Framework 749 Central Note
+
+
+# Location of Export CD
+SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ sap_cd_package_hdbclient }}
+SAPINST.CD.PACKAGE.CD1                                                = {{ sap_cd_package_cd1 }}
+SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
+
+
+archives.downloadBasket                                               = /usr/sap/install/download_basket
+
+nwUsers.sapadmUID                                                     = {{ sapadm_uid }}
+nwUsers.sapsysGID                                                     = {{ sapsys_gid }}
+nwUsers.sidAdmUID                                                     = {{ sidadm_uid }}
+nwUsers.sidadmPassword                                                = {{ main_password }}
+
+NW_AS.instanceNumber                                                  = {{ app_instance_number }}
+NW_DI_Instance.virtualHostname                                        = {{ sap_appVirtualHostname }}
+
+NW_Delete_Sapinst_Users.removeUsers                                   = true
+NW_GetMasterPassword.masterPwd                                        = {{ main_password }}
+
+NW_adaptProfile.skipSecurityProfileSettings                           = true
+NW_getFQDN.FQDN                                                       = {{ sap_fqdn }}
+
+NW_DDIC_Password.needDDICPasswords                                    = false
+
+NW_readProfileDir.profilesAvailable                                   = true
+NW_getDBInfoGeneric.dbhost                                            = {{ sap_db_hostname }}
+NW_getDBInfoGeneric.dbsid                                             = {{ db_sid | upper }}
+
+# ABAP system is Unicode (true|false), only needed if it cannot be determined from the system.
+NW_getUnicode.isUnicode                                               = true
+
+# Specify whether this system is to be a Unicode system.
+NW_GetSidNoProfiles.unicode                                           = true
+
+HDB_Schema_Check_Dialogs.schemaName                                   = {{ hana_schema }}
+HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
+
+NW_HDB_DBClient.clientPathStrategy                                    = SAPCPE
+NW_HDB_getDBInfo.instanceNumber                                       = {{ db_instance_number }}
+
+NW_checkMsgServer.abapMSPort                                          = 36{{ scs_instance_number }}
+NW_getLoadType.loadType                                               = SAP
+NW_readProfileDir.profileDir                                          = {{ sap_profile_dir }}
+
+NW_System.installSAPHostAgent                                         = {{ sap_installSAPHostAgent }}
+
+# Database hostnames that will be set directly in hdbuserstore without resolving them in HANA. Comma separated. Example (host1,host2)
+HDB_Userstore.doNotResolveHostnames                                   =  {{ virt_do_not_resolve_hostname }}
+
+NW_DB6_DB.db6.abap.connect.user                                       = sap{{ db_sid | lower }}
+NW_DB6_DB.db6.abap.schema                                             = sap{{ db_sid | lower }}
+
+
+
+NW_WPConfiguration.ciDialogWPNumber                                   = {{ sap_ciDialogWPNumber}}
+NW_WPConfiguration.ciBtcWPNumber                                      = {{ sap_ciBtcWPNumber }}
+
+{% if platform | upper == 'ORACLE-ASM' %}
+ora.grid.ORACLE_HOME                                                 = /oracle/GRID/{{ ora_version }}
+ora.grid.ORACLE_SID                                                  = +ASM
+ora.dbhome                                                           = /oracle/{{ db_sid | upper }}/{{ ora_release }}
+ora.multitenant.installMT                                            = FALSE
+ora.multitenant.pdbsid                                               = {{ db_sid }}
+ora.multitenant.installMT                                            = FALSE
+ora.whatInstallation                                                 = isSingle
+ora.whatIsASM                                                        = isASM
+ora.whatIsCDB                                                        = isNonCDB
+ora.whatIsInstance                                                   = isSingle
+ora.multitenant.pdbsid                                               = {{ db_sid }}
+ora.whatInstallation                                                 = isSingle
+ora.whatIsASM                                                        = isASM
+ora.whatIsCDB                                                        = isNonCDB
+ora.whatIsInstance                                                   = isSingle
+ora.whatIsOracleUser                                                 = true
+storageBasedCopy.ora.ABAPSchema                                      = SAPSR3
+storageBasedCopy.ora.clientVersion                                   = {{ ora_release }}
+storageBasedCopy.ora.listenerName                                    = LISTENER
+storageBasedCopy.ora.listenerPort                                    = 1521
+storageBasedCopy.ora.serverVersion                                   = {{ ora_release }}
+storageBasedCopy.ora.swowner                                         = oracle
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
+MessageServer.configureAclInfo                                       = false
+
+{% endif %}
+
+{% if platform | upper == 'ORACLE' %}
+# Oracle parameters
+
+ora.dbhome                                                            = /oracle/{{ db_sid | upper }}/{{ ora_release }}
+ora.multitenant.installMT                                            = FALSE
+ora.multitenant.pdbsid                                               = {{ db_sid }}
+ora.multitenant.installMT                                            = FALSE
+ora.whatInstallation                                                 = isSingle
+ora.whatIsASM                                                        = isNonASM
+ora.whatIsCDB                                                        = isNonCDB
+ora.whatIsInstance                                                   = isSingle
+ora.multitenant.pdbsid                                               = {{ db_sid }}
+ora.whatInstallation                                                 = isSingle
+ora.whatIsASM                                                        = isNonASM
+ora.whatIsCDB                                                        = isNonCDB
+ora.whatIsInstance                                                   = isSingle
+ora.whatIsOracleUser                                                 = true
+storageBasedCopy.ora.ABAPSchema                                      = SAPSR3
+storageBasedCopy.ora.clientVersion                                   = {{ ora_release }}
+storageBasedCopy.ora.listenerName                                    = LISTENER
+storageBasedCopy.ora.listenerPort                                    = 1521
+storageBasedCopy.ora.serverVersion                                   = {{ ora_release }}
+storageBasedCopy.ora.swowner                                         = oracle
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
+MessageServer.configureAclInfo                                       = false
+{% endif %}
+
+
+
+

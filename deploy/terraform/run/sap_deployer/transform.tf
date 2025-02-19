@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 
 locals {
   infrastructure = {
@@ -50,6 +53,13 @@ locals {
                                                   try(var.infrastructure.vnets.management.address_space, "")
                                                 ),
                                                 ""
+                                              )
+                                              flow_timeout_in_minutes = try(
+                                                coalesce(
+                                                  var.management_network_flow_timeout_in_minutes,
+                                                  try(var.infrastructure.vnets.management.flow_timeout_in_minutes, null)
+                                                ),
+                                                null
                                               )
 
                                               subnet_mgmt = {
@@ -124,8 +134,10 @@ locals {
                                               }
                                             }
                                           }
-  deploy_monitoring_extension      = var.deploy_monitoring_extension
-  deploy_defender_extension        = var.deploy_defender_extension
+    deploy_monitoring_extension      = var.deploy_monitoring_extension
+    deploy_defender_extension        = var.deploy_defender_extension
+    custom_random_id                 = var.custom_random_id
+    bastion_public_ip_tags           = try(var.bastion_public_ip_tags, {})
 
                                         }
   deployer                             = {
@@ -186,6 +198,7 @@ locals {
                                            shared_access_key_enabled           = var.shared_access_key_enabled
                                            devops_authentication_type          = var.app_service_devops_authentication_type
                                            encryption_at_host_enabled          = var.encryption_at_host_enabled
+                                           deployer_public_ip_tags             = try(var.deployer_public_ip_tags, {})
                                          }
 
   authentication                       = {
@@ -209,9 +222,12 @@ locals {
                                             enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
                                          }
 
-  firewall_deployment                  = try(var.firewall_deployment, false)
-  firewall_rule_subnets                = try(var.firewall_rule_subnets, [])
-  firewall_allowed_ipaddresses         = try(var.firewall_allowed_ipaddresses, [])
+  firewall                             = {
+                                           deployment           = var.firewall_deployment
+                                           rule_subnets         = var.firewall_rule_subnets
+                                           allowed_ipaddresses  = var.firewall_allowed_ipaddresses
+                                           ip_tags              = var.firewall_public_ip_tags
+                                         }
 
   assign_subscription_permissions      = try(var.deployer_assign_subscription_permissions, false)
 

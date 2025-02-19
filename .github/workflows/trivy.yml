@@ -1,0 +1,43 @@
+---
+name: trivy
+
+on:
+  pull_request:
+    types: [ 'opened', 'reopened', 'synchronize' ]
+  merge_group:
+  workflow_dispatch:
+
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  build:
+    name: 'trivy scan'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
+      with:
+        egress-policy: audit
+
+    - name: Checkout code
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+    - name: Run Trivy vulnerability scanner (file system)
+      uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0 # 0.29.0
+      with:
+        scan-type: 'fs'
+        ignore-unfixed: true
+        scan-ref: .
+        format: 'sarif'
+        scanners: 'vuln,secret,config'
+        output: report-fs.sarif
+
+    - name: Upload Trivy report (fs) GitHub Security
+      uses: github/codeql-action/upload-sarif@dd746615b3b9d728a6a37ca2045b68ca76d4841a # v3.28.8
+      with:
+        sarif_file: report-fs.sarif
+        category: 'fs'

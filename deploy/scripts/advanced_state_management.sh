@@ -1,10 +1,12 @@
 #!/bin/bash
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 
 #colors for terminal
-boldreduscore="\e[1;4;31m"
-boldred="\e[1;31m"
+bold_red_underscore="\e[1;4;31m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
-resetformatting="\e[0m"
+reset_formatting="\e[0m"
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
@@ -129,7 +131,7 @@ then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                 $boldred  Parameter file does not exist: ${val} $resetformatting #"
+    echo -e "#                 $bold_red  Parameter file does not exist: ${val} $reset_formatting #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     exit 2 #No such file or directory
@@ -140,7 +142,7 @@ then
     printf -v val %-40.40s "$type"
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#  $boldred Incorrect system deployment type specified: ${val}$resetformatting#"
+    echo -e "#  $bold_red Incorrect system deployment type specified: ${val}$reset_formatting#"
     echo "#                                                                                       #"
     echo "#     Valid options are:                                                                #"
     echo "#       sap_deployer                                                                    #"
@@ -157,7 +159,7 @@ if [ -z "${operation}" ]
 then
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#  $boldred Incorrect system deployment type specified: ${val}$resetformatting#"
+    echo -e "#  $bold_red Incorrect system deployment type specified: ${val}$reset_formatting#"
     echo "#                            operation must be specified                                #"
     echo "#                                                                                       #"
     echo "#     Valid options are:                                                                #"
@@ -203,7 +205,7 @@ if checkIfCloudShell; then
   export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
 else
   if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
-    mkdir -p /opt/terraform/.terraform.d/plugin-cache
+    sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
     sudo chown -R $USER /opt/terraform
   fi
   export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
@@ -225,7 +227,7 @@ if [ -n "${resourceID}" ] ; then
       printf -v val %-40.40s "$resourceID"
       echo "#########################################################################################"
       echo "#                                                                                       #"
-      echo -e "#  $boldred Incorrect resource ID specified: $resetformatting                                                   #"
+      echo -e "#  $bold_red Incorrect resource ID specified: $reset_formatting                                                   #"
       echo "#   ${resourceID} "
       echo "#                                                                                       #"
       echo "#########################################################################################"
@@ -300,7 +302,7 @@ if [ 0 != $return_value ] ; then
     echo ""
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                          $boldreduscore!Errors during the init phase!$resetformatting                              #"
+    echo -e "#                       $bold_red_underscore!!! Errors during the init phase !!!$reset_formatting                           #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -336,7 +338,7 @@ terraform  -chdir="${module_dir}" state list > resources.lst
 if [ "${operation}" == "list" ] ; then
   echo "#########################################################################################"
   echo "#                                                                                       #"
-  echo -e "#                                    $cyan  Resources: $resetformatting                                      #"
+  echo -e "#                                    $cyan  Resources: $reset_formatting                                      #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
   echo ""
@@ -356,7 +358,7 @@ if [ "${operation}" == "import" ] || [ "${operation}" == "remove" ] ; then
 
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#                          $cyan Removing the item: ${moduleID}$resetformatting                                   #"
+    echo -e "#                          $cyan Removing the item: ${moduleID}$reset_formatting                                   #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
     echo ""
@@ -366,7 +368,7 @@ if [ "${operation}" == "import" ] || [ "${operation}" == "remove" ] ; then
         echo ""
         echo "#########################################################################################"
         echo "#                                                                                       #"
-        echo -e "#                          $boldreduscore!Errors removing the item!$resetformatting                                   #"
+        echo -e "#                       $bold_red_underscore!!! Errors removing the item !!!$reset_formatting                                #"
         echo "#                                                                                       #"
         echo "#########################################################################################"
         echo ""
@@ -389,7 +391,7 @@ if [ "${operation}" == "import" ]  ; then
       echo ""
       echo "#########################################################################################"
       echo "#                                                                                       #"
-      echo -e "#                          $boldreduscore!Errors importing the item!$resetformatting                                  #"
+      echo -e "#                       $bold_red_underscore!!! Errors importing the item !!!$reset_formatting                               #"
       echo "#                                                                                       #"
       echo "#########################################################################################"
       echo ""

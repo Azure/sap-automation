@@ -1,27 +1,27 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
 
-namespace AutomationForm.Controllers
+namespace SDAFWebApp.Controllers
 {
-  public class ViewBagActionFilter : ActionFilterAttribute
-  {
-    private readonly IConfiguration _configuration;
-
-    public ViewBagActionFilter(IConfiguration configuration)
+    public class ViewBagActionFilter : ActionFilterAttribute
     {
-      _configuration = configuration;
-    }
+        private readonly IConfiguration _configuration;
 
-    public override void OnResultExecuting(ResultExecutingContext context)
-    {
-      if (context.Controller is Controller)
-      {
-        var controller = context.Controller as Controller;
-        controller.ViewBag.IsPipelineDeployment = _configuration["IS_PIPELINE_DEPLOYMENT"];
-      }
+        public ViewBagActionFilter(IConfiguration configuration) => _configuration = configuration;
 
-      base.OnResultExecuting(context);
+        public override void OnResultExecuting(ResultExecutingContext context)
+        {
+            if (context.Controller is Controller)
+            {
+                var controller = context.Controller as Controller;
+                controller.ViewBag.IsPipelineDeployment = _configuration["IS_PIPELINE_DEPLOYMENT"];
+            }
+
+            base.OnResultExecuting(context);
+        }
     }
-  }
 }

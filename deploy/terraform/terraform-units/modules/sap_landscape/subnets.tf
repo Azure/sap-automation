@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 // Creates admin subnet of SAP VNET
 resource "azurerm_subnet" "admin" {
   provider                             = azurerm.main
@@ -53,7 +56,7 @@ data "azurerm_subnet" "db" {
 // Creates app subnet of SAP VNET
 resource "azurerm_subnet" "app" {
   provider                             = azurerm.main
-  count                                = local.application_subnet_defined && !local.application_subnet_existing ? 1 : 0
+  count                                = local.create_application_subnet ? 1 : 0
   name                                 = local.application_subnet_name
   resource_group_name                  = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
   virtual_network_name                 = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
@@ -186,7 +189,7 @@ resource "azurerm_subnet_route_table_association" "admin" {
                                           azurerm_route_table.rt,
                                           azurerm_subnet.admin
                                         ]
-  subnet_id                            = local.admin_subnet_existing ? var.infrastructure.vnets.sap.subnet_admin.arm_id : azurerm_subnet.admin[0].id
+  subnet_id                            = local.admin_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_admin.arm_id : azurerm_subnet.admin[0].id
   route_table_id                       = azurerm_route_table.rt[0].id
 }
 
@@ -197,7 +200,7 @@ resource "azurerm_subnet_route_table_association" "db" {
                                            azurerm_route_table.rt,
                                            azurerm_subnet.db
                                          ]
-  subnet_id                            = local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id
+  subnet_id                            = local.database_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_db.arm_id : azurerm_subnet.db[0].id
   route_table_id                       = azurerm_route_table.rt[0].id
 }
 
@@ -208,7 +211,7 @@ resource "azurerm_subnet_route_table_association" "app" {
                                            azurerm_route_table.rt,
                                            azurerm_subnet.db
                                          ]
-  subnet_id                            = local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id
+  subnet_id                            = local.application_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_app.arm_id : azurerm_subnet.app[0].id
   route_table_id                       = azurerm_route_table.rt[0].id
 }
 
@@ -219,7 +222,7 @@ resource "azurerm_subnet_route_table_association" "web" {
                                            azurerm_route_table.rt,
                                            azurerm_subnet.web
                                          ]
-  subnet_id                            = local.web_subnet_existing ? var.infrastructure.vnets.sap.subnet_web.arm_id : azurerm_subnet.web[0].id
+  subnet_id                            = local.web_subnet_existing ? var.infrastructure.virtual_networks.sap.subnet_web.arm_id : azurerm_subnet.web[0].id
   route_table_id                       = azurerm_route_table.rt[0].id
 }
 
@@ -257,12 +260,4 @@ resource "azurerm_network_security_rule" "nsr_external_db" {
   source_address_prefix                = "*"
   destination_address_prefixes         = azurerm_subnet.db[0].address_prefixes
 }
-
-
-data "azurerm_resource_group" "mgmt" {
-  provider                             = azurerm.deployer
-  count                                = length(local.deployer_subnet_management_id) > 0 ? 1 : 0
-  name                                 = split("/", local.deployer_subnet_management_id)[4]
-}
-
 

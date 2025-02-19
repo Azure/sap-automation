@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 ---
 
 # Variables in this file are required by the role, but are computed from default variables (e.g. sid),

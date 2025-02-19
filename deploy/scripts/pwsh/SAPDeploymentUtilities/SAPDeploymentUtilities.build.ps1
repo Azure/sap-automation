@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 task . Clean, Build, ExportHelp, Stats
 
 task CreateManifest CopyPSD, UpdatPublicFunctionsToExport

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 variable "admin_subnet"                                 { description = "Information about SAP admin subnet" }
 variable "anchor_vm"                                    {
                                                           description = "Deployed anchor VM"
@@ -21,6 +24,10 @@ variable "database_server_count"                        {
                                                         }
 variable "database_use_premium_v2_storage"              {
                                                           description = "If true, the database tier will use premium storage"
+                                                          type        = bool
+                                                        }
+variable "database_active_active"                       {
+                                                          description = "If true, database will deployed with Active/Active (read enabled) configuration"
                                                           type        = bool
                                                         }
 variable "database_vm_admin_nic_ips"                    { description = "If provided, the database tier will be configured with the specified IPs (admin subnet)" }
@@ -66,7 +73,10 @@ variable "use_secondary_ips"                            {
                                                           default     = false
                                                         }
 
-
+variable "enable_firewall_for_keyvaults_and_storage"    {
+                                                          description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+                                                          type        = bool
+                                                        }
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #

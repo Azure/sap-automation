@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #!/bin/bash
 
 export PATH=/opt/terraform/bin:/opt/ansible/bin:${PATH}
@@ -63,7 +66,7 @@ export ANSIBLE_PASSWORD=$password_secret
 export           ANSIBLE_HOST_KEY_CHECKING=False
 export           ANSIBLE_INVENTORY="${sap_sid%$'\r'}_hosts.yaml"
 export           ANSIBLE_PRIVATE_KEY_FILE=sshkey
-export           ANSIBLE_COLLECTIONS_PATHS=/opt/ansible/collections:${ANSIBLE_COLLECTIONS_PATHS:+${ANSIBLE_COLLECTIONS_PATHS}}
+export           ANSIBLE_COLLECTIONS_PATH=/opt/ansible/collections:${ANSIBLE_COLLECTIONS_PATH:+${ANSIBLE_COLLECTIONS_PATH}}
 export           ANSIBLE_CONFIG="${cmd_dir}/ansible.cfg"
 
 # We really should be determining the user dynamically, or requiring
