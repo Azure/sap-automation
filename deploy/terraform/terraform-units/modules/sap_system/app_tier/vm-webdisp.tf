@@ -336,7 +336,7 @@ resource "azurerm_windows_virtual_machine" "web" {
 
   tags                                 = merge(var.application_tier.web_tags, var.tags)
 
-  encryption_at_host_enabled           = var.temp_infrastructure.encryption_at_host_enabled
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
   dynamic "os_disk" {
                       iterator = disk
