@@ -42,6 +42,11 @@ variable "prevent_deletion_if_contains_resources" {
                                                     default     = true
                                                   }
 
+variable "encryption_at_host_enabled"             {
+                                                    description = "Enables host encryption for sap landscape vms"
+                                                    default     = false
+                                                    type        = bool
+                                                  }
 variable "Description"                          {
                                                   description = "This is the description for the deployment"
                                                   type        = string
@@ -61,7 +66,6 @@ variable "management_subscription"              {
                                                   type        = string
                                                   default     = ""
                                                 }
-
 
 #######################################4#######################################8
 #                                                                              #

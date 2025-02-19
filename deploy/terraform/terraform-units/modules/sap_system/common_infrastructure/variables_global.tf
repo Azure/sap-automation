@@ -113,6 +113,7 @@ variable "infrastructure"                        {
                                                   }
                                                  }
 
+
 variable "options"                               {}
 variable "authentication"                        {}
 variable "key_vault"                             {

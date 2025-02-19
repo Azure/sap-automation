@@ -134,6 +134,8 @@ resource "azurerm_linux_virtual_machine" "deployer" {
 
   source_image_id                      = var.deployer.os.source_image_id != "" ? var.deployer.os.source_image_id : null
 
+  encryption_at_host_enabled           = var.deployer.encryption_at_host_enabled
+
   os_disk                                {
                                             name                   = format("%s%s%s%s%s",
                                                                        var.naming.resource_prefixes.osdisk,

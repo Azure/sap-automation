@@ -225,7 +225,6 @@ variable "additional_network_id"                         {
                                                            description = "Agent Network resource ID"
                                                            default     = ""
                                                          }
-
 #########################################################################################
 #                                                                                       #
 #  DNS Settings                                                                         #

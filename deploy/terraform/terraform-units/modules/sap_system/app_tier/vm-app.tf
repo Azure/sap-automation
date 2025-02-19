@@ -177,6 +177,9 @@ resource "azurerm_linux_virtual_machine" "app" {
   disable_password_authentication      = !local.enable_auth_password
 
   tags             =  merge(var.application_tier.app_tags, var.tags)
+
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
+
   dynamic "admin_ssh_key" {
                             for_each = range(var.deployment == "new" ? 1 : (local.enable_auth_password ? 0 : 1))
                             content {
@@ -326,6 +329,8 @@ resource "azurerm_windows_virtual_machine" "app" {
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
 
   tags                                 = merge(var.application_tier.app_tags, var.tags)
+
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
   dynamic "os_disk" {
                       iterator = disk
