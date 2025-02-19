@@ -1,6 +1,3 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License.
-
 ---
 # TODO: Maybe move these to a group_vars/all/distro file so that they
 # can be shared by all playbooks/tasks automatically, and extend with

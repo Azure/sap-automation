@@ -1,0 +1,144 @@
+---
+# Import this task only if the any of the AFS mountpoints are defined
+- name:                                "2.6 SAP Mounts: - Import AFS tasks"
+  ansible.builtin.import_tasks:        components/storage-specific/2.6.0-afs-mounts.yaml
+  when:
+    - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
+    - not use_simple_mount
+    - NFS_provider in ['AFS', 'NONE']
+
+- name:                                "2.6 SAP Mounts: - Import AFS simple mount tasks"
+  ansible.builtin.import_tasks:        components/storage-specific/2.6.7-afs-mounts-simplemount.yaml
+  when:
+    - use_simple_mount is defined and use_simple_mount
+    - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
+    - NFS_provider == 'AFS'
+
+# Import this task only if the sap_mnt is defined, i.e. ANF is used
+- name:                                "2.6 SAP Mounts: - Import ANF tasks"
+  ansible.builtin.import_tasks:        components/storage-specific/2.6.1-anf-mounts.yaml
+  when:
+    - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
+    - not use_simple_mount
+    - NFS_provider == 'ANF'
+
+# Update : Deprecated as the scale out anf mount code functionality is now integrated into 2.6.1 and 2.6.8
+# This will be removed in the next release, left here for tracing and documentation
+# Import this task only if database_scale_out is defined. Implies that sap_mnt is defined, i.e. ANF is used
+# - name:                                "2.6 SAP Mounts: - Import ANF tasks for Scale-Out"
+#   ansible.builtin.import_tasks:        2.6.1.2-anf-mounts-scaleout.yaml
+#   when:
+#     - NFS_provider == 'ANF'
+#     - database_scale_out is defined
+#     - database_scale_out
+#     - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
+
+# Import this task only if the tier is ora.
+- name:                                "2.6 SAP Mounts: - Import Oracle tasks"
+  ansible.builtin.import_tasks:        "components/2.6.2-oracle-mounts.yaml"
+  when: node_tier == "oracle"
+
+# Import this task only if the tier is ora for oracle-asm.
+- name:                                "2.6 SAP Mounts: - Import Oracle ASM pre-requisite tasks"
+  ansible.builtin.import_tasks:        "components/oracle/2.6.3-oracle-asm-prereq.yaml"
+  when: node_tier == "oracle-asm"
+
+# Import this task only if the tier is ora for oracle-asm.
+- name:                                "2.6 SAP Mounts: - Import Oracle ASM tasks"
+  ansible.builtin.import_tasks:        "components/oracle/2.6.3-oracle-asm-mounts.yaml"
+  when: node_tier == "oracle-asm"
+
+- name:                                "2.6 SAP Mounts: - Import Oracle observer tasks"
+  ansible.builtin.import_tasks:        "components/oracle/2.6.3-oracle-observer.yaml"
+  when: node_tier == "observer"
+
+- name:                                "2.6 SAP Mounts: - Import Oracle shared home tasks"
+  ansible.builtin.import_tasks:        "components/oracle/2.6.3-oracle-multi-sid.yaml"
+  when:
+    - node_tier == "oracle-multi-sid"
+    - node_tier != "oracle-asm"
+
+# Import this task only if the node_tier is db2.
+- name:                                "2.6 SAP Mounts: - Import DB2 tasks"
+  ansible.builtin.import_tasks:        "components/2.6.4-db2-mounts.yaml"
+  when: node_tier == "db2"
+
+# Import this task only if the node_tier is ase.
+- name:                                "2.6 SAP Mounts: - Import SYBASE tasks"
+  ansible.builtin.import_tasks:        "components/2.6.6-sybase-mounts.yaml"
+  when: node_tier == "sybase"
+
+
+# Update : Deprecated as the scale out anf mount code functionality is now integrated into 2.6.1 and 2.6.8
+# This will be removed in the next release, left here for tracing and documentation
+# Import this task only if database_scale_out is defined. Implies that sap_mnt is defined, i.e. ANF is used
+# - name:                                "2.6 SAP Mounts: - Import ANF tasks for Scale-Out"
+#   ansible.builtin.import_tasks:        2.6.1.2-anf-mounts-scaleout.yaml
+#   when:
+#     - NFS_provider == 'ANF'
+#     - database_scale_out is defined
+#     - database_scale_out
+#     - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
+
+# Import this task only if the tier is ora.
+- name:                                "2.6 SAP Mounts: - Import Oracle tasks"
+  ansible.builtin.import_tasks:        "components/2.6.2-oracle-mounts.yaml"
+  when: node_tier == "oracle"
+
+# Import this task only if the tier is ora for oracle-asm.
+- name:                                "2.6 SAP Mounts: - Import Oracle ASM pre-requisite tasks"
+  ansible.builtin.import_tasks:        "components/oracle/2.6.3-oracle-asm-prereq.yaml"
+  when: node_tier == "oracle-asm"
+
+# Import this task only if the tier is ora for oracle-asm.
+- name:                                "2.6 SAP Mounts: - Import Oracle ASM tasks"
+  ansible.builtin.import_tasks:        "components/oracle/2.6.3-oracle-asm-mounts.yaml"
+  when: node_tier == "oracle-asm"
+
+- name:                                "2.6 SAP Mounts: - Import Oracle observer tasks"
+  ansible.builtin.import_tasks:        "components/oracle/2.6.3-oracle-observer.yaml"
+  when:
+    - node_tier == "observer"
+    - platform != "HANA"
+    # This is to prevent conflict between HANA scaleout-hsr and oracle DB as they both share observer, but only one platform can be deployed at a time
+
+- name:                                "2.6 SAP Mounts: - Import Oracle shared home tasks"
+  ansible.builtin.import_tasks:        "components/oracle/2.6.3-oracle-multi-sid.yaml"
+  when:
+    - node_tier == "oracle-multi-sid"
+    - node_tier != "oracle-asm"
+
+# Import this task only if the node_tier is db2.
+- name:                                "2.6 SAP Mounts: - Import DB2 tasks"
+  ansible.builtin.import_tasks:        "components/2.6.4-db2-mounts.yaml"
+  when: node_tier == "db2"
+
+# Import this task only if the node_tier is ase.
+- name:                                "2.6 SAP Mounts: - Import SYBASE tasks"
+  ansible.builtin.import_tasks:        "components/2.6.6-sybase-mounts.yaml"
+  when: node_tier == "sybase"
+
+
+# Update : Deprecated as the scale out anf mount code functionality is now integrated into 2.6.1 and 2.6.8
+# This will be removed in the next release, left here for tracing and documentation
+# Import this task only if database_scale_out is defined. Implies that sap_mnt is defined, i.e. ANF is used
+# - name:                                "2.6 SAP Mounts: - Import ANF tasks for Scale-Out"
+#   ansible.builtin.import_tasks:        2.6.1.2-anf-mounts-scaleout.yaml
+#   when:
+#     - NFS_provider == 'ANF'
+#     - database_scale_out is defined
+#     - database_scale_out
+#     - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
+
+- name:                                "2.6 SAP Mounts: - Import ANF tasks"
+  ansible.builtin.import_tasks:        components/storage-specific/2.6.8-anf-mounts-simplemount.yaml
+  when:
+    - use_simple_mount is defined and use_simple_mount
+    - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
+    - NFS_provider == 'ANF'
+
+# Import NFS mounts and permissions changes for oracle and oracle-asm installation.
+- name:                                "2.6 SAP Mounts: - Import Oracle NFS tasks"
+  ansible.builtin.import_tasks:        "components/oracle/2.6.6-oracle-nfs-mounts.yaml"
+  when:
+    - node_tier in ['oracle','oracle-asm','observer']

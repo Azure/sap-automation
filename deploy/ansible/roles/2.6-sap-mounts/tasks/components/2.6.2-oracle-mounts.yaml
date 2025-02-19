@@ -1,6 +1,3 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT License.
-
 ---
 
 # /*---------------------------------------------------------------------------8
@@ -52,10 +49,10 @@
     src:                               "{{ dev_path_from_lv_item }}"
     path: >-
                                        {%- set lv_parts = item.lv.split('_') -%}
-                                       {%- if lv_parts | length == 2 -%}
+                                       {%- if lv_parts| length == 2 -%}
                                        {%- set _path = '/' ~ lv_parts[-1] -%}
                                        {%- else -%}
-                                       {%- set _path = ['/' ~lv_parts[-2], db_sid | upper, lv_parts[-1]] | join('/') -%}
+                                       {%- set _path = ['/' ~ lv_parts[-2], db_sid | upper, lv_parts[-1]] | join('/') -%}
                                        {%- endif -%}
                                        {{- _path -}}
     fstype:                            "{{ item.fstype }}"
@@ -65,7 +62,7 @@
   register:  oracle_filesystem_mounts
   when:
     - item.node_tier == "oracle"
-    - item.lv in lvexists
+    - item.lv in  lvexists
 
 - name:                                "ORACLE: Create sap_deployment_automation folder"
   become:                              true
@@ -82,28 +79,24 @@
     path:                              /etc/sap_deployment_automation/filepermission.txt
   register:                            oracle_permissions_set
 
-- name:                                "AFS Mount: Mount Install"
-  block:
+- name:                                "Make oracle:oinstall as owners"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              /oracle
+    group:                             oinstall
+    owner:                             oracle
+    mode:                              0775
+  when:
+    - not oracle_permissions_set.stat.exists
 
-    - name:                            "AFS Mount: Mount Install folder when using AFS ({{ usr_sap_install_mountpoint }}/{{ bom_base_name }})"
-      ansible.posix.mount:
-        src:                           "{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}"
-        path:                          "{{ target_media_location }}"
-        fstype:                        'nfs4'
-        opts:                          "vers=4,minorversion=1,sec=sys"
-        state:                         mounted
-      when:
-        - node_tier == 'oracle' or node_tier == 'oracle-asm'
-        - use_AFS
-  rescue:
-    - name:                            "AFS Mount: Re-Mount Install folder when using AFS"
-      ansible.builtin.debug:
-        msg:                           "Trying to remount Install Folder"
-
-    - name:                            "AFS Mount: Pause for 5 seconds"
-      ansible.builtin.pause:
-        seconds:                       15
-
+- name:                                "ORACLE: Create filepermission.txt"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/filepermission.txt
+    mode:                              0755
+    state:                             touch
 
 # Mount Filesystems
 - name:                                "ORACLE: Mount SAP File systems on Database for installation"
@@ -135,7 +128,7 @@
   loop:
     - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}', path: '{{ target_media_location }}' }
   when:
-    - node_tier == 'observer'
+    - node_tier in ['observer', 'oracle-asm']
     - use_AFS
 
 # Debug for testing
