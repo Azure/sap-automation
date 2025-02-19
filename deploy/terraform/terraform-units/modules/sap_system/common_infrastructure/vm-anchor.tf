@@ -67,7 +67,7 @@ resource "azurerm_linux_virtual_machine" "anchor" {
   # ToDo Add back later
 # patch_mode                           = var.infrastructure.patch_mode
 
-  encryption_at_host_enabled           = var.temp_infrastructure.encryption_at_host_enabled
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
   dynamic "admin_ssh_key" {
     for_each                           = range(var.deployment == "new" ? 1 : (local.enable_anchor_auth_password ? 0 : 1))
