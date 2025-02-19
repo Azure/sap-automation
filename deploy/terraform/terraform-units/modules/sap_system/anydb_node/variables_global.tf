@@ -25,7 +25,6 @@ variable "deploy_application_security_groups"           { description = "Defines
 variable "deployment"                                   { description = "The type of deployment" }
 variable "fencing_role_name"                            { description = "If specified the role name to use for the fencing" }
 variable "infrastructure"                               { description = "Dictionary of information about the common infrastructure" }
-variable "temp_infrastructure"                          { description = "Dictionary of information about temp infrastructure"}
 variable "landscape_tfstate"                            { description = "Terraform output from the workload zone" }
 variable "license_type"                                 { description = "Specifies the license type for the OS" }
 variable "naming"                                       { description = "Defines the names for the resources" }
