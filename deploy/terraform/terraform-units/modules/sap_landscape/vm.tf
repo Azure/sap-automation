@@ -78,7 +78,7 @@ resource "azurerm_windows_virtual_machine" "utility_vm" {
   vm_agent_platform_updates_enabled                      = true
   enable_automatic_updates                               = !(var.infrastructure.patch_mode == "ImageDefault")
 
-  encryption_at_host_enabled                             = var.temp_infrastructure.encryption_at_host_enabled 
+  encryption_at_host_enabled                             = var.infrastructure.encryption_at_host_enabled 
 
   os_disk {
                  name                 = format("%s%s%s%s%s",
