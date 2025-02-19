@@ -18,7 +18,7 @@ locals {
                                             patch_assessment_mode            = var.patch_assessment_mode
                                             shared_access_key_enabled        = var.shared_access_key_enabled
                                             shared_access_key_enabled_nfs    = var.shared_access_key_enabled_nfs
-
+                                            encryption_at_host_enabled       = var.encryption_at_host_enabled
                                          }
 
 

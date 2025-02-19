@@ -205,6 +205,8 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   # ToDo Add back later
 # patch_mode                           = var.infrastructure.patch_mode
 
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
+
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = local.use_avset && !local.enable_ultradisk ? (
                                            local.availabilitysets_exist ? (
