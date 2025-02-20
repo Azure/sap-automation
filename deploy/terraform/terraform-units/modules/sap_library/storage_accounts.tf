@@ -270,6 +270,18 @@ resource "azurerm_storage_container" "storagecontainer_tfstate" {
                                            )
 
   container_access_type                = "private"
+
+  lifecycle {
+    ignore_changes = [
+      # Introducing this lifecycle policy due to below issue triggering "-/+ destroy and then create replacement"
+      # when applying this version of SDAF on older versions, as part of LCM activities
+      # References:
+      # https://github.com/hashicorp/terraform-provider-azurerm/issues/27942
+      # https://github.com/hashicorp/terraform-provider-azurerm/pull/28784
+      storage_account_name,
+      storage_account_id
+    ]
+  }
 }
 
 data "azurerm_storage_container" "storagecontainer_tfstate" {
@@ -467,6 +479,17 @@ resource "azurerm_storage_container" "storagecontainer_sapbits" {
 
   container_access_type                = "private"
 
+  lifecycle {
+    ignore_changes = [
+      # Introducing this lifecycle policy due to below issue triggering "-/+ destroy and then create replacement"
+      # when applying this version of SDAF on older versions, as part of LCM activities
+      # References:
+      # https://github.com/hashicorp/terraform-provider-azurerm/issues/27942
+      # https://github.com/hashicorp/terraform-provider-azurerm/pull/28784
+      storage_account_name,
+      storage_account_id
+    ]
+  }
 }
 
 // Imports existing storage blob container for SAP bits
@@ -554,6 +577,17 @@ resource "azurerm_storage_container" "storagecontainer_tfvars" {
 
   container_access_type                = "private"
 
+  lifecycle {
+    ignore_changes = [
+      # Introducing this lifecycle policy due to below issue triggering "-/+ destroy and then create replacement"
+      # when applying this version of SDAF on older versions, as part of LCM activities
+      # References:
+      # https://github.com/hashicorp/terraform-provider-azurerm/issues/27942
+      # https://github.com/hashicorp/terraform-provider-azurerm/pull/28784
+      storage_account_name,
+      storage_account_id
+    ]
+  }
 }
 
 data "azurerm_storage_container" "storagecontainer_tfvars" {
