@@ -84,6 +84,8 @@ resource "azurerm_linux_virtual_machine" "observer" {
 
   tags                                 = merge(local.tags, var.tags)
 
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
+
   dynamic "admin_ssh_key" {
                             for_each = range(var.deployment == "new" ? 1 : (local.enable_auth_password ? 0 : 1))
                             content {
@@ -158,6 +160,7 @@ resource "azurerm_windows_virtual_machine" "observer" {
 
   tags                                 = merge(local.tags, var.tags)
 
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
   os_disk {
             name = format("%s%s%s%s%s",
