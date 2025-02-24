@@ -549,13 +549,16 @@ resource "azurerm_lb" "web" {
                                 var.naming.separator,
                                 local.resource_suffixes.web_alb_feip
                               )
-                              subnet_id = local.web_subnet_deployed.id
+                              subnet_id = local.web_subnet_deployed_id
                               private_ip_address = var.application_tier.use_DHCP ? (
                                 null) : (
                                 try(
                                   local.webdispatcher_loadbalancer_ips[0],
                                   cidrhost(
-                                    local.web_subnet_deployed.address_prefixes[0],
+                                    local.web_subnet_exists ? (
+                                             data.azurerm_subnet.subnet_sap_web[0].address_prefixes[0]) : (
+                                             azurerm_subnet.subnet_sap_web[0].address_prefixes[0]
+                                         ),
                                     local.ip_offsets.web_lb
                                   )
                                 )
