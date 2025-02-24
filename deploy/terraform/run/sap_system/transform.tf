@@ -371,7 +371,7 @@ locals {
                                                       }
                                          }
 
-  subnet_db_arm_id                     = try(coalesce(var.db_subnet_name, data.terraform_remote_state.landscape.outputs.db_subnet_id), "")
+  subnet_db_arm_id                     = try(coalesce(var.db_subnet_arm_id, data.terraform_remote_state.landscape.outputs.db_subnet_id), "")
   subnet_db_nsg_arm_id                 = try(coalesce(var.db_subnet_nsg_arm_id, data.terraform_remote_state.landscape.outputs.db_nsg_id), "")
 
   subnet_db                            = {
@@ -388,57 +388,57 @@ locals {
                                                         "arm_id"  = local.subnet_db_nsg_arm_id
                                                       }
                                          }
-  subnet_app_arm_id                     = try(coalesce(var.app_subnet_name, data.terraform_remote_state.landscape.outputs.app_subnet_id), "")
+  subnet_app_arm_id                     = try(coalesce(var.app_subnet_arm_id, data.terraform_remote_state.landscape.outputs.app_subnet_id), "")
   subnet_app_nsg_arm_id                 = try(coalesce(var.app_subnet_nsg_arm_id, data.terraform_remote_state.landscape.outputs.app_nsg_id), "")
 
   subnet_app                            = {
                                             "name"    = length(local.subnet_app_arm_id) > 0 ? (
                                                            split("/",local.subnet_app_arm_id)[10]) : (
-                                                           var.db_subnet_name),
+                                                           var.app_subnet_name),
                                             "arm_id"  = local.subnet_app_arm_id
-                                            "prefix"  = length(local.subnet_app_arm_id) > 0 ? "" : var.db_subnet_address_prefix
-                                            "defined" = length(var.db_subnet_address_prefix) > 0
+                                            "prefix"  = length(local.subnet_app_arm_id) > 0 ? "" : var.app_subnet_address_prefix
+                                            "defined" = length(var.app_subnet_address_prefix) > 0
                                             "nsg" = {
                                                         "name"    = length(local.subnet_app_nsg_arm_id) > 0 ? (
                                                                       split("/",local.subnet_app_nsg_arm_id)[8]) : (
-                                                                      var.db_subnet_nsg_name),
+                                                                      var.app_subnet_nsg_name),
                                                         "arm_id"  = local.subnet_app_nsg_arm_id
                                                       }
                                          }
 
 
-  subnet_web_arm_id                     = try(coalesce(var.web_subnet_name, data.terraform_remote_state.landscape.outputs.web_subnet_id), "")
+  subnet_web_arm_id                     = try(coalesce(var.web_subnet_arm_id, data.terraform_remote_state.landscape.outputs.web_subnet_id), "")
   subnet_web_nsg_arm_id                 = try(coalesce(var.web_subnet_nsg_arm_id, data.terraform_remote_state.landscape.outputs.web_nsg_id), "")
 
   subnet_web                            = {
                                             "name"    = length(local.subnet_web_arm_id) > 0 ? (
                                                            split("/",local.subnet_web_arm_id)[10]) : (
-                                                           var.db_subnet_name),
+                                                           var.web_subnet_name),
                                             "arm_id"  = local.subnet_web_arm_id
                                             "prefix"  = length(local.subnet_web_arm_id) > 0 ? "" : var.db_subnet_address_prefix
-                                            "defined" = length(var.db_subnet_address_prefix) > 0
+                                            "defined" = length(var.web_subnet_address_prefix) > 0
                                             "nsg" = {
                                                         "name"    = length(local.subnet_web_nsg_arm_id) > 0 ? (
                                                                       split("/",local.subnet_web_nsg_arm_id)[8]) : (
-                                                                      var.db_subnet_nsg_name),
+                                                                      var.web_subnet_nsg_name),
                                                         "arm_id"  = local.subnet_web_nsg_arm_id
                                                       }
                                          }
 
-  subnet_storage_arm_id                     = try(coalesce(var.storage_subnet_name, data.terraform_remote_state.landscape.outputs.storage_subnet_id), "")
+  subnet_storage_arm_id                     = try(coalesce(var.storage_subnet_arm_id, data.terraform_remote_state.landscape.outputs.storage_subnet_id), "")
   subnet_storage_nsg_arm_id                 = try(coalesce(var.storage_subnet_nsg_arm_id, data.terraform_remote_state.landscape.outputs.storage_nsg_id), "")
 
   subnet_storage                            = {
                                                 "name"    = length(local.subnet_storage_arm_id) > 0 ? (
                                                               split("/",local.subnet_storage_arm_id)[10]) : (
-                                                              var.db_subnet_name),
+                                                              var.storage_subnet_name),
                                                 "arm_id"  = local.subnet_storage_arm_id
                                                 "prefix"  = length(local.subnet_storage_arm_id) > 0 ? "" : var.db_subnet_address_prefix
-                                                "defined" = length(var.db_subnet_address_prefix) > 0
+                                                "defined" = length(var.storage_subnet_address_prefix) > 0
                                                 "nsg" = {
                                                             "name"    = length(local.subnet_storage_nsg_arm_id) > 0 ? (
                                                                           split("/",local.subnet_storage_nsg_arm_id)[8]) : (
-                                                                          var.db_subnet_nsg_name),
+                                                                          var.storage_subnet_nsg_name),
                                                             "arm_id"  = local.subnet_storage_nsg_arm_id
                                                           }
                                          }
