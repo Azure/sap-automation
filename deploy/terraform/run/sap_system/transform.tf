@@ -388,9 +388,8 @@ locals {
                                                         "arm_id"  = local.subnet_db_nsg_arm_id
                                                       }
                                          }
-t_app_arm_id                     = try(coalesce(var.db_subnet_name, data.terraform_remote_state.landscape.outputs.db_subnet_id), "")
-
-  subnesubnet_app_nsg_arm_id                 = try(coalesce(var.db_subnet_nsg_arm_id, data.terraform_remote_state.landscape.outputs.db_nsg_id), "")
+  subnet_app_arm_id                     = try(coalesce(var.db_subnet_name, data.terraform_remote_state.landscape.outputs.db_subnet_id), "")
+  subnet_app_nsg_arm_id                 = try(coalesce(var.db_subnet_nsg_arm_id, data.terraform_remote_state.landscape.outputs.db_nsg_id), "")
 
   subnet_app                            = {
                                             "name"    = length(local.subnet_app_arm_id) > 0 ? (
