@@ -499,7 +499,7 @@
 
         - name:                        "SCS HA Installation Playbook: - Ensure the file systems are mounted"
           ansible.builtin.include_role:
-            name:                      roles/2.6-sap-mounts/tasks
+            name:                      roles/2.6-sap-mounts
           tags:
             - 2.6-sap-mounts
 

@@ -427,14 +427,14 @@
           block:
             - name:                        "Observer Playbook: Check if the mounts place"
               ansible.builtin.include_role:
-                name:                      roles/2.6-sap-mounts/tasks
+                name:                      roles/2.6-sap-mounts
 
         - name:                            "Observer Play"
           become:                          true
           block:
             - name:                        "Observer Playbook: Check if the mounts place"
               ansible.builtin.include_role:
-                name:                      roles/2.6-sap-mounts/tasks
+                name:                      roles/2.6-sap-mounts
 
             - name:                        "Observer Playbook: Oracle Observer setup"
               ansible.builtin.include_role:
