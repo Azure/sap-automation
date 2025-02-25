@@ -19,8 +19,8 @@
   block:
     - name:                                "ANF Mount: Set the NFS Service name"
       ansible.builtin.set_fact:
-      nfs_service:                       "{% if distribution_id in ['redhat8', 'redhat9'] %}nfs-server{% else %}{% if distribution_id == 'redhat7' %}nfs{% else %}{% if distribution_id == 'oraclelinux8' %}rpcbind{% else %}nfsserver{% endif %}{% endif %}{% endif %}"
-      db_hosts:                          "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+        nfs_service:                       "{% if distribution_id in ['redhat8', 'redhat9'] %}nfs-server{% else %}{% if distribution_id == 'redhat7' %}nfs{% else %}{% if distribution_id == 'oraclelinux8' %}rpcbind{% else %}nfsserver{% endif %}{% endif %}{% endif %}"
+        db_hosts:                          "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
     - name:                                "ANF Mount: Set the NFSmount options"
       ansible.builtin.set_fact:
