@@ -1,0 +1,23 @@
+---
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Disk system mounts                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# Mount Filesystems
+- name:                                "2.6 SAP Mounts: - Create a Mapped Drive under {{ win_mapped_drive }}"
+  become:                              true
+  become_method:                       ansible.builtin.runas
+  become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
+  community.windows.win_mapped_drive:
+    letter:                            "{{ win_mapped_drive }}"
+    path:                              "{{ item.path }}"
+    state:                             present
+  vars:
+    ansible_become_password:           "{{ domain_user_password }}"
+  loop:
+    - { node_tier: 'all', path: '\\{{ scs_server }}\SAP' }
+
+# ...

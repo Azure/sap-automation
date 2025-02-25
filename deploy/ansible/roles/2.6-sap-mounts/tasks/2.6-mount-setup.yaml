@@ -1,0 +1,57 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |            Perform the tasks for checking before mounting                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+- name:                                "2.6 SAP Mounts: - Check if the shared disk exists"
+  ansible.builtin.set_fact:
+    shareddisk:                        "{{ disks | selectattr('host', 'defined') |
+      selectattr('host', 'equalto', inventory_hostname) |
+      selectattr('type', 'equalto', 'shared') |
+      map(attribute='type') | sort | unique |
+      list | length }}"
+
+- name:                                "2.6 SAP Mounts: - Check if the backup disk exists"
+  ansible.builtin.set_fact:
+    backupdisks_count:                 "{{ disks | selectattr('host', 'defined') |
+      selectattr('host', 'equalto', inventory_hostname) |
+      selectattr('type', 'equalto', 'backup') |
+      map(attribute='type') | sort | unique |
+      list | length | int }}"
+
+- name:                                "2.6 SAP Mounts: - choose the shared disk"
+  ansible.builtin.set_fact:
+    sharedpath:                        "{% if shareddisk == '1' %}/dev/vg_hana_shared/lv_hana_shared\
+                                        {% else %}/dev/vg_sap/lv_hana_shared{% endif %}"
+
+- name:                                "2.6 SAP Mounts: - Set the NFS Server name list"
+  ansible.builtin.set_fact:
+    nfs_server_temp:                   "{{ nfs_server_temp | default([]) + [item] }}"
+  with_items:
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+
+- name:                                "2.6 SAP Mounts: - Set the NFS Server name"
+  ansible.builtin.set_fact:
+    nfs_server:                        "{{ nfs_server_temp | first }}"
+
+- name:                                "2.6 SAP Mounts: - Set the usr/sap/install path"
+  ansible.builtin.set_fact:
+    usr_sap_install_mount_point:       "{% if NFS_provider in ['AFS', 'ANF'] %}{% if usr_sap_install_mountpoint is defined %}{{ usr_sap_install_mountpoint }}{% else %}{{ nfs_server }}:{{ target_media_location }}{% endif %}{% else %}{{ nfs_server }}:{{ target_media_location }}{% endif %}"
+
+- name:                                "2.6 SAP Mounts: - Show info"
+  ansible.builtin.debug:
+    msg:
+      - "NFS Provider: {{ NFS_provider }}"
+      - "Install path: {{ usr_sap_install_mount_point }}"
+      - "Shared path:  {{ sharedpath }}"
+
+# Mount Filesystems
+- name:                                "2.6 SAP Mounts: - Check if the 'sap' disk exists"
+  ansible.builtin.set_fact:
+    sap_disk_exists:                   "{{ disks | selectattr('host', 'defined') |
+      selectattr('host', 'equalto', inventory_hostname) |
+      selectattr('type', 'equalto', 'sap') |
+      map(attribute='type') | sort | unique |
+      list | length }}"
