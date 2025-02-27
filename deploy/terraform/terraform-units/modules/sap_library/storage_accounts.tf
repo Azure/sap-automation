@@ -53,6 +53,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
   #             ignore_changes = [tags]
   #           }
 
+  tags                                 = var.infrastructure.tags
   # tags = {
   #     "enable_firewall_for_keyvaults_and_storage" = local.enable_firewall_for_keyvaults_and_storage
   #     "public_network_access_enabled" = var.storage_account_sapbits.public_network_access_enabled

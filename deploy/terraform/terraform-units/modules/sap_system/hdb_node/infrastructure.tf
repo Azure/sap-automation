@@ -105,8 +105,8 @@ resource "azurerm_lb_probe" "hdb" {
 resource "azurerm_network_interface_backend_address_pool_association" "hdb" {
   provider                             = azurerm.main
   count                                = local.enable_db_lb_deployment ? var.database_server_count : 0
-  network_interface_id                 = var.database.scale_out ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : azurerm_network_interface.nics_dbnodes_db[count.index].id
-  ip_configuration_name                = var.database.scale_out ? azurerm_network_interface.nics_dbnodes_admin[count.index].ip_configuration[0].name : azurerm_network_interface.nics_dbnodes_db[count.index].ip_configuration[0].name
+  network_interface_id                 = var.database.scale_out && var.database_dual_nics ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : azurerm_network_interface.nics_dbnodes_db[count.index].id
+  ip_configuration_name                = var.database.scale_out && var.database_dual_nics? azurerm_network_interface.nics_dbnodes_admin[count.index].ip_configuration[0].name : azurerm_network_interface.nics_dbnodes_db[count.index].ip_configuration[0].name
   backend_address_pool_id              = azurerm_lb_backend_address_pool.hdb[0].id
 }
 

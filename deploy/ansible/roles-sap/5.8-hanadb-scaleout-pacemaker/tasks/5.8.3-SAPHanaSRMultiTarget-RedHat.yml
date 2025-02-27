@@ -48,17 +48,6 @@
       ansible.builtin.set_fact:
         hana_version_str: "{{ hdb_version_output.stdout | regex_search('version:\\s+([\\d\\.]+)', '\\1') | first }}"
 
-    - name:                            "5.8 HANA Pacemaker Scaleout - Assert SAP HANA version is greater than SAP HANA 2.0 SP5"
-      ansible.builtin.assert:
-        that:
-          - hana_version_str is version('2.00.050', '>=')
-        fail_msg:                      "Installed HANA version is not greater than SAP HANA 2.0 SP5"
-        success_msg:                   "Installed HANA version is greater than SAP HANA 2.0 SP5"
-      register:                        hana_sp_version
-      when:
-        - ansible_os_family | upper == "SUSE"
-        - hdb_version_output.stdout is search("version")
-
     - name:                            "5.8 HANA Pacemaker Scaleout - Check if 'myHooks' file exists in /hana/shared directory"
       ansible.builtin.stat:
         path:                          /hana/shared/myHooks
@@ -167,7 +156,7 @@
                                        awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
                                        { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
           args:
-            chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ primary_instance_name }}/trace
+            chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
           register:                    saphanasr
           until:                       saphanasr.stdout is search("SOK")
           retries:                     10
@@ -185,7 +174,7 @@
                                        awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
                                        { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
           args:
-            chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ primary_instance_name }}/trace
+            chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
           register:                    saphanasr
           until:                       saphanasr.stdout is search("SOK")
           retries:                     10

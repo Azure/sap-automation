@@ -7,15 +7,20 @@ resource "azurerm_storage_account" "hanashared" {
   count                                = var.NFS_provider == "AFS" && var.database.scale_out ? (
                                            try(length(var.hanashared_id) > 0, false) ? (
                                              0) : (
-                                             length(var.database.zones)
+                                             var.use_single_hana_shared ? 1 : length(var.database.zones)
                                            )) : (
                                            0
                                          )
   name                                 = substr(replace(
                                            lower(
-                                             format("%s%s%01d%s",
-                                               lower(local.sid),
-                                               local.resource_suffixes.hanasharedafs, count.index,substr(var.random_id,0,3)
+                                             format("%s%s%s%01d",
+                                               local.prefix,
+                                               local.resource_suffixes.hanasharedafs,
+                                               try(
+                                                 local.resource_suffixes.hanasharedafs_id,
+                                                 substr(var.random_id,0,3)
+                                               ),
+                                               count.index + 1  # Bumping with 1 to not have overlap with the sapmnnt storage account
                                              )
                                            ),
                                            "/[^a-z0-9]/",
@@ -72,11 +77,14 @@ resource "azurerm_storage_share" "hanashared" {
                                            time_sleep.wait_for_private_endpoints
                                          ]
 
-  name                                 = format("%s-%s-%01d", lower(local.sid),local.resource_suffixes.hanasharedafs, count.index+1)
+  name                                 = format("%s%01d",
+                                          local.resource_suffixes.hanashared,
+                                          count.index+1
+                                         )
   storage_account_id                   = var.NFS_provider == "AFS" ? (
                                            length(try(var.hanashared_id, "")) > 0 ? (
-                                             var.hanashared_id[count.index]) : (
-                                             azurerm_storage_account.hanashared[count.index].id
+                                             var.hanashared_id[var.use_single_hana_shared ? 0 : count.index]) : (
+                                             azurerm_storage_account.hanashared[var.use_single_hana_shared ? 0 : count.index].id
                                            )
                                            ) : (
                                            ""
@@ -91,45 +99,46 @@ resource "azurerm_private_endpoint" "hanashared" {
   count                                = var.NFS_provider == "AFS" && var.use_private_endpoint && var.database.scale_out ? (
                                           length(try(var.hanashared_private_endpoint_id, "")) > 0 ? (
                                             0) : (
-                                            length(var.database.zones)
+                                            var.use_single_hana_shared ? 1 : length(var.database.zones)
                                           )) : (
                                           0
                                         )
-  name                                 = format("%s%s%d%s",
+  name                                 = format("%s%s%s%s",
                                            var.naming.resource_prefixes.storage_privatelink_hanashared,
-                                           local.prefix,count.index,
+                                           local.prefix,
+                                           var.use_single_hana_shared ? "" : tostring(count.index),
                                            local.resource_suffixes.storage_privatelink_hanashared
                                          )
 
   resource_group_name                  = var.resource_group[0].name
   location                             = var.resource_group[0].location
 
-  subnet_id                            = var.landscape_tfstate.admin_subnet_id
+  subnet_id                            = try(var.landscape_tfstate.use_separate_storage_subnet, false) ? (
+                                         var.landscape_tfstate.storage_subnet_id ) : (
+                                         var.landscape_tfstate.admin_subnet_id
+                                       )
   tags                                 = var.tags
 
-  custom_network_interface_name        = format("%s%s%s%d%s",
+  custom_network_interface_name        = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.storage_privatelink_hanashared,
-                                           length(local.prefix) > 0 ? (
-                                             local.prefix) : (
-                                             var.infrastructure.environment
-                                           ),
+                                           local.prefix,
                                            var.naming.resource_suffixes.storage_privatelink_hanashared,
-                                           count.index,
+                                           var.use_single_hana_shared ? "" : tostring(count.index),
                                            var.naming.resource_suffixes.nic
                                          )
 
 
   private_service_connection {
-                              name = format("%s%s%d%s",
+                              name = format("%s%s%s%s",
                                 var.naming.resource_prefixes.storage_privatelink_hanashared,
                                 local.prefix,
-                                count.index,
+                                var.use_single_hana_shared ? "" : tostring(count.index),
                                 local.resource_suffixes.storage_privatelink_hanashared
                               )
                               is_manual_connection = false
                               private_connection_resource_id = length(try(var.hanashared_id, "")) > 0 ? (
-                                var.hanashared_id[count.index]) : (
-                                azurerm_storage_account.hanashared[count.index].id
+                                var.hanashared_id[var.use_single_hana_shared ? 0 : count.index]) : (
+                                azurerm_storage_account.hanashared[var.use_single_hana_shared ? 0 : count.index].id
                               )
                               subresource_names = [
                                 "File"

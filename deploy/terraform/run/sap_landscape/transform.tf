@@ -488,6 +488,9 @@ dns_settings                         = {
 
                                            privatelink_dns_resourcegroup_name           = coalesce(var.privatelink_dns_resourcegroup_name, var.management_dns_resourcegroup_name, local.saplib_resource_group_name)
                                            privatelink_dns_subscription_id              = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.saplib_subscription_id)
+                                           privatelink_file_id                          = var.privatelink_file_id
+                                           privatelink_storage_id                       = var.privatelink_storage_id
+                                           privatelink_keyvault_id                      = var.privatelink_keyvault_id
 
                                            register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
                                            register_endpoints_with_dns                  = var.register_endpoints_with_dns

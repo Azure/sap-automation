@@ -18,6 +18,10 @@ variable "database_dual_nics"                           {
                                                           description = "Defines if the HANA DB uses dual network interfaces"
                                                           default     = true
                                                         }
+variable "enable_storage_nic"                           {
+                                                          description = "Boolean to determine if a storage nic should be used when scale out is enabled"
+                                                          default     = true
+                                                        }
 variable "database_server_count"                        {
                                                           description = "The number of database servers"
                                                           default     = 1
@@ -67,6 +71,7 @@ variable "use_loadbalancers_for_standalone_deployments" {
                                                         }
 variable "use_msi_for_clusters"                         { description = "If true, the Pacemaker cluser will use a managed identity" }
 variable "use_observer"                                 { description = "Use Observer VM" }
+variable "observer_vm_size"                             {}
 variable "use_secondary_ips"                            {
                                                           description = "Use secondary IPs for the SAP System"
                                                           default     = false
@@ -129,6 +134,11 @@ variable "hanashared_volume_size"                     {
 variable "hanashared_id"                             {
                                                        description = "Azure Resource Identifier for an storage account"
                                                        default     = [""]
+                                                     }
+
+variable "use_single_hana_shared"                    {
+                                                       description = "Boolean indicating wether to use a single storage account for all HANA file shares"
+                                                       default     = false
                                                      }
 
 

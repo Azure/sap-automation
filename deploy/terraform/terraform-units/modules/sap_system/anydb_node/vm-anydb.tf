@@ -174,7 +174,7 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   patch_mode                                             = var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = true
+  vm_agent_platform_updates_enabled                      = false
 
   tags                                 = merge(local.tags, var.tags)
 
@@ -315,7 +315,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = true
+  vm_agent_platform_updates_enabled                      = false
   enable_automatic_updates                               = !(var.infrastructure.patch_mode == "ImageDefault")
 
   admin_username                       = var.sid_username
@@ -836,4 +836,3 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_db_win" {
                                             }
                                           )
 }
-

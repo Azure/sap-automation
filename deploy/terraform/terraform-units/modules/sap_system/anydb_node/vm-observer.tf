@@ -73,7 +73,7 @@ resource "azurerm_linux_virtual_machine" "observer" {
   network_interface_ids                = [
                                            azurerm_network_interface.observer[count.index].id
                                          ]
-  size                                 = local.observer_size
+  size                                 = local.observer_vm_size
   source_image_id                      = local.observer_custom_image ? local.observer_custom_image_id : null
 
   custom_data                          = var.deployment == "new" ? var.cloudinit_growpart_config : null
@@ -149,7 +149,7 @@ resource "azurerm_windows_virtual_machine" "observer" {
   network_interface_ids                = [
                                            azurerm_network_interface.observer[count.index].id
                                          ]
-  size                                 = local.observer_size
+  size                                 = local.observer_vm_size
   source_image_id                      = local.observer_custom_image ? local.observer_custom_image_id : null
 
   custom_data                          = var.deployment == "new" ? var.cloudinit_growpart_config : null

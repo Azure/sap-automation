@@ -21,7 +21,11 @@ resource "azurerm_storage_account" "sapmnt" {
                                            lower(
                                              format("%s%s%s",
                                                local.prefix,
-                                               local.resource_suffixes.sapmnt, substr(random_id.random_id.hex, 0, 3)
+                                               local.resource_suffixes.sapmnt,
+                                               try(
+                                                 local.resource_suffixes.sapmnt_id,
+                                                 substr(random_id.random_id.hex, 0, 3)
+                                               )
                                              )
                                            ),
                                            "/[^a-z0-9]/",
@@ -96,15 +100,15 @@ resource "azurerm_private_endpoint" "sapmnt" {
                                            data.azurerm_resource_group.resource_group[0].location) : (
                                            azurerm_resource_group.resource_group[0].location
                                          )
-  subnet_id                            = var.landscape_tfstate.app_subnet_id
+  subnet_id                            = try(var.landscape_tfstate.use_separate_storage_subnet, false) ? (
+                                         var.landscape_tfstate.storage_subnet_id ) : (
+                                         var.landscape_tfstate.app_subnet_id
+                                       )
   tags                                 = var.tags
 
   custom_network_interface_name        = format("%s%s%s%s",
                                            var.naming.resource_prefixes.storage_private_link_sapmnt,
-                                           length(local.prefix) > 0 ? (
-                                             local.prefix) : (
-                                             var.infrastructure.environment
-                                           ),
+                                           local.prefix,
                                            var.naming.resource_suffixes.storage_private_link_sapmnt,
                                            var.naming.resource_suffixes.nic
                                          )
@@ -172,14 +176,17 @@ data "azurerm_private_endpoint_connection" "sapmnt" {
 
 resource "azurerm_storage_share" "sapmnt" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "AFS" ? (1) : (0)
+  count                                = var.NFS_provider == "AFS" ? 1 : 0
   depends_on                           = [
                                            azurerm_storage_account.sapmnt,
                                            azurerm_private_endpoint.sapmnt,
                                            time_sleep.wait_for_private_endpoints
                                          ]
 
-  name                                 = format("%s", local.resource_suffixes.sapmnt)
+  name                                 = format("%s", try(
+                                           local.resource_suffixes.sapmnt_share,
+                                           local.resource_suffixes.sapmnt
+                                         ))
   storage_account_id                   = var.NFS_provider == "AFS" ? (
                                            length(var.azure_files_sapmnt_id) > 0 ? (
                                              data.azurerm_storage_account.sapmnt[0].id) : (
@@ -221,4 +228,3 @@ resource "azurerm_storage_share" "sapmnt_smb" {
   quota                                = var.sapmnt_volume_size
 
 }
-
