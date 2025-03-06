@@ -1,0 +1,77 @@
+---
+name:                                   Sync Upstream Dependencies
+permissions:
+  contents:                             read
+  pull-requests:                        read
+  actions:                              none
+  checks:                               none
+  deployments:                          none
+  issues:                               none
+  packages:                             none
+  repository-projects:                  none
+  security-events:                      none
+  statuses:                             none
+on:
+  schedule:
+    - cron:                             '0 */6 * * *'  # Run every 6 hours
+  workflow_dispatch:                    # Manual trigger
+jobs:
+  sync-upstream:
+    runs-on:                            ubuntu-latest
+    permissions:
+      contents:                         write
+      pull-requests:                    read
+      actions:                          none
+      checks:                           none
+      deployments:                      none
+      issues:                           none
+      packages:                         none
+      repository-projects:              none
+      security-events:                  none
+      statuses:                         none
+    steps:
+      - name:                           Clone repository
+        uses:                           actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref:                          main
+          token:                        ${{ secrets.GITHUB_TOKEN }}
+
+      - name:                           Sync Upstream
+        env:
+          GITHUB_TOKEN:                 ${{ secrets.GITHUB_TOKEN }}
+        run: |
+                                        set -euo pipefail
+                                        # Initialize flag explicitly
+                                        STASHED=false
+
+                                        # Backup .github directory
+                                        echo "Backing up .github directory"
+                                        cp -r .github /tmp/.github_backup
+
+                                        # Configure Git
+                                        git config user.name "GitHub Actions"
+                                        git config user.email "actions@github.com"
+
+                                        # Add upstream remote if not already added
+                                        if ! git remote | grep -q '^upstream$'; then
+                                          git remote add upstream "https://x-access-token:${GITHUB_TOKEN}@github.com/Azure/sap-automation.git"
+                                          git remote set-url --push upstream NO_PUSH
+                                        fi
+                                        git fetch upstream
+
+                                        # Stash changes before rebase if there are any
+                                        if ! git diff-index --quiet HEAD --; then
+                                          git stash -u
+                                          STASHED=true
+                                        fi
+
+                                        # Rebase with upstream main
+                                        git rebase upstream/main
+
+                                        # Apply stashed changes if any were stashed
+                                        if [ "$STASHED" = true ]; then
+                                          git stash pop
+                                        fi
+
+                                        # Force push with lease to ensure we don't overwrite others' work
+                                        git push origin main --force-with-lease
