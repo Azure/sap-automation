@@ -891,22 +891,24 @@ allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "
 
 # shellcheck disable=SC2086
 if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee -a plan_output.log; then
-	return_value=$?
-	if [ $return_value -eq 1 ]; then
-		echo ""
-		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		if [ -f plan_output.log ]; then
-			rm plan_output.log
-		fi
-		exit $return_value
+	return_value=${PIPESTATUS[0]}
+else
+	return_value=${PIPESTATUS[0]}
+fi
+if [ $return_value -eq 1 ]; then
+	echo ""
+	echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+	if [ -f plan_output.log ]; then
+		rm plan_output.log
 	fi
+	exit $return_value
 else
 	return_value=$?
 	echo ""
@@ -1020,20 +1022,17 @@ if [ 1 == $apply_needed ]; then
 	if [ -n "${approve}" ]; then
 		# Using if so that no zero return codes don't fail -o errexit
 		if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParameters -input=false | tee -a apply_output.json; then
-			return_value=$?
-			if [ $return_value -eq 1 ]; then
-				echo ""
-				echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-				echo ""
-				exit $return_value
-			else
-				# return code 2 is ok
-				echo ""
-				echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-				echo ""
-				return_value=0
-			fi
+			return_value=${PIPESTATUS[0]}
 		else
+			return_value=${PIPESTATUS[0]}
+		fi
+		if [ $return_value -eq 1 ]; then
+			echo ""
+			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+			echo ""
+			exit $return_value
+		else
+			# return code 2 is ok
 			echo ""
 			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 			echo ""
@@ -1044,7 +1043,7 @@ if [ 1 == $apply_needed ]; then
 		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters -input=false; then
 			return_value=$?
 		else
-			return_value=0
+			return_value=$?
 		fi
 
 		if [ $return_value -eq 1 ]; then

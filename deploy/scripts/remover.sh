@@ -535,9 +535,9 @@ if [ "$resource_group_exist" ]; then
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
-				return_value=$?
+				return_value=${PIPESTATUS[0]}
 			else
-				return_value=$?
+				return_value=${PIPESTATUS[0]}
 			fi
 			if [ -f destroy_output.json ]; then
 				errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
@@ -575,7 +575,11 @@ if [ "$resource_group_exist" ]; then
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
-				return_value=$?
+				return_value=${PIPESTATUS[0]}
+			else
+				return_value=${PIPESTATUS[0]}
+			fi
+			if [ 0 == $return_value ]; then
 				echo ""
 				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
 				echo ""

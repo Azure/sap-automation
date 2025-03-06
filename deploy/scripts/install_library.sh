@@ -388,7 +388,11 @@ if [ -n "${deployer_statefile_foldername}" ]; then
 	if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
 		-var-file="${var_file}" -input=false \
 		-var deployer_statefile_foldername="${deployer_statefile_foldername}" | tee -a plan_output.log 2>&1; then
-		return_value=$?
+		return_value=${PIPESTATUS[0]}
+	else
+		return_value=${PIPESTATUS[0]}
+	fi
+	if [ 0 == $return_value ]; then
 		echo ""
 		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
 		echo ""
@@ -404,7 +408,11 @@ if [ -n "${deployer_statefile_foldername}" ]; then
 else
 	if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
 		-var-file="${var_file}" -input=false | tee -a plan_output.log 2>&1; then
-		return_value=$?
+		return_value=${PIPESTATUS[0]}
+	else
+		return_value=${PIPESTATUS[0]}
+	fi
+	if [ 0 == $return_value ]; then
 		echo ""
 		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
 		echo ""
@@ -453,40 +461,39 @@ echo ""
 if [ -n "${approve}" ]; then
 	# shellcheck disable=SC2086
 	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters --auto-approve | tee -a apply_output.json; then
-		return_value=$?
-		if [ $return_value -eq 1 ]; then
-			echo ""
-			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
-			echo ""
-		else
-			# return code 2 is ok
-			echo ""
-			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-			echo ""
-			return_value=0
-		fi
+		return_value=${PIPESTATUS[0]}
 	else
-		return_value=0
+		return_value=${PIPESTATUS[0]}
+	fi
+	if [ $return_value -eq 1 ]; then
+		echo ""
+		echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
+		echo ""
+	else
+		# return code 2 is ok
 		echo ""
 		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 		echo ""
+		return_value=0
 	fi
 
 else
 	# shellcheck disable=SC2086
 	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters; then
-		return_value=$?
-		if [ $return_value -eq 1 ]; then
-			echo ""
-			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
-			echo ""
-		else
-			# return code 2 is ok
-			return_value=0
-			echo ""
-			echo -e "${cyan} Terraform apply:                    succeeded$reset_formatting"
-			echo ""
-		fi
+		return_value=${PIPESTATUS[0]}
+	else
+		return_value=${PIPESTATUS[0]}
+	fi
+	if [ $return_value -eq 1 ]; then
+		echo ""
+		echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
+		echo ""
+	else
+		# return code 2 is ok
+		echo ""
+		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
+		echo ""
+		return_value=0
 	fi
 fi
 
