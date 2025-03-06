@@ -164,15 +164,6 @@
                 - hana_already_installed is defined or (hana_installation.rc is defined and hana_installation.rc == 0)
 
           always:
-            - name:                    "Database Installation Playbook: - Get the Error lines from installation output"
-              ansible.builtin.set_fact:
-                error_lines:           "{{ error_lines | default([]) + [item] }}"
-              with_items:              "{{ hana_installation.stdout_lines }}"
-              when:
-                - hana_installation is defined
-                - hana_installation.stdout_lines is defined
-                - '"ERROR" in item'
-
             - name:                    "Database Installation Playbook: - Run post installation routines"
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
@@ -182,9 +173,11 @@
 
             - name:                    "Database Installation Playbook: - Show errors from HANA installation"
               ansible.builtin.debug:
-                msg:                   "{{ error_lines }}"
+                msg:                   "{{ hana_installation.stdout_lines | select('search', 'ERROR') }}"
               when:
-                - error_lines is defined
+                - hana_installation is defined
+                - hana_installation.stdout_lines is defined
+                - hana_installation.rc > 0
 
           tags:
             - 4.0.0-hdb-install
@@ -388,15 +381,6 @@
                 - hana_already_installed is defined or (hana_installation.rc is defined and hana_installation.rc == 0)
 
           always:
-            - name:                    "Database Installation Playbook: - Get the Error lines from installation output"
-              ansible.builtin.set_fact:
-                error_lines:           "{{ error_lines | default([]) + [item] }}"
-              with_items:              "{{ hana_installation.stdout_lines }}"
-              when:
-                - hana_installation is defined
-                - hana_installation.stdout_lines is defined
-                - '"ERROR" in item'
-
             - name:                    "Database Installation Playbook: - Run post installation routines"
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
@@ -406,9 +390,11 @@
 
             - name:                    "Database Installation Playbook: - Show errors from HANA installation"
               ansible.builtin.debug:
-                msg:                   "{{ error_lines }}"
+                msg:                   "{{ hana_installation.stdout_lines | select('search', 'ERROR') }}"
               when:
-                - error_lines is defined
+                - hana_installation is defined
+                - hana_installation.stdout_lines is defined
+                - hana_installation.rc > 0
 
           tags:
             - 4.0.0-hdb-install
