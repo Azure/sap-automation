@@ -16,6 +16,7 @@ locals {
                                             deploy_defender_extension        = var.deploy_defender_extension
                                             patch_mode                       = var.patch_mode
                                             patch_assessment_mode            = var.patch_assessment_mode
+                                            platform_updates                 = var.platform_updates
                                             shared_access_key_enabled        = var.shared_access_key_enabled
                                             shared_access_key_enabled_nfs    = var.shared_access_key_enabled_nfs
                                             encryption_at_host_enabled       = var.encryption_at_host_enabled

@@ -48,7 +48,7 @@ resource "azurerm_linux_virtual_machine" "anchor" {
 
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = false
+  vm_agent_platform_updates_enabled                      = var.infrastructure.platform_updates
 
   zone                                 = local.zones[count.index]
 
@@ -151,7 +151,7 @@ resource "azurerm_windows_virtual_machine" "anchor" {
   patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = false
+  vm_agent_platform_updates_enabled                      = var.infrastructure.platform_updates
 
   network_interface_ids                = [
                                            azurerm_network_interface.anchor[count.index].id
