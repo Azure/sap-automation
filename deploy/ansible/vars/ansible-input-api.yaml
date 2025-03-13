@@ -305,3 +305,7 @@ UIDs:
     uid:                               "{{ sidadm_uid }}"
   SQLSERVER:
     uid:                               "{{ sidadm_uid }}"
+
+# ------------------- Begin - SAP Functional Tests variables --------------------8
+sap_functional_test_type:              ""
+# ------------------- End - SAP Functional Tests variables --------------------8

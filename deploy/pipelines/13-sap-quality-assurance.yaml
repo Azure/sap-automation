@@ -1,0 +1,323 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               This pipeline performs the SAP quality assurance             |
+# |              tests and must run on a self hosted deployment agent          |
+# |                      due to long run time.                                 |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+parameters:
+  - name:                              sap_system_configuration_name
+    displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-X00
+
+  - name:                              environment
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
+    type:                              string
+    default:                           DEV
+
+  - name:                              sap_on_azure_quality_checks
+    displayName:                       SAP on Azure Quality Checks
+    type:                              boolean
+    default:                           true
+
+  - name:                              sap_functional_tests
+    displayName:                       SAP Functional Tests
+    type:                              boolean
+    default:                           true
+
+  - name:                              sap_functional_test_type
+    displayName:                       SAP Functional Tests Type
+    type:                              string
+    default:                           "DatabaseHighAvailability"
+    values:
+      - "DatabaseHighAvailability"
+      - "CentralServicesHighAvailability"
+
+  - name:                              telemetry_data_destination
+    displayName:                       Telemetry Data Destination (Provide connection settings in Extra Parameters)
+    type:                              string
+    default:                           ""
+    values:
+      - "AzureLogAnalytics"
+      - "AzureDataExplorer"
+
+  - name:                              extra_params
+    displayName:                       Extra Parameters
+    type:                              string
+    default:                           ""
+
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
+
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
+
+stages:
+  - stage:                             Preparation_for_Ansible
+    condition:                         and(not(failed()), not(canceled()))
+    variables:
+      - template:                      variables/13-sap-quality-assurance.yaml
+        parameters:
+          environment:                 ${{ parameters.environment }}
+    displayName:                       SAP Quality Assurance Tests
+    jobs:
+      - job:                           Installation_step
+        displayName:                   SAP Quality Assurance Tests
+        timeoutInMinutes:              0
+        workspace:
+          clean:                       all
+        steps:
+          - template:                  templates\download.yaml
+            parameters:
+              getLatestFromBranch:     true
+          - task:                      PostBuildCleanup@3
+          - bash: |
+              #!/bin/bash
+              # Exit immediately if a command exits with a non-zero status.
+              set -e
+
+              green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
+              if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+                echo -e "$green --- Install dos2unix ---$reset"
+                  sudo apt-get -qq install dos2unix
+              fi
+              echo -e "$green--- Convert config file to UX format ---$reset"
+              echo -e "$green--- Update .sap_deployment_automation/config as DEPLOYMENT_REPO_PATH can change on devops agent ---$reset"
+                export HOME=${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)
+                cd $HOME
+
+              echo -e "$green--- Configure devops CLI extension ---$reset"
+                az config set extension.use_dynamic_install=yes_without_prompt  --output none
+
+                az extension add --name azure-devops --output none
+
+                az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
+
+              echo -e "$green--- Validations ---$reset"
+                ENVIRONMENT=$(echo ${SAP_SYSTEM_CONFIGURATION_NAME} | awk -F'-' '{print $1}' | xargs) ; echo Environment $ENVIRONMENT
+                   LOCATION=$(echo ${SAP_SYSTEM_CONFIGURATION_NAME} | awk -F'-' '{print $2}' | xargs) ; echo Location    $LOCATION
+                    NETWORK=$(echo ${SAP_SYSTEM_CONFIGURATION_NAME} | awk -F'-' '{print $3}' | xargs) ; echo Virtual network logical name $NETWORK
+                        SID=$(echo ${SAP_SYSTEM_CONFIGURATION_NAME} | awk -F'-' '{print $4}' | xargs) ; echo SID $SID
+
+                environment_file_name=$HOME/.sap_deployment_automation/$ENVIRONMENT$LOCATION$NETWORK ; echo configuration_file $environment_file_name
+                          params_file=$HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml              ;  echo sap_parameters_file $params_file
+
+              if [ "azure pipelines" = "$(this_agent)" ]; then
+                  echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-${ENVIRONMENT} variable group using the 'POOL' variable."
+                  exit 2
+                fi
+
+                if [ ! -f $environment_file_name ]; then
+                  echo -e "$boldred--- $environment_file_name was not found ---$reset"
+                  echo "##vso[task.logissue type=error]Workload zone configuration file $environment_file_name was not found."
+                  exit 2
+                fi
+
+                if [ ! -f $params_file ]; then
+                  echo -e "$boldred--- $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml was not found."
+                  exit 2
+                else
+                  dos2unix -q $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml
+                fi
+
+                if [ ! -n ${SID} ]; then
+                  echo "##vso[task.logissue type=error]SID was not found in ${SAP_SYSTEM_CONFIGURATION_NAME}."
+                  exit 2
+                fi
+
+                if [ ! -f $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/${SID}_hosts.yaml ]; then
+                  echo -e "$boldred--- $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/${SID}_hosts.yaml was not found ---$reset"
+                  echo "##vso[task.logissue type=error]File $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/${SID}_hosts.yaml was not found."
+                  exit 2
+                fi
+                dos2unix -q $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/${SID}_hosts.yaml
+
+                export VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$(variable_group)'].id | [0]")
+                echo '$(variable_group) id: ' $VARIABLE_GROUP_ID
+                if [ -z ${VARIABLE_GROUP_ID} ]; then
+                    echo "##vso[task.logissue type=error]Variable group $(variable_group) could not be found."
+                    exit 2
+                fi
+
+                echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
+                echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]sap-parameters.yaml"
+                echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
+                echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
+
+              echo -e "$green--- Get Files from the DevOps Repository ---$reset"
+                cd ${CONFIG_REPO_PATH}/$(Deployment_Configuration_Path)/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}
+                sap_params_updated=0
+
+              echo -e "$green--- Get connection details ---$reset"
+                mkdir -p artifacts
+
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value --output tsv)
+                if [ -z ${az_var} ]; then
+                  export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+                else
+                  export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault} ;
+                fi
+
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Secret_Prefix.value  --output tsv)
+                if [ -z ${az_var} ]; then
+                  export workload_prefix=$(cat "${environment_file_name}"  | grep workload_zone_prefix      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Prefix' ${workload_prefix}
+                else
+                  export workload_prefix=${az_var} ; echo 'Workload Prefix' ${workload_prefix};
+                fi
+
+                az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query Terraform_Remote_Storage_Subscription.value  --output tsv)
+                if [ -z ${az_var} ]; then
+                  export control_plane_subscription=$(cat "${environment_file_name}"  | grep STATE_SUBSCRIPTION      | awk -F'=' '{print $2}' | xargs) ; echo 'Control Plane Subscription' ${control_plane_subscription}
+                else
+                  export control_plane_subscription=${az_var} ; echo 'Control Plane Subscription' ${control_plane_subscription}
+                fi
+
+                if [[ $EXTRA_PARAMETERS = "'$(EXTRA_PARAMETERS)'" ]]; then
+                  new_parameters=$PIPELINE_EXTRA_PARAMETERS
+                else
+                  echo "##vso[task.logissue type=warning]Extra parameters were provided - '$EXTRA_PARAMETERS'"
+                  new_parameters="$EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS"
+                fi
+
+                echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${workload_prefix}-sid-sshkey"
+                echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$workload_key_vault"
+                echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${workload_prefix}-sid-password"
+                echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${workload_prefix}-sid-username"
+                echo "##vso[task.setvariable variable=NEW_PARAMETERS;isOutput=true]${new_parameters}"
+                echo "##vso[task.setvariable variable=CP_SUBSCRIPTION;isOutput=true]${control_plane_subscription}"
+
+
+              echo -e "$green--- az login ---$reset"
+                # If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
+                deployer_file=/etc/profile.d/deploy_server.sh
+                if [ "$USE_MSI" = "true" ]; then
+                  echo  "Using MSI"
+                  source /etc/profile.d/deploy_server.sh
+                  az account set --subscription $control_plane_subscription
+
+                else
+                  if [ ! -n $AZURE_CLIENT_ID ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
+                    exit 2
+                  fi
+
+                  if [ ! -n $AZURE_CLIENT_SECRET ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
+                    exit 2
+                  fi
+
+                  if [ ! -n $AZURE_TENANT_ID ]; then
+                    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
+                    exit 2
+                  fi
+                  az login --service-principal --username $AZURE_CLIENT_ID --password=${AZURE_CLIENT_SECRET} --tenant $AZURE_TENANT_ID --output none
+                  return_code=$?
+                  if [ 0 != $return_code ]; then
+                    echo -e "$boldred--- Login failed ---$reset"
+                    echo "##vso[task.logissue type=error]az login failed."
+                    exit $return_code
+                  fi
+                  az account set --subscription $control_plane_subscription
+                fi
+
+                return_code=$?
+                if [ 0 != $return_code ]; then
+                  echo -e "$boldred--- Login failed ---$reset"
+                  echo "##vso[task.logissue type=error]az login failed."
+                  exit $return_code
+                fi
+
+                az keyvault secret show --name ${workload_prefix}-sid-sshkey --vault-name $workload_key_vault --subscription $AZURE_SUBSCRIPTION_ID --query value -o tsv > artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey
+                cp sap-parameters.yaml artifacts/.
+                cp ${SID}_hosts.yaml artifacts/.
+
+                2> >(while read line; do (>&2 echo "STDERROR: $line"); done)
+            name:                            Preparation
+            displayName:                     Preparation for Ansible
+            env:
+              SCRIPT_PATH:                   $${{ parameters.sap_automation_repo_path }}/deploy/pipelines/templates/*.sh
+              SYSTEM_ACCESSTOKEN:            $(System.AccessToken)
+              AZURE_DEVOPS_EXT_PAT:          $(System.AccessToken)
+              ANSIBLE_HOST_KEY_CHECKING:     false
+              AZURE_CLIENT_ID:               $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:               $(ARM_TENANT_ID)
+              AZURE_SUBSCRIPTION_ID:         $(Terraform_Remote_Storage_Subscription)
+              ANSIBLE_COLLECTIONS_PATHS:     /opt/ansible/collections
+              CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}
+              SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
+              EXTRA_PARAMETERS:              $(EXTRA_PARAMETERS)
+              PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
+              USE_MSI:                       $(USE_MSI)
+          - ${{ if eq(parameters.sap_on_azure_quality_checks, true) }}:
+              - template:                    templates\run-ansible.yaml
+                parameters:
+                  displayName:               SAP on Azure quality checks
+                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_02_sap_on_azure_quality_checks.yaml
+                  secretName:                "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                 $(Preparation.VAULT_NAME)
+                  parametersFolder:          $(Preparation.FOLDER)
+                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                  $(Preparation.HOSTS)
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
+          - ${{ if eq(parameters.sap_functional_tests, true) }}:
+              - template:                    templates\run-ansible.yaml
+                parameters:
+                  displayName:               SAP Functional Tests Setup
+                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_03_00_sap_functional_tests.yaml
+                  secretName:                "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                 $(Preparation.VAULT_NAME)
+                  parametersFolder:          $(Preparation.FOLDER)
+                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                  $(Preparation.HOSTS)
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
+                  sapFunctionalTestType:     ${{ parameters.sap_functional_test_type }}
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  telemetryDataDestination:  ${{ parameters.telemetry_data_destination }}
+          - ${{ if eq(parameters.sap_functional_tests, true) }}:
+              - template:                    templates\run-ansible.yaml
+                parameters:
+                  displayName:               SAP Functional Tests Test Execution
+                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_03_01_sap_functional_tests.yaml
+                  secretName:                "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                 $(Preparation.VAULT_NAME)
+                  parametersFolder:          $(Preparation.FOLDER)
+                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                  $(Preparation.HOSTS)
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
+                  sapFunctionalTestType:     ${{ parameters.sap_functional_test_type }}
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  telemetryDataDestination:  ${{ parameters.telemetry_data_destination }}
+          - template:                        templates\collect-log-files.yaml
+            parameters:
+              logPath:                       ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
+              qualityAssuranceResultsPath:   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/quality_assurance
+              runSapFunctionalTests:         ${{ parameters.sap_functional_tests }}
+              collectQualityChecks:          ${{ parameters.sap_on_azure_quality_checks }}
