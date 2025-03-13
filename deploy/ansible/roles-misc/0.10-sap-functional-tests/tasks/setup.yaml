@@ -1,0 +1,29 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Setup environment to run SAP Functional Tests               |
+# |                        from the sap-automation-qa                          |
+# +------------------------------------4--------------------------------------*/
+---
+
+- name:                            SAP Functional Tests - setup directories
+  become:                          true
+  ansible.builtin.file:
+    path:                          "{{ item.path }}"
+    state:                         directory
+    mode:                          0755
+    owner:                         "{{ item.owner }}"
+  loop:
+    - { path: "/opt/microsoft/sap_functional_tests", owner: "{{ orchestration_ansible_user }}" }
+    - { path: "{{ _workspace_directory }}/quality_assurance", owner: "{{ orchestration_ansible_user }}" }
+
+- name:                            "SAP Functional Tests - fetch sap-automation-qa"
+  become:                          true
+  ansible.builtin.git:
+    repo:                          "https://{{ github_pat }}@github.com/Azure/sap-automation-qa.git"
+    dest:                          "/opt/microsoft/sap_functional_tests"
+    version:                       main
+    clone:                         true
+    single_branch:                 true
+    force:                         true
+
+...
