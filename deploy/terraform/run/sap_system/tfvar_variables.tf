@@ -154,7 +154,7 @@ variable "encryption_at_host_enabled"           {
                                                   description = "Enables host encryption for sap vms"
                                                   default     = false
                                                   type        = bool
-                                                }                                                     
+                                                }
 variable "data_plane_available"                 {
                                                   description = "Boolean value indicating if storage account access is via data plane"
                                                   default     = false
@@ -648,11 +648,14 @@ variable "use_observer"                         {
                                                   description = "If true, an observer virtual machine will be used"
                                                   default     = true
                                                 }
-variable "observer_vm_size"                        {
+variable "observer_vm_size"                     {
                                                   description = "The VM size to use for the observer"
                                                   default     = "Standard_D4s_v3"
                                                 }
-
+variable "observer_vm_zones"                    {
+                                                  description = "The zone to deploy the observer in"
+                                                  default     = []
+                                                }
 
 variable "observer_nic_ips"                     {
                                                   description = "If provided, the database tier observer virtual machines will be configured with the specified IPs (db subnet)"

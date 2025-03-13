@@ -43,6 +43,7 @@ variable "use_loadbalancers_for_standalone_deployments" { description = "Defines
 variable "use_msi_for_clusters"                         { description = "If true, the Pacemaker cluser will use a managed identity" }
 variable "use_observer"                                 { description = "If true, the observer will be deployed" }
 variable "observer_vm_size"                             {}
+variable "observer_vm_zones"                            {}
 variable "use_secondary_ips"                            {
                                                           description = "Use secondary IPs for the SAP System"
                                                           default     = false
