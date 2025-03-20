@@ -110,7 +110,7 @@ resource "azurerm_private_endpoint" "sapmnt" {
                                            var.naming.resource_prefixes.storage_private_link_sapmnt,
                                            local.prefix,
                                            var.naming.resource_suffixes.storage_private_link_sapmnt,
-                                           var.naming.resource_suffixes.nic
+                                           try(var.naming.resource_suffixes.private_endpoint_nic, var.naming.resource_suffixes.nic)
                                          )
 
 

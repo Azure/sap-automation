@@ -161,7 +161,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
                                              var.infrastructure.environment
                                            ),
                                            var.naming.resource_suffixes.storage_private_link_tf,
-                                           var.naming.resource_suffixes.nic
+                                           try(var.naming.resource_suffixes.private_endpoint_nic, var.naming.resource_suffixes.nic)
                                          ) : null
 
   private_service_connection {
@@ -219,7 +219,7 @@ resource "azurerm_private_endpoint" "table_tfstate" {
                                              var.infrastructure.environment
                                            ),
                                            var.naming.resource_suffixes.storage_private_link_tf,
-                                           var.naming.resource_suffixes.nic
+                                           try(var.naming.resource_suffixes.private_endpoint_nic, var.naming.resource_suffixes.nic)
                                          ) : null
 
   private_service_connection {
@@ -426,7 +426,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
                                              var.infrastructure.environment
                                            ),
                                            var.naming.resource_suffixes.storage_private_link_sap,
-                                           var.naming.resource_suffixes.nic
+                                           try(var.naming.resource_suffixes.private_endpoint_nic, var.naming.resource_suffixes.nic)
                                          ) : null
 
   private_service_connection {

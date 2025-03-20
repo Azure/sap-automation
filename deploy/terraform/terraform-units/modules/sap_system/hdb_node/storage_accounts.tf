@@ -124,7 +124,7 @@ resource "azurerm_private_endpoint" "hanashared" {
                                            local.prefix,
                                            var.naming.resource_suffixes.storage_privatelink_hanashared,
                                            var.use_single_hana_shared ? "" : tostring(count.index),
-                                           var.naming.resource_suffixes.nic
+                                           try(var.naming.resource_suffixes.private_endpoint_nic, var.naming.resource_suffixes.nic)
                                          )
 
 
