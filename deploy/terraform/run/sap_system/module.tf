@@ -169,6 +169,8 @@ module "hdb_node" {
   storage_subnet                                = module.common_infrastructure.storage_subnet
   tags                                          = var.tags
   terraform_template_version                    = var.terraform_template_version
+  use_admin_nic_suffix_for_observer             = var.use_admin_nic_suffix_for_observer
+  use_admin_nic_for_asg                         = var.use_admin_nic_for_asg
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_observer                                  = var.database_HANA_use_scaleout_scenario && local.database.high_availability && var.use_observer
@@ -223,6 +225,7 @@ module "app_tier" {
   storage_bootdiag_endpoint                     = module.common_infrastructure.storage_bootdiag_endpoint
   tags                                          = var.tags
   terraform_template_version                    = var.terraform_template_version
+  use_admin_nic_for_asg                         = var.use_admin_nic_for_asg
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
@@ -289,6 +292,8 @@ module "anydb_node" {
   storage_bootdiag_endpoint                     = module.common_infrastructure.storage_bootdiag_endpoint
   tags                                          = var.tags
   terraform_template_version                    = var.terraform_template_version
+  use_admin_nic_suffix_for_observer             = var.use_admin_nic_suffix_for_observer
+  use_admin_nic_for_asg                         = var.use_admin_nic_for_asg
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_observer                                  = var.use_observer

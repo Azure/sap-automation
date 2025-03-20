@@ -1061,6 +1061,16 @@ variable "legacy_nic_order"                     {
                                                   default     = false
                                                 }
 
+variable "use_admin_nic_suffix_for_observer"    {
+                                                  description = "If true, the admin nic suffix will be used for the observer"
+                                                  default     = false
+                                                }
+
+variable "use_admin_nic_for_asg"                {
+                                                  description = "If true, the admin nic will be assigned to the ASG instead of the second nic"
+                                                  default     = false
+                                                }
+
 variable "use_loadbalancers_for_standalone_deployments" {
                                                            description = "If defined, will use load balancers for standalone deployments"
                                                            default     = true

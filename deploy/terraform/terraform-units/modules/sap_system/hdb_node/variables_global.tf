@@ -65,6 +65,8 @@ variable "sid_username"                                 { description = "SDU use
 variable "storage_bootdiag_endpoint"                    { description = "Details of the boot diagnostics storage account" }
 variable "storage_subnet"                               { description = "Information about storage subnet" }
 variable "terraform_template_version"                   { description = "The version of Terraform templates that were identified in the state file" }
+variable "use_admin_nic_suffix_for_observer"            { description = "If true, the admin nic suffix will be used for the observer" }
+variable "use_admin_nic_for_asg"                        { description = "If true, the admin nic will be assigned to the ASG instead of the second nic" }
 variable "use_loadbalancers_for_standalone_deployments" {
                                                           description = "Defines if load balancers are used even for standalone deployments"
                                                           default     = true

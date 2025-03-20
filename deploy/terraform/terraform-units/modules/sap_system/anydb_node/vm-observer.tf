@@ -16,7 +16,7 @@ resource "azurerm_network_interface" "observer" {
                                            local.prefix,
                                            var.naming.separator,
                                            var.naming.virtualmachine_names.OBSERVER_VMNAME[count.index],
-                                           local.resource_suffixes.nic
+                                           var.use_admin_nic_suffix_for_observer ? local.resource_suffixes.admin_nic : local.resource_suffixes.nic
                                          )
   resource_group_name                  = var.resource_group[0].name
   location                             = var.resource_group[0].location

@@ -56,7 +56,7 @@ resource "azurerm_network_interface_application_security_group_association" "db"
                                            0
                                          )
 
-  network_interface_id                 = azurerm_network_interface.anydb_db[count.index].id
+  network_interface_id                 = var.use_admin_nic_for_asg ? azurerm_network_interface.anydb_admin[count.index].id : azurerm_network_interface.anydb_db[count.index].id
   application_security_group_id        = var.db_asg_id
 }
 
