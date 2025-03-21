@@ -448,6 +448,7 @@
   when:
     - tier == 'sapos'
     - sap_trans is defined
+    - sap_trans != ''
 
 - name:                                "ANF Mount: install"
   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml

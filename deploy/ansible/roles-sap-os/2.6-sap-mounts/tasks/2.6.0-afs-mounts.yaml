@@ -416,6 +416,7 @@
   when:
     - tier == 'sapos'
     - sap_trans is defined
+    - sap_trans != ''
 
 # Scale out - shared nothing configuration code to support AFS based /hana/shared mount
 - name:                                 "AFS Mount: Scale out hana_shared"
