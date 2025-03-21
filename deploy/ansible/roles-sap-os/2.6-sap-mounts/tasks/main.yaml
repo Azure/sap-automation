@@ -376,7 +376,9 @@
 
 - name:                                "2.6 SAP Mounts: - Import Oracle observer tasks"
   ansible.builtin.import_tasks:        "2.6.3-oracle-observer.yaml"
-  when: node_tier == "observer"
+  when:
+    - node_tier == "observer"
+    - platform == "ORACLE"
 
 - name:                                "2.6 SAP Mounts: - Import Oracle shared home tasks"
   ansible.builtin.import_tasks:        "2.6.3-oracle-multi-sid.yaml"
@@ -425,7 +427,7 @@
   ansible.builtin.import_tasks:        "2.6.3-oracle-observer.yaml"
   when:
     - node_tier == "observer"
-    - platform != "HANA"
+    - platform == "ORACLE"
     # This is to prevent conflict between HANA scaleout-hsr and oracle DB as they both share observer, but only one platform can be deployed at a time
 
 - name:                                "2.6 SAP Mounts: - Import Oracle shared home tasks"
@@ -468,6 +470,7 @@
   ansible.builtin.import_tasks:        "2.6.6-oracle-nfs-mounts.yaml"
   when:
     - node_tier in ['oracle','oracle-asm','observer']
+    - platform == "ORACLE"
 
 - name:                                "2.6 SAP Mounts: - Set permissions"
   when:                                 node_tier == "hana"
