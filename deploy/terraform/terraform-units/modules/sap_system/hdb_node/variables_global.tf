@@ -139,6 +139,11 @@ variable "hanashared_id"                             {
                                                        default     = [""]
                                                      }
 
+variable "observer_vm_tags"                          {
+                                                       description = "Tags to use specifically for the observer VM"
+                                                       default     = {}
+                                                     }
+
 variable "use_single_hana_shared"                    {
                                                        description = "Boolean indicating wether to use a single storage account for all HANA file shares"
                                                        default     = false

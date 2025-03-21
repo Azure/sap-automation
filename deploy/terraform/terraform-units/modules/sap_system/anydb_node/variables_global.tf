@@ -28,6 +28,7 @@ variable "infrastructure"                               { description = "Diction
 variable "landscape_tfstate"                            { description = "Terraform output from the workload zone" }
 variable "license_type"                                 { description = "Specifies the license type for the OS" }
 variable "naming"                                       { description = "Defines the names for the resources" }
+variable "observer_vm_tags"                             { description = "Tags to use specifically for the observer VM" }
 variable "options"                                      { description = "Dictionary of miscallaneous parameters" }
 variable "order_deployment"                             { description = "psuedo condition for ordering deployment" }
 variable "ppg"                                          { description = "Details of the proximity placement group" }

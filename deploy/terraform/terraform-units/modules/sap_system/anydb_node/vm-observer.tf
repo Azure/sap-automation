@@ -82,7 +82,7 @@ resource "azurerm_linux_virtual_machine" "observer" {
   # ToDo Add back later
 # patch_mode                           = var.infrastructure.patch_mode
 
-  tags                                 = merge(local.tags, var.tags)
+  tags                                 = try(var.observer_vm_tags, merge(local.tags, var.tags))
 
   encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 

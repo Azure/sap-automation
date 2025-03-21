@@ -80,7 +80,7 @@ resource "azurerm_linux_virtual_machine" "observer" {
 
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
 
-  tags                                 = merge(local.tags, var.tags)
+  tags                                 = try(var.observer_vm_tags, merge(local.tags, var.tags))
 
   encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 

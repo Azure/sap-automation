@@ -154,6 +154,7 @@ module "hdb_node" {
   naming                                        = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   NFS_provider                                  = var.NFS_provider
   observer_vm_size                              = var.observer_vm_size
+  observer_vm_tags                              = var.observer_vm_tags
   observer_vm_zones                             = var.observer_vm_zones
   options                                       = local.options
   ppg                                           = module.common_infrastructure.ppg
@@ -274,6 +275,7 @@ module "anydb_node" {
   license_type                                  = var.license_type
   naming                                        = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   observer_vm_size                              = var.observer_vm_size
+  observer_vm_tags                              = var.observer_vm_tags
   observer_vm_zones                             = var.observer_vm_zones
   options                                       = local.options
   order_deployment                              = local.enable_db_deployment ? (

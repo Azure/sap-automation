@@ -652,6 +652,11 @@ variable "observer_vm_size"                     {
                                                   description = "The VM size to use for the observer"
                                                   default     = "Standard_D4s_v3"
                                                 }
+
+variable "observer_vm_tags"                     {
+                                                  description = "Tags to use specifically for the observer VM"
+                                                  default     = {}
+                                                }
 variable "observer_vm_zones"                    {
                                                   description = "The zone to deploy the observer in"
                                                   default     = []
