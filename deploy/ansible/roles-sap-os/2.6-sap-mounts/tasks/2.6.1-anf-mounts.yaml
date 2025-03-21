@@ -470,6 +470,7 @@
   when:
     - tier == 'sapos'
     - usr_sap_install_mountpoint is defined
+    - usr_sap_install_mountpoint != ''
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |

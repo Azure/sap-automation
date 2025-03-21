@@ -191,6 +191,7 @@
   when:
     - tier == 'sapos'
     - usr_sap_install_mountpoint is defined
+    - usr_sap_install_mountpoint != ''
 
 - name:                                "AFS Mount: sap_mnt"
   block:
