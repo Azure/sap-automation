@@ -294,6 +294,7 @@
             name:                          root
             update_password:               always
             password:                      "{{ hostvars.localhost.root_password | password_hash('sha512') }}"
+            password_lock:                 false
 
         - name:                            Enable {{ item.key }} in /etc/ssh/sshd_config
           become:                          true
