@@ -307,6 +307,14 @@
             - { key: "PasswordAuthentication", value: "yes" }
             - { key: "ChallengeResponseAuthentication", value: "yes" }
 
+        - name:                            Append root user to AllowUsers if used
+          ansible.builtin.lineinfile:
+            path:                          "/etc/ssh/sshd_config"
+            regexp:                        '^AllowUsers (?!.*root.*)(.*)'
+            line:                          'AllowUsers \g<1> root'
+            backrefs:                      true
+            state:                         present
+
         - name:                            "Restart SSHD on {{ ansible_hostname }}"
           become:                          true
           ansible.builtin.service:
