@@ -351,7 +351,7 @@
 
   when:
     - scs_high_availability
-    - node_tier != 'hana'
+    - node_tier not in ['hana' , 'observer']
     - sap_mnt is defined
 
 - name:                                "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
