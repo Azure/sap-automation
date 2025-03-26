@@ -58,6 +58,9 @@ provider "azurerm"                     {
 
                                          subscription_id            = var.subscription_id
                                          use_msi                    = var.use_spn ? false : true
+                                         client_id                  = var.use_spn ? local.spn.client_id : null
+                                         client_secret              = var.use_spn ? local.spn.client_secret: null
+                                         tenant_id                  = var.use_spn ? local.spn.tenant_id: null
                                          alias                      = "main"
                                          storage_use_azuread        = var.data_plane_available
                                        }
