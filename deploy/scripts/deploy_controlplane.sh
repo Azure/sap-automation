@@ -337,7 +337,7 @@ if [ -n "${subscription}" ]; then
 	#                                                                                        #
 	##########################################################################################
 
-	if [ 0 -eq $step ]; then
+	if [ 0 == $step ]; then
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
@@ -447,9 +447,9 @@ TF_DATA_DIR="${deployer_dirname}"/.terraform
 export TF_DATA_DIR
 
 cd "${deployer_dirname}" || exit
-if [ 0 -ne $step ]; then
+if [ 0 != "$step" ]; then
 
-	if [ 1 -eq $step ] || [ 3 -eq $step ]; then
+	if [ 1 == "$step" ] || [ 3 = "$step" ]; then
 		# If the keyvault is not set, check the terraform state file
 		if [ -z "$keyvault" ]; then
 			key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
