@@ -322,118 +322,118 @@ if [ -n "${subscription}" ]; then
 	if [ -n "$tenant_id" ]; then
 		save_config_var "tenant_id" "${deployer_config_information}"
 	fi
+fi
 
-	current_directory=$(pwd)
+current_directory=$(pwd)
 
-	##########################################################################################
-	#                                                                                        #
-	#                                      STEP 0                                            #
-	#                           Bootstrapping the deployer                                   #
-	#                                                                                        #
-	#                                                                                        #
-	##########################################################################################
+##########################################################################################
+#                                                                                        #
+#                                      STEP 0                                            #
+#                           Bootstrapping the deployer                                   #
+#                                                                                        #
+#                                                                                        #
+##########################################################################################
 
-	load_config_vars "${deployer_config_information}" "step"
-	if [ -z "${step}" ]; then
-		step=0
+load_config_vars "${deployer_config_information}" "step"
+if [ -z "${step}" ]; then
+	step=0
+fi
+echo "Step:                                $step"
+
+if [ 0 == "$step" ]; then
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                          $cyan Bootstrapping the deployer $reset_formatting                                 #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+
+	allParameters=$(printf " --parameterfile %s %s" "${deployer_file_parametername}" "${autoApproveParameter}")
+
+	cd "${deployer_dirname}" || exit
+
+	echo "Calling install_deployer.sh:         $allParameters"
+	echo "Deployer State File:                 ${deployer_tfstate_key}"
+
+	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+
+		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+			--parameterfile "${deployer_file_parametername}" --auto-approve; then
+			echo "Bootstrapping of the deployer failed"
+			step=0
+			save_config_var "step" "${deployer_config_information}"
+			exit 10
+		fi
+	else
+		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+			--parameterfile "${deployer_file_parametername}"; then
+			echo "Bootstrapping of the deployer failed"
+			step=0
+			save_config_var "step" "${deployer_config_information}"
+			exit 10
+		fi
 	fi
-	echo "Step:                                $step"
+	return_code=$?
 
-	if [ 0 == "$step" ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $cyan Bootstrapping the deployer $reset_formatting                                 #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-
-		allParameters=$(printf " --parameterfile %s %s" "${deployer_file_parametername}" "${autoApproveParameter}")
-
-		cd "${deployer_dirname}" || exit
-
-		echo "Calling install_deployer.sh:         $allParameters"
-		echo "Deployer State File:                 ${deployer_tfstate_key}"
-
-		if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
-
-			if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
-				--parameterfile "${deployer_file_parametername}" --auto-approve; then
-				echo "Bootstrapping of the deployer failed"
-				step=0
-				save_config_var "step" "${deployer_config_information}"
-				exit 10
-			fi
-		else
-			if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
-				--parameterfile "${deployer_file_parametername}"; then
-				echo "Bootstrapping of the deployer failed"
-				step=0
-				save_config_var "step" "${deployer_config_information}"
-				exit 10
-			fi
-		fi
-		return_code=$?
-
-		echo "Return code from install_deployer:   ${return_code}"
-		if [ 0 != $return_code ]; then
-			echo "Bootstrapping of the deployer failed" >"${deployer_config_information}".err
-			step=0
-			save_config_var "step" "${deployer_config_information}"
-			exit 10
-		else
-			step=1
-			save_config_var "step" "${deployer_config_information}"
-
-			load_config_vars "${deployer_config_information}" "step"
-			echo "Step:                                $step"
-
-			if [ 1 = "${only_deployer:-}" ]; then
-				exit 0
-			fi
-		fi
-
-		load_config_vars "${deployer_config_information}" "keyvault"
-		echo "Key vault:             ${keyvault}"
-
-		if [ -z "$keyvault" ]; then
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                       $bold_red  Bootstrapping of the deployer failed $reset_formatting                         #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo "Bootstrapping of the deployer failed" >"${deployer_config_information}".err
-			exit 10
-		fi
-		if [ "$FORCE_RESET" = True ]; then
-			step=0
-			save_config_var "step" "${deployer_config_information}"
-			exit 0
-		else
-			export step=1
-		fi
+	echo "Return code from install_deployer:   ${return_code}"
+	if [ 0 != $return_code ]; then
+		echo "Bootstrapping of the deployer failed" >"${deployer_config_information}".err
+		step=0
+		save_config_var "step" "${deployer_config_information}"
+		exit 10
+	else
+		step=1
 		save_config_var "step" "${deployer_config_information}"
 
-		cd "$root_dirname" || exit
+		load_config_vars "${deployer_config_information}" "step"
+		echo "Step:                                $step"
 
-		load_config_vars "${deployer_config_information}" "sshsecret"
-		load_config_vars "${deployer_config_information}" "keyvault"
-		load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
-
-		echo "##vso[task.setprogress value=20;]Progress Indicator"
-	else
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $cyan Deployer is bootstrapped $reset_formatting                                   #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		echo "##vso[task.setprogress value=20;]Progress Indicator"
+		if [ 1 = "${only_deployer:-}" ]; then
+			exit 0
+		fi
 	fi
 
+	load_config_vars "${deployer_config_information}" "keyvault"
+	echo "Key vault:             ${keyvault}"
+
+	if [ -z "$keyvault" ]; then
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo -e "#                       $bold_red  Bootstrapping of the deployer failed $reset_formatting                         #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		echo "Bootstrapping of the deployer failed" >"${deployer_config_information}".err
+		exit 10
+	fi
+	if [ "$FORCE_RESET" = True ]; then
+		step=0
+		save_config_var "step" "${deployer_config_information}"
+		exit 0
+	else
+		export step=1
+	fi
+	save_config_var "step" "${deployer_config_information}"
+
 	cd "$root_dirname" || exit
+
+	load_config_vars "${deployer_config_information}" "sshsecret"
+	load_config_vars "${deployer_config_information}" "keyvault"
+	load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
+
+	echo "##vso[task.setprogress value=20;]Progress Indicator"
+else
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                          $cyan Deployer is bootstrapped $reset_formatting                                   #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+	echo "##vso[task.setprogress value=20;]Progress Indicator"
 fi
+
+cd "$root_dirname" || exit
 
 ##########################################################################################
 #                                                                                        #
