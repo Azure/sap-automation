@@ -52,8 +52,8 @@ locals {
 
   account                              = {
                                           subscription_id = local.use_spn ? data.azurerm_key_vault_secret.subscription_id[0].value : null,
-                                          tenant_id       = data.azurerm_client_config.current.tenant_id,
-                                          object_id       = data.azurerm_client_config.current.object_id
+                                          tenant_id       = data.azurerm_key_vault_secret.tenant_id[0].value,
+                                          object_id       = data.azurerm_key_vault_secret.client_id[0].value
                                         }
 
   custom_names                         = length(var.name_override_file) > 0 ? (
