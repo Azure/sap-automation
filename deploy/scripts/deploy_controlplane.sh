@@ -712,6 +712,9 @@ if [ 3 -eq "$step" ]; then
 
 	fi
 
+	TF_VAR_subscription_id="${STATE_SUBSCRIPTION}"
+	export TF_VAR_subscription_id
+
 	echo "Calling installer.sh with:          --parameterfile ${deployer_file_parametername} \
   --storageaccountname ${REMOTE_STATE_SA} --state_subscription ${STATE_SUBSCRIPTION} --type sap_deployer ${autoApproveParameter} ${ado_flag}"
 
