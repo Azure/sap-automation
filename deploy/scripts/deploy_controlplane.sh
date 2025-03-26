@@ -447,60 +447,61 @@ TF_DATA_DIR="${deployer_dirname}"/.terraform
 export TF_DATA_DIR
 
 cd "${deployer_dirname}" || exit
+if [ 0 -ne $step ]; then
 
-if [ 1 -eq $step ] || [ 3 -eq $step ]; then
-	# If the keyvault is not set, check the terraform state file
-	if [ -z "$keyvault" ]; then
-		key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
-		cd "${deployer_dirname}" || exit
-		if [ -f ./.terraform/terraform.tfstate ]; then
-			azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
-			if [ -n "$azure_backend" ]; then
-			  echo "Terraform state:                     remote"
+	if [ 1 -eq $step ] || [ 3 -eq $step ]; then
+		# If the keyvault is not set, check the terraform state file
+		if [ -z "$keyvault" ]; then
+			key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
+			cd "${deployer_dirname}" || exit
+			if [ -f ./.terraform/terraform.tfstate ]; then
+				azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+				if [ -n "$azure_backend" ]; then
+					echo "Terraform state:                     remote"
 
-				terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
-				terraform -chdir="${terraform_module_directory}" init -upgrade=true
+					terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
+					terraform -chdir="${terraform_module_directory}" init -upgrade=true
 
-				keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-				save_config_var "keyvault" "${deployer_config_information}"
-			else
-				echo "Terraform state:                     local"
+					keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+					save_config_var "keyvault" "${deployer_config_information}"
+				else
+					echo "Terraform state:                     local"
+				fi
 			fi
 		fi
-	fi
 
+		if [ -z "$keyvault" ]; then
+			if [ $ado_flag != "--ado" ]; then
+				read -r -p "Deployer keyvault name: " keyvault
+			else
+				exit 10
+			fi
+		fi
+
+		if [ 1 -eq $step ] && [ -n "$client_secret" ]; then
+
+			if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
+				--environment "${environment}" \
+				--region "${region_code}" \
+				--vault "${keyvault}" \
+				--spn_id "${client_id}" \
+				--spn_secret "${client_secret}" \
+				--tenant_id "${tenant_id}"; then
+				echo ""
+				echo -e "${cyan}Set secrets:                           succeeded$reset_formatting"
+				echo ""
+			else
+				echo -e "${bold_red}Set secrets:                           succeeded$failed"
+				exit 10
+			fi
+		fi
+
+	fi
+else
 	if [ -z "$keyvault" ]; then
-		if [ $ado_flag != "--ado" ]; then
-			read -r -p "Deployer keyvault name: " keyvault
-		else
-			exit 10
-		fi
+		load_config_vars "${deployer_config_information}" "keyvault"
 	fi
-
-	if [ 1 -eq $step ] && [ -n "$client_secret" ]; then
-
-		if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
-			--environment "${environment}" \
-			--region "${region_code}" \
-			--vault "${keyvault}" \
-			--spn_id "${client_id}" \
-			--spn_secret "${client_secret}" \
-			--tenant_id "${tenant_id}"; then
-			echo ""
-			echo -e "${cyan}Set secrets:                           succeeded$reset_formatting"
-			echo ""
-		else
-			echo -e "${bold_red}Set secrets:                           succeeded$failed"
-			exit 10
-		fi
-	fi
-
 fi
-
-if [ -z "$keyvault" ]; then
-	load_config_vars "${deployer_config_information}" "keyvault"
-fi
-
 if [ -n "${keyvault}" ] && [ 0 != "$step" ]; then
 
 	echo "Checking for keyvault:               ${keyvault}"
@@ -745,7 +746,6 @@ if [ 3 -eq "$step" ]; then
 		fi
 	fi
 
-
 	cd "${current_directory}" || exit
 	export step=4
 	save_config_var "step" "${deployer_config_information}"
@@ -815,7 +815,6 @@ if [ 4 -eq $step ]; then
 			return_code=$?
 		fi
 	fi
-
 
 	cd "$root_dirname" || exit
 
