@@ -455,7 +455,7 @@ if [ 0 != "$step" ]; then
 		# If the keyvault is not set, check the terraform state file
 		if [ -z "$keyvault" ]; then
 			key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
-			cd "${deployer_dirname}" || exit
+
 			if [ -f ./.terraform/terraform.tfstate ]; then
 				azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 				if [ -n "$azure_backend" ]; then
