@@ -282,20 +282,23 @@ echo ""
 
 # shellcheck disable=SC2086
 
-if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee -a plan_output.log; then
+if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false $allParameters | tee plan_output.log; then
 	return_value=${PIPESTATUS[0]}
 else
 	return_value=${PIPESTATUS[0]}
 fi
+echo "Terraform plan return code:          $return_value"
 if [ 0 == $return_value ]; then
-	echo "Terraform plan return code:          $return_value"
+	echo ""
+	echo -e "${cyan}Terraform plan:                      succeeded$reset_formatting"
+	echo ""
+	return_value=0
+elif [ 2 == $return_value ]; then
 	echo ""
 	echo -e "${cyan}Terraform plan:                      succeeded$reset_formatting"
 	echo ""
 	return_value=0
 else
-	return_value=$?
-	echo "Terraform plan return code:          $return_value"
 	echo ""
 	echo -e "${bold_red}Terraform plan:                      failed$reset_formatting"
 	echo ""
