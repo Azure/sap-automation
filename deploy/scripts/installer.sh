@@ -459,7 +459,8 @@ else
 fi
 
 #setting the user environment variables
-set_executing_user_environment_variables "none"
+# Obsolete now that Terraform handles the authentication without depending on environment variables
+#set_executing_user_environment_variables "none"
 
 if [[ -n ${subscription} ]]; then
 	if is_valid_guid "${subscription}"; then
