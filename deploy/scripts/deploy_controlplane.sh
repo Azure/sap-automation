@@ -44,6 +44,7 @@ source "${script_directory}/deploy_utils.sh"
 source "${script_directory}/helpers/script_helpers.sh"
 
 force=0
+step=0
 recover=0
 ado_flag="none"
 deploy_using_msi_only=0
@@ -96,6 +97,7 @@ while :; do
 		;;
 	-i | --auto-approve)
 		approve="--auto-approve"
+		autoApproveParameter="--auto-approve"
 		shift
 		;;
 	-m | --msi)
@@ -240,12 +242,6 @@ relative_path="${deployer_dirname}"
 TF_DATA_DIR="${relative_path}"/.terraform
 export TF_DATA_DIR
 
-load_config_vars "${deployer_config_information}" "step"
-if [ -z "${step}" ]; then
-	step=0
-fi
-echo "Step:                                $step"
-
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
@@ -336,6 +332,12 @@ if [ -n "${subscription}" ]; then
 	#                                                                                        #
 	#                                                                                        #
 	##########################################################################################
+
+	load_config_vars "${deployer_config_information}" "step"
+	if [ -z "${step}" ]; then
+		step=0
+	fi
+	echo "Step:                                $step"
 
 	if [ 0 == "$step" ]; then
 		echo ""
@@ -491,7 +493,7 @@ if [ 0 != "$step" ]; then
 				echo -e "${cyan}Set secrets:                           succeeded$reset_formatting"
 				echo ""
 			else
-				echo -e "${bold_red}Set secrets:                           succeeded$failed"
+				echo -e "${bold_red}Set secrets:                           succeeded$reset_formatting"
 				exit 10
 			fi
 		fi
