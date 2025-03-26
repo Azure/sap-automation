@@ -290,10 +290,10 @@ if [ -n "${subscription}" ]; then
 	if [ 0 = "${deploy_using_msi_only:-}" ]; then
 		echo "Identity to use:                     Service Principal"
 		unset ARM_USE_MSI
-		set_executing_user_environment_variables "${client_secret}"
+		#set_executing_user_environment_variables "${client_secret}"
 	else
 		echo "Identity to use:                     Managed Identity"
-		set_executing_user_environment_variables "none"
+		#set_executing_user_environment_variables "none"
 	fi
 
 	if [ $recover == 1 ]; then
