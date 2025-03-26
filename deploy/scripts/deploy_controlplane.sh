@@ -727,7 +727,7 @@ if [ 3 -eq "$step" ]; then
 			$ado_flag \
 			--auto-approve; then
 			echo ""
-			echo -e "{bold_red}Migrating the Deployer state failed${reset_formatting}"
+			echo -e "${bold_red}Migrating the Deployer state failed${reset_formatting}"
 			step=3
 			save_config_var "step" "${deployer_config_information}"
 			exit 30
@@ -740,7 +740,7 @@ if [ 3 -eq "$step" ]; then
 			--type sap_deployer \
 			--parameterfile ${deployer_file_parametername} \
 			--storageaccountname "${REMOTE_STATE_SA}"; then
-			echo -e "{bold_red}Migrating the Deployer state failed${reset_formatting}"
+			echo -e "${bold_red}Migrating the Deployer state failed${reset_formatting}"
 			step=3
 			save_config_var "step" "${deployer_config_information}"
 			exit 30
