@@ -30,6 +30,7 @@ provider "azurerm"                     {
 
                                          storage_use_azuread        = true
                                          use_msi                    = true
+                                         client_id                  = try(var.MSI_client_id, null)
                                          subscription_id            = var.subscription_id
 
                                        }

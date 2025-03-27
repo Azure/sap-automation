@@ -35,6 +35,8 @@ script_directory="$(dirname "${full_script_path}")"
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$path
+	TF_VAR_MSI_client_id=$(grep -m 1 "export MSI_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export TF_VAR_MSI_client_id
 fi
 
 #call stack has full scriptname when using source
@@ -282,7 +284,8 @@ if [ -n "${subscription}" ]; then
 
 	if [ 0 = "${deploy_using_msi_only:-}" ]; then
 		echo "Identity to use:                     Service Principal"
-		unset ARM_USE_MSI
+		#unset ARM_USE_MSI
+
 		#set_executing_user_environment_variables "${client_secret}"
 	else
 		echo "Identity to use:                     Managed Identity"
