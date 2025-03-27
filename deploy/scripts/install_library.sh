@@ -387,7 +387,7 @@ if [ -n "${deployer_statefile_foldername}" ]; then
 	echo "Deployer folder specified:           ${deployer_statefile_foldername}"
 	if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
 		-var-file="${var_file}" -input=false \
-		-var deployer_statefile_foldername="${deployer_statefile_foldername}" | tee -a plan_output.log 2>&1; then
+		-var deployer_statefile_foldername="${deployer_statefile_foldername}" | tee plan_output.log 2>&1; then
 		return_value=${PIPESTATUS[0]}
 	else
 		return_value=${PIPESTATUS[0]}
@@ -407,7 +407,7 @@ if [ -n "${deployer_statefile_foldername}" ]; then
 
 else
 	if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
-		-var-file="${var_file}" -input=false | tee -a plan_output.log 2>&1; then
+		-var-file="${var_file}" -input=false | tee plan_output.log 2>&1; then
 		return_value=${PIPESTATUS[0]}
 	else
 		return_value=${PIPESTATUS[0]}
@@ -460,7 +460,7 @@ echo ""
 
 if [ -n "${approve}" ]; then
 	# shellcheck disable=SC2086
-	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters --auto-approve | tee -a apply_output.json; then
+	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters --auto-approve | tee apply_output.json; then
 		return_value=${PIPESTATUS[0]}
 	else
 		return_value=${PIPESTATUS[0]}

@@ -564,7 +564,7 @@ function ImportAndReRunApply {
 
 				echo terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters
 				# shellcheck disable=SC2086
-				if ! terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee -a "$fileName"; then
+				if ! terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
 					return_value=${PIPESTATUS[0]}
 				else
 					return_value=${PIPESTATUS[0]}
