@@ -65,6 +65,7 @@ provider "azurerm"                     {
 
                                          storage_use_azuread        = true
                                          use_msi                    = true
+                                         client_id                  = try(var.MSI_client_id, null)
                                          subscription_id            = var.subscription_id
                                          tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value: null
                                        }

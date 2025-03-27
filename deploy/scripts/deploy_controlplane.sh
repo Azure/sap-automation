@@ -285,10 +285,14 @@ if [ -n "${subscription}" ]; then
 	if [ 0 = "${deploy_using_msi_only:-}" ]; then
 		echo "Identity to use:                     Service Principal"
 		#unset ARM_USE_MSI
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
 
 		#set_executing_user_environment_variables "${client_secret}"
 	else
 		echo "Identity to use:                     Managed Identity"
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
 		#set_executing_user_environment_variables "none"
 	fi
 
