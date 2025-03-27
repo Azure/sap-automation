@@ -538,6 +538,12 @@ if [ "$resource_group_exist" ]; then
 				echo "Secret 'cp_subscription_id' removed from state"
 			fi
 		fi
+		moduleID="module.sap_landscape.data.azurerm_key_vault_secret.cp_subscription_id"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'data.cp_subscription_id' removed from state"
+			fi
+		fi
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee destroy_output.json; then
