@@ -15,7 +15,7 @@ data "terraform_remote_state" "deployer"          {
                                                                      container_name       = local.tfstate_container_name
                                                                      key                  = local.deployer_tfstate_key
                                                                      subscription_id      = local.SAPLibrary_subscription_id
-                                                                     use_msi              = var.use_spn ? false : true
+                                                                     use_msi              = true
                                                                    }
                                                   }
 
