@@ -3,7 +3,7 @@
 
 #######################################4#######################################8
 #                                                                              #
-#                          Resource group definitioms                          #
+#                          Resource group definitions                          #
 #                                                                              #
 #######################################4#######################################8
 
@@ -46,7 +46,7 @@ output "sapbits_sa_resource_group_name"          {
 output "saplibrary_subscription_id"              {
                                                    description = "Subscription Id for SAP Binaries"
                                                    sensitive   = true
-                                                   value       = local.spn.subscription_id
+                                                   value       = local.SAPLibrary_subscription_id
                                                  }
 
 output "tfstate_resource_id"                     {
