@@ -422,11 +422,11 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
 fi
 
 #setting the user environment variables
-if [ -n "${spn_secret}" ]; then
-	set_executing_user_environment_variables "${spn_secret}"
-else
-	set_executing_user_environment_variables "none"
-fi
+# if [ -n "${spn_secret}" ]; then
+# 	set_executing_user_environment_variables "${spn_secret}"
+# else
+# 	set_executing_user_environment_variables "none"
+# fi
 
 if [[ -z ${REMOTE_STATE_SA} ]]; then
 	load_config_vars "${workload_config_information}" "REMOTE_STATE_SA"
