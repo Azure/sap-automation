@@ -22,13 +22,12 @@ module "sap_library" {
   naming                            = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   place_delete_lock_on_resources    = var.place_delete_lock_on_resources
   short_named_endpoints_nics        = var.short_named_endpoints_nics
-  state_filename_prefix             = coalesce(var.deployer_prefix, try(data.terraform_remote_state.deployer[0].outputs.control_plane_name,""))
   storage_account_sapbits           = local.storage_account_sapbits
   storage_account_tfstate           = local.storage_account_tfstate
   use_custom_dns_a_registration     = var.use_custom_dns_a_registration
   use_private_endpoint              = var.use_private_endpoint
-  application_configuration_deployment                 = var.application_configuration_deployment || length(try(data.terraform_remote_state.deployer[0].outputs.webapp_id,"")) > 0
   dns_settings                      = local.dns_settings
+  service_principal                 = local.account
 
 }
 
