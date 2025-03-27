@@ -57,11 +57,6 @@ variable "use_spn"                               {
                                                   description = "Log in using a service principal when performing the deployment"
                                                   default = true
                                                  }
-variable "MSI_client_id"                        {
-                                                   description = "Client ID of the managed identity to be used for the deployment"
-                                                   nullable    = true
-                                                   default     = ""
-                                                 }
 
 variable "spn_id"                                {
                                                    description = "SPN ID to be used for the deployment"

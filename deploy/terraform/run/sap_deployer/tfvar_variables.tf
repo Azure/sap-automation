@@ -642,11 +642,6 @@ variable "use_spn"                                   {
                                                        default     = false
                                                      }
 
-variable "MSI_client_id"                        {
-                                                   description = "Client ID of the managed identity to be used for the deployment"
-                                                   nullable    = true
-                                                   default     = ""
-                                                 }
 #########################################################################################
 #                                                                                       #
 #  Extension variables                                                                  #
