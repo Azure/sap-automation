@@ -282,7 +282,7 @@ if [ -n "${subscription}" ]; then
 
 	if [ 0 = "${deploy_using_msi_only:-}" ]; then
 		echo "Identity to use:                     Service Principal"
-		#unset ARM_USE_MSI
+		unset ARM_USE_MSI
 		#set_executing_user_environment_variables "${client_secret}"
 	else
 		echo "Identity to use:                     Managed Identity"
