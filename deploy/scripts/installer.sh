@@ -150,7 +150,7 @@ while :; do
 	esac
 done
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" == True ]; then
 	echo -e "${cyan}Enabling debug mode$reset_formatting"
 	set -x
 	set -o errexit
@@ -577,6 +577,12 @@ check_output=0
 
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
+
+if [ $DEBUG == True ]; then
+	printenv | grep ARM
+	printenv | grep TF_VAL
+
+fi
 
 new_deployment=0
 
