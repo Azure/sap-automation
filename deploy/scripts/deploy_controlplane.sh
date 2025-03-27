@@ -782,7 +782,11 @@ if [ 4 -eq $step ]; then
 
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
 	cd "${library_dirname}" || exit
-
+	if [ -f .terraform/terraform.tfstate ]; then
+		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+	fi
 	echo "Calling installer.sh with:          \
         --type sap_library \
       --parameterfile ${library_file_parametername} \

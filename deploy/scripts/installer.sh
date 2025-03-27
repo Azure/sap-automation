@@ -381,7 +381,6 @@ if [ "${deployment_system}" != sap_deployer ]; then
 			exit 2
 		fi
 	else
-
 		echo "Deployer state file name:            ${deployer_tfstate_key}"
 	fi
 else
@@ -580,8 +579,7 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 
 if [ $DEBUG == True ]; then
 	printenv | grep ARM
-	printenv | grep TF_VAL
-
+	printenv | grep TF_VAR
 fi
 
 new_deployment=0
@@ -869,8 +867,13 @@ fi
 
 allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
+if [ $DEBUG == True ]; then
+	printenv | grep ARM
+	printenv | grep TF_VAR
+fi
+
 # shellcheck disable=SC2086
-if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee -a plan_output.log; then
+if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee plan_output.log; then
 	return_value=${PIPESTATUS[0]}
 else
 	return_value=${PIPESTATUS[0]}
