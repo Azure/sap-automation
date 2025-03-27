@@ -1026,6 +1026,7 @@ if [ 1 == $apply_needed ]; then
 		else
 			return_value=${PIPESTATUS[0]}
 		fi
+		echo    "Return value:                        $return_value"
 		if [ $return_value -eq 1 ]; then
 			echo ""
 			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
@@ -1040,10 +1041,28 @@ if [ 1 == $apply_needed ]; then
 		fi
 	else
 		# Using if so that no zero return codes don't fail -o errexit
-		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters -input=false; then
+		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters ; then
 			return_value=$?
 		else
 			return_value=$?
+		fi
+
+		echo    "Return value:                        $return_value"
+		if [ $return_value -eq 0 ]; then
+			echo ""
+			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
+			echo ""
+		elif [ $return_value -eq 1 ]; then
+			echo ""
+			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+			echo ""
+			exit $return_value
+		elif [ $return_value -eq 2 ]; then
+			# return code 2 is ok
+			echo ""
+			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
+			echo ""
+			return_value=0
 		fi
 
 		if [ $return_value -eq 1 ]; then
