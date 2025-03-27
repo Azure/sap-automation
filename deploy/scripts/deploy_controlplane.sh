@@ -284,7 +284,6 @@ if [ -n "${subscription}" ]; then
 
 	if [ 0 = "${deploy_using_msi_only:-}" ]; then
 		echo "Identity to use:                     Service Principal"
-		unset ARM_USE_MSI
 		unset ARM_CLIENT_ID
 		TF_VAR_use_spn=true
 		export TF_VAR_use_spn
