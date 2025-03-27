@@ -61,6 +61,7 @@ variable "use_spn"                               {
 variable "spn_id"                                {
                                                    description = "SPN ID to be used for the deployment"
                                                    nullable    = true
+                                                   default     = ""
                                                  }
 
 variable "subscription_id"                       {
