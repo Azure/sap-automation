@@ -1,0 +1,20 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |        Playbook for SAP Functional Tests (sap-automation-qa)               |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               localhost
+  name:                                "SAP Functional Tests: - setup deployer"
+  gather_facts:                        true
+  vars_files:                          vars/ansible-input-api.yaml
+  tasks:
+    - name:                            "SAP Functional Tests: - setup prerequisites"
+      ansible.builtin.include_role:
+        name:                          "roles-misc/0.10-sap-functional-tests"
+        tasks_from:                    setup.yaml

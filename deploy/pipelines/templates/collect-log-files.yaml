@@ -5,6 +5,7 @@ parameters:
   logPath: ""
   qualityAssuranceResultsPath: ""
   collectQualityChecks: false
+  runSapFunctionalTests: false
 steps:
   - script: |
       #!/bin/bash
@@ -14,7 +15,7 @@ steps:
 
       echo "Collecting log files from ${{ parameters.logPath }}"
 
-      if [ -d ${LOG_PATH} ] && [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
+      if [ -d ${LOG_PATH} ] && [ $(ls ${LOG_PATH}/*.log ${LOG_PATH}/*.zip ${LOG_PATH}/cluster_report/*.tar.bz2 ${LOG_PATH}/cluster_report/*.tar.gz | wc -l ) -gt 0 ] ; then
         echo "Found log files in ${LOG_PATH}"
 
         cd ${LOG_PATH}
@@ -29,7 +30,18 @@ steps:
         git pull
 
         echo "Adding new logs..."
-        git add --ignore-errors *.zip
+        if [ $(ls ${LOG_PATH}/*.zip | wc -l ) -gt 0 ]; then
+          git add --ignore-errors ${LOG_PATH}/*.zip
+        fi
+        if [ $(ls ${LOG_PATH}/*.log | wc -l ) -gt 0 ]; then
+          git add --ignore-errors ${LOG_PATH}/*.log
+        fi
+        if [ $(ls ${LOG_PATH}/cluster_report/*.tar.bz2 | wc -l ) -gt 0 ]; then
+          git add --ignore-errors ${LOG_PATH}/cluster_report/*.tar.bz2
+        fi
+        if [ $(ls ${LOG_PATH}/cluster_report/*.tar.gz | wc -l ) -gt 0 ]; then
+          git add --ignore-errors ${LOG_PATH}/cluster_report/*.tar.gz
+        fi
         if [ $(git diff --name-only --cached | wc -l) -gt 0 ]; then
             echo "Committing changes..."
             git commit -m "Adding new logs"
@@ -123,7 +135,7 @@ steps:
       fi
     displayName: Store quality assurance files in repository
     enabled: true
-    condition: ${{ eq(parameters.collectQualityChecks, true) }}
+    condition: ${{ or(eq(parameters.collectQualityChecks, true), eq(parameters.runSapFunctionalTests, true)) }}
     env:
       USER_EMAIL: $(Build.RequestedForEmail)
       USER_NAME: $(Build.RequestedFor)
