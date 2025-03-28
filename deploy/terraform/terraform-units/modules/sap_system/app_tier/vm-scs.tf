@@ -56,7 +56,7 @@ resource "azurerm_network_interface_application_security_group_association" "scs
                                            0
                                          )
 
-  network_interface_id                 = var.use_admin_nic_for_asg ? azurerm_network_interface.scs_admin[count.index].id : azurerm_network_interface.scs[count.index].id
+  network_interface_id                 = var.use_admin_nic_for_asg && var.application_tier.dual_nics ? azurerm_network_interface.scs_admin[count.index].id : azurerm_network_interface.scs[count.index].id
   application_security_group_id        = azurerm_application_security_group.app[0].id
 }
 

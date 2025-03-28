@@ -541,7 +541,7 @@ all_subnets                          = merge(local.sap, (
                                            ) : null), (
                                            local.spn_keyvault_specified ? (
                                              {
-                                               kv_spn_id = local.spn_kv
+                                               keyvault_id_for_deployment_credentials = local.spn_kv
                                              }
                                            ) : null
                                            )
