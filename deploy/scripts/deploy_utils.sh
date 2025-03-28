@@ -460,6 +460,7 @@ function get_region_code() {
   "northeurope") export region_code="NOEU" ;;
   "norwayeast") export region_code="NOEA" ;;
   "norwaywest") export region_code="NOWE" ;;
+  "newzealandnorth") export region_code="NZNO" ;;
   "polandcentral") export region_code="PLCE" ;;
   "qatarcentral") export region_code="QACE" ;;
   "southafricanorth") export region_code="SANO" ;;
