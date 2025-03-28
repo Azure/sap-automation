@@ -258,79 +258,87 @@ locals {
                                              "name"    = var.admin_subnet_name
                                              "arm_id"  = var.admin_subnet_arm_id
                                              "prefix"  = var.admin_subnet_address_prefix
-                                             "nsg"     = {
-                                                         "name"   = var.admin_subnet_nsg_name
-                                                         "arm_id" = var.admin_subnet_nsg_arm_id
-                                                       }
+                                             "defined" = length(var.admin_subnet_address_prefix) > 0
+                                              "nsg"    = {
+                                                           "name"   = var.admin_subnet_nsg_name
+                                                           "arm_id" = var.admin_subnet_nsg_arm_id
+                                                         }
                                          }
 
   subnet_db                            = {
                                              "name"    = var.db_subnet_name
                                              "arm_id"  = var.db_subnet_arm_id
                                              "prefix"  = var.db_subnet_address_prefix
-                                              "nsg" = {
-                                                        "name"   = var.db_subnet_nsg_name
-                                                        "arm_id" = var.db_subnet_nsg_arm_id
-                                                      }
+                                             "defined" = length(var.db_subnet_address_prefix) > 0
+                                              "nsg"    = {
+                                                           "name"   = var.db_subnet_nsg_name
+                                                           "arm_id" = var.db_subnet_nsg_arm_id
+                                                         }
                                          }
 
   subnet_app                           = {
-                                             "name" = var.app_subnet_name
-                                             "arm_id" = var.app_subnet_arm_id
-                                             "prefix" = var.app_subnet_address_prefix
-                                              "nsg" = {
-                                                "name"   = var.app_subnet_nsg_name
-                                                "arm_id" = var.app_subnet_nsg_arm_id
-                                              }
+                                             "name"    = var.app_subnet_name
+                                             "arm_id"  = var.app_subnet_arm_id
+                                             "prefix"  = var.app_subnet_address_prefix
+                                             "defined" = length(var.app_subnet_address_prefix) > 0
+                                              "nsg"    = {
+                                                           "name"   = var.app_subnet_nsg_name
+                                                           "arm_id" = var.app_subnet_nsg_arm_id
+                                                         }
                                          }
 
   subnet_web                           = {
-                                             "name" = var.web_subnet_name
-                                             "arm_id" = var.web_subnet_arm_id
-                                             "prefix" = var.web_subnet_address_prefix
-                                              "nsg" = {
-                                                "name"   = var.web_subnet_nsg_name
-                                                "arm_id" = var.web_subnet_nsg_arm_id
-                                              }
+                                             "name"    = var.web_subnet_name
+                                             "arm_id"  = var.web_subnet_arm_id
+                                             "prefix"  = var.web_subnet_address_prefix
+                                             "defined" = length(var.web_subnet_address_prefix) > 0
+                                              "nsg"     = {
+                                                            "name"   = var.web_subnet_nsg_name
+                                                            "arm_id" = var.web_subnet_nsg_arm_id
+                                                          }
                                          }
 
   subnet_storage                       = {
-                                             "name" = var.storage_subnet_name
-                                             "arm_id" = var.storage_subnet_arm_id
-                                             "prefix" = var.storage_subnet_address_prefix
-                                             "nsg" = {
-                                                  "name"   = var.storage_subnet_nsg_name
-                                                  "arm_id" = var.storage_subnet_nsg_arm_id
-                                                }
+                                             "name"    = var.storage_subnet_name
+                                             "arm_id"  = var.storage_subnet_arm_id
+                                             "prefix"  = var.storage_subnet_address_prefix
+                                             "defined" = length(var.storage_subnet_address_prefix) > 0
+                                             "nsg"     = {
+                                                           "name"   = var.storage_subnet_nsg_name
+                                                           "arm_id" = var.storage_subnet_nsg_arm_id
+                                                         }
                                           }
 
   subnet_anf                           = {
-                                            "name" = var.anf_subnet_name
-                                            "arm_id" = var.anf_subnet_arm_id
-                                            "prefix" = var.anf_subnet_address_prefix
-                                            "nsg" = {
-                                              "name"   = var.anf_subnet_nsg_name
-                                              "arm_id" = var.anf_subnet_nsg_arm_id
-                                            }
+                                            "name"    = var.anf_subnet_name
+                                            "arm_id"  = var.anf_subnet_arm_id
+                                            "prefix"  = var.anf_subnet_address_prefix
+                                            "defined" = length(var.anf_subnet_address_prefix) > 0
+                                            "nsg"     = {
+                                                          "name"   = var.anf_subnet_nsg_name
+                                                          "arm_id" = var.anf_subnet_nsg_arm_id
+                                                        }
                                          }
 
   subnet_iscsi                         = {
-                                            "name" = var.iscsi_subnet_name
-                                            "arm_id" = var.iscsi_subnet_arm_id
-                                            "prefix" = var.iscsi_subnet_address_prefix
-                                            "nsg" = {
-                                              "name"   = var.iscsi_subnet_nsg_name
-                                              "arm_id" = var.iscsi_subnet_nsg_arm_id
-                                            }
+                                            "name"    = var.iscsi_subnet_name
+                                            "arm_id"  = var.iscsi_subnet_arm_id
+                                            "prefix"  = var.iscsi_subnet_address_prefix
+                                            "defined" = length(var.iscsi_subnet_address_prefix) > 0
+                                            "nsg"     = {
+                                                          "name"   = var.iscsi_subnet_nsg_name
+                                                          "arm_id" = var.iscsi_subnet_nsg_arm_id
+                                                        }
                                          }
   subnet_ams                         =   {
-                                            "name" = var.ams_subnet_name
-                                            "arm_id" = var.ams_subnet_arm_id
-                                            "prefix" = var.ams_subnet_address_prefix
-                                            "nsg" = {
-                                                  "name"   = var.ams_subnet_nsg_name
-                                                  "arm_id" = var.ams_subnet_nsg_arm_id
-                                                }
+                                            "name"    = var.ams_subnet_name
+                                            "arm_id"  = var.ams_subnet_arm_id
+                                            "prefix"  = var.ams_subnet_address_prefix
+                                            "defined" = length(var.ams_subnet_address_prefix) > 0
+                                            "nsg"     = {
+                                                          "name"   = var.ams_subnet_nsg_name
+                                                          "arm_id" = var.ams_subnet_nsg_arm_id
+                                                        }
                                          }
 
   all_subnets                          = merge(local.sap, (
