@@ -150,7 +150,7 @@ while :; do
 	esac
 done
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" == True ]; then
 	echo -e "${cyan}Enabling debug mode$reset_formatting"
 	set -x
 	set -o errexit
@@ -381,7 +381,6 @@ if [ "${deployment_system}" != sap_deployer ]; then
 			exit 2
 		fi
 	else
-
 		echo "Deployer state file name:            ${deployer_tfstate_key}"
 	fi
 else
@@ -459,7 +458,8 @@ else
 fi
 
 #setting the user environment variables
-set_executing_user_environment_variables "none"
+# Obsolete now that Terraform handles the authentication without depending on environment variables
+#set_executing_user_environment_variables "none"
 
 if [[ -n ${subscription} ]]; then
 	if is_valid_guid "${subscription}"; then
@@ -576,6 +576,11 @@ check_output=0
 
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
+
+if [ $DEBUG == True ]; then
+	printenv | grep ARM
+	printenv | grep TF_VAR
+fi
 
 new_deployment=0
 
@@ -863,25 +868,30 @@ fi
 allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 # shellcheck disable=SC2086
-if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee -a plan_output.log; then
-	return_value=$?
-	echo "Terraform Plan return code:          $return_value"
+if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee plan_output.log; then
+	return_value=${PIPESTATUS[0]}
+else
+	return_value=${PIPESTATUS[0]}
+fi
+echo "Terraform Plan return code:          $return_value"
 
-	if [ $return_value -eq 1 ]; then
-		echo ""
-		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		exit $return_value
+if [ $return_value -eq 1 ]; then
+	echo ""
+	echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+	if [[ $DEBUG == True ]]; then
+		printenv | grep ARM
+		printenv | grep TF_VAR
 	fi
+	exit $return_value
 else
 	return_value=$?
-	echo "Terraform Plan return code:          $return_value"
 
 	echo ""
 	echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
@@ -1182,26 +1192,23 @@ if [ 1 == $apply_needed ]; then
 	echo "#########################################################################################"
 	echo ""
 
-	      allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
+	allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
 	allImportParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}")
 
 	if [ -n "${approve}" ]; then
 		# shellcheck disable=SC2086
-		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee -a apply_output.json; then
-			return_value=$?
+		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee apply_output.json; then
+			return_value=${PIPESTATUS[0]}
 		else
-			echo ""
-			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
-			echo ""
-			return_value=0
+			return_value=${PIPESTATUS[0]}
 		fi
 
 	else
 		# shellcheck disable=SC2086
-		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters | tee -a apply_output.json; then
-			return_value=$?
+		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters | tee apply_output.json; then
+			return_value=${PIPESTATUS[0]}
 		else
-			return_value=0
+			return_value=${PIPESTATUS[0]}
 		fi
 	fi
 
@@ -1209,7 +1216,6 @@ if [ 1 == $apply_needed ]; then
 		echo ""
 		echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
 		echo ""
-		exit $return_value
 	elif [ $return_value -eq 2 ]; then
 		# return code 2 is ok
 		echo ""

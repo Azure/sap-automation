@@ -24,41 +24,36 @@ locals {
                                          ))
 
   // Locate the tfstate storage account
-  saplib_subscription_id               = split("/", var.tfstate_resource_id)[2]
-  saplib_resource_group_name           = split("/", var.tfstate_resource_id)[4]
-  tfstate_storage_account_name         = split("/", var.tfstate_resource_id)[8]
-  tfstate_container_name               = module.sap_namegenerator.naming.resource_suffixes.tfstate
+  parsed_id                           = provider::azurerm::parse_resource_id(var.tfstate_resource_id)
+
+  SAPLibrary_subscription_id          = local.parsed_id["subscription_id"]
+  SAPLibrary_resource_group_name      = local.parsed_id["resource_group_name"]
+  tfstate_storage_account_name        = local.parsed_id["resource_name"]
+  tfstate_container_name              = module.sap_namegenerator.naming.resource_suffixes.tfstate
   deployer_tfstate_key                 = length(var.deployer_tfstate_key) > 0 ? (
                                            var.deployer_tfstate_key) : (
                                            format("%s%s", local.deployer_rg_name, ".terraform.tfstate")
                                          )
 
   // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate
-  spn_key_vault_arm_id                 = try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, "")
+  spn_key_vault_arm_id                 = var.use_deployer ?  data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : ""
 
-
-  spn                                  = {
-                                           subscription_id = local.use_spn ? coalesce(local.saplib_subscription_id, data.azurerm_key_vault_secret.subscription_id[0].value) : null,
-                                           client_id       = local.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null,
-                                           client_secret   = local.use_spn ? data.azurerm_key_vault_secret.client_secret[0].value : null,
-                                           tenant_id       = local.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
-                                         }
-
-  service_principal                    = {
-                                            subscription_id = local.spn.subscription_id,
-                                            tenant_id       = local.spn.tenant_id,
-                                            object_id       = local.use_spn ? data.azuread_service_principal.sp[0].id : null
-                                          }
-
-  account                              = {
-                                          subscription_id = local.use_spn ? data.azurerm_key_vault_secret.subscription_id[0].value : null,
-                                          tenant_id       = data.azurerm_client_config.current.tenant_id,
-                                          object_id       = data.azurerm_client_config.current.object_id
-                                        }
 
   custom_names                         = length(var.name_override_file) > 0 ? (
                                            jsondecode(file(format("%s/%s", path.cwd, var.name_override_file)))) : (
                                            null
                                          )
+  spn                                  = {
+                                          subscription_id = local.use_spn ? data.azurerm_key_vault_secret.subscription_id[0].value : null,
+                                          client_id       = local.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null,
+                                          client_secret   = local.use_spn ? ephemeral.azurerm_key_vault_secret.client_secret[0].value : null,
+                                          tenant_id       = local.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
+                                        }
+
+  account                              = {
+                                           subscription_id = local.use_spn ? data.azurerm_key_vault_secret.subscription_id[0].value : null,
+                                           tenant_id       = data.azurerm_key_vault_secret.tenant_id[0].value,
+                                           object_id       = data.azurerm_key_vault_secret.client_id[0].value
+                                         }
 
 }

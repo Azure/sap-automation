@@ -4,20 +4,24 @@
 
 locals {
   infrastructure                       = {
-                                           environment = var.environment
-                                           region      = var.location
-                                           codename    = var.codename
-                                           resource_group = {
-                                             name   = var.resourcegroup_name
-                                             arm_id = var.resourcegroup_arm_id
-                                           }
-                                           tags = try(coalesce(var.resourcegroup_tags, var.tags, {}), {})
+                                           environment        = var.environment
+                                           region             = var.location
+                                           codename           = var.codename
+                                           resource_group     = {
+                                             name             = var.resourcegroup_name
+                                             arm_id           = var.resourcegroup_arm_id
+                                               }
+                                           tags               = try(coalesce(var.resourcegroup_tags, var.tags, {}), {})
+                                           assign_permissions = var.assign_permissions
+                                           spn_id             = var.spn_id
+
                                          }
   deployer                             = {
-                                           use = var.use_deployer
+                                           use                          = var.use_deployer
+                                           application_configuration_id = var.application_configuration_id
                                          }
   key_vault                            = {
-                                           kv_spn_id = coalesce(var.spn_keyvault_id, local.spn_key_vault_arm_id)
+                                           keyvault_id_for_deployment_credentials = coalesce(var.spn_keyvault_id, local.spn_key_vault_arm_id)
                                          }
   storage_account_sapbits              = {
                                             arm_id                   = var.library_sapmedia_arm_id

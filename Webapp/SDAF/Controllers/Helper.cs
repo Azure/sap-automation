@@ -410,7 +410,7 @@ namespace SDAFWebApp.Controllers
                                 value += "{";
                                 value += "\"Key\":" + tagKey + "," + "\"Value\":" + tagValue.Trim(',');
                                 value += "},";
-                                currLine = stringReader.ReadLine();
+                                currLine = stringReader.ReadLine().TrimStart();
                             }
                             value = value.Trim(',');
                             value += "],";

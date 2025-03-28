@@ -44,6 +44,7 @@ source "${script_directory}/deploy_utils.sh"
 source "${script_directory}/helpers/script_helpers.sh"
 
 force=0
+step=0
 recover=0
 ado_flag="none"
 deploy_using_msi_only=0
@@ -96,6 +97,7 @@ while :; do
 		;;
 	-i | --auto-approve)
 		approve="--auto-approve"
+		autoApproveParameter="--auto-approve"
 		shift
 		;;
 	-m | --msi)
@@ -124,13 +126,6 @@ while :; do
 		;;
 	esac
 done
-
-if [ -n "${client_id}" ]; then
-	TF_VAR_spn_id="$client_id"
-	export TF_VAR_spn_id
-else
-	unset TF_VAR_spn_id
-fi
 
 if [ "$DEBUG" = True ]; then
 	# Enable debugging
@@ -240,12 +235,6 @@ relative_path="${deployer_dirname}"
 TF_DATA_DIR="${relative_path}"/.terraform
 export TF_DATA_DIR
 
-load_config_vars "${deployer_config_information}" "step"
-if [ -z "${step}" ]; then
-	step=0
-fi
-echo "Step:                                $step"
-
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
@@ -293,11 +282,15 @@ if [ -n "${subscription}" ]; then
 
 	if [ 0 = "${deploy_using_msi_only:-}" ]; then
 		echo "Identity to use:                     Service Principal"
-		unset ARM_USE_MSI
-		set_executing_user_environment_variables "${client_secret}"
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
+
+		#set_executing_user_environment_variables "${client_secret}"
 	else
 		echo "Identity to use:                     Managed Identity"
-		set_executing_user_environment_variables "none"
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
+		#set_executing_user_environment_variables "none"
 	fi
 
 	if [ $recover == 1 ]; then
@@ -326,112 +319,118 @@ if [ -n "${subscription}" ]; then
 	if [ -n "$tenant_id" ]; then
 		save_config_var "tenant_id" "${deployer_config_information}"
 	fi
+fi
 
-	current_directory=$(pwd)
+current_directory=$(pwd)
 
-	##########################################################################################
-	#                                                                                        #
-	#                                      STEP 0                                            #
-	#                           Bootstrapping the deployer                                   #
-	#                                                                                        #
-	#                                                                                        #
-	##########################################################################################
+##########################################################################################
+#                                                                                        #
+#                                      STEP 0                                            #
+#                           Bootstrapping the deployer                                   #
+#                                                                                        #
+#                                                                                        #
+##########################################################################################
 
-	if [ 0 -eq $step ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $cyan Bootstrapping the deployer $reset_formatting                                 #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+load_config_vars "${deployer_config_information}" "step"
+if [ -z "${step}" ]; then
+	step=0
+fi
+echo "Step:                                $step"
 
-		allParameters=$(printf " --parameterfile %s %s" "${deployer_file_parametername}" "${autoApproveParameter}")
+if [ 0 == "$step" ]; then
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                          $cyan Bootstrapping the deployer $reset_formatting                                 #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
 
-		cd "${deployer_dirname}" || exit
+	allParameters=$(printf " --parameterfile %s %s" "${deployer_file_parametername}" "${autoApproveParameter}")
 
-		echo "Calling install_deployer.sh:         $allParameters"
-		echo "Deployer State File:                 ${deployer_tfstate_key}"
+	cd "${deployer_dirname}" || exit
 
-		if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+	echo "Calling install_deployer.sh:         $allParameters"
+	echo "Deployer State File:                 ${deployer_tfstate_key}"
 
-			if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
-				--parameterfile "${deployer_file_parametername}" --auto-approve; then
-				echo "Bootstrapping of the deployer failed"
-				step=0
-				save_config_var "step" "${deployer_config_information}"
-				exit 10
-			fi
-		else
-			if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
-				--parameterfile "${deployer_file_parametername}"; then
-				echo "Bootstrapping of the deployer failed"
-				step=0
-				save_config_var "step" "${deployer_config_information}"
-				exit 10
-			fi
-		fi
-		return_code=$?
+	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-		echo "Return code from install_deployer:   ${return_code}"
-		if [ 0 != $return_code ]; then
-			echo "Bootstrapping of the deployer failed" >"${deployer_config_information}".err
+		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+			--parameterfile "${deployer_file_parametername}" --auto-approve; then
+			echo "Bootstrapping of the deployer failed"
 			step=0
 			save_config_var "step" "${deployer_config_information}"
 			exit 10
-		else
-			step=1
-			save_config_var "step" "${deployer_config_information}"
-
-			load_config_vars "${deployer_config_information}" "step"
-			echo "Step:                                $step"
-
-			if [ 1 = "${only_deployer:-}" ]; then
-				exit 0
-			fi
 		fi
-
-		load_config_vars "${deployer_config_information}" "keyvault"
-		echo "Key vault:             ${keyvault}"
-
-		if [ -z "$keyvault" ]; then
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                       $bold_red  Bootstrapping of the deployer failed $reset_formatting                         #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo "Bootstrapping of the deployer failed" >"${deployer_config_information}".err
-			exit 10
-		fi
-		if [ "$FORCE_RESET" = True ]; then
+	else
+		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+			--parameterfile "${deployer_file_parametername}"; then
+			echo "Bootstrapping of the deployer failed"
 			step=0
 			save_config_var "step" "${deployer_config_information}"
-			exit 0
-		else
-			export step=1
+			exit 10
 		fi
+	fi
+	return_code=$?
+
+	echo "Return code from install_deployer:   ${return_code}"
+	if [ 0 != $return_code ]; then
+		echo "Bootstrapping of the deployer failed" >"${deployer_config_information}".err
+		step=0
+		save_config_var "step" "${deployer_config_information}"
+		exit 10
+	else
+		step=1
 		save_config_var "step" "${deployer_config_information}"
 
-		cd "$root_dirname" || exit
+		load_config_vars "${deployer_config_information}" "step"
+		echo "Step:                                $step"
 
-		load_config_vars "${deployer_config_information}" "sshsecret"
-		load_config_vars "${deployer_config_information}" "keyvault"
-		load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
-
-		echo "##vso[task.setprogress value=20;]Progress Indicator"
-	else
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $cyan Deployer is bootstrapped $reset_formatting                                   #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		echo "##vso[task.setprogress value=20;]Progress Indicator"
+		if [ 1 = "${only_deployer:-}" ]; then
+			exit 0
+		fi
 	fi
 
+	load_config_vars "${deployer_config_information}" "keyvault"
+	echo "Key vault:             ${keyvault}"
+
+	if [ -z "$keyvault" ]; then
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo -e "#                       $bold_red  Bootstrapping of the deployer failed $reset_formatting                         #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		echo "Bootstrapping of the deployer failed" >"${deployer_config_information}".err
+		exit 10
+	fi
+	if [ "$FORCE_RESET" = True ]; then
+		step=0
+		save_config_var "step" "${deployer_config_information}"
+		exit 0
+	else
+		export step=1
+	fi
+	save_config_var "step" "${deployer_config_information}"
+
 	cd "$root_dirname" || exit
+
+	load_config_vars "${deployer_config_information}" "sshsecret"
+	load_config_vars "${deployer_config_information}" "keyvault"
+	load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
+
+	echo "##vso[task.setprogress value=20;]Progress Indicator"
+else
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                          $cyan Deployer is bootstrapped $reset_formatting                                   #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+	echo "##vso[task.setprogress value=20;]Progress Indicator"
 fi
+
+cd "$root_dirname" || exit
 
 ##########################################################################################
 #                                                                                        #
@@ -440,67 +439,68 @@ fi
 #                                                                                        #
 #                                                                                        #
 ##########################################################################################
-
+echo "Validating Key Vault Access"
 echo "Step:                                $step"
 
 TF_DATA_DIR="${deployer_dirname}"/.terraform
 export TF_DATA_DIR
 
 cd "${deployer_dirname}" || exit
+if [ 0 != "$step" ]; then
 
-if [ 1 -eq $step ] || [ 3 -eq $step ]; then
-	# If the keyvault is not set, check the terraform state file
-	if [ -z "$keyvault" ]; then
-		key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
-		cd "${deployer_dirname}" || exit
-		if [ -f ./.terraform/terraform.tfstate ]; then
-			azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
-			if [ -n "$azure_backend" ]; then
-			  echo "Terraform state:                     remote"
+	if [ 1 == "$step" ] || [ 3 = "$step" ]; then
+		# If the keyvault is not set, check the terraform state file
+		if [ -z "$keyvault" ]; then
+			key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
 
-				terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
-				terraform -chdir="${terraform_module_directory}" init -upgrade=true
+			if [ -f ./.terraform/terraform.tfstate ]; then
+				azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+				if [ -n "$azure_backend" ]; then
+					echo "Terraform state:                     remote"
 
-				keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-				save_config_var "keyvault" "${deployer_config_information}"
-			else
-				echo "Terraform state:                     local"
+					terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
+					terraform -chdir="${terraform_module_directory}" init -upgrade=true
+
+					keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+					save_config_var "keyvault" "${deployer_config_information}"
+				else
+					echo "Terraform state:                     local"
+				fi
 			fi
 		fi
-	fi
 
+		if [ -z "$keyvault" ]; then
+			if [ $ado_flag != "--ado" ]; then
+				read -r -p "Deployer keyvault name: " keyvault
+			else
+				exit 10
+			fi
+		fi
+
+		if [ 1 -eq $step ] && [ -n "$client_secret" ]; then
+
+			if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
+				--environment "${environment}" \
+				--region "${region_code}" \
+				--vault "${keyvault}" \
+				--spn_id "${client_id}" \
+				--spn_secret "${client_secret}" \
+				--tenant_id "${tenant_id}"; then
+				echo ""
+				echo -e "${cyan}Set secrets:                           succeeded$reset_formatting"
+				echo ""
+			else
+				echo -e "${bold_red}Set secrets:                           succeeded$reset_formatting"
+				exit 10
+			fi
+		fi
+
+	fi
+else
 	if [ -z "$keyvault" ]; then
-		if [ $ado_flag != "--ado" ]; then
-			read -r -p "Deployer keyvault name: " keyvault
-		else
-			exit 10
-		fi
+		load_config_vars "${deployer_config_information}" "keyvault"
 	fi
-
-	if [ 1 -eq $step ] && [ -n "$client_secret" ]; then
-
-		if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
-			--environment "${environment}" \
-			--region "${region_code}" \
-			--vault "${keyvault}" \
-			--spn_id "${client_id}" \
-			--spn_secret "${client_secret}" \
-			--tenant_id "${tenant_id}"; then
-			echo ""
-			echo -e "${cyan}Set secrets:                           succeeded$reset_formatting"
-			echo ""
-		else
-			echo -e "${bold_red}Set secrets:                           succeeded$failed"
-			exit 10
-		fi
-	fi
-
 fi
-
-if [ -z "$keyvault" ]; then
-	load_config_vars "${deployer_config_information}" "keyvault"
-fi
-
 if [ -n "${keyvault}" ] && [ 0 != "$step" ]; then
 
 	echo "Checking for keyvault:               ${keyvault}"
@@ -572,7 +572,7 @@ if [ 2 -eq $step ]; then
 
 	relative_path="${library_dirname}"
 	export TF_DATA_DIR="${relative_path}/.terraform"
-	relative_path="${deployer_dirname}"
+	relative_path="$CONFIG_REPO_PATH/${deployer_dirname}"
 
 	cd "${library_dirname}" || exit
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
@@ -682,6 +682,12 @@ if [ 3 -eq "$step" ]; then
 
 	cd "${deployer_dirname}" || exit
 
+	if [ -f .terraform/terraform.tfstate ]; then
+		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+	fi
+
 	if [[ -z $REMOTE_STATE_SA ]]; then
 		load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
 	fi
@@ -709,6 +715,9 @@ if [ 3 -eq "$step" ]; then
 
 	fi
 
+	TF_VAR_subscription_id="${STATE_SUBSCRIPTION}"
+	export TF_VAR_subscription_id
+
 	echo "Calling installer.sh with:          --parameterfile ${deployer_file_parametername} \
   --storageaccountname ${REMOTE_STATE_SA} --state_subscription ${STATE_SUBSCRIPTION} --type sap_deployer ${autoApproveParameter} ${ado_flag}"
 
@@ -721,7 +730,7 @@ if [ 3 -eq "$step" ]; then
 			$ado_flag \
 			--auto-approve; then
 			echo ""
-			echo -e "{bold_red}Migrating the Deployer state failed${reset_formatting}"
+			echo -e "${bold_red}Migrating the Deployer state failed${reset_formatting}"
 			step=3
 			save_config_var "step" "${deployer_config_information}"
 			exit 30
@@ -734,7 +743,7 @@ if [ 3 -eq "$step" ]; then
 			--type sap_deployer \
 			--parameterfile ${deployer_file_parametername} \
 			--storageaccountname "${REMOTE_STATE_SA}"; then
-			echo -e "{bold_red}Migrating the Deployer state failed${reset_formatting}"
+			echo -e "${bold_red}Migrating the Deployer state failed${reset_formatting}"
 			step=3
 			save_config_var "step" "${deployer_config_information}"
 			exit 30
@@ -744,7 +753,6 @@ if [ 3 -eq "$step" ]; then
 			return_code=0
 		fi
 	fi
-
 
 	cd "${current_directory}" || exit
 	export step=4
@@ -778,7 +786,11 @@ if [ 4 -eq $step ]; then
 
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
 	cd "${library_dirname}" || exit
-
+	if [ -f .terraform/terraform.tfstate ]; then
+		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+	fi
 	echo "Calling installer.sh with:          \
         --type sap_library \
       --parameterfile ${library_file_parametername} \
@@ -815,7 +827,6 @@ if [ 4 -eq $step ]; then
 			return_code=$?
 		fi
 	fi
-
 
 	cd "$root_dirname" || exit
 

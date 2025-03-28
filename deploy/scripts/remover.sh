@@ -319,7 +319,7 @@ fi
 tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id} "
 
 #setting the user environment variables
-set_executing_user_environment_variables "none"
+# set_executing_user_environment_variables "none"
 
 if [ -n "${STATE_SUBSCRIPTION}" ]; then
 	az account set --sub "${STATE_SUBSCRIPTION}"
@@ -532,12 +532,24 @@ if [ "$resource_group_exist" ]; then
 			fi
 		fi
 
+		moduleID="module.sap_landscape.azurerm_key_vault_secret.cp_subscription_id"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'cp_subscription_id' removed from state"
+			fi
+		fi
+		moduleID="module.sap_landscape.data.azurerm_key_vault_secret.cp_subscription_id"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'data.cp_subscription_id' removed from state"
+			fi
+		fi
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
-				return_value=$?
+			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee destroy_output.json; then
+				return_value=${PIPESTATUS[0]}
 			else
-				return_value=$?
+				return_value=${PIPESTATUS[0]}
 			fi
 			if [ -f destroy_output.json ]; then
 				errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
@@ -574,8 +586,12 @@ if [ "$resource_group_exist" ]; then
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
-				return_value=$?
+			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee destroy_output.json; then
+				return_value=${PIPESTATUS[0]}
+			else
+				return_value=${PIPESTATUS[0]}
+			fi
+			if [ 0 == $return_value ]; then
 				echo ""
 				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
 				echo ""

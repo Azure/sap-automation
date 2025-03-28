@@ -215,7 +215,7 @@ resource "azurerm_management_lock" "keyvault" {
 }
 
 resource "azurerm_key_vault_secret" "subscription" {
-  count                                = !var.key_vault.kv_exists ? (1) : (0)
+  count                                = 1
 
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],

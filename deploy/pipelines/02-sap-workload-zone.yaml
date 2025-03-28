@@ -59,6 +59,7 @@ parameters:
       - NOEU
       - NOEA
       - NOWE
+      - NZNO
       - SANO
       - SAWE
       - SCUS

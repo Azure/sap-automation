@@ -149,6 +149,7 @@ function get_region_from_code() {
 	"NOEU") LOCATION_IN_FILENAME="northeurope" ;;
 	"NOEA") LOCATION_IN_FILENAME="norwayeast" ;;
 	"NOWE") LOCATION_IN_FILENAME="norwaywest" ;;
+	"NZNO") LOCATION_IN_FILENAME="newzealandnorth" ;;
 	"PLCE") LOCATION_IN_FILENAME="polandcentral" ;;
 	"QACE") LOCATION_IN_FILENAME="qatarcentral" ;;
 	"SANO") LOCATION_IN_FILENAME="southafricanorth" ;;
