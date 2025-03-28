@@ -440,6 +440,9 @@
 
         - name:                        "1.17 Generic Pacemaker - Ensure clone resource azure-events is configured (pcmk < 2.13)"
           ansible.builtin.shell:       crm configure clone health-azure-events-cln health-azure-events
+          register:                    crm_configure_clone_result
+          failed_when:
+                                       - "crm_configure_clone_result.stderr | lower | regex_search('error|fail')" # Check if the resource is created successfully
 
     - name:                            "1.17 Generic Pacemaker - Set the pacemaker cluster node health agent (pcmk >= 2.13)"
       when:                            is_pcmk_213_or_later | bool
@@ -452,12 +455,15 @@
                                        op monitor interval=10s
           register:                    crm_configure_result
           failed_when:
-                                       - "crm_configure_result.stderr | lower | regex_search('error|fail')" # Check if the resource is created successfully
+                                       - "crm_configure_result.stderr | lower | regex_search('error|fail')"
 
         - name:                        "1.17 Generic Pacemaker - Ensure clone resource azure-events is configured (pcmk >= 2.13)"
           ansible.builtin.shell: |
                                        crm configure clone health-azure-events-cln health-azure-events \
                                        meta allow-unhealthy-nodes=true
+          register:                    crm_configure_clone_result
+          failed_when:
+                                       - "crm_configure_clone_result.stderr | lower | regex_search('error|fail')"
 
     - name:                            "1.17 Generic Pacemaker - Remove false positives"
       ansible.builtin.shell:           crm_resource -C
