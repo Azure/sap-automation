@@ -86,6 +86,8 @@ resource "azurerm_linux_virtual_machine" "observer" {
 
   encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
+
   dynamic "admin_ssh_key" {
                             for_each = range(var.deployment == "new" ? 1 : (local.enable_auth_password ? 0 : 1))
                             content {
