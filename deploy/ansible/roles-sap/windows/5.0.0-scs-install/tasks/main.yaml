@@ -153,7 +153,7 @@
     - name:                            "SCS Install: Set BOM facts"
       ansible.builtin.set_fact:
         sap_inifile:                   "{{ bom_base_name }}-scs-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-        sap_inifile_template:          "{% if scs_high_availability %}{{ bom_base_name }}{{ bom_suffix }}-scs_ha-inifile-param.j2{% else %}{{ bom_base_name }}{{ bom_suffix }}-scs-inifile-param.j2{% endif %}"
+        sap_inifile_template:          "{% if scs_high_availability %}scs_ha-inifile-param.j2{% else %}scs-inifile-param.j2{% endif %}"
         dir_params:                    '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
         product_catalog:               '{{ download_directory_windows }}\SWPM\product.catalog'
         product_id:                    "{% if scs_high_availability %}{{ bom.product_ids.scs_ha }}{% else %}{{ bom.product_ids.scs }}{% endif %}"
@@ -162,20 +162,18 @@
     - name:                            "SCS Install: Set BOM facts"
       ansible.builtin.set_fact:
         sap_inifile:                   "{{ bom_base_name }}-ers-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-        sap_inifile_template:          "{{ bom_base_name }}{{ bom_suffix }}-ers-inifile-param.j2"
+        sap_inifile_template:          "ers-inifile-param.j2"
         dir_params:                    '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
         product_catalog:               '{{ download_directory_windows }}\SWPM\product.catalog'
         product_id:                    '{{ bom.product_ids.ers }}'
       when: ansible_hostname == secondary_node
 
-    - name:                            "SCS Install: Include roles-sap/windows/3.3.1-bom-utility role"
-      ansible.builtin.include_role:
-        name:                          roles-sap/windows/3.3.1-bom-utility
-        tasks_from:                    bom-template
+    - name:                                "PAS Install: Create ini file {{ sap_inifile }}"
+      ansible.windows.win_template:
+        src:                               "{{ sap_inifile_template }}"
+        dest:                              '{{ dir_params }}\{{ sap_inifile }}'
+        force:                             true
       vars:
-        task_prefix:                   "SCS Install: "
-        always_upload_jinja_templates: false
-        bom_name:                      "{{ bom_base_name }}"
         sap_cd_package_cd1:
         sap_cd_package_cd2:
         sap_cd_package_cd3:
@@ -453,7 +451,7 @@
         path:                          '{{ log_dir_windows }}\sapinst_logs'
         state:                         directory
 
-    - name:                            "ERS Install: Include 3.3.1-bom-utility role"
+    - name:                            "SCS Install: Include 3.3.1-bom-utility role"
       ansible.builtin.include_role:
         name:                          roles-sap/windows/3.3.1-bom-utility
         tasks_from:                    bom-register
@@ -461,7 +459,6 @@
         bom_name:                      "{{ bom_base_name }}"
         tier:                          "ers"
         task_prefix:                   "ERS Install: "
-        always_upload_jinja_templates: false
         sa_enabled:                    true
 
     - name:                            "ERS Install: BOM Product Ids"
@@ -472,7 +469,7 @@
     - name:                            "ERS Install: Set BOM facts"
       ansible.builtin.set_fact:
         sap_inifile:                   "{{ bom_base_name }}-ers-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
-        sap_inifile_template:          "{{ bom_base_name }}{{ bom_suffix }}-ers-inifile-param.j2"
+        sap_inifile_template:          "ers-inifile-param.j2"
         dir_params:                    '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | lower }}-params'
         product_catalog:               '{{ download_directory_windows }}\SWPM\product.catalog'
         product_id:                    '{{ bom.product_ids.ers }}'
@@ -481,14 +478,13 @@
     # Notes: We currently support only ENSA1 with standalone enqueue replication servers
     #        When we support ENSA2 we need to change the ers_virtual_hostname to reflect
     #        the VCO that would be used to run ERS.
-    - name:                            "ERS Install: Include roles-sap/windows/3.3.1-bom-utility role"
-      ansible.builtin.include_role:
-        name:                          roles-sap/windows/3.3.1-bom-utility
-        tasks_from:                    bom-template
+    - name:                            "ERS Install: Create ini file {{ sap_inifile }}"
+      ansible.windows.win_template:
+        src:                           "{{ sap_inifile_template }}"
+        dest:                          '{{ dir_params }}\{{ sap_inifile }}'
+        force:                         true
       vars:
-        task_prefix:                   "ERS Install: "
-        always_upload_jinja_templates: false
-        bom_name:                      "{{ bom_base_name }}"
+        tier:                          "ers"
         sap_cd_package_cd1:
         sap_cd_package_cd2:
         sap_cd_package_cd3:

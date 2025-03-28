@@ -457,6 +457,11 @@ variable "additional_network_id"                     {
                                                        default     = ""
                                                      }
 
+variable "encryption_at_host_enabled"                {
+                                                       description = "Enable or disable host encryption for the deployer"
+                                                       default     = false
+                                                       type        = bool
+                                                     }
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #
@@ -636,7 +641,6 @@ variable "use_spn"                                   {
                                                        description = "Log in using a service principal when performing the deployment"
                                                        default     = false
                                                      }
-
 
 #########################################################################################
 #                                                                                       #

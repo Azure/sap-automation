@@ -21,12 +21,24 @@
                                        - "saphanaSR_version:                  {{ saphanaSR_version }}"
                                        - "saphanaSR_angi_version:             {{ saphanaSR_angi_version }}"
 
+# - name:                                "5.5 HANA Pacemaker - Can the SLES distribution be used with SAPHanaSR-angi"
+#   when:
+#                                        - ansible_os_family | upper == "SUSE"
+#                                        - use_hanasr_angi | default(false)
+#   ansible.builtin.set_fact:
+#     is_certified_for_hanasr_angi:      "{{ distribution_full_id in ['sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6'] | default(false) }}"
+
 - name:                                "5.5 HANA Pacemaker - Can the SLES distribution be used with SAPHanaSR-angi"
   when:
                                        - ansible_os_family | upper == "SUSE"
                                        - use_hanasr_angi | default(false)
   ansible.builtin.set_fact:
-    is_certified_for_hanasr_angi:      "{{ distribution_full_id in ['sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6'] | default(false) }}"
+    is_certified_for_hanasr_angi: >-
+                                       {{ (ansible_distribution == 'SLES_SAP' and
+                                           ((ansible_distribution_major_version | int > 15) or
+                                             (ansible_distribution_major_version | int == 15 and
+                                             ansible_distribution_minor_version | int >= 4))) | default(false)
+                                       }}
 
 - name:                                "5.5 HANA Pacemaker - Check SAP HANA version requirements"
   ansible.builtin.assert:
@@ -417,7 +429,7 @@
 
                                        [trace]
                                        ha_dr_sushanasr = info
-                                       ha_dr_saphanasr = info
+                                       ha_dr_suschksrv = info
 
     - name:                            "5.5 HANA Pacemaker - Create sudoers file for SLES"
       ansible.builtin.template:

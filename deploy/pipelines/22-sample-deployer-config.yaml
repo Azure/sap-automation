@@ -45,6 +45,7 @@ parameters:
       - NOEU
       - NOEA
       - NOWE
+      - NZNO
       - SANO
       - SAWE
       - SCUS
@@ -140,6 +141,7 @@ stages:
                         "NOEU" { "northeurope" }
                         "NOEA" { "norwayeast" }
                         "NOWE" { "norwaywest" }
+                        "NZNO" { "newzealandnorth" }
                         "PLCE" { "polandcentral" }
                         "QACE" { "qatarcentral" }
                         "SANO" { "southafricanorth" }

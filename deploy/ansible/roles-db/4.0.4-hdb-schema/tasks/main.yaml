@@ -8,32 +8,32 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name: "HDB Schema: Get DEFAULT.PFL"
+- name:                                "HDB Schema: Get DEFAULT.PFL"
   ansible.builtin.slurp:
-    src: "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
-  register: profilefile
+    src:                               "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
+  register:                            profilefile
 
-- name: "HDB Schema: Get schema property"
+- name:                                "HDB Schema: Get schema property"
   ansible.builtin.set_fact:
-    schema_property: "{{ profilefile['content'] | b64decode | split('\n') | select('search', property_name ) }}"
-  loop: "{{ hdb_schema_property_names }}"
+    schema_property:                  "{{ profilefile['content'] | b64decode | split('\n') | select('search', property_name ) }}"
+  loop:                               "{{ hdb_schema_property_names }}"
   loop_control:
-    loop_var: property_name
+    loop_var:                         property_name
   when:
     - (schema_property | default([])) | length <= 0
 
-- name: "HDB Schema: Parse schema name"
+- name:                                "HDB Schema: Parse schema name"
   ansible.builtin.set_fact:
-    schema_name: "{{ schema_property | first | split('=') | last | trim }}"
+    schema_name:                       "{{ schema_property | first | split('=') | last | trim }}"
   when:
     - (schema_property | default([])) | length > 0
 
-- name: "HDB Schema: Set default schema"
+- name:                                "HDB Schema: Set default schema"
   ansible.builtin.set_fact:
-    schema_name: "{{ hana_schema }}"
+    schema_name:                       "{{ hana_schema }}"
   when:
     - schema_name is not defined
 
-- name: "HDB Schema: Show schema name"
+- name:                                "HDB Schema: Show schema name"
   ansible.builtin.debug:
-    msg: "Schema name: {{ schema_name }}"
+    msg:                               "Schema name: {{ schema_name }}"

@@ -28,11 +28,11 @@ set -eu
 
 tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
-echo -e "$green--- Checkout $BRANCH ---$reset"
+echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
 
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
-git checkout -q "$BRANCH"
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
   echo -e "$bold_red--- $WORKLOAD_ZONE_TFVARS_FILENAME was not found ---$reset"
@@ -237,7 +237,7 @@ ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh \
 
 return_code=$?
 echo -e "$green--- Pull latest from DevOps Repository ---$reset"
-git checkout -q "$BRANCH"
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
 git pull
 
 #stop the pipeline after you have reset the whitelisting on your resources
@@ -253,8 +253,8 @@ cd "$CONFIG_REPO_PATH" || exit
 
 changed=0
 # Pull changes
-git checkout -q "$BRANCH"
-git pull origin "$BRANCH"
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
+git pull origin "$BUILD_SOURCEBRANCHNAME"
 
 cd "${CONFIG_REPO_PATH}" || exit
 
@@ -293,10 +293,10 @@ if [ 0 == $return_code ]; then
     git config --global user.name "$BUILD_REQUESTEDFOR"
 
     if git commit -m "Infrastructure for $WORKLOAD_ZONE_TFVARS_FILENAME removed. [skip ci]"; then
-      if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-        echo "##vso[task.logissue type=warning]Removal of $WORKLOAD_ZONE_TFVARS_FILENAME updated in $BRANCH"
+      if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+        echo "##vso[task.logissue type=warning]Removal of $WORKLOAD_ZONE_TFVARS_FILENAME updated in $BUILD_SOURCEBRANCHNAME"
       else
-        echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+        echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
       fi
     fi
   fi

@@ -1,7 +1,8 @@
+#!/bin/bash
+
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#!/bin/bash
 #colors for terminal
 bold_red_underscore="\e[1;4;31m"
 bold_red="\e[1;31m"
@@ -546,12 +547,11 @@ function ImportAndReRunApply {
 						echo "Terraform import:                      succeeded"
 					fi
 				done
-
-        # shellcheck disable=SC2086
-				if ! terraform -chdir="${terraform_module_directory}" plan -input=false $allImportParameters ; then
-						echo ""
-						echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
-						echo ""
+				# shellcheck disable=SC2086
+				if ! terraform -chdir="${terraform_module_directory}" plan -input=false $allImportParameters; then
+					echo ""
+					echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
+					echo ""
 				fi
 
 				echo "#########################################################################################"
@@ -564,40 +564,41 @@ function ImportAndReRunApply {
 
 				echo terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters
 				# shellcheck disable=SC2086
-				if ! terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee -a "$fileName"; then
-					return_value=$?
-					if [ $return_value -eq 1 ]; then
-						echo ""
-						echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-						echo ""
-					else
-						# return code 2 is ok
-						echo ""
-						echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
-						echo ""
-						return_value=0
-					fi
+				if ! terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
+					return_value=${PIPESTATUS[0]}
 				else
+					return_value=${PIPESTATUS[0]}
+				fi
+				if [ $return_value -eq 1 ]; then
+					echo ""
+					echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+					echo ""
+				else
+					# return code 2 is ok
 					echo ""
 					echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
 					echo ""
+					return_value=0
 				fi
-				errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
-				if [[ -n $errors_occurred ]]; then
-					existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
-					if [[ -n ${existing} ]]; then
-						return_value=0
-					else
-						rm "$fileName"
-					fi
-				fi
-			else
 				echo ""
-				echo -e "${cyan}No resources to import$reset_formatting"
+				echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
 				echo ""
-				rm "$fileName"
-				return_value=1
 			fi
+			errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
+			if [[ -n $errors_occurred ]]; then
+				existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
+				if [[ -n ${existing} ]]; then
+					return_value=0
+				else
+					rm "$fileName"
+				fi
+			fi
+		else
+			echo ""
+			echo -e "${cyan}No resources to import$reset_formatting"
+			echo ""
+			rm "$fileName"
+			return_value=1
 		fi
 	fi
 

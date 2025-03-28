@@ -357,8 +357,8 @@ logical_volumes:
 
   - tier:       'sapos'
     node_tier:  'sybase'
-    vg:         'vg_sybase_backup'
-    lv:         'lv_sybase_backup'
+    vg:         'vg_sybase_sybbackup'
+    lv:         'lv_sybase_sybbackup'
     size:       '100%FREE'
     fstype:     'xfs'
   # ----------------------- End - disks required for ASE ----------------------8

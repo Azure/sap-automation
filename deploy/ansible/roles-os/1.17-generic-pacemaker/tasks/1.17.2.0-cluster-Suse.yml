@@ -85,13 +85,14 @@
                                        - database_cluster_type == "AFA"
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (hdb_{{ db_sid | upper }}) is configured - SBD"
-      ansible.builtin.shell:           "crm cluster init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device={{ sbd_device }}"
+      ansible.builtin.shell: |
+                                       crm cluster init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device="{{ sbd_device }}"
+
       register:                        crm_init_result
       failed_when:                     crm_init_result.rc > 1
       when:
                                        - node_tier == 'hana'
                                        - not database_cluster_type == "AFA"
-
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (scs_{{ sap_sid | upper }}) is configured"
       ansible.builtin.shell:           "crm cluster init -y --name 'scs_{{ sap_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
@@ -102,7 +103,8 @@
                                        - scs_cluster_type == "AFA"
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (scs_{{ sap_sid | upper }}) is configured - SBD"
-      ansible.builtin.shell:           "crm cluster init -y --name 'scs_{{ sap_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device={{ sbd_device }}"
+      ansible.builtin.shell: |
+                                       crm cluster init -y --name 'scs_{{ sap_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device="{{ sbd_device }}"
       register:                        crm_init_result
       failed_when:                     crm_init_result.rc > 1
       when:
@@ -118,13 +120,13 @@
                                        - database_cluster_type == "AFA"
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (db2_{{ db_sid | upper }}) is configured - SBD"
-      ansible.builtin.shell:           "crm cluster init -y --name 'db2_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device={{ sbd_device }}"
+      ansible.builtin.shell: |
+                                       crm cluster init -y --name 'db2_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device="{{ sbd_device }}"
       register:                        crm_init_result
       failed_when:                     crm_init_result.rc > 1
       when:
                                        - node_tier == 'db2'
                                        - not database_cluster_type == "AFA"
-
 
 - name:                                "1.17 Generic Pacemaker - Ensure Secondary node joins the Cluster"
   when:

@@ -51,6 +51,34 @@
     msg:                               "INSTALL:0001:Unable to find hdblcm, please check that the installation media is mounted"
   when: not hdblcm_found.stat.exists
 
+- name:                                "SAP HANA: check sp version from manifest"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       grep sp-number manifest | cut -d ":" -f 2 | tr -d [:space:]
+  args:
+    chdir:                             "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE/server"
+  register:                            manifest_hana_sp
+
+- name:                                "SAP HANA: Show sps leve"
+  ansible.builtin.debug:
+    msg:                               "HANA SP Level: {{ manifest_hana_sp.stdout }}"
+
+- name:                                "SAP HANA: Set fact when sps is 08 or higher"
+  ansible.builtin.set_fact:
+    hana_sp08_or_higher:               "{{ manifest_hana_sp.stdout is version('080', '>=') }}"
+
+# all | client | es | ets | lcapps | server | smartda | streaming | rdsync | xs | studio | afl | sca | sop | eml | rme | rtl | trp
+- name:                                "SAP HANA: Set HANA components"
+  ansible.builtin.set_fact:
+    hana_components:                   "server, lcapps, afl, vch2021"
+  when:
+    - hana_sp08_or_higher
+    - hana_components == 'all'
+
+- name:                                "SAP HANA: Show HANA components"
+  ansible.builtin.debug:
+    msg:                               "HANA Components: {{ hana_components }}"
+
 - name:                                "HANA Install"
   block:
 

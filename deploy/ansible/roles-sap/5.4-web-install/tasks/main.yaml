@@ -18,7 +18,7 @@
 - name:                                "SAP Web Dispatcher Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-web-{{ sid_to_be_deployed.web_sid | lower }}-{{ ansible_hostname }}.params"
-    sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-web-inifile-param.j2"
+    sap_inifile_template:              "web-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.web_sid | lower }}-params"
 
 - name:                                "SAP Web Dispatcher Install: Create directories"
@@ -81,34 +81,24 @@
         msg:                           "INSTALL:0008:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
-    - name:                            "SAP Web Dispatcher Install: Include roles-sap/3.3.1-bom-utility role"
-      ansible.builtin.include_role:
-        name:                          roles-sap/3.3.1-bom-utility
-        tasks_from:                    bom-template
+    - name:                            "APP Install: Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
+      ansible.builtin.template:
+        src:                           "{{ sap_inifile_template }}"
+        dest:                          "{{ dir_params }}/{{ sap_inifile }}"
+        mode:                          0644
+        force:                         true
       vars:
         task_prefix:                   "SAP Web Dispatcher Install: "
-        always_upload_jinja_templates: false
-        param_directory:               "{{ dir_params }}"
-        bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
         sap_cd_package_hdbclient:      "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
         sap_cd_package_cd1:            "{{ target_media_location }}/CD_EXPORT"
-        sap_cd_package_cd2:
-        sap_cd_package_cd3:
-        sap_cd_package_cd4:
-        sap_cd_package_cd5:
         web_instance_number:           "{{ wd_instance_number }}"
         sap_ciInstanceNumber:          "{{ scs_instance_number }}"
         sap_profile_dir:               /sapmnt/{{ sap_sid | upper }}/profile
         sap_scs_hostname:              "{{ custom_scs_virtual_hostname | default(scs_server, true) }}"
         sap_webVirtualHostname:        "{{ virtual_host }}"
         sap_installSAPHostAgent:       "false"
-        hdb_instance_number:           "{{ db_instance_number }}"
         web_sid:                       "{{ sid_to_be_deployed.web_sid | upper }}"
         sap_sid:                       "{{ sid_to_be_deployed.sid | upper }}"
-
-    - name:                            "Web install: Who am I"
-      ansible.builtin.command:         "whoami"
-      register:                        whoami
 
     - name:                            "SAP Web Dispatcher Install: install variables"
       ansible.builtin.debug:
@@ -120,7 +110,6 @@
           - "PRODUCT ID: {{ web_bom_id }}"
           - "INSTANCE:   {{ web_instance_number }}"
           - "SCSHOST:    {{ custom_scs_virtual_hostname | default(scs_server, true) }}"
-          - "WHOAMI :    {{ whoami.stdout }}"
           - "LOCATION:   {{ target_media_location }}/SWPM"
           - "TMPDIR:     {{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}"
 # *====================================4=======================================8

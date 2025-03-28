@@ -1,0 +1,200 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+#
+#   2482103 - Installation with SWPM in unattended mode using parameter input file fails
+#   2393060 - SAPinst Framework 749 Central Note
+#   2506859 - SAP system Installation on Oracle database with SWPM in unattended mode
+
+
+###############################################################################################################################################################################
+#                                                                                                                                                                             #
+# Installation service 'SAP NetWeaver 7.5 > SAP ASE > Installation > Application Server ABAP > Distributed System > Database Instance', product id 'NW_ABAP_DB:NW750.SYB.ABAP' #
+#                                                                                                                                                                             #
+###############################################################################################################################################################################
+
+SAPINST.CD.PACKAGE.CLIENT                                               = {{ db_media_path }}//SYBASE_LINUX_X86_64
+SAPINST.CD.PACKAGE.LOAD                                                 = {{ target_media_location }}/CD_EXPORT
+archives.downloadBasket                                                 = {{ kernel_media_folder }}
+NW_Unpack.sapExeDbSar                                                   = {{ sap_exe_full_path }}
+NW_Unpack.sapExeSar                                                     = {{ sap_exe_full_path }}
+
+NW_readProfileDir.profilesAvailable                                     = false
+nwUsers.sapadmUID                                                       = {{ sapadm_uid }}
+nwUsers.sapsysGID                                                       = {{ sapsys_gid }}
+nwUsers.sidAdmUID                                                       = {{ asesidadm_uid }}
+nwUsers.syb.sybsidId                                                    = {{ asesapsid_uid }}
+
+NW_Delete_Sapinst_Users.removeUsers                                     = true
+NW_GetMasterPassword.masterPwd                                          = {{ main_password }}
+NW_GetSidNoProfiles.sid                                                 = {{ sap_sid | upper }}
+NW_getFQDN.FQDN                                                         = {{ sap_fqdn }}
+hostAgent.sapAdmPassword                                                = {{ main_password }}
+nwUsers.sidadmPassword                                                  = {{ main_password }}
+nwUsers.syb.sybsidPassword                                              = {{ main_password }}
+NW_readProfileDir.profileDir                                            = {{ sap_profile_dir }}
+
+
+# SAP code page. Value for Unicode is: '4103' on little endian (intel), '4102' on big endian. Value for Non-Unicode is: '1100' or country specific.
+NW_ABAP_Import_Dialog.dbCodepage                                        = 4103
+
+# Number of parallel Migration Monitor jobs
+NW_ABAP_Import_Dialog.migmonJobNum                                      = 16
+
+# Additional 'R3load' arguments for the LOAD phase
+NW_ABAP_Import_Dialog.migmonLoadArgs                                    = -c 100000 -loadprocedure fast
+
+# Number of parallel jobs for update statistics
+NW_SYB_DBPostload.numberParallelStatisticJobs                           = 10
+
+# The database host
+NW_getDBInfoGeneric.dbhost                                              = {{ sap_db_hostname }}
+# The database ID (DBSID)
+NW_getDBInfoGeneric.dbsid                                               = {{ db_sid | upper }}
+# SAP INTERNAL USE ONLY
+NW_System.installSAPHostAgent = false
+
+# ABAP message server port for connecting to the message server, leave empty for default
+NW_checkMsgServer.abapMSPort                                            = 3600
+
+# The load type chosen by the user. Valid values are: 'SAP', 'STD', 'OBR', 'HCP', 'FLASHCOPY', 'MDA', 'HBR', 'SBR'
+NW_getLoadType.loadType                                                 = SAP
+
+# ABAP system is Unicode (true|false), only needed if it cannot be determined from the system.
+NW_getUnicode.isUnicode                                                 = true
+
+# Provide  'profile' directory of SAP Netweaver-based system.
+NW_readProfileDir.profileDir                                            = /sapmnt/{{ sap_sid | upper }}/profile
+
+# Sort order configuration of the database server
+SYB.NW_DB.aseSortOrder                                                  = binaryalt
+
+# Only if you use the 'autoextend' feature: Increment size for the SAP database default segment in GB
+SYB.NW_DB.autoExpandSAPGrowDefault                                      = 10
+
+# Only if you use the 'autoextend' feature: Increment size for the SAP database log segment in GB
+SYB.NW_DB.autoExpandSAPGrowLog                                          = 5
+
+# Only if you use the 'autoextend' feature: Free space threshold size for the SAP database default segment in GB
+SYB.NW_DB.autoExpandSAPThresholdDefault                                 = 10
+
+# Only if you use the 'autoextend' feature: Free space threshold size for the SAP database log segment in GB
+SYB.NW_DB.autoExpandSAPThresholdLog                                     = 5
+
+# Only if you use the 'autoextend' feature: Increment size for the saptools database default segment in GB
+SYB.NW_DB.autoExpandSaptoolsGrowDefault                                 = 2
+
+# Only if you use the 'autoextend' feature: Increment size for the saptools database log segment in GB
+SYB.NW_DB.autoExpandSaptoolsGrowLog                                     = 2
+
+# Only if you use the 'autoextend' feature: Free space threshold size for the saptools database default segment in GB
+SYB.NW_DB.autoExpandSaptoolsThresholdDefault                            = 2
+
+# Only if you use the 'autoextend' feature: Free space threshold size for the saptools database log segment in GB
+SYB.NW_DB.autoExpandSaptoolsThresholdLog                                = 2
+
+
+# Database device information like 'type','folder','size','maxsize','growsize','name'
+SYB.NW_DB.databaseDevices = data device for SAP,/sybase/{{ db_sid | upper }}/sapdata_1,64,,10,{{ db_sid | upper }}_data_001,log device for SAP,/sybase/{{ db_sid | upper }}/saplog_1,32,,5,{{ db_sid | upper }}_log_001,data device for saptools,/sybase/{{ db_sid | upper }}/sapdiag,14,,2,saptools_data_001,log device for saptools,/sybase/{{ db_sid | upper }}/sapdiag,8,,2,saptools_log_001,data device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,8,,,sybsecurity_data_001,data device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,8,,,sybsecurity_data_002,log device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,4,,,sybsecurity_log_001,temp device for SAP,/sybase/{{ db_sid | upper }}/saptemp,8,,,saptempdb_data_001,
+
+
+# Type of SAP ASE
+SYB.NW_DB.databaseType                                                  = ase
+
+# Enable database 'autoextend' feature
+SYB.NW_DB.enableDataDeviceAutoExpansion                                 = true
+
+
+# Setup granular permissions for administrative tasks
+SYB.NW_DB.enableGranularPermissions                                     = true
+
+
+# Enable strong cipher suites for SSL encrypted data transfer
+SYB.NW_DB.enableStrongCipherSuitesForSSL                                = false
+
+# Path to ASE database software
+SYB.NW_DB.folderDatabaseSoftware                                        = /sybase/{{ db_sid | upper }}
+
+# Path to diagnostic database devices
+SYB.NW_DB.folderDiagDevice                                              = /sybase/{{ db_sid | upper }}/sapdiag
+
+# Path to SAP tempdb device
+SYB.NW_DB.folderSAPTempdbDevice                                         = /sybase/{{ db_sid | upper }}/saptemp
+
+# Path to sybsecurity device
+SYB.NW_DB.folderSecurityDevices                                         = /sybase/{{ db_sid | upper }}/sybsecurity
+
+# Path to data server 'system' devices
+SYB.NW_DB.folderSystemDevices                                           = /sybase/{{ db_sid | upper }}/sybsystem
+
+# Path to data server 'temp' device
+SYB.NW_DB.folderTempdbDevice                                            = /sybase/{{ db_sid | upper }}/sybtemp
+
+# Number of consumers used by the 'create index with consumers' command
+SYB.NW_DB.indexConsumers                                                = 3
+
+# Initialize the default system encryption password with the database encryption master password
+SYB.NW_DB.initializeDefaultSystemEncryptionPassword                     = false
+
+# Database server-wide maximum number of worker processes allowed per query used by the 'create index with consumers' and 'update stats with consumers' commands
+SYB.NW_DB.maxIndexParallelDegree                                        = 10
+
+# Database server-wide maximum number of worker processes allowed per query
+SYB.NW_DB.maxQueryParallelDegree                                        = 10
+
+# Maximum number of worker processes that can be used at any one time for all simultaneously running parallel queries
+SYB.NW_DB.numberWorkerProcesses                                         = 50
+
+# Port number of the backup server
+SYB.NW_DB.portBackupServer                                              = 4902
+
+# Port number of the database server
+SYB.NW_DB.portDatabaseServer                                            = 4901
+
+# Port number of the job scheduler
+SYB.NW_DB.portJobScheduler                                              = 4903
+
+# Port number of the xp server
+SYB.NW_DB.portXPServer                                                  = 4904
+
+# Password of database user for administration
+SYB.NW_DB.sa_pass                                                       = {{ main_password }}
+
+# Password of the database user 'sapsa'
+SYB.NW_DB.sapsa_pass                                                    = {{ main_password }}
+
+# Password of the technical database user for the ABAP application server
+SYB.NW_DB.sapsr3_pass                                                   = {{ main_password }}
+
+# Password of the technical database user for the Java application server
+SYB.NW_DB.sapsr3db_pass                                                 = {{ main_password }}
+
+# Password of the database user 'sapsso'
+SYB.NW_DB.sapsso_pass                                                   = {{ main_password }}
+
+# Number of database connections
+SYB.NW_DB.sqlServerConnections                                          = 200
+
+# Number of CPU cores for the database server
+SYB.NW_DB.sqlServerCores                                                = {{ core_count }}
+
+# Host name of the database server
+SYB.NW_DB.sqlServerHostname                                             = {{ sap_db_hostname }}
+
+# Physical memory (in GB) for the database server
+SYB.NW_DB.sqlServerMemory                                               = {{ sybase_memory }}
+
+# Password for SSL encrypted data transfer
+SYB.NW_DB.sslPassword                                                   = {{ main_password }}
+
+# Path to folder for sybmgmtdb database data device
+SYB.NW_DB.sybmgmtdbDataDeviceFolder                                     = /sybase/{{ db_sid | upper }}/sybsystem
+
+# Path to folder for sybmgmtdb database log device
+SYB.NW_DB.sybmgmtdbLogDeviceFolder                                      = /sybase/{{ db_sid | upper }}/sybsystem
+
+# Host name in the SAP ASE user store location path
+SYB.NW_DB.userstore_hostname                                            = {{ sap_db_hostname }}
+
+# Master key password for database encryption
+SYB.NW_DB.encryptionMasterKeyPassword                                   = {{ main_password }}
+

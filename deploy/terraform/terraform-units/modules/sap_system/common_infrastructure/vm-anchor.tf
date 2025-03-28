@@ -67,6 +67,8 @@ resource "azurerm_linux_virtual_machine" "anchor" {
   # ToDo Add back later
 # patch_mode                           = var.infrastructure.patch_mode
 
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
+
   dynamic "admin_ssh_key" {
     for_each                           = range(var.deployment == "new" ? 1 : (local.enable_anchor_auth_password ? 0 : 1))
       content {
@@ -158,6 +160,8 @@ resource "azurerm_windows_virtual_machine" "anchor" {
   size                                 = try(var.infrastructure.anchor_vms.sku, "")
   admin_username                       = local.sid_auth_username
   admin_password                       = local.sid_auth_password
+
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
   os_disk {
     name                               = format("%s%s%s%s%s",

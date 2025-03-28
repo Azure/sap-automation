@@ -422,11 +422,11 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
 fi
 
 #setting the user environment variables
-if [ -n "${spn_secret}" ]; then
-	set_executing_user_environment_variables "${spn_secret}"
-else
-	set_executing_user_environment_variables "none"
-fi
+# if [ -n "${spn_secret}" ]; then
+# 	set_executing_user_environment_variables "${spn_secret}"
+# else
+# 	set_executing_user_environment_variables "none"
+# fi
 
 if [[ -z ${REMOTE_STATE_SA} ]]; then
 	load_config_vars "${workload_config_information}" "REMOTE_STATE_SA"
@@ -837,31 +837,34 @@ if [ 1 == $check_output ]; then
 			moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
 			storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw storageaccount_name)
 			storage_account_rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw storageaccount_rg_name)
-			STORAGE_ACCOUNT_ID=$(az storage account show --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
+			STORAGE_ACCOUNT_ID=$(az storage account show --subscription "${subscription}" --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
 			export STORAGE_ACCOUNT_ID
 
 			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
 			moduleID='module.sap_landscape.azurerm_storage_account.witness_storage[0]'
 			storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw witness_storage_account)
-			STORAGE_ACCOUNT_ID=$(az storage account show --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
+			STORAGE_ACCOUNT_ID=$(az storage account show --subscription "${subscription}" --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
 			export STORAGE_ACCOUNT_ID
 			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
-			unset STORAGE_ACCOUNT_ID
-
-			moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
-			azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 providers/Microsoft.Storage/storageAccounts | xargs | cut -d "=" -f2 | xargs)
-
-			resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
-			resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
-			resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
-			az resource lock create --lock-type CanNotDelete -n "SAP Installation Media account delete lock" --subscription "${subscription}" \
-				--resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}"
-
-			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
 			moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'
+			STORAGE_ACCOUNT_ID=$(terraform -chdir="${terraform_module_directory}" output -raw transport_storage_account_id | xargs | cut -d "=" -f2 | xargs)
+			export STORAGE_ACCOUNT_ID
 			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
+
+			moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
+			storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -raw install_path | xargs | cut -d "/" -f2 | xargs)
+			STORAGE_ACCOUNT_ID=$(az storage account show --subscription "${subscription}" --name "${storage_account_name}" --query "id" --output tsv)
+			export STORAGE_ACCOUNT_ID
+
+			resourceGroupName=$(az resource show --subscription "${subscription}" --ids "${STORAGE_ACCOUNT_ID}" --query "resourceGroup" --output tsv)
+			resourceType=$(az resource show --subscription "${subscription}" --ids "${STORAGE_ACCOUNT_ID}" --query "type" --output tsv)
+			az resource lock create --lock-type CanNotDelete -n "SAP Installation Media account delete lock" --subscription "${subscription}" \
+				--resource-group "${resourceGroupName}" --resource "${storage_account_name}" --resource-type "${resourceType}"
+
+			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
+			unset STORAGE_ACCOUNT_ID
 
 			moduleID='module.sap_landscape.azurerm_storage_share.transport[0]'
 			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
@@ -887,23 +890,25 @@ echo ""
 allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
 # shellcheck disable=SC2086
-if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee -a plan_output.log; then
-	return_value=$?
-	if [ $return_value -eq 1 ]; then
-		echo ""
-		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		if [ -f plan_output.log ]; then
-			rm plan_output.log
-		fi
-		exit $return_value
+if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee plan_output.log; then
+	return_value=${PIPESTATUS[0]}
+else
+	return_value=${PIPESTATUS[0]}
+fi
+if [ $return_value -eq 1 ]; then
+	echo ""
+	echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+	if [ -f plan_output.log ]; then
+		rm plan_output.log
 	fi
+	exit $return_value
 else
 	return_value=$?
 	echo ""
@@ -1016,21 +1021,19 @@ if [ 1 == $apply_needed ]; then
 
 	if [ -n "${approve}" ]; then
 		# Using if so that no zero return codes don't fail -o errexit
-		if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParameters -input=false | tee -a apply_output.json; then
-			return_value=$?
-			if [ $return_value -eq 1 ]; then
-				echo ""
-				echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-				echo ""
-				exit $return_value
-			else
-				# return code 2 is ok
-				echo ""
-				echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-				echo ""
-				return_value=0
-			fi
+		if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParameters -input=false | tee apply_output.json; then
+			return_value=${PIPESTATUS[0]}
 		else
+			return_value=${PIPESTATUS[0]}
+		fi
+		echo    "Return value:                        $return_value"
+		if [ $return_value -eq 1 ]; then
+			echo ""
+			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+			echo ""
+			exit $return_value
+		else
+			# return code 2 is ok
 			echo ""
 			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 			echo ""
@@ -1038,28 +1041,19 @@ if [ 1 == $apply_needed ]; then
 		fi
 	else
 		# Using if so that no zero return codes don't fail -o errexit
-		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters -input=false; then
-			return_value=$?
-		else
-			return_value=0
-		fi
+		terraform -chdir="${terraform_module_directory}" apply -detailed-exitcode -parallelism="${parallelism}" $allParameters
+		return_value=$?
 
-		if [ $return_value -eq 1 ]; then
+		echo    "Return value:                        $return_value"
+		if [ $return_value -ne 1 ]; then
+			echo ""
+			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
+			echo ""
+		else
 			echo ""
 			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
 			echo ""
 			exit $return_value
-		elif [ $return_value -eq 2 ]; then
-			# return code 2 is ok
-			echo ""
-			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-			echo ""
-			return_value=0
-		else
-			echo ""
-			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-			echo ""
-			return_value=0
 		fi
 
 	fi

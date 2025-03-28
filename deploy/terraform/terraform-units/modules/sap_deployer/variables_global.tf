@@ -98,6 +98,8 @@ variable "deployer_vm_count"           {
                                        }
 variable "arm_client_id"               { description = "ARM client id" }
 
+
+
 #########################################################################################
 #                                                                                       #
 #  ADO definitioms                                                                      #

@@ -65,7 +65,7 @@ export local_user=$USER
 #
 
 if [ -z "${TF_VERSION}" ]; then
-	TF_VERSION="1.10.1"
+	TF_VERSION="1.11.3"
 fi
 
 # Fail if attempting to access and unset variable or parameter

@@ -16,78 +16,87 @@ Description:
                         ~> 0.8.4 is equivalent to >= 0.8.4, < 0.9
 */
 
-data "azurerm_client_config" "current" {
-                                         provider                   = azurerm.deployer
-                                       }
-
-provider "azurerm"                     {
-                                         features {
-                                                  }
-
-                                         use_msi                    = var.use_spn ? false : true
-                                         storage_use_azuread        = !var.shared_access_key_enabled
-
-                                       }
 
 provider "azurerm"                     {
                                          features {
                                                     resource_group {
                                                                      prevent_deletion_if_contains_resources = var.prevent_deletion_if_contains_resources
                                                                    }
+
+                                                    storage        {
+                                                                        data_plane_available = var.data_plane_available
+                                                                   }
+                                                  }
+
+                                         storage_use_azuread        = true
+                                         use_msi                    = true
+                                         subscription_id            = var.subscription_id
+
+                                       }
+
+provider "azurerm"                     {
+                                         features {
+                                                    resource_group {
+                                                                     prevent_deletion_if_contains_resources = true
+                                                                   }
                                                     storage        {
                                                                         data_plane_available = var.data_plane_available
                                                                    }
 
                                                   }
-                                         subscription_id            = local.spn.subscription_id
-                                         client_id                  = local.use_spn ? local.spn.client_id : null
-                                         client_secret              = local.use_spn ? local.spn.client_secret : null
-                                         tenant_id                  = local.use_spn ? local.spn.tenant_id : null
-                                         partner_id                 = "140c3bc9-c937-4139-874f-88288bab08bb"
-                                         storage_use_azuread        = !var.shared_access_key_enabled
-                                         use_msi                    = var.use_spn ? false : true
 
-                                         alias = "main"
+                                         subscription_id            = var.subscription_id
+                                         client_id                  = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value: null
+                                         client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.client_secret[0].value: null
+                                         tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value: null
+
+                                         alias                      = "main"
+
+                                         storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
                                        }
+
 
 provider "azurerm"                     {
                                          features {
                                                   }
                                          alias                      = "deployer"
-                                         storage_use_azuread        = !var.shared_access_key_enabled
-                                         use_msi                    = true
-                                         subscription_id            = local.saplib_subscription_id
-                                       }
 
-provider "azurerm"                     {
-                                         features {
-                                                  }
-                                         alias                      = "dnsmanagement"
-                                         subscription_id            = try(coalesce(var.management_dns_subscription_id, local.spn.subscription_id), null)
-                                         client_id                  = local.use_spn ? local.spn.client_id : null
-                                         client_secret              = local.use_spn ? local.spn.client_secret : null
-                                         tenant_id                  = local.use_spn ? local.spn.tenant_id : null
-                                         storage_use_azuread        = !var.shared_access_key_enabled
-                                         use_msi                    = var.use_spn ? false : true
+                                         storage_use_azuread        = true
+                                         use_msi                    = true
+                                         subscription_id            = var.subscription_id
+                                         tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value: null
                                        }
 
 provider "azurerm"                     {
                                          features {}
-                                         subscription_id            = try(coalesce(var.privatelink_dns_subscription_id, local.spn.subscription_id), null)
-                                         client_id                  = local.use_spn ? local.spn.client_id : null
-                                         client_secret              = local.use_spn ? local.spn.client_secret : null
-                                         tenant_id                  = local.use_spn ? local.spn.tenant_id : null
+                                         subscription_id            = var.use_spn ? coalesce(var.management_dns_subscription_id, var.subscription_id): null
+                                         alias                      = "dnsmanagement"
+                                         client_id                  = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value: null
+                                         client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.client_secret[0].value: null
+                                         tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value: null
+
+                                         storage_use_azuread        = true
+                                         use_msi                    = var.use_spn ? false : true
+
+                                       }
+
+provider "azurerm"                     {
+                                         features {}
+                                         subscription_id            = var.use_spn ? coalesce(var.privatelink_dns_subscription_id, var.subscription_id): null
+                                         client_id                  = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value: null
+                                         client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.client_secret[0].value: null
+                                         tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value: null
                                          alias                      = "privatelinkdnsmanagement"
-                                         storage_use_azuread        = !var.shared_access_key_enabled
+
+                                         storage_use_azuread        = true
                                          use_msi                    = var.use_spn ? false : true
                                        }
 
-
 provider "azuread"                     {
-                                         client_id                  = local.use_spn ? local.spn.client_id : null
-                                         client_secret              = local.use_spn ? local.spn.client_secret : null
-                                         tenant_id                  = local.spn.tenant_id
-                                         use_msi                    = var.use_spn ? false : true
+                                         client_id                  = local.spn.client_id
+                                         client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.client_secret[0].value: null
+                                         tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value: null
                                        }
 
 terraform                              {
@@ -111,7 +120,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.11.0"
+                                                                           version = "4.22.0"
                                                                          }
                                                             }
                                        }

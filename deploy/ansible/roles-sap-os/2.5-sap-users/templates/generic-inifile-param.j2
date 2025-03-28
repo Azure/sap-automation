@@ -1,0 +1,32 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+#
+#   2482103 - Installation with SWPM in unattended mode using parameter input file fails
+#   2393060 - SAPinst Framework 749 Central Note
+#   Creation of user for ERS and SCS issues during HA installation - 14-03-2022
+
+########################################################################################################################################################################################################
+#                                                                                                                                                                                                      #
+# Installation service 'Generic Options > SAP HANA Database > Preparations > Operating System Users and Groups', product id 'NW_Users_Create:GENERIC.HDB.PD'                                           #
+#                                                                                                                                                                                                      #
+########################################################################################################################################################################################################
+
+
+NW_Users_Create.dbsid                                                 = {{ sap_sid | upper }}
+
+# Specify whether you are preparing for an SAP system based on AS ABAP.
+NW_Users_Create.hasABAP                                               = true
+
+# Specify whether database users are to be installed.
+NW_Users_Create.installDBUsers                                        = false
+
+# SAP system ID
+NW_Users_Create.sid                                                   = {{ sap_sid | upper }}
+
+nwUsers.sapadmUID                                                     = {{ sapadm_uid }}
+nwUsers.sapsysGID                                                     = {{ sapsys_gid }}
+nwUsers.sidAdmUID                                                     = {{ this_sidadm_uid }}
+nwUsers.sidadmPassword                                                = {{ main_password }}
+
+# Password for the 'sapadm' user of the SAP Host Agent
+hostAgent.sapAdmPassword                                              =  {{ main_password }}

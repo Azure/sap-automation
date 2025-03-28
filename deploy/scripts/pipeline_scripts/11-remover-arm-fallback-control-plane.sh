@@ -82,7 +82,7 @@ echo "##vso[task.setprogress value=90;]Progress Indicator"
 
 if [ 0 == $return_code ]; then
   cd "$CONFIG_REPO_PATH" || exit
-  git checkout -q $BRANCH
+  git checkout -q $BUILD_SOURCEBRANCHNAME
   git pull
   changed=0
 
@@ -137,10 +137,10 @@ if [ 0 == $return_code ]; then
     git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
     git config --global user.name "$BUILD_REQUESTEDFOR"
     git commit -m "Added updates from devops deployment $BUILD_BUILDNUMBER [skip ci]"
-    if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-      echo "##vso[task.logissue type=warning]Changes pushed to $BRANCH"
+    if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+      echo "##vso[task.logissue type=warning]Changes pushed to $BUILD_SOURCEBRANCHNAME"
     else
-      echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+      echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
     fi
     echo -e "$green--- Deleting variables ---$reset"
     if [ ${#VARIABLE_GROUP_ID} != 0 ]; then
