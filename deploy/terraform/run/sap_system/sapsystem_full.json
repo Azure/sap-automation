@@ -74,7 +74,7 @@
   "key_vault": {
     "kv_user_id"                           : "",
     "kv_prvt_id"                           : "",
-    "kv_spn_id"                            : ""
+    "keyvault_id_for_deployment_credentials"                            : ""
   },
   "databases": [
     {
@@ -84,8 +84,8 @@
       "avset_arm_ids": [
         "/subscriptions/xxxx/resourceGroups/yyyy/providers/Microsoft.Compute/availabilitySets/PROTO-SID_db_avset"
       ],
-      "no_ppg"                             : false, 
-      "no_avset"                           : false, 
+      "no_ppg"                             : false,
+      "no_avset"                           : false,
       "dbnodes": [
         {
           "name"                           : "hdb1",
@@ -124,8 +124,8 @@
     "app_nic_ips"                          : [],
     "app_admin_nic_ips"                    : [],
     "app_sku"                              : "",
-    "app_no_ppg"                           : false, 
-    "app_avset"                            : false, 
+    "app_no_ppg"                           : false,
+    "app_avset"                            : false,
     "app_tags"                             : {},
     "app_zones"                            : ["1","2"],
     "app_os": {

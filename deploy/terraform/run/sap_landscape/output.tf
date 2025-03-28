@@ -103,6 +103,10 @@ output "web_nsg_id"                              {
                                                    description = "Azure resource identifier for the web subnet network security group"
                                                    value       = module.sap_landscape.web_nsg_id
                                                  }
+output "use_separate_storage_subnet"             {
+                                                   description = "Use a separate storage subnet"
+                                                   value       = var.use_separate_storage_subnet
+                                                 }
 output "storage_subnet_id"                       {
                                                    description = "Azure resource identifier for the storage subnet"
                                                    value       = length(var.storage_subnet_arm_id) > 0 ? var.storage_subnet_arm_id : module.sap_landscape.storage_subnet_id

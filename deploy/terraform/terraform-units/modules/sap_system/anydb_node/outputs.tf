@@ -93,13 +93,15 @@ output "dns_info_vms"                  {
                                                              compact(
                                                                concat(
                                                                  slice(var.naming.virtualmachine_names.ANYDB_VMNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)),
-                                                                 slice(var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
+                                                                 slice(var.naming.virtualmachine_names.ANYDB_SECONDARY_DNSNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)),
+                                                                 slice(var.naming.virtualmachine_names.OBSERVER_VMNAME, 0, length(azurerm_linux_virtual_machine.observer))
                                                                )
                                                              ),
                                                              compact(
                                                                concat(
                                                                  slice(azurerm_network_interface.anydb_admin[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)),
-                                                                 slice(azurerm_network_interface.anydb_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
+                                                                 slice(azurerm_network_interface.anydb_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)),
+                                                                 slice(azurerm_network_interface.observer[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.observer))
                                                                )
                                                              )
                                                            )
@@ -107,12 +109,14 @@ output "dns_info_vms"                  {
                                                            zipmap(
                                                              compact(
                                                                concat(
-                                                                 slice(var.naming.virtualmachine_names.ANYDB_VMNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
+                                                                 slice(var.naming.virtualmachine_names.ANYDB_VMNAME, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)),
+                                                                 slice(var.naming.virtualmachine_names.OBSERVER_VMNAME, 0, length(azurerm_linux_virtual_machine.observer))
                                                                )
                                                              ),
                                                              compact(
                                                                concat(
-                                                                 slice(azurerm_network_interface.anydb_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver))
+                                                                 slice(azurerm_network_interface.anydb_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.dbserver) + length(azurerm_windows_virtual_machine.dbserver)),
+                                                                 slice(azurerm_network_interface.observer[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.observer))
                                                                )
                                                              )
                                                            )

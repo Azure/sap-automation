@@ -184,6 +184,15 @@ output "sid"                           {
                                          value = local.application_tier.sid
                                        }
 
+output "asg_ids"                       {
+                                         description = "A list of Application Security Group IDs"
+                                         value = coalesce([
+                                           try(module.common_infrastructure.db_asg_id, ""),
+                                           try(module.app_tier.app_asg_id, ""),
+                                           try(module.app_tier.web_asg_id, ""),
+                                         ])
+}
+
 ###############################################################################
 #                                                                             #
 #                           Disks                                             #
@@ -199,6 +208,11 @@ output "disks"                         {
 output "sapmnt_path"                   {
                                          description = "Path to the sapmnt folder"
                                          value       = module.common_infrastructure.sapmnt_path
+                                       }
+
+output "hana_shared_afs_path"          {
+                                         description = "Path to the hanashare folder"
+                                         value       = module.hdb_node.hana_shared_afs_path
                                        }
 
 output "configuration_settings"        {
@@ -225,4 +239,3 @@ output "subscription_id_used"          {
                                          value       = local.spn.subscription_id
                                          sensitive   = true
                                        }
-

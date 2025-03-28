@@ -337,6 +337,7 @@
 
 - name:                                "1.18.2.0 Generic Pacemaker - Ensure Azure scheduled events is configured"
   when:
+                                      - cluster_use_scheduled_events_agent
                                       - inventory_hostname == primary_instance_name
                                       - is_rhel_84_or_newer
   block:

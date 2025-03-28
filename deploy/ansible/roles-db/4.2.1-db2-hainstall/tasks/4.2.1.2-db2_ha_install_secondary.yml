@@ -125,6 +125,7 @@
                                                  SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dblsby }}             \
                                                  SAPINST_SKIP_DIALOGS=true                                           \
                                                  SAPINST_START_GUISERVER=false                                       \
+                                                 SAPINST_ENFORCE_CRL={{ sapinst_enforce_crl }}                       \
                                                  SAPINST_CONTROL_URL={{ target_media_location }}/SWPM/product.catalog
       args:
         chdir:                         "{{ target_media_location }}/SWPM"

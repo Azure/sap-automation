@@ -43,7 +43,7 @@ resource "azurerm_network_interface" "nics_dbnodes_admin" {
 
   ip_configuration {
                      name      = "ipconfig1"
-                     subnet_id = var.admin_subnet.id
+                     subnet_id = try(var.admin_subnet.id, var.landscape_tfstate.admin_subnet_id)
                      private_ip_address = try(var.database_vm_admin_nic_ips[count.index], var.database.use_DHCP ? (
                        null) : (
                        cidrhost(
@@ -110,7 +110,7 @@ resource "azurerm_network_interface_application_security_group_association" "db"
                                            var.deploy_application_security_groups ? var.database_server_count : 0) : (
                                            0
                                          )
-  network_interface_id                 = azurerm_network_interface.nics_dbnodes_db[count.index].id
+  network_interface_id                 = var.use_admin_nic_for_asg && var.database_dual_nics ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : azurerm_network_interface.nics_dbnodes_db[count.index].id
   application_security_group_id        = var.db_asg_id
 }
 
@@ -122,7 +122,11 @@ resource "azurerm_network_interface_application_security_group_association" "db"
 
 resource "azurerm_network_interface" "nics_dbnodes_storage" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment && local.enable_storage_subnet ? var.database_server_count : 0
+  count                                = local.enable_deployment && try(var.landscape_tfstate.use_separate_storage_subnet, local.enable_storage_subnet) && var.enable_storage_nic ? (
+                                            var.database_server_count
+                                         ) : (
+                                           0
+                                         )
   depends_on                           = [ azurerm_network_interface.nics_dbnodes_db, azurerm_network_interface.nics_dbnodes_admin ]
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.storage_nic,
@@ -193,7 +197,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   patch_mode                                             = var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = true
+  vm_agent_platform_updates_enabled                      = var.infrastructure.platform_updates
 
   zone                                 = local.use_avset ? null : try(local.zones[count.index % max(local.db_zone_count, 1)], null)
 
@@ -215,7 +219,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
                                            )
                                          ) : null
 
-  network_interface_ids                = local.enable_storage_subnet ? (
+  network_interface_ids                = local.enable_storage_subnet && var.enable_storage_nic ? (
                                            compact([
                                                var.database_dual_nics ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : null,
                                                azurerm_network_interface.nics_dbnodes_db[count.index].id,
@@ -597,4 +601,3 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_db_lnx" {
                                             }
                                           )
 }
-

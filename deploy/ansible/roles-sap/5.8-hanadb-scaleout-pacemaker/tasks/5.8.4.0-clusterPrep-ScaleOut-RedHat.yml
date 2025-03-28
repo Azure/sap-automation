@@ -37,20 +37,25 @@
     # 4. Do not kill existing processes and attempt to unmount /hana/shared. Bad things will happen.
     # 5. No Seriously !! Terrible things will happen and you will have a hard time repairing the deployment
 
-    - name:                            "5.8 HANA Pacemaker Scaleout - Stop HANA System on both sites"
-      block:
-        - name:                        "5.8 HANA Pacemaker Scaleout - Execute HANA StopSystem on both sites"
-          become_user:                 "{{ db_sid | lower }}adm"
-          become:                      true
-          ansible.builtin.command:     "{{ sapcontrol_command }} -function StopSystem"
-          failed_when:                 false
-          changed_when:                false
-          register:                    hana_system_stopped
-          when:                        ansible_hostname in [ primary_instance_name , secondary_instance_name ]
+    - name:                        "5.8 HANA Pacemaker Scaleout - Execute HANA StopSystem on both sites"
+      become_user:                 "{{ db_sid | lower }}adm"
+      become:                      true
+      ansible.builtin.command:     "{{ sapcontrol_command }} -function StopSystem"
+      failed_when:                 false
+      changed_when:                false
+      register:                    hana_system_stopped
+      when:                        ansible_hostname in [ primary_instance_name , secondary_instance_name ]
 
     - name:                            "5.8 HANA Pacemaker Scaleout - Wait 2 minutes for SAP system to stop"
       ansible.builtin.wait_for:
         timeout:                       120
+
+    - name:                        "5.8 HANA Pacemaker Scaleout - Comment out the mountpoint from '/etc/fstab' file"
+      ansible.builtin.lineinfile:
+        path:                      /etc/fstab
+        regexp:                    "^{{ item }}"
+        state:                     absent
+      loop: "{{ hana_shared_mountpoint[:2] }}"
 
     - name:                            "5.8 HANA Pacemaker Scaleout - Configure pacemaker hana shared filesystem resources on {{ primary_instance_name }}"
       when:                            ansible_hostname == primary_instance_name
@@ -128,16 +133,6 @@
             msg:                       "Failed to create NFS hana mounts on {{ primary_instance_name }}"
           when:
             - chk_location_nfs_attribute_sites | length > 0
-
-        - name:                        "5.8 HANA Pacemaker Scaleout - Comment out the mountpoint from '/etc/fstab' file"
-          ansible.builtin.replace:
-            path:                      /etc/fstab
-            regexp:                    "^{{ item }}"
-            replace:                   "# {{ item }}"
-            backup:                    true
-          loop:
-            - "{{ hana_shared_mountpoint[0] }}"
-            - "{{ hana_shared_mountpoint[1] }}"
 
         - name:                        "5.8 HANA Pacemaker Scaleout - Activate filesystem resource on {{ primary_instance_name }}"
           ansible.builtin.shell: >

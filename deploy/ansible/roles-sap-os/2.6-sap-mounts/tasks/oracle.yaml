@@ -136,6 +136,7 @@
     - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}', path: '{{ target_media_location }}' }
   when:
     - node_tier == 'observer'
+    - platform == 'ORACLE'
     - use_AFS
 
 # Debug for testing

@@ -24,7 +24,7 @@
 
 - name:                                "2.6 SAP Mounts: - Set the usr/sap/install path"
   ansible.builtin.set_fact:
-    usr_sap_install_mount_point:       "{% if NFS_provider in ['AFS', 'ANF'] %}{% if usr_sap_install_mountpoint is defined %}{{ usr_sap_install_mountpoint }}{% else %}{{ nfs_server }}:{{ target_media_location }}{% endif %}{% else %}{{ nfs_server }}:{{ target_media_location }}{% endif %}"
+    usr_sap_install_mount_point:       "{% if NFS_provider in ['AFS', 'ANF'] %}{% if usr_sap_install_mountpoint is defined and usr_sap_install_mountpoint != '' %}{{ usr_sap_install_mountpoint }}{% else %}{{ nfs_server }}:{{ target_media_location }}{% endif %}{% else %}{{ nfs_server }}:{{ target_media_location }}{% endif %}"
 
 - name:                                "2.6 SAP Mounts: - Show info"
   ansible.builtin.debug:
@@ -110,4 +110,5 @@
   when:
     - tier == 'sapos'
     - usr_sap_install_mountpoint is defined
+    - usr_sap_install_mountpoint != ''
     - node_tier == 'observer'

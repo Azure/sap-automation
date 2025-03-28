@@ -167,7 +167,6 @@
                 - dbload_already_performed is defined or (dbload_results.rc is defined and dbload_results.rc == 0)
 
           always:
-
             - name:                    "DBLoad Playbook: - Run post installation tasks"
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
@@ -177,20 +176,13 @@
                 path:                  '/INSTALL/DISTRIBUTED/{{ dbl_bom_instance_type }}/DB'
                 tier:                  'dbload'
 
-            - name:                    "DBLoad Playbook: - Get the Error lines from installation output"
-              ansible.builtin.set_fact:
-                error_lines:           "{{ error_lines | default([]) + [item] }}"
-              with_items:              "{{ dbload.stdout_lines }}"
-              when:
-                - dbload is defined
-                - dbload.stdout_lines is defined
-                - '"ERROR" in item'
-
             - name:                    "DBLoad Playbook: - Show errors from DBLoad"
               ansible.builtin.debug:
-                msg:                   "{{ error_lines }}"
+                msg:                   "{{ dbload_results.stdout_lines | select('search', 'ERROR') }}"
               when:
-                - error_lines is defined
+                - dbload_results is defined
+                - dbload_results.stdout_lines is defined
+                - dbload_results.rc > 0
           tags:
             - 5.1-dbload
 
@@ -277,20 +269,13 @@
               loop_control:
                 loop_var:              sid_to_be_deployed
 
-            - name:                    "DBLoad Playbook: - Get the Error lines from installation output"
-              ansible.builtin.set_fact:
-                error_lines:           "{{ error_lines | default([]) + [item] }}"
-              with_items:              "{{ dbload.stdout_lines }}"
-              when:
-                - dbload is defined
-                - dbload.stdout_lines is defined
-                - '"ERROR" in item'
-
             - name:                    "DBLoad Playbook: - Show errors from DBLoad"
               ansible.builtin.debug:
-                msg:                   "{{ error_lines }}"
+                msg:                   "{{ dbload_results.stdout_lines | select('search', 'ERROR') }}"
               when:
-                - error_lines is defined
+                - dbload_results is defined
+                - dbload_results.stdout_lines is defined
+                - dbload_results.rc > 0
           tags:
             - 5.1-dbload
 
@@ -385,20 +370,13 @@
                 # path:                  '/INSTALL/DISTRIBUTED/ABAP/DB'
                 tier:                  'dbload'
 
-            - name:                    "DBLoad Playbook: - Get the Error lines from installation output"
-              ansible.builtin.set_fact:
-                error_lines:           "{{ error_lines | default([]) + [item] }}"
-              with_items:              "{{ dbload.stdout_lines }}"
-              when:
-                - dbload is defined
-                - dbload.stdout_lines is defined
-                - '"ERROR" in item'
-
             - name:                    "DBLoad Playbook: - Show errors from DBLoad"
               ansible.builtin.debug:
-                msg:                   "{{ error_lines }}"
+                msg:                   "{{ dbload_results.stdout_lines | select('search', 'ERROR') }}"
               when:
-                - error_lines is defined
+                - dbload_results is defined
+                - dbload_results.stdout_lines is defined
+                - dbload_results.rc > 0
 
             - name:                    "DBLoad Playbook: Rename sapinst_logs Folder with TimeStamp"
               ansible.windows.win_shell: |

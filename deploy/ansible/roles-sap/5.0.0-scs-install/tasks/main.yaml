@@ -208,10 +208,11 @@
     - name:                            "SCS Install: SAP SCS Install on {{ scs_virtual_hostname }}"
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}  \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}             \
-                                                 SAPINST_SKIP_DIALOGS=true                                        \
-                                                 SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}                          \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.scs }}                \
+                                                 SAPINST_SKIP_DIALOGS=true                                           \
+                                                 SAPINST_USE_HOSTNAME={{ scs_virtual_hostname }}                     \
+                                                 SAPINST_ENFORCE_CRL={{ sapinst_enforce_crl }}                       \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"

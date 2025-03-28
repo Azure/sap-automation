@@ -19,7 +19,7 @@
 # Fetch the majority maker node OS Hostname as we need to create a constraint to prevent HANA resources from running on it
 - name:                                "5.8 HANA Pacemaker Scaleout - Scale-Out Cluster Compatibility - Fetch majority maker node name"
   ansible.builtin.set_fact:
-    majority_maker:                    "{{ (query('inventory_hostnames', '{{ sap_sid | upper }}_OBSERVER_DB'))[0] }}"
+    majority_maker:                    "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_OBSERVER_DB') | first | default([]) }}"
 
 - name:                                "5.8 HANA Pacemaker Scaleout - Optimise the Pacemaker cluster for SAP HANA"
   block:
@@ -92,16 +92,19 @@
           # Ref : https://access.redhat.com/articles/6093611#5123-constraints
         - name:                             Ensure that SAP HANA master-slave resources avoids running on the majority maker node
           ansible.builtin.shell:            pcs constraint location msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} avoids {{ majority_maker }}
+          when:                             majority_maker | length > 0
           register:                         msl_mm_location
           failed_when:                      msl_mm_location.rc > 0
 
         - name:                             Ensure that HANA Resource topology avoids running on the majority maker node
           ansible.builtin.shell:            pcs constraint location SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone avoids {{ majority_maker }}
+          when:                             majority_maker | length > 0
           register:                         hana_mm_location
           failed_when:                      hana_mm_location.rc > 0
 
         - name:                             Ensure that IP Resource avoids running on the majority maker node
           ansible.builtin.shell:            pcs constraint location g_ip_{{ db_sid | upper }}_{{ db_instance_number }} avoids {{ majority_maker }}
+          when:                             majority_maker | length > 0
           register:                         vip_mm_location
           failed_when:                      vip_mm_location.rc > 0
 
@@ -169,16 +172,19 @@
         # Ref: https://access.redhat.com/articles/6093611#5123-constraints
         - name:                             Ensure that SAP HANA resources avoids running on the majority maker node
           ansible.builtin.shell:            pcs constraint location SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone avoids {{ majority_maker }}
+          when:                             majority_maker | length > 0
           register:                         msl_mm_location
           failed_when:                      msl_mm_location.rc > 0
 
         - name:                             Ensure that HANA Resource topology avoids running on the majority maker node
           ansible.builtin.shell:            pcs constraint location SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone avoids {{ majority_maker }}
+          when:                             majority_maker | length > 0
           register:                         hana_mm_location
           failed_when:                      hana_mm_location.rc > 0
 
         - name:                             Ensure that IP Resource avoids running on the majority maker node
           ansible.builtin.shell:            pcs constraint location g_ip_{{ db_sid | upper }}_{{ db_instance_number }} avoids {{ majority_maker }}
+          when:                             majority_maker | length > 0
           register:                         vip_mm_location
           failed_when:                      vip_mm_location.rc > 0
 

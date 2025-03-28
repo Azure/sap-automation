@@ -41,6 +41,7 @@ variable "sid_password"                                 { description = "SDU pas
 variable "sid_username"                                 { description = "SDU username" }
 variable "storage_bootdiag_endpoint"                    { description = "Details of the boot diagnostic storage device" }
 variable "terraform_template_version"                   { description = "The version of Terraform templates that were identified in the state file" }
+variable "use_admin_nic_for_asg"                        { description = "If true, the admin nic will be assigned to the ASG instead of the second nic" }
 variable "use_loadbalancers_for_standalone_deployments" {
                                                           description = "Defines if load balancers are used even for standalone deployments"
                                                           default     = true

@@ -28,6 +28,7 @@ variable "infrastructure"                               { description = "Diction
 variable "landscape_tfstate"                            { description = "Terraform output from the workload zone" }
 variable "license_type"                                 { description = "Specifies the license type for the OS" }
 variable "naming"                                       { description = "Defines the names for the resources" }
+variable "observer_vm_tags"                             { description = "Tags to use specifically for the observer VM" }
 variable "options"                                      { description = "Dictionary of miscallaneous parameters" }
 variable "order_deployment"                             { description = "psuedo condition for ordering deployment" }
 variable "ppg"                                          { description = "Details of the proximity placement group" }
@@ -39,9 +40,13 @@ variable "sid_password"                                 { description = "SDU pas
 variable "sid_username"                                 { description = "SDU username" }
 variable "storage_bootdiag_endpoint"                    { description = "Details of the boot diagnostics storage account" }
 variable "terraform_template_version"                   { description = "The version of Terraform templates that were identified in the state file" }
+variable "use_admin_nic_suffix_for_observer"            { description = "If true, the admin nic suffix will be used for the observer" }
+variable "use_admin_nic_for_asg"                        { description = "If true, the admin nic will be assigned to the ASG instead of the second nic" }
 variable "use_loadbalancers_for_standalone_deployments" { description = "Defines if load balancers are used even for standalone deployments" }
 variable "use_msi_for_clusters"                         { description = "If true, the Pacemaker cluser will use a managed identity" }
 variable "use_observer"                                 { description = "If true, the observer will be deployed" }
+variable "observer_vm_size"                             {}
+variable "observer_vm_zones"                            {}
 variable "use_secondary_ips"                            {
                                                           description = "Use secondary IPs for the SAP System"
                                                           default     = false

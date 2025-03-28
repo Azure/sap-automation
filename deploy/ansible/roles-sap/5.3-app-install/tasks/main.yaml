@@ -236,10 +236,11 @@
     - name:                            "APP Install: Running sapinst"
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ app_bom_id }}                     \
-                                                 SAPINST_SKIP_DIALOGS=true                                       \
-                                                 SAPINST_USE_HOSTNAME={{ app_virtual_hostname }}                 \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ app_bom_id }}                         \
+                                                 SAPINST_SKIP_DIALOGS=true                                           \
+                                                 SAPINST_USE_HOSTNAME={{ app_virtual_hostname }}                     \
+                                                 SAPINST_ENFORCE_CRL={{ sapinst_enforce_crl }}                       \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"

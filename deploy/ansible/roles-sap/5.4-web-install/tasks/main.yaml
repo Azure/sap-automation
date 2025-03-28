@@ -130,10 +130,11 @@
     - name:                            "SAP Web Dispatcher Install"
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
-                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }} \
-                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.web }}            \
-                                                 SAPINST_SKIP_DIALOGS=true                                       \
-                                                 SAPINST_USE_HOSTNAME={{ virtual_host }}                         \
+                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
+                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.web }}                \
+                                                 SAPINST_SKIP_DIALOGS=true                                           \
+                                                 SAPINST_USE_HOSTNAME={{ virtual_host }}                             \
+                                                 SAPINST_ENFORCE_CRL={{ sapinst_enforce_crl }}                       \
                                                  SAPINST_START_GUISERVER=false
       args:
         chdir:                         "{{ target_media_location }}/SWPM"

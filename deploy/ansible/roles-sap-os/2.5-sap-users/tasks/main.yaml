@@ -76,6 +76,7 @@
     - { group: 'oinstall',  gid: '{{ oinstall_gid }}'  }
   when:
     - node_tier == "observer"
+    - platform == "ORACLE"
 
 - name:                                "2.5.1 SAP Users: - Create SAP User for Oracle ASM"
   ansible.builtin.user:

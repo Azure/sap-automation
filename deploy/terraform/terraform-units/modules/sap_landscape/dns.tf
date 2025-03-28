@@ -228,21 +228,21 @@ data "azurerm_private_dns_a_record" "transport" {
 #######################################4#######################################
 data "azurerm_private_dns_zone" "file" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  count                                = !local.privatelink_file_defined && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   name                                 = var.dns_settings.dns_zone_names.file_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 
 data "azurerm_private_dns_zone" "storage" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  count                                = !local.privatelink_storage_defined && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   name                                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 
 data "azurerm_private_dns_zone" "keyvault" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  count                                = !local.privatelink_keyvault_defined && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   name                                 = var.dns_settings.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }

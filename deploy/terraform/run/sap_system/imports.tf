@@ -25,6 +25,7 @@ data "terraform_remote_state" "deployer"             {
 data "terraform_remote_state" "landscape"            {
                                                        backend       = "azurerm"
                                                        config        = {
+                                                                         use_azuread_auth     = true # Use Azure AD authentication
                                                                          resource_group_name  = local.saplib_resource_group_name
                                                                          storage_account_name = local.tfstate_storage_account_name
                                                                          container_name       = "tfstate"

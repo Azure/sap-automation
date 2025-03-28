@@ -154,7 +154,7 @@ variable "encryption_at_host_enabled"           {
                                                   description = "Enables host encryption for sap vms"
                                                   default     = false
                                                   type        = bool
-                                                }                                                     
+                                                }
 variable "data_plane_available"                 {
                                                   description = "Boolean value indicating if storage account access is via data plane"
                                                   default     = false
@@ -575,6 +575,11 @@ variable "database_dual_nics"                   {
                                                   default     = false
                                                 }
 
+variable "enable_storage_nic"                   {
+                                                  description = "Boolean to determine if a storage nic should be used when scale out is enabled"
+                                                  default     = true
+                                                }
+
 variable "database_no_ppg"                      {
                                                   description = "[Obsolete] If provided, the database tier will not be placed in a proximity placement group"
                                                   default     = null
@@ -643,6 +648,19 @@ variable "use_observer"                         {
                                                   description = "If true, an observer virtual machine will be used"
                                                   default     = true
                                                 }
+variable "observer_vm_size"                     {
+                                                  description = "The VM size to use for the observer"
+                                                  default     = "Standard_D4s_v3"
+                                                }
+
+variable "observer_vm_tags"                     {
+                                                  description = "Tags to use specifically for the observer VM"
+                                                  default     = {}
+                                                }
+variable "observer_vm_zones"                    {
+                                                  description = "The zone to deploy the observer in"
+                                                  default     = []
+                                                }
 
 variable "observer_nic_ips"                     {
                                                   description = "If provided, the database tier observer virtual machines will be configured with the specified IPs (db subnet)"
@@ -655,6 +673,11 @@ variable "observer_nic_ips"                     {
 #  Application tier variables                                                           #
 #                                                                                       #
 #########################################################################################
+
+variable "application_size"                     {
+                                                  description = "Dictionary key value to sizing json"
+                                                  default     = ""
+                                                }
 
 variable "enable_app_tier_deployment"           {
                                                   description = "If true, the application tier will be deployed"
@@ -1043,6 +1066,16 @@ variable "legacy_nic_order"                     {
                                                   default     = false
                                                 }
 
+variable "use_admin_nic_suffix_for_observer"    {
+                                                  description = "If true, the admin nic suffix will be used for the observer"
+                                                  default     = false
+                                                }
+
+variable "use_admin_nic_for_asg"                {
+                                                  description = "If true, the admin nic will be assigned to the ASG instead of the second nic"
+                                                  default     = false
+                                                }
+
 variable "use_loadbalancers_for_standalone_deployments" {
                                                            description = "If defined, will use load balancers for standalone deployments"
                                                            default     = true
@@ -1160,7 +1193,7 @@ variable "register_storage_accounts_keyvaults_with_dns" {
 
 #########################################################################################
 #                                                                                       #
-#  NFS and Shared Filed settings                                                        #
+#  NFS and Shared Files settings                                                        #
 #                                                                                       #
 #########################################################################################
 
@@ -1482,6 +1515,11 @@ variable "patch_assessment_mode"                {
                                                   default     = "ImageDefault"
                                                 }
 
+variable "platform_updates"                {
+                                                  description = "Specifies whether VMAgent Platform Updates is enabled"
+                                                  default     = "true"
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  Scaleout variables                                                                   #
@@ -1498,6 +1536,10 @@ variable "database_HANA_no_standby_role"        {
                                                   default = false
                                                 }
 
+variable "use_single_hana_shared"               {
+                                                  description = "Boolean indicating wether to use a single storage account for all HANA file shares"
+                                                  default     = false
+                                                }
 variable "stand_by_node_count"                  {
                                                   description = "The number of standby nodes"
                                                   default = 0
@@ -1512,6 +1554,10 @@ variable "hanashared_private_endpoint_id"       {
 variable "hanashared_id"                        {
                                                   description = "The Azure Resource identifier for the HANA shared volume storage account"
                                                   default     = []
+                                                }
+variable "hanashared_volume_size"               {
+                                                  description = "The volume size in GB for hana shared"
+                                                  default     = 128
                                                 }
 
 

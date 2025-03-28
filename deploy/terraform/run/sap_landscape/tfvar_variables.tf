@@ -297,8 +297,13 @@ variable "web_subnet_nsg_arm_id"                {
 #                                                                                       #
 #########################################################################################
 
+variable "use_separate_storage_subnet"          {
+                                                  description = "Boolean to use a separate subnet"
+                                                  default     = false
+                                                }
+
 variable "storage_subnet_name"                  {
-                                                  description = "If provided, the name of the stroage subnet"
+                                                  description = "If provided, the name of the storage subnet"
                                                   default     = ""
                                                 }
 
@@ -598,8 +603,24 @@ variable "privatelink_dns_resourcegroup_name"      {
                                                      description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate resourcegroup"
                                                      default     = ""
                                                      type        = string
-                                                     }
+                                                   }
 
+
+variable "privatelink_file_id"                     {
+                                                     description = "ID of the private link file resource"
+                                                     default = ""
+                                                     type = string
+                                                   }
+variable "privatelink_storage_id"                  {
+                                                     description = "ID of the private link storage resource"
+                                                     default = ""
+                                                     type = string
+                                                   }
+variable "privatelink_keyvault_id"                 {
+                                                     description = "ID of the private link keyvault resource"
+                                                     default = ""
+                                                     type = string
+                                                   }
 
 variable "dns_server_list"                         {
                                                      description = "DNS server list"

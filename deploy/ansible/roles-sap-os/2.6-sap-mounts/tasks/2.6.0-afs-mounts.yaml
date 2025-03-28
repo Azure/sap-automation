@@ -191,6 +191,7 @@
   when:
     - tier == 'sapos'
     - usr_sap_install_mountpoint is defined
+    - usr_sap_install_mountpoint != ''
 
 - name:                                "AFS Mount: sap_mnt"
   block:
@@ -350,7 +351,7 @@
 
   when:
     - scs_high_availability
-    - node_tier != 'hana'
+    - node_tier not in ['hana' , 'observer']
     - sap_mnt is defined
 
 - name:                                "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
@@ -416,6 +417,7 @@
   when:
     - tier == 'sapos'
     - sap_trans is defined
+    - sap_trans != ''
 
 # Scale out - shared nothing configuration code to support AFS based /hana/shared mount
 - name:                                 "AFS Mount: Scale out hana_shared"

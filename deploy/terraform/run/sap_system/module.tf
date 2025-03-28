@@ -123,6 +123,7 @@ module "hdb_node" {
   database                                      = local.database
   database_active_active                        = var.database_active_active
   database_dual_nics                            = try(module.common_infrastructure.admin_subnet, null) == null ? false : var.database_dual_nics
+  enable_storage_nic                            = var.enable_storage_nic
   database_server_count                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
                                                     local.database.high_availability ? (
                                                       2 * (var.database_server_count + var.stand_by_node_count)) : (
@@ -145,11 +146,16 @@ module "hdb_node" {
   hana_ANF_volumes                              = local.hana_ANF_volumes
   hanashared_id                                 = length(var.hanashared_id) > 0 ? (length(var.hanashared_id[0]) > 0 ? var.hanashared_id : []) : []
   hanashared_private_endpoint_id                = length(var.hanashared_private_endpoint_id) > 0 ? (length(var.hanashared_private_endpoint_id[0]) > 0 ? var.hanashared_private_endpoint_id : []) : []
+  use_single_hana_shared                        = var.use_single_hana_shared
+  hanashared_volume_size                        = var.hanashared_volume_size
   infrastructure                                = local.infrastructure
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   license_type                                  = var.license_type
   naming                                        = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   NFS_provider                                  = var.NFS_provider
+  observer_vm_size                              = var.observer_vm_size
+  observer_vm_tags                              = var.observer_vm_tags
+  observer_vm_zones                             = var.observer_vm_zones
   options                                       = local.options
   ppg                                           = module.common_infrastructure.ppg
   random_id                                     = coalesce(var.custom_random_id, module.common_infrastructure.random_id)
@@ -164,9 +170,11 @@ module "hdb_node" {
   storage_subnet                                = module.common_infrastructure.storage_subnet
   tags                                          = var.tags
   terraform_template_version                    = var.terraform_template_version
+  use_admin_nic_suffix_for_observer             = var.use_admin_nic_suffix_for_observer
+  use_admin_nic_for_asg                         = var.use_admin_nic_for_asg
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
   use_msi_for_clusters                          = var.use_msi_for_clusters
-  use_observer                                  = var.database_HANA_use_scaleout_scenario && local.database.high_availability
+  use_observer                                  = var.database_HANA_use_scaleout_scenario && local.database.high_availability && var.use_observer
   use_private_endpoint                          = var.use_private_endpoint
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
@@ -218,6 +226,7 @@ module "app_tier" {
   storage_bootdiag_endpoint                     = module.common_infrastructure.storage_bootdiag_endpoint
   tags                                          = var.tags
   terraform_template_version                    = var.terraform_template_version
+  use_admin_nic_for_asg                         = var.use_admin_nic_for_asg
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
@@ -265,6 +274,9 @@ module "anydb_node" {
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   license_type                                  = var.license_type
   naming                                        = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
+  observer_vm_size                              = var.observer_vm_size
+  observer_vm_tags                              = var.observer_vm_tags
+  observer_vm_zones                             = var.observer_vm_zones
   options                                       = local.options
   order_deployment                              = local.enable_db_deployment ? (
                                                     local.db_zonal_deployment && local.application_tier.enable_deployment ? (
@@ -282,6 +294,8 @@ module "anydb_node" {
   storage_bootdiag_endpoint                     = module.common_infrastructure.storage_bootdiag_endpoint
   tags                                          = var.tags
   terraform_template_version                    = var.terraform_template_version
+  use_admin_nic_suffix_for_observer             = var.use_admin_nic_suffix_for_observer
+  use_admin_nic_for_asg                         = var.use_admin_nic_for_asg
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_observer                                  = var.use_observer

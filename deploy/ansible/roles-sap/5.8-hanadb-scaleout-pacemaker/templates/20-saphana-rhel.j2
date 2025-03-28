@@ -4,6 +4,7 @@
 
 Cmnd_Alias SOK = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_glob_srHook -v SOK -t crm_config -s SAPHanaSR
 Cmnd_Alias SFAIL = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_glob_srHook -v SFAIL -t crm_config -s SAPHanaSR
-{{ db_sid | lower }}adm ALL=(ALL) NOPASSWD: SOK, SFAIL
-Defaults!SOK, SFAIL !requiretty
+Cmnd_Alias SRREBOOT = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_gsh -v * -l reboot -t crm_config -s SAPHanaSR
 
+{{ db_sid | lower }}adm ALL=(ALL) NOPASSWD: SOK, SFAIL, SRREBOOT
+Defaults!SOK, SFAIL, SRREBOOT !requiretty

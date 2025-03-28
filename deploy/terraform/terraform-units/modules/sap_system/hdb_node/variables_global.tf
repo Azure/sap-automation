@@ -18,6 +18,10 @@ variable "database_dual_nics"                           {
                                                           description = "Defines if the HANA DB uses dual network interfaces"
                                                           default     = true
                                                         }
+variable "enable_storage_nic"                           {
+                                                          description = "Boolean to determine if a storage nic should be used when scale out is enabled"
+                                                          default     = true
+                                                        }
 variable "database_server_count"                        {
                                                           description = "The number of database servers"
                                                           default     = 1
@@ -61,12 +65,16 @@ variable "sid_username"                                 { description = "SDU use
 variable "storage_bootdiag_endpoint"                    { description = "Details of the boot diagnostics storage account" }
 variable "storage_subnet"                               { description = "Information about storage subnet" }
 variable "terraform_template_version"                   { description = "The version of Terraform templates that were identified in the state file" }
+variable "use_admin_nic_suffix_for_observer"            { description = "If true, the admin nic suffix will be used for the observer" }
+variable "use_admin_nic_for_asg"                        { description = "If true, the admin nic will be assigned to the ASG instead of the second nic" }
 variable "use_loadbalancers_for_standalone_deployments" {
                                                           description = "Defines if load balancers are used even for standalone deployments"
                                                           default     = true
                                                         }
 variable "use_msi_for_clusters"                         { description = "If true, the Pacemaker cluser will use a managed identity" }
 variable "use_observer"                                 { description = "Use Observer VM" }
+variable "observer_vm_size"                             {}
+variable "observer_vm_zones"                            {}
 variable "use_secondary_ips"                            {
                                                           description = "Use secondary IPs for the SAP System"
                                                           default     = false
@@ -129,6 +137,16 @@ variable "hanashared_volume_size"                     {
 variable "hanashared_id"                             {
                                                        description = "Azure Resource Identifier for an storage account"
                                                        default     = [""]
+                                                     }
+
+variable "observer_vm_tags"                          {
+                                                       description = "Tags to use specifically for the observer VM"
+                                                       default     = {}
+                                                     }
+
+variable "use_single_hana_shared"                    {
+                                                       description = "Boolean indicating wether to use a single storage account for all HANA file shares"
+                                                       default     = false
                                                      }
 
 

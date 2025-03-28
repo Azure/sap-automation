@@ -99,6 +99,7 @@
       when:
         - saphanaSR_version == '0.0.0'
         - not use_hanasr_angi
+        - distribution_full_id in ['sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6']
       community.general.zypper:
         name:                          "SAPHanaSR>=0.161.1_BF"
         state:                         present

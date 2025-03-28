@@ -87,6 +87,9 @@ package_versions:
   redhat8.9:
     - {name: "pacemaker",               version: "2.0.5",   compare_operator: ">=", version_type: "loose"}
     - {name: "resource-agents",         version: "4.9.0",   compare_operator: ">=", version_type: "loose"}
+  redhat8.10:
+    - {name: "pacemaker",               version: "2.0.5",   compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents",         version: "4.9.0",   compare_operator: ">=", version_type: "loose"}
   redhat9.0:
     - {name: "pacemaker",               version: "2.0.5",   compare_operator: ">=", version_type: "loose"}
     - {name: "resource-agents-cloud",   version: "4.10.0",  compare_operator: ">=", version_type: "loose"}
