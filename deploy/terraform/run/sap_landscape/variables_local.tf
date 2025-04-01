@@ -25,7 +25,9 @@ locals {
   tfstate_container_name               = module.sap_namegenerator.naming.resource_suffixes.tfstate
 
   // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate
-  spn_key_vault_arm_id                 = try(local.key_vault.keyvault_id_for_deployment_credentials,data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id)
+  spn_key_vault_arm_id                 = try(local.key_vault.keyvault_id_for_deployment_credentials,
+                                           try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id,
+                                           ""))
 
   deployer_subscription_id             = coalesce(
                                            try(data.terraform_remote_state.deployer[0].outputs.created_resource_group_subscription_id,""),
@@ -41,7 +43,7 @@ locals {
                                          }
 
   cp_spn                               = {
-                                           subscription_id = try(data.azurerm_key_vault_secret.cp_subscription_id.value, null)
+                                           subscription_id = try(data.azurerm_key_vault_secret.cp_subscription_id[0].value, null)
                                            client_id       = var.use_spn ? data.azurerm_key_vault_secret.cp_client_id[0].value : null,
                                            client_secret   = var.use_spn ? data.azurerm_key_vault_secret.cp_client_secret[0].value : null,
                                            tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.cp_tenant_id[0].value : null

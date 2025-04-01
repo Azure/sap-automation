@@ -14,9 +14,6 @@
 - name:                                "5.8 HANA Pacemaker Scaleout - configure pre-requisites"
   ansible.builtin.include_tasks:       "5.8.4.0-clusterPrep-ScaleOut-{{ ansible_os_family }}.yml"
 
-- name:                                "5.8 HANA Pacemaker Scaleout - import - SAP HanaSRMultiTarget"
-  ansible.builtin.include_tasks:       5.8.3-SAPHanaSRMultiTarget-{{ ansible_os_family }}.yml
-
 - name:                                "5.8 HANA Pacemaker Scaleout - configure cluster resources"
   ansible.builtin.include_tasks:       "5.8.4.1-cluster-ScaleOut-{{ ansible_os_family }}.yml"
 

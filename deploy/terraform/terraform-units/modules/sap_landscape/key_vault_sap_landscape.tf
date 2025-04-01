@@ -98,7 +98,7 @@ resource "azurerm_management_lock" "keyvault" {
 
 resource "azurerm_role_assignment" "role_assignment_msi" {
   provider                             = azurerm.main
-  count                                = var.enable_rbac_authorization_for_keyvault ? 1 : 0
+  count                                = var.enable_rbac_authorization_for_keyvault && length(try(var.deployer_tfstate.deployer_uai.principal_id, "")) > 0 ? 1 : 0
   scope                                = local.user_keyvault_exist ? (
                                            local.user_key_vault_id) : (
                                            azurerm_key_vault.kv_user[0].id
@@ -218,7 +218,9 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
-                                           time_sleep.wait_for_private_endpoints
+                                           time_sleep.wait_for_private_endpoints,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_role_assignment.role_assignment_spn
                                          ]
   count                                = !local.sid_key_exist ? 1 : 0
   content_type                         = "secret"
@@ -247,7 +249,9 @@ resource "azurerm_key_vault_secret" "sid_pk" {
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
-                                           time_sleep.wait_for_private_endpoints
+                                           time_sleep.wait_for_private_endpoints,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_role_assignment.role_assignment_spn
                                          ]
   count                                = !local.sid_key_exist ? 1 : 0
   content_type                         = "secret"
@@ -284,7 +288,9 @@ resource "azurerm_key_vault_secret" "sid_username" {
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
-                                           time_sleep.wait_for_private_endpoints
+                                           time_sleep.wait_for_private_endpoints,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_role_assignment.role_assignment_spn
                                          ]
   count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
   content_type                         = "configuration"
@@ -306,7 +312,9 @@ data "azurerm_key_vault_secret" "sid_username" {
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
-                                           time_sleep.wait_for_private_endpoints
+                                           time_sleep.wait_for_private_endpoints,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_role_assignment.role_assignment_spn
                                          ]
   count                                = (local.sid_credentials_secret_exist) ? 1 : 0
   name                                 = local.sid_username_secret_name
@@ -319,7 +327,9 @@ resource "azurerm_key_vault_secret" "sid_password" {
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
-                                           time_sleep.wait_for_private_endpoints
+                                           time_sleep.wait_for_private_endpoints,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_role_assignment.role_assignment_spn
                                          ]
   count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
   name                                 = local.sid_password_secret_name
@@ -341,7 +351,9 @@ data "azurerm_key_vault_secret" "sid_password" {
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
-                                           time_sleep.wait_for_private_endpoints
+                                           time_sleep.wait_for_private_endpoints,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_role_assignment.role_assignment_spn
                                          ]
   count                                = (local.sid_credentials_secret_exist) ? 1 : 0
   name                                 = local.sid_password_secret_name
@@ -356,7 +368,9 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
-                                           time_sleep.wait_for_private_endpoints
+                                           time_sleep.wait_for_private_endpoints,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_role_assignment.role_assignment_spn
                                          ]
   count                                = 1
   content_type                         = "secret"
@@ -393,7 +407,9 @@ resource "azurerm_key_vault_secret" "witness_name" {
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
-                                           time_sleep.wait_for_private_endpoints
+                                           time_sleep.wait_for_private_endpoints,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_role_assignment.role_assignment_spn
                                          ]
   count                                = 1
   content_type                         = "configuration"
@@ -430,7 +446,9 @@ resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
                                            azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
-                                           time_sleep.wait_for_private_endpoints
+                                           time_sleep.wait_for_private_endpoints,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_role_assignment.role_assignment_spn
                                          ]
   content_type                         = "configuration"
   name                                 = "deployer-kv-name"
