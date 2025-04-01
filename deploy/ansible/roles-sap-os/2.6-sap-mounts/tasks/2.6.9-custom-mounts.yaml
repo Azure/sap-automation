@@ -7,21 +7,22 @@
 # |                Create directories and make them immutable                  |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
-- name:                                "Custom Mount: Create Directories ({{ custom_mount.path }})"
-  ansible.builtin.file:
-    owner:                             '{{ sidadm_uid }}'
-    group:                             sapsys
-    mode:                              0755
-    path:                              "{{ custom_mount.path }}"
-    state:                             directory
-    recurse:                           true
-  register:                            is_created_now
+---
+- name:                                 "Custom Mount: Check if mount already exists ({{ custom_mount.mount }}/{{ custom_mount.folder }})"
+  ansible.builtin.command:              findmnt -rn {{ custom_mount.mount }}/{{ custom_mount.folder }}
+  # Run this check only on the first host of the matching target nodes
+  run_once: "{{ node_tier in custom_mount.target_nodes or custom_mount.target_nodes == ['all'] }}"
   when:
     - node_tier in custom_mount.target_nodes or custom_mount.target_nodes == ['all']
+    - custom_mount.create_temp_folders
+  changed_when: false
+  failed_when: false
+  register: existing_mount
 
-- name:                                "Custom Mount: Create Directory on NSF ({{ custom_mount.path }})"
+- name:                                "Custom Mount: Create Directory on NFS ({{ custom_mount.path }})"
   when:
+    - existing_mount.rc is defined
+    - existing_mount.rc != 0
     - custom_mount.create_temp_folders
     - ansible_hostname == ansible_play_hosts[0]
   block:
@@ -31,7 +32,7 @@
         path:                          "{{ custom_mount.path }}"
         fstype:                        "nfs4"
         opts:                          "{{ custom_mount.opts }}"
-        state:                         mounted
+        state:                         ephemeral
 
     - name:                            "Custom Mount: Create Directory ({{ custom_mount.folder }})"
       ansible.builtin.file:
@@ -48,20 +49,6 @@
         fstype:                        "nfs4"
         opts:                          "{{ custom_mount.opts }}"
         state:                         unmounted
-
-
-- name:                                "Custom Mount: Change attribute only when we create SAP Directories ({{ custom_mount.temppath }})"
-  become:                              true
-  become_user:                         "root"
-  ansible.builtin.file:
-    path:                              "{{ is_created_now.path }}"
-    state:                             directory
-    mode:                              0755
-    attr:                              i+
-  when:
-    - node_tier in custom_mount.target_nodes or custom_mount.target_nodes == "all"
-    - is_created_now.changed
-    - custom_mount.set_chattr_on_dir | default(false)
 
 - name:                                "Custom Mount"
   when:

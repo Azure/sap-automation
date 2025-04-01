@@ -258,140 +258,132 @@ locals {
                                              "name"    = var.admin_subnet_name
                                              "arm_id"  = var.admin_subnet_arm_id
                                              "prefix"  = var.admin_subnet_address_prefix
-                                             "defined" = length(var.admin_subnet_address_prefix) > 0
-                                              "nsg"    = {
-                                                           "name"   = var.admin_subnet_nsg_name
-                                                           "arm_id" = var.admin_subnet_nsg_arm_id
-                                                         }
+                                             "nsg"     = {
+                                                         "name"   = var.admin_subnet_nsg_name
+                                                         "arm_id" = var.admin_subnet_nsg_arm_id
+                                                       }
                                          }
 
   subnet_db                            = {
                                              "name"    = var.db_subnet_name
                                              "arm_id"  = var.db_subnet_arm_id
                                              "prefix"  = var.db_subnet_address_prefix
-                                             "defined" = length(var.db_subnet_address_prefix) > 0
-                                              "nsg"    = {
-                                                           "name"   = var.db_subnet_nsg_name
-                                                           "arm_id" = var.db_subnet_nsg_arm_id
-                                                         }
+                                              "nsg" = {
+                                                        "name"   = var.db_subnet_nsg_name
+                                                        "arm_id" = var.db_subnet_nsg_arm_id
+                                                      }
                                          }
 
   subnet_app                           = {
-                                             "name"    = var.app_subnet_name
-                                             "arm_id"  = var.app_subnet_arm_id
-                                             "prefix"  = var.app_subnet_address_prefix
-                                             "defined" = length(var.app_subnet_address_prefix) > 0
-                                              "nsg"    = {
-                                                           "name"   = var.app_subnet_nsg_name
-                                                           "arm_id" = var.app_subnet_nsg_arm_id
-                                                         }
+                                             "name" = var.app_subnet_name
+                                             "arm_id" = var.app_subnet_arm_id
+                                             "prefix" = var.app_subnet_address_prefix
+                                              "nsg" = {
+                                                "name"   = var.app_subnet_nsg_name
+                                                "arm_id" = var.app_subnet_nsg_arm_id
+                                              }
                                          }
 
   subnet_web                           = {
-                                             "name"    = var.web_subnet_name
-                                             "arm_id"  = var.web_subnet_arm_id
-                                             "prefix"  = var.web_subnet_address_prefix
-                                             "defined" = length(var.web_subnet_address_prefix) > 0
-                                              "nsg"     = {
-                                                            "name"   = var.web_subnet_nsg_name
-                                                            "arm_id" = var.web_subnet_nsg_arm_id
-                                                          }
+                                             "name" = var.web_subnet_name
+                                             "arm_id" = var.web_subnet_arm_id
+                                             "prefix" = var.web_subnet_address_prefix
+                                              "nsg" = {
+                                                "name"   = var.web_subnet_nsg_name
+                                                "arm_id" = var.web_subnet_nsg_arm_id
+                                              }
                                          }
 
   subnet_storage                       = {
-                                             "name"    = var.storage_subnet_name
-                                             "arm_id"  = var.storage_subnet_arm_id
-                                             "prefix"  = var.storage_subnet_address_prefix
-                                             "defined" = length(var.storage_subnet_address_prefix) > 0
-                                             "nsg"     = {
-                                                           "name"   = var.storage_subnet_nsg_name
-                                                           "arm_id" = var.storage_subnet_nsg_arm_id
-                                                         }
+                                             "name" = var.storage_subnet_name
+                                             "arm_id" = var.storage_subnet_arm_id
+                                             "prefix" = var.storage_subnet_address_prefix
+                                             "nsg" = {
+                                                  "name"   = var.storage_subnet_nsg_name
+                                                  "arm_id" = var.storage_subnet_nsg_arm_id
+                                                }
                                           }
 
   subnet_anf                           = {
-                                            "name"    = var.anf_subnet_name
-                                            "arm_id"  = var.anf_subnet_arm_id
-                                            "prefix"  = var.anf_subnet_address_prefix
-                                            "defined" = length(var.anf_subnet_address_prefix) > 0
-                                            "nsg"     = {
-                                                          "name"   = var.anf_subnet_nsg_name
-                                                          "arm_id" = var.anf_subnet_nsg_arm_id
-                                                        }
+                                            "name" = var.anf_subnet_name
+                                            "arm_id" = var.anf_subnet_arm_id
+                                            "prefix" = var.anf_subnet_address_prefix
+                                            "nsg" = {
+                                              "name"   = var.anf_subnet_nsg_name
+                                              "arm_id" = var.anf_subnet_nsg_arm_id
+                                            }
                                          }
 
   subnet_iscsi                         = {
-                                            "name"    = var.iscsi_subnet_name
-                                            "arm_id"  = var.iscsi_subnet_arm_id
-                                            "prefix"  = var.iscsi_subnet_address_prefix
-                                            "defined" = length(var.iscsi_subnet_address_prefix) > 0
-                                            "nsg"     = {
-                                                          "name"   = var.iscsi_subnet_nsg_name
-                                                          "arm_id" = var.iscsi_subnet_nsg_arm_id
-                                                        }
+                                            "name" = var.iscsi_subnet_name
+                                            "arm_id" = var.iscsi_subnet_arm_id
+                                            "prefix" = var.iscsi_subnet_address_prefix
+                                            "nsg" = {
+                                              "name"   = var.iscsi_subnet_nsg_name
+                                              "arm_id" = var.iscsi_subnet_nsg_arm_id
+                                            }
                                          }
   subnet_ams                         =   {
-                                            "name"    = var.ams_subnet_name
-                                            "arm_id"  = var.ams_subnet_arm_id
-                                            "prefix"  = var.ams_subnet_address_prefix
-                                            "defined" = length(var.ams_subnet_address_prefix) > 0
-                                            "nsg"     = {
-                                                          "name"   = var.ams_subnet_nsg_name
-                                                          "arm_id" = var.ams_subnet_nsg_arm_id
-                                                        }
+                                            "name" = var.ams_subnet_name
+                                            "arm_id" = var.ams_subnet_arm_id
+                                            "prefix" = var.ams_subnet_address_prefix
+                                            "nsg" = {
+                                                  "name"   = var.ams_subnet_nsg_name
+                                                  "arm_id" = var.ams_subnet_nsg_arm_id
+                                                }
                                          }
 
   all_subnets                          = merge(local.sap, (
-                                         local.subnet_admin.defined ? (
+                                         local.subnet_admin_defined ? (
                                            {
                                              "subnet_admin" = local.subnet_admin
                                            }
                                            ) : (
                                            null
                                          )), (
-                                         local.subnet_db.defined ? (
+                                         local.subnet_db_defined ? (
                                            {
                                              "subnet_db" = local.subnet_db
                                            }
                                            ) : (
                                            null
                                          )), (
-                                         local.subnet_app.defined ? (
+                                         local.subnet_app_defined ? (
                                            {
                                              "subnet_app" = local.subnet_app
                                            }
                                            ) : (
                                            null
                                          )), (
-                                         local.subnet_web.defined ? (
+                                         local.subnet_web_defined ? (
                                            {
                                              "subnet_web" = local.subnet_web
                                            }
                                            ) : (
                                            null
                                          )), (
-                                         local.subnet_storage.defined ? (
+                                         local.subnet_storage_defined ? (
                                            {
                                              "subnet_storage" = local.subnet_storage
                                            }
                                            ) : (
                                            null
                                          )), (
-                                         local.subnet_anf.defined ? (
+                                         local.subnet_anf_defined ? (
                                            {
                                              "subnet_anf" = local.subnet_anf
                                            }
                                            ) : (
                                            null
                                          )), (
-                                         local.subnet_ams.defined ? (
+                                         local.subnet_ams_defined ? (
                                            {
                                              "subnet_ams" = local.subnet_ams
                                            }
                                            ) : (
                                            null
                                          )), (
-                                         local.subnet_iscsi.defined ? (
+                                         local.subnet_iscsi_defined ? (
                                            {
                                              "subnet_iscsi" = local.subnet_iscsi
                                            }
@@ -496,6 +488,9 @@ dns_settings                         = {
 
                                            privatelink_dns_resourcegroup_name           = coalesce(var.privatelink_dns_resourcegroup_name, var.management_dns_resourcegroup_name, local.saplib_resource_group_name)
                                            privatelink_dns_subscription_id              = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.saplib_subscription_id)
+                                           privatelink_file_id                          = var.privatelink_file_id
+                                           privatelink_storage_id                       = var.privatelink_storage_id
+                                           privatelink_keyvault_id                      = var.privatelink_keyvault_id
 
                                            register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
                                            register_endpoints_with_dns                  = var.register_endpoints_with_dns

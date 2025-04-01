@@ -181,7 +181,7 @@ locals {
                                            (upper(var.database.platform) == "ORACLE" || upper(var.database.platform) == "ORACLE-ASM") && var.database.high_availability) : (
                                            false
                                          )
-  observer_size                        = "Standard_D4s_v3"
+  observer_vm_size                     = try(var.observer_vm_size, "Standard_D4s_v3")
   observer_authentication              = local.authentication
   observer_custom_image                = local.anydb_custom_image
   observer_custom_image_id             = local.enable_deployment ? local.anydb_os.source_image_id : ""

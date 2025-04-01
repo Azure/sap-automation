@@ -287,15 +287,6 @@
                     - scs_already_installed is defined or (scs_installation.rc is defined and scs_installation.rc == 0)
 
               always:
-                - name:                "SCS Installation Playbook: - Get the Error lines from installation output"
-                  ansible.builtin.set_fact:
-                    error_lines:       "{{ error_lines | default([]) + [item] }}"
-                  with_items:          "{{ scs_installation.stdout_lines }}"
-                  when:
-                    - scs_installation.stdout_lines is defined
-                    - '"ERROR" in item'
-                    - scs_installation.rc > 0
-
                 - name:                "SCS Installation Playbook: - Run post installation routines"
                   ansible.builtin.include_role:
                     name:              roles-sap/7.0.0-post-install
@@ -313,9 +304,11 @@
 
                 - name:                "SCS Installation Playbook: - Show errors from SCS installation"
                   ansible.builtin.debug:
-                    msg:               "{{ error_lines }}"
+                    msg:               "{{ scs_installation.stdout_lines | select('search', 'ERROR') }}"
                   when:
-                    - error_lines is defined
+                    - scs_installation is defined
+                    - scs_installation.stdout_lines is defined
+                    - scs_installation.rc > 0
 
               tags:
                 - 5.0.0-scs-install
@@ -365,15 +358,6 @@
                     - scs_already_installed is defined or (scs_installation.rc is defined and scs_installation.rc == 0)
 
               always:
-                - name:                "SCS Installation Playbook: - Get the Error lines from installation output"
-                  ansible.builtin.set_fact:
-                    error_lines:       "{{ error_lines | default([]) + [item] }}"
-                  with_items:          "{{ scs_installation.stdout_lines }}"
-                  when:
-                    - scs_installation.stdout_lines is defined
-                    - '"ERROR" or "html" in item'
-                    - scs_installation.rc > 0
-
                 - name:                "SCS Installation Playbook: - Run post installation routines"
                   ansible.builtin.include_role:
                     name:              roles-sap/windows/7.0.0-post-install
@@ -385,9 +369,10 @@
 
                 - name:                "SCS Installation Playbook: - Show errors from the installation"
                   ansible.builtin.debug:
-                    msg:               "{{ error_lines }}"
+                    msg:               "{{ scs_installation.stdout_lines | select('search', 'ERROR') }}"
                   when:
-                    - error_lines is defined
+                    - scs_installation.stdout_lines is defined
+                    - scs_installation.rc > 0
 
                 - name:                "SCS Install: Rename sapinst_logs Folder with TimeStamp"
                   ansible.windows.win_shell: |
@@ -590,37 +575,21 @@
                 - ers_bom_id is defined
                 - node_tier == 'ers'
 
-            - name:                    "SCS HA Installation Playbook: - Get the Error lines from installation output (SCS)"
-              ansible.builtin.set_fact:
-                error_lines:           "{{ error_lines | default([]) + [item] }}"
-              with_items:              "{{ scs_installation.stdout_lines }}"
+            - name:                    "SCS HA Installation Playbook: - Show errors from SCS installation"
+              ansible.builtin.debug:
+                msg:                   "{{ scs_installation.stdout_lines | select('search', 'ERROR')  }}"
               when:
                 - scs_installation.stdout_lines is defined
                 - scs_installation.rc is defined
                 - scs_installation.rc > 0
-                - '"ERROR" in item'
 
-            - name:                    "SCS HA Installation Playbook: - Show errors from SCS installation"
+            - name:                    "SCS HA Installation Playbook: - Show errors from ERS installation"
               ansible.builtin.debug:
-                msg:                   "{{ error_lines }}"
-              when:
-                - error_lines is defined
-
-            - name:                    "SCS HA Installation Playbook: - Get the Error lines from installation output (ERS)"
-              ansible.builtin.set_fact:
-                error_lines:           "{{ error_lines | default([]) + [item] }}"
-              with_items:              "{{ ers_installation.stdout_lines }}"
+                msg:                   "{{ ers_installation.stdout_lines | select('search', 'ERROR') }}"
               when:
                 - ers_installation.stdout_lines is defined
                 - ers_installation.rc is defined
                 - ers_installation.rc > 0
-                - '"ERROR" in item'
-
-            - name:                    "SCS HA Installation Playbook: - Show errors from ERS installation"
-              ansible.builtin.debug:
-                msg:                   "{{ error_lines }}"
-              when:
-                - error_lines is defined
 
           tags:
             - 5.6-scsers-pacemaker
@@ -672,15 +641,6 @@
                 - scs_already_installed is defined or (scs_installation.rc is defined and scs_installation.rc == 0)
 
           always:
-            - name:                "SCS Installation Playbook: - Get the Error lines from installation output"
-              ansible.builtin.set_fact:
-                error_lines:       "{{ error_lines | default([]) + [item] }}"
-              with_items:          "{{ scs_installation.stdout_lines }}"
-              when:
-                - scs_installation.stdout_lines is defined
-                - '"ERROR" or "html" in item'
-                - scs_installation.rc > 0
-
             - name:                "SCS Installation Playbook: - Run post installation routines"
               ansible.builtin.include_role:
                 name:              roles-sap/windows/7.0.0-post-install
@@ -692,9 +652,10 @@
 
             - name:                "SCS Installation Playbook: - Show errors from the installation"
               ansible.builtin.debug:
-                msg:               "{{ error_lines }}"
+                msg:               "{{ scs_installation.stdout_lines | select('search', 'ERROR') }}"
               when:
-                - error_lines is defined
+                - scs_installation.stdout_lines is defined
+                - scs_installation.rc > 0
 
             - name:                "SCS Install: Rename sapinst_logs Folder with TimeStamp"
               ansible.windows.win_shell: |

@@ -42,6 +42,7 @@ always_upload_jinja_templates:         true
 hana_use_master_password:              y
 hana_password_copy:                    ""
 hana_backup_path:                      /hana/backup
+sapinst_enforce_crl:                   true                                    # CRL is enable by default, in air-gapped environment this might need to be disabled (SAP NOTE: 3207613)
 # Note: the spacing and lining of Jinja2 expression is critical here, lest we end up with a stray character in the path
 hana_data_basepath:                    "{% if database_scale_out %}/hana/data/{{ db_sid | upper }}{% else %}/hana/data{% endif %}"
 hana_log_basepath:                     "{% if database_scale_out %}/hana/log/{{ db_sid | upper }}{% else %}/hana/log{% endif %}"
