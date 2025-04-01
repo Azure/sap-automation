@@ -83,6 +83,7 @@ resource "azurerm_network_interface" "scs_admin" {
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
   accelerated_networking_enabled        = local.scs_sizing.compute.accelerated_networking
+  tags                                 = var.tags
 
   ip_configuration {
                       name      = "IPConfig1"
