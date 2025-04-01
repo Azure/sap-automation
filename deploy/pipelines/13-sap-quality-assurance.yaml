@@ -100,6 +100,7 @@ stages:
               PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
               USE_MSI:                       $(USE_MSI)
               CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+              ARM_SUBSCRIPTION_ID:           $(ARM_SUBSCRIPTION_ID)
           - ${{ if eq(parameters.sap_on_azure_quality_checks, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
