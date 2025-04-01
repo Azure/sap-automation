@@ -309,4 +309,6 @@ UIDs:
 # ------------------- Begin - SAP Functional Tests variables --------------------8
 sap_functional_test_type:              ""
 sap_automation_qa_branch:              "main"
+sap_automation_qa_fork:                "Azure"
+
 # ------------------- End - SAP Functional Tests variables --------------------8
