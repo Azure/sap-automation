@@ -79,7 +79,7 @@ stages:
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/05-DB-and-SAP-installation-prepare.sh"
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/13-sap-quality-assurance.sh"
               failOnStderr:            false
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             name:                      Preparation
