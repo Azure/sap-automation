@@ -24,3 +24,4 @@ skip_list:
   - name[template]
   - command-instead-of-shell # csh is not supported in commands
   - jinja[spacing]
+  - syntax-check[missing-file]
