@@ -1,0 +1,47 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |        Playbook for SAP Functional Tests (sap-automation-qa)               |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               localhost
+  name:                                "SAP Functional Tests: - setup deployer"
+  gather_facts:                        true
+  vars_files:                          vars/ansible-input-api.yaml
+  tasks:
+    - name:                            "SAP Functional Tests: - Create Progress folder"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                         directory
+        mode:                          0755
+
+    - name:                            "SAP Functional Tests: - Remove sap-funtional-test flag"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/sap-functional-tests-done"
+        state:                          absent
+
+# noqa syntax-check[missing-file]
+- name:                                "SAP Functional DB: Tests run checks"
+  ansible.builtin.import_playbook:     "/opt/microsoft/sap_functional_tests/src/playbook_00_ha_db_functional_tests.yml"
+  when:                                sap_functional_test_type == "DatabaseHighAvailability"
+
+# noqa syntax-check[missing-file]
+- name:                                "SAP Functional Central Services: Tests run checks"
+  ansible.builtin.import_playbook:     "/opt/microsoft/sap_functional_tests/src/playbook_00_ha_scs_functional_tests.yml"
+  when:                                sap_functional_test_type == "CentralServicesHighAvailability"
+
+- hosts:                               localhost
+  name:                                "SAP Functional Tests: - Done"
+  gather_facts:                        true
+  vars_files:                          vars/ansible-input-api.yaml
+  tasks:
+    - name:                            "SAP Functional Tests: - Create sap-functional-tests-done flag"
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/sap-functional-tests-done"
+        state:                         touch
+        mode:                          0755

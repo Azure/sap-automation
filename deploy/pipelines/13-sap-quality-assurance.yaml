@@ -1,0 +1,169 @@
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               This pipeline performs the SAP quality assurance             |
+# |              tests and must run on a self hosted deployment agent          |
+# |                      due to long run time.                                 |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+parameters:
+  - name:                              sap_system_configuration_name
+    displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-X00
+
+  - name:                              environment
+    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
+    type:                              string
+    default:                           DEV
+
+  - name:                              sap_on_azure_quality_checks
+    displayName:                       SAP on Azure Quality Checks
+    type:                              boolean
+    default:                           true
+
+  - name:                              sap_functional_tests
+    displayName:                       SAP Functional Tests
+    type:                              boolean
+    default:                           true
+
+  - name:                              sap_functional_test_type
+    displayName:                       SAP Functional Tests Type
+    type:                              string
+    default:                           "DatabaseHighAvailability"
+    values:
+      - "DatabaseHighAvailability"
+      - "CentralServicesHighAvailability"
+
+  - name:                              telemetry_data_destination
+    displayName:                       Telemetry Data Destination (Provide connection settings in Extra Parameters)
+    type:                              string
+    default:                           ""
+    values:
+      - "AzureLogAnalytics"
+      - "AzureDataExplorer"
+
+  - name:                              extra_params
+    displayName:                       Extra Parameters
+    type:                              string
+    default:                           ""
+
+  - name:                              sap_automation_repo_path
+    displayName:                       The local path on the agent where the sap_automation repo can be found
+    type:                              string
+
+  - name:                              config_repo_path
+    displayName:                       The local path on the agent where the config repo can be found
+    type:                              string
+
+stages:
+  - stage:                             Preparation_for_Ansible
+    condition:                         and(not(failed()), not(canceled()))
+    variables:
+      - template:                      variables/13-sap-quality-assurance.yaml
+        parameters:
+          environment:                 ${{ parameters.environment }}
+    displayName:                       SAP Quality Assurance Tests
+    jobs:
+      - job:                           Installation_step
+        displayName:                   SAP Quality Assurance Tests
+        timeoutInMinutes:              0
+        workspace:
+          clean:                       all
+        steps:
+          - template:                  templates\download.yaml
+            parameters:
+              getLatestFromBranch:     true
+          - task:                      PostBuildCleanup@4
+          - task:                      Bash@3
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/13-sap-quality-assurance.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+            name:                      Preparation
+            displayName:               Preparation for Ansible
+            env:
+              SCRIPT_PATH:                   $${{ parameters.sap_automation_repo_path }}/deploy/pipelines/templates/*.sh
+              SYSTEM_ACCESSTOKEN:            $(System.AccessToken)
+              AZURE_DEVOPS_EXT_PAT:          $(System.AccessToken)
+              ANSIBLE_HOST_KEY_CHECKING:     false
+              AZURE_CLIENT_ID:               $(ARM_CLIENT_ID)
+              AZURE_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
+              AZURE_TENANT_ID:               $(ARM_TENANT_ID)
+              AZURE_SUBSCRIPTION_ID:         $(Terraform_Remote_Storage_Subscription)
+              ANSIBLE_COLLECTIONS_PATH:      /opt/ansible/collections
+              CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
+              EXTRA_PARAMETERS:              $(EXTRA_PARAMETERS)
+              PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
+              USE_MSI:                       $(USE_MSI)
+              CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+              ARM_SUBSCRIPTION_ID:           $(ARM_SUBSCRIPTION_ID)
+          - ${{ if eq(parameters.sap_on_azure_quality_checks, true) }}:
+              - template:                    templates\run-ansible.yaml
+                parameters:
+                  displayName:               SAP on Azure quality checks
+                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_02_sap_on_azure_quality_checks.yaml
+                  secretName:                "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                 $(Preparation.VAULT_NAME)
+                  parametersFolder:          $(Preparation.FOLDER)
+                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                  $(Preparation.HOSTS)
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
+          - ${{ if eq(parameters.sap_functional_tests, true) }}:
+              - template:                    templates\run-ansible.yaml
+                parameters:
+                  displayName:               SAP Functional Tests Setup
+                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_03_00_sap_functional_tests.yaml
+                  secretName:                "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                 $(Preparation.VAULT_NAME)
+                  parametersFolder:          $(Preparation.FOLDER)
+                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                  $(Preparation.HOSTS)
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
+                  sapFunctionalTestType:     ${{ parameters.sap_functional_test_type }}
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  telemetryDataDestination:  ${{ parameters.telemetry_data_destination }}
+          - ${{ if eq(parameters.sap_functional_tests, true) }}:
+              - template:                    templates\run-ansible.yaml
+                parameters:
+                  displayName:               SAP Functional Tests Test Execution
+                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_03_01_sap_functional_tests.yaml
+                  secretName:                "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                 $(Preparation.VAULT_NAME)
+                  parametersFolder:          $(Preparation.FOLDER)
+                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                  $(Preparation.HOSTS)
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:             $(ARM_CLIENT_ID)
+                  azureClientSecret:         $(ARM_CLIENT_SECRET)
+                  azureTenantId:             $(ARM_TENANT_ID)
+                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                   $(USE_MSI)
+                  sapFunctionalTestType:     ${{ parameters.sap_functional_test_type }}
+                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  telemetryDataDestination:  ${{ parameters.telemetry_data_destination }}
+          - template:                        templates\collect-log-files.yaml
+            parameters:
+              logPath:                       ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
+              qualityAssuranceResultsPath:   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/quality_assurance
+              runSapFunctionalTests:         ${{ parameters.sap_functional_tests }}
+              collectQualityChecks:          ${{ parameters.sap_on_azure_quality_checks }}

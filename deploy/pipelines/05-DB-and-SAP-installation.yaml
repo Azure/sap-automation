@@ -85,11 +85,6 @@ parameters:
     type:                              boolean
     default:                           false
 
-  - name:                              sap_on_azure_quality_checks
-    displayName:                       SAP on Azure Quality Checks
-    type:                              boolean
-    default:                           false
-
   - name:                              ams_provider
     displayName:                       Configure AMS Provider
     type:                              boolean
@@ -171,6 +166,7 @@ stages:
               PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
               USE_MSI:                       $(USE_MSI)
               CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+              ARM_SUBSCRIPTION_ID:           $(ARM_SUBSCRIPTION_ID)
           - template:                        templates\run-ansible.yaml
             parameters:
               displayName:                   "Parameter validation"
@@ -410,26 +406,6 @@ stages:
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
                   CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
-          - ${{ if eq(parameters.sap_on_azure_quality_checks, true) }}:
-              - template:                    templates\run-ansible.yaml
-                parameters:
-                  displayName:               SAP on Azure quality checks
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_02_sap_on_azure_quality_checks.yaml
-                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(Preparation.VAULT_NAME)
-                  parametersFolder:          $(Preparation.FOLDER)
-                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
-                  USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.acss_registration, true) }}:
               - template:                    templates\acss-registration.yaml
                 parameters:
@@ -474,5 +450,3 @@ stages:
           - template:                        templates\collect-log-files.yaml
             parameters:
               logPath:                       ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
-              qualityAssuranceResultsPath:   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/quality_assurance
-              collectQualityChecks:          ${{ parameters.sap_on_azure_quality_checks }}
