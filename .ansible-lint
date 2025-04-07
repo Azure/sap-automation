@@ -2,6 +2,8 @@ exclude_paths:
   - deploy/pipelines
   - deploy/terraform
   - .github
+  # Adding this to exclude the sap-automation-qa repo
+  - deploy/ansible/playbook_06_03_01_sap_functional_tests.yaml
 
 warn_list:
   # FIXME: Experimental violations should be fixed in separate PR
