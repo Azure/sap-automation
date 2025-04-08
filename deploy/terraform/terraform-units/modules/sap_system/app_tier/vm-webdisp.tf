@@ -547,7 +547,11 @@ resource "azurerm_lb" "web" {
                                 var.naming.separator,
                                 local.resource_suffixes.web_alb_feip
                               )
-                              subnet_id = local.web_subnet_deployed_id
+                              subnet_id = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
+                                azurerm_subnet.subnet_sap_web[0].id) : (
+                                data.azurerm_subnet.subnet_sap_web[0].id
+                              )
+                              public_ip_address_id = var.application_tier.web_lb_public_ip_id
                               private_ip_address = var.application_tier.use_DHCP ? (
                                 null) : (
                                 try(
