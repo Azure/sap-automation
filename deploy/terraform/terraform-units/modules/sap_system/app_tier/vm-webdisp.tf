@@ -553,9 +553,9 @@ resource "azurerm_lb" "web" {
                                 try(
                                   local.webdispatcher_loadbalancer_ips[0],
                                   cidrhost(
-                                    local.web_subnet_exists ? (
-                                             data.azurerm_subnet.subnet_sap_web[0].address_prefixes[0]) : (
-                                             azurerm_subnet.subnet_sap_web[0].address_prefixes[0]
+                                    var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
+                                             azurerm_subnet.subnet_sap_web[0].address_prefixes[0]) : (
+                                             data.azurerm_subnet.subnet_sap_web[0].address_prefixes[0]
                                          ),
                                     local.ip_offsets.web_lb
                                   )
