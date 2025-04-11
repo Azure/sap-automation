@@ -84,7 +84,8 @@ while :; do
 		shift 2
 		;;
 	-s | --subscription)
-		subscription="$2"
+	 	subscription="$2"
+		ARM_SUBSCRIPTION_ID="$subscription"
 		shift 2
 		;;
 	-t | --tenant_id)
