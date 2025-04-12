@@ -126,8 +126,6 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$TF_VERSION"
 	echo -e "$green--- az login ---$reset"
 	LogonToAzure false
-else
-	LogonToAzure "$USE_MSI"
 fi
 return_code=$?
 if [ 0 != $return_code ]; then
