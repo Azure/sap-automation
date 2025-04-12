@@ -126,6 +126,8 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$TF_VERSION"
 	echo -e "$green--- az login ---$reset"
 	LogonToAzure false
+else
+  source "/etc/profile.d/deploy_server.sh"
 fi
 return_code=$?
 if [ 0 != $return_code ]; then
@@ -351,22 +353,27 @@ echo -e "$green--- Deploy the workload zone ---$reset"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 
 # Set logon variables
-ARM_CLIENT_ID="$WL_ARM_CLIENT_ID"
-export ARM_CLIENT_ID
-ARM_CLIENT_SECRET="$WL_ARM_CLIENT_SECRET"
-export ARM_CLIENT_SECRET
-ARM_TENANT_ID=$WL_ARM_TENANT_ID
-export ARM_TENANT_ID
-ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
+if [ $USE_MSI != "true" ]; then
+	# Set logon variables
+	ARM_CLIENT_ID="$WL_ARM_CLIENT_ID"
+	export ARM_CLIENT_ID
+	ARM_CLIENT_SECRET="$WL_ARM_CLIENT_SECRET"
+	export ARM_CLIENT_SECRET
+	ARM_TENANT_ID=$WL_ARM_TENANT_ID
+	export ARM_TENANT_ID
+else
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
+
+fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	echo -e "$green--- az login ---$reset"
 	LogonToAzure false
-else
-	LogonToAzure "$USE_MSI"
 fi
+
 return_code=$?
 if [ 0 != $return_code ]; then
 	echo -e "$bold_red--- Login failed ---$reset"
