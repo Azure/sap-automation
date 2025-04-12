@@ -113,9 +113,9 @@ if [ $USE_MSI != "true" ]; then
 	export ARM_CLIENT_SECRET
 	ARM_TENANT_ID=$CP_ARM_TENANT_ID
 	export ARM_TENANT_ID
+fi
 	ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
 	export ARM_SUBSCRIPTION_ID
-fi
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$TF_VERSION"
