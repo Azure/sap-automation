@@ -13,12 +13,11 @@ source "sap-automation/deploy/pipelines/helper.sh"
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
-  set -x
-  set -o errexit
-  DEBUG=True
+	set -x
+	set -o errexit
+	DEBUG=True
 	echo "Environment variables:"
 	printenv | sort
-
 
 fi
 export DEBUG
@@ -106,15 +105,17 @@ if [ "$USE_MSI" != "true" ]; then
 fi
 
 # Set logon variables
-ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
-export ARM_CLIENT_ID
-ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
-export ARM_CLIENT_SECRET
-ARM_TENANT_ID=$CP_ARM_TENANT_ID
-export ARM_TENANT_ID
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
-
+if [ $USE_MSI != "true" ]; then
+	# Set logon variables
+	ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
+	export ARM_CLIENT_ID
+	ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
+	export ARM_CLIENT_SECRET
+	ARM_TENANT_ID=$CP_ARM_TENANT_ID
+	export ARM_TENANT_ID
+	ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
+	export ARM_SUBSCRIPTION_ID
+fi
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$TF_VERSION"
@@ -446,7 +447,7 @@ if [ -n "${VARIABLE_GROUP_ID}" ]; then
 		echo "Variable ${prefix}Workload_Secret_Prefix was not added to the $VARIABLE_GROUP variable group."
 	fi
 
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Zone_State_FileName" "${landscape_tfstate_key}" ; then
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Zone_State_FileName" "${landscape_tfstate_key}"; then
 		echo "Variable ${prefix}Workload_Zone_State_FileName was added to the $VARIABLE_GROUP variable group."
 	else
 		echo "##vso[task.logissue type=error]Variable ${prefix}Workload_Zone_State_FileName was not added to the $VARIABLE_GROUP variable group."
