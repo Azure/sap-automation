@@ -379,7 +379,7 @@ if [ -f .terraform/terraform.tfstate ]; then
 
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 	if [ -n "${azure_backend}" ]; then
-		if terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
+		if terraform -chdir="${terraform_module_directory}" init -force-copy -upgrade=true; then
 			echo ""
 			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 			echo ""
@@ -407,7 +407,7 @@ if [ -f .terraform/terraform.tfstate ]; then
 		fi
 	fi
 else
-	if terraform -chdir="${terraform_module_directory}" init -reconfigure \
+	if terraform -chdir="${terraform_module_directory}" init -force-copy -reconfigure \
 		--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 		--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 		--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
