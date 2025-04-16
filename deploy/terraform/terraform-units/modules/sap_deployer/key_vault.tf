@@ -31,6 +31,7 @@ resource "azurerm_key_vault" "kv_user" {
   purge_protection_enabled             = var.enable_purge_control_for_keyvaults
   sku_name                             = "standard"
   public_network_access_enabled        = var.bootstrap ? true : var.public_network_access_enabled
+  enable_rbac_authorization            = var.key_vault.enable_rbac_authorization
 
   network_acls {
             bypass                     = "AzureServices"

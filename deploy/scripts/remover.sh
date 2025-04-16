@@ -379,7 +379,12 @@ if [ -f .terraform/terraform.tfstate ]; then
 
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 	if [ -n "${azure_backend}" ]; then
-		if terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
+		if terraform -chdir="${terraform_module_directory}" init -input=false -force-copy -upgrade=true \
+			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
+			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+			--backend-config "container_name=tfstate" \
+			--backend-config "key=${key}.terraform.tfstate"; then
 			echo ""
 			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 			echo ""
@@ -390,7 +395,7 @@ if [ -f .terraform/terraform.tfstate ]; then
 			exit 1
 		fi
 	else
-		if terraform -chdir="${terraform_module_directory}" init -reconfigure \
+		if terraform -chdir="${terraform_module_directory}" init -reconfigure -input=false \
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -407,7 +412,7 @@ if [ -f .terraform/terraform.tfstate ]; then
 		fi
 	fi
 else
-	if terraform -chdir="${terraform_module_directory}" init -reconfigure \
+	if terraform -chdir="${terraform_module_directory}" init -force-copy -reconfigure -input=false \
 		--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 		--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 		--backend-config "storage_account_name=${REMOTE_STATE_SA}" \

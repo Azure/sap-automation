@@ -378,6 +378,11 @@ variable "soft_delete_retention_days"                 {
                                                         default     = 7
                                                       }
 
+variable "enable_rbac_authorization"                 {
+                                                        description = "Enable RBAC authorization for the key vault"
+                                                        default     = false
+                                                      }
+
 #######################################4#######################################8
 #                                                                              #
 #  Miscellaneous settings                                                      #

@@ -99,7 +99,7 @@
                                                 SAPINST_USE_HOSTNAME={{ virtual_host }}                              \
                                                 SAPINST_SKIP_DIALOGS=true                                            \
                                                 SAPINST_START_GUISERVER=false                                        \
-                                                 SAPINST_ENFORCE_CRL={{ sapinst_enforce_crl }}                       \
+                                                SAPINST_ENFORCE_CRL={{ sapinst_enforce_crl }}                        \
                                                 SAPINST_SKIP_ERRORSTEP=true
           args:
             chdir:                     "{{ target_media_location }}/SWPM"

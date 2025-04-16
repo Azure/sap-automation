@@ -158,8 +158,6 @@ if [ 0 != $return_code ]; then
 	echo "##vso[task.logissue type=error]az login failed."
 	exit $return_code
 fi
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
 export TF_VAR_subscription_id
 

@@ -151,7 +151,6 @@ resource "azurerm_linux_virtual_machine" "app" {
 
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = var.infrastructure.platform_updates
 
   //If length of zones > 1 distribute servers evenly across zones
   zone                                 = var.application_tier.app_use_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
@@ -308,7 +307,6 @@ resource "azurerm_windows_virtual_machine" "app" {
   enable_automatic_updates                               = !(var.infrastructure.patch_mode == "ImageDefault")
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = var.infrastructure.platform_updates
 
   //If length of zones > 1 distribute servers evenly across zones
   zone                                 = var.application_tier.app_use_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
