@@ -84,7 +84,10 @@ while :; do
 		shift 2
 		;;
 	-s | --subscription)
-		subscription="$2"
+	 	subscription="$2"
+		ARM_SUBSCRIPTION_ID="$subscription"
+		export ARM_SUBSCRIPTION_ID
+
 		shift 2
 		;;
 	-t | --tenant_id)
@@ -572,7 +575,8 @@ if [ 2 -eq $step ]; then
 
 	relative_path="${library_dirname}"
 	export TF_DATA_DIR="${relative_path}/.terraform"
-	relative_path="$CONFIG_REPO_PATH/${deployer_dirname}"
+	relative_path="${deployer_dirname}"
+
 
 	cd "${library_dirname}" || exit
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/

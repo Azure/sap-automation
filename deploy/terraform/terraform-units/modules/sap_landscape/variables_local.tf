@@ -25,8 +25,9 @@ locals {
   region                                          = var.infrastructure.region
 
   // Firewall
-  firewall_exists                                 = length(local.firewall_id) > 0
+
   firewall_id                                     = try(var.deployer_tfstate.firewall_id, "")
+  firewall_exists                                 = length(local.firewall_id) > 0
   firewall_ip                                     = try(var.deployer_tfstate.firewall_ip, "")
   firewall_name                                   = local.firewall_exists ? try(split("/", local.firewall_id)[8], "") : ""
   firewall_rgname                                 = local.firewall_exists ? try(split("/", local.firewall_id)[4], "") : ""
