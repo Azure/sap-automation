@@ -810,12 +810,15 @@ if [ 4 -eq $step ]; then
 			--deployer_tfstate_key "${deployer_tfstate_key}" \
 			$ado_flag \
 			--auto-approve; then
+			return_code=$?
 			echo "Migrating the SAP Library state failed"
 			step=4
 			save_config_var "step" "${deployer_config_information}"
 			exit 40
 		else
-			return_code=$?
+			step=3
+			save_config_var "step" "${deployer_config_information}"
+			return_code=0
 		fi
 	else
 		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
@@ -828,7 +831,9 @@ if [ 4 -eq $step ]; then
 			save_config_var "step" "${deployer_config_information}"
 			exit 40
 		else
-			return_code=$?
+			step=3
+			save_config_var "step" "${deployer_config_information}"
+			return_code=0
 		fi
 	fi
 
@@ -929,8 +934,6 @@ if [ 5 -eq $step ]; then
 	fi
 fi
 
-step=3
-save_config_var "step" "${deployer_config_information}"
 echo "##vso[task.setprogress value=100;]Progress Indicator"
 
 unset TF_DATA_DIR
