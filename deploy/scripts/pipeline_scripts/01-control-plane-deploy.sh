@@ -292,6 +292,10 @@ if [ "$USE_MSI" != "true" ]; then
 		return_code=$?
 		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
 		echo "Return code from deploy_controlplane $return_code."
+	else
+		return_code=$?
+		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
+		echo "Return code from deploy_controlplane $return_code."
 	fi
 else
 	export TF_VAR_use_spn=false
@@ -302,6 +306,10 @@ else
 		--subscription "$ARM_SUBSCRIPTION_ID" \
 		--auto-approve --ado --msi \
 		"${storage_account_parameter}" "${keyvault_parameter}"; then
+		return_code=$?
+		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
+		echo "Return code from deploy_controlplane $return_code."
+	else
 		return_code=$?
 		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
 		echo "Return code from deploy_controlplane $return_code."

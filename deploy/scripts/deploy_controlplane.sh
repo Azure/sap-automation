@@ -935,4 +935,4 @@ echo "##vso[task.setprogress value=100;]Progress Indicator"
 
 unset TF_DATA_DIR
 
-exit 0
+exit $return_code
