@@ -204,8 +204,6 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
 
   encryption_at_host_enabled                             = var.infrastructure.encryption_at_host_enabled
 
-  encryption_at_host_enabled                             = var.infrastructure.encryption_at_host_enabled
-
   os_disk {
             name = format("%s%s%s%s%s",
               var.naming.resource_prefixes.osdisk,
