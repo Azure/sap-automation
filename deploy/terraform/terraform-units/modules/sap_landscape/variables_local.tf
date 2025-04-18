@@ -27,7 +27,7 @@ locals {
   // Firewall
 
 
-  firewall_exists                                 = tostring(var.deployer_tfstate.firewall_id) != "null"
+  firewall_exists                                 = length(trimspace(coalesece(var.deployer_tfstate.firewall_id, " "))) > 0
   firewall_id                                     = local.firewall_exists ? try(var.deployer_tfstate.firewall_id, "") : ""
   firewall_ip                                     = local.firewall_exists ? try(var.deployer_tfstate.firewall_ip, "") : ""
   firewall_name                                   = local.firewall_exists ? try(split("/", local.firewall_id)[8], "") : ""
