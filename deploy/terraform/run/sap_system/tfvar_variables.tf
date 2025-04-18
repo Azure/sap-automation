@@ -161,6 +161,12 @@ variable "custom_random_id"                     {
                                                   default     = ""
                                                 }
 
+variable "encryption_at_host_enabled"           {
+                                                  description = "Enable or disable host encryption for the deployer"
+                                                  default     = false
+                                                  type        = bool
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  Virtual Network variables                                                            #
