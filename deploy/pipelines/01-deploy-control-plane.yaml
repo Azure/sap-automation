@@ -78,7 +78,7 @@ stages:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
           - task:                      TerraformInstaller@1
-            displayName:               Install terraform
+            displayName:               Install Terraform
             inputs:
               terraformVersion:        latest
           # Set Variables.
