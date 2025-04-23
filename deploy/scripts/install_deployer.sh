@@ -350,20 +350,18 @@ if [ -n "${approve}" ]; then
 		$allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee apply_output.json; then
 		return_value=$?
 		echo ""
-		echo -e "${cyan} Terraform apply:                    succeeded$reset_formatting"
-
+		echo -e "${cyan} Terraform apply:                    succeeded ($return_value) $reset_formatting"
 		echo ""
 	else
 		return_value=$?
-		echo "Terraform apply return code:         $return_value"
 		if [ $return_value -eq 1 ]; then
 			echo ""
-			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
+			echo -e "${bold_red}Terraform apply:                     failed ($return_value)$reset_formatting"
 			echo ""
 		else
 			# return code 2 is ok
 			echo ""
-			echo -e "${cyan} Terraform apply:                    succeeded$reset_formatting"
+			echo -e "${cyan} Terraform apply:                    succeeded ($return_value)$reset_formatting"
 			echo ""
 			return_value=0
 		fi
@@ -375,15 +373,14 @@ else
 	else
 		return_value=${PIPESTATUS[0]}
 	fi
-	echo "Terraform apply return code:         $return_value"
 	if [ $return_value -eq 1 ]; then
 		echo ""
-		echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
+		echo -e "${bold_red}Terraform apply:                     failed ($return_value)$reset_formatting"
 		echo ""
 	else
 		# return code 2 is ok
 		echo ""
-		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
+		echo -e "${cyan}Terraform apply:                     succeeded ($return_value)$reset_formatting"
 		echo ""
 		return_value=0
 	fi
