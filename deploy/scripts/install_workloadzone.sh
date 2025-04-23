@@ -652,20 +652,20 @@ TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 export TF_VAR_subscription_id
 
 if [ ! -d .terraform/ ]; then
-	if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+	if terraform -chdir="${terraform_module_directory}" init -upgrade=true \
 		--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 		--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 		--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
 		--backend-config "container_name=tfstate" \
 		--backend-config "key=${key}.terraform.tfstate"; then
-		return_value=$?
-		echo ""
-		echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-		echo ""
-	else
 		return_value=0
 		echo ""
 		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+		echo ""
+	else
+		return_value=$?
+		echo ""
+		echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 		echo ""
 	fi
 else
@@ -673,32 +673,32 @@ else
 	local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
 	if [ -n "${local_backend}" ]; then
 
-		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
-			return_value=$?
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
-		else
 			return_value=0
 			echo ""
 			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+			echo ""
+		else
+			return_value=$?
+			echo ""
+			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 			echo ""
 		fi
 	else
-		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
-			return_value=$?
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
-		else
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
 			return_value=0
 			echo ""
 			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+			echo ""
+		else
+			return_value=$?
+			echo ""
+			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 			echo ""
 		fi
 
@@ -715,10 +715,10 @@ if [ 0 != $return_value ]; then
 	echo "Terraform initialization failed"
 	exit $return_value
 fi
-if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-	check_output=1
-else
+if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 	check_output=0
+else
+	check_output=1
 fi
 
 save_config_var "REMOTE_STATE_SA" "${workload_config_information}"
@@ -890,7 +890,7 @@ echo ""
 allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
 # shellcheck disable=SC2086
-if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee plan_output.log; then
+if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee plan_output.log; then
 	return_value=${PIPESTATUS[0]}
 else
 	return_value=${PIPESTATUS[0]}
@@ -1021,12 +1021,12 @@ if [ 1 == $apply_needed ]; then
 
 	if [ -n "${approve}" ]; then
 		# Using if so that no zero return codes don't fail -o errexit
-		if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParameters -input=false | tee apply_output.json; then
+		if terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParameters -input=false | tee apply_output.json; then
 			return_value=${PIPESTATUS[0]}
 		else
 			return_value=${PIPESTATUS[0]}
 		fi
-		echo    "Return value:                        $return_value"
+		echo "Return value:                        $return_value"
 		if [ $return_value -eq 1 ]; then
 			echo ""
 			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
@@ -1044,7 +1044,7 @@ if [ 1 == $apply_needed ]; then
 		terraform -chdir="${terraform_module_directory}" apply -detailed-exitcode -parallelism="${parallelism}" $allParameters
 		return_value=$?
 
-		echo    "Return value:                        $return_value"
+		echo "Return value:                        $return_value"
 		if [ $return_value -ne 1 ]; then
 			echo ""
 			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"

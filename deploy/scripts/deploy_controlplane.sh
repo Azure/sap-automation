@@ -358,16 +358,20 @@ if [ 0 == "$step" ]; then
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+		if  "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
 			--parameterfile "${deployer_file_parametername}" --auto-approve; then
+			return_code=$?
+		else
 			echo "Bootstrapping of the deployer failed"
 			step=0
 			save_config_var "step" "${deployer_config_information}"
 			exit 10
 		fi
 	else
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
 			--parameterfile "${deployer_file_parametername}"; then
+			return_code=$?
+		else
 			echo "Bootstrapping of the deployer failed"
 			step=0
 			save_config_var "step" "${deployer_config_information}"
@@ -588,34 +592,34 @@ if [ 2 -eq $step ]; then
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
 			--parameterfile "${library_file_parametername}" \
 			--deployer_statefile_foldername "${relative_path}" \
 			--keyvault "${keyvault}" --auto-approve; then
+			return_code=$?
+			step=3
+			save_config_var "step" "${deployer_config_information}"
+		else
 			echo "Bootstrapping of the SAP Library failed"
 			step=2
 			save_config_var "step" "${deployer_config_information}"
 			exit 20
-		else
-			step=3
-			save_config_var "step" "${deployer_config_information}"
 
 		fi
 	else
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
+		if  "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
 			--parameterfile "${library_file_parametername}" \
 			--deployer_statefile_foldername "${relative_path}" \
 			--keyvault "${keyvault}"; then
 			return_code=$?
+			step=3
+			save_config_var "step" "${deployer_config_information}"
+		else
+			return_code=$?
 			echo "Bootstrapping of the SAP Library failed"
-
 			step=2
 			save_config_var "step" "${deployer_config_information}"
 			exit 20
-		else
-			return_code=$?
-			step=3
-			save_config_var "step" "${deployer_config_information}"
 		fi
 	fi
 

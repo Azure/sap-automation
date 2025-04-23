@@ -346,8 +346,14 @@ fi
 
 if [ -n "${approve}" ]; then
 	# shellcheck disable=SC2086
-	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
 		$allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee apply_output.json; then
+		return_value=$?
+		echo ""
+		echo -e "${cyan} Terraform apply:                    succeeded$reset_formatting"
+
+		echo ""
+	else
 		return_value=$?
 		echo "Terraform apply return code:         $return_value"
 		if [ $return_value -eq 1 ]; then
@@ -358,14 +364,13 @@ if [ -n "${approve}" ]; then
 			# return code 2 is ok
 			echo ""
 			echo -e "${cyan} Terraform apply:                    succeeded$reset_formatting"
-
 			echo ""
 			return_value=0
 		fi
 	fi
 else
 	# shellcheck disable=SC2086
-	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters | tee apply_output.json; then
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters | tee apply_output.json; then
 		return_value=${PIPESTATUS[0]}
 	else
 		return_value=${PIPESTATUS[0]}
