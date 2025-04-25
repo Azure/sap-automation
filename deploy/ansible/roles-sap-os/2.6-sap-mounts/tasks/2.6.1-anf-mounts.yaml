@@ -660,7 +660,6 @@
       - hana_shared_mountpoint is defined
       - hana_shared_mountpoint | length > 0
       - not database_scale_out
-      - ansible_hostname == db_hosts[0]
 
   - name:                                "ANF Mount: HANA data (secondary)"
     ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
