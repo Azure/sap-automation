@@ -129,7 +129,7 @@ namespace SDAFWebApp.Controllers
                         str.AppendLine($"  \"{t.Key}\" = \"{t.Value}\",");
                     }
                 }
-                str.Append("}");
+                str.Append('}');
             }
             else if (property.PropertyType.IsArray)
             {
@@ -140,7 +140,7 @@ namespace SDAFWebApp.Controllers
                     str.Append($"\"{val}\", ");
                 }
                 str.Remove(str.Length - 2, 2);
-                str.Append("]");
+                str.Append(']');
             }
             else if (property.PropertyType == typeof(Image))
             {
@@ -156,7 +156,7 @@ namespace SDAFWebApp.Controllers
                     str.AppendLine("  sku = " + $"\"{img.sku}\",");
                     str.AppendLine("  version = " + $"\"{img.version}\",");
                     str.AppendLine("  type = " + $"\"{img.type}\"");
-                    str.Append("}");
+                    str.Append('}');
                 }
                 else
                 {
@@ -188,9 +188,9 @@ namespace SDAFWebApp.Controllers
             Commit commit = new()
             {
                 comment = $"{changeType}ed {path}",
-                changes = new Change[]
-                {
-                    new Change()
+                changes =
+                [
+                    new()
                     {
                         changeType = changeType,
                         item = new Item()
@@ -203,7 +203,7 @@ namespace SDAFWebApp.Controllers
                             contentType = "rawtext"
                         }
                     }
-                }
+                ]
             };
             requestBody.commits = new Commit[] { commit };
             string requestJson = JsonSerializer.Serialize(requestBody);
@@ -245,9 +245,9 @@ namespace SDAFWebApp.Controllers
         public static string MapRegion(string region)
         {
             if (region == null) return "";
-            if (regionMapping.ContainsKey(region))
+            if (regionMapping.TryGetValue(region, out string value))
             {
-                return regionMapping[region];
+                return value;
             }
             else
             {
@@ -266,7 +266,7 @@ namespace SDAFWebApp.Controllers
             // a display name.
             MemberInfo property =
                 typeof(FileUploadModel).GetProperty(
-                    formFile.Name[(formFile.Name.IndexOf(".", StringComparison.Ordinal) + 1)..]);
+                    formFile.Name[(formFile.Name.IndexOf('.') + 1)..]);
 
             if (property != null)
             {
@@ -359,6 +359,8 @@ namespace SDAFWebApp.Controllers
             return true;
         }
 
+        // Updated lines to use 'string.StartsWith(char)' instead of 'string.StartsWith(string)' where applicable.
+
         public static string TfvarToJson(string hclString)
         {
             StringReader stringReader = new(hclString);
@@ -373,18 +375,18 @@ namespace SDAFWebApp.Controllers
                     jsonString.AppendLine("}");
                     break;
                 }
-                else if (currLine.StartsWith("#") || currLine == "")
+                else if (currLine.StartsWith('#') || currLine == "")
                 {
                     continue;
                 }
-                else if (currLine.StartsWith("}"))
+                else if (currLine.StartsWith('}'))
                 {
                     jsonString.Remove(jsonString.Length - 3, 1);
                     jsonString.AppendLine("},");
                 }
                 else
                 {
-                    int equalIndex = currLine.IndexOf("=");
+                    int equalIndex = currLine.IndexOf('=');
                     if (equalIndex >= 0)
                     {
                         string key = currLine[..equalIndex].Trim();
@@ -398,9 +400,9 @@ namespace SDAFWebApp.Controllers
                         {
                             value += "[";
                             currLine = stringReader.ReadLine();
-                            while (!currLine.StartsWith("}"))
+                            while (!currLine.StartsWith('}'))
                             {
-                                equalIndex = currLine.IndexOf("=");
+                                equalIndex = currLine.IndexOf('=');
                                 var tagKey = currLine[..equalIndex].Trim();
                                 if (!tagKey.StartsWith("\""))
                                 {
@@ -419,9 +421,9 @@ namespace SDAFWebApp.Controllers
                         {
                             value += "[";
                             currLine = stringReader.ReadLine();
-                            while (!currLine.StartsWith("}"))
+                            while (!currLine.StartsWith('}'))
                             {
-                                equalIndex = currLine.IndexOf("=");
+                                equalIndex = currLine.IndexOf('=');
                                 var tagKey = currLine[..equalIndex].Trim();
                                 if (!tagKey.StartsWith("\""))
                                 {
@@ -439,7 +441,7 @@ namespace SDAFWebApp.Controllers
                         else
                         {
                             value = currLine[(equalIndex + 1)..].Trim();
-                            if (!value.EndsWith(",") && !value.EndsWith("{"))
+                            if (!value.EndsWith(',') && !value.EndsWith('{'))
                             {
                                 value += ",";
                             }

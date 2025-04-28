@@ -16,7 +16,9 @@ namespace SDAFWebApp.Models
             RowKey = landscape.Id;
             PartitionKey = landscape.environment;
             IsDefault = landscape.IsDefault;
-            Landscape = JsonSerializer.Serialize(landscape, new JsonSerializerOptions() { });
+            JsonSerializerOptions options = new()
+            { };
+            Landscape = JsonSerializer.Serialize(landscape, options);
         }
 
         public string RowKey { get; set; } = default!;

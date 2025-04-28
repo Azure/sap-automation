@@ -328,7 +328,6 @@
         "Name": "shared_access_key_enabled_nfs",
         "Required": false,
         "Description": "Storage account authorization using Shared Access Key (NFS shares).",
-        "Description": "Storage account authorization using Shared Access Key (NFS shares).",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",

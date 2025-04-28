@@ -51,7 +51,7 @@ namespace SDAFWebApp.Models
                 string addresses = value.ToString();
                 string pattern = @"^\d+\.\d+\.\d+\.\d+\/\d+$";
 
-                if (addresses.Contains(","))
+                if (addresses.Contains(','))
                 {
                     bool returnValue = true;
                     foreach (string address in addresses.Split(','))
@@ -309,15 +309,11 @@ namespace SDAFWebApp.Models
         }
 
 
-        public class SubnetRequired : ValidationAttribute
+        public class SubnetRequired(string subnetType) : ValidationAttribute
         {
-            private readonly string thisProperty;
-            private readonly string targetProperty;
-            public SubnetRequired(string subnetType)
-            {
-                thisProperty = subnetType + "_subnet_address_prefix";
-                targetProperty = subnetType + "_subnet_arm_id";
-            }
+            private readonly string thisProperty = subnetType + "_subnet_address_prefix";
+            private readonly string targetProperty = subnetType + "_subnet_arm_id";
+
             protected override ValidationResult IsValid(object value, ValidationContext context)
             {
                 bool isDefault = (bool)context.ObjectInstance.GetType().GetProperty("IsDefault").GetValue(context.ObjectInstance);
@@ -362,7 +358,7 @@ namespace SDAFWebApp.Models
         {
             public override bool IsValid(object value)
             {
-                string[] acceptedPlatforms = new string[] {
+                string[] acceptedPlatforms = [
                     "HANA",
                     "DB2",
                     "ORACLE",
@@ -370,7 +366,7 @@ namespace SDAFWebApp.Models
                     "SYBASE",
                     "SQLSERVER",
                     "NONE"
-                };
+                ];
                 return (value == null) || acceptedPlatforms.Contains(value);
             }
         }
@@ -378,7 +374,7 @@ namespace SDAFWebApp.Models
         {
             protected override ValidationResult IsValid(object value, ValidationContext context)
             {
-                string[] hanadb_sizes = new string[] {
+                string[] hanadb_sizes = [
                     "Default",
                     "Custom",
                     "S4Demo",
@@ -403,8 +399,8 @@ namespace SDAFWebApp.Models
                     "M208ms_v2",
                     "M416s_v2",
                     "M416ms_v2"
-                };
-                string[] anydb_sizes = new string[] {
+                ];
+                string[] anydb_sizes = [
                     "Default",
                     "Custom",
                     "256",
@@ -418,7 +414,7 @@ namespace SDAFWebApp.Models
                     "30720",
                     "40960",
                     "51200"
-                };
+                ];
                 string size = (string)value;
                 string platform = (string)context.ObjectInstance.GetType().GetProperty("database_platform").GetValue(context.ObjectInstance);
                 if (platform == null)

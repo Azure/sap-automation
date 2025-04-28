@@ -12,16 +12,10 @@ using System.Threading.Tasks;
 
 namespace SDAFWebApp.Services
 {
-    public class SystemService : ITableStorageService<SystemEntity>
+    public class SystemService(TableStorageService tableStorageService, IDatabaseSettings settings) : ITableStorageService<SystemEntity>
     {
-        private readonly TableClient client;
-        private readonly BlobContainerClient tfvarsBlobContainerClient;
-
-        public SystemService(TableStorageService tableStorageService, IDatabaseSettings settings)
-        {
-            client = tableStorageService.GetTableClient(settings.SystemCollectionName).Result;
-            tfvarsBlobContainerClient = tableStorageService.GetBlobClient(settings.TfVarBlobCollectionName).Result;
-        }
+        private readonly TableClient client = tableStorageService.GetTableClient(settings.SystemCollectionName).Result;
+        private readonly BlobContainerClient tfvarsBlobContainerClient = tableStorageService.GetBlobClient(settings.TfVarBlobCollectionName).Result;
 
         public async Task<List<SystemEntity>> GetNAsync(int n)
         {

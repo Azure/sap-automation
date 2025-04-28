@@ -17,7 +17,6 @@ namespace SDAFWebApp.Models
                 network_logical_name != null
                 ;
         }
-        #pragma warning disable IDE1006 // Naming Styles
 
         [DisplayName("Workload zone ID")]
         public string Id { get; set; }
@@ -495,7 +494,5 @@ namespace SDAFWebApp.Models
         public int? nat_gateway_idle_timeout_in_minutes { get; set; }
 
         public Tag[] nat_gateway_public_ip_tags { get; set; }
-#pragma warning restore IDE1006 // Naming Styles
-
     }
 }

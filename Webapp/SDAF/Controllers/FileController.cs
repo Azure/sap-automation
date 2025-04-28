@@ -23,26 +23,15 @@ using System.Collections.Concurrent;
 
 namespace SDAFWebApp.Controllers
 {
-    public class FileController : Controller
+    public class FileController(ITableStorageService<AppFile> appFileService, ITableStorageService<LandscapeEntity> landscapeService,
+        ITableStorageService<SystemEntity> systemService, IConfiguration configuration) : Controller
     {
-        private readonly ITableStorageService<AppFile> _appFileService;
-        private readonly ITableStorageService<LandscapeEntity> _landscapeService;
-        private readonly ITableStorageService<SystemEntity> _systemService;
-        private readonly RestHelper restHelper;
-
-        public FileController(ITableStorageService<AppFile> appFileService, ITableStorageService<LandscapeEntity> landscapeService,
-            ITableStorageService<SystemEntity> systemService, IConfiguration configuration)
-        {
-            _appFileService = appFileService;
-            _landscapeService = landscapeService;
-            _systemService = systemService;
-            restHelper = new RestHelper(configuration, "GIT");
-        }
+        private readonly RestHelper restHelper = new RestHelper(configuration, "GIT");
 
         [ActionName("Index")]
         public async Task<IActionResult> Index()
         {
-            return View(await _appFileService.GetAllAsync());
+            return View(await appFileService.GetAllAsync());
         }
 
         [ActionName("Templates")]
@@ -87,7 +76,7 @@ namespace SDAFWebApp.Controllers
             {
                 try
                 {
-                    string[] permittedExtensions = { ".tfvars" };
+                    string[] permittedExtensions = [".tfvars"];
                     long fileSizeLimit = 2097152;
                     foreach (var formFile in fileUpload.FormFiles)
                     {
@@ -121,7 +110,7 @@ namespace SDAFWebApp.Controllers
                             Id = WebUtility.HtmlEncode(formFile.FileName)
                         };
 
-                        await _appFileService.CreateAsync(file);
+                        await appFileService.CreateAsync(file);
 
                         TempData["success"] = "Successfully uploaded file(s)";
                     }
@@ -143,7 +132,7 @@ namespace SDAFWebApp.Controllers
             try
             {
                 // Convert a file to a landscape or system object
-                AppFile file = await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
+                AppFile file = await appFileService.GetByIdAsync(id, GetPartitionKey(id));
                 if (file == null) return NotFound();
 
                 id = id[..id.IndexOf('.')];
@@ -154,14 +143,14 @@ namespace SDAFWebApp.Controllers
                 {
                     LandscapeModel landscape = JsonSerializer.Deserialize<LandscapeModel>(jsonString);
                     landscape.Id = id;
-                    await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
+                    await landscapeService.CreateAsync(new LandscapeEntity(landscape));
                     TempData["success"] = "Successfully converted file " + id + " to a workload zone object";
                 }
                 else
                 {
                     SystemModel system = JsonSerializer.Deserialize<SystemModel>(jsonString);
                     system.Id = id;
-                    await _systemService.CreateAsync(new SystemEntity(system));
+                    await systemService.CreateAsync(new SystemEntity(system));
                     TempData["success"] = "Successfully converted file " + id + " to a system object";
                 }
             }
@@ -175,7 +164,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Details")]
         public async Task<IActionResult> DetailsAsync(string id, string sourceController)
         {
-            AppFile file = await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
+            AppFile file = await appFileService.GetByIdAsync(id, GetPartitionKey(id));
             if (file == null) return NotFound();
 
             byte[] bytes = file.Content;
@@ -210,7 +199,7 @@ namespace SDAFWebApp.Controllers
                     UploadDT = DateTime.UtcNow
                 };
 
-                await _appFileService.CreateAsync(file);
+                await appFileService.CreateAsync(file);
 
                 TempData["success"] = "Successfully created file " + id;
 
@@ -248,7 +237,7 @@ namespace SDAFWebApp.Controllers
                     file.FileType = type;
                     break;
                 default:
-                    file = await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
+                    file = await appFileService.GetByIdAsync(id, GetPartitionKey(id));
                     break;
             }
 
@@ -296,7 +285,7 @@ namespace SDAFWebApp.Controllers
                     ViewBag.FilePattern = newId;
                     break;
                 default:
-                    file = await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
+                    file = await appFileService.GetByIdAsync(id, GetPartitionKey(id));
                     break;
             }
             if (file == null) return NotFound();
@@ -307,12 +296,12 @@ namespace SDAFWebApp.Controllers
                 if (id != newId)
                 {
                     file.Id = newId;
-                    await _appFileService.CreateAsync(file);
-                    await _appFileService.DeleteAsync(id, GetPartitionKey(id));
+                    await appFileService.CreateAsync(file);
+                    await appFileService.DeleteAsync(id, GetPartitionKey(id));
                 }
                 else
                 {
-                    await _appFileService.UpdateAsync(file);
+                    await appFileService.UpdateAsync(file);
                 }
 
                 TempData["success"] = "Successfully updated file " + id;
@@ -343,7 +332,7 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitNewAsync(string id, string newId, string fileContent, string sourceController)
         {
-            AppFile file = await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
+            AppFile file = await appFileService.GetByIdAsync(id, GetPartitionKey(id));
             if (file == null) return NotFound();
 
             file.Id = newId;
@@ -352,7 +341,7 @@ namespace SDAFWebApp.Controllers
 
             try
             {
-                await _appFileService.CreateAsync(file);
+                await appFileService.CreateAsync(file);
 
                 TempData["success"] = "Successfully created file " + id;
 
@@ -376,7 +365,7 @@ namespace SDAFWebApp.Controllers
                 return BadRequest();
             }
 
-            AppFile file = await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
+            AppFile file = await appFileService.GetByIdAsync(id, GetPartitionKey(id));
             if (file == null)
             {
                 return NotFound();
@@ -393,7 +382,7 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmedAsync(string id, string sourceController)
         {
-            await _appFileService.DeleteAsync(id, GetPartitionKey(id));
+            await appFileService.DeleteAsync(id, GetPartitionKey(id));
             TempData["success"] = "Successfully deleted file " + id;
             return RedirectToAction("Index", sourceController);
         }
@@ -403,7 +392,7 @@ namespace SDAFWebApp.Controllers
         {
             try
             {
-                AppFile file = (isImagesFile) ? await GetImagesFile(fileName, 0, GetPartitionKey(id)) : await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
+                AppFile file = (isImagesFile) ? await GetImagesFile(fileName, 0, GetPartitionKey(id)) : await appFileService.GetByIdAsync(id, GetPartitionKey(id));
                 if (file == null) return NotFound();
 
                 var stream = new MemoryStream(file.Content);
@@ -429,7 +418,7 @@ namespace SDAFWebApp.Controllers
             AppFile file = null;
             try
             {
-                file = await _appFileService.GetByIdAsync(filename, partitionKey);
+                file = await appFileService.GetByIdAsync(filename, partitionKey);
             }
             catch
             {
@@ -446,7 +435,7 @@ namespace SDAFWebApp.Controllers
                     type = 2;
                 }
 
-                if (newName.Contains("..") || newName.Contains("/") || newName.Contains("\\"))
+                if (newName.Contains("..") || newName.Contains('/') || newName.Contains("\\"))
                 {
                     throw new Exception("Invalid filename");
                 }
@@ -456,19 +445,17 @@ namespace SDAFWebApp.Controllers
 
                     byte[] byteContent = System.IO.File.ReadAllBytes("ParameterDetails/" + newName);
 
-                    using (MemoryStream memory = new(byteContent))
+                    using MemoryStream memory = new(byteContent);
+                    file = new AppFile()
                     {
-                        file = new AppFile()
-                        {
 
-                            Id = WebUtility.HtmlEncode(filename),
-                            Content = byteContent,
-                            UntrustedName = filename,
-                            Size = memory.Length,
-                            UploadDT = DateTime.UtcNow,
-                            FileType = type
-                        };
-                    }
+                        Id = WebUtility.HtmlEncode(filename),
+                        Content = byteContent,
+                        UntrustedName = filename,
+                        Size = memory.Length,
+                        UploadDT = DateTime.UtcNow,
+                        FileType = type
+                    };
                 }
             }
             return file ?? new AppFile();

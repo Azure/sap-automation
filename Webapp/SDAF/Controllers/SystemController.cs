@@ -28,6 +28,12 @@ namespace SDAFWebApp.Controllers
         private readonly RestHelper restHelper;
 
         private ImageDropdown[] imagesOffered;
+
+        public SystemController(ImageDropdown[] imagesOffered)
+        {
+            this.imagesOffered = imagesOffered;
+        }
+
         private List<SelectListItem> imageOptions;
         private Dictionary<string, Image> imageMapping;
 
@@ -56,7 +62,7 @@ namespace SDAFWebApp.Controllers
             }
             catch
             {
-                systemView.ParameterGroupings = Array.Empty<Grouping>();
+                systemView.ParameterGroupings = [];
             }
 
             return systemView;
@@ -74,7 +80,7 @@ namespace SDAFWebApp.Controllers
                 systemIndex.SapObjects = systems;
 
                 List<AppFile> appfiles = await _appFileService.GetAllAsync();
-                systemIndex.AppFiles = appfiles.FindAll(file => !file.Id.EndsWith("INFRASTRUCTURE.tfvars") && file.Id != "VM-Images.json" && file.Id.IndexOf("_custom_") == -1);
+                systemIndex.AppFiles = appfiles.FindAll(file => !file.Id.EndsWith("INFRASTRUCTURE.tfvars") && file.Id != "VM-Images.json" && !file.Id.Contains("_custom_", StringComparison.CurrentCulture));
 
                 systemIndex.ImagesFile = await Helper.GetImagesFile(_appFileService);
             }
@@ -167,9 +173,8 @@ namespace SDAFWebApp.Controllers
         [HttpGet]
         public ActionResult GetImage(string name)
         {
-            if (name != null && imageMapping.ContainsKey(name))
+            if (name != null && imageMapping.TryGetValue(name, out Image image))
             {
-                Image image = imageMapping[name];
                 return Json(image);
             }
             else

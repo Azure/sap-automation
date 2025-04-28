@@ -9,16 +9,11 @@ using System.Threading.Tasks;
 
 namespace SDAFWebApp.Controllers
 {
-    public class EnvironmentController : Controller
+    public class EnvironmentController(IConfiguration configuration) : Controller
     {
-        private readonly IConfiguration _configuration;
-        private RestHelper restHelper;
-
-        public EnvironmentController(IConfiguration configuration)
-        {
-            _configuration = configuration;
-            restHelper = new RestHelper(configuration);
-        }
+        private readonly IConfiguration _configuration = configuration;
+        // Updated the 'restHelper' field to be readonly as it is only assigned in the constructor.
+        private readonly RestHelper restHelper = new RestHelper(configuration);
 
         [ActionName("Index")]
         public IActionResult Index()

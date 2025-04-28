@@ -12,18 +12,10 @@ using System.Threading.Tasks;
 
 namespace SDAFWebApp.Services
 {
-    public class LandscapeService : ITableStorageService<LandscapeEntity>
+    public class LandscapeService(TableStorageService tableStorageService, IDatabaseSettings settings) : ITableStorageService<LandscapeEntity>
     {
-        private readonly TableClient client;
-        private readonly BlobContainerClient tfvarsBlobContainerClient;
-
-
-        public LandscapeService(TableStorageService tableStorageService, IDatabaseSettings settings)
-        {
-            client = tableStorageService.GetTableClient(settings.LandscapeCollectionName).Result;
-            tfvarsBlobContainerClient = tableStorageService.GetBlobClient(settings.TfVarBlobCollectionName).Result;
-
-        }
+        private readonly TableClient client = tableStorageService.GetTableClient(settings.LandscapeCollectionName).Result;
+        private readonly BlobContainerClient tfvarsBlobContainerClient = tableStorageService.GetBlobClient(settings.TfVarBlobCollectionName).Result;
 
         public async Task<List<LandscapeEntity>> GetNAsync(int n)
         {
