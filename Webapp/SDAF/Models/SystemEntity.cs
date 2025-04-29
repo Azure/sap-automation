@@ -17,9 +17,7 @@ namespace SDAFWebApp.Models
             RowKey = system.Id;
             PartitionKey = system.environment;
             IsDefault = system.IsDefault;
-            JsonSerializerOptions options = new()
-            { };
-            System = JsonSerializer.Serialize(system, options);
+            System = JsonSerializer.Serialize(system, new JsonSerializerOptions() { });
         }
 
         public string RowKey { get; set; } = default!;

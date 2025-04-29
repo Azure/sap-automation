@@ -15,9 +15,10 @@ using System.Collections.Generic;
 
 namespace SDAFWebApp.Controllers
 {
-    public class ArmclientController(ArmClient armClient) : Controller
+    public class ArmclientController : Controller
     {
-        private readonly ArmClient _armClient = armClient;
+        private readonly ArmClient _armClient;
+        public ArmclientController(ArmClient armClient) => _armClient = armClient;
 
         [HttpGet] // #subscription
         public ActionResult GetSubscriptionOptions()
@@ -71,7 +72,7 @@ namespace SDAFWebApp.Controllers
                 if (rsc.SubscriptionId == null) return null;
                 int subnetsIndex = resourceId.IndexOf("/subnets");
                 if (subnetsIndex <= 0) return null;
-                string vnetId = resourceId[..resourceId.IndexOf("/subnets")];
+                string vnetId = resourceId.Substring(0, resourceId.IndexOf("/subnets"));
                 return Json(vnetId);
             }
             catch
@@ -227,7 +228,7 @@ namespace SDAFWebApp.Controllers
         public ActionResult GetStorageAccountOptions(string subscriptionId)
         {
             List<SelectListItem> options =
-            [
+      [
                 new SelectListItem { Text = "", Value = "" }
             ];
             try
@@ -246,15 +247,16 @@ namespace SDAFWebApp.Controllers
                         };
                         options.Add(li);
                     }
-                    catch (System.Exception)
+                    catch (System.Exception Ex)
                     {
-                        // Removed unnecessary assignment to 'errorMessage'
+                        string errorMessage = Ex.Message;
                     }
+
                 }
             }
-            catch (System.Exception)
+            catch (System.Exception Ex)
             {
-                // Removed unnecessary assignment to 'errorMessage'
+                string errorMessage = Ex.Message;
             }
             return Json(options);
         }

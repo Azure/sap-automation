@@ -7,9 +7,11 @@ using Microsoft.Extensions.Configuration;
 
 namespace SDAFWebApp.Controllers
 {
-    public class ViewBagActionFilter(IConfiguration configuration) : ActionFilterAttribute
+    public class ViewBagActionFilter : ActionFilterAttribute
     {
-        private readonly IConfiguration _configuration = configuration;
+        private readonly IConfiguration _configuration;
+
+        public ViewBagActionFilter(IConfiguration configuration) => _configuration = configuration;
 
         public override void OnResultExecuting(ResultExecutingContext context)
         {

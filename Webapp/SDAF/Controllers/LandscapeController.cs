@@ -338,7 +338,7 @@ namespace SDAFWebApp.Controllers
                 try
                 {
                     string newId = Helper.GenerateId(landscape);
-                    landscape.Id ??= newId;
+                    if (landscape.Id == null) landscape.Id = newId;
                     if (newId != landscape.Id)
                     {
                         landscape.Id = newId;

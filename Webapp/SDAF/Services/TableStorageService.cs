@@ -12,16 +12,22 @@ using System.Threading.Tasks;
 
 namespace SDAFWebApp.Services
 {
-    public class TableStorageService(IConfiguration configuration, IDatabaseSettings settings)
+    public class TableStorageService
     {
-        private readonly IConfiguration _configuration = configuration;
-        private readonly IDatabaseSettings _settings = settings;
+        private readonly IConfiguration _configuration;
+        private readonly IDatabaseSettings _settings;
+        public TableStorageService(IConfiguration configuration, IDatabaseSettings settings)
+        {
+            _configuration = configuration;
+            _settings = settings;
+        }
 
         public async Task<TableClient> GetTableClient(string table)
         {
+
             string devops_authentication = Environment.GetEnvironmentVariable("AUTHENTICATION_TYPE");
             string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey).Replace("blob", "table").Replace(".privatelink", "");
-            var creds = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+            DefaultAzureCredential creds = new DefaultAzureCredential(new DefaultAzureCredentialOptions
             {
                 TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID"),
                 ManagedIdentityClientId = Environment.GetEnvironmentVariable("OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID")
@@ -30,7 +36,7 @@ namespace SDAFWebApp.Services
             {
                 creds = new DefaultAzureCredential();
             }
-            var serviceClient = new TableServiceClient(
+            TableServiceClient serviceClient = new(
               new Uri(accountName), creds
              );
 
@@ -44,7 +50,7 @@ namespace SDAFWebApp.Services
             string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey);
             string devops_authentication = Environment.GetEnvironmentVariable("AUTHENTICATION_TYPE");
 
-            var creds = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+            DefaultAzureCredential creds = new DefaultAzureCredential(new DefaultAzureCredentialOptions
             {
                 TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID"),
                 ManagedIdentityClientId = Environment.GetEnvironmentVariable("OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID")
@@ -54,7 +60,7 @@ namespace SDAFWebApp.Services
                 creds = new DefaultAzureCredential();
             }
 
-            var serviceClient = new BlobServiceClient(
+            BlobServiceClient serviceClient = new(
               new Uri(accountName),
               creds);
 
