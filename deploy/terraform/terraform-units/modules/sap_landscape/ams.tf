@@ -33,7 +33,7 @@ resource "azapi_resource" "ams_instance" {
                                             azurerm_virtual_network.vnet_sap,
                                             azurerm_subnet.ams
                                           ]
-  body                                  = jsonencode({
+  body                                  = {
                                             properties = {
                                                             appLocation: local.region,
                                                             routingPreference: "RouteAll",
@@ -43,5 +43,5 @@ resource "azapi_resource" "ams_instance" {
                                                             },
                                                            monitorSubnet: length(local.ams_subnet_arm_id) > 0 ? local.ams_subnet_arm_id : azurerm_subnet.ams[0].id,
                                                           }
-                                          })
+                                          }
 }
