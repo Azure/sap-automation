@@ -84,6 +84,8 @@ resource "azurerm_linux_virtual_machine" "observer" {
 
   encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
+
   patch_mode                                             = var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
