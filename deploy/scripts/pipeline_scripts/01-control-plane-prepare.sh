@@ -165,9 +165,6 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-# Reset the account if sourcing was done
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
