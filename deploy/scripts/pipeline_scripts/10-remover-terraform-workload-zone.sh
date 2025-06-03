@@ -29,9 +29,11 @@ set -eu
 tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
 echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
+echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
 
 cd "${CONFIG_REPO_PATH}" || exit
 mkdir -p .sap_deployment_automation
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 if [ ! -f "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
@@ -243,6 +245,7 @@ ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh \
 return_code=$?
 echo -e "$green--- Pull latest from DevOps Repository ---$reset"
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
 git pull
 
 #stop the pipeline after you have reset the whitelisting on your resources
@@ -258,6 +261,8 @@ cd "$CONFIG_REPO_PATH" || exit
 
 changed=0
 # Pull changes
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
+git pull origin "$BUILD_SOURCEBRANCHNAME"
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 git pull origin "$BUILD_SOURCEBRANCHNAME"
 

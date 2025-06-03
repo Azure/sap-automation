@@ -28,8 +28,10 @@ set -eu
 tfvarsFile="SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FILENAME"
 
 echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
+echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
 
 cd "${CONFIG_REPO_PATH}" || exit
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 if [ ! -f "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FILENAME" ]; then
@@ -250,6 +252,7 @@ ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh \
 
 return_code=$?
 echo -e "$green--- Pull latest from DevOps Repository ---$reset"
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 git pull
 

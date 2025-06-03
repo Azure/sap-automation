@@ -581,6 +581,7 @@ if [ 2 -eq $step ]; then
 	export TF_DATA_DIR="${relative_path}/.terraform"
 	relative_path="$CONFIG_REPO_PATH/${deployer_dirname}"
 
+
 	cd "${library_dirname}" || exit
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
 

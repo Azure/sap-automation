@@ -154,7 +154,8 @@ variable "encryption_at_host_enabled"           {
                                                   description = "Enables host encryption for sap vms"
                                                   default     = false
                                                   type        = bool
-                                                }
+                                                }                                                     
+
 variable "data_plane_available"                 {
                                                   description = "Boolean value indicating if storage account access is via data plane"
                                                   default     = false
