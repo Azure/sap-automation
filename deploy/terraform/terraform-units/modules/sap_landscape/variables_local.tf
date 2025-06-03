@@ -26,9 +26,10 @@ locals {
 
   // Firewall
 
-  firewall_id                                     = try(var.deployer_tfstate.firewall_id, "")
-  firewall_exists                                 = length(local.firewall_id) > 0
-  firewall_ip                                     = try(var.deployer_tfstate.firewall_ip, "")
+
+  firewall_exists                                 = length(trimspace(coalesce(var.deployer_tfstate.firewall_id, " "))) > 0
+  firewall_id                                     = local.firewall_exists ? try(var.deployer_tfstate.firewall_id, "") : ""
+  firewall_ip                                     = local.firewall_exists ? try(var.deployer_tfstate.firewall_ip, "") : ""
   firewall_name                                   = local.firewall_exists ? try(split("/", local.firewall_id)[8], "") : ""
   firewall_rgname                                 = local.firewall_exists ? try(split("/", local.firewall_id)[4], "") : ""
   firewall_service_tags                           = format("AzureCloud.%s", local.region)

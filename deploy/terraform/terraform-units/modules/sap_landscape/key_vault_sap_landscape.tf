@@ -61,7 +61,7 @@ resource "azurerm_key_vault" "kv_user" {
 
   lifecycle {
     ignore_changes = [
-      network_acls
+      network_acls, contact
     ]
   }
 

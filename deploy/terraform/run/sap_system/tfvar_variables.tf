@@ -155,6 +155,7 @@ variable "encryption_at_host_enabled"           {
                                                   default     = false
                                                   type        = bool
                                                 }                                                     
+
 variable "data_plane_available"                 {
                                                   description = "Boolean value indicating if storage account access is via data plane"
                                                   default     = false
@@ -164,6 +165,12 @@ variable "data_plane_available"                 {
 variable "custom_random_id"                     {
                                                   description = "If provided, the value of the custom random id"
                                                   default     = ""
+                                                }
+
+variable "encryption_at_host_enabled"           {
+                                                  description = "Enable or disable host encryption for the deployer"
+                                                  default     = false
+                                                  type        = bool
                                                 }
 
 #########################################################################################

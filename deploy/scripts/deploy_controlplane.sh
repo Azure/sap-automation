@@ -84,7 +84,7 @@ while :; do
 		shift 2
 		;;
 	-s | --subscription)
-	 	subscription="$2"
+		subscription="$2"
 		ARM_SUBSCRIPTION_ID="$subscription"
 		export ARM_SUBSCRIPTION_ID
 
@@ -358,16 +358,20 @@ if [ 0 == "$step" ]; then
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+		if  "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
 			--parameterfile "${deployer_file_parametername}" --auto-approve; then
+			return_code=$?
+		else
 			echo "Bootstrapping of the deployer failed"
 			step=0
 			save_config_var "step" "${deployer_config_information}"
 			exit 10
 		fi
 	else
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
 			--parameterfile "${deployer_file_parametername}"; then
+			return_code=$?
+		else
 			echo "Bootstrapping of the deployer failed"
 			step=0
 			save_config_var "step" "${deployer_config_information}"
@@ -589,34 +593,34 @@ if [ 2 -eq $step ]; then
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
 			--parameterfile "${library_file_parametername}" \
 			--deployer_statefile_foldername "${relative_path}" \
 			--keyvault "${keyvault}" --auto-approve; then
+			return_code=$?
+			step=3
+			save_config_var "step" "${deployer_config_information}"
+		else
 			echo "Bootstrapping of the SAP Library failed"
 			step=2
 			save_config_var "step" "${deployer_config_information}"
 			exit 20
-		else
-			step=3
-			save_config_var "step" "${deployer_config_information}"
 
 		fi
 	else
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
+		if  "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
 			--parameterfile "${library_file_parametername}" \
 			--deployer_statefile_foldername "${relative_path}" \
 			--keyvault "${keyvault}"; then
 			return_code=$?
+			step=3
+			save_config_var "step" "${deployer_config_information}"
+		else
+			return_code=$?
 			echo "Bootstrapping of the SAP Library failed"
-
 			step=2
 			save_config_var "step" "${deployer_config_information}"
 			exit 20
-		else
-			return_code=$?
-			step=3
-			save_config_var "step" "${deployer_config_information}"
 		fi
 	fi
 
@@ -727,34 +731,38 @@ if [ 3 -eq "$step" ]; then
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
 			--type sap_deployer \
 			--parameterfile ${deployer_file_parametername} \
 			--storageaccountname "${REMOTE_STATE_SA}" \
 			$ado_flag \
 			--auto-approve; then
+			return_code=$?
+			step=4
+			save_config_var "step" "${deployer_config_information}"
+			return_code=0
+		else
 			echo ""
 			echo -e "${bold_red}Migrating the Deployer state failed${reset_formatting}"
 			step=3
 			save_config_var "step" "${deployer_config_information}"
 			exit 30
-		else
-			return_code=0
 
 		fi
 	else
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
 			--type sap_deployer \
 			--parameterfile ${deployer_file_parametername} \
 			--storageaccountname "${REMOTE_STATE_SA}"; then
+			step=4
+			save_config_var "step" "${deployer_config_information}"
+			return_code=0
+		else
+			return_code=$?
 			echo -e "${bold_red}Migrating the Deployer state failed${reset_formatting}"
 			step=3
 			save_config_var "step" "${deployer_config_information}"
 			exit 30
-		else
-			step=4
-			save_config_var "step" "${deployer_config_information}"
-			return_code=0
 		fi
 	fi
 
@@ -803,38 +811,48 @@ if [ 4 -eq $step ]; then
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
 			--type sap_library \
 			--parameterfile "${library_file_parametername}" \
 			--storageaccountname "${REMOTE_STATE_SA}" \
 			--deployer_tfstate_key "${deployer_tfstate_key}" \
 			$ado_flag \
 			--auto-approve; then
+			step=3
+			save_config_var "step" "${deployer_config_information}"
+			return_code=0
+			echo "Migrating the SAP Library state succeeded"
+		else
+			return_code=$?
 			echo "Migrating the SAP Library state failed"
 			step=4
 			save_config_var "step" "${deployer_config_information}"
 			exit 40
-		else
-			return_code=$?
 		fi
 	else
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
 			--type sap_library \
 			--parameterfile "${library_file_parametername}" \
 			--storageaccountname "${REMOTE_STATE_SA}" \
 			--deployer_tfstate_key "${deployer_tfstate_key}"; then
+			step=3
+			save_config_var "step" "${deployer_config_information}"
+			return_code=0
+		else
 			echo "Migrating the SAP Library state failed"
 			step=4
 			save_config_var "step" "${deployer_config_information}"
 			exit 40
-		else
-			return_code=$?
 		fi
 	fi
 
 	cd "$root_dirname" || exit
 
-	step=5
+	if [ -n "${deployer_public_ip_address}" ]; then
+		step=5
+	else
+		step=3
+	fi
 	save_config_var "step" "${deployer_config_information}"
 fi
 
@@ -925,14 +943,15 @@ if [ 5 -eq $step ]; then
 				rm "${temp_file}"
 			fi
 		fi
+	else
+		step=3
+		save_config_var "step" "${deployer_config_information}"
 
 	fi
 fi
 
-step=3
-save_config_var "step" "${deployer_config_information}"
 echo "##vso[task.setprogress value=100;]Progress Indicator"
 
 unset TF_DATA_DIR
 
-exit 0
+exit $return_code

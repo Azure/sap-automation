@@ -77,6 +77,10 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
+          - task:                      TerraformInstaller@1
+            displayName:               Install Terraform
+            inputs:
+              terraformVersion:        latest
           # Set Variables.
           - task:                      AzureCLI@2
             continueOnError:           false
