@@ -149,6 +149,7 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	LogonToAzure false
 else
 	LogonToAzure "$USE_MSI"
+	unset ARM_CLIENT_SECRET
 fi
 return_code=$?
 if [ 0 != $return_code ]; then
