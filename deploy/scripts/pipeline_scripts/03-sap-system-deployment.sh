@@ -89,7 +89,7 @@ if [ "$USE_MSI" != "true" ]; then
 fi
 
 # Set logon variables
-if [ $USE_MSI != "true" ]; then
+if [ "$USE_MSI" != "true" ]; then
 
 	# Set logon variables
 	ARM_CLIENT_ID="$WL_ARM_CLIENT_ID"
@@ -112,6 +112,8 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)" || true
 	echo -e "$green--- az login ---$reset"
 	LogonToAzure false || true
+else
+  LogonToAzure $USE_MSI || true
 fi
 return_code=$?
 if [ 0 != $return_code ]; then
@@ -191,6 +193,9 @@ az config set extension.use_dynamic_install=yes_without_prompt --output none --o
 az extension add --name azure-devops --output none --only-show-errors
 
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none
+
+printenv | sort | grep "ARM_"
+az account show
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 
