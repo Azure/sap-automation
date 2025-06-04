@@ -148,9 +148,6 @@ resource "azurerm_linux_virtual_machine" "utility_vm" {
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
 
   encryption_at_host_enabled                             = var.infrastructure.encryption_at_host_enabled
-
-  encryption_at_host_enabled                             = var.infrastructure.encryption_at_host_enabled
-
   dynamic "admin_ssh_key"              {
                                         for_each = range(1)
                                         content {
