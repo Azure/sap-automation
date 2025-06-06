@@ -90,29 +90,36 @@ if [ "$USE_MSI" != "true" ]; then
 fi
 
 # Set logon variables
-if [ $USE_MSI != "true" ]; then
-
+if [ $USE_MSI == "true" ]; then
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
+else
+	# Set logon variables
 	ARM_CLIENT_ID="$WL_ARM_CLIENT_ID"
 	export ARM_CLIENT_ID
 	ARM_CLIENT_SECRET="$WL_ARM_CLIENT_SECRET"
 	export ARM_CLIENT_SECRET
 	ARM_TENANT_ID=$WL_ARM_TENANT_ID
 	export ARM_TENANT_ID
-	ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
-	export ARM_SUBSCRIPTION_ID
-else
-	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
 
 fi
+ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
+export ARM_SUBSCRIPTION_ID
+
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)" || true
 	echo -e "$green--- az login ---$reset"
 	LogonToAzure false || true
+else
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
+  LogonToAzure $USE_MSI || true
 fi
 return_code=$?
+
 if [ 0 != $return_code ]; then
 	echo -e "$bold_red--- Login failed ---$reset"
 	echo "##vso[task.logissue type=error]az login failed."

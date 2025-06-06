@@ -112,10 +112,10 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	echo -e "$green--- az login ---$reset"
 	LogonToAzure false || true
 else
-  LogonToAzure $USE_MSI || true
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
+  LogonToAzure $USE_MSI || true
 fi
 return_code=$?
 if [ 0 != $return_code ]; then
