@@ -290,10 +290,8 @@ if [ 1 == $changed ]; then
 	if git commit -m "Control Plane $DEPLOYER_FOLDERNAME removal step 1[skip ci]"; then
 
 		if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-			return_code=$?
 			echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 updated in $BUILD_SOURCEBRANCHNAME"
 		else
-			return_code=$?
 			echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
 		fi
 	fi
