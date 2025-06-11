@@ -506,11 +506,11 @@ if [ 0 = $return_code ]; then
 		echo "Variable Deployer_State_FileName was not added to the $VARIABLE_GROUP variable group."
 	fi
 
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "$file_key_vault"; then
-		echo "Variable Deployer_Key_Vault was added to the $VARIABLE_GROUP variable group."
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$file_key_vault"; then
+		echo "Variable DEPLOYER_KEYVAULT was added to the $VARIABLE_GROUP variable group."
 	else
-		echo "##vso[task.logissue type=error]Variable Deployer_Key_Vault was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable Deployer_Key_Vault was not added to the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable DEPLOYER_KEYVAULT was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable DEPLOYER_KEYVAULT was not added to the $VARIABLE_GROUP variable group."
 	fi
 
 	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"; then

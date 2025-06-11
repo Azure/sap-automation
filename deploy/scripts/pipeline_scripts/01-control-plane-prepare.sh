@@ -167,7 +167,7 @@ echo -e "$green--- Convert config files to UX format ---$reset"
 dos2unix -q "$deployer_tfvars_file_name"
 dos2unix -q "$library_tfvars_file_name"
 
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
+key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "keyvault")
 if [ -n "$key_vault" ]; then
 	echo "Deployer Key Vault:                  ${key_vault}"
 	key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)

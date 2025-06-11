@@ -169,7 +169,7 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault" || true)
+key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "keyvault" || true)
 export key_vault
 
 STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID

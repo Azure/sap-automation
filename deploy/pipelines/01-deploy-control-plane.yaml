@@ -119,7 +119,7 @@ stages:
               TF_VAR_tf_version:           $(tf_version)
               USE_MSI:                     $(Use_MSI)
               WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
-              keyvault:                    $(Deployer_Key_Vault)
+              keyvault:                    $(DEPLOYER_KEYVAULT)
 
   - stage:                             Deploy_controlplane
     dependsOn:
@@ -180,7 +180,7 @@ stages:
               TF_VAR_tf_version:           $(tf_version)
               USE_MSI:                     $(Use_MSI)
               WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
-              keyvault:                    $(Deployer_Key_Vault)
+              keyvault:                    $(DEPLOYER_KEYVAULT)
 
   - stage:                             Web_App_Deployment
     pool:                              $(this_agent)

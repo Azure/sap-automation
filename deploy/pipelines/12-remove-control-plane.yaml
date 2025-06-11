@@ -79,7 +79,7 @@ stages:
               ARM_TENANT_ID:            $(ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              key_vault:                $(Deployer_Key_Vault)
+              key_vault:                $(DEPLOYER_KEYVAULT)
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
@@ -131,7 +131,7 @@ stages:
               ARM_TENANT_ID:            $(ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              key_vault:                $(Deployer_Key_Vault)
+              key_vault:                $(DEPLOYER_KEYVAULT)
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
