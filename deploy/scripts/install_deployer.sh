@@ -358,7 +358,6 @@ if [ -n "${approve}" ]; then
 		echo ""
 		echo -e "${bold_red}Terraform apply:                     failed ($return_value)$reset_formatting"
 		echo ""
-		exit 10
 	else
 		# return code 2 is ok
 		echo ""
@@ -368,7 +367,7 @@ if [ -n "${approve}" ]; then
 	fi
 else
 	# shellcheck disable=SC2086
-	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters | tee apply_output.json; then
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
 		return_value=${PIPESTATUS[0]}
 	else
 		return_value=${PIPESTATUS[0]}
@@ -377,6 +376,7 @@ else
 		echo ""
 		echo -e "${bold_red}Terraform apply:                     failed ($return_value)$reset_formatting"
 		echo ""
+		exit 10
 	else
 		# return code 2 is ok
 		echo ""
