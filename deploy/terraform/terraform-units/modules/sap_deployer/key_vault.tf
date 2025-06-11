@@ -549,5 +549,5 @@ data "azurerm_private_dns_zone" "vault" {
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,
                                            var.dns_settings.management_dns_resourcegroup_name,
-                                           var.dns_settings.local_dns_resourcegroup_name)
+                                           local.saplib_resource_group_name)
 }
