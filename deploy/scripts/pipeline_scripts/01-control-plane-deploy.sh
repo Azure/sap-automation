@@ -173,11 +173,11 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	echo -e "$green--- az login ---$reset"
 	LogonToAzure false
 	return_code=$?
-fi
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
 fi
 
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
