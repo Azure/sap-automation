@@ -96,8 +96,8 @@ stages:
             displayName: Prepare control plane
             env:
               APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)
-              ARM_CLIENT_ID:               ${{ iif(variables['Use_MSI'],$(ARM_CLIENT_ID),'') }}
-              ARM_CLIENT_SECRET:           ${{ iif(variables['Use_MSI'],$(ARM_CLIENT_SECRET),'') }}
+              ARM_CLIENT_ID:               $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID:               $(ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:        $(System.AccessToken)
@@ -115,7 +115,7 @@ stages:
               TF_VAR_agent_pat:            $(System.AccessToken)
               TF_VAR_agent_pool:           $(POOL)
               TF_VAR_ansible_core_version: $(ansible_core_version)
-              TF_VAR_spn_id:               ${{ iif(variables['Use_MSI'],$(ARM_OBJECT_ID),'') }}
+              TF_VAR_spn_id:               $(ARM_OBJECT_ID)
               TF_VAR_tf_version:           $(tf_version)
               USE_MSI:                     $(Use_MSI)
               WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
@@ -157,8 +157,8 @@ stages:
             displayName:               Deploy control plane Part 2
             env:
               APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)
-              ARM_CLIENT_ID:               ${{ iif(variables['Use_MSI'],$(ARM_CLIENT_ID),'') }}
-              ARM_CLIENT_SECRET:           ${{ iif(variables['Use_MSI'],$(ARM_CLIENT_SECRET),'') }}
+              ARM_CLIENT_ID:               $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID:               $(ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:        $(System.AccessToken)
@@ -176,7 +176,7 @@ stages:
               TF_VAR_agent_pat:            $(System.AccessToken)
               TF_VAR_agent_pool:           $(POOL)
               TF_VAR_ansible_core_version: $(ansible_core_version)
-              TF_VAR_spn_id:               ${{ iif(variables['Use_MSI'],$(ARM_OBJECT_ID),'') }}
+              TF_VAR_spn_id:               $(ARM_OBJECT_ID)
               TF_VAR_tf_version:           $(tf_version)
               USE_MSI:                     $(Use_MSI)
               WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
