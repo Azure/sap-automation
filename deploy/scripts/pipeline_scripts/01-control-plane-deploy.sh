@@ -119,7 +119,7 @@ echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
 az extension add --name azure-devops --output none --only-show-errors
 
-az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project='$SYSTEM_TEAMPROJECT'
+az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project='$SYSTEM_TEAMPROJECTID'
 
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 export VARIABLE_GROUP_ID
@@ -133,17 +133,19 @@ printf -v val '%-20s' "${tempval}"
 echo "$val                 $VARIABLE_GROUP_ID"
 
 # Set logon variables
-if [ $USE_MSI != "true" ]; then
+if [ "$USE_MSI" != "true" ]; then
 
 	# Set logon variables
 	if [ -v CP_ARM_CLIENT_ID ]; then
 		ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
 		export ARM_CLIENT_ID
 	fi
+
 	if [ -v ARM_CLIENT_SECRET ]; then
 		ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
 		export ARM_CLIENT_SECRET
 	fi
+
 	if [ -v CP_ARM_TENANT_ID ]; then
 		ARM_TENANT_ID="$CP_ARM_TENANT_ID"
 	else
@@ -157,7 +159,8 @@ if [ $USE_MSI != "true" ]; then
 		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
 	fi
 	export ARM_SUBSCRIPTION_ID
-
+else
+	unset ARM_CLIENT_SECRET
 fi
 
 if [ -v SYSTEM_ACCESSTOKEN ]; then
@@ -169,15 +172,14 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$(tf_version)"
 	echo -e "$green--- az login ---$reset"
 	LogonToAzure false
-else
-	LogonToAzure "$USE_MSI"
+	return_code=$?
 fi
-return_code=$?
 if [ 0 != $return_code ]; then
 	echo -e "$bold_red--- Login failed ---$reset"
 	echo "##vso[task.logissue type=error]az login failed."
 	exit $return_code
 fi
+
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
 export TF_VAR_subscription_id
 
