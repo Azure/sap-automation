@@ -180,6 +180,9 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		echo "##vso[task.logissue type=error]az login failed."
 		exit $return_code
 	fi
+else
+	# shellcheck disable=SC1091
+	source "/etc/profile.d/deploy_server.sh"
 fi
 
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
