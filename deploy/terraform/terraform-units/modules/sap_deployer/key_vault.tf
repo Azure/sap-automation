@@ -485,3 +485,59 @@ data "azurerm_key_vault_secret" "pwd" {
   name                                 = local.pwd_secret_name
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.kv_user_id)
 }
+
+#######################################4#######################################8
+#                                                                              #
+#                           Azure Key Vault endpoints                          #
+#                                                                              #
+#######################################4#######################################8
+resource "azurerm_private_endpoint" "kv_user" {
+  provider                             = azurerm.main
+  count                                = !var.bootstrap && var.use_private_endpoint ? 1 : 0
+  name                                 = format("%s%s%s",
+                                          var.naming.resource_prefixes.keyvault_private_link,
+                                          local.prefix,
+                                          var.naming.resource_suffixes.keyvault_private_link
+                                        )
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
+                                           data.azurerm_resource_group.deployer[0].name) : (
+                                           azurerm_resource_group.deployer[0].name
+                                         )
+  location                             = var.infrastructure.resource_group.exists ? (
+                                           data.azurerm_resource_group.deployer[0].location) : (
+                                           azurerm_resource_group.deployer[0].location
+                                         )
+  subnet_id                            = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
+                                           data.azurerm_subnet.subnet_mgmt[0].id) : (
+                                           azurerm_subnet.subnet_mgmt[0].id
+                                                                          )
+  custom_network_interface_name        = format("%s%s%s%s",
+                                           var.naming.resource_prefixes.keyvault_private_link,
+                                           local.prefix,
+                                           var.naming.resource_suffixes.keyvault_private_link,
+                                           var.naming.resource_suffixes.nic
+                                         )
+
+  private_service_connection {
+                               name                           = format("%s%s%s",
+                                                                  var.naming.resource_prefixes.keyvault_private_svc,
+                                                                  local.prefix,
+                                                                  var.naming.resource_suffixes.keyvault_private_svc
+                                                                )
+                               is_manual_connection           = false
+                               private_connection_resource_id = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+                               subresource_names              = [
+                                                                  "Vault"
+                                                                ]
+                             }
+
+  dynamic "private_dns_zone_group" {
+                                     for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0)
+                                     content {
+                                               name                 = var.dns_settings.dns_zone_names.vault_dns_zone_name
+                                               private_dns_zone_ids = [data.azurerm_private_dns_zone.vault[0].id]
+                                             }
+                                   }
+  tags                                 = var.infrastructure.tags
+
+}
