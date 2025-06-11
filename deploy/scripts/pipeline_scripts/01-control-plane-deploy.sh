@@ -161,6 +161,8 @@ if [ "$USE_MSI" != "true" ]; then
 	export ARM_SUBSCRIPTION_ID
 else
 	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
 fi
 
 if [ -v SYSTEM_ACCESSTOKEN ]; then
