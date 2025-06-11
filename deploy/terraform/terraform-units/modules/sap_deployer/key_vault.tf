@@ -507,7 +507,7 @@ resource "azurerm_private_endpoint" "kv_user" {
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
-  subnet_id                            = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
+  subnet_id                            = local.management_subnet_exists ? (
                                            data.azurerm_subnet.subnet_mgmt[0].id) : (
                                            azurerm_subnet.subnet_mgmt[0].id
                                                                           )
