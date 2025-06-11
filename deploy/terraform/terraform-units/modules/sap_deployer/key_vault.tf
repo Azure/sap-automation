@@ -499,11 +499,11 @@ resource "azurerm_private_endpoint" "kv_user" {
                                           local.prefix,
                                           var.naming.resource_suffixes.keyvault_private_link
                                         )
-  resource_group_name                  = var.infrastructure.resource_group.exists ? (
+  resource_group_name                  = local.resource_group_exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
                                          )
-  location                             = var.infrastructure.resource_group.exists ? (
+  location                             = local.resource_group_exists ? (
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
