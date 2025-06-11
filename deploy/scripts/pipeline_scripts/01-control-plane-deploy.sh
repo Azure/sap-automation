@@ -134,15 +134,35 @@ echo "$val                 $VARIABLE_GROUP_ID"
 
 # Set logon variables
 if [ $USE_MSI != "true" ]; then
-	ARM_CLIENT_ID=$CP_ARM_CLIENT_ID
-	export ARM_CLIENT_ID
-	ARM_CLIENT_SECRET=$CP_ARM_CLIENT_SECRET
-	export ARM_CLIENT_SECRET
-	ARM_TENANT_ID=$CP_ARM_TENANT_ID
+
+	# Set logon variables
+	if [ -v CP_ARM_CLIENT_ID ]; then
+		ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
+		export ARM_CLIENT_ID
+	fi
+	if [ -v ARM_CLIENT_SECRET ]; then
+		ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
+		export ARM_CLIENT_SECRET
+	fi
+	if [ -v CP_ARM_TENANT_ID ]; then
+		ARM_TENANT_ID="$CP_ARM_TENANT_ID"
+	else
+		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+	fi
 	export ARM_TENANT_ID
+
+	if [ -v CP_ARM_SUBSCRIPTION_ID ]; then
+		ARM_SUBSCRIPTION_ID="$CP_ARM_SUBSCRIPTION_ID"
+	else
+		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+	fi
+	export ARM_SUBSCRIPTION_ID
+
 fi
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
+
+if [ -v SYSTEM_ACCESSTOKEN ]; then
+	export TF_VAR_PAT="$SYSTEM_ACCESSTOKEN"
+fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
