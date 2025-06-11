@@ -525,7 +525,7 @@ resource "azurerm_private_endpoint" "kv_user" {
                                                                   var.naming.resource_suffixes.keyvault_private_svc
                                                                 )
                                is_manual_connection           = false
-                               private_connection_resource_id = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+                               private_connection_resource_id = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
                                subresource_names              = [
                                                                   "Vault"
                                                                 ]
