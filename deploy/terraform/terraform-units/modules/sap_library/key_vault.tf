@@ -8,10 +8,6 @@
 #                                                                              #
 #######################################4#######################################8
 
-#Private endpoint tend to take a while to be created, so we need to wait for it to be ready before we can use it
-resource "time_sleep" "wait_for_private_endpoints" {
-  create_duration                      = "120s"
-}
 ## Add an expiry date to the secrets
 resource "time_offset" "secret_expiry_date" {
   offset_months                        = 12
@@ -24,8 +20,7 @@ resource "azurerm_key_vault_secret" "saplibrary_access_key" {
                                             azurerm_storage_account.storage_tfstate,
                                             azurerm_private_dns_zone.vault,
                                             azurerm_private_dns_zone_virtual_network_link.vault,
-                                            azurerm_private_dns_zone_virtual_network_link.vault_agent,
-                                            time_sleep.wait_for_private_endpoints
+                                            azurerm_private_dns_zone_virtual_network_link.vault_agent
                                          ]
   content_type                         = "secret"
   name                                 = "sapbits-access-key"
@@ -49,8 +44,7 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
                                             azurerm_storage_account.storage_tfstate,
                                             azurerm_private_dns_zone.vault,
                                             azurerm_private_dns_zone_virtual_network_link.vault,
-                                            azurerm_private_dns_zone_virtual_network_link.vault_agent,
-                                            time_sleep.wait_for_private_endpoints
+                                            azurerm_private_dns_zone_virtual_network_link.vault_agent
                                          ]
   content_type                         = "configuration"
   name                                 = "sapbits-location-base-path"
@@ -73,8 +67,7 @@ resource "azurerm_key_vault_secret" "sa_connection_string" {
                                             azurerm_storage_account.storage_tfstate,
                                             azurerm_private_dns_zone.vault,
                                             azurerm_private_dns_zone_virtual_network_link.vault,
-                                            azurerm_private_dns_zone_virtual_network_link.vault_agent,
-                                            time_sleep.wait_for_private_endpoints
+                                            azurerm_private_dns_zone_virtual_network_link.vault_agent
                                          ]
   count                                = length(try(var.key_vault.keyvault_id_for_deployment_credentials, "")) > 0 ? 1 : 0
   content_type                         = "secret"
@@ -96,8 +89,7 @@ resource "azurerm_key_vault_secret" "tfstate" {
                                             azurerm_storage_account.storage_tfstate,
                                             azurerm_private_dns_zone.vault,
                                             azurerm_private_dns_zone_virtual_network_link.vault,
-                                            azurerm_private_dns_zone_virtual_network_link.vault_agent,
-                                            time_sleep.wait_for_private_endpoints
+                                            azurerm_private_dns_zone_virtual_network_link.vault_agent
                                          ]
   count                                = length(try(var.key_vault.keyvault_id_for_deployment_credentials, "")) > 0 ? 1 : 0
   content_type                         = "configuration"
