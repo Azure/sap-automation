@@ -178,9 +178,9 @@ dos2unix -q "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_
 dos2unix -q "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 
 echo -e "$green--- Variables ---$reset"
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
+key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "keyvault")
 if [ "$sourced_from_file" == 1 ]; then
-	az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name Deployer_Key_Vault --value "${key_vault}" --output none --only-show-errors
+	az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --value "${key_vault}" --output none --only-show-errors
 fi
 echo "Deployer TFvars:                      $DEPLOYER_TFVARS_FILENAME"
 
