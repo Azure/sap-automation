@@ -309,6 +309,15 @@ if [ -f "${deployer_environment_file_name}" ]; then
 		echo "Terraform Remote State RG Name:       ${file_REMOTE_STATE_RG}"
 	fi
 fi
+
+echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+if [ 0 = $return_code ]; then
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$file_key_vault"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneLocation" "$LOCATION"
+
+fi
+
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
 added=0
 cd "$CONFIG_REPO_PATH" || exit
@@ -352,14 +361,5 @@ fi
 
 if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
 	echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
-fi
-echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-if [ 0 = $return_code ]; then
-
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "$deployer_tfstate_key"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "$file_key_vault"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneLocation" "$LOCATION"
-
 fi
 exit $return_code
