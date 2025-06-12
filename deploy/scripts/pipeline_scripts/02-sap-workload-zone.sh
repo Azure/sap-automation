@@ -143,9 +143,6 @@ else
 	fi
 fi
 
-ARM_SUBSCRIPTION_ID=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_SUBSCRIPTION_ID" "${workload_environment_file_name}" "ARM_SUBSCRIPTION_ID")
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
-
 echo -e "$green--- Read deployment details ---$reset"
 dos2unix -q tfvarsFile
 
@@ -206,6 +203,9 @@ fi
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
 touch "$workload_environment_file_name"
+
+ARM_SUBSCRIPTION_ID=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_SUBSCRIPTION_ID" "${workload_environment_file_name}" "ARM_SUBSCRIPTION_ID")
+az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 echo -e "$green--- Read parameter values ---$reset"
 
