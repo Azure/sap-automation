@@ -544,7 +544,7 @@ resource "azurerm_private_endpoint" "kv_user" {
 
 data "azurerm_private_dns_zone" "vault" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = !var.bootstrap && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  count                                = !var.bootstrap && try(var.dns_settings.register_storage_accounts_keyvaults_with_dns,false) ? 1 : 0
   name                                 = var.dns_settings.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,
