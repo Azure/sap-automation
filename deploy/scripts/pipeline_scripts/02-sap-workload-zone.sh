@@ -84,6 +84,39 @@ if [ "$USE_MSI" != "true" ]; then
 	fi
 fi
 
+echo -e "$green--- Configure devops CLI extension ---$reset"
+az config set extension.use_dynamic_install=yes_without_prompt --output none
+
+az extension add --name azure-devops --output none --only-show-errors
+
+az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none
+
+PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
+
+if [ -z "${PARENT_VARIABLE_GROUP_ID}" ]; then
+	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP could not be found."
+	exit 2
+fi
+export PARENT_VARIABLE_GROUP_ID
+
+VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
+
+if [ -z "${VARIABLE_GROUP_ID}" ]; then
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
+printf -v tempval '%s id:' "$VARIABLE_GROUP"
+printf -v val '%-20s' "${tempval}"
+echo "$val                 $VARIABLE_GROUP_ID"
+
+printf -v tempval '%s id:' "$PARENT_VARIABLE_GROUP"
+printf -v val '%-20s' "${tempval}"
+echo "$val                 $PARENT_VARIABLE_GROUP_ID"
+
+
+
 # Set logon variables
 if [ $USE_MSI == "true" ]; then
 	unset ARM_CLIENT_SECRET
@@ -107,7 +140,8 @@ else
 	export ARM_USE_MSI
 fi
 
-az account set --subscription $ARM_SUBSCRIPTION_ID
+ARM_SUBSCRIPTION_ID=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_SUBSCRIPTION_ID" "${workload_environment_file_name}" "ARM_SUBSCRIPTION_ID")
+az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 echo -e "$green--- Read deployment details ---$reset"
 dos2unix -q tfvarsFile
@@ -169,37 +203,6 @@ fi
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
 touch "$workload_environment_file_name"
-
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt --output none
-
-az extension add --name azure-devops --output none --only-show-errors
-
-az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none
-
-PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
-
-if [ -z "${PARENT_VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP could not be found."
-	exit 2
-fi
-export PARENT_VARIABLE_GROUP_ID
-
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
-
-if [ -z "${VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
-	exit 2
-fi
-export VARIABLE_GROUP_ID
-
-printf -v tempval '%s id:' "$VARIABLE_GROUP"
-printf -v val '%-20s' "${tempval}"
-echo "$val                 $VARIABLE_GROUP_ID"
-
-printf -v tempval '%s id:' "$PARENT_VARIABLE_GROUP"
-printf -v val '%-20s' "${tempval}"
-echo "$val                 $PARENT_VARIABLE_GROUP_ID"
 
 echo -e "$green--- Read parameter values ---$reset"
 
@@ -320,29 +323,6 @@ fi
 
 echo -e "$green--- Deploy the workload zone ---$reset"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
-
-# Set logon variables
-if [ $USE_MSI == "true" ]; then
-	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-
-fi
-
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure false
-fi
-
-return_code=$?
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
-fi
-
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh" --parameterfile "$WORKLOAD_ZONE_TFVARS_FILENAME" \
 	--deployer_environment "$DEPLOYER_ENVIRONMENT" --subscription "$ARM_SUBSCRIPTION_ID" \
