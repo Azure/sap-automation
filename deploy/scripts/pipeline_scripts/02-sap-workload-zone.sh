@@ -43,63 +43,43 @@ git checkout -q "$BUILD_SOURCEBRANCHNAME"
 echo -e "$green--- Validations ---$reset"
 if [ "$USE_MSI" != "true" ]; then
 
-	if [ -z "$WL_ARM_SUBSCRIPTION_ID" ]; then
+	if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ "$WL_ARM_SUBSCRIPTION_ID" == '$$(ARM_SUBSCRIPTION_ID)' ]; then
+	if [ "$ARM_SUBSCRIPTION_ID" == '$$(ARM_SUBSCRIPTION_ID)' ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ -z "$WL_ARM_CLIENT_ID" ]; then
+	if [ -z "$ARM_CLIENT_ID" ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ "$WL_ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
+	if [ "$ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ -z "$WL_ARM_CLIENT_SECRET" ]; then
+	if [ -z "$ARM_CLIENT_SECRET" ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ "$WL_ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
+	if [ "$ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ -z "$WL_ARM_TENANT_ID" ]; then
+	if [ -z "$ARM_TENANT_ID" ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ "$WL_ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
+	if [ "$ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
-		exit 2
-	fi
-
-	if [ -z "$CP_ARM_SUBSCRIPTION_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $PARENT_VARIABLE_GROUP variable group."
-		exit 2
-	fi
-
-	if [ -z "$CP_ARM_CLIENT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined in the $PARENT_VARIABLE_GROUP variable group."
-		exit 2
-	fi
-
-	if [ -z "$CP_ARM_CLIENT_SECRET" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined in the $PARENT_VARIABLE_GROUP variable group."
-		exit 2
-	fi
-
-	if [ -z "$CP_ARM_TENANT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $PARENT_VARIABLE_GROUP variable group."
 		exit 2
 	fi
 fi
@@ -333,7 +313,7 @@ if [ "$USE_MSI" != "true" ]; then
 			fi
 		fi
 	else
-		echo " ##vso[task.logissue type=warning]Service Principal $WL_ARM_CLIENT_ID does not have 'User Access Administrator' permissions. Please ensure that the service principal $WL_ARM_CLIENT_ID has permissions on the Terrafrom state storage account and if needed on the Private DNS zone and the source management network resource"
+		echo " ##vso[task.logissue type=warning]Service Principal $ARM_CLIENT_ID does not have 'User Access Administrator' permissions. Please ensure that the service principal $ARM_CLIENT_ID has permissions on the Terrafrom state storage account and if needed on the Private DNS zone and the source management network resource"
 	fi
 fi
 
@@ -364,7 +344,7 @@ fi
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh" --parameterfile "$WORKLOAD_ZONE_TFVARS_FILENAME" \
-	--deployer_environment "$DEPLOYER_ENVIRONMENT" --subscription "$WL_ARM_SUBSCRIPTION_ID" \
+	--deployer_environment "$DEPLOYER_ENVIRONMENT" --subscription "$ARM_SUBSCRIPTION_ID" \
 	--deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
 	--state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado --msi; then
 	echo "##vso[task.logissue type=warning]Workload zone deployment completed successfully."
