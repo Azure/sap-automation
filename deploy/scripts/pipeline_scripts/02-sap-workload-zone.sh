@@ -105,19 +105,10 @@ if [ "$USE_MSI" != "true" ]; then
 fi
 
 # Set logon variables
-if [ $USE_MSI != "true" ]; then
-	# Set logon variables
-	ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
-	export ARM_CLIENT_ID
-	ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
-	export ARM_CLIENT_SECRET
-	ARM_TENANT_ID=$CP_ARM_TENANT_ID
-	export ARM_TENANT_ID
-else
+if [ $USE_MSI == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
-
 fi
 ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
 export ARM_SUBSCRIPTION_ID
@@ -127,6 +118,7 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	echo -e "$green--- az login ---$reset"
 	LogonToAzure false
 else
+	LogonToAzure $USE_MSI
   source "/etc/profile.d/deploy_server.sh"
 fi
 return_code=$?
@@ -136,8 +128,6 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
 az account set --subscription $ARM_SUBSCRIPTION_ID
 
 echo -e "$green--- Read deployment details ---$reset"
@@ -243,7 +233,7 @@ export landscape_tfstate_key
 deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
 export deployer_tfstate_key
 
-key_vault=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
+key_vault=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "keyvault")
 export key_vault
 
 REMOTE_STATE_SA=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
@@ -257,7 +247,7 @@ export workload_key_vault
 
 echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload Key vault:                  ${workload_key_vault}"
-echo "Target subscription                  $WL_ARM_SUBSCRIPTION_ID"
+echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
 
 echo "Terraform state file subscription:   $STATE_SUBSCRIPTION"
 echo "Terraform state file storage account:$REMOTE_STATE_SA"
@@ -277,11 +267,11 @@ echo -e "$green --- Set secrets ---$reset"
 
 if [ "$USE_MSI" != "true" ]; then
 	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --workload --vault "${key_vault}" --environment "${ENVIRONMENT}" \
-		--region "${LOCATION}" --subscription "$WL_ARM_SUBSCRIPTION_ID" --spn_id "$WL_ARM_CLIENT_ID" --spn_secret "${WL_ARM_CLIENT_SECRET}" \
-		--tenant_id "$WL_ARM_TENANT_ID" --keyvault_subscription "$STATE_SUBSCRIPTION"
+		--region "${LOCATION}" --subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" --spn_secret "${ARM_CLIENT_SECRET}" \
+		--tenant_id "$ARM_TENANT_ID" --keyvault_subscription "$STATE_SUBSCRIPTION"
 else
 	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --workload --vault "${key_vault}" --environment "${ENVIRONMENT}" \
-		--region "${LOCATION}" --subscription "$WL_ARM_SUBSCRIPTION_ID" --keyvault_subscription "$STATE_SUBSCRIPTION" --msi
+		--region "${LOCATION}" --subscription "$ARM_SUBSCRIPTION_ID" --keyvault_subscription "$STATE_SUBSCRIPTION" --msi
 fi
 secrets_set=$?
 echo "Set Secrets returned: $secrets_set"
