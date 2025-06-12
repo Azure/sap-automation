@@ -126,16 +126,11 @@ stages:
             displayName:               Deploy SAP Workload Zone
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              WL_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
-              WL_ARM_TENANT_ID:        $(ARM_TENANT_ID)
-              WL_ARM_CLIENT_ID:        $(ARM_CLIENT_ID)
-              WL_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
-              WL_ARM_OBJECT_ID:        $(ARM_OBJECT_ID)
-              CP_ARM_SUBSCRIPTION_ID:  $(CP_ARM_SUBSCRIPTION_ID)
-              CP_ARM_CLIENT_ID:        $(CP_ARM_CLIENT_ID)
-              CP_ARM_CLIENT_SECRET:    $(CP_ARM_CLIENT_SECRET)
-              CP_ARM_TENANT_ID:        $(CP_ARM_TENANT_ID)
-              CP_ARM_OBJECT_ID:        $(CP_ARM_OBJECT_ID)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_OBJECT_ID:           $(ARM_OBJECT_ID)
               FENCING_SPN_PWD:         $(FENCING_SPN_PWD)
               SAPBITS:                 $(INSTALLATION_MEDIA_ACCOUNT)
               TEST_ONLY:               ${{ parameters.test }}
