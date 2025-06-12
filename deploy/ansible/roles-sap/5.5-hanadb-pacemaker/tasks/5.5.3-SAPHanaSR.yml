@@ -35,9 +35,7 @@
   ansible.builtin.set_fact:
     is_certified_for_hanasr_angi: >-
                                        {{ (ansible_distribution == 'SLES_SAP' and
-                                           ((ansible_distribution_major_version | int > 15) or
-                                             (ansible_distribution_major_version | int == 15 and
-                                             ansible_distribution_minor_version | int >= 4))) | default(false)
+                                           (ansible_distribution_version is version('15.4', '>='))) | default(false)
                                        }}
 
 - name:                                "5.5 HANA Pacemaker - Check SAP HANA version requirements"
