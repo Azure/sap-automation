@@ -94,16 +94,17 @@ fi
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$TF_VERSION"
 	echo -e "$green--- az login ---$reset"
-	LogonToAzure false
+	if ! LogonToAzure false; then
+		return_code=$?
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
 else
 	LogonToAzure $USE_MSI
-  source "/etc/profile.d/deploy_server.sh"
-fi
-return_code=$?
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
 fi
 
 az account set --subscription $ARM_SUBSCRIPTION_ID
