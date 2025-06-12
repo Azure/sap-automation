@@ -124,8 +124,8 @@ stages:
   - stage:                             Deploy_controlplane
     dependsOn:
       - Prepare_Deployer
-    condition: eq(dependencies.Prepare_Deployer.result, 'Succeeded')
-    pool: $(this_agent)
+    condition:                         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
+    pool:                              $(this_agent)
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
