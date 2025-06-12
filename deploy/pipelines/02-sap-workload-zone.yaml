@@ -137,6 +137,7 @@ stages:
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
               TF_LOG:                  $(TF_LOG)
               TF_IN_AUTOMATION:        true
+              TF_VAR_subscription_id:  $(ARM_SUBSCRIPTION_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               LOGON_USING_SPN:         $(Logon_Using_SPN)
