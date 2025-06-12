@@ -603,10 +603,10 @@ locals {
   # Create VM ID list for attachment
   cluster_vm_ids                       = local.enable_cluster_disk ? (
                                             upper(var.database.os.os_type) == "LINUX" ? [
-                                              for i in range(var.database_server_count) : azurerm_linux_virtual_machine.vm_dbnode[i].id
+                                              for i in range(var.database_server_count) : azurerm_linux_virtual_machine.dbserver[i].id
                                             ] : (
                                               upper(var.database.os.os_type) == "WINDOWS" ? [
-                                                for i in range(var.database_server_count) : azurerm_windows_virtual_machine.vm_dbnode[i].id
+                                                for i in range(var.database_server_count) : azurerm_windows_virtual_machine.dbserver[i].id
                                               ] : []
                                             )
                                           ) : []
