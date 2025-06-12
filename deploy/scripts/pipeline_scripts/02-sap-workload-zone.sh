@@ -110,8 +110,6 @@ if [ $USE_MSI == "true" ]; then
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
 fi
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "$TF_VERSION"
@@ -343,15 +341,7 @@ echo -e "$green--- Deploy the workload zone ---$reset"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 
 # Set logon variables
-if [ $USE_MSI != "true" ]; then
-	# Set logon variables
-	ARM_CLIENT_ID="$WL_ARM_CLIENT_ID"
-	export ARM_CLIENT_ID
-	ARM_CLIENT_SECRET="$WL_ARM_CLIENT_SECRET"
-	export ARM_CLIENT_SECRET
-	ARM_TENANT_ID=$WL_ARM_TENANT_ID
-	export ARM_TENANT_ID
-else
+if [ $USE_MSI == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
