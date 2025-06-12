@@ -123,6 +123,7 @@ if [ $USE_MSI == "true" ]; then
 fi
 if az account show --query name; then
 	echo -e "$green--- Already logged in to Azure ---$reset"
+	LogonToAzure true
 else
 	# Check if running on deployer
 	if [ -f /etc/profile.d/deploy_server.sh ]; then
