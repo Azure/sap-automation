@@ -335,6 +335,7 @@ if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh" --paramete
 	--deployer_environment "$DEPLOYER_ENVIRONMENT" --subscription "$ARM_SUBSCRIPTION_ID" \
 	--deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
 	--state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado --msi; then
+	return_code=$?
 	echo "##vso[task.logissue type=warning]Workload zone deployment completed successfully."
 else
 	return_code=$?
