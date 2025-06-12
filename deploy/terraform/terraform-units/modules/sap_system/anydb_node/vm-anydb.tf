@@ -586,31 +586,6 @@ resource "azurerm_managed_disk" "cluster" {
   }
 }
 
-locals {
-  # Determine if cluster disk attachment is needed
-  enable_cluster_disk                  = (
-                                            local.enable_deployment &&
-                                            var.database.high_availability &&
-                                            (
-                                              upper(var.database.os.os_type) == "WINDOWS" ||
-                                              (
-                                                upper(var.database.os.os_type) == "LINUX" &&
-                                                upper(var.database.database_cluster_type) == "ASD"
-                                              )
-                                            )
-                                          )
-
-  # Create VM ID list for attachment
-  cluster_vm_ids                       = local.enable_cluster_disk ? (
-                                            upper(var.database.os.os_type) == "LINUX" ? [
-                                              for i in range(var.database_server_count) : azurerm_linux_virtual_machine.dbserver[i].id
-                                            ] : (
-                                              upper(var.database.os.os_type) == "WINDOWS" ? [
-                                                for i in range(var.database_server_count) : azurerm_windows_virtual_machine.dbserver[i].id
-                                              ] : []
-                                            )
-                                          ) : []
-}
 resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
   provider                             = azurerm.main
   count                                = length(local.cluster_vm_ids)
