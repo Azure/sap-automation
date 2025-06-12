@@ -338,6 +338,17 @@ if [ 0 == $return_code ]; then
 		if [ ${#variable_value} != 0 ]; then
 			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID --yes --only-show-errors
 		fi
+
+
+		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ControlPlaneEnvironment.value" --out tsv)
+		if [ ${#variable_value} != 0 ]; then
+			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name ControlPlaneEnvironment --yes --only-show-errors
+		fi
+
+		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ControlPlaneLocation.value" --out tsv)
+		if [ ${#variable_value} != 0 ]; then
+			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name ControlPlaneLocation --yes --only-show-errors
+		fi
 	fi
 
 fi
