@@ -115,29 +115,32 @@ printf -v tempval '%s id:' "$PARENT_VARIABLE_GROUP"
 printf -v val '%-20s' "${tempval}"
 echo "$val                 $PARENT_VARIABLE_GROUP_ID"
 
-
-
 # Set logon variables
 if [ $USE_MSI == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
 fi
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$TF_VERSION"
-	echo -e "$green--- az login ---$reset"
-	if ! LogonToAzure false; then
-		return_code=$?
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
-	fi
+if az account show; then
+	echo -e "$green--- Already logged in to Azure ---$reset"
 else
-	LogonToAzure $USE_MSI
-	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
+	# Check if running on deployer
+	if [ -f /etc/profile.d/deploy_server.sh ]; then
+		LogonToAzure $USE_MSI
+		unset ARM_CLIENT_SECRET
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+	else
+		echo "Not running on the deployer server"
+		configureNonDeployer "$TF_VERSION"
+		echo -e "$green--- az login ---$reset"
+		if ! LogonToAzure false; then
+			return_code=$?
+			echo -e "$bold_red--- Login failed ---$reset"
+			echo "##vso[task.logissue type=error]az login failed."
+			exit $return_code
+		fi
+	fi
 fi
 
 ARM_SUBSCRIPTION_ID=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_SUBSCRIPTION_ID" "${workload_environment_file_name}" "ARM_SUBSCRIPTION_ID")
