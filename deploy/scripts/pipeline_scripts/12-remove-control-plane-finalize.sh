@@ -220,8 +220,6 @@ else
 	echo "Control Plane $DEPLOYER_FOLDERNAME removal step 2 failed."
 fi
 
-return_code=$?
-
 echo "Return code from remove_deployer: $return_code."
 
 echo -e "$green--- Remove Control Plane Part 2 ---$reset"
