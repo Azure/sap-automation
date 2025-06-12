@@ -121,7 +121,7 @@ if [ $USE_MSI == "true" ]; then
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
 fi
-if az account show; then
+if az account show --query name; then
 	echo -e "$green--- Already logged in to Azure ---$reset"
 else
 	# Check if running on deployer
@@ -323,6 +323,9 @@ if [ "$USE_MSI" != "true" ]; then
 		echo " ##vso[task.logissue type=warning]Service Principal $ARM_CLIENT_ID does not have 'User Access Administrator' permissions. Please ensure that the service principal $ARM_CLIENT_ID has permissions on the Terrafrom state storage account and if needed on the Private DNS zone and the source management network resource"
 	fi
 fi
+
+az account show --query name
+printenv | grep ARM | sort
 
 echo -e "$green--- Deploy the workload zone ---$reset"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
