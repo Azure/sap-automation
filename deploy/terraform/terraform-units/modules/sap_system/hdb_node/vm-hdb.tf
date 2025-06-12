@@ -469,32 +469,17 @@ resource "azurerm_managed_disk" "cluster" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
   provider                             = azurerm.main
-  count                                = (
-                                           local.enable_deployment &&
-                                           var.database.high_availability &&
-                                           (
-                                             upper(var.database.os.os_type) == "WINDOWS" ||
-                                             (
-                                               upper(var.database.os.os_type) == "LINUX" &&
-                                               upper(var.database.database_cluster_type) == "ASD"
-                                             )
-                                           )
-                                         ) ? var.database_server_count : 0
-
+  count                                = length(local.cluster_vm_ids)
   managed_disk_id                      = azurerm_managed_disk.cluster[0].id
-  virtual_machine_id                   = (upper(var.database.os.os_type) == "LINUX"                                # If Linux
-                                         ) ? (
-                                           azurerm_linux_virtual_machine.vm_dbnode[count.index].id
-                                         ) : (
-                                           (upper(var.database.os.os_type) == "WINDOWS"                            # If Windows
-                                           ) ? (
-                                             null
-                                           ) : (
-                                             null                                                                  # If Other
-                                           )
-                                         )
+  virtual_machine_id                   = local.cluster_vm_ids[count.index]
   caching                              = "None"
   lun                                  = var.database.database_cluster_disk_lun
+
+  # The disk is shared, so we do not need to create it before destroying
+  # Use lifecycle management for sequencing
+  lifecycle {
+    create_before_destroy = false
+  }
 }
 
 #########################################################################################
