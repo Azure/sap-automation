@@ -231,6 +231,8 @@ fi
 deployer_dirname=$(dirname "${deployer_parameter_file}")
 deployer_file_parametername=$(basename "${deployer_parameter_file}")
 
+echo "basename ${deployer_parameter_file}"
+
 library_dirname=$(dirname "${library_parameter_file}")
 library_file_parametername=$(basename "${library_parameter_file}")
 
