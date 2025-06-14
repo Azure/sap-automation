@@ -315,6 +315,15 @@ if [ -n "${subscription}" ]; then
 		save_config_var "STATE_SUBSCRIPTION" "${deployer_config_information}"
 		export ARM_SUBSCRIPTION_ID=$subscription
 		save_config_var "ARM_SUBSCRIPTION_ID" "${deployer_config_information}"
+
+		export TF_VAR_subscription_id=$subscription
+	else
+		ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+		export ARM_SUBSCRIPTION_ID
+
+		export STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
+		export TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
+
 	fi
 
 	if [ -n "$client_id" ]; then
