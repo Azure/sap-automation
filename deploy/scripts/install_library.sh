@@ -25,7 +25,6 @@ SCRIPT_NAME="$(basename "$0")"
 
 echo "Entering: ${SCRIPT_NAME}"
 
-
 #Internal helper functions
 function showhelp {
 	echo ""
@@ -577,6 +576,9 @@ fi
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
 	tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
+	TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
+	export TF_VAR_tfstate_resource_id
+
 	STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
 
 	az account set --sub "$STATE_SUBSCRIPTION"
