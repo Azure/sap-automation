@@ -204,7 +204,6 @@ resource "azurerm_linux_virtual_machine" "deployer" {
                                             timeout     = var.ssh-timeout
                                           }
 
-  tags                                 = local.tags
 }
 resource "azurerm_virtual_machine_extension" "configure" {
   count                                = var.auto_configure_deployer ? var.deployer_vm_count : 0
