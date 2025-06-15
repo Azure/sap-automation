@@ -71,6 +71,7 @@ resource "azurerm_public_ip" "bastion" {
   lifecycle                                  {
                                                   create_before_destroy = true
                                               }
+  tags                                       = var.infrastructure.tags
 }
 
 # Create the Bastion Host
@@ -92,7 +93,7 @@ resource "azurerm_bastion_host" "bastion" {
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )
 
-
+  tags                                       = var.infrastructure.tags
   ip_configuration {
                      name                 = "configuration"
                      subnet_id            = length(var.infrastructure.vnets.management.subnet_bastion.arm_id) == 0 ? (

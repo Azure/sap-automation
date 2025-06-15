@@ -59,6 +59,8 @@ resource "azurerm_key_vault" "kv_user" {
                                      ignore_changes = [network_acls, contact]
                                    }
 
+  tags                                 = var.infrastructure.tags
+
 }
 
 

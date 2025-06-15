@@ -91,6 +91,7 @@ resource "azurerm_network_interface" "deployer" {
 
                                                                                   public_ip_address_id          = local.enable_deployer_public_ip ? azurerm_public_ip.deployer[count.index].id : null
                                          }
+  tags                                 = var.infrastructure.tags
 }
 
 // User defined identity for all Deployers, assign contributor to the current subscription
@@ -99,6 +100,7 @@ resource "azurerm_user_assigned_identity" "deployer" {
   name                                 = format("%s%s%s", var.naming.resource_prefixes.msi, local.prefix, var.naming.resource_suffixes.msi)
   resource_group_name                  = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                             = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+  tags                                 = var.infrastructure.tags
 }
 
 // User defined identity for all Deployers, assign contributor to the current subscription
@@ -138,6 +140,8 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   source_image_id                      = var.deployer.os.source_image_id != "" ? var.deployer.os.source_image_id : null
 
   encryption_at_host_enabled           = var.deployer.encryption_at_host_enabled
+
+  tags                                 = var.infrastructure.tags
 
   os_disk                                {
                                             name                   = format("%s%s%s%s%s",
@@ -216,6 +220,7 @@ resource "azurerm_virtual_machine_extension" "configure" {
   publisher                            = "Microsoft.Azure.Extensions"
   type                                 = "CustomScript"
   type_handler_version                 = "2.1"
+  tags                                 = var.infrastructure.tags
   protected_settings                   = jsonencode(
                                            {
                                              "script" = base64encode(
@@ -253,6 +258,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_deployer_lnx"
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  tags                                 = var.infrastructure.tags
 }
 
 
@@ -267,6 +273,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_deployer_lnx" 
   type                                 = "AzureSecurityLinuxAgent"
   type_handler_version                 = "2.0"
   auto_upgrade_minor_version           = true
+  tags                                 = var.infrastructure.tags
 
   settings                             = jsonencode(
                                             {
