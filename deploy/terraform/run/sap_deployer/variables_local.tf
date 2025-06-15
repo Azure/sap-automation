@@ -24,6 +24,7 @@ locals {
 
   saplib_subscription_id               = split("/", var.tfstate_resource_id)[2]
   saplib_resource_group_name           = split("/", var.tfstate_resource_id)[4]
+  saplib_storage_account_name          = split("/", var.tfstate_resource_id)[6]
 
 
   // Default naming of vnet has multiple parts. Taking the second-last part as the name incase the name ends with -vnet
