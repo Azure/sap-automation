@@ -255,6 +255,14 @@ else
 				exit 10
 			fi
 		fi
+
+	else
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo "#                                   New deployment                                      #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
 	fi
 	echo "Parameters:                          $allParameters"
 	terraform -chdir="${terraform_module_directory}" refresh $allParameters
