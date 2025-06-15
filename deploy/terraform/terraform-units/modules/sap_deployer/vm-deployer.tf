@@ -199,25 +199,6 @@ resource "azurerm_linux_virtual_machine" "deployer" {
 
   tags                                 = local.tags
 }
-
-# // Add role to be able to deploy resources
-resource "azurerm_role_assignment" "subscription_contributor_system_identity" {
-  count                                = var.assign_subscription_permissions && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
-  provider                             = azurerm.main
-  scope                                = data.azurerm_subscription.primary.id
-  role_definition_name                 = "Reader"
-  principal_id                         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
-}
-
-#Private endpoint tend to take a while to be created, so we need to wait for it to be ready before we can use it
-resource "time_sleep" "wait_for_VM" {
-  create_duration                      = "60s"
-
-  depends_on                           = [
-                                           azurerm_linux_virtual_machine.deployer
-                                         ]
-}
-
 resource "azurerm_virtual_machine_extension" "configure" {
   count                                = var.auto_configure_deployer ? var.deployer_vm_count : 0
 

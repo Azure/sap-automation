@@ -120,23 +120,6 @@ resource "azurerm_role_assignment" "deployer" {
   principal_id                         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
 }
 
-
-resource "azurerm_role_assignment" "resource_group_contributor" {
-  provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
-  scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
-  role_definition_name                 = "Contributor"
-  principal_id                         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
-}
-
-resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" {
-  provider                             = azurerm.main
-  count                                = var.assign_subscription_permissions ? 1 : 0
-  scope                                = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
-  role_definition_name                 = "Contributor"
-  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
-}
-
 resource "azurerm_virtual_network_peering" "peering_management_agent" {
   provider                             = azurerm.main
   count                                = length(var.additional_network_id) > 0 ? 1 : 0
