@@ -24,6 +24,11 @@ source "${script_directory}/deploy_utils.sh"
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
 
+SCRIPT_NAME="$(basename "$0")"
+
+echo "Entering: ${SCRIPT_NAME}"
+
+
 function showhelp {
 	echo ""
 	echo "#########################################################################################"
@@ -1581,4 +1586,6 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-exit 0
+echo "Exiting: ${SCRIPT_NAME}"
+exit $return_value
+

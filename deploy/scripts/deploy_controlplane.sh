@@ -31,6 +31,9 @@ reset_formatting="\e[0m"
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
+SCRIPT_NAME="$(basename "$0")"
+
+echo "Entering: ${SCRIPT_NAME}"
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
@@ -964,5 +967,7 @@ fi
 echo "##vso[task.setprogress value=100;]Progress Indicator"
 
 unset TF_DATA_DIR
+
+echo "Exiting: ${SCRIPT_NAME}"
 
 exit $return_code

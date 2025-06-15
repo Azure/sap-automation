@@ -21,6 +21,11 @@ source "${script_directory}/deploy_utils.sh"
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
 
+SCRIPT_NAME="$(basename "$0")"
+
+echo "Entering: ${SCRIPT_NAME}"
+
+
 #Internal helper functions
 function showhelp {
 	echo ""
@@ -495,5 +500,7 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 fi
 
 unset TF_DATA_DIR
+
+echo "Exiting: ${SCRIPT_NAME}"
 
 exit $return_value
