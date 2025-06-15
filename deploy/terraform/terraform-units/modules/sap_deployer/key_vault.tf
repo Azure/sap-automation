@@ -472,6 +472,10 @@ resource "azurerm_key_vault_secret" "pwd" {
 
 data "azurerm_key_vault_secret" "pk" {
   count                                = (local.enable_key && !local.key_exist) ? (1) : (0)
+    depends_on                          = [ azurerm_key_vault.kv_user,
+                                            azurerm_key_vault_secret.pk
+                                          ]
+
   name                                 = local.pk_secret_name
   key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.kv_user_id)
 }
