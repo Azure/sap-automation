@@ -47,7 +47,7 @@ module "sap_deployer" {
   sa_connection_string                         = var.sa_connection_string
   soft_delete_retention_days                   = var.soft_delete_retention_days
   set_secret_expiry                            = var.set_secret_expiry
-  spn_id                                       = var.spn_id
+  spn_id                                       = coalesce(var.spn_id, data.azurerm_client_config.current.object_id)
   ssh-timeout                                  = var.ssh-timeout
   subnets_to_add                               = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
   tf_version                                   = var.tf_version
