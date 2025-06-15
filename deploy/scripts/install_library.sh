@@ -272,7 +272,21 @@ export TF_VAR_subscription_id
 
 if [ -n "${keyvault}" ]; then
 	TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+	if [ -z "${TF_VAR_deployer_kv_user_arm_id}" ]; then
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo "#   Key vault does not exist: ${keyvault}                                              #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		exit 64
+	else
+		export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+	fi
+else
+	load_config_vars "${library_config_information}" "keyvault"
+	TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 	export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+
 fi
 
 if [ ! -d ./.terraform/ ]; then

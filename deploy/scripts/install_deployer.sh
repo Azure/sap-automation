@@ -466,6 +466,8 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 			echo ""
 
 			save_config_var "keyvault" "${deployer_config_information}"
+			TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+			export TF_VAR_deployer_kv_user_arm_id
 			return_value=0
 		else
 			return_value=2
