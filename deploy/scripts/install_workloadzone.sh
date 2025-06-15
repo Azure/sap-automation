@@ -1031,7 +1031,6 @@ if [ 1 == $apply_needed ]; then
 			echo ""
 			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
 			echo ""
-			exit $return_value
 		else
 			# return code 2 is ok
 			echo ""

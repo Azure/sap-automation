@@ -234,6 +234,8 @@ deployer_file_parametername=$(basename "${deployer_parameter_file}")
 library_dirname=$(dirname "${library_parameter_file}")
 library_file_parametername=$(basename "${library_parameter_file}")
 
+relative_deployer_path=$(dirname $(realpath ${deployer_parameter_file}))
+
 relative_path="${deployer_dirname}"
 TF_DATA_DIR="${relative_path}"/.terraform
 export TF_DATA_DIR
@@ -313,6 +315,15 @@ if [ -n "${subscription}" ]; then
 		save_config_var "STATE_SUBSCRIPTION" "${deployer_config_information}"
 		export ARM_SUBSCRIPTION_ID=$subscription
 		save_config_var "ARM_SUBSCRIPTION_ID" "${deployer_config_information}"
+
+		export TF_VAR_subscription_id=$subscription
+	else
+		ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+		export ARM_SUBSCRIPTION_ID
+
+		export STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
+		export TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
+
 	fi
 
 	if [ -n "$client_id" ]; then
@@ -589,13 +600,13 @@ if [ 2 -eq $step ]; then
 		rm -Rf .terraform terraform.tfstate*
 	fi
 
-	echo "Calling install_library.sh with: --parameterfile ${library_file_parametername} --deployer_statefile_foldername ${relative_path} --keyvault ${keyvault} ${autoApproveParameter}"
+	echo "Calling install_library.sh with: --parameterfile ${library_file_parametername} --deployer_statefile_foldername ${relative_deployer_path} --keyvault ${keyvault} ${autoApproveParameter}"
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
 		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
 			--parameterfile "${library_file_parametername}" \
-			--deployer_statefile_foldername "${relative_path}" \
+			--deployer_statefile_foldername "${relative_deployer_path}" \
 			--keyvault "${keyvault}" --auto-approve; then
 			return_code=$?
 			step=3
@@ -610,7 +621,7 @@ if [ 2 -eq $step ]; then
 	else
 		if  "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
 			--parameterfile "${library_file_parametername}" \
-			--deployer_statefile_foldername "${relative_path}" \
+			--deployer_statefile_foldername "${relative_deployer_path}" \
 			--keyvault "${keyvault}"; then
 			return_code=$?
 			step=3

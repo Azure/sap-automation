@@ -222,7 +222,8 @@ resource "azurerm_key_vault_secret" "subscription" {
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_key_vault_access_policy.kv_user_systemidentity,
-                                           azurerm_key_vault_access_policy.kv_user_additional_users
+                                           azurerm_key_vault_access_policy.kv_user_additional_users,
+                                           azurerm_private_endpoint.kv_user
                                          ]
 
   name                                 = format("%s-subscription-id", upper(var.infrastructure.environment))
@@ -310,7 +311,8 @@ resource "azurerm_key_vault_secret" "ppk" {
   depends_on                           = [ azurerm_key_vault.kv_user,
                                            time_sleep.wait_for_keyvault,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_key_vault_access_policy.kv_user_pre_deployer
+                                           azurerm_key_vault_access_policy.kv_user_pre_deployer,
+                                           azurerm_private_endpoint.kv_user
                                          ]
   name                                 = local.ppk_secret_name
   value                                = local.private_key
@@ -331,7 +333,8 @@ resource "azurerm_key_vault_secret" "pk" {
   depends_on                           = [ azurerm_key_vault.kv_user,
                                            time_sleep.wait_for_keyvault,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_key_vault_access_policy.kv_user_pre_deployer
+                                           azurerm_key_vault_access_policy.kv_user_pre_deployer,
+                                           azurerm_private_endpoint.kv_user
                                          ]
   name                                 = local.pk_secret_name
   value                                = local.public_key
@@ -358,7 +361,8 @@ resource "azurerm_key_vault_secret" "username" {
   depends_on                           = [ azurerm_key_vault.kv_user,
                                            time_sleep.wait_for_keyvault,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_key_vault_access_policy.kv_user_pre_deployer
+                                           azurerm_key_vault_access_policy.kv_user_pre_deployer,
+                                           azurerm_private_endpoint.kv_user
                                          ]
 
   name                                 = local.username_secret_name
@@ -388,7 +392,8 @@ resource "azurerm_key_vault_secret" "pat" {
   depends_on                           = [ azurerm_key_vault.kv_user,
                                            time_sleep.wait_for_keyvault,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_key_vault_access_policy.kv_user_pre_deployer
+                                           azurerm_key_vault_access_policy.kv_user_pre_deployer,
+                                           azurerm_private_endpoint.kv_user
                                          ]
   name                                 = "PAT"
   value                                = var.agent_pat
@@ -446,7 +451,8 @@ resource "azurerm_key_vault_secret" "pwd" {
   depends_on                           = [ azurerm_key_vault.kv_user,
                                            time_sleep.wait_for_keyvault,
                                            azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_key_vault_access_policy.kv_user_pre_deployer
+                                           azurerm_key_vault_access_policy.kv_user_pre_deployer,
+                                           azurerm_private_endpoint.kv_user
                                          ]
   name                                 = local.pwd_secret_name
   value                                = local.password

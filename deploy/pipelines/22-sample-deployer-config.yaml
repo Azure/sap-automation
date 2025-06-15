@@ -208,7 +208,7 @@ stages:
                         Add-Content $(deployer_file) "environment = ""$(deployer_environment)"""
                         Add-Content $(deployer_file) "location = ""$region"""
                         Add-Content $(deployer_file) ""
-                        Add-Content $(deployer_file) "management_network_logical_name = ""DEP00"""
+                        Add-Content $(deployer_file) "management_network_logical_name = ""DEP01"""
                         Add-Content $(deployer_file) "management_network_address_space = ""10.170.20.0/24"""
                         Add-Content $(deployer_file) "management_subnet_address_prefix = ""10.170.20.64/28"""
 
