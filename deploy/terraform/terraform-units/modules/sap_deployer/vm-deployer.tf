@@ -15,6 +15,9 @@ Description:
 #                                                                              #
 #######################################4#######################################8
 
+resource "time_sleep" "wait_for_VM" {
+  create_duration                      = "30s"
+}
 
 data "azurerm_subscription" "primary" {}
 data "azurerm_client_config" "current" {}
