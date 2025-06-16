@@ -246,7 +246,7 @@ stages:
                     echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
                     exit 2
                   fi
-                  az login --service-principal --username $AZURE_CLIENT_ID --password=${AZURE_CLIENT_SECRET} --tenant $AZURE_TENANT_ID --output none
+                  az login --service-principal --client-id $AZURE_CLIENT_ID --password=${AZURE_CLIENT_SECRET} --tenant $AZURE_TENANT_ID --output none
                   return_code=$?
                   if [ 0 != $return_code ]; then
                     echo -e "$boldred--- Login failed ---$reset"

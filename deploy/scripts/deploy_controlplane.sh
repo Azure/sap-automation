@@ -941,5 +941,4 @@ echo "##vso[task.setprogress value=100;]Progress Indicator"
 unset TF_DATA_DIR
 
 echo "Exiting: ${SCRIPT_NAME}"
-
 exit $return_code
