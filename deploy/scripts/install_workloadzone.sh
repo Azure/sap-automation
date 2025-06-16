@@ -241,15 +241,6 @@ if [ "${force}" == 1 ]; then
 	rm -Rf .terraform terraform.tfstate*
 fi
 
-echo ""
-echo "Configuration file:                  $workload_config_information"
-echo "Deployment region:                   $region"
-echo "Deployment region code:              $region_code"
-echo "Deployment environment:              $deployer_environment"
-echo "Deployer Keyvault:                   $keyvault"
-echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
-echo "Remote state storage account:        $REMOTE_STATE_SA"
-echo "Target Subscription:                 $subscription"
 
 if [[ -n $STATE_SUBSCRIPTION ]]; then
 	if is_valid_guid "$STATE_SUBSCRIPTION"; then
@@ -297,8 +288,21 @@ if [ -n "$keyvault" ]; then
 		echo "The provided keyvault is not valid: ${val}" >"${workload_config_information}".err
 		exit 65
 	fi
-
+else
+	load_config_vars "${deployer_config_information}" "keyvault"
+	save_config_var "keyvault" "${workload_config_information}"
 fi
+
+echo ""
+echo "Deployer config file:                $deployer_config_information"
+echo "Configuration file:                  $workload_config_information"
+echo "Deployment region:                   $region"
+echo "Deployment region code:              $region_code"
+echo "Deployment environment:              $deployer_environment"
+echo "Deployer Keyvault:                   $keyvault"
+echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
+echo "Remote state storage account:        $REMOTE_STATE_SA"
+echo "Target Subscription:                 $subscription"
 
 if [ ! -f "${workload_config_information}" ]; then
 	# Ask for deployer environment name and try to read the deployer state file and resource group details from the configuration file
@@ -332,8 +336,6 @@ fi
 if [ -z "$tfstate_resource_id" ]; then
 	echo "No tfstate_resource_id"
 	if [ -n "$deployer_environment" ]; then
-		deployer_config_information="${automation_config_directory}"/"${deployer_environment}""${region_code}"
-		echo "Deployer config file:                $deployer_config_information"
 		if [ -f "$deployer_config_information" ]; then
 			load_config_vars "${deployer_config_information}" "keyvault"
 			load_config_vars "${deployer_config_information}" "REMOTE_STATE_RG"
