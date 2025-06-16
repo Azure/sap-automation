@@ -102,7 +102,7 @@
                                             --account-name {{ account }}
                                             --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}
                                             --auth-mode login
-                                            --query "[?name=='{{sapbits_bom_files }}/archives/{{ bom_media_entry.archive'].name" --output tsv
+                                            --query "[?name=='{{sapbits_bom_files }}/archives/{{ bom_media_entry.archive }}'].name" --output tsv
       delegate_to:                     localhost
       register:                        blobExists
 
@@ -124,7 +124,7 @@
     - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Set Fact  {{ bom_media_entry.archive }}"
       ansible.builtin.set_fact:
         proceed:                       false
-      when:                            length(blobExists.stdout) > 0
+      when:                            blobExists.stdout | trim | length > 0
       # Step: 03-03 - END
       # -------------------------------+---------------------------------------------8
 
