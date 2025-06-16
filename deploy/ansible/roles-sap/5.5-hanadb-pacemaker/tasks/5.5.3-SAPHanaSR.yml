@@ -203,8 +203,15 @@
                                        path = /hana/shared/myHooks
                                        execution_order = 1
 
+                                       [ha_dr_provider_chksrv]
+                                       provider = ChkSrv
+                                       path = /hana/shared/myHooks
+                                       execution_order = 2
+                                       action_on_lost = kill
+
                                        [trace]
                                        ha_dr_saphanasr = info
+                                       ha_dr_chksrv = info
 
     - name:                            "5.5 HANA Pacemaker - Adjust global.ini on each cluster node (SLES)"
       when:
