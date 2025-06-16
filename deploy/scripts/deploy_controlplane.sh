@@ -31,6 +31,9 @@ reset_formatting="\e[0m"
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
+SCRIPT_NAME="$(basename "$0")"
+
+echo "Entering: ${SCRIPT_NAME}"
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
@@ -234,6 +237,8 @@ deployer_file_parametername=$(basename "${deployer_parameter_file}")
 library_dirname=$(dirname "${library_parameter_file}")
 library_file_parametername=$(basename "${library_parameter_file}")
 
+relative_deployer_path=$(dirname $(realpath ${deployer_parameter_file}))
+
 relative_path="${deployer_dirname}"
 TF_DATA_DIR="${relative_path}"/.terraform
 export TF_DATA_DIR
@@ -313,6 +318,15 @@ if [ -n "${subscription}" ]; then
 		save_config_var "STATE_SUBSCRIPTION" "${deployer_config_information}"
 		export ARM_SUBSCRIPTION_ID=$subscription
 		save_config_var "ARM_SUBSCRIPTION_ID" "${deployer_config_information}"
+
+		export TF_VAR_subscription_id=$subscription
+	else
+		ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+		export ARM_SUBSCRIPTION_ID
+
+		export STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
+		export TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
+
 	fi
 
 	if [ -n "$client_id" ]; then
@@ -579,7 +593,7 @@ if [ 2 -eq $step ]; then
 
 	relative_path="${library_dirname}"
 	export TF_DATA_DIR="${relative_path}/.terraform"
-	relative_path="$CONFIG_REPO_PATH/${deployer_dirname}"
+	relative_path="${deployer_dirname}"
 
 
 	cd "${library_dirname}" || exit
@@ -589,13 +603,13 @@ if [ 2 -eq $step ]; then
 		rm -Rf .terraform terraform.tfstate*
 	fi
 
-	echo "Calling install_library.sh with: --parameterfile ${library_file_parametername} --deployer_statefile_foldername ${relative_path} --keyvault ${keyvault} ${autoApproveParameter}"
+	echo "Calling install_library.sh with: --parameterfile ${library_file_parametername} --deployer_statefile_foldername ${relative_deployer_path} --keyvault ${keyvault} ${autoApproveParameter}"
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
 		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
 			--parameterfile "${library_file_parametername}" \
-			--deployer_statefile_foldername "${relative_path}" \
+			--deployer_statefile_foldername "${relative_deployer_path}" \
 			--keyvault "${keyvault}" --auto-approve; then
 			return_code=$?
 			step=3
@@ -610,7 +624,7 @@ if [ 2 -eq $step ]; then
 	else
 		if  "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
 			--parameterfile "${library_file_parametername}" \
-			--deployer_statefile_foldername "${relative_path}" \
+			--deployer_statefile_foldername "${relative_deployer_path}" \
 			--keyvault "${keyvault}"; then
 			return_code=$?
 			step=3
@@ -623,34 +637,6 @@ if [ 2 -eq $step ]; then
 			exit 20
 		fi
 	fi
-
-	if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-
-		if [ -z "$REMOTE_STATE_SA" ]; then
-			REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name | tr -d \")
-		fi
-		if [ -z "$REMOTE_STATE_SA" ]; then
-			REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
-		fi
-		if [ -z "$STATE_SUBSCRIPTION" ]; then
-			STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
-		fi
-
-		if [ "${ado_flag}" != "--ado" ]; then
-			az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address "${this_ip}" --output none
-		fi
-
-		TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
-		export TF_VAR_sa_connection_string
-	fi
-	if [ -n "${tfstate_resource_id}" ]; then
-		TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
-		export TF_VAR_tfstate_resource_id
-	else
-		tfstate_resource_id=$(az resource list --name "$REMOTE_STATE_SA" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-		TF_VAR_tfstate_resource_id=$tfstate_resource_id
-	fi
-	export TF_VAR_tfstate_resource_id
 
 	cd "${current_directory}" || exit
 	save_config_var "step" "${deployer_config_information}"
@@ -954,4 +940,5 @@ echo "##vso[task.setprogress value=100;]Progress Indicator"
 
 unset TF_DATA_DIR
 
+echo "Exiting: ${SCRIPT_NAME}"
 exit $return_code

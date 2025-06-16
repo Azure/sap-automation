@@ -21,6 +21,11 @@ source "${script_directory}/deploy_utils.sh"
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
 
+SCRIPT_NAME="$(basename "$0")"
+
+echo "Entering: ${SCRIPT_NAME}"
+
+
 #Internal helper functions
 function showhelp {
 	echo ""
@@ -255,6 +260,14 @@ else
 				exit 10
 			fi
 		fi
+
+	else
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo "#                                   New deployment                                      #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
 	fi
 	echo "Parameters:                          $allParameters"
 	terraform -chdir="${terraform_module_directory}" refresh $allParameters
@@ -358,7 +371,6 @@ if [ -n "${approve}" ]; then
 		echo ""
 		echo -e "${bold_red}Terraform apply:                     failed ($return_value)$reset_formatting"
 		echo ""
-		exit 10
 	else
 		# return code 2 is ok
 		echo ""
@@ -368,7 +380,7 @@ if [ -n "${approve}" ]; then
 	fi
 else
 	# shellcheck disable=SC2086
-	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters | tee apply_output.json; then
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
 		return_value=${PIPESTATUS[0]}
 	else
 		return_value=${PIPESTATUS[0]}
@@ -377,6 +389,7 @@ else
 		echo ""
 		echo -e "${bold_red}Terraform apply:                     failed ($return_value)$reset_formatting"
 		echo ""
+		exit 10
 	else
 		# return code 2 is ok
 		echo ""
@@ -458,6 +471,8 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 			echo ""
 
 			save_config_var "keyvault" "${deployer_config_information}"
+			TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+			export TF_VAR_deployer_kv_user_arm_id
 			return_value=0
 		else
 			return_value=2
@@ -485,5 +500,7 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 fi
 
 unset TF_DATA_DIR
+
+echo "Exiting: ${SCRIPT_NAME}"
 
 exit $return_value

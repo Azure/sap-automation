@@ -486,7 +486,7 @@ locals {
   observer_custom_image_id             = local.enable_deployment ? local.hdb_os.source_image_id : ""
   observer_os                          = local.enable_deployment ? local.hdb_os : null
 
-  site_information                    = flatten(
+  site_information                     = flatten(
                                            [
                                             for idx, server_count in range(var.database_server_count) :
                                               [
@@ -495,5 +495,24 @@ locals {
                                            ]
                                          )
 
+  # Determine if cluster disk attachment is needed
+  enable_cluster_disk                  = (
+                                            local.enable_deployment &&
+                                            var.database.high_availability &&
+                                            (
+                                              upper(var.database.os.os_type) == "WINDOWS" ||
+                                              (
+                                                upper(var.database.os.os_type) == "LINUX" &&
+                                                upper(var.database.database_cluster_type) == "ASD"
+                                              )
+                                            )
+                                          )
+
+  # Create VM ID list for attachment
+  cluster_vm_ids                       = local.enable_cluster_disk ? (
+                                            upper(var.database.os.os_type) == "LINUX" ? [
+                                              for i in range(var.database_server_count) : azurerm_linux_virtual_machine.vm_dbnode[i].id
+                                            ] : []
+                                          ) : []
 
 }

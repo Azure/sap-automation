@@ -21,6 +21,10 @@ source "${script_directory}/deploy_utils.sh"
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
 
+SCRIPT_NAME="$(basename "$0")"
+
+echo "Entering: ${SCRIPT_NAME}"
+
 #Internal helper functions
 function showhelp {
 	echo ""
@@ -272,7 +276,21 @@ export TF_VAR_subscription_id
 
 if [ -n "${keyvault}" ]; then
 	TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+	if [ -z "${TF_VAR_deployer_kv_user_arm_id}" ]; then
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo "#   Key vault does not exist: ${keyvault}                                              #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		exit 64
+	else
+		export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+	fi
+else
+	load_config_vars "${library_config_information}" "keyvault"
+	TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 	export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+
 fi
 
 if [ ! -d ./.terraform/ ]; then
@@ -558,6 +576,9 @@ fi
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
 	tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
+	TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
+	export TF_VAR_tfstate_resource_id
+
 	STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
 
 	az account set --sub "$STATE_SUBSCRIPTION"
@@ -578,5 +599,7 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 else
 	return_value=20
 fi
+
+echo "Exiting: ${SCRIPT_NAME}"
 
 exit $return_value

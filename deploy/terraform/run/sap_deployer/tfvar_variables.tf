@@ -514,6 +514,12 @@ variable "privatelink_dns_resourcegroup_name"         {
                                                         type        = string
                                                       }
 
+variable "register_storage_accounts_keyvaults_with_dns" {
+                                                     description = "Boolean value indicating if storage accounts and key vaults should be registered to the corresponding dns zones"
+                                                     default     = true
+                                                     type        = bool
+                                                   }
+
 
 #########################################################################################
 #                                                                                       #

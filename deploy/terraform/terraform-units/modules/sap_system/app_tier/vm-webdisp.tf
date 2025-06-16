@@ -551,7 +551,6 @@ resource "azurerm_lb" "web" {
                                 azurerm_subnet.subnet_sap_web[0].id) : (
                                 data.azurerm_subnet.subnet_sap_web[0].id
                               )
-                              public_ip_address_id = var.application_tier.web_lb_public_ip_id
                               private_ip_address = var.application_tier.use_DHCP ? (
                                 null) : (
                                 try(
