@@ -682,7 +682,6 @@ else
 
 		check_output=1
 		if  terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade=true \
-
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
