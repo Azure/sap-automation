@@ -158,6 +158,7 @@ ers_instance_number:                   "02"
 app_instance_number:                   "00"
 
 sidadm_uid:                            2003
+web_sidadm_uid:                        2004
 hdbadm_uid:                            2200
 scs_lb_ip:                             ""                                      # SAP HA
 database_loadbalancer_ip:              ""                                      # SAP HA
