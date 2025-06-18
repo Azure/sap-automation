@@ -58,6 +58,9 @@
 
 - name:                                "Web Install"
   become:                              true
+  become_user:                         root
+  when:
+                                       - not web_installed.stat.exists
   block:
 
     - name:                            "SAP Web Dispatcher Install: Get the SCS Server name list"
@@ -77,9 +80,10 @@
       register:                        sapinst_found
 
     - name:                            "ErrorHandling"
+      when:                            not sapinst_found.stat.exists
       ansible.builtin.fail:
         msg:                           "INSTALL:0008:Unable to find sapinst, please check that the installation media is mounted"
-      when: not sapinst_found.stat.exists
+
 
     - name:                            "APP Install: Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
       ansible.builtin.template:
@@ -112,10 +116,10 @@
           - "SCSHOST:    {{ custom_scs_virtual_hostname | default(scs_server, true) }}"
           - "LOCATION:   {{ target_media_location }}/SWPM"
           - "TMPDIR:     {{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}"
-# *====================================4=======================================8
-#   SAP Web Dispatcher: Install
-# 2230669 - System Provisioning Using a Parameter Input File
-#
+    # *====================================4=======================================8
+    #   SAP Web Dispatcher: Install
+    # 2230669 - System Provisioning Using a Parameter Input File
+    #
 
     - name:                            "SAP Web Dispatcher Install: Create temp directory for sid"
       ansible.builtin.file:
@@ -144,26 +148,39 @@
         TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}"
       register:                        web_installation
       failed_when:                     web_installation.rc > 0
-      when:                            node_tier == 'web'
+      when:                            "'web' in supported_tiers"
 
     - name:                            "SAP Web Dispatcher Install: Installation results"
+      when:
+                                       - web_installation is defined | default(false)
+                                       - web_installation.rc > 0
       ansible.builtin.debug:
         var:                           web_installation
-      when:                            web_installation.rc > 0
+
+    - name:                            "SAP WebDispatcher Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
+      ansible.builtin.find:
+        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}/sapinst_instdir/GENERIC/AS/WI_UC"
+        file_type:                     file
+        patterns:                      'installationSuccesfullyFinished.dat'
+        recurse:                       true
+      register:                        web_installed_according_to_sapinst
 
     - name:                            "SAP Web Dispatcher Install: Installation results"
+      when:
+                                       - web_installation is defined | default(false)
+                                       - web_installation.rc == 0
       ansible.builtin.debug:
         msg:                           "Web Dispatcher Installation succeeded"
-      when:                            web_installation.rc == 0
 
     - name:                            "SAP Web Dispatcher Install: flag"
+      when:
+                                       - web_installation is defined | default(false)
+                                       - web_installation.rc == 0
+                                       - web_installed_according_to_sapinst.matched > 0
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}/sap_deployment_web.txt"
         state:                         touch
         mode:                          0755
-
-  when:
-    - not web_installed.stat.exists
 
 # *====================================4=======================================8
 
