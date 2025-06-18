@@ -60,8 +60,10 @@
 # |                 Playbook for SAP Web Dispatcher Install                    |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
-- hosts:                               "{{ sap_sid | upper }}_WEB"
+- hosts:                               "{{ sap_sid | upper }}_PAS  :
+                                        {{ sap_sid | upper }}_SCS  :
+                                        {{ sap_sid | upper }}_DB   :
+                                        {{ sap_sid | upper }}_WEB"
 
   name:                                SAP Installation - WebDispatcher
   remote_user:                         "{{ orchestration_ansible_user }}"
@@ -109,6 +111,7 @@
       become:                          true
       when:
         - ansible_os_family != "Windows"
+        - "'web' in supported_tiers"
       block:
         - name:                        "WEB Installation Playbook: - run SAPInst"
           ansible.builtin.include_role:
