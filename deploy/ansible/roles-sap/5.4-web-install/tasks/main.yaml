@@ -159,7 +159,7 @@
 
     - name:                            "SAP WebDispatcher Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
-        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}/sapinst_instdir/{{ bom.product_ids.web.replace('.', '/').replace('/ABAP', '').split(':')[1] }}//GENERIC/AS/WI_UC"
+        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}/sapinst_instdir/GENERIC/AS/WI_UC"
         file_type:                     file
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true
