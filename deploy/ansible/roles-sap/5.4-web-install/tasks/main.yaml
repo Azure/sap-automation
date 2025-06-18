@@ -157,6 +157,13 @@
       ansible.builtin.debug:
         var:                           web_installation
 
+    - name:                            "SAP WebDispatcher Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
+      ansible.builtin.find:
+        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}/sapinst_instdir/{{ bom.product_ids.web.replace('.', '/').replace('/ABAP', '').split(':')[1] }}//GENERIC/AS/WI_UC"
+        file_type:                     file
+        patterns:                      'installationSuccesfullyFinished.dat'
+        recurse:                       true
+      register:                        web_installed_according_to_sapinst
 
     - name:                            "SAP Web Dispatcher Install: Installation results"
       when:
@@ -166,6 +173,10 @@
         msg:                           "Web Dispatcher Installation succeeded"
 
     - name:                            "SAP Web Dispatcher Install: flag"
+      when:
+                                       - web_installation is defined | default(false)
+                                       - web_installation.rc == 0
+                                       - web_installed_according_to_sapinst.matched > 0
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}/sap_deployment_web.txt"
         state:                         touch
