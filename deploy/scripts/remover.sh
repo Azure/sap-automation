@@ -319,7 +319,7 @@ fi
 tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id} "
 
 #setting the user environment variables
-set_executing_user_environment_variables "none"
+# set_executing_user_environment_variables "none"
 
 if [ -n "${STATE_SUBSCRIPTION}" ]; then
 	az account set --sub "${STATE_SUBSCRIPTION}"
@@ -379,7 +379,12 @@ if [ -f .terraform/terraform.tfstate ]; then
 
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 	if [ -n "${azure_backend}" ]; then
-		if terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
+		if terraform -chdir="${terraform_module_directory}" init -input=false -force-copy -upgrade=true \
+			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
+			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+			--backend-config "container_name=tfstate" \
+			--backend-config "key=${key}.terraform.tfstate"; then
 			echo ""
 			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 			echo ""
@@ -390,7 +395,7 @@ if [ -f .terraform/terraform.tfstate ]; then
 			exit 1
 		fi
 	else
-		if terraform -chdir="${terraform_module_directory}" init -reconfigure \
+		if terraform -chdir="${terraform_module_directory}" init -reconfigure -input=false \
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -407,7 +412,7 @@ if [ -f .terraform/terraform.tfstate ]; then
 		fi
 	fi
 else
-	if terraform -chdir="${terraform_module_directory}" init -reconfigure \
+	if terraform -chdir="${terraform_module_directory}" init -force-copy -reconfigure -input=false \
 		--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 		--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 		--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -532,12 +537,24 @@ if [ "$resource_group_exist" ]; then
 			fi
 		fi
 
+		moduleID="module.sap_landscape.azurerm_key_vault_secret.cp_subscription_id"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'cp_subscription_id' removed from state"
+			fi
+		fi
+		moduleID="module.sap_landscape.data.azurerm_key_vault_secret.cp_subscription_id"
+		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+				echo "Secret 'data.cp_subscription_id' removed from state"
+			fi
+		fi
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
-				return_value=$?
+			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee destroy_output.json; then
+				return_value=${PIPESTATUS[0]}
 			else
-				return_value=$?
+				return_value=${PIPESTATUS[0]}
 			fi
 			if [ -f destroy_output.json ]; then
 				errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
@@ -574,8 +591,12 @@ if [ "$resource_group_exist" ]; then
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
-				return_value=$?
+			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee destroy_output.json; then
+				return_value=${PIPESTATUS[0]}
+			else
+				return_value=${PIPESTATUS[0]}
+			fi
+			if [ 0 == $return_value ]; then
 				echo ""
 				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
 				echo ""

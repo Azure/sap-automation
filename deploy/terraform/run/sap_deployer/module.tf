@@ -9,8 +9,9 @@ Description:
 module "sap_deployer" {
   source                                        = "../../terraform-units/modules/sap_deployer"
   providers                                     = {
-                                                     azurerm.dnsmanagement = azurerm.dnsmanagement
-                                                     azurerm.main          = azurerm.main
+                                                     azurerm.dnsmanagement            = azurerm.dnsmanagement
+                                                     azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
+                                                     azurerm.main                     = azurerm.main
                                                    }
   naming                                        = length(var.name_override_file) > 0 ? (
                                                      local.custom_names) : (
@@ -46,7 +47,7 @@ module "sap_deployer" {
   sa_connection_string                          = var.sa_connection_string
   set_secret_expiry                             = var.set_secret_expiry
   soft_delete_retention_days                    = var.soft_delete_retention_days
-  spn_id                                        = var.spn_id
+  spn_id                                        = var.use_spn ? coalesce(var.spn_id, data.azurerm_key_vault_secret.client_id[0].value) : ""
   ssh-timeout                                   = var.ssh-timeout
   subnets_to_add                                = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
   tf_version                                    = var.tf_version

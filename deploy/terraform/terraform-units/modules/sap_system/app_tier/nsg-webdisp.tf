@@ -69,7 +69,10 @@ resource "azurerm_network_security_rule" "webRule_internet" {
   protocol                             = "*"
   source_address_prefix                = "Internet"
   source_port_range                    = "*"
-  destination_address_prefixes         = local.web_subnet_deployed.address_prefixes
+  destination_address_prefixes         = local.web_subnet_exists ? (
+                                             data.azurerm_subnet.subnet_sap_web[0].address_prefixes) : (
+                                             azurerm_subnet.subnet_sap_web[0].address_prefixes
+                                         )
   destination_port_range               = "*"
   resource_group_name                  = var.options.nsg_asg_with_vnet ? (
                                            var.network_resource_group) : (

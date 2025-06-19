@@ -1,0 +1,39 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+#
+##############################################################################################################
+#                                                                                                            #
+# Installation service 'SAP NetWeaver 7.5 > MS SQL Server > Installation > Application Server ABAP >         #
+# High-Availability System > Additional Cluster Node', product id 'NW_SecondClusterNode:NW750.MSS.ABAPHA'    #
+#                                                                                                            #
+##############################################################################################################
+
+# Cluster group to use
+NW_GetSidFromClusterSecond.clusterGroup                              = SAP" {{ sap_sid | upper }} "
+
+# The drive to use for local instances. Has to be a local drive.
+NW_GetSidFromClusterSecond.localDrive                                = {{ sap_drive }}
+
+# ABAP system is Unicode (true|false), only needed if it cannot be determined from the system.
+NW_getUnicode.isUnicode                                              = true
+
+# The folder containing all archives that have been downloaded from http://support.sap.com/swdc and are supposed to be used in this procedure
+archives.downloadBasket                                              = {{ download_directory_windows }}\download_basket
+
+# Password of the sidadm user.
+db2.sidAdmPassword                                                   = {{ domain_user_password }}
+
+# Password for the 'sapadm' user of the SAP Host Agent
+hostAgent.sapAdmPassword                                             = {{ main_password }}
+
+# The instance number of the ERS instance. Leave empty for default.
+nw_instance_ers.ersInstanceNumber                                    = {{ ers_instance_number }}
+
+# Host name of the ERS instance. It can be either the physical host name or -  in case of  high-availability system installation, - one of the virtual host names.
+nw_instance_ers.ersVirtualHostname                                   = {{ ansible_hostname }}
+
+# Windows only: The password of the 'SAPServiceSID' user
+nwUsers.sapServiceSIDPassword                                        = {{ sid_service_password }}
+
+# The password of the '<sapsid>adm' user
+nwUsers.sidadmPassword                                               = {{ domain_user_password }}

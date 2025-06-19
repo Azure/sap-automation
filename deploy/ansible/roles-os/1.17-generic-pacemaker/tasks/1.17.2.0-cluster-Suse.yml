@@ -85,13 +85,14 @@
                                        - database_cluster_type == "AFA"
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (hdb_{{ db_sid | upper }}) is configured - SBD"
-      ansible.builtin.shell:           "crm cluster init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device={{ sbd_device }}"
+      ansible.builtin.shell: |
+                                       crm cluster init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device="{{ sbd_device }}"
+
       register:                        crm_init_result
       failed_when:                     crm_init_result.rc > 1
       when:
                                        - node_tier == 'hana'
                                        - not database_cluster_type == "AFA"
-
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (scs_{{ sap_sid | upper }}) is configured"
       ansible.builtin.shell:           "crm cluster init -y --name 'scs_{{ sap_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
@@ -102,7 +103,8 @@
                                        - scs_cluster_type == "AFA"
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (scs_{{ sap_sid | upper }}) is configured - SBD"
-      ansible.builtin.shell:           "crm cluster init -y --name 'scs_{{ sap_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device={{ sbd_device }}"
+      ansible.builtin.shell: |
+                                       crm cluster init -y --name 'scs_{{ sap_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device="{{ sbd_device }}"
       register:                        crm_init_result
       failed_when:                     crm_init_result.rc > 1
       when:
@@ -118,13 +120,13 @@
                                        - database_cluster_type == "AFA"
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (db2_{{ db_sid | upper }}) is configured - SBD"
-      ansible.builtin.shell:           "crm cluster init -y --name 'db2_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device={{ sbd_device }}"
+      ansible.builtin.shell: |
+                                       crm cluster init -y --name 'db2_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey --sbd-device="{{ sbd_device }}"
       register:                        crm_init_result
       failed_when:                     crm_init_result.rc > 1
       when:
                                        - node_tier == 'db2'
                                        - not database_cluster_type == "AFA"
-
 
 - name:                                "1.17 Generic Pacemaker - Ensure Secondary node joins the Cluster"
   when:
@@ -183,6 +185,17 @@
                                        - scs_cluster_type    == "AFA" or database_cluster_type == "AFA"       # scs_high_availability = true is already assumed
                                        - inventory_hostname  == primary_instance_name
   block:
+    - name:                            "1.17 Generic Pacemaker - Wait for cluster CIB availability"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.shell: |
+                                       # Check if CIB is accessible and cluster is responsive
+                                       timeout 30 cibadmin -Q > /dev/null 2>&1
+      register:                        cib_check
+      until:                           cib_check.rc == 0
+      retries:                         11
+      delay:                           30
+      tags:                            cluster_readiness
 
     - name:                            "1.17 Generic Pacemaker - Remove false positives"
       ansible.builtin.shell:           crm_resource -C
@@ -400,6 +413,12 @@
     #   WARNING: cib-bootstrap-options: unknown attribute 'azure-events_globalPullState'
     #   WARNING: cib-bootstrap-options: unknown attribute 'hostName_ hostname'
     # These warning messages can be ignored.
+
+    - name:                            "1.17 Generic Pacemaker - Check pacemaker version is 2.1.3 or higher"
+      when:                            ansible_facts.packages['pacemaker'] is defined
+      ansible.builtin.set_fact:
+        is_pcmk_213_or_later:          "{{ ansible_facts.packages['pacemaker'][0].version is version('2.1.3', '>=') }}"
+
     - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode is set"
       ansible.builtin.shell:           crm configure property maintenance-mode=true
 
@@ -417,18 +436,45 @@
     - name:                            "1.17 Generic Pacemaker - Set initial value for cluster attributes for {{ secondary_instance_name }}"
       ansible.builtin.shell:           crm_attribute --node {{ secondary_instance_name }} --name '#health-azure' --update 0
 
-    - name:                            "1.17 Generic Pacemaker - Ensure Pacemaker resources for the Azure agent is created"
-      ansible.builtin.shell: |
+    - name:                            "1.17 Generic Pacemaker - Set the pacemaker cluster node health agent (pcmk < 2.13)"
+      when:                            not is_pcmk_213_or_later | bool
+      block:
+        - name:                        "1.17 Generic Pacemaker - Ensure Pacemaker resources for the Azure agent is created (pcmk < 2.13)"
+          ansible.builtin.shell: |
                                        crm configure primitive health-azure-events ocf:heartbeat:azure-events-az \
                                        meta allow-unhealthy-nodes=true failure-timeout=120s \
                                        op start start-delay=90s \
                                        op monitor interval=10s
-      register:                        crm_configure_result
-      failed_when:
+          register:                    crm_configure_result
+          failed_when:
                                        - "crm_configure_result.stderr | lower | regex_search('error|fail')" # Check if the resource is created successfully
 
-    - name:                            "1.17 Generic Pacemaker - Ensure clone resource azure-events is configured"
-      ansible.builtin.shell:           crm configure clone health-azure-events-cln health-azure-events
+        - name:                        "1.17 Generic Pacemaker - Ensure clone resource azure-events is configured (pcmk < 2.13)"
+          ansible.builtin.shell:       crm configure clone health-azure-events-cln health-azure-events
+          register:                    crm_configure_clone_result
+          failed_when:
+                                       - "crm_configure_clone_result.stderr | lower | regex_search('error|fail')" # Check if the resource is created successfully
+
+    - name:                            "1.17 Generic Pacemaker - Set the pacemaker cluster node health agent (pcmk >= 2.13)"
+      when:                            is_pcmk_213_or_later | bool
+      block:
+        - name:                        "1.17 Generic Pacemaker - Ensure Pacemaker resources for the Azure agent is created (pcmk >= 2.13)"
+          ansible.builtin.shell: |
+                                       crm configure primitive health-azure-events ocf:heartbeat:azure-events-az \
+                                       meta failure-timeout=120s \
+                                       op start start-delay=90s \
+                                       op monitor interval=10s
+          register:                    crm_configure_result
+          failed_when:
+                                       - "crm_configure_result.stderr | lower | regex_search('error|fail')"
+
+        - name:                        "1.17 Generic Pacemaker - Ensure clone resource azure-events is configured (pcmk >= 2.13)"
+          ansible.builtin.shell: |
+                                       crm configure clone health-azure-events-cln health-azure-events \
+                                       meta allow-unhealthy-nodes=true
+          register:                    crm_configure_clone_result
+          failed_when:
+                                       - "crm_configure_clone_result.stderr | lower | regex_search('error|fail')"
 
     - name:                            "1.17 Generic Pacemaker - Remove false positives"
       ansible.builtin.shell:           crm_resource -C

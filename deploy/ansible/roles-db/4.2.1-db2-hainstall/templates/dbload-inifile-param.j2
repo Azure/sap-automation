@@ -1,0 +1,76 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+#
+#############################################################################################################################################################################################################
+#                                                                                                                                                                                                           #
+# Installation service 'SAP NetWeaver 7.5 > IBM Db2 for Linux, UNIX, and Windows > Installation > Application Server ABAP > Distributed System > Database Instance', product id 'NW_ABAP_DB:NW750.DB6.ABAP' #
+#                                                                                                                                                                                                           #
+#############################################################################################################################################################################################################
+
+# Location of Export CD
+
+archives.downloadBasket                                             = {{ db2_cd_package_kernel }}
+NW_Unpack.sapExeDbSar                                               = {{ db2_cd_package_kernel }}
+NW_Unpack.sapExeSar                                                 = {{ db2_cd_package_kernel }}
+SAPINST.CD.PACKAGE.CLIENT                                           = {{ db2_cd_package_db2client }}
+SAPINST.CD.PACKAGE.LOAD                                             = {{ db2_cd_package_exportcd }}
+SAPINST.CD.PACKAGE.RDBMS                                            = {{ db2_cd_package_software }}
+
+#NW Parameters
+
+NW_DB6_DB.db6.abap.connect.user                                      = sap{{ db_sid | lower }}
+NW_DB6_DB.db6.abap.schema                                            = sap{{ db_sid | lower }}
+NW_getDBInfoGeneric.dbhost                                           = {{ sap_db_hostname }}
+NW_getDBInfoGeneric.dbsid                                            = {{ db_sid | upper }}
+NW_getFQDN.FQDN                                                      = {{ sap_fqdn }}
+NW_getLoadType.loadType                                              = DB6BR
+NW_GetMasterPassword.masterPwd                                       = {{ main_password }}
+NW_GetSidNoProfiles.sapdrive                                         = undefined
+NW_GetSidNoProfiles.sid                                              = {{ sap_sid | upper }}
+NW_GetSidNoProfiles.unicode                                          = true
+
+# ABAP system is Unicode (true|false), only needed if it cannot be determined from the system.
+NW_getUnicode.isUnicode                                              = true
+NW_readProfileDir.profileDir                                         = {{ sap_profile_dir }}
+NW_readProfileDir.profilesAvailable                                  = true
+
+# Passwords for sap and db2 users
+
+nwUsers.db6.db2sidPassword                                           = {{ main_password }}
+nwUsers.db6.db2sidUid                                                = {{ db2sidadm_uid }}
+nwUsers.db6.sapsidPassword                                           = {{ main_password }}
+nwUsers.db6.sapsidPassword                                           = {{ main_password }}
+nwUsers.db6.sapsidUid                                                = {{ db2sapsid_uid }}
+nwUsers.sapadmUID                                                    = {{ sapadm_uid }}
+nwUsers.sapsysGID                                                    = {{ sapsys_gid }}
+nwUsers.sidadmPassword                                               = {{ main_password }}
+nwUsers.sidAdmUID                                                    = {{ sidadm_uid }}
+
+
+#Database Parameters
+
+db6.cluster.ClusterType                                             = HADR (High Availability Disaster Recovery)
+db6.cluster.HADRPort1                                               = {{ db2hadr_port1 }}
+db6.cluster.HADRPort2                                               = {{ db2hadr_port2 }}
+db6.createTablespacesUsingSapinst                                   = true
+db6.DatabaseMemory                                                  = {{ db2_memory }}
+db6.DB2SoftwarePath                                                 = /db2/db2{{ db_sid | upper }}/db2_software
+db6.gid_sysadm                                                      = {{ db2sysadm_gid }}
+db6.gid_sysctrl                                                     = {{ db2sysctrl_gid }}
+db6.gid_sysmaint                                                    = {{ db2sysmaint_gid }}
+db6.gid_sysmon                                                      = {{ db2sysmon_gid }}
+db6.minimizeDatabaseSizeCompression                                 = true
+db6.numPathsForSapdatas                                             = 4
+db6.numPathsForSaptmps                                              = 4
+db6.TablespacePoolSizes                                             = SAPSID#DATA{20}
+db6.useAutoStorage                                                  = true
+db6.useExtraSapdataSaptmpDirLayout                                  = false
+db6.UseStandardTablespacePool                                       = true
+storageBasedCopy.db6.CommunicationPortNumber                        = 59120
+storageBasedCopy.db6.PortRangeEnd                                   = 59170
+storageBasedCopy.db6.PortRangeStart                                 = 59140
+
+# Import Parameters
+NW_ABAP_Import_Dialog.dbCodepage                                    = 4103
+NW_ABAP_Import_Dialog.migmonJobNum                                  = 30
+NW_ABAP_Import_Dialog.migmonLoadArgs                                = -stop_on_error -loadprocedure fast LOAD:COMPRESS_ALL:DEF_CRT

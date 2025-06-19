@@ -48,7 +48,6 @@ resource "azurerm_linux_virtual_machine" "anchor" {
 
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = true
 
   zone                                 = local.zones[count.index]
 
@@ -66,6 +65,8 @@ resource "azurerm_linux_virtual_machine" "anchor" {
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
   # ToDo Add back later
 # patch_mode                           = var.infrastructure.patch_mode
+
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
   dynamic "admin_ssh_key" {
     for_each                           = range(var.deployment == "new" ? 1 : (local.enable_anchor_auth_password ? 0 : 1))
@@ -149,7 +150,6 @@ resource "azurerm_windows_virtual_machine" "anchor" {
   patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = true
 
   network_interface_ids                = [
                                            azurerm_network_interface.anchor[count.index].id
@@ -158,6 +158,8 @@ resource "azurerm_windows_virtual_machine" "anchor" {
   size                                 = try(var.infrastructure.anchor_vms.sku, "")
   admin_username                       = local.sid_auth_username
   admin_password                       = local.sid_auth_password
+
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
   os_disk {
     name                               = format("%s%s%s%s%s",

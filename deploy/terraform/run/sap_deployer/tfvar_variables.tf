@@ -378,6 +378,11 @@ variable "soft_delete_retention_days"                 {
                                                         default     = 7
                                                       }
 
+variable "enable_rbac_authorization"                 {
+                                                        description = "Enable RBAC authorization for the key vault"
+                                                        default     = false
+                                                      }
+
 #######################################4#######################################8
 #                                                                              #
 #  Miscellaneous settings                                                      #
@@ -457,6 +462,11 @@ variable "additional_network_id"                     {
                                                        default     = ""
                                                      }
 
+variable "encryption_at_host_enabled"                {
+                                                       description = "Enable or disable host encryption for the deployer"
+                                                       default     = false
+                                                       type        = bool
+                                                     }
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #
@@ -503,6 +513,12 @@ variable "privatelink_dns_resourcegroup_name"         {
                                                         default     = ""
                                                         type        = string
                                                       }
+
+variable "register_storage_accounts_keyvaults_with_dns" {
+                                                     description = "Boolean value indicating if storage accounts and key vaults should be registered to the corresponding dns zones"
+                                                     default     = true
+                                                     type        = bool
+                                                   }
 
 
 #########################################################################################
@@ -636,7 +652,6 @@ variable "use_spn"                                   {
                                                        description = "Log in using a service principal when performing the deployment"
                                                        default     = false
                                                      }
-
 
 #########################################################################################
 #                                                                                       #

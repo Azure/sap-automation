@@ -105,8 +105,8 @@ resource "azurerm_lb_probe" "hdb" {
 resource "azurerm_network_interface_backend_address_pool_association" "hdb" {
   provider                             = azurerm.main
   count                                = local.enable_db_lb_deployment ? var.database_server_count : 0
-  network_interface_id                 = var.database.scale_out ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : azurerm_network_interface.nics_dbnodes_db[count.index].id
-  ip_configuration_name                = var.database.scale_out ? azurerm_network_interface.nics_dbnodes_admin[count.index].ip_configuration[0].name : azurerm_network_interface.nics_dbnodes_db[count.index].ip_configuration[0].name
+  network_interface_id                 = var.database.scale_out && var.database_dual_nics ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : azurerm_network_interface.nics_dbnodes_db[count.index].id
+  ip_configuration_name                = var.database.scale_out && var.database_dual_nics? azurerm_network_interface.nics_dbnodes_admin[count.index].ip_configuration[0].name : azurerm_network_interface.nics_dbnodes_db[count.index].ip_configuration[0].name
   backend_address_pool_id              = azurerm_lb_backend_address_pool.hdb[0].id
 }
 
@@ -152,10 +152,10 @@ resource "azurerm_lb_probe" "hdb_active_active" {
   provider                             = azurerm.main
   count                                = local.enable_db_lb_deployment && var.database_active_active ? 1 : 0
   name                                 = format("%s%s%s%s",
-                                           var.naming.resource_prefixes.db_rlb_hp,
+                                           try(var.naming.resource_prefixes.db_rlb_hp, ""),
                                            local.prefix,
                                            var.naming.separator,
-                                           local.resource_suffixes.db_rlb_hp
+                                           try(local.resource_suffixes.db_rlb_hp, "dbRlb-hp")
                                          )
   loadbalancer_id                      = azurerm_lb.hdb[count.index].id
   port                                 = "626${var.database.instance.number}"
@@ -169,10 +169,10 @@ resource "azurerm_lb_rule" "hdb_active_active" {
   provider                             = azurerm.main
   count                                = local.enable_db_lb_deployment && var.database_active_active ? 1 : 0
   name                                 = format("%s%s%s%s",
-                                           var.naming.resource_prefixes.db_rlb_rule,
+                                           try(var.naming.resource_prefixes.db_rlb_rule, ""),
                                            local.prefix,
                                            var.naming.separator,
-                                           local.resource_suffixes.db_rlb_rule
+                                           try(local.resource_suffixes.db_rlb_rule, "dbRlb-rule")
                                          )
   loadbalancer_id                      = azurerm_lb.hdb[count.index].id
   protocol                             = "All"

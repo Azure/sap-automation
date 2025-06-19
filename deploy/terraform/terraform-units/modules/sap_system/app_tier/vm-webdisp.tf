@@ -143,7 +143,6 @@ resource "azurerm_linux_virtual_machine" "web" {
 
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = true
   //If length of zones > 1 distribute servers evenly across zones
   zone                                 = local.use_web_avset ? null : try(local.web_zones[count.index % max(local.web_zone_count, 1)], null)
 
@@ -178,6 +177,8 @@ resource "azurerm_linux_virtual_machine" "web" {
 # patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(var.application_tier.web_tags, var.tags)
+
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
   dynamic "admin_ssh_key" {
                             for_each = range(var.deployment == "new" ? 1 : (local.enable_auth_password ? 0 : 1))
@@ -297,7 +298,6 @@ resource "azurerm_windows_virtual_machine" "web" {
   patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = true
   enable_automatic_updates                               = !(var.infrastructure.patch_mode == "ImageDefault")
 
   //If length of zones > 1 distribute servers evenly across zones
@@ -333,6 +333,8 @@ resource "azurerm_windows_virtual_machine" "web" {
 # patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(var.application_tier.web_tags, var.tags)
+
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
   dynamic "os_disk" {
                       iterator = disk
@@ -545,13 +547,19 @@ resource "azurerm_lb" "web" {
                                 var.naming.separator,
                                 local.resource_suffixes.web_alb_feip
                               )
-                              subnet_id = local.web_subnet_deployed.id
+                              subnet_id = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
+                                azurerm_subnet.subnet_sap_web[0].id) : (
+                                data.azurerm_subnet.subnet_sap_web[0].id
+                              )
                               private_ip_address = var.application_tier.use_DHCP ? (
                                 null) : (
                                 try(
                                   local.webdispatcher_loadbalancer_ips[0],
                                   cidrhost(
-                                    local.web_subnet_deployed.address_prefixes[0],
+                                    var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
+                                             azurerm_subnet.subnet_sap_web[0].address_prefixes[0]) : (
+                                             data.azurerm_subnet.subnet_sap_web[0].address_prefixes[0]
+                                         ),
                                     local.ip_offsets.web_lb
                                   )
                                 )
@@ -716,4 +724,3 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_web_win" {
                                             }
                                           )
 }
-

@@ -15,60 +15,61 @@
 # creating an entry for a new distribution.
 packages:
   redhat7:
+    # - { tier: 'os',     package: 'unar',                                         node_tier: 'scs',           state: 'present' }
     - { tier: 'os',     package: '@base',                                        node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'PackageKit-gtk3-module',                       node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'bind-utils',                                   node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'cairo',                                        node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'chrony',                                       node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'cifs-utils',                                   node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'expect',                                       node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'graphviz',                                     node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'gtk2',                                         node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'iptraf-ng',                                    node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'krb5-libs',                                    node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'krb5-workstation',                             node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libcanberra-gtk2',                             node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libicu',                                       node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'xulrunner',                                    node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libpng12',                                     node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libssh2',                                      node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libtool-ltdl',                                 node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'lm_sensors',                                   node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'lvm2',                                         node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'net-tools',                                    node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'nfs-utils',                                    node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'numactl',                                      node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'numad',                                        node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'openssl',                                      node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'rsyslog',                                      node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'sg3_utils',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'sudo',                                         node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'tcsh',                                         node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libssh2',                                      node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'expect',                                       node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'cairo',                                        node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'graphviz',                                     node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'iptraf-ng',                                    node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'krb5-workstation',                             node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'krb5-libs',                                    node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libpng12',                                     node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'nfs-utils',                                    node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'lm_sensors',                                   node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'rsyslog',                                      node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'openssl',                                      node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'PackageKit-gtk3-module',                       node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libcanberra-gtk2',                             node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libtool-ltdl',                                 node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'xorg-x11-xauth',                               node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'numactl',                                      node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'xfsprogs',                                     node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'net-tools',                                    node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'bind-utils',                                   node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'chrony',                                       node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'sg3_utils',                                    node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'lvm2',                                         node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'numad',                                        node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'cifs-utils',                                   node_tier: 'all',            state: 'present' }
-    # - { tier: 'os',     package: 'unar',                                         node_tier: 'scs',           state: 'present' }
+    - { tier: 'os',     package: 'xorg-x11-xauth',                               node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'xulrunner',                                    node_tier: 'all',            state: 'present' }
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
-    - { tier: 'os',     package: 'libaio',                                       node_tier: 'db2',            state: 'present' }
-    - { tier: 'os',     package: 'ksh',                                          node_tier: 'db2',            state: 'present' }
-    - { tier: 'os',     package: 'mksh',                                         node_tier: 'db2',            state: 'present' }
-    - { tier: 'os',     package: 'libstdc++.so.6',                               node_tier: 'db2',            state: 'present' }
-    - { tier: 'os',     package: 'unzip',                                        node_tier: 'db2',            state: 'present' }
-    - { tier: 'os',     package: 'libpam.so.0',                                  node_tier: 'db2',            state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
+    - { tier: 'os',     package: 'ksh',                                          node_tier: 'db2',            state: 'present' }
+    - { tier: 'os',     package: 'libaio',                                       node_tier: 'db2',            state: 'present' }
+    - { tier: 'os',     package: 'libpam.so.0',                                  node_tier: 'db2',            state: 'present' }
+    - { tier: 'os',     package: 'libstdc++.so.6',                               node_tier: 'db2',            state: 'present' }
+    - { tier: 'os',     package: 'mksh',                                         node_tier: 'db2',            state: 'present' }
+    - { tier: 'os',     package: 'unzip',                                        node_tier: 'db2',            state: 'present' }
     # --------------------------- Begin - Packages required for SYBASE --------------------------------------8
     # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
     - { tier: 'os',     package: 'glibc.i686',                                  node_tier: 'sybase',          state: 'present' }
     - { tier: 'sybase', package: 'libnsl',                                      node_tier: 'sybase',          state: 'present' }
     # --------------------------- End - Packages required for SYBASE ----------------------------------------8
+
     - { tier: 'sapos',  package: 'autofs',                                       node_tier: 'all',            state: 'present' }
+    - { tier: 'sapos',  package: 'compat-sap-c++-*',                             node_tier: 'all',            state: 'present' }
+    - { tier: 'sapos',  package: 'csh',                                          node_tier: 'all',            state: 'present' }
+    - { tier: 'sapos',  package: 'libatomic',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'nfs4-acl-tools',                               node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'tuned-profiles-sap*',                          node_tier: 'all',            state: 'present' }
-    - { tier: 'sapos',  package: 'compat-sap-c++-*',                             node_tier: 'all',            state: 'present' }
-    - { tier: 'sapos',  package: 'libatomic',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'uuidd',                                        node_tier: 'all',            state: 'present' }
-    - { tier: 'sapos',  package: 'csh',                                          node_tier: 'all',            state: 'present' }
     # ------------------------- Begin - Packages required for Clustering ------------------------------------8
     - { tier: 'ha',     package: 'pcs',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'ha',     package: 'pacemaker',                                    node_tier: 'all',            state: 'present' }
@@ -500,56 +501,59 @@ packages:
   # Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and
   # Upgrade. Need to add the groupinstall command.
   oraclelinux8:
-    - { tier: 'os',     package: 'sudo',                                         node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'tcsh',                                         node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'nfs-utils',                                    node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'rsyslog',                                      node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'openssl',                                      node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'xorg-x11-xauth',                               node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'net-tools',                                    node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'bind-utils',                                   node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'xfsprogs',                                     node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'lvm2',                                         node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'cifs-utils',                                   node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'uuidd',                                        node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'csh',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'ha',     package: 'jq',                                           node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'unzip',                                        node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'oracleasm',                                    node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'bind-utils',                                   node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'cifs-utils',                                   node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'compat-sap-c++-*',                             node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'csh',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'elfutils-libelf',                              node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'elfutils-libelf-devel',                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'fontconfig-devel',                             node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'glibc',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'glibc-devel',                                  node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'ksh',                                          node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libaio',                                       node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libaio-devel',                                 node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libICE-devel',                                 node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libSM-devel',                                  node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libX11',                                       node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libX11-devel',                                 node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libXau',                                       node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libXaw.x86_64',                                node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libXi',                                        node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libXp-devel',                                  node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libXrender',                                   node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libXrender-devel',                             node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libX11',                                       node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libXau',                                       node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libXi',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libXtst',                                      node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libXtst-devel',                                node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libaio',                                       node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libaio-devel',                                 node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libgcc',                                       node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libnsl',                                       node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libnsl2',                                      node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libstdc++',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libstdc++-devel',                              node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'unixODBC',                                     node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libnsl2',                                      node_tier: 'all',            state: 'present' }
-    - { tier: 'sybase', package: 'libnsl',                                       node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libstdc++.so.6',                               node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'lvm2',                                         node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'make',                                         node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'targetcli',                                    node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'smartmontools',                                node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'sysstat',                                      node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'xorg-x11-server-Xorg',                         node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libXaw.x86_64',                                node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'xorg-x11-fonts-misc',                          node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'motif',                                        node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libXtst-devel',                                node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libXp-devel',                                  node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libX11-devel',                                 node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libSM-devel',                                  node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libICE-devel',                                 node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'net-tools',                                    node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'nfs-utils',                                    node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'openssl',                                      node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'oracleasm',                                    node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'rsyslog',                                      node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'smartmontools',                                node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'sudo',                                         node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'sysstat',                                      node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'targetcli',                                    node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'tcsh',                                         node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'tuned-profiles-oracle.noarch',                 node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'unixODBC',                                     node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'unzip',                                        node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'uuidd',                                        node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'xfsprogs',                                     node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'xorg-x11-fonts-misc',                          node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'xorg-x11-server-Xorg',                         node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'xorg-x11-xauth',                               node_tier: 'all',            state: 'present' }
+
   oraclelinux8.1:
   oraclelinux8.2:
   oraclelinux8.3:

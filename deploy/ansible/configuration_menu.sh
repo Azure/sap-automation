@@ -71,7 +71,7 @@ export           ANSIBLE_CONFIG="${cmd_dir}/ansible.cfg"
 
 # We really should be determining the user dynamically, or requiring
 # that it be specified in the inventory settings (currently true)
-export           ANSIBLE_REMOTE_USER=azureadm
+export           ANSIBLE_REMOTE_USER=$USER
 
 # Ref: https://docs.ansible.com/ansible/2.9/reference_appendices/interpreter_discovery.html
 # Silence warnings about Python interpreter discovery

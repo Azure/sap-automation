@@ -58,6 +58,7 @@ parameters:
       - NOEU
       - NOEA
       - NOWE
+      - NZNO
       - SANO
       - SAWE
       - SCUS
@@ -90,8 +91,6 @@ parameters:
 
 variables:
   - group:                             "SDAF-General"
-
-  - group:                             SDAF-${{ parameters.deployer_environment }}
 
   - group:                             SDAF-${{ parameters.workload_environment }}
 

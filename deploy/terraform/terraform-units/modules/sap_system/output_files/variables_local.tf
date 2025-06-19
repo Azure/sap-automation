@@ -30,7 +30,13 @@ locals {
 
   app_tier                             = (local.app_server_count + local.scs_server_count) > 0
 
-  db_supported_tiers                   = local.app_tier ? lower(var.platform) : format("%s, scs, pas", lower(var.platform))
+  single_server                          = length(var.webdispatcher_server_ips) + length(var.application_server_ips) + length(var.scs_server_ips) + length(var.database_server_ips) == 1 ? (
+                                                       true) : (
+                                                       false
+                                                     )
+
+
+  db_supported_tiers                   = local.app_tier ? lower(var.platform) : format("%s, scs, pas, web", lower(var.platform))
   scs_supported_tiers                  = local.app_server_count > 0 ? "scs" : "scs, pas"
 
   # If PAS and SCS is on same server

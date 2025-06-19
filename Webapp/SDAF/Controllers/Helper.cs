@@ -410,10 +410,24 @@ namespace SDAFWebApp.Controllers
                                 value += "{";
                                 value += "\"Key\":" + tagKey + "," + "\"Value\":" + tagValue.Trim(',');
                                 value += "},";
-                                currLine = stringReader.ReadLine();
+                                currLine = stringReader.ReadLine().TrimStart();
                             }
                             value = value.Trim(',');
                             value += "],";
+                        }
+                        else if (key.ToLower() == "\"network_address_space\"")
+                        {
+                            value = currLine[(equalIndex + 1)..].Trim();
+                            if (!value.StartsWith('['))
+                            {
+                                value += ",";
+                            }
+                            else
+                            {
+                                string fixedValue = value.Replace('[', ' ').Replace(']', ' ');
+                                value = fixedValue.Trim() + ",";
+                            }
+
                         }
                         else if (key.EndsWith("configuration_settings\""))
                         {

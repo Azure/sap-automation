@@ -223,6 +223,7 @@ variable "region_mapping" {
     "northeurope"        = "noeu"
     "norwayeast"         = "noea"
     "norwaywest"         = "nowe"
+    "newzealandnorth"   =  "nzno"
     "polandcentral"      = "plce"
     "qatarcentral"       = "qace"
     "southafricanorth"   = "sano"

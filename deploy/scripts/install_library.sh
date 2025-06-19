@@ -21,6 +21,10 @@ source "${script_directory}/deploy_utils.sh"
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
 
+SCRIPT_NAME="$(basename "$0")"
+
+echo "Entering: ${SCRIPT_NAME}"
+
 #Internal helper functions
 function showhelp {
 	echo ""
@@ -272,7 +276,21 @@ export TF_VAR_subscription_id
 
 if [ -n "${keyvault}" ]; then
 	TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+	if [ -z "${TF_VAR_deployer_kv_user_arm_id}" ]; then
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo "#   Key vault does not exist: ${keyvault}                                              #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		exit 64
+	else
+		export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+	fi
+else
+	load_config_vars "${library_config_information}" "keyvault"
+	TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 	export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+
 fi
 
 if [ ! -d ./.terraform/ ]; then
@@ -385,10 +403,14 @@ return_value=0
 
 if [ -n "${deployer_statefile_foldername}" ]; then
 	echo "Deployer folder specified:           ${deployer_statefile_foldername}"
-	if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
+	if terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
 		-var-file="${var_file}" -input=false \
-		-var deployer_statefile_foldername="${deployer_statefile_foldername}" | tee -a plan_output.log 2>&1; then
-		return_value=$?
+		-var deployer_statefile_foldername="${deployer_statefile_foldername}" | tee plan_output.log 2>&1; then
+		return_value=${PIPESTATUS[0]}
+	else
+		return_value=${PIPESTATUS[0]}
+	fi
+	if [ 0 == $return_value ]; then
 		echo ""
 		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
 		echo ""
@@ -402,9 +424,13 @@ if [ -n "${deployer_statefile_foldername}" ]; then
 	allImportParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
 
 else
-	if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
-		-var-file="${var_file}" -input=false | tee -a plan_output.log 2>&1; then
-		return_value=$?
+	if terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
+		-var-file="${var_file}" -input=false | tee plan_output.log 2>&1; then
+		return_value=${PIPESTATUS[0]}
+	else
+		return_value=${PIPESTATUS[0]}
+	fi
+	if [ 0 == $return_value ]; then
 		echo ""
 		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
 		echo ""
@@ -452,41 +478,40 @@ echo ""
 
 if [ -n "${approve}" ]; then
 	# shellcheck disable=SC2086
-	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters --auto-approve | tee -a apply_output.json; then
-		return_value=$?
-		if [ $return_value -eq 1 ]; then
-			echo ""
-			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
-			echo ""
-		else
-			# return code 2 is ok
-			echo ""
-			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-			echo ""
-			return_value=0
-		fi
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters --auto-approve | tee apply_output.json; then
+		return_value=${PIPESTATUS[0]}
 	else
-		return_value=0
+		return_value=${PIPESTATUS[0]}
+	fi
+	if [ $return_value -eq 1 ]; then
+		echo ""
+		echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
+		echo ""
+	else
+		# return code 2 is ok
 		echo ""
 		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 		echo ""
+		return_value=0
 	fi
 
 else
 	# shellcheck disable=SC2086
-	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters; then
-		return_value=$?
-		if [ $return_value -eq 1 ]; then
-			echo ""
-			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
-			echo ""
-		else
-			# return code 2 is ok
-			return_value=0
-			echo ""
-			echo -e "${cyan} Terraform apply:                    succeeded$reset_formatting"
-			echo ""
-		fi
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters; then
+		return_value=${PIPESTATUS[0]}
+	else
+		return_value=${PIPESTATUS[0]}
+	fi
+	if [ $return_value -eq 1 ]; then
+		echo ""
+		echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
+		echo ""
+	else
+		# return code 2 is ok
+		echo ""
+		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
+		echo ""
+		return_value=0
 	fi
 fi
 
@@ -551,6 +576,9 @@ fi
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
 	tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
+	TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
+	export TF_VAR_tfstate_resource_id
+
 	STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
 
 	az account set --sub "$STATE_SUBSCRIPTION"
@@ -571,5 +599,7 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 else
 	return_value=20
 fi
+
+echo "Exiting: ${SCRIPT_NAME}"
 
 exit $return_value

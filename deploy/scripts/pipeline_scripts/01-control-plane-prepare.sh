@@ -61,8 +61,8 @@ if [ 0 != "${step}" ]; then
 	exit 0
 fi
 
-echo -e "$green--- Checkout $BRANCH ---$reset"
-git checkout -q "$BRANCH"
+echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 echo -e "$green--- Configure devops CLI extension ---$reset"
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
@@ -115,15 +115,12 @@ echo "$val                 $VARIABLE_GROUP_ID"
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
-# Set logon variables
-ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
-export ARM_CLIENT_ID
-ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
-export ARM_CLIENT_SECRET
-ARM_TENANT_ID=$CP_ARM_TENANT_ID
-export ARM_TENANT_ID
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
+ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
 export ARM_SUBSCRIPTION_ID
+
+if [ -v SYSTEM_ACCESSTOKEN ]; then
+	export TF_VAR_PAT="$SYSTEM_ACCESSTOKEN"
+fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -152,8 +149,6 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	ARM_USE_AZUREAD=true
 	export ARM_USE_AZUREAD
 
-
-
 else
 	echo -e "$green--- az login ---$reset"
 	LogonToAzure "$USE_MSI"
@@ -165,17 +160,13 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-# Reset the account if sourcing was done
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
 echo -e "$green--- Convert config files to UX format ---$reset"
 dos2unix -q "$deployer_tfvars_file_name"
 dos2unix -q "$library_tfvars_file_name"
 
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
+key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "keyvault")
 if [ -n "$key_vault" ]; then
 	echo "Deployer Key Vault:                  ${key_vault}"
 	key_vault_id=$(az resource list --name "${key_vault}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
@@ -297,12 +288,21 @@ if [ -f "${deployer_environment_file_name}" ]; then
 		echo "Terraform Remote State RG Name:       ${file_REMOTE_STATE_RG}"
 	fi
 fi
+
+echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+if [ 0 = $return_code ]; then
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$file_key_vault"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneLocation" "$LOCATION"
+
+fi
+
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
 added=0
 cd "$CONFIG_REPO_PATH" || exit
 
 # Pull changes
-git pull -q origin "$BRANCH"
+git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 echo -e "$green--- Update repo ---$reset"
 
@@ -333,21 +333,12 @@ if [ 1 = $added ]; then
 	git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 	git config --global user.name "$BUILD_REQUESTEDFOR"
 	git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
-	if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
+	if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
 		echo "##vso[task.logissue type=error]Failed to push changes to the repository."
 	fi
 fi
 
 if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
 	echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
-fi
-echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-if [ 0 = $return_code ]; then
-
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "$deployer_tfstate_key"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "$file_key_vault"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"
-	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneLocation" "$LOCATION"
-
 fi
 exit $return_code

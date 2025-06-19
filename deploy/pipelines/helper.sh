@@ -1,7 +1,6 @@
+#!/bin/bash
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-
-#!/bin/bash
 
 function getVariableFromVariableGroup() {
 	local variable_group_id="$1"
@@ -68,14 +67,23 @@ function configureNonDeployer() {
 
 function LogonToAzure() {
 	local useMSI=$1
+	local subscriptionId=$ARM_SUBSCRIPTION_ID
+
 	if [ "$useMSI" != "true" ]; then
 		echo "Deployment credentials:              Service Principal"
 		echo "Deployment credential ID (SPN):      $ARM_CLIENT_ID"
 		unset ARM_USE_MSI
-		az login --service-principal --username "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
+		az login --service-principal --client-id "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
 	else
 		echo "Deployment credentials:              Managed Service Identity"
 		source "/etc/profile.d/deploy_server.sh"
+
+		# sourcing deploy_server.sh overwrites ARM_SUBSCRIPTION_ID with control plane subscription id
+		# ensure we are exporting the right ARM_SUBSCRIPTION_ID when authenticating against workload zones.
+		if [[ "$ARM_SUBSCRIPTION_ID" != "$subscriptionId" ]]; then
+			ARM_SUBSCRIPTION_ID=$subscriptionId
+			export ARM_SUBSCRIPTION_ID
+		fi
 	fi
 
 }
@@ -117,6 +125,7 @@ function get_region_from_code() {
 	"NOEU") LOCATION_IN_FILENAME="northeurope" ;;
 	"NOEA") LOCATION_IN_FILENAME="norwayeast" ;;
 	"NOWE") LOCATION_IN_FILENAME="norwaywest" ;;
+	"NZNO") LOCATION_IN_FILENAME="newzealandnorth" ;;
 	"PLCE") LOCATION_IN_FILENAME="polandcentral" ;;
 	"QACE") LOCATION_IN_FILENAME="qatarcentral" ;;
 	"SANO") LOCATION_IN_FILENAME="southafricanorth" ;;

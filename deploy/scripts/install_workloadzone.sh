@@ -241,15 +241,6 @@ if [ "${force}" == 1 ]; then
 	rm -Rf .terraform terraform.tfstate*
 fi
 
-echo ""
-echo "Configuration file:                  $workload_config_information"
-echo "Deployment region:                   $region"
-echo "Deployment region code:              $region_code"
-echo "Deployment environment:              $deployer_environment"
-echo "Deployer Keyvault:                   $keyvault"
-echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
-echo "Remote state storage account:        $REMOTE_STATE_SA"
-echo "Target Subscription:                 $subscription"
 
 if [[ -n $STATE_SUBSCRIPTION ]]; then
 	if is_valid_guid "$STATE_SUBSCRIPTION"; then
@@ -297,8 +288,21 @@ if [ -n "$keyvault" ]; then
 		echo "The provided keyvault is not valid: ${val}" >"${workload_config_information}".err
 		exit 65
 	fi
-
+else
+	load_config_vars "${deployer_config_information}" "keyvault"
+	save_config_var "keyvault" "${workload_config_information}"
 fi
+
+echo ""
+echo "Deployer config file:                $deployer_config_information"
+echo "Configuration file:                  $workload_config_information"
+echo "Deployment region:                   $region"
+echo "Deployment region code:              $region_code"
+echo "Deployment environment:              $deployer_environment"
+echo "Deployer Keyvault:                   $keyvault"
+echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
+echo "Remote state storage account:        $REMOTE_STATE_SA"
+echo "Target Subscription:                 $subscription"
 
 if [ ! -f "${workload_config_information}" ]; then
 	# Ask for deployer environment name and try to read the deployer state file and resource group details from the configuration file
@@ -332,8 +336,6 @@ fi
 if [ -z "$tfstate_resource_id" ]; then
 	echo "No tfstate_resource_id"
 	if [ -n "$deployer_environment" ]; then
-		deployer_config_information="${automation_config_directory}"/"${deployer_environment}""${region_code}"
-		echo "Deployer config file:                $deployer_config_information"
 		if [ -f "$deployer_config_information" ]; then
 			load_config_vars "${deployer_config_information}" "keyvault"
 			load_config_vars "${deployer_config_information}" "REMOTE_STATE_RG"
@@ -422,11 +424,11 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
 fi
 
 #setting the user environment variables
-if [ -n "${spn_secret}" ]; then
-	set_executing_user_environment_variables "${spn_secret}"
-else
-	set_executing_user_environment_variables "none"
-fi
+# if [ -n "${spn_secret}" ]; then
+# 	set_executing_user_environment_variables "${spn_secret}"
+# else
+# 	set_executing_user_environment_variables "none"
+# fi
 
 if [[ -z ${REMOTE_STATE_SA} ]]; then
 	load_config_vars "${workload_config_information}" "REMOTE_STATE_SA"
@@ -652,20 +654,20 @@ TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 export TF_VAR_subscription_id
 
 if [ ! -d .terraform/ ]; then
-	if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+	if terraform -chdir="${terraform_module_directory}" init -upgrade=true \
 		--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 		--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 		--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
 		--backend-config "container_name=tfstate" \
 		--backend-config "key=${key}.terraform.tfstate"; then
-		return_value=$?
-		echo ""
-		echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-		echo ""
-	else
 		return_value=0
 		echo ""
 		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+		echo ""
+	else
+		return_value=$?
+		echo ""
+		echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 		echo ""
 	fi
 else
@@ -673,32 +675,32 @@ else
 	local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
 	if [ -n "${local_backend}" ]; then
 
-		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
-			return_value=$?
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
-		else
 			return_value=0
 			echo ""
 			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+			echo ""
+		else
+			return_value=$?
+			echo ""
+			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 			echo ""
 		fi
 	else
-		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
-			return_value=$?
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
-		else
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
 			return_value=0
 			echo ""
 			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+			echo ""
+		else
+			return_value=$?
+			echo ""
+			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 			echo ""
 		fi
 
@@ -715,10 +717,10 @@ if [ 0 != $return_value ]; then
 	echo "Terraform initialization failed"
 	exit $return_value
 fi
-if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-	check_output=1
-else
+if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 	check_output=0
+else
+	check_output=1
 fi
 
 save_config_var "REMOTE_STATE_SA" "${workload_config_information}"
@@ -837,31 +839,34 @@ if [ 1 == $check_output ]; then
 			moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
 			storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw storageaccount_name)
 			storage_account_rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw storageaccount_rg_name)
-			STORAGE_ACCOUNT_ID=$(az storage account show --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
+			STORAGE_ACCOUNT_ID=$(az storage account show --subscription "${subscription}" --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
 			export STORAGE_ACCOUNT_ID
 
 			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
 
 			moduleID='module.sap_landscape.azurerm_storage_account.witness_storage[0]'
 			storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw witness_storage_account)
-			STORAGE_ACCOUNT_ID=$(az storage account show --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
+			STORAGE_ACCOUNT_ID=$(az storage account show --subscription "${subscription}" --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
 			export STORAGE_ACCOUNT_ID
 			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
-			unset STORAGE_ACCOUNT_ID
-
-			moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
-			azureResourceID=$(terraform -chdir="${terraform_module_directory}" state show "${moduleID}" | grep -m1 providers/Microsoft.Storage/storageAccounts | xargs | cut -d "=" -f2 | xargs)
-
-			resourceGroupName=$(az resource show --ids "${azureResourceID}" --query "resourceGroup" --output tsv)
-			resourceType=$(az resource show --ids "${azureResourceID}" --query "type" --output tsv)
-			resourceName=$(az resource show --ids "${azureResourceID}" --query "name" --output tsv)
-			az resource lock create --lock-type CanNotDelete -n "SAP Installation Media account delete lock" --subscription "${subscription}" \
-				--resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}"
-
-			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
 
 			moduleID='module.sap_landscape.azurerm_storage_account.transport[0]'
+			STORAGE_ACCOUNT_ID=$(terraform -chdir="${terraform_module_directory}" output -raw transport_storage_account_id | xargs | cut -d "=" -f2 | xargs)
+			export STORAGE_ACCOUNT_ID
 			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
+
+			moduleID='module.sap_landscape.azurerm_storage_account.install[0]'
+			storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -raw install_path | xargs | cut -d "/" -f2 | xargs)
+			STORAGE_ACCOUNT_ID=$(az storage account show --subscription "${subscription}" --name "${storage_account_name}" --query "id" --output tsv)
+			export STORAGE_ACCOUNT_ID
+
+			resourceGroupName=$(az resource show --subscription "${subscription}" --ids "${STORAGE_ACCOUNT_ID}" --query "resourceGroup" --output tsv)
+			resourceType=$(az resource show --subscription "${subscription}" --ids "${STORAGE_ACCOUNT_ID}" --query "type" --output tsv)
+			az resource lock create --lock-type CanNotDelete -n "SAP Installation Media account delete lock" --subscription "${subscription}" \
+				--resource-group "${resourceGroupName}" --resource "${storage_account_name}" --resource-type "${resourceType}"
+
+			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
+			unset STORAGE_ACCOUNT_ID
 
 			moduleID='module.sap_landscape.azurerm_storage_share.transport[0]'
 			ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
@@ -887,23 +892,25 @@ echo ""
 allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
 # shellcheck disable=SC2086
-if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee -a plan_output.log; then
-	return_value=$?
-	if [ $return_value -eq 1 ]; then
-		echo ""
-		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		if [ -f plan_output.log ]; then
-			rm plan_output.log
-		fi
-		exit $return_value
+if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee plan_output.log; then
+	return_value=${PIPESTATUS[0]}
+else
+	return_value=${PIPESTATUS[0]}
+fi
+if [ $return_value -eq 1 ]; then
+	echo ""
+	echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+	if [ -f plan_output.log ]; then
+		rm plan_output.log
 	fi
+	exit $return_value
 else
 	return_value=$?
 	echo ""
@@ -1016,21 +1023,18 @@ if [ 1 == $apply_needed ]; then
 
 	if [ -n "${approve}" ]; then
 		# Using if so that no zero return codes don't fail -o errexit
-		if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParameters -input=false | tee -a apply_output.json; then
-			return_value=$?
-			if [ $return_value -eq 1 ]; then
-				echo ""
-				echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-				echo ""
-				exit $return_value
-			else
-				# return code 2 is ok
-				echo ""
-				echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-				echo ""
-				return_value=0
-			fi
+		if terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParameters -input=false | tee apply_output.json; then
+			return_value=${PIPESTATUS[0]}
 		else
+			return_value=${PIPESTATUS[0]}
+		fi
+		echo "Return value:                        $return_value"
+		if [ $return_value -eq 1 ]; then
+			echo ""
+			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+			echo ""
+		else
+			# return code 2 is ok
 			echo ""
 			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
 			echo ""
@@ -1038,28 +1042,19 @@ if [ 1 == $apply_needed ]; then
 		fi
 	else
 		# Using if so that no zero return codes don't fail -o errexit
-		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters -input=false; then
-			return_value=$?
-		else
-			return_value=0
-		fi
+		terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters
+		return_value=$?
 
-		if [ $return_value -eq 1 ]; then
+		echo "Return value:                        $return_value"
+		if [ $return_value -ne 1 ]; then
+			echo ""
+			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
+			echo ""
+		else
 			echo ""
 			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
 			echo ""
 			exit $return_value
-		elif [ $return_value -eq 2 ]; then
-			# return code 2 is ok
-			echo ""
-			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-			echo ""
-			return_value=0
-		else
-			echo ""
-			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-			echo ""
-			return_value=0
 		fi
 
 	fi

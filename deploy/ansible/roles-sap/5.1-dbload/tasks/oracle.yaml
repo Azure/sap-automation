@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 # Create ORA<SID> users for MULTI-SID Installation on Database Node.
-- name:                                "DBLoad (sharedHome): ORA{{ sid_to_be_deployed.sid }} User creation"
+- name:                                "ORACLE DBLoad (sharedHome): ORA{{ sid_to_be_deployed.sid }} User creation"
   ansible.builtin.user:
     name:                              "ora{{ sid_to_be_deployed.sid | lower }}"
     uid:                               "{{ sid_to_be_deployed.dbsid_uid }}"
@@ -20,7 +20,7 @@
 # Remove this block after checking with SAP - Action on VP
 # Create tnsnames.ora
 ########################################### START OF THE BLOCK ###############################################################
-- name:                                "DBLoad (sharedHome): Create the tnsnames file"
+- name:                                "ORACLE DBLoad (sharedHome): Create the tnsnames file"
   become:                              true
   become_user:                         oracle
   ansible.builtin.template:
@@ -30,7 +30,7 @@
     mode:                              0644
     force:                             true
 
-- name:                                "DBLoad (sharedHome): Create the tnsnames file"
+- name:                                "ORACLE DBLoad (sharedHome): Create the tnsnames file"
   become:                              true
   become_user:                         oracle
   ansible.builtin.template:
@@ -40,7 +40,7 @@
     mode:                              0644
     force:                             true
 
-- name:                                "DBLoad (sharedHome): START THE LISTENER"
+- name:                                "ORACLE DBLoad (sharedHome): START THE LISTENER"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               lsnrctl start
@@ -50,7 +50,7 @@
   register:                            lsnrstatus
   failed_when:                         lsnrstatus.rc >= 2
 
-- name:                                "DBLoad (sharedHome): create startlsnrctl.txt"
+- name:                                "ORACLE DBLoad (sharedHome): create startlsnrctl.txt"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/startlsnrctl.txt"
     state:                             touch

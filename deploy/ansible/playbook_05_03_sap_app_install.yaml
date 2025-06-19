@@ -87,12 +87,12 @@
           ansible.builtin.set_fact:
             this_sid:
               {
-                'sid': '{{ sap_sid | upper }}',
-                'dbsid_uid': '{{ hdbadm_uid }}',
-                'sidadm_uid': '{% if platform == "SYBASE" %}{{ asesidadm_uid }}{% else %}{{ sidadm_uid }}{% endif %}',
+                'sid':          '{{ sap_sid | upper }}',
+                'dbsid_uid':    '{{ hdbadm_uid }}',
+                'sidadm_uid':   '{{ UIDs[ platform ].uid }}',
                 'ascs_inst_no': '{{ scs_instance_number }}',
-                'pas_inst_no': '{{ pas_instance_number }}',
-                'app_inst_no': '{{ app_instance_number }}'
+                'pas_inst_no':  '{{ pas_instance_number }}',
+                'app_inst_no':  '{{ app_instance_number }}'
               }
 
         - name:                            "APP Installation Playbook: Define list of SIDs"
@@ -151,12 +151,12 @@
       ansible.builtin.set_fact:
         this_sid:
           {
-            'sid': '{{ sap_sid | upper }}',
-            'dbsid_uid': '{{ hdbadm_uid }}',
-            'sidadm_uid': '{% if platform == "SYBASE" %}{{ asesidadm_uid }}{% else %}{{ sidadm_uid }}{% endif %}',
-            'ascs_inst_no': '{{ scs_instance_number }}',
-            'pas_inst_no': '{{ pas_instance_number }}' ,
-            'app_inst_no': '{% if app_instance_number is defined %}{{ app_instance_number }}{% else %}00{% endif %}'
+                'sid':          '{{ sap_sid | upper }}',
+                'dbsid_uid':    '{{ hdbadm_uid }}',
+                'sidadm_uid':   '{{ UIDs[ platform ].uid }}',
+                'ascs_inst_no': '{{ scs_instance_number }}',
+                'pas_inst_no':  '{{ pas_instance_number }}',
+                'app_inst_no':  '{{ app_instance_number }}'
           }
 
     - name:                            "APP Installation Playbook: Define list of SIDs"
@@ -287,15 +287,6 @@
                 loop_var:              sid_to_be_deployed
 
           always:
-            - name:                    "APP Installation Playbook: - Get the Error lines from installation output"
-              ansible.builtin.set_fact:
-                error_lines:           "{{ error_lines | default([]) + [item] }}"
-              with_items:              "{{ app_installation.stdout_lines }}"
-              when:
-                - app_installation.stdout_lines is defined
-                - '"ERROR" in item'
-                - app_installation.rc > 0
-
             - name:                    "APP Installation Playbook: - Run post installation routines"
               ansible.builtin.include_role:
                 name:                  roles-sap/windows/7.0.0-post-install
@@ -305,9 +296,10 @@
 
             - name:                    "APP Installation Playbook: - Show errors from APP installation"
               ansible.builtin.debug:
-                msg:                   "{{ error_lines }}"
+                msg:                   "{{ app_installation.stdout_lines | select('search', 'ERROR') }}"
               when:
-                - error_lines is defined
+                - app_installation.stdout_lines is defined
+                - app_installation.rc > 0
 
             - name:                    "APP Install: Rename sapinst_logs Folder with TimeStamp"
               ansible.windows.win_shell: |

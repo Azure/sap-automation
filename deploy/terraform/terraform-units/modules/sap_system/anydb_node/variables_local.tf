@@ -181,7 +181,7 @@ locals {
                                            (upper(var.database.platform) == "ORACLE" || upper(var.database.platform) == "ORACLE-ASM") && var.database.high_availability) : (
                                            false
                                          )
-  observer_size                        = "Standard_D4s_v3"
+  observer_vm_size                     = try(var.observer_vm_size, "Standard_D4s_v3")
   observer_authentication              = local.authentication
   observer_custom_image                = local.anydb_custom_image
   observer_custom_image_id             = local.enable_deployment ? local.anydb_os.source_image_id : ""
@@ -484,5 +484,29 @@ locals {
                                          }] : []
 
   deploy_monitoring_extension          = local.enable_deployment && var.infrastructure.deploy_monitoring_extension && length(var.database.user_assigned_identity_id) > 0
+
+  # Determine if cluster disk attachment is needed
+  enable_cluster_disk                  = (
+                                            local.enable_deployment &&
+                                            var.database.high_availability &&
+                                            (
+                                              upper(var.database.os.os_type) == "WINDOWS" ||
+                                              (
+                                                upper(var.database.os.os_type) == "LINUX" &&
+                                                upper(var.database.database_cluster_type) == "ASD"
+                                              )
+                                            )
+                                          )
+
+  # Create VM ID list for attachment
+  cluster_vm_ids                       = local.enable_cluster_disk ? (
+                                            upper(var.database.os.os_type) == "LINUX" ? [
+                                              for i in range(var.database_server_count) : azurerm_linux_virtual_machine.dbserver[i].id
+                                            ] : (
+                                              upper(var.database.os.os_type) == "WINDOWS" ? [
+                                                for i in range(var.database_server_count) : azurerm_windows_virtual_machine.dbserver[i].id
+                                              ] : []
+                                            )
+                                          ) : []
 
 }

@@ -8,7 +8,7 @@ become_user_name:                       root
 oracle_user_name:                       oracle
 orchestration_ansible_user:             azureadm
 # ------------------- Begin - SDAF Ansible Version ---------------------------8
-SDAF_Version:                           "3.13.1.0"
+SDAF_Version:                           "3.15.0.0"
 
 # ------------------- End - SDAF Ansible Version ---------------------------8
 
@@ -42,6 +42,7 @@ always_upload_jinja_templates:         true
 hana_use_master_password:              y
 hana_password_copy:                    ""
 hana_backup_path:                      /hana/backup
+sapinst_enforce_crl:                   true                                    # CRL is enable by default, in air-gapped environment this might need to be disabled (SAP NOTE: 3207613)
 # Note: the spacing and lining of Jinja2 expression is critical here, lest we end up with a stray character in the path
 hana_data_basepath:                    "{% if database_scale_out %}/hana/data/{{ db_sid | upper }}{% else %}/hana/data{% endif %}"
 hana_log_basepath:                     "{% if database_scale_out %}/hana/log/{{ db_sid | upper }}{% else %}/hana/log{% endif %}"
@@ -60,6 +61,8 @@ sap_fqdn:                              ""                                      #
 sapadm_uid:                            2100
 sapinst_gid:                           2001
 sapsys_gid:                            2000
+lss_uid:                               2040
+lss_gid:                               2050
 drop_schema:                           false
 
 sap_trans_permissions:                 775
@@ -145,14 +148,17 @@ backupdba_gid:                         3106
 dgdba_gid:                             3107
 kmdba_gid:                             3108
 racdba_gid:                            3109
-orasid_uid:                            3100
-oracle_uid:                            3101
+orasid_uid:                            3200
+oracle_uid:                            3201
 hdbshm_gid:                            2002
 observer_uid:                          4000
+
 scs_instance_number:                   "00"                                    # SAP Install
 ers_instance_number:                   "02"
 app_instance_number:                   "00"
+
 sidadm_uid:                            2003
+web_sidadm_uid:                        2004
 hdbadm_uid:                            2200
 scs_lb_ip:                             ""                                      # SAP HA
 database_loadbalancer_ip:              ""                                      # SAP HA
@@ -286,3 +292,18 @@ lv_tmp_size:                            10g
 # ------------------- End - SAP CAL Integration variables ----------------------8
 
 python_version:                        "python3"
+
+
+UIDs:
+  HANA:
+    uid:                               "{{ sidadm_uid }}"
+  ORACLE:
+    uid:                               "{{ sidadm_uid }}"
+  ORACLE-ASM:
+    uid:                               "{{ sidadm_uid }}"
+  SYBASE:
+    uid:                               "{{ asesidadm_uid }}"
+  DB2:
+    uid:                               "{{ sidadm_uid }}"
+  SQLSERVER:
+    uid:                               "{{ sidadm_uid }}"

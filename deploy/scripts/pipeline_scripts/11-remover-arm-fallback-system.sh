@@ -32,7 +32,7 @@ cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 echo "##vso[build.updatebuildnumber]Removing SAP System zone $SAP_SYSTEM_FOLDERNAME"
 changed=0
 
-git checkout -q "$BRANCH"
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
 git clean -d -f -X
 
 if [ -f ".terraform/terraform.tfstate" ]; then
@@ -85,10 +85,10 @@ if [ 1 == $changed ]; then
   git config --global user.name "$BUILD_REQUESTEDFOR"
 
   if git commit -m "Infrastructure for $SAP_SYSTEM_TFVARS_FILENAME removed. [skip ci]"; then
-    if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
+    if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
       echo "##vso[task.logissue type=warning]Removal of $SAP_SYSTEM_TFVARS_FILENAME updated in $BUILD_BUILDNUMBER"
     else
-      echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+      echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
     fi
   fi
 fi

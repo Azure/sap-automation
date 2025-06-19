@@ -1,0 +1,155 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+#
+#   2482103 - Installation with SWPM in unattended mode using parameter input file fails
+#   2393060 - SAPinst Framework 749 Central Note
+
+
+# Location of Export CD
+SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT
+SAPINST.CD.PACKAGE.CLIENT                                             = {{ target_media_location }}/sapdb2_software/db2client
+SAPINST.CD.PACKAGE.RDBMS                                              = {{ target_media_location }}/sapdb2_software/db2server/LINUXX86_64
+SAPINST.CD.PACKAGE.LOAD                                               = {{ target_media_location }}/CD_EXPORT
+SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
+
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP3
+SAPINST.CD.PACKAGE.CD4                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP4
+
+NW_Unpack.sapExeDbSar                                                 = {{ target_media_location }}/download_basket
+NW_Unpack.sapExeSar                                                   = {{ target_media_location }}/download_basket
+
+archives.downloadBasket                                               = {{ target_media_location }}/download_basket
+
+# Solution Manager
+UmeConfiguration.adminPassword                                        = {{ main_password }}
+
+{% if platform | upper == 'HANA' %}
+HDB_Schema_Check_Dialogs.schemaName                                   = {{ db_schema }}
+HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
+HDB_Userstore.doNotResolveHostnames                                   = {{ virt_do_not_resolve_hostname }}
+NW_HDB_DB.abapSchemaName                                              = {{ db_schema }}
+NW_HDB_DB.abapSchemaPassword                                          = {{ main_password }}
+NW_HDB_DBClient.clientPathStrategy                                    = SAPCPE
+NW_HDB_getDBInfo.dbhost                                               = {{ sap_db_hostname }}
+NW_HDB_getDBInfo.dbsid                                                = {{ db_sid | upper }}
+NW_HDB_getDBInfo.instanceNumber                                       = {{ db_instance_number }}
+NW_HDB_getDBInfo.systemDbPassword                                     = {{ main_password }}
+NW_HDB_getDBInfo.systemid                                             = {{ db_sid | upper }}
+NW_HDB_getDBInfo.systemPassword                                       = {{ main_password }}
+NW_HDB_getDBInfo.usingSSL                                             = true
+
+
+storageBasedCopy.hdb.instanceNumber                                   = {{ db_instance_number }}
+storageBasedCopy.hdb.systemPassword                                   = {{ main_password }}
+
+{% endif %}
+
+NW_CI_Instance.ascsVirtualHostname                                    = {{ sap_scs_hostname }}
+NW_CI_Instance.ciInstanceNumber                                       = {{ sap_ciInstanceNumber }}
+NW_CI_Instance.ciMSPort                                               = 36{{ scs_instance_number }}
+NW_CI_Instance.ciVirtualHostname                                      = {{ sap_ciVirtualHostname }}
+NW_CI_Instance.scsVirtualHostname                                     = {{ sap_scs_hostname }}
+
+NW_adaptProfile.skipSecurityProfileSettings                           = true
+NW_checkMsgServer.abapMSPort                                          = 36{{ scs_instance_number }}
+NW_getDBInfoGeneric.dbhost                                            = {{ sap_db_hostname }}
+NW_getDBInfoGeneric.dbsid                                             = {{ db_sid | upper }}
+
+NW_DDIC_Password.needDDICPasswords                                    = false
+NW_DDIC_Password.ddic000Password                                     = {{ main_password }}
+NW_DDIC_Password.ddic001Password                                     = {{ main_password }}
+
+NW_getFQDN.FQDN                                                       = {{ sap_fqdn }}
+NW_getLoadType.loadType                                               = SAP
+NW_GetMasterPassword.masterPwd                                        = {{ main_password }}
+NW_GetSidNoProfiles.sid                                               = {{ sap_sid | upper }}
+NW_getUnicode.isUnicode                                               = true
+
+NW_Recovery_Install_HDB.extractLocation                               = /usr/sap/{{ db_sid | upper }}/{{ db_sid | upper }}{{ db_instance_number }}/backup/data/DB_HDB
+NW_Recovery_Install_HDB.extractParallelJobs                           = 24
+NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid | lower }}adm
+NW_Recovery_Install_HDB.sidAdmPassword                                = {{ main_password }}
+
+NW_CI_Instance_ABAP_Reports.executeReportsForDepooling                = true
+
+NW_getDBInfoGeneric.dbhost                                            = {{ sap_db_hostname }}
+NW_getDBInfoGeneric.dbsid                                             = {{ db_sid | upper }}
+
+NW_readProfileDir.profileDir                                          = {{ sap_profile_dir }}
+NW_readProfileDir.profilesAvailable                                   = true
+
+NW_SCS_Instance.ascsInstallGateway                                    = true
+NW_SCS_Instance.ascsInstallWebDispatcher                              = false
+NW_SCS_Instance.instanceNumber                                        = {{ scs_instance_number }}
+NW_SCS_Instance.scsVirtualHostname                                    = {{ sap_scs_hostname }}
+NW_System.installSAPHostAgent                                         = {{ sap_installSAPHostAgent }}
+NW_WPConfiguration.ciBtcWPNumber                                      = {{ sap_ciBtcWPNumber }}
+NW_WPConfiguration.ciDialogWPNumber                                   = {{ sap_ciDialogWPNumber}}
+
+nwUsers.sapadmUID                                                     = {{ sapadm_uid }}
+nwUsers.sapsysGID                                                     = {{ sapsys_gid }}
+nwUsers.sidAdmUID                                                     = {{ sidadm_uid }}
+NW_Delete_Sapinst_Users.removeUsers                                   = true
+
+NW_DB6_DB.db6.abap.connect.user                                       = sap{{ db_sid | lower }}
+NW_DB6_DB.db6.abap.schema                                             = sap{{ db_sid | lower }}
+NW_DB6_DB.db6.abap.connect.user                                       = sap{{ db_sid | lower }}
+NW_DB6_DB.db6.abap.schema                                             = sap{{ db_sid | lower }}
+
+{% if platform | upper == 'ORACLE-ASM' %}
+ora.grid.ORACLE_HOME                                                 = /oracle/GRID/{{ ora_version }}
+ora.grid.ORACLE_SID                                                  = +ASM
+ora.dbhome                                                           = /oracle/{{ db_sid | upper }}/{{ ora_release }}
+ora.multitenant.installMT                                            = FALSE
+ora.multitenant.pdbsid                                               = {{ db_sid }}
+ora.multitenant.installMT                                            = FALSE
+ora.whatInstallation                                                 = isSingle
+ora.whatIsASM                                                        = isASM
+ora.whatIsCDB                                                        = isNonCDB
+ora.whatIsInstance                                                   = isSingle
+ora.multitenant.pdbsid                                               = {{ db_sid }}
+ora.whatInstallation                                                 = isSingle
+ora.whatIsASM                                                        = isASM
+ora.whatIsCDB                                                        = isNonCDB
+ora.whatIsInstance                                                   = isSingle
+ora.whatIsOracleUser                                                 = true
+storageBasedCopy.ora.ABAPSchema                                      = SAPSR3
+storageBasedCopy.ora.clientVersion                                   = {{ ora_release }}
+storageBasedCopy.ora.listenerName                                    = LISTENER
+storageBasedCopy.ora.listenerPort                                    = 1521
+storageBasedCopy.ora.serverVersion                                   = {{ ora_release }}
+storageBasedCopy.ora.swowner                                         = oracle
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP3
+{% endif %}
+
+{% if platform | upper == 'ORACLE' %}
+# Oracle parameters
+
+ora.dbhome                                                           = /oracle/{{ db_sid | upper }}/{{ ora_release }}
+ora.multitenant.installMT                                            = FALSE
+ora.multitenant.pdbsid                                               = {{ db_sid }}
+ora.multitenant.installMT                                            = FALSE
+ora.whatInstallation                                                 = isSingle
+ora.whatIsASM                                                        = isNonASM
+ora.whatIsCDB                                                        = isNonCDB
+ora.whatIsInstance                                                   = isSingle
+ora.multitenant.pdbsid                                               = {{ db_sid }}
+ora.whatInstallation                                                 = isSingle
+ora.whatIsASM                                                        = isNonASM
+ora.whatIsCDB                                                        = isNonCDB
+ora.whatIsInstance                                                   = isSingle
+ora.whatIsOracleUser                                                 = true
+storageBasedCopy.ora.ABAPSchema                                      = SAPSR3
+storageBasedCopy.ora.clientVersion                                   = {{ ora_release }}
+storageBasedCopy.ora.listenerName                                    = LISTENER
+storageBasedCopy.ora.listenerPort                                    = 1521
+storageBasedCopy.ora.serverVersion                                   = {{ ora_release }}
+storageBasedCopy.ora.swowner                                         = oracle
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP3
+{% endif %}

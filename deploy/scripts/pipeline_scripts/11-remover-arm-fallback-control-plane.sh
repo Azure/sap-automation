@@ -82,7 +82,7 @@ echo "##vso[task.setprogress value=90;]Progress Indicator"
 
 if [ 0 == $return_code ]; then
   cd "$CONFIG_REPO_PATH" || exit
-  git checkout -q $BRANCH
+  git checkout -q $BUILD_SOURCEBRANCHNAME
   git pull
   changed=0
 
@@ -137,10 +137,10 @@ if [ 0 == $return_code ]; then
     git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
     git config --global user.name "$BUILD_REQUESTEDFOR"
     git commit -m "Added updates from devops deployment $BUILD_BUILDNUMBER [skip ci]"
-    if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-      echo "##vso[task.logissue type=warning]Changes pushed to $BRANCH"
+    if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+      echo "##vso[task.logissue type=warning]Changes pushed to $BUILD_SOURCEBRANCHNAME"
     else
-      echo "##vso[task.logissue type=error]Failed to push changes to $BRANCH"
+      echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
     fi
     echo -e "$green--- Deleting variables ---$reset"
     if [ ${#VARIABLE_GROUP_ID} != 0 ]; then
@@ -166,9 +166,9 @@ if [ 0 == $return_code ]; then
         az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Deployer_State_FileName --yes --only-show-errors
       fi
 
-      variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Deployer_Key_Vault.value" --out tsv)
+      variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --out tsv)
       if [ ${#variable_value} != 0 ]; then
-        az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Deployer_Key_Vault --yes --only-show-errors
+        az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --yes --only-show-errors
       fi
 
       variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_URL_BASE.value" --out tsv)

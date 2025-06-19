@@ -43,7 +43,7 @@ git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 git config --global user.name "$BUILD_REQUESTEDFOR"
 git commit -m "Added updates from devops deployment $BUILD_BUILDNUMBER [skip ci]"
 
-git checkout -q "$BRANCH"
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
 git clean -d -f -X
 
 
@@ -95,8 +95,8 @@ if [ -n "$VARIABLE_GROUP_ID" ]; then
     az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Deployer_State_FileName --yes --only-show-errors >/dev/null 2>&1
   fi
 
-  if [ -n "$(Deployer_Key_Vault)" ]; then
-    az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Deployer_Key_Vault --yes --only-show-errors >/dev/null 2>&1
+  if [ -n "$(DEPLOYER_KEYVAULT)" ]; then
+    az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --yes --only-show-errors >/dev/null 2>&1
   fi
 
   az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "${prefix}Workload_Key_Vault.value")

@@ -194,12 +194,15 @@ generic_config_information="${automation_config_directory}"/config
 deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
 load_config_vars "${deployer_config_information}" "step"
-if [ 1 -eq $step ]; then
-	exit 0
-fi
+if [ 1 -eq $keep_agent ]; then
+	echo "Keeping the Azure DevOps agent"
+	if [ 1 -eq $step ]; then
+		exit 0
+	fi
 
-if [ 0 -eq $step ]; then
-	exit 0
+	if [ 0 -eq $step ]; then
+		exit 0
+	fi
 fi
 
 if [ -z "$deployer_config_information" ]; then
@@ -315,7 +318,7 @@ fi
 if [ -f .terraform/terraform.tfstate ]; then
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 	if [ -n "$azure_backend" ]; then
-		echo  "Terraform state:                     remote"
+		echo "Terraform state:                     remote"
 
 		# Initialize the state file and copy to local
 
@@ -383,7 +386,7 @@ if [ 0 != $return_value ]; then
 fi
 
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-  keyvault_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
+	keyvault_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
 	TF_VAR_spn_keyvault_id="${keyvault_id}"
 	export TF_VAR_spn_keyvault_id
 fi
