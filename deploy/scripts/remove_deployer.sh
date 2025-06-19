@@ -247,5 +247,5 @@ fi
 
 unset TF_DATA_DIR
 
-echo "Return from remove_deployer.sh"
+echo "Return from remove_deployer.sh (exit code: $return_value)"
 exit $return_value

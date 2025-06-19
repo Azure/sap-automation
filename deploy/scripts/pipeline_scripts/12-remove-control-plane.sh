@@ -120,49 +120,37 @@ fi
 echo -e "$green--- Validations ---$reset"
 if [ "$USE_MSI" != "true" ]; then
 
-	if [ -z "$CP_ARM_CLIENT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ "$CP_ARM_CLIENT_ID" == '$$(CP_ARM_CLIENT_ID)' ]; then
+	if [ -v ARM_CLIENT_ID ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
-	if [ -z "$CP_ARM_CLIENT_SECRET" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
+	if [ "$ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
-	if [ "$CP_ARM_CLIENT_SECRET" == '$$(CP_ARM_CLIENT_SECRET)' ]; then
+	if [ -v ARM_CLIENT_SECRET ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
-	if [ -z "$CP_ARM_TENANT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+	if [ "$ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
-	if [ "$CP_WL_ARM_TENANT_ID" == '$$(CP_ARM_TENANT_ID)' ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+	if [ -v ARM_TENANT_ID ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+		exit 2
+	fi
+
+	if [ "$ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
 fi
-
-if [ "$USE_MSI" != "true" ]; then
-	# Set logon variables
-	ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
-	export ARM_CLIENT_ID
-	ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
-	export ARM_CLIENT_SECRET
-	ARM_TENANT_ID=$CP_ARM_TENANT_ID
-	export ARM_TENANT_ID
-fi
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
@@ -179,11 +167,9 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault" || true)
+key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "keyvault" || true)
 export key_vault
 
 STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
@@ -290,10 +276,8 @@ if [ 1 == $changed ]; then
 	if git commit -m "Control Plane $DEPLOYER_FOLDERNAME removal step 1[skip ci]"; then
 
 		if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-			return_code=$?
 			echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 updated in $BUILD_SOURCEBRANCHNAME"
 		else
-			return_code=$?
 			echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
 		fi
 	fi

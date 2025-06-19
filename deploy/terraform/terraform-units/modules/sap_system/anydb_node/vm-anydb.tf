@@ -56,7 +56,7 @@ resource "azurerm_network_interface_application_security_group_association" "db"
                                            0
                                          )
 
-  network_interface_id                 = azurerm_network_interface.anydb_db[count.index].id
+  network_interface_id                 = var.use_admin_nic_for_asg && local.anydb_dual_nics ? azurerm_network_interface.anydb_admin[count.index].id : azurerm_network_interface.anydb_db[count.index].id
   application_security_group_id        = var.db_asg_id
 }
 
@@ -174,7 +174,6 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   patch_mode                                             = var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = true
 
   tags                                 = merge(local.tags, var.tags)
 
@@ -315,7 +314,6 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  vm_agent_platform_updates_enabled                      = true
   enable_automatic_updates                               = !(var.infrastructure.patch_mode == "ImageDefault")
 
   admin_username                       = var.sid_username
@@ -590,34 +588,18 @@ resource "azurerm_managed_disk" "cluster" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
   provider                             = azurerm.main
-  count                                = (
-                                           local.enable_deployment &&
-                                           var.database.high_availability &&
-                                           (
-                                             upper(var.database.os.os_type) == "WINDOWS" ||
-                                             (
-                                               upper(var.database.os.os_type) == "LINUX" &&
-                                               upper(var.database.database_cluster_type) == "ASD"
-                                             )
-                                           )
-                                         ) ? var.database_server_count : 0
-
+  count                                = length(local.cluster_vm_ids)
   managed_disk_id                      = azurerm_managed_disk.cluster[0].id
-  virtual_machine_id                   = (upper(var.database.os.os_type) == "LINUX"                                # If Linux
-                                         ) ? (
-                                           azurerm_linux_virtual_machine.dbserver[count.index].id
-                                         ) : (
-                                           (upper(var.database.os.os_type) == "WINDOWS"                            # If Windows
-                                           ) ? (
-                                             azurerm_windows_virtual_machine.dbserver[count.index].id
-                                           ) : (
-                                             null                                                                  # If Other
-                                           )
-                                         )
+  virtual_machine_id                   = local.cluster_vm_ids[count.index]
   caching                              = "None"
   lun                                  = var.database.database_cluster_disk_lun
-}
 
+  # The disk is shared, so we do not need to create it before destroying
+  # Use lifecycle management for sequencing
+  lifecycle {
+    create_before_destroy = false
+  }
+}
 
 resource "azurerm_role_assignment" "role_assignment_msi" {
   provider                             = azurerm.main
@@ -836,4 +818,3 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_db_win" {
                                             }
                                           )
 }
-

@@ -134,16 +134,13 @@
         # Note : This configuration is not recommended as it leaves your distributed system without a standby
         # NOTE: DO NOT ALTER FORMATTING OR SPACING. THIS BREAKS THE JINJA2 CODE.
         _rsp_additional_hosts:         "{% for item in db_hosts[1:] %}
-          {% if loop.index == db_hosts | length - 1 %}
-          {% if database_no_standby %}
-          {{ item | trim }}:role=worker:group=default:workergroup=default
+          {% if database_no_standby or not loop.last %}
+          {{ hostvars[item].virtual_host | trim }}:role=worker:group=default:workergroup=default{{ ',' if not loop.last }}
           {% else %}
-          {{ item | trim }}:role=standby:group=default:workergroup=default
-          {% endif %}
-          {% else %}
-          {{ item | trim }}:role=worker:group=default:workergroup=default,
+          {{ hostvars[item].virtual_host | trim }}:role=standby:group=default:workergroup=default
           {% endif %}
           {% endfor %}"
+
     - name:                            "4.0.3 - SAP HANA SCALE OUT: Progress"
       ansible.builtin.debug:
         msg:                           "Start HANA Installation on primary node"
@@ -435,13 +432,8 @@
             pwd_hdb_system:              "{{ hana_system_user_password | default(main_password) }}"
             pwd_os_sidadm:               "{{ hana_os_sidadm_password | default(main_password) }}"
             pwd_os_sapadm:               "{{ hana_os_sapadm_password | default(main_password) }}"
-            # NOTE: DO NOT ALTER FORMATTING OR SPACING. THIS BREAKS THE JINJA2 CODE.
             _rsp_additional_hosts:       "{% for item in db_hosts[2::2] %}
-              {% if loop.index == db_hosts | length - 1 %}
-              {{ item | trim }}:role=worker:group=default:workergroup=default
-              {% else %}
-              {{ item | trim }}:role=worker:group=default:workergroup=default,
-              {% endif %}
+              {{ hostvars[item].virtual_host | trim }}:role=worker:group=default:workergroup=default{{ ',' if not loop.last }}
               {% endfor %}"
 
         - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Template processing: Create custom ini file {{ sap_custom_config }} from {{ HANA_2_00_customconfig.rsp }}"
@@ -716,11 +708,7 @@
             _rsp_root_password:            "{{ root_password }}"
             # NOTE: DO NOT ALTER FORMATTING OR SPACING. THIS BREAKS THE JINJA2 CODE.
             _rsp_additional_hosts:         "{% for item in db_hosts[3::2] %}
-              {% if loop.index == db_hosts | length - 1 %}
-              {{ item | trim }}:role=worker:group=default:workergroup=default
-              {% else %}
-              {{ item | trim }}:role=worker:group=default:workergroup=default,
-              {% endif %}
+              {{ hostvars[item].virtual_host | trim }}:role=worker:group=default:workergroup=default{{ ',' if not loop.last }}
               {% endfor %}"
 
         - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Template processing: Create custom ini file {{ sap_custom_config }} from {{ HANA_2_00_customconfig.rsp }}"

@@ -291,7 +291,7 @@ variable "encryption_at_host_enabled"           {
                                                   description = "Enable or disable host encryption for the deployer"
                                                   default     = false
                                                   type        = bool
-                                                }   
+                                                }
 variable "data_plane_available"                 {
                                                   description = "Boolean value indicating if storage account access is via data plane"
                                                   default     = false
@@ -386,6 +386,11 @@ variable "set_secret_expiry"                          {
                                                         default     = false
                                                         type        = bool
                                                       }
+variable "enable_rbac_authorization"                 {
+                                                        description = "Enable RBAC authorization for the key vault"
+                                                        default     = false
+                                                      }
+
 
 #######################################4#######################################8
 #                                                                              #
@@ -509,6 +514,11 @@ variable "privatelink_dns_resourcegroup_name"         {
                                                         type        = string
                                                       }
 
+variable "register_storage_accounts_keyvaults_with_dns" {
+                                                     description = "Boolean value indicating if storage accounts and key vaults should be registered to the corresponding dns zones"
+                                                     default     = true
+                                                     type        = bool
+                                                   }
 
 #########################################################################################
 #                                                                                       #

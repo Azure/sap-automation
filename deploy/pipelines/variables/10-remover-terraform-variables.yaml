@@ -16,7 +16,6 @@ parameters:
 
 variables:
   - group:                             "SDAF-General"
-  - group:                             SDAF-${{ parameters.deployer_environment }}
   - group:                             SDAF-${{ parameters.workload_environment }}
 
   - name:                              parent_variable_group

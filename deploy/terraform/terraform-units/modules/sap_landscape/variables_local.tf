@@ -21,15 +21,15 @@ locals {
 
 
   // Region and metadata
-
   prefix                                          = trimspace(var.naming.prefix.WORKLOAD_ZONE)
   region                                          = var.infrastructure.region
 
-
   // Firewall
-  firewall_exists                                 = length(local.firewall_id) > 0
-  firewall_id                                     = try(var.deployer_tfstate.firewall_id, "")
-  firewall_ip                                     = try(var.deployer_tfstate.firewall_ip, "")
+
+
+  firewall_exists                                 = length(trimspace(coalesce(var.deployer_tfstate.firewall_id, " "))) > 0
+  firewall_id                                     = local.firewall_exists ? try(var.deployer_tfstate.firewall_id, "") : ""
+  firewall_ip                                     = local.firewall_exists ? try(var.deployer_tfstate.firewall_ip, "") : ""
   firewall_name                                   = local.firewall_exists ? try(split("/", local.firewall_id)[8], "") : ""
   firewall_rgname                                 = local.firewall_exists ? try(split("/", local.firewall_id)[4], "") : ""
   firewall_service_tags                           = format("AzureCloud.%s", local.region)
@@ -203,6 +203,8 @@ locals {
                                                       split("/", local.user_key_vault_id)[4]) : (
                                                       ""
                                                     )
+  # Store the Deployer KV in workload zone KV
+  deployer_keyvault_user_name                     = try(var.deployer_tfstate.deployer_kv_user_name, "")
 
   // In brownfield scenarios the subnets are often defined in the workload
   // If subnet information is specified in the parameter file use it
@@ -620,8 +622,16 @@ locals {
                                                       ""
                                                     )
 
-  # Store the Deployer KV in workload zone KV
-  deployer_keyvault_user_name                     = try(var.deployer_tfstate.deployer_kv_user_name, "")
+  ##############################################################################################
+  #
+  # Private DNS zones  - Check if locally provided
+  #
+  ##############################################################################################
+
+  privatelink_file_defined                        = length(try(var.dns_settings.privatelink_file_id, "")) > 0
+  privatelink_keyvault_defined                    = length(try(var.dns_settings.privatelink_keyvault_id, "")) > 0
+  privatelink_storage_defined                     = length(try(var.dns_settings.privatelink_storage_id, "")) > 0
+
 
   #########################################################################################
   #                                                                                       #
@@ -820,4 +830,3 @@ locals {
   deploy_monitoring_extension                    = var.infrastructure.deploy_monitoring_extension && length(try(var.infrastructure.user_assigned_identity_id,"")) > 0
 
 }
-

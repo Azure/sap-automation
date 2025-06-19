@@ -323,8 +323,6 @@ output "scs_kdump_disks"               {
                                                        )
                                        }
 
-
-
 output "subnet_cidr_app"             {
                                           description = "Storage subnet prefix"
                                           value       = local.enable_deployment ? (
@@ -334,4 +332,14 @@ output "subnet_cidr_app"             {
                                                           )) : (
                                                           ""
                                                         )
-                                       }
+                                      }
+
+output "app_asg_id"                    {
+                                          description = "IDs of the application security group for the application VMs"
+                                          value       = try(azurerm_application_security_group.app[0].id, "")
+                                      }
+
+output "web_asg_id"                    {
+                                          description = "IDs of the application security group for the web VMs"
+                                          value       = try(azurerm_application_security_group.web[0].id, "")
+                                      }

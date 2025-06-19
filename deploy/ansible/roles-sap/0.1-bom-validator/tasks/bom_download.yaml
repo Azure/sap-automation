@@ -98,19 +98,17 @@
   #
     - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Check is file {{ bom_media_entry.archive }} is already downloaded"
       ansible.builtin.command: >-
-                                          az storage blob show
+                                          az storage blob list
                                             --account-name {{ account }}
                                             --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}
                                             --auth-mode login
-                                            --name {{ sapbits_bom_files }}/archives/{{ bom_media_entry.archive }}
-                                            --query name --output tsv
+                                            --query "[?name=='{{sapbits_bom_files }}/archives/{{ bom_media_entry.archive }}'].name" --output tsv
       delegate_to:                     localhost
-      register:                        azresult
-      ignore_errors:                   true
+      register:                        blobExists
 
     - name:                            "{{ task_prefix }} - Informational"
       ansible.builtin.debug:
-        var:                           azresult
+        var:                           blobExists
         verbosity:                     2
       # Step: 03-01 - END
       # -------------------------------+---------------------------------------------8
@@ -126,7 +124,7 @@
     - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Set Fact  {{ bom_media_entry.archive }}"
       ansible.builtin.set_fact:
         proceed:                       false
-      when:                            azresult.rc == 0
+      when:                            blobExists.stdout | trim | length > 0
       # Step: 03-03 - END
       # -------------------------------+---------------------------------------------8
 
@@ -412,13 +410,14 @@
                                             --file {{ result.dest }}
                                             --if-none-match "*"
                                             --no-progress
+                                            --overwrite
           delegate_to:                     localhost
-          register:                        azresult
+          register:                        blobUpload
           ignore_errors:                   true
           failed_when:
-            - azresult.rc != 0
-            - azresult.stderr is defined
-            - azresult.stderr.find("BlobAlreadyExists") == -1
+            - blobUpload.rc != 0
+            - blobUpload.stderr is defined
+            - blobUpload.stderr.find("BlobAlreadyExists") == -1
 
         - name:                            "BOM: {{ bom_name }} Upload File {{ bom_media_entry.archive }}"
           when:
@@ -432,13 +431,14 @@
                                             --file {{ result.dest }}
                                             --if-none-match "*"
                                             --no-progress
+                                            --overwrite
           delegate_to:                     localhost
-          register:                        azresult
+          register:                        blobUpload
           ignore_errors:                   true
           failed_when:
-            - azresult.rc != 0
-            - azresult.stderr is defined
-            - azresult.stderr.find("BlobAlreadyExists") == -1
+            - blobUpload.rc != 0
+            - blobUpload.stderr is defined
+            - blobUpload.stderr.find("BlobAlreadyExists") == -1
 
       # Step: 05-04-01 - END
       # -------------------------------+---------------------------------------------8

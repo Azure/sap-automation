@@ -6,7 +6,7 @@
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |  Implement the Python system replication hook SAPHanaSR-ScaleOut                    |
-# |  Ref: https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-scale-out-hsr-suse#implement-hana-ha-hooks-saphanasrmultitarget-and-suschksrv
+# |  Ref: https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-scale-out-hsr-rhel?tabs=lb-portal#create-sap-hana-cluster-resources
 # |  Begin: configuration for SAPHanaSR-ScaleOut python hook                            |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
@@ -55,9 +55,7 @@
         fail_msg:                      "Installed HANA version is not greater than SAP HANA 2.0 SP5"
         success_msg:                   "Installed HANA version is greater than SAP HANA 2.0 SP5"
       register:                        hana_sp_version
-      when:
-        - ansible_os_family | upper == "SUSE"
-        - hdb_version_output.stdout is search("version")
+      when: hdb_version_output.stdout is search("version")
 
     - name:                            "5.8 HANA Pacemaker Scaleout - Check if 'myHooks' file exists in /hana/shared directory"
       ansible.builtin.stat:
@@ -82,17 +80,18 @@
       ansible.builtin.wait_for:
         timeout:                       "{{ hana_wait_for_stop_in_sec }}"
 
-    - name:                            "5.8 HANA Pacemaker Scaleout - Copy /usr/share/SAPHanaSR-ScaleOut/SAPHanaSR.py to /hana/shared/myHooks/ (RHEL)"
+    - name:                            "5.8 HANA Pacemaker Scaleout - Copy Python hooks from /usr/share/SAPHanaSR-ScaleOut/ to /hana/shared/myHooks/ (RHEL)"
       ansible.builtin.copy:
-        src:                           /usr/share/SAPHanaSR-ScaleOut/SAPHanaSR.py
+        src:                           /usr/share/SAPHanaSR-ScaleOut/{{ item }}
         dest:                          /hana/shared/myHooks/
         remote_src:                    true
         owner:                         root
         group:                         root      # TODO - check the correct group once the python hook package is installed
         mode:                          '0644'
-      when:
-        - ansible_os_family | upper == "REDHAT"
-        - not my_hooks_stat.stat.exists
+      loop:
+        - SAPHanaSR.py
+        - ChkSrv.py
+      when: not my_hooks_stat.stat.exists
 
     - name:                            "5.8 HANA Pacemaker Scaleout - Change ownership of the directory"
       ansible.builtin.file:
@@ -122,8 +121,15 @@
                                        path = /hana/shared/myHooks
                                        execution_order = 1
 
+                                       [ha_dr_provider_chksrv]
+                                       provider = ChkSrv
+                                       path = /hana/shared/myHooks
+                                       execution_order = 2
+                                       action_on_lost = kill
+
                                        [trace]
                                        ha_dr_saphanasr = info
+                                       ha_dr_chksrv = info
       when:
         - ansible_hostname == primary_instance_name or ansible_hostname == secondary_instance_name
 
@@ -167,7 +173,7 @@
                                        awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
                                        { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
           args:
-            chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ primary_instance_name }}/trace
+            chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
           register:                    saphanasr
           until:                       saphanasr.stdout is search("SOK")
           retries:                     10
@@ -185,7 +191,7 @@
                                        awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
                                        { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
           args:
-            chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ primary_instance_name }}/trace
+            chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
           register:                    saphanasr
           until:                       saphanasr.stdout is search("SOK")
           retries:                     10
