@@ -71,10 +71,10 @@ stages:
             name:                      Preparation
             env:
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
-              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
               SUSERNAME:                $(S-Username)
               SPASSWORD:                $(S-Password)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
@@ -112,10 +112,10 @@ stages:
             displayName:               Download
             name:                      download
             env:
-              ARM_CLIENT_ID:                 $(CP_ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:             $(CP_ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:                 $(CP_ARM_TENANT_ID)
-              ARM_SUBSCRIPTION_ID:           $(CP_ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:                 $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:             $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:                 $(ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID:           $(ARM_SUBSCRIPTION_ID)
               SAP_AUTOMATION_REPO_PATH:      ${{ parameters.sap_automation_repo_path }}
               SAMPLE_REPO_PATH:              ${{ parameters.sample_repo_path }}
               CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)

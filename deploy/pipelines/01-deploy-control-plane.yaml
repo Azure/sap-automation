@@ -292,7 +292,7 @@ stages:
 
             displayName: "Documentation"
             env:
-              ARM_SUBSCRIPTION_ID:     $(CP_ARM_SUBSCRIPTION_ID)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
               SYSTEM_PIPELINE_ID:      $(SYSTEM_PIPELINE_ID)
               APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
               WEBAPP_URL_BASE:         $(WEBAPP_URL_BASE)
