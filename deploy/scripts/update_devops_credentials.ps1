@@ -229,9 +229,9 @@ if ($found_appName.Length -gt 0) {
   $ExistingData = (az ad sp list --show-mine --query "[?displayName=='$app_name']| [0]" --only-show-errors) | ConvertFrom-Json
   Write-Host "Updating the variable group"
 
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "CP_ARM_CLIENT_ID" --value $ExistingData.appId --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "CP_ARM_OBJECT_ID" --value $ExistingData.Id --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "CP_ARM_TENANT_ID" --value $ExistingData.appOwnerOrganizationId --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_CLIENT_ID" --value $ExistingData.appId --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_OBJECT_ID" --value $ExistingData.Id --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_TENANT_ID" --value $ExistingData.appOwnerOrganizationId --output none --only-show-errors
   Write-Host "Please update the Control Plane Service Principal Password manually if needed"
 }
 else {
@@ -239,10 +239,10 @@ else {
   $MGMTData = (az ad sp create-for-rbac --role="Contributor" --scopes=$scopes --name=$app_name --only-show-errors) | ConvertFrom-Json
   Write-Host "Updating the variable group"
 
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "CP_ARM_CLIENT_ID" --value $MGMTData.appId --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "CP_ARM_OBJECT_ID" --value $MGMTData.Id --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "CP_ARM_TENANT_ID" --value $MGMTData.tenant --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "CP_ARM_CLIENT_SECRET" --value $MGMTData.password --secret true --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_CLIENT_ID" --value $MGMTData.appId --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_OBJECT_ID" --value $MGMTData.Id --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_TENANT_ID" --value $MGMTData.tenant --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $GroupID --project $Project --organization $Organization --name "ARM_CLIENT_SECRET" --value $MGMTData.password --secret true --output none --only-show-errors
   $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $MGMTData.password
   $epExists = (az devops service-endpoint list  --project $Project --organization $Organization --query "[?name=='Control_Plane_Service_Connection'].name | [0]")
   if ($epExists.Length -eq 0) {

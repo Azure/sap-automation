@@ -148,8 +148,6 @@ fi
 if [ -v SYSTEM_ACCESSTOKEN ]; then
 	export TF_VAR_PAT="$SYSTEM_ACCESSTOKEN"
 fi
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
