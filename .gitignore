@@ -91,3 +91,6 @@ __pycache__
 *.svclog
 *.scc
 .ansible/.lock
+
+
+.github/workflows/sync_upstream_dependendies.yml
