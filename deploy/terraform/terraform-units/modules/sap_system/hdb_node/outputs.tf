@@ -26,13 +26,15 @@ output "dns_info_vms"                  {
                                                              compact(
                                                                concat(
                                                                  slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, length(azurerm_linux_virtual_machine.vm_dbnode)),
-                                                                 slice(var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME, 0, length(azurerm_linux_virtual_machine.vm_dbnode))
+                                                                 slice(var.naming.virtualmachine_names.HANA_SECONDARY_DNSNAME, 0, length(azurerm_linux_virtual_machine.vm_dbnode)),
+                                                                 slice(var.naming.virtualmachine_names.OBSERVER_VMNAME, 0, length(azurerm_linux_virtual_machine.observer))
                                                                )
                                                              ),
                                                              compact(
                                                                concat(
                                                                  slice(azurerm_network_interface.nics_dbnodes_admin[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.vm_dbnode)),
-                                                                 slice(azurerm_network_interface.nics_dbnodes_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.vm_dbnode))
+                                                                 slice(azurerm_network_interface.nics_dbnodes_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.vm_dbnode)),
+                                                                 slice(azurerm_network_interface.observer[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.observer))
                                                                )
                                                              )
                                                            )
@@ -40,12 +42,14 @@ output "dns_info_vms"                  {
                                                            zipmap(
                                                              compact(
                                                                concat(
-                                                                 slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, length(azurerm_linux_virtual_machine.vm_dbnode))
+                                                                 slice(var.naming.virtualmachine_names.HANA_VMNAME, 0, length(azurerm_linux_virtual_machine.vm_dbnode)),
+                                                                 slice(var.naming.virtualmachine_names.OBSERVER_VMNAME, 0, length(azurerm_linux_virtual_machine.observer))
                                                                )
                                                              ),
                                                              compact(
                                                                concat(
-                                                                 slice(azurerm_network_interface.nics_dbnodes_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.vm_dbnode))
+                                                                 slice(azurerm_network_interface.nics_dbnodes_db[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.vm_dbnode)),
+                                                                 slice(azurerm_network_interface.observer[*].private_ip_address, 0, length(azurerm_linux_virtual_machine.observer))
                                                                )
                                                              )
                                                            )
@@ -317,13 +321,13 @@ output "hana_shared_afs_path"          {
                                                            ),
                                                            length(var.database.zones) > 1 ?
                                                            format("%s:/%s/%s",
-                                                               try(azurerm_private_endpoint.hanashared[1].private_dns_zone_configs[0].record_sets[0].fqdn,
-                                                                 try(azurerm_private_endpoint.hanashared[1].private_service_connection[0].private_ip_address,"")
+                                                               try(azurerm_private_endpoint.hanashared[var.use_single_hana_shared ? 0 : 1].private_dns_zone_configs[0].record_sets[0].fqdn,
+                                                                 try(azurerm_private_endpoint.hanashared[var.use_single_hana_shared ? 0 : 1].private_service_connection[0].private_ip_address,"")
                                                                ),
                                                              length(try(var.hanashared_id, "")) > 0 ? (
                                                                split("/", var.hanashared_id[1])[8]
                                                                ) : (
-                                                               azurerm_storage_account.hanashared[1].name
+                                                               azurerm_storage_account.hanashared[var.use_single_hana_shared ? 0 : 1].name
                                                              ),
                                                              azurerm_storage_share.hanashared[1].name
                                                            ) : ""

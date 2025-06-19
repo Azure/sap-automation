@@ -185,6 +185,17 @@
                                        - scs_cluster_type    == "AFA" or database_cluster_type == "AFA"       # scs_high_availability = true is already assumed
                                        - inventory_hostname  == primary_instance_name
   block:
+    - name:                            "1.17 Generic Pacemaker - Wait for cluster CIB availability"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.shell: |
+                                       # Check if CIB is accessible and cluster is responsive
+                                       timeout 30 cibadmin -Q > /dev/null 2>&1
+      register:                        cib_check
+      until:                           cib_check.rc == 0
+      retries:                         11
+      delay:                           30
+      tags:                            cluster_readiness
 
     - name:                            "1.17 Generic Pacemaker - Remove false positives"
       ansible.builtin.shell:           crm_resource -C

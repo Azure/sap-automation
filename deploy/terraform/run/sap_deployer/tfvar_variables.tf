@@ -378,6 +378,11 @@ variable "soft_delete_retention_days"                 {
                                                         default     = 7
                                                       }
 
+variable "enable_rbac_authorization"                 {
+                                                        description = "Enable RBAC authorization for the key vault"
+                                                        default     = false
+                                                      }
+
 #######################################4#######################################8
 #                                                                              #
 #  Miscellaneous settings                                                      #
@@ -508,6 +513,12 @@ variable "privatelink_dns_resourcegroup_name"         {
                                                         default     = ""
                                                         type        = string
                                                       }
+
+variable "register_storage_accounts_keyvaults_with_dns" {
+                                                     description = "Boolean value indicating if storage accounts and key vaults should be registered to the corresponding dns zones"
+                                                     default     = true
+                                                     type        = bool
+                                                   }
 
 
 #########################################################################################

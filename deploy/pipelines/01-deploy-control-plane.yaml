@@ -77,6 +77,10 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
+          - task:                      TerraformInstaller@1
+            displayName:               Install Terraform
+            inputs:
+              terraformVersion:        latest
           # Set Variables.
           - task:                      AzureCLI@2
             continueOnError:           false
@@ -91,40 +95,38 @@ stages:
 
             displayName: Prepare control plane
             env:
-              CP_ARM_CLIENT_ID:               $(CP_ARM_CLIENT_ID)
-              CP_ARM_CLIENT_SECRET:           $(CP_ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID:            $(CP_ARM_SUBSCRIPTION_ID)
-              CP_ARM_TENANT_ID:               $(CP_ARM_TENANT_ID)
-              AZURE_DEVOPS_EXT_PAT:           $(PAT)
+              APP_REGISTRATION_APP_ID:        $(APP_REGISTRATION_APP_ID)
+              ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:           $(System.AccessToken)
               CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
+              FORCE_RESET:                    ${{ lower(parameters.force_reset) }}
               IS_PIPELINE_DEPLOYMENT:         true
+              LOGON_USING_SPN:                $(Logon_Using_SPN)
               POOL:                           $(POOL)
               SAP_AUTOMATION_REPO_PATH:       ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-              TF_APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)
               TF_IN_AUTOMATION:               true
               TF_LOG:                         $(TF_LOG)
               TF_VAR_agent_ado_url:           $(System.CollectionUri)
-              TF_VAR_agent_pat:               $(PAT)
+              TF_VAR_agent_pat:               $(System.AccessToken)
               TF_VAR_agent_pool:              $(POOL)
               TF_VAR_ansible_core_version:    $(ansible_core_version)
-              TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
-              TF_VAR_deployer_kv_user_arm_id: $(Deployer_Key_Vault)
-              TF_VAR_spn_id:                  $(CP_ARM_OBJECT_ID)
+              TF_VAR_spn_id:                  $(ARM_OBJECT_ID)
               TF_VAR_tf_version:              $(tf_version)
-              TF_VAR_use_webapp:              ${{ lower(parameters.use_webapp_param) }}
-              TF_VAR_webapp_client_secret:    $(WEB_APP_CLIENT_SECRET)
+              TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
               USE_MSI:                        $(Use_MSI)
-              USE_WEBAPP:                     ${{ lower(parameters.use_webapp_param) }}
               WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
-              FORCE_RESET:                    ${{ lower(parameters.force_reset) }}
+              keyvault:                       $(DEPLOYER_KEYVAULT)
 
   - stage:                             Deploy_controlplane
     dependsOn:
       - Prepare_Deployer
-    condition: eq(dependencies.Prepare_Deployer.result, 'Succeeded')
-    pool: $(this_agent)
+    condition:                         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
+    pool:                              $(this_agent)
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
@@ -155,32 +157,31 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Deploy control plane Part 2
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              CP_ARM_SUBSCRIPTION_ID:  $(CP_ARM_SUBSCRIPTION_ID)
-              CP_ARM_CLIENT_ID:        $(CP_ARM_CLIENT_ID)
-              CP_ARM_CLIENT_SECRET:    $(CP_ARM_CLIENT_SECRET)
-              CP_ARM_TENANT_ID:        $(CP_ARM_TENANT_ID)
-              TF_VAR_spn_id:           $(CP_ARM_OBJECT_ID)
-              TF_VAR_agent_pool:       $(POOL)
-              TF_VAR_agent_ado_url:    $(System.CollectionUri)
-              TF_VAR_tf_version:       $(tf_version)
-              TF_VAR_agent_pat:        $(PAT)
-              IS_PIPELINE_DEPLOYMENT: true
-              WEB_APP_CLIENT_SECRET:   $(WEB_APP_CLIENT_SECRET)
-              APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
-              keyvault:                $(Deployer_Key_Vault)
-              POOL:                    $(POOL)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)
+              ARM_CLIENT_ID:               $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:               $(ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:        $(System.AccessToken)
+              CONFIG_REPO_PATH:            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              DEPLOYER_TFSTATE_KEY:        "${{ parameters.deployer }}.terraform.tfstate"
+              FORCE_RESET:                 ${{ lower(parameters.force_reset) }}
+              IS_PIPELINE_DEPLOYMENT:      true
+              LOGON_USING_SPN:             $(Logon_Using_SPN)
+              POOL:                        $(POOL)
+              SAP_AUTOMATION_REPO_PATH:    ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:          $(System.AccessToken)
+              TF_IN_AUTOMATION:            true
+              TF_LOG:                      $(TF_LOG)
+              TF_VAR_agent_ado_url:        $(System.CollectionUri)
+              TF_VAR_agent_pat:            $(System.AccessToken)
+              TF_VAR_agent_pool:           $(POOL)
               TF_VAR_ansible_core_version: $(ansible_core_version)
-              TF_LOG:                  $(TF_LOG)
-              TF_IN_AUTOMATION: true
-              DEPLOYER_TFSTATE_KEY:    "${{ parameters.deployer }}.terraform.tfstate"
-              LOGON_USING_SPN:         $(Logon_Using_SPN)
-              USE_MSI:                 $(Use_MSI)
-              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
-              FORCE_RESET:             ${{ lower(parameters.force_reset) }}
-
+              TF_VAR_spn_id:               $(ARM_OBJECT_ID)
+              TF_VAR_tf_version:           $(tf_version)
+              USE_MSI:                     $(Use_MSI)
+              WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
+              keyvault:                    $(DEPLOYER_KEYVAULT)
 
   - stage:                             Web_App_Deployment
     pool:                              $(this_agent)

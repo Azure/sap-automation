@@ -126,22 +126,18 @@ stages:
             displayName:               Deploy SAP Workload Zone
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              WL_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
-              WL_ARM_TENANT_ID:        $(ARM_TENANT_ID)
-              WL_ARM_CLIENT_ID:        $(ARM_CLIENT_ID)
-              WL_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
-              WL_ARM_OBJECT_ID:        $(ARM_OBJECT_ID)
-              CP_ARM_SUBSCRIPTION_ID:  $(CP_ARM_SUBSCRIPTION_ID)
-              CP_ARM_CLIENT_ID:        $(CP_ARM_CLIENT_ID)
-              CP_ARM_CLIENT_SECRET:    $(CP_ARM_CLIENT_SECRET)
-              CP_ARM_TENANT_ID:        $(CP_ARM_TENANT_ID)
-              CP_ARM_OBJECT_ID:        $(CP_ARM_OBJECT_ID)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
+              ARM_OBJECT_ID:           $(ARM_OBJECT_ID)
               FENCING_SPN_PWD:         $(FENCING_SPN_PWD)
               SAPBITS:                 $(INSTALLATION_MEDIA_ACCOUNT)
               TEST_ONLY:               ${{ parameters.test }}
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
               TF_LOG:                  $(TF_LOG)
               TF_IN_AUTOMATION:        true
+              TF_VAR_subscription_id:  $(ARM_SUBSCRIPTION_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               LOGON_USING_SPN:         $(Logon_Using_SPN)

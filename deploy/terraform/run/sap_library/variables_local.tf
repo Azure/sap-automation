@@ -52,8 +52,8 @@ locals {
 
   account                              = {
                                            subscription_id = local.use_spn ? data.azurerm_key_vault_secret.subscription_id[0].value : null,
-                                           tenant_id       = data.azurerm_key_vault_secret.tenant_id[0].value,
-                                           object_id       = data.azurerm_key_vault_secret.client_id[0].value
+                                           tenant_id       = local.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null,
+                                           object_id       = local.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null
                                          }
 
 }
