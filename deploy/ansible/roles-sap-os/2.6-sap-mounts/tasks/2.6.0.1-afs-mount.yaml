@@ -20,6 +20,10 @@
     msg:                               "Primary host: {{ primary_host }}"
 
 - name:                                "AFS Mount: HANA {{ item.type }}"
+  when:
+                                       - item.mount is defined
+                                       - ansible_hostname == primary_host
+                                       - item.create_temp_folders
   block:
     - name:                            "AFS Mount: Create /{{ item.temppath }}"
       ansible.builtin.file:
@@ -79,11 +83,6 @@
         opts:                          "{{ item.opts }}"
         state:                         absent
 
-  when:
-    - item.mount is defined
-    - ansible_hostname == primary_host
-    - item.create_temp_folders
-
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -93,6 +92,8 @@
 # +------------------------------------4--------------------------------------*/
 
 - name:                                "AFS Mount: Create SAP Directories ({{ item.path }})"
+  when:
+                                       - node_tier in item.target_nodes or item.target_nodes == ['all']
   ansible.builtin.file:
     owner:                             "{{ item.owner }}"
     group:                             sapsys
@@ -101,29 +102,25 @@
     state:                             directory
     recurse:                           true
   register:                            is_created_now
-  when:
-    - node_tier in item.target_nodes or item.target_nodes == ['all']
 
-# - name:                                "AFS Mount: Create SAP Directories ({{ item.path }})"
-#   ansible.builtin.debug:
-#     var:                               is_created_now
 
 - name:                                "AFS Mount: Change attribute only when we create SAP Directories ({{ item.temppath }})"
   become:                              true
   become_user:                         "root"
+  when:
+                                       - node_tier in item.target_nodes or item.target_nodes == "all"
+                                       - is_created_now.changed
+                                       - item.set_chattr_on_dir
   ansible.builtin.file:
     path:                              "{{ is_created_now.path }}"
     state:                             directory
     mode:                              "{{ item.permissions }}"
     attr:                              i+
-  when:
-    - node_tier in item.target_nodes or item.target_nodes == "all"
-    - is_created_now.changed
-    - item.set_chattr_on_dir
+
 
 - name:                                "AFS Mount"
   when:
-    - node_tier in item.target_nodes or item.target_nodes == ['all']
+                                       - single_server or ( node_tier in item.target_nodes or item.target_nodes == ['all'] )
   block:
     - name:                            "AFS Mount: ({{ item.path }} on {% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %})"
       ansible.posix.mount:

@@ -22,8 +22,13 @@ locals {
                                            )
                                          )
 
-  saplib_subscription_id               = split("/", var.tfstate_resource_id)[2]
-  saplib_resource_group_name           = split("/", var.tfstate_resource_id)[4]
+ // Locate the tfstate storage account
+  parsed_id                           = provider::azurerm::parse_resource_id(var.tfstate_resource_id)
+
+  SAPLibrary_subscription_id          = local.parsed_id["subscription_id"]
+  SAPLibrary_resource_group_name      = local.parsed_id["resource_group_name"]
+  tfstate_storage_account_name        = local.parsed_id["resource_name"]
+  tfstate_container_name              = module.sap_namegenerator.naming.resource_suffixes.tfstate
 
 
   // Default naming of vnet has multiple parts. Taking the second-last part as the name incase the name ends with -vnet
@@ -41,7 +46,7 @@ locals {
   spn                                  = {
                                            subscription_id = coalesce(var.subscription_id, try(data.azurerm_key_vault_secret.subscription_id[0].value,null))
                                            client_id       = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null,
-                                           client_secret   = var.use_spn ? data.azurerm_key_vault_secret.client_secret[0].value : null,
+                                           client_secret   = var.use_spn ? ephemeral.azurerm_key_vault_secret.client_secret[0].value : null,
                                            tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
                                          }
 

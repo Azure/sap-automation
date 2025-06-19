@@ -209,17 +209,17 @@ locals {
 
                                           }
   key_vault                            = {
-                                           kv_user_id           = var.user_keyvault_id
-                                           kv_exists            = length(var.user_keyvault_id) > 0 ? true : false
-                                           kv_sshkey_prvt       = var.deployer_private_key_secret_name
-                                           kv_sshkey_pub        = var.deployer_public_key_secret_name
-                                           kv_username          = var.deployer_username_secret_name
-                                           kv_pwd               = var.deployer_password_secret_name
-
+                                           kv_user_id                = var.user_keyvault_id
+                                           kv_exists                 = length(var.user_keyvault_id) > 0 ? true : false
+                                           kv_sshkey_prvt            = var.deployer_private_key_secret_name
+                                           kv_sshkey_pub             = var.deployer_public_key_secret_name
+                                           kv_username               = var.deployer_username_secret_name
+                                           kv_pwd                    = var.deployer_password_secret_name
+                                           enable_rbac_authorization = var.enable_rbac_authorization
                                         }
 
   options                              = {
-                                            enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
+                                            enable_deployer_public_ip = var.deployer_count > 0 && (var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false))
                                          }
 
   firewall                             = {
@@ -238,14 +238,17 @@ locals {
                                          }
 
   dns_settings                         = {
-                                           use_custom_dns_a_registration = var.use_custom_dns_a_registration
-                                           dns_zone_names = var.dns_zone_names
+                                           use_custom_dns_a_registration                = var.use_custom_dns_a_registration
+                                           dns_zone_names                               = var.dns_zone_names
 
-                                           management_dns_resourcegroup_name = trimspace(var.management_dns_resourcegroup_name)
-                                           management_dns_subscription_id = var.management_dns_subscription_id
+                                           management_dns_resourcegroup_name            = trimspace(var.management_dns_resourcegroup_name)
+                                           management_dns_subscription_id               = trimspace(var.management_dns_subscription_id)
 
-                                           privatelink_dns_subscription_id = var.privatelink_dns_subscription_id != var.management_dns_subscription_id ? var.privatelink_dns_subscription_id : var.management_dns_subscription_id
-                                           privatelink_dns_resourcegroup_name = var.management_dns_resourcegroup_name != var.privatelink_dns_resourcegroup_name ? var.privatelink_dns_resourcegroup_name : var.management_dns_resourcegroup_name
+                                           privatelink_dns_subscription_id              = trimspace(coalesce(var.privatelink_dns_subscription_id,var.management_dns_subscription_id, " "))
+                                           privatelink_dns_resourcegroup_name           = trimspace(coalesce(var.management_dns_resourcegroup_name, var.privatelink_dns_resourcegroup_name, " "))
+
+                                           sap_library_resource_group_name              = local.SAPLibrary_resource_group_name
+                                           register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
                                          }
 
 }

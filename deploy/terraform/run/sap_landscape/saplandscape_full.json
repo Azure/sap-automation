@@ -18,7 +18,7 @@
                     "nsg" :
                     {
                         "name"                         : "",
-                        "arm_id"                       : "" 
+                        "arm_id"                       : ""
                     }
                 },
                 "subnet_db": {
@@ -27,7 +27,7 @@
                     "nsg" :
                     {
                         "name"                         : "",
-                        "arm_id"                       : "" 
+                        "arm_id"                       : ""
                     }
                 },
                 "subnet_app": {
@@ -36,7 +36,7 @@
                     "nsg" :
                     {
                         "name"                         : "",
-                        "arm_id"                       : "" 
+                        "arm_id"                       : ""
                     }
                 },
                 "subnet_web": {
@@ -45,7 +45,7 @@
                     "nsg" :
                     {
                         "name"                         : "",
-                        "arm_id"                       : "" 
+                        "arm_id"                       : ""
                     }
                 },
                 "subnet_anf": {
@@ -54,17 +54,17 @@
                     "nsg" :
                     {
                         "name"                         : "",
-                        "arm_id"                       : "" 
+                        "arm_id"                       : ""
                     }
                 },
-                    
+
                 "subnet_iscsi": {
                     "name"                             : "global-WEEU-sap0_iscsi-subnet",
                     "prefix"                           : "10.1.0.0/24",
                     "nsg" :
                     {
                         "name"                         : "",
-                        "arm_id"                       : "" 
+                        "arm_id"                       : ""
                     }
                 }
             }
@@ -87,7 +87,7 @@
         "kv_sid_sshkey_pub": "",
         "kv_iscsi_username": "",
         "kv_iscsi_pwd": "",
-        "kv_spn_id": ""
+        "keyvault_id_for_deployment_credentials": ""
     },
     "authentication": {
         "username": "azureadm",

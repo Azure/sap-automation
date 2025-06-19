@@ -27,15 +27,18 @@ provider "azurerm"                     {
                                                                    }
                                                     key_vault      {
                                                                      purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
-                                                                     purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
-                                                                     purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
-                                                                     purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
+                                                                     purge_soft_deleted_keys_on_destroy         = false
+                                                                     purge_soft_deleted_secrets_on_destroy      = false
+                                                                     purge_soft_deleted_certificates_on_destroy = false
                                                                    }
                                                     storage        {
                                                                         data_plane_available = var.data_plane_available
                                                                    }
-                                                  }
-
+                                                  app_configuration {
+                                                                       purge_soft_delete_on_destroy = !var.enable_purge_control_for_keyvaults
+                                                                       recover_soft_deleted         = !var.enable_purge_control_for_keyvaults
+                                                                    }
+                                                   }
                                        }
 
 provider "azurerm"                     {
@@ -73,6 +76,8 @@ provider "azurerm"                     {
                                          storage_use_azuread        = true
                                        }
 
+provider "azuread"                     {
+                                       }
 
 terraform                              {
                                          required_version = ">= 1.0"
@@ -95,7 +100,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.22.0"
+                                                                           version = "4.32.0"
                                                                          }
                                                             }
                                        }

@@ -61,7 +61,7 @@ resource "null_resource" "prepare-deployer" {
 }
 
 resource "local_file" "configure_deployer" {
-  count                                = local.enable_deployer_public_ip ? 0 : 1
+  count                                = local.enable_deployer_public_ip ? 0 : 0
   content                              = templatefile(format("%s/templates/configure_deployer.sh.tmpl", path.module), {
                                            tfversion            = var.tf_version,
                                            rg_name              = local.resourcegroup_name,

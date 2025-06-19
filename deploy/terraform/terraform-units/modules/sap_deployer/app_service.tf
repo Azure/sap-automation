@@ -70,6 +70,7 @@ resource "azurerm_service_plan" "appserviceplan" {
   location                                      = local.rg_appservice_location
   os_type                                       = "Windows"
   sku_name                                      = var.deployer.app_service_SKU
+  tags                                          = var.infrastructure.tags
 }
 
 
@@ -100,7 +101,7 @@ resource "azurerm_windows_web_app" "webapp" {
   #   unauthenticated_client_action = "RedirectToLoginPage"
   # }
 
-
+  tags                                          = var.infrastructure.tags
 
   app_settings = {
     "CollectionUri"                            = var.agent_ado_url
@@ -139,8 +140,6 @@ resource "azurerm_windows_web_app" "webapp" {
       token_store_enabled = false
     }
   }
-
-
 
   virtual_network_subnet_id = local.webapp_subnet_exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id
   site_config {

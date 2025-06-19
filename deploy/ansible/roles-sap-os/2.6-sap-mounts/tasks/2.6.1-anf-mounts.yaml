@@ -448,6 +448,7 @@
   when:
     - tier == 'sapos'
     - sap_trans is defined
+    - sap_trans != ''
 
 - name:                                "ANF Mount: install"
   ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
@@ -469,6 +470,7 @@
   when:
     - tier == 'sapos'
     - usr_sap_install_mountpoint is defined
+    - usr_sap_install_mountpoint != ''
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -658,6 +660,7 @@
       - hana_shared_mountpoint is defined
       - hana_shared_mountpoint | length > 0
       - not database_scale_out
+      - ansible_hostname == db_hosts[0]
 
   - name:                                "ANF Mount: HANA data (secondary)"
     ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
@@ -726,6 +729,7 @@
       - hana_shared_mountpoint is defined
       - hana_shared_mountpoint | length > 1
       - not database_scale_out
+      - ansible_hostname == db_hosts[1]
 
   - name:                                "ANF Mount: Set Permissons on HANA Directories ({{ item.path }})"
     ansible.builtin.file:

@@ -21,6 +21,10 @@ source "${script_directory}/deploy_utils.sh"
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
 
+SCRIPT_NAME="$(basename "$0")"
+
+echo "Entering: ${SCRIPT_NAME}"
+
 #Internal helper functions
 function showhelp {
 	echo ""
@@ -255,6 +259,14 @@ else
 				exit 10
 			fi
 		fi
+
+	else
+		echo "#########################################################################################"
+		echo "#                                                                                       #"
+		echo "#                                   New deployment                                      #"
+		echo "#                                                                                       #"
+		echo "#########################################################################################"
+		terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
 	fi
 	echo "Parameters:                          $allParameters"
 	terraform -chdir="${terraform_module_directory}" refresh $allParameters
@@ -344,41 +356,43 @@ if [ -f apply_output.json ]; then
 	rm apply_output.json
 fi
 
+return_value=0
+
 if [ -n "${approve}" ]; then
 	# shellcheck disable=SC2086
-	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
 		$allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee apply_output.json; then
-		return_value=$?
-		echo "Terraform apply return code:         $return_value"
-		if [ $return_value -eq 1 ]; then
-			echo ""
-			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
-			echo ""
-		else
-			# return code 2 is ok
-			echo ""
-			echo -e "${cyan} Terraform apply:                    succeeded$reset_formatting"
-
-			echo ""
-			return_value=0
-		fi
-	fi
-else
-	# shellcheck disable=SC2086
-	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters | tee apply_output.json; then
 		return_value=${PIPESTATUS[0]}
 	else
 		return_value=${PIPESTATUS[0]}
 	fi
-	echo "Terraform apply return code:         $return_value"
 	if [ $return_value -eq 1 ]; then
 		echo ""
-		echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
+		echo -e "${bold_red}Terraform apply:                     failed ($return_value)$reset_formatting"
 		echo ""
 	else
 		# return code 2 is ok
 		echo ""
-		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
+		echo -e "${cyan} Terraform apply:                    succeeded ($return_value)$reset_formatting"
+		echo ""
+		return_value=0
+	fi
+else
+	# shellcheck disable=SC2086
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
+		return_value=${PIPESTATUS[0]}
+	else
+		return_value=${PIPESTATUS[0]}
+	fi
+	if [ $return_value -eq 1 ]; then
+		echo ""
+		echo -e "${bold_red}Terraform apply:                     failed ($return_value)$reset_formatting"
+		echo ""
+		exit 10
+	else
+		# return code 2 is ok
+		echo ""
+		echo -e "${cyan}Terraform apply:                     succeeded ($return_value)$reset_formatting"
 		echo ""
 		return_value=0
 	fi
@@ -437,51 +451,47 @@ if [ 0 != $return_value ]; then
 	exit $return_value
 fi
 
-if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+if keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \"); then
+	touch "${deployer_config_information}"
+	printf -v val %-.20s "$keyvault"
 
-	keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-	temp=$(echo "${keyvault}" | grep "Warning")
-	if [ -z "${temp}" ]; then
-		temp=$(echo "${keyvault}" | grep "Backend reinitialization required")
-		if [ -z "${temp}" ]; then
-			touch "${deployer_config_information}"
-			printf -v val %-.20s "$keyvault"
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                Keyvault to use for SPN details:$cyan $val $reset_formatting                 #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
 
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                Keyvault to use for SPN details:$cyan $val $reset_formatting                 #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
+	save_config_var "keyvault" "${deployer_config_information}"
+	TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+	export TF_VAR_deployer_kv_user_arm_id
+	return_value=0
+else
+	return_value=2
+fi
 
-			save_config_var "keyvault" "${deployer_config_information}"
-			return_value=0
-		else
-			return_value=2
-		fi
-	fi
+sshsecret=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_sshkey_secret_name | tr -d \")
+if [ -n "${sshsecret}" ]; then
+	save_config_var "sshsecret" "${deployer_config_information}"
+fi
 
-	sshsecret=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_sshkey_secret_name | tr -d \")
-	if [ -n "${sshsecret}" ]; then
-		save_config_var "sshsecret" "${deployer_config_information}"
-	fi
+deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
+if [ -n "${deployer_public_ip_address}" ]; then
+	save_config_var "deployer_public_ip_address" "${deployer_config_information}"
+fi
 
-	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
-	if [ -n "${deployer_public_ip_address}" ]; then
-		save_config_var "deployer_public_ip_address" "${deployer_config_information}"
-	fi
+deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+if [ -n "${deployer_random_id}" ]; then
+	save_config_var "deployer_random_id" "${deployer_config_information}"
+	custom_random_id="${deployer_random_id:0:3}"
+	sed -i -e /"custom_random_id"/d "${var_file}"
+	printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
-	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-	if [ -n "${deployer_random_id}" ]; then
-		save_config_var "deployer_random_id" "${deployer_config_information}"
-		custom_random_id="${deployer_random_id:0:3}"
-		sed -i -e /"custom_random_id"/d "${var_file}"
-		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
-
-	fi
 fi
 
 unset TF_DATA_DIR
+
+echo "Exiting: ${SCRIPT_NAME}"
 
 exit $return_value

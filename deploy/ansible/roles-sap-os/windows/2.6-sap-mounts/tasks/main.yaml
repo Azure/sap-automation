@@ -14,7 +14,7 @@
   become:                              true
   become_method:                       ansible.builtin.runas
   become_user:                         '{{ sap_sid }}adm@{{ domain_name }}'
-  community.windows.win_mapped_drive:
+  ansible.windows.win_mapped_drive:
     letter:                            "{{ win_mapped_drive }}"
     path:                              "{{ item.path }}"
     state:                             present

@@ -165,7 +165,9 @@
             - 1.11-accounts
 
         - name:                        "OS configuration playbook: - Configure accounts (Oracle)"
-          when: node_tier in ["oracle", "observer"]
+          when:
+            - node_tier in ["oracle", "observer"]
+            - platform == 'ORACLE'
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
           vars:

@@ -13,12 +13,11 @@ source "sap-automation/deploy/pipelines/helper.sh"
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
-  set -x
-  set -o errexit
-  DEBUG=True
+	set -x
+	set -o errexit
+	DEBUG=True
 	echo "Environment variables:"
 	printenv | sort
-
 
 fi
 export DEBUG
@@ -44,95 +43,106 @@ git checkout -q "$BUILD_SOURCEBRANCHNAME"
 echo -e "$green--- Validations ---$reset"
 if [ "$USE_MSI" != "true" ]; then
 
-	if [ -z "$WL_ARM_SUBSCRIPTION_ID" ]; then
+	if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ "$WL_ARM_SUBSCRIPTION_ID" == '$$(ARM_SUBSCRIPTION_ID)' ]; then
+	if [ "$ARM_SUBSCRIPTION_ID" == '$$(ARM_SUBSCRIPTION_ID)' ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ -z "$WL_ARM_CLIENT_ID" ]; then
+	if [ -z "$ARM_CLIENT_ID" ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ "$WL_ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
+	if [ "$ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ -z "$WL_ARM_CLIENT_SECRET" ]; then
+	if [ -z "$ARM_CLIENT_SECRET" ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ "$WL_ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
+	if [ "$ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ -z "$WL_ARM_TENANT_ID" ]; then
+	if [ -z "$ARM_TENANT_ID" ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if [ "$WL_ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
+	if [ "$ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
-		exit 2
-	fi
-
-	if [ -z "$CP_ARM_SUBSCRIPTION_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $PARENT_VARIABLE_GROUP variable group."
-		exit 2
-	fi
-
-	if [ -z "$CP_ARM_CLIENT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined in the $PARENT_VARIABLE_GROUP variable group."
-		exit 2
-	fi
-
-	if [ -z "$CP_ARM_CLIENT_SECRET" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined in the $PARENT_VARIABLE_GROUP variable group."
-		exit 2
-	fi
-
-	if [ -z "$CP_ARM_TENANT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $PARENT_VARIABLE_GROUP variable group."
 		exit 2
 	fi
 fi
+
+echo -e "$green--- Configure devops CLI extension ---$reset"
+az config set extension.use_dynamic_install=yes_without_prompt --output none
+
+az extension add --name azure-devops --output none --only-show-errors
+
+az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none
+
+PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
+
+if [ -z "${PARENT_VARIABLE_GROUP_ID}" ]; then
+	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP could not be found."
+	exit 2
+fi
+export PARENT_VARIABLE_GROUP_ID
+
+VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
+
+if [ -z "${VARIABLE_GROUP_ID}" ]; then
+	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
+	exit 2
+fi
+export VARIABLE_GROUP_ID
+
+printf -v tempval '%s id:' "$VARIABLE_GROUP"
+printf -v val '%-20s' "${tempval}"
+echo "$val                 $VARIABLE_GROUP_ID"
+
+printf -v tempval '%s id:' "$PARENT_VARIABLE_GROUP"
+printf -v val '%-20s' "${tempval}"
+echo "$val                 $PARENT_VARIABLE_GROUP_ID"
 
 # Set logon variables
-ARM_CLIENT_ID="$CP_ARM_CLIENT_ID"
-export ARM_CLIENT_ID
-ARM_CLIENT_SECRET="$CP_ARM_CLIENT_SECRET"
-export ARM_CLIENT_SECRET
-ARM_TENANT_ID=$CP_ARM_TENANT_ID
-export ARM_TENANT_ID
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
-
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$TF_VERSION"
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure false
+if [ $USE_MSI == "true" ]; then
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
+fi
+if az account show --query name; then
+	echo -e "$green--- Already logged in to Azure ---$reset"
+	LogonToAzure true
 else
-	LogonToAzure "$USE_MSI"
+	# Check if running on deployer
+	if [ -f /etc/profile.d/deploy_server.sh ]; then
+		LogonToAzure $USE_MSI
+		unset ARM_CLIENT_SECRET
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+	else
+		echo "Not running on the deployer server"
+		configureNonDeployer "$TF_VERSION"
+		echo -e "$green--- az login ---$reset"
+		if ! LogonToAzure false; then
+			return_code=$?
+			echo -e "$bold_red--- Login failed ---$reset"
+			echo "##vso[task.logissue type=error]az login failed."
+			exit $return_code
+		fi
+	fi
 fi
-return_code=$?
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
-fi
-
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
-az account set --subscription $ARM_SUBSCRIPTION_ID
 
 echo -e "$green--- Read deployment details ---$reset"
 dos2unix -q tfvarsFile
@@ -195,36 +205,8 @@ workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${E
 echo "Workload Zone Environment File:      $workload_environment_file_name"
 touch "$workload_environment_file_name"
 
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt --output none
-
-az extension add --name azure-devops --output none --only-show-errors
-
-az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECT" --output none
-
-PARENT_VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
-
-if [ -z "${PARENT_VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP could not be found."
-	exit 2
-fi
-export PARENT_VARIABLE_GROUP_ID
-
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
-
-if [ -z "${VARIABLE_GROUP_ID}" ]; then
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."
-	exit 2
-fi
-export VARIABLE_GROUP_ID
-
-printf -v tempval '%s id:' "$VARIABLE_GROUP"
-printf -v val '%-20s' "${tempval}"
-echo "$val                 $VARIABLE_GROUP_ID"
-
-printf -v tempval '%s id:' "$PARENT_VARIABLE_GROUP"
-printf -v val '%-20s' "${tempval}"
-echo "$val                 $PARENT_VARIABLE_GROUP_ID"
+ARM_SUBSCRIPTION_ID=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_SUBSCRIPTION_ID" "${workload_environment_file_name}" "ARM_SUBSCRIPTION_ID")
+az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 echo -e "$green--- Read parameter values ---$reset"
 
@@ -237,7 +219,7 @@ export landscape_tfstate_key
 deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
 export deployer_tfstate_key
 
-key_vault=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault")
+key_vault=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "keyvault")
 export key_vault
 
 REMOTE_STATE_SA=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
@@ -251,7 +233,7 @@ export workload_key_vault
 
 echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload Key vault:                  ${workload_key_vault}"
-echo "Target subscription                  $WL_ARM_SUBSCRIPTION_ID"
+echo "Target subscription                  $ARM_SUBSCRIPTION_ID"
 
 echo "Terraform state file subscription:   $STATE_SUBSCRIPTION"
 echo "Terraform state file storage account:$REMOTE_STATE_SA"
@@ -271,11 +253,11 @@ echo -e "$green --- Set secrets ---$reset"
 
 if [ "$USE_MSI" != "true" ]; then
 	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --workload --vault "${key_vault}" --environment "${ENVIRONMENT}" \
-		--region "${LOCATION}" --subscription "$WL_ARM_SUBSCRIPTION_ID" --spn_id "$WL_ARM_CLIENT_ID" --spn_secret "${WL_ARM_CLIENT_SECRET}" \
-		--tenant_id "$WL_ARM_TENANT_ID" --keyvault_subscription "$STATE_SUBSCRIPTION"
+		--region "${LOCATION}" --subscription "$ARM_SUBSCRIPTION_ID" --spn_id "$ARM_CLIENT_ID" --spn_secret "${ARM_CLIENT_SECRET}" \
+		--tenant_id "$ARM_TENANT_ID" --keyvault_subscription "$STATE_SUBSCRIPTION"
 else
 	"$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --workload --vault "${key_vault}" --environment "${ENVIRONMENT}" \
-		--region "${LOCATION}" --subscription "$WL_ARM_SUBSCRIPTION_ID" --keyvault_subscription "$STATE_SUBSCRIPTION" --msi
+		--region "${LOCATION}" --subscription "$ARM_SUBSCRIPTION_ID" --keyvault_subscription "$STATE_SUBSCRIPTION" --msi
 fi
 secrets_set=$?
 echo "Set Secrets returned: $secrets_set"
@@ -339,43 +321,21 @@ if [ "$USE_MSI" != "true" ]; then
 			fi
 		fi
 	else
-		echo " ##vso[task.logissue type=warning]Service Principal $WL_ARM_CLIENT_ID does not have 'User Access Administrator' permissions. Please ensure that the service principal $WL_ARM_CLIENT_ID has permissions on the Terrafrom state storage account and if needed on the Private DNS zone and the source management network resource"
+		echo " ##vso[task.logissue type=warning]Service Principal $ARM_CLIENT_ID does not have 'User Access Administrator' permissions. Please ensure that the service principal $ARM_CLIENT_ID has permissions on the Terrafrom state storage account and if needed on the Private DNS zone and the source management network resource"
 	fi
 fi
+
+az account show --query name
+printenv | grep ARM | sort
 
 echo -e "$green--- Deploy the workload zone ---$reset"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 
-# Set logon variables
-ARM_CLIENT_ID="$WL_ARM_CLIENT_ID"
-export ARM_CLIENT_ID
-ARM_CLIENT_SECRET="$WL_ARM_CLIENT_SECRET"
-export ARM_CLIENT_SECRET
-ARM_TENANT_ID=$WL_ARM_TENANT_ID
-export ARM_TENANT_ID
-ARM_SUBSCRIPTION_ID=$WL_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
-
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure false
-else
-	LogonToAzure "$USE_MSI"
-fi
-return_code=$?
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
-fi
-
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
-
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/install_workloadzone.sh" --parameterfile "$WORKLOAD_ZONE_TFVARS_FILENAME" \
-	--deployer_environment "$DEPLOYER_ENVIRONMENT" --subscription "$WL_ARM_SUBSCRIPTION_ID" \
+	--deployer_environment "$DEPLOYER_ENVIRONMENT" --subscription "$ARM_SUBSCRIPTION_ID" \
 	--deployer_tfstate_key "${deployer_tfstate_key}" --keyvault "${key_vault}" --storageaccountname "${REMOTE_STATE_SA}" \
 	--state_subscription "${STATE_SUBSCRIPTION}" --auto-approve --ado --msi; then
+	return_code=$?
 	echo "##vso[task.logissue type=warning]Workload zone deployment completed successfully."
 else
 	return_code=$?
@@ -446,7 +406,7 @@ if [ -n "${VARIABLE_GROUP_ID}" ]; then
 		echo "Variable ${prefix}Workload_Secret_Prefix was not added to the $VARIABLE_GROUP variable group."
 	fi
 
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Zone_State_FileName" "${landscape_tfstate_key}" ; then
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Zone_State_FileName" "${landscape_tfstate_key}"; then
 		echo "Variable ${prefix}Workload_Zone_State_FileName was added to the $VARIABLE_GROUP variable group."
 	else
 		echo "##vso[task.logissue type=error]Variable ${prefix}Workload_Zone_State_FileName was not added to the $VARIABLE_GROUP variable group."

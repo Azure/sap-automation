@@ -116,35 +116,36 @@ if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
 fi
 
 echo -e "$green--- Validations ---$reset"
+
 if [ "$USE_MSI" != "true" ]; then
 
-	if [ -z "$CP_ARM_CLIENT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ "$CP_ARM_CLIENT_ID" == '$$(CP_ARM_CLIENT_ID)' ]; then
+	if [ -v ARM_CLIENT_ID ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
-	if [ -z "$CP_ARM_CLIENT_SECRET" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
+	if [ "$ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
-	if [ "$CP_ARM_CLIENT_SECRET" == '$$(CP_ARM_CLIENT_SECRET)' ]; then
+	if [ -v ARM_CLIENT_SECRET ]; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
-	if [ -z "$CP_ARM_TENANT_ID" ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+	if [ "$ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
-	if [ "$CP_WL_ARM_TENANT_ID" == '$$(CP_ARM_TENANT_ID)' ]; then
-		echo "##vso[task.logissue type=error]Variable CP_ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+	if [ -v ARM_TENANT_ID ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
+		exit 2
+	fi
+
+	if [ "$ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
+		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
 		exit 2
 	fi
 
@@ -156,28 +157,32 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
 	ARM_CLIENT_ID="$servicePrincipalId"
 	export ARM_CLIENT_ID
+	TF_VAR_spn_id=$ARM_CLIENT_ID
+	export TF_VAR_spn_id
 
 	ARM_OIDC_TOKEN="$idToken"
-	export ARM_OIDC_TOKEN
+	if [ -n "$ARM_OIDC_TOKEN" ]; then
+		export ARM_OIDC_TOKEN
+		ARM_USE_OIDC=true
+		export ARM_USE_OIDC
+		unset ARM_CLIENT_SECRET
+	else
+		unset ARM_OIDC_TOKEN
+		ARM_CLIENT_SECRET="$servicePrincipalKey"
+		export ARM_CLIENT_SECRET
+	fi
 
 	ARM_TENANT_ID="$tenantId"
 	export ARM_TENANT_ID
 
-	ARM_USE_OIDC=true
-	export ARM_USE_OIDC
-
 	ARM_USE_AZUREAD=true
 	export ARM_USE_AZUREAD
-
-	unset ARM_CLIENT_SECRET
 
 else
 	echo -e "$green--- az login ---$reset"
 	LogonToAzure "$USE_MSI"
 fi
 
-ARM_SUBSCRIPTION_ID=$CP_ARM_SUBSCRIPTION_ID
-export ARM_SUBSCRIPTION_ID
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${deployer_environment_file_name}" "keyvault" || true)
@@ -214,8 +219,6 @@ else
 	return_code=$?
 	echo "Control Plane $DEPLOYER_FOLDERNAME removal step 2 failed."
 fi
-
-return_code=$?
 
 echo "Return code from remove_deployer: $return_code."
 
@@ -296,9 +299,9 @@ if [ 0 == $return_code ]; then
 			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Deployer_State_FileName --yes --only-show-errors
 		fi
 
-		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Deployer_Key_Vault.value")
+		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value")
 		if [ ${#variable_value} != 0 ]; then
-			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Deployer_Key_Vault --yes --only-show-errors
+			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --yes --only-show-errors
 		fi
 
 		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_URL_BASE.value")
@@ -334,6 +337,17 @@ if [ 0 == $return_code ]; then
 		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "LIBRARY_RANDOM_ID.value" --out tsv)
 		if [ ${#variable_value} != 0 ]; then
 			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID --yes --only-show-errors
+		fi
+
+
+		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ControlPlaneEnvironment.value" --out tsv)
+		if [ ${#variable_value} != 0 ]; then
+			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name ControlPlaneEnvironment --yes --only-show-errors
+		fi
+
+		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ControlPlaneLocation.value" --out tsv)
+		if [ ${#variable_value} != 0 ]; then
+			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name ControlPlaneLocation --yes --only-show-errors
 		fi
 	fi
 

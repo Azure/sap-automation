@@ -213,7 +213,7 @@
     - name:                            "5.5.4.1 HANA Cluster configuration - Configure HANA active/read-enabled system replication"
       when:
         - database_active_active | default(false)
-        - not db_scale_out
+        - not (db_scale_out | default(false))
       block:
         - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active netcat resource for the Load Balancer Healthprobe is created"
           ansible.builtin.shell:       pcs resource create secnc_{{ db_sid | upper }}_{{ db_instance_number }} azure-lb port=626{{ db_instance_number }}
@@ -245,7 +245,7 @@
         - name:                        "5.5.4.1 HANA Cluster configuration - Set priority for the Virtual IP and azure-lb resources"
           when:
                                        - database_active_active | default(false)
-                                       - not db_scale_out
+                                       - not (db_scale_out | default(false))
                                        - is_pcmk_ver_gt_204
           block:
             - name:                    "5.5.4.1 HANA Cluster configuration - Set priority for the Virtual IP resource"

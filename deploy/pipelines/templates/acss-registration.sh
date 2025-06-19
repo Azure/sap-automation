@@ -42,7 +42,7 @@ set +x
 # Authenticate to Azure                                                        |
 #                                                                              |
 #--------------------------------------+---------------------------------------8
-az login --service-principal --username $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID  --output none
+az login --service-principal --client-id $ARM_CLIENT_ID --password=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID  --output none
 #--------------------------------------+---------------------------------------8
 
 #--------------------------------------+---------------------------------------8
