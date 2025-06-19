@@ -16,7 +16,7 @@ resource "azurerm_network_interface" "observer" {
                                            local.prefix,
                                            var.naming.separator,
                                            var.naming.virtualmachine_names.OBSERVER_VMNAME[count.index],
-                                           local.resource_suffixes.nic
+                                           var.use_admin_nic_suffix_for_observer ? local.resource_suffixes.admin_nic : local.resource_suffixes.nic
                                          )
   resource_group_name                  = var.resource_group[0].name
   location                             = var.resource_group[0].location
@@ -68,12 +68,12 @@ resource "azurerm_linux_virtual_machine" "observer" {
   admin_password                        = local.enable_auth_key ? null : var.sid_password
   disable_password_authentication       = !local.enable_auth_password
 
-  zone                                 = local.zonal_deployment ? local.zones[count.index % max(local.db_zone_count, 1)] : null
+  zone                                 = local.zonal_deployment ? coalesce(try(var.observer_vm_zones[count.index], null), local.zones[count.index % max(local.db_zone_count, 1)]) : null
 
   network_interface_ids                = [
                                            azurerm_network_interface.observer[count.index].id
                                          ]
-  size                                 = local.observer_size
+  size                                 = local.observer_vm_size
   source_image_id                      = local.observer_custom_image ? local.observer_custom_image_id : null
 
   custom_data                          = var.deployment == "new" ? var.cloudinit_growpart_config : null
@@ -82,7 +82,7 @@ resource "azurerm_linux_virtual_machine" "observer" {
   # ToDo Add back later
 # patch_mode                           = var.infrastructure.patch_mode
 
-  tags                                 = merge(local.tags, var.tags)
+  tags                                 = try(var.observer_vm_tags, merge(local.tags, var.tags))
 
   encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
@@ -149,7 +149,7 @@ resource "azurerm_windows_virtual_machine" "observer" {
   network_interface_ids                = [
                                            azurerm_network_interface.observer[count.index].id
                                          ]
-  size                                 = local.observer_size
+  size                                 = local.observer_vm_size
   source_image_id                      = local.observer_custom_image ? local.observer_custom_image_id : null
 
   custom_data                          = var.deployment == "new" ? var.cloudinit_growpart_config : null

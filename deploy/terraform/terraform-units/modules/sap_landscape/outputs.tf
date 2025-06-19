@@ -311,7 +311,29 @@ output "dns_info_vms"                          {
 
 output "privatelink_file_id"                    {
                                                    description = "Private DNS Zone ID for the file resources"
-                                                   value = try(data.azurerm_private_dns_zone.file[0].id, "")
+                                                   value = local.privatelink_file_defined ? (
+                                                             var.dns_settings.privatelink_file_id) : (
+                                                             (try(data.azurerm_private_dns_zone.file[0].id, ""))
+                                                            )
+
+                                                }
+
+output "privatelink_storage_id"                 {
+                                                   description = "Private DNS Zone ID for the storage resources"
+                                                   value = local.privatelink_storage_defined ? (
+                                                             var.dns_settings.privatelink_storage_id) : (
+                                                             (try(data.azurerm_private_dns_zone.storage[0].id, ""))
+                                                            )
+
+                                                }
+
+output "privatelink_keyvault_id"                {
+                                                   description = "Private DNS Zone ID for the keyvault resources"
+                                                   value = local.privatelink_keyvault_defined ? (
+                                                             var.dns_settings.privatelink_keyvault_id) : (
+                                                             (try(data.azurerm_private_dns_zone.keyvault[0].id, ""))
+                                                            )
+
                                                 }
 
 ###############################################################################

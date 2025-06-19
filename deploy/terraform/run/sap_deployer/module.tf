@@ -9,8 +9,9 @@ Description:
 module "sap_deployer" {
   source                                        = "../../terraform-units/modules/sap_deployer"
   providers                                     = {
-                                                     azurerm.dnsmanagement = azurerm.dnsmanagement
-                                                     azurerm.main          = azurerm.main
+                                                     azurerm.dnsmanagement            = azurerm.dnsmanagement
+                                                     azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
+                                                     azurerm.main                     = azurerm.main
                                                    }
   naming                                        = length(var.name_override_file) > 0 ? (
                                                      local.custom_names) : (

@@ -73,13 +73,13 @@ stages:
             displayName:               Remove control plane
             env:
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
-              ARM_CLIENT_ID:            $(CP_ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(CP_ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:            $(CP_ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              key_vault:                $(Deployer_Key_Vault)
+              key_vault:                $(DEPLOYER_KEYVAULT)
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
@@ -125,13 +125,13 @@ stages:
             displayName:               Remove control plane
             env:
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
-              CP_ARM_CLIENT_ID:         $(CP_ARM_CLIENT_ID)
-              CP_ARM_CLIENT_SECRET:     $(CP_ARM_CLIENT_SECRET)
-              CP_ARM_TENANT_ID:         $(CP_ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              key_vault:                $(Deployer_Key_Vault)
+              key_vault:                $(DEPLOYER_KEYVAULT)
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)

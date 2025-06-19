@@ -41,7 +41,7 @@ locals {
                                          }
 
   cp_spn                               = {
-                                           subscription_id = try(data.azurerm_key_vault_secret.cp_subscription_id.value, null)
+                                           subscription_id = try(data.azurerm_key_vault_secret.cp_subscription_id[0].value, null)
                                            client_id       = var.use_spn ? data.azurerm_key_vault_secret.cp_client_id[0].value : null,
                                            client_secret   = var.use_spn ? data.azurerm_key_vault_secret.cp_client_secret[0].value : null,
                                            tenant_id       = var.use_spn ? data.azurerm_key_vault_secret.cp_tenant_id[0].value : null

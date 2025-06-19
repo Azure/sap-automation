@@ -18,7 +18,7 @@
 provider "azurerm"                     {
                                          features {}
                                          subscription_id            = coalesce(var.management_subscription,var.subscription_id, local.deployer_subscription_id)
-                                         use_msi                    = var.use_spn ? false : true
+                                         use_msi                    = true
 
                                          storage_use_azuread        = true
                                        }
@@ -64,13 +64,14 @@ provider "azurerm"                     {
 
 provider "azurerm"                     {
                                          features {}
-                                         alias                      = "privatelinkdnsmanagement"
-                                         subscription_id            = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
-                                         client_id                  = var.use_spn ? local.cp_spn.client_id : null
-                                         client_secret              = var.use_spn ? local.cp_spn.client_secret : null
-                                         tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
-                                         use_msi                    = var.use_spn ? false : true
-                                         storage_use_azuread        = true
+                                         alias                           = "privatelinkdnsmanagement"
+                                         subscription_id                 = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
+                                         client_id                       = var.use_spn ? local.cp_spn.client_id : null
+                                         client_secret                   = var.use_spn ? local.cp_spn.client_secret : null
+                                         tenant_id                       = var.use_spn ? local.cp_spn.tenant_id : null
+                                         use_msi                         = var.use_spn ? false : true
+                                         storage_use_azuread             = true
+                                         resource_provider_registrations = "none"
                                        }
 
 provider "azurerm"                     {
@@ -122,7 +123,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.22.0"
+                                                                           version = "4.32.0"
                                                                          }
                                                               azapi =    {
                                                                            source  = "azure/azapi"
