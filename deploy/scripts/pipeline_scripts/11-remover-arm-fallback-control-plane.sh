@@ -45,7 +45,7 @@ echo "Network:                               $NETWORK"
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$PARENT_VARIABLE_GROUP'].id | [0]")
 
 echo "Variable group:                        $VARIABLE_GROUP_ID"
-variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "CP_ARM_SUBSCRIPTION_ID.value" --out tsv)
+variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_SUBSCRIPTION_ID.value" --out tsv)
 if [ -z "$variable_value" ]; then
   subscription=$ARM_SUBSCRIPTION_ID
 else

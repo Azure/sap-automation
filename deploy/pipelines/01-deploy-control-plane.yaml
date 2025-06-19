@@ -249,7 +249,7 @@ stages:
                 -CONTROLPLANE_ENV $(ControlPlaneEnvironment)
                 -CONTROLPLANE_LOC $(ControlPlaneLocation)'
             env:
-              ARM_SUBSCRIPTION_ID:     $(CP_ARM_SUBSCRIPTION_ID)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
               SYSTEM_PIPELINE_ID:      $(SYSTEM_PIPELINE_ID)
               WORKLOADZONE_PIPELINE_ID: $(WORKLOADZONE_PIPELINE_ID)
               SAP_INSTALL_PIPELINE_ID: $(SAP_INSTALL_PIPELINE_ID)

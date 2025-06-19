@@ -84,10 +84,10 @@ stages:
             displayName:               "Remove SAP system"
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              WL_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
-              WL_ARM_CLIENT_ID:        $(ARM_CLIENT_ID)
-              WL_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
-              WL_ARM_TENANT_ID:        $(ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:        $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:        $(ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
@@ -123,10 +123,10 @@ stages:
             displayName:               Remove SAP workload_zone
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              WL_ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
-              WL_ARM_CLIENT_ID:        $(ARM_CLIENT_ID)
-              WL_ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
-              WL_ARM_TENANT_ID:        $(ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID:  $(ARM_SUBSCRIPTION_ID)
+              ARM_CLIENT_ID:        $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:    $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:        $(ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)

@@ -100,7 +100,7 @@ stages:
             inputs:
               deploymentScope:                "Resource Group"
               azureResourceManagerConnection: ${{ parameters.workload_zone_connection }}
-              subscriptionId:                 "$(WL_ARM_SUBSCRIPTION_ID)"
+              subscriptionId:                 "$(ARM_SUBSCRIPTION_ID)"
               action:                         "DeleteRG"
               resourceGroupName:              "$(sap_system_foldername)"
 
@@ -149,7 +149,7 @@ stages:
             inputs:
               deploymentScope:                "Resource Group"
               azureResourceManagerConnection: ${{ parameters.workload_zone_connection }}
-              subscriptionId:                 "$(WL_ARM_SUBSCRIPTION_ID)"
+              subscriptionId:                 "$(ARM_SUBSCRIPTION_ID)"
               action:                         "DeleteRG"
               resourceGroupName:              "$(workload_zone_foldername)"
 

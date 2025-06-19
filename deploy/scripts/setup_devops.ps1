@@ -735,10 +735,10 @@ $scopes = "/subscriptions/" + $Control_plane_subscriptionID
 
 Write-Host "Creating the deployment credentials for the control plane. Service Principal Name:" $spn_name -ForegroundColor Green
 
-$CP_ARM_CLIENT_ID = ""
-$CP_ARM_OBJECT_ID = ""
-$CP_ARM_TENANT_ID = ""
-$CP_ARM_CLIENT_SECRET = "Please update"
+$ARM_CLIENT_ID = ""
+$ARM_OBJECT_ID = ""
+$ARM_TENANT_ID = ""
+$ARM_CLIENT_SECRET = "Please update"
 
 $SPN_Created = $false
 
@@ -748,17 +748,17 @@ if ($found_appName.Length -gt 0) {
   $ExistingData = (az ad sp list --all --filter "startswith(displayName,'$spn_name')" --query  "[?displayName=='$spn_name']| [0]" --only-show-errors) | ConvertFrom-Json
   Write-Host "Updating the variable group"
 
-  $CP_ARM_CLIENT_ID = $ExistingData.appId
-  $CP_ARM_OBJECT_ID = $ExistingData.Id
-  $CP_ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
+  $ARM_CLIENT_ID = $ExistingData.appId
+  $ARM_OBJECT_ID = $ExistingData.Id
+  $ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
 
   $confirmation = Read-Host "Reset the Control Plane Service Principal password y/n?"
   if ($confirmation -eq 'y') {
 
-    $CP_ARM_CLIENT_SECRET = (az ad sp credential reset --id $CP_ARM_CLIENT_ID --append --query "password" --out tsv --only-show-errors).Replace("""", "")
+    $ARM_CLIENT_SECRET = (az ad sp credential reset --id $ARM_CLIENT_ID --append --query "password" --out tsv --only-show-errors).Replace("""", "")
   }
   else {
-    $CP_ARM_CLIENT_SECRET = Read-Host "Please enter the Control Plane Service Principal password"
+    $ARM_CLIENT_SECRET = Read-Host "Please enter the Control Plane Service Principal password"
   }
 
 }
@@ -766,43 +766,43 @@ else {
   Write-Host "Creating the Service Principal" $spn_name -ForegroundColor Green
   $SPN_Created = $true
   $Control_plane_SPN_data = (az ad sp create-for-rbac --role "Contributor" --scopes $scopes --name $spn_name --only-show-errors) | ConvertFrom-Json
-  $CP_ARM_CLIENT_SECRET = $Control_plane_SPN_data.password
+  $ARM_CLIENT_SECRET = $Control_plane_SPN_data.password
   $ExistingData = (az ad sp list --all --filter "startswith(displayName,'$spn_name')" --query  "[?displayName=='$spn_name'] | [0]" --only-show-errors) | ConvertFrom-Json
-  $CP_ARM_CLIENT_ID = $ExistingData.appId
-  $CP_ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
-  $CP_ARM_OBJECT_ID = $ExistingData.Id
+  $ARM_CLIENT_ID = $ExistingData.appId
+  $ARM_TENANT_ID = $ExistingData.appOwnerOrganizationId
+  $ARM_OBJECT_ID = $ExistingData.Id
 
 }
 
-az role assignment create --assignee $CP_ARM_CLIENT_ID --role "Contributor" --subscription $Workload_zone_subscriptionID --output none
-az role assignment create --assignee $CP_ARM_CLIENT_ID --role "Contributor" --subscription $Control_plane_subscriptionID --output none
+az role assignment create --assignee $ARM_CLIENT_ID --role "Contributor" --subscription $Workload_zone_subscriptionID --output none
+az role assignment create --assignee $ARM_CLIENT_ID --role "Contributor" --subscription $Control_plane_subscriptionID --output none
 
-az role assignment create --assignee $CP_ARM_CLIENT_ID --role "User Access Administrator" --subscription $Workload_zone_subscriptionID --output none
-az role assignment create --assignee $CP_ARM_CLIENT_ID --role "User Access Administrator" --subscription $Control_plane_subscriptionID --output none
+az role assignment create --assignee $ARM_CLIENT_ID --role "User Access Administrator" --subscription $Workload_zone_subscriptionID --output none
+az role assignment create --assignee $ARM_CLIENT_ID --role "User Access Administrator" --subscription $Control_plane_subscriptionID --output none
 
 $Control_plane_groupID = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
 if ($Control_plane_groupID.Length -eq 0) {
   Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
-  az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID CP_ARM_CLIENT_ID=$CP_ARM_CLIENT_ID CP_ARM_OBJECT_ID=$CP_ARM_OBJECT_ID CP_ARM_CLIENT_SECRET='Enter your SPN password here' CP_ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID CP_ARM_TENANT_ID=$CP_ARM_TENANT_ID WEB_APP_CLIENT_SECRET=$WEB_APP_CLIENT_SECRET PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF --output none --authorize true
+  az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID WEB_APP_CLIENT_SECRET=$WEB_APP_CLIENT_SECRET PAT='Enter your personal access token here' POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF --output none --authorize true
   $Control_plane_groupID = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
 }
 
-if ($CP_ARM_CLIENT_SECRET -ne "Please update") {
-  az pipelines variable-group variable update --group-id $Control_plane_groupID --name "CP_ARM_CLIENT_SECRET" --value $CP_ARM_CLIENT_SECRET --secret true --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $Control_plane_groupID --name "CP_ARM_CLIENT_ID" --value $CP_ARM_CLIENT_ID --output none --only-show-errors
-  az pipelines variable-group variable update --group-id $Control_plane_groupID --name "CP_ARM_OBJECT_ID" --value $CP_ARM_OBJECT_ID --output none --only-show-errors
+if ($ARM_CLIENT_SECRET -ne "Please update") {
+  az pipelines variable-group variable update --group-id $Control_plane_groupID --name "ARM_CLIENT_SECRET" --value $ARM_CLIENT_SECRET --secret true --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $Control_plane_groupID --name "ARM_CLIENT_ID" --value $ARM_CLIENT_ID --output none --only-show-errors
+  az pipelines variable-group variable update --group-id $Control_plane_groupID --name "ARM_OBJECT_ID" --value $ARM_OBJECT_ID --output none --only-show-errors
 
 }
 
 Write-Host "Create the Service Endpoint in Azure for the control plane" -ForegroundColor Green
 
 $Service_Connection_Name = "Control_Plane_Service_Connection"
-$Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $CP_ARM_CLIENT_SECRET
+$Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $ARM_CLIENT_SECRET
 
 $epExists = (az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].name | [0]")
 if ($epExists.Length -eq 0) {
   Write-Host "Creating Service Endpoint" $Service_Connection_Name -ForegroundColor Green
-  az devops service-endpoint azurerm create --azure-rm-service-principal-id $CP_ARM_CLIENT_ID --azure-rm-subscription-id $Control_plane_subscriptionID --azure-rm-subscription-name $ControlPlaneSubscriptionName --azure-rm-tenant-id $CP_ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
+  az devops service-endpoint azurerm create --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Control_plane_subscriptionID --azure-rm-subscription-name $ControlPlaneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
   $epId = az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].id" -o tsv
   az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
 }
@@ -810,7 +810,7 @@ else {
   Write-Host "Service Endpoint already exists, recreating it with the updated credentials" -ForegroundColor Green
   $epId = az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].id" -o tsv
   az devops service-endpoint delete --id $epId --yes
-  az devops service-endpoint azurerm create --azure-rm-service-principal-id $CP_ARM_CLIENT_ID --azure-rm-subscription-id $Control_plane_subscriptionID --azure-rm-subscription-name $ControlPlaneSubscriptionName --azure-rm-tenant-id $CP_ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
+  az devops service-endpoint azurerm create --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Control_plane_subscriptionID --azure-rm-subscription-name $ControlPlaneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
   $epId = az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].id" -o tsv
   az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
 }

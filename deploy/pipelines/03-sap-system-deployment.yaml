@@ -65,9 +65,9 @@ stages:
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
-              WL_ARM_CLIENT_ID:         $(ARM_CLIENT_ID)
-              WL_ARM_CLIENT_SECRET:     $(ARM_CLIENT_SECRET)
-              WL_ARM_SUBSCRIPTION_ID:   $(ARM_SUBSCRIPTION_ID)
-              WL_ARM_TENANT_ID:         $(ARM_TENANT_ID)
+              ARM_CLIENT_ID:         $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:     $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:   $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:         $(ARM_TENANT_ID)
 
 
