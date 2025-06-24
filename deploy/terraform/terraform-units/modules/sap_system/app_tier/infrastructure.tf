@@ -13,21 +13,22 @@
 #                                                                              #
 #######################################4#######################################8
 
+
 resource "azurerm_subnet" "subnet_sap_app" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment ? (local.application_subnet_exists ? 0 : 1) : 0
+  count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_app.defined ? 1 : 0) : 0
   name                                 = local.application_subnet_name
   resource_group_name                  = split("/", var.landscape_tfstate.vnet_sap_arm_id)[4]
   virtual_network_name                 = split("/", var.landscape_tfstate.vnet_sap_arm_id)[8]
-  address_prefixes                     = [local.application_subnet_prefix]
+  address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_app.prefix]
 }
 
 data "azurerm_subnet" "subnet_sap_app" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment ? (local.application_subnet_exists ? 1 : 0) : 0
-  name                                 = split("/", local.application_subnet_arm_id)[10]
-  resource_group_name                  = split("/", local.application_subnet_arm_id)[4]
-  virtual_network_name                 = split("/", local.application_subnet_arm_id)[8]
+  count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_app.exists || var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? 1 : 0) : 0
+  name                                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_app.id, var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload))[10]
+  resource_group_name                  = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_app.id, var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload))[4]
+  virtual_network_name                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_app.id, var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload))[8]
 }
 
 #######################################4#######################################8
@@ -37,12 +38,7 @@ data "azurerm_subnet" "subnet_sap_app" {
 #######################################4#######################################8
 resource "azurerm_subnet_route_table_association" "app" {
   provider                             = azurerm.main
-  count                                = (
-                                           var.infrastructure.virtual_networks.sap.subnet_app.defined && !local.application_subnet_exists && length(var.landscape_tfstate.route_table_id) > 0
-                                           ) ? (
-                                           1) : (
-                                           0
-                                         )
+  count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_app.defined ? 1 : 0) : 0
   subnet_id                            = azurerm_subnet.subnet_sap_app[0].id
   route_table_id                       = var.landscape_tfstate.route_table_id
 }
@@ -60,20 +56,39 @@ resource "azurerm_subnet_route_table_association" "app" {
 #######################################4#######################################8
 resource "azurerm_subnet" "subnet_sap_web" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_web.defined ? (local.web_subnet_exists ? 0 : 1) : 0
+  count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_web.defined ? 1 : 0) : 0
   name                                 = local.web_subnet_name
   resource_group_name                  = split("/", var.landscape_tfstate.vnet_sap_arm_id)[4]
   virtual_network_name                 = split("/", var.landscape_tfstate.vnet_sap_arm_id)[8]
-  address_prefixes                     = [local.web_subnet_prefix]
+  address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_web.prefix]
 }
 
 # Imports data of existing SAP web dispatcher subnet
 data "azurerm_subnet" "subnet_sap_web" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment ? (local.web_subnet_exists ? 1 : 0) : 0
-  name                                 = split("/", local.web_subnet_arm_id)[10]
-  resource_group_name                  = split("/", local.web_subnet_arm_id)[4]
-  virtual_network_name                 = split("/", local.web_subnet_arm_id)[8]
+  count                                = local.enable_deployment ? (
+                                           var.infrastructure.virtual_networks.sap.subnet_web.exists ||
+                                           var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ||
+                                           var.infrastructure.virtual_networks.sap.subnet_app.exists ||
+                                           var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload? 1 : 0) : 0
+  name                                 = split("/", coalesce(
+                                                      var.infrastructure.virtual_networks.sap.subnet_web.id,
+                                                      var.infrastructure.virtual_networks.sap.subnet_web.id_in_workload,
+                                                      var.infrastructure.virtual_networks.sap.subnet_app.id,
+                                                      var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload
+                                                      ))[10]
+  resource_group_name                  = split("/", coalesce(
+                                                      var.infrastructure.virtual_networks.sap.subnet_web.id,
+                                                      var.infrastructure.virtual_networks.sap.subnet_web.id_in_workload,
+                                                      var.infrastructure.virtual_networks.sap.subnet_app.id,
+                                                      var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload
+                                                      ))[4]
+  virtual_network_name                 = split("/", coalesce(
+                                                      var.infrastructure.virtual_networks.sap.subnet_web.id,
+                                                      var.infrastructure.virtual_networks.sap.subnet_web.id_in_workload,
+                                                      var.infrastructure.virtual_networks.sap.subnet_app.id,
+                                                      var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload
+                                                      ))[8]
 }
 
 #######################################4#######################################8
@@ -327,10 +342,7 @@ resource "azurerm_availability_set" "scs" {
 #######################################4#######################################8
 resource "azurerm_availability_set" "app" {
   provider                             = azurerm.main
-  count                                = local.use_app_avset && var.application_tier.avset_arm_ids_count == 0 ? (
-                                           max(length(var.ppg), 1)) : (
-                                           0
-                                         )
+  count                                = local.use_app_avset && var.application_tier.avset_arm_ids_count == 0 ? max(var.application_tier.app_zone_count, 1) : 0
 
   depends_on                           = [azurerm_virtual_machine_data_disk_attachment.scs]
   name                                 = format("%s%s%s",
@@ -408,20 +420,14 @@ resource "azurerm_application_security_group" "web" {
 
 resource "azurerm_subnet_route_table_association" "subnet_sap_app" {
   provider                             = azurerm.main
-  count                                = !local.application_subnet_exists && local.deploy_route_table ? 1 : 0
+  count                                = !var.infrastructure.virtual_networks.sap.subnet_app.exists && !var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload && local.deploy_route_table ? 1 : 0
   subnet_id                            = azurerm_subnet.subnet_sap_app[0].id
   route_table_id                       = var.route_table_id
 }
 
 resource "azurerm_subnet_route_table_association" "subnet_sap_web" {
   provider                             = azurerm.main
-  count                                = local.deploy_route_table && var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
-                                           local.web_subnet_exists ? (
-                                             0) : (
-                                             1
-                                           )) : (
-                                           0
-                                         )
+  count                                = !var.infrastructure.virtual_networks.sap.subnet_web.exists && !var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload && local.deploy_route_table ? 1 : 0
   subnet_id                            = azurerm_subnet.subnet_sap_web[0].id
   route_table_id                       = var.route_table_id
 }

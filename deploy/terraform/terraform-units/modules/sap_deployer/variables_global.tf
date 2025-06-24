@@ -18,6 +18,7 @@ variable "naming"                          { description = "Defines the names fo
 variable "options"                         { description = "Dictionary of miscallaneous parameters" }
 variable "place_delete_lock_on_resources"  { description = "If defined, a delete lock will be placed on the key resources" }
 variable "ssh-timeout"                     { description = "SSH timeout" }
+variable "network_logical_name"            { description = "Logical name of the network" }
 variable "tf_version"                      { description = "Terraform version to install on deployer" }
 variable "use_private_endpoint"            { description = "Boolean value indicating if private endpoint should be used for the deployment" }
 variable "use_service_endpoint"            { description = "Boolean value indicating if service endpoints should be used for the deployment" }
@@ -50,11 +51,6 @@ variable "soft_delete_retention_days"  { description = "The number of days that 
 #                                                                                       #
 #########################################################################################
 
-variable "app_registration_app_id"     { description = "App registration app id" }
-variable "use_webapp"                  {
-                                         description = "value indicating if webapp should be deployed"
-                                         default = false
-                                       }
 variable "sa_connection_string"        { description = "Storage account connection string" }
 
 variable "webapp_client_secret"        { description = "App registration client secret" }
@@ -102,7 +98,7 @@ variable "arm_client_id"               { description = "ARM client id" }
 
 #########################################################################################
 #                                                                                       #
-#  ADO definitioms                                                                      #
+#  ADO definitions                                                                      #
 #                                                                                       #
 #########################################################################################
 

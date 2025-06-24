@@ -29,6 +29,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
   private_dns_zone_name                = var.dns_settings.dns_label
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = true
+  tags                                 = var.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
@@ -51,6 +52,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
   private_dns_zone_name                = var.dns_settings.dns_zone_names.file_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
+  tags                                 = var.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
@@ -71,6 +73,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
   private_dns_zone_name                = var.dns_settings.dns_zone_names.blob_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
+  tags                                 = var.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
@@ -90,6 +93,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
+  tags                                 = var.tags
 }
 
 
@@ -148,7 +152,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
 # resource "azurerm_private_dns_a_record" "witness_storage" {
 #   provider                             = azurerm.privatelinkdnsmanagement
 #   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
-#   name                                 = lower(local.witness_storageaccount_name)
+#   name                                 = lower(lvar.naming.storageaccount_names.WORKLOAD_ZONE.witness_storageaccount_name)
 #   zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
 #   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 #   ttl                                  = 3600
@@ -161,7 +165,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
 # resource "azurerm_private_dns_a_record" "storage_bootdiag" {
 #   provider                             = azurerm.privatelinkdnsmanagement
 #   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
-#   name                                 = lower(local.storageaccount_name)
+#   name                                 = lower(var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_storageaccount_name)
 
 #   zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
 #   resource_group_name                  = local.resource_group_exists ? (

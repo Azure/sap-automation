@@ -1,6 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+data "azuread_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
+
 ###############################################################################
 #                                                                             #
 #                Retrieve secrets from workload zone key vault                #

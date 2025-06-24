@@ -12,6 +12,7 @@ ${sid}_DB:
       vm_name             : ${db_vmnodes[idx]}
       resource_group_name : ${created_resource_group_name}
       subscription_id     : ${created_resource_group_subscription_id}
+      use_nvme_disks      : ${db_use_nvme_disks}
 %{~ if scale_out }
       site                : ${site[idx]}
 %{~ endif }
@@ -41,6 +42,7 @@ ${sid}_SCS:
       vm_name             : ${scs_vmnodes[idx]}
       resource_group_name : ${created_resource_group_name}
       subscription_id     : ${created_resource_group_subscription_id}
+      use_nvme_disks      : ${app_use_nvme_disks}
 %{~ if scs_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
@@ -67,6 +69,7 @@ ${sid}_ERS:
       vm_name             : ${ers_vmnodes[idx]}
       resource_group_name : ${created_resource_group_name}
       subscription_id     : ${created_resource_group_subscription_id}
+      use_nvme_disks      : ${app_use_nvme_disks}
 %{~ if ers_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
@@ -93,6 +96,7 @@ ${sid}_PAS:
       vm_name             : ${pas_vmnodes[idx]}
       resource_group_name : ${created_resource_group_name}
       subscription_id     : ${created_resource_group_subscription_id}
+      use_nvme_disks      : ${app_use_nvme_disks}
 %{~ if app_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
@@ -119,6 +123,7 @@ ${sid}_APP:
       vm_name             : ${app_vmnodes[idx]}
       resource_group_name : ${created_resource_group_name}
       subscription_id     : ${created_resource_group_subscription_id}
+      use_nvme_disks      : ${app_use_nvme_disks}
 %{~ if app_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}
@@ -145,6 +150,7 @@ ${sid}_WEB:
       vm_name             : ${web_vmnodes[idx]}
       resource_group_name : ${created_resource_group_name}
       subscription_id     : ${created_resource_group_subscription_id}
+      use_nvme_disks      : ${app_use_nvme_disks}
 %{~ if web_connection == "winrm" }
       ${winrm_cert_valid}
       ${winrm_timeout_sec}

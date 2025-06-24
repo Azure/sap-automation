@@ -46,6 +46,7 @@ resource "azurerm_storage_account" "sapmnt" {
   allow_nested_items_to_be_public      = false
   cross_tenant_replication_enabled     = false
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
+  default_to_oauth_authentication      = true
 
 
   public_network_access_enabled        = try(var.landscape_tfstate.public_network_access_enabled, true)

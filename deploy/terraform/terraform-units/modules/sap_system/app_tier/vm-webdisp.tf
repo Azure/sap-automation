@@ -34,11 +34,11 @@ resource "azurerm_network_interface" "web" {
                                               null) : (
                                               var.infrastructure.virtual_networks.sap.subnet_web.defined ?
                                               cidrhost(
-                                                local.web_subnet_prefix,
+                                                var.infrastructure.virtual_networks.sap.subnet_web.prefix,
                                                 (tonumber(count.index) + local.ip_offsets.web_vm + pub.value.offset)
                                               ) :
                                               cidrhost(
-                                                local.application_subnet_prefix,
+                                                var.infrastructure.virtual_networks.sap.subnet_app.prefix,
                                                 (tonumber(count.index) * -1 + local.ip_offsets.web_vm + pub.value.offset)
                                               )
                                             )
@@ -177,6 +177,9 @@ resource "azurerm_linux_virtual_machine" "web" {
 # patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(var.application_tier.web_tags, var.tags)
+
+  # Set the disc controller type, default SCSI
+  disk_controller_type                 = var.infrastructure.disk_controller_type_app_tier
 
   encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 

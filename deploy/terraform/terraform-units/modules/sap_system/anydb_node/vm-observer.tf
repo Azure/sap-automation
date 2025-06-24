@@ -83,6 +83,8 @@ resource "azurerm_linux_virtual_machine" "observer" {
 # patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = try(var.observer_vm_tags, merge(local.tags, var.tags))
+  # Set the disc controller type, default SCSI
+  disk_controller_type                 = var.infrastructure.disk_controller_type_database_tier
 
   encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 

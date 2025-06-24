@@ -187,7 +187,7 @@ variable "scs_server_vm_resource_ids"           { description = "List of Virtual
 variable "scs_vm_names"                         { description = "List of VM names for the SCS Servers" }
 variable "shared_home"                          { description = "If defined provides shared-home support" }
 variable "sid_keyvault_user_id"                 { description = "Defines the names for the resources" }
-variable "subnet_cidr_storage"                { description = "address prefix for the storage subnet" }
+variable "subnet_cidr_storage"                  { description = "address prefix for the storage subnet" }
 variable "tfstate_resource_id"                  { description = "Resource ID for tf state file" }
 variable "upgrade_packages"                     { description = "Upgrade packages" }
 variable "use_custom_dns_a_registration"        {
@@ -238,3 +238,14 @@ variable "sap_cal_product_name"                 {
                                                 }
 
 variable "site_information"                     { description = "Site information" }
+
+variable "app_use_nvme_disks"                   {
+                                                  description = "Whether NVMe disks are used for application (SCS, ERS, APP, WEB) tiers"
+                                                  default     = false
+                                                  type        = bool
+                                                }
+variable "db_use_nvme_disks"                    {
+                                                  description = "Whether NVMe disks are used for database (HANA, DB2, Oracle, SQLSERVER) tier"
+                                                  default     = false
+                                                  type        = bool
+                                                }

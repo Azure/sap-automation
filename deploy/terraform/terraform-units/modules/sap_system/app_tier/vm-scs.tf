@@ -31,7 +31,7 @@ resource "azurerm_network_interface" "scs" {
                                          private_ip_address = try(pub.value.nic_ips[count.index],
                                            var.application_tier.use_DHCP ? (
                                              null) : (
-                                             cidrhost(local.application_subnet_exists ?
+                                             cidrhost(var.infrastructure.virtual_networks.sap.subnet_app.exists ?
                                                data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] :
                                                azurerm_subnet.subnet_sap_app[0].address_prefixes[0],
                                                tonumber(count.index) + local.ip_offsets.scs_vm + pub.value.offset
@@ -177,6 +177,8 @@ resource "azurerm_linux_virtual_machine" "scs" {
 # patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(var.application_tier.scs_tags, var.tags)
+  # Set the disc controller type, default SCSI
+  disk_controller_type                 = var.infrastructure.disk_controller_type_app_tier
 
   encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 

@@ -33,7 +33,7 @@ resource "null_resource" "prepare-deployer" {
                                              pool                 = var.agent_pool,
                                              pat                  = var.agent_pat,
                                              ado_repo             = var.agent_ado_url,
-                                             use_webapp           = var.use_webapp
+                                             use_webapp           = var.app_service.use
                                              ansible_core_version = var.ansible_core_version
                                              }
                                            )
@@ -61,7 +61,7 @@ resource "null_resource" "prepare-deployer" {
 }
 
 resource "local_file" "configure_deployer" {
-  count                                = local.enable_deployer_public_ip ? 0 : 0
+  count                                = local.enable_deployer_public_ip ? 0 : var.deployer_vm_count > 0 ? 0 : 0
   content                              = templatefile(format("%s/templates/configure_deployer.sh.tmpl", path.module), {
                                            tfversion            = var.tf_version,
                                            rg_name              = local.resourcegroup_name,
@@ -72,7 +72,7 @@ resource "local_file" "configure_deployer" {
                                            pool                 = var.agent_pool,
                                            pat                  = var.agent_pat,
                                            ado_repo             = var.agent_ado_url,
-                                           use_webapp           = var.use_webapp
+                                           use_webapp           = var.app_service.use
                                            ansible_core_version = var.ansible_core_version
                                            }
                                          )
