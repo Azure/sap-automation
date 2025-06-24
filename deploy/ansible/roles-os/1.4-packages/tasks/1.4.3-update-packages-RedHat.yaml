@@ -43,6 +43,7 @@
     disablerepo:                       "epel*"
     skip_broken:                       true
     update_only:                       true
+    releasever:                        "{{ ansible_distribution_version }}"
   register:                            reboot_output
 
 # Analyse the package list for this distribution selecting only those

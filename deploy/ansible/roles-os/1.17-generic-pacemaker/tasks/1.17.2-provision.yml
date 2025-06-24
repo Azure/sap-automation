@@ -22,43 +22,43 @@
     # the VIP assignment)
     # Refer to: https://www.suse.com/support/kb/doc/?id=7023633 for more information
     - name:                            "1.17 Generic Pacemaker - Ensure that network interface is not managed by cloud network plugin"
+      when:
+                                       - ansible_facts.packages['cloud-netconfig-azure']
+                                       - (ansible_facts.packages['cloud-netconfig-azure'][0].version | float) < 1.3
       become:                          true
       ansible.builtin.lineinfile:
         path:                          /etc/sysconfig/network/ifcfg-eth0
         backup:                        true
         regexp:                        '^CLOUD_NETCONFIG_MANAGE='
         line:                          CLOUD_NETCONFIG_MANAGE='no'
-      when:
-                                       - ansible_facts.packages['cloud-netconfig-azure']
-                                       - (ansible_facts.packages['cloud-netconfig-azure'][0].version | float) < 1.3
       tags:
-        - cloudnetmanage
+                                       - cloudnetmanage
 
     - name:                            "1.17 Generic Pacemaker - Ensure the Primary Node public key is authorized on all nodes, required for crm_clustering"
+      when:                            ansible_hostname == secondary_instance_name
       ansible.posix.authorized_key:
         user:                          root
         key:                           "{{ hostvars[primary_instance_name].cluster_public_ssh_key }}"
-      when:                            ansible_hostname == secondary_instance_name
 
     - name:                            "1.17 Generic Pacemaker - Ensure the Secondary Node public key is authorized on all nodes, required for crm_clustering"
+      when:                            ansible_hostname == primary_instance_name
       ansible.posix.authorized_key:
         user:                          root
         key:                           "{{ hostvars[secondary_instance_name].cluster_public_ssh_key }}"
-      when:                            ansible_hostname == primary_instance_name
 
     - name:                            1.17 Generic Pacemaker - Ensure trust relationship is working from primary to secondary
+      when:                            ansible_hostname == primary_instance_name
       ansible.builtin.shell:           ssh -oStrictHostKeyChecking=no {{ secondary_instance_name }} "hostname -s"
       register:                        primary_to_secondary_ssh_result
       changed_when:                    false
       failed_when:                     primary_to_secondary_ssh_result.stdout_lines[0] != secondary_instance_name
-      when:                            ansible_hostname == primary_instance_name
 
     - name:                            1.17 Generic Pacemaker - Ensure trust relationship is working from secondary to primary"
+      when:                            ansible_hostname == secondary_instance_name
       ansible.builtin.shell:           ssh -oStrictHostKeyChecking=no {{ primary_instance_name }} "hostname -s"
       register:                        secondary_to_primary_ssh_result
       changed_when:                    false
       failed_when:                     secondary_to_primary_ssh_result.stdout_lines[0] != primary_instance_name
-      when:                            ansible_hostname == secondary_instance_name
 
 - name:                                Implement the HA Resource Agent (REDHAT)
   when:
@@ -71,18 +71,18 @@
       ansible.builtin.package_facts:
 
     - name:                            "Ensure resource-agents-sap-hana is installed (REDHAT)"
+      when:
+                                       - ansible_facts.packages['resource-agents-sap-hana'] is defined
       ansible.builtin.package:
         name:                          resource-agents-sap-hana
         state:                         present
-      when:
-        - ansible_facts.packages['resource-agents-sap-hana'] is defined
 
     - name:                            "Ensure resource-agents-sap-hana-scaleout is absent (REDHAT)"
+      when:
+                                       - ansible_facts.packages['resource-agents-sap-hana-scaleout'] is not defined
       ansible.builtin.package:
         name:                          resource-agents-sap-hana-scaleout
         state:                         absent
-      when:
-        - ansible_facts.packages['resource-agents-sap-hana-scaleout'] is not defined
 
 
 # Clustering commands are based on the Host OS

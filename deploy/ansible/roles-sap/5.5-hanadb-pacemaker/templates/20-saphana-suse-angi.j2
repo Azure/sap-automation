@@ -6,7 +6,7 @@ Cmnd_Alias SOK_SITEA    = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_s
 Cmnd_Alias SFAIL_SITEA  = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_site_srHook_SITEA -v SFAIL -t crm_config -s SAPHanaSR
 Cmnd_Alias SOK_SITEB    = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_site_srHook_SITEB -v SOK   -t crm_config -s SAPHanaSR
 Cmnd_Alias SFAIL_SITEB  = /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_site_srHook_SITEB -v SFAIL -t crm_config -s SAPHanaSR
-Cmnd_Alias HELPER_TAKEOVER  = /usr/sbin/SAPHanaSR-hookHelper --sid={{ db_sid | upper }} --case=checkTakeover
-Cmnd_Alias HELPER_FENCE     = /usr/sbin/SAPHanaSR-hookHelper --sid={{ db_sid | upper }} --case=fenceMe
+Cmnd_Alias HELPER_TAKEOVER  = /usr/bin/SAPHanaSR-hookHelper --sid={{ db_sid | upper }} --case=checkTakeover
+Cmnd_Alias HELPER_FENCE     = /usr/bin/SAPHanaSR-hookHelper --sid={{ db_sid | upper }} --case=fenceMe
 
 {{ db_sid | lower }}adm ALL=(ALL) NOPASSWD: SOK_SITEA, SFAIL_SITEA, SOK_SITEB, SFAIL_SITEB, HELPER_TAKEOVER, HELPER_FENCE

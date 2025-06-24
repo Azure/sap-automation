@@ -53,13 +53,22 @@
                                           - "deployer_kv_name:                {{ deployer_kv_name }}"
     verbosity:                            2
 
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |     Storage account helpers                                                |
+# |     Read the storage account details                                       |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
 - name:                                "0.4 Installation Media: - Get Control Plane Subscription"
   ansible.builtin.set_fact:
     control_plane_subscription_id:     "{{ lookup('ansible.builtin.env', 'control_plane_subscription') | default('') }}"
 
 - name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS (temp)"
   ansible.builtin.set_fact:
-    subscription_parameter:            "{% if control_plane_subscription_id | length > 0 %}--subscription {{ control_plane_subscription_id }}{% else %}{% endif %}"
+    subscription_parameter:            "{% if control_plane_subscription_id | length > 0 %} --subscription {{ control_plane_subscription_id }}{% else %}{% endif %}"
+
 
 - name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account secrets"
   block:
@@ -266,7 +275,7 @@
 - name:                                 "0.4 Installation Media: - Debug storage account details"
   ansible.builtin.debug:
     msg:
-      - "KEYVAULT:     {{ deployer_kv_name }}"
+      - "KEYVAULT:     {{ deployer_kv_name | default('') }}"
       - "URL     :     {{ sapbits_location_base_path }}"
 
 - name:                                "0.4 Installation Media: - Debug storage account details (sas)"

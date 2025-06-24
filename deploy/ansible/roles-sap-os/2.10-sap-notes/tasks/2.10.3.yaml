@@ -112,7 +112,7 @@
                                        net.ipv4.tcp_tw_reuse = 0
                                        net.ipv4.tcp_tw_recycle = 0
 # /usr/lib/sysctl.d/99-sysctl.conf
-- name: "2.10.3 sap-notes : - Set fact for saptune solution to use"
+- name:                                "2.10.3 sap-notes : - Set fact for saptune solution to use"
   ansible.builtin.set_fact:
     saptune_solution_to_apply: >-
                                        {%- if 'scs' in supported_tiers and 'hana' in supported_tiers and platform == 'HANA' -%}

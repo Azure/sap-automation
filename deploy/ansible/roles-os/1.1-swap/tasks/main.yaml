@@ -76,6 +76,8 @@
   register:                            waagent_conf
 
 - name:                                "1.1 Swap: - Check for (waagent.conf.rpmsave)"
+  become:                              true
+  become_user:                         root
   ansible.builtin.stat:
     path:                              /etc/waagent.conf.rpmsave
   register:                            waagent_conf_save

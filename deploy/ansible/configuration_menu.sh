@@ -1,7 +1,8 @@
+#!/bin/bash
+
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#!/bin/bash
 
 export PATH=/opt/terraform/bin:/opt/ansible/bin:${PATH}
 
@@ -68,6 +69,7 @@ export           ANSIBLE_INVENTORY="${sap_sid%$'\r'}_hosts.yaml"
 export           ANSIBLE_PRIVATE_KEY_FILE=sshkey
 export           ANSIBLE_COLLECTIONS_PATH=/opt/ansible/collections:${ANSIBLE_COLLECTIONS_PATH:+${ANSIBLE_COLLECTIONS_PATH}}
 export           ANSIBLE_CONFIG="${cmd_dir}/ansible.cfg"
+export           ANSIBLE_LOOKUP_PLUGINS="${cmd_dir}/lookup_plugins":${ANSIBLE_LOOKUP_PLUGINS:+${ANSIBLE_LOOKUP_PLUGINS}}
 
 # We really should be determining the user dynamically, or requiring
 # that it be specified in the inventory settings (currently true)

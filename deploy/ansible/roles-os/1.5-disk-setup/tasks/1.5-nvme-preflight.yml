@@ -1,0 +1,269 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                    NVMe Support for Azure VMs                              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# -------------------------------------+---------------------------------------8
+#
+# Task: 1.5.4 - NVMe Support - Prepare Linux VM for NVMe disk controller
+#
+# -------------------------------------+---------------------------------------8
+- name:                                "1.5.4 NVMe Support - Comprehensive system validation"
+  block:
+    # Validate system readiness for NVMe conversion
+    - name:                            "1.5.4 NVMe Support - Check for existing NVMe configuration"
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       if [ -f /etc/dracut.conf.d/nvme.conf ] && \
+                                          [ -f /usr/lib/udev/rules.d/88-azure-data-disk.rules ] && \
+                                          grep -q "nvme_core.io_timeout=240" /etc/default/grub 2>/dev/null; then
+                                         echo "configured"
+                                       else
+                                         echo "not_configured"
+                                       fi
+      register:                        existing_nvme_config
+      changed_when:                    false
+      failed_when:                     false
+
+    - name:                            "1.5.4 NVMe Support - Validate system not already using NVMe"
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       if ls /dev/nvme* >/dev/null 2>&1; then
+                                         echo "nvme_present"
+                                       else
+                                         echo "nvme_absent"
+                                       fi
+      register:                        current_nvme_usage
+      changed_when:                    false
+      failed_when:                     false
+
+    - name:                            "1.5.4 NVMe Support - Check active mount points"
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       mount | grep -E '/dev/(sd|nvme)' | wc -l
+      register:                        active_mounts_count
+      changed_when:                    false
+
+    - name:                            "1.5.4 NVMe Support - Validate system state for conversion"
+      ansible.builtin.assert:
+        that:
+          - current_nvme_usage.stdout == "nvme_absent" or nvme_force_preparation | default(false)
+          - active_mounts_count.stdout | int > 0
+        fail_msg: |
+                                       System validation failed:
+                                       - NVMe devices detected: {{ current_nvme_usage.stdout }}
+                                       - Active mounts: {{ active_mounts_count.stdout }}
+                                       Set nvme_force_preparation=true to override NVMe device detection.
+        success_msg:                   "System validation completed successfully for NVMe preparation"
+
+    # should we skip preparation if already configured?
+    - name:                            "1.5.4 NVMe Support - Skip preparation if already configured"
+      when:
+        - existing_nvme_config.stdout == "configured"
+        - not nvme_force_preparation | default(false)
+      ansible.builtin.meta:            end_play
+
+    - name:                            "1.5.4 NVMe Support - Display current system state"
+      ansible.builtin.debug:
+        msg: |
+                                       System State Assessment:
+                                       - Current NVMe configuration: {{ existing_nvme_config.stdout }}
+                                       - NVMe devices present: {{ current_nvme_usage.stdout }}
+                                       - Active mount points: {{ active_mounts_count.stdout }}
+                                       - Force preparation mode: {{ nvme_force_preparation | default(false) }}
+        verbosity:                     1
+
+# Set global facts and perform initial validations
+- name:                                "1.5.4 NVMe Support - Set global distribution facts"
+  ansible.builtin.set_fact:
+    is_redhat:                         "{{ ansible_os_family | upper == 'REDHAT' and ansible_distribution_version is version('8.6', '>=') }}"
+    is_suse:                           "{{ ansible_os_family | upper == 'SUSE' and
+                                           (ansible_distribution | upper == 'SLES' and ansible_distribution_version is version('15.4', '>=')) or
+                                           (ansible_distribution | upper == 'SLES_SAP' and ansible_distribution_version is version('15.3', '>='))
+                                       }}"
+    is_uefi_system:                    "{{ '/boot/efi' in ansible_mounts | map(attribute='mount') | list }}"
+
+# Pre-flight requirements check
+- name:                                "1.5.4 NVMe Support - Pre-flight architecture check"
+  ansible.builtin.assert:
+    that:
+      - ansible_architecture == 'x86_64'
+    fail_msg:                          "System architecture {{ ansible_architecture }} is not supported for NVMe. Only x86_64 is supported."
+    success_msg:                       "System architecture {{ ansible_architecture }} is supported for NVMe"
+
+# Check OS distribution support
+- name:                                "1.5.4 NVMe Support - Validate supported OS distributions"
+  ansible.builtin.assert:
+    that:
+      - is_redhat or is_suse
+    fail_msg:                          "Operating system {{ ansible_distribution }} is not supported. Only RHEL and SUSE distributions are supported."
+    success_msg:                       "Operating system {{ ansible_distribution }} is supported for NVMe configuration"
+
+# Ensure NVMe modules are available on the system
+- name:                                "1.5.4 NVMe Support - Check if NVMe module is available"
+  ansible.builtin.shell: |
+                                       if grep -q 'nvme' /boot/System.map-$(uname -r); then
+                                         echo "built-in"
+                                       elif modinfo nvme >/dev/null 2>&1; then
+                                         echo "module"
+                                       else
+                                         echo "missing"
+                                       fi
+  register:                            nvme_module_check
+  changed_when:                        false
+
+- name:                                "1.5.4 NVMe Support - Display NVMe module status"
+  ansible.builtin.debug:
+    msg:                               "NVMe module status: {{ nvme_module_check.stdout }}"
+    verbosity:                         1
+
+- name:                                "1.5.4 NVMe Support - Fail if NVMe module is not available"
+  when:                                nvme_module_check.stdout == "missing"
+  ansible.builtin.fail:
+    msg: |
+                                       NVMe module is not available on this system.
+                                       Please install the NVMe kernel module before proceeding with NVMe configuration.
+                                       This may require a kernel update or installation of additional packages.
+
+# Include distribution-specific tasks
+- name:                                "1.5.4 NVMe Support - Include RHEL specific tasks"
+  ansible.builtin.include_tasks:       "1.5-nvme-preflight-rhel.yml"
+  when:                                is_redhat
+
+- name:                                "1.5.4 NVMe Support - Include SUSE specific tasks"
+  ansible.builtin.include_tasks:       "1.5-nvme-preflight-suse.yml"
+  when:                                is_suse
+
+# Common tasks for fstab modifications (applicable to all distributions)
+- name:                                "1.5.4 NVMe Support - Create backup of fstab"
+  ansible.builtin.copy:
+    src:                               /etc/fstab
+    dest:                              "/etc/fstab.backup.{{ ansible_date_time.date }}-{{ ansible_date_time.time }}"
+    remote_src:                        true
+    mode:                              '0644'
+    owner:                             root
+    group:                             root
+  register:                            fstab_backup
+
+- name:                                "1.5.4 NVMe Support - Find /dev/sd* entries in fstab"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       sed -n 's|^/dev/\(sd[a-z]*[0-9]*\).*|\1|p' </etc/fstab
+  register:                            sd_devices
+  changed_when:                        false
+
+- name:                                "1.5.4 NVMe Support - Find /dev/disk/azure/scsi1/lun* entries in fstab"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       sed -n 's|^/dev/disk/azure/scsi1/\(lun[0-9]*\).*|\1|p' </etc/fstab
+  register:                            azure_scsi_devices
+  changed_when:                        false
+
+- name:                                "1.5.4 NVMe Support - Replace /dev/sd* entries with UUID in fstab"
+  when:                                sd_devices.stdout_lines | length > 0
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       device={{ item }}
+                                       uuid=$(ls -l /dev/disk/by-uuid | grep "$device" | sed -n 's/^.* \([^ ]*\) -> .*$/\1/p')
+                                       if [ ! -z "$uuid" ]; then
+                                         sed -i "s|^/dev/${device}|UUID=${uuid}|" /etc/fstab
+                                         echo "Converted /dev/${device} to UUID=${uuid}"
+                                       else
+                                         echo "UUID not found for /dev/${device}"
+                                         exit 1
+                                       fi
+  with_items:                          "{{ sd_devices.stdout_lines }}"
+  register:                            fstab_sd_updated
+
+- name:                                "1.5.4 NVMe Support - Replace /dev/disk/azure/scsi1/lun* entries with UUID in fstab"
+  when:                                azure_scsi_devices.stdout_lines | length > 0
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       lun={{ item }}
+                                       realdevice=$(realpath /dev/disk/azure/scsi1/${lun} | sed 's+/dev/++g')
+                                       uuid=$(ls -l /dev/disk/by-uuid | grep "$realdevice" | sed -n 's/^.* \([^ ]*\) -> .*$/\1/p')
+                                       if [ ! -z "$uuid" ]; then
+                                         sed -i "s|^/dev/disk/azure/scsi1/${lun}|UUID=${uuid}|" /etc/fstab
+                                         echo "Converted /dev/disk/azure/scsi1/${lun} to UUID=${uuid}"
+                                       else
+                                         echo "UUID not found for /dev/disk/azure/scsi1/${lun}"
+                                         exit 1
+                                       fi
+  with_items:                          "{{ azure_scsi_devices.stdout_lines }}"
+  register:                            fstab_azure_updated
+
+- name:                                "1.5.4 NVMe Support - Log fstab conversion warnings"
+  ansible.builtin.debug:
+    msg:                               "Warning: Failed to convert device {{ item.item }} to UUID. Manual intervention may be required."
+  loop:                                "{{ (fstab_sd_updated.results | default([])) + (fstab_azure_updated.results | default([])) }}"
+  when:
+    - item.failed is defined
+    - item.failed
+  loop_control:
+    label:                             "{{ item.item }}"
+
+- name:                                "1.5.4 NVMe Support - Verify fstab doesn't contain device paths"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       grep -E '^/dev/(sd|disk/azure/scsi)' /etc/fstab || true
+  register:                            fstab_verify
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "1.5.4 NVMe Support - Display fstab verification results"
+  ansible.builtin.debug:
+    msg:                               "Warning: fstab still contains device paths that should be converted to UUIDs: {{ fstab_verify.stdout_lines }}"
+  when:                                fstab_verify.stdout != ''
+
+# Conditional reboot based on actual changes made
+- name:                                "1.5.4 NVMe Support - Determine if reboot is required"
+  ansible.builtin.set_fact:
+    nvme_reboot_required:              "{{
+                                         (dracut_conf_added is defined and dracut_conf_added.changed) or
+                                         (nvme_utils_installed is defined and nvme_utils_installed.changed) or
+                                         (udev_rules_added is defined and udev_rules_added.changed) or
+                                         (grub_updated is defined and grub_updated.changed) or
+                                         (initramfs_rebuilt is defined and initramfs_rebuilt.changed)
+                                       }}"
+
+- name:                                "1.5.4 NVMe Support - Reboot the system to apply changes"
+  when:                                nvme_reboot_required | default(false) | bool
+  ansible.builtin.reboot:
+    msg:                               "Rebooting to apply NVMe configuration changes"
+    test_command:                      uptime
+    connect_timeout:                   5
+    reboot_timeout:                    600
+    pre_reboot_delay:                  0
+    post_reboot_delay:                 30
+  register:                            system_rebooted
+
+# Final status report
+- name:                                "1.5.4 NVMe Support - Summary of NVMe Preparation"
+  ansible.builtin.debug:
+    msg: |
+      ==================== NVMe Preparation Summary ====================
+      System Information:
+      - Distribution: {{ ansible_distribution }} {{ ansible_distribution_version }}
+      - Architecture: {{ ansible_architecture }}
+      - Boot Type: {{ 'UEFI' if is_uefi_system else 'BIOS/Legacy' }}
+
+      NVMe Configuration Status:
+      - NVMe Module Status: {{ nvme_module_check.stdout }}
+      - NVMe Modules in Initramfs: {{ 'Complete' if nvme_modules_complete | default(false) else 'Incomplete' + (' - Missing: ' + missing_nvme_modules | default('') if missing_nvme_modules | default('') != '' else '') }}
+      - Azure NVMe Utils Package: {{ 'Installed' if nvme_utils_installed is defined and nvme_utils_installed.changed else 'Already Installed or Not Required' }}
+      - Dracut Configuration: {{ 'Added' if dracut_conf_added is defined and dracut_conf_added.changed else 'Already Configured' }}
+      - Initramfs Rebuild: {{ 'Performed' if initramfs_rebuilt is defined and initramfs_rebuilt.changed else 'Not Required' }}
+      - GRUB Configuration: {{ 'Updated' if grub_updated is defined and grub_updated.changed else 'Already Configured or Not Required' }}
+      - Udev Rules: {{ 'Installed' if udev_rules_added is defined and udev_rules_added.changed else 'Already Installed' }}
+      - FSTAB UUID Conversion: {{ 'Performed' if (fstab_sd_updated is defined and fstab_sd_updated.changed) or (fstab_azure_updated is defined and fstab_azure_updated.changed) else 'Not Required' }}
+      - System Reboot: {{ 'Performed' if system_rebooted is defined and system_rebooted.changed else 'Not Required' }}
+
+      Next Steps:
+      {{ '- System is ready for NVMe disk controller conversion' if not nvme_reboot_required else '- Apply Azure VM NVMe conversion after reboot' }}
+      {{ '- Verify all disk mounts are working after NVMe conversion' }}
+      ================================================================
+    verbosity:                         0
