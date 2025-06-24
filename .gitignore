@@ -53,6 +53,8 @@ Importer/SDAF SDU Importer/SDAFSDUImporter/bin
 __pycache__/
 __pycache__
 *.pyc
+.pytest_cache/
+.venv/
 
 # User-specific files
 *.rsuser
@@ -92,5 +94,3 @@ __pycache__
 *.scc
 .ansible/.lock
 
-
-.github/workflows/sync_upstream_dependendies.yml

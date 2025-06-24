@@ -312,12 +312,35 @@
 
         - name:                        "OS configuration playbook: - Set os fact"
           ansible.builtin.set_fact:
-            tier: issci
+            tier:                      issci
           tags:
             - always
 
+        - name:                        "OS configuration playbook: Determine if OS version is supported for SBD"
+          ansible.builtin.set_fact:
+            os_version_supported_for_sbd: >-
+                                       {% if scs_cluster_type in ['ASD', 'ISCSI'] or database_cluster_type in ['ASD', 'ISCSI'] %}
+                                         {% if ansible_os_family | upper == "REDHAT" %}
+                                           {{ ansible_distribution_version is version('8.8', '>=') or
+                                               ansible_distribution_version is version('9.0', '>=') }}
+                                         {% elif ansible_os_family | upper == "SUSE" %}
+                                           {% if scs_cluster_type == "ASD" or database_cluster_type == "ASD" %}
+                                             {{ ansible_distribution_version is version('15.1', '>=') }}
+                                           {% elif scs_cluster_type == "ISCSI" or database_cluster_type == "ISCSI" %}
+                                             {{ ansible_distribution_version is version('12.3', '>=') }}
+                                           {% else %}
+                                             false
+                                           {% endif %}
+                                         {% else %}
+                                           false
+                                         {% endif %}
+                                       {% else %}
+                                         false
+                                       {% endif %}
+
         - name:                        "Create directories"
           become:                      true
+          when:                        os_version_supported_for_sbd
           ansible.builtin.file:
             path:                      '/etc/sap_deployment_automation/{{ sap_sid | upper }}'
             state:                     directory
@@ -326,18 +349,21 @@
             - always
 
         - name:                        "OS configuration playbook: - Ensure the packages are registered"
+          when:                        os_version_supported_for_sbd
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
           tags:
             - 1.4-packages
 
         - name:                        "OS configuration playbook: - Ensure the needed services are started"
+          when:                        os_version_supported_for_sbd
           ansible.builtin.include_role:
             name:                      roles-os/1.16-services
           tags:
             - 1.16-services
 
         - name:                        "OS configuration playbook: - Ensure the needed services are started"
+          when:                        os_version_supported_for_sbd
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.11-iscsi-server
           tags:

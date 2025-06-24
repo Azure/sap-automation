@@ -138,21 +138,21 @@
     # Description:  Dynamic Processing - Iterate over BOM dictionary to find Dynamic
     #               entries.
     #
-    - name:                                 "Update Block Device"
-      ansible.builtin.include_tasks:        "1.17.1.3-sbd-deviceUpdate.yaml"
-      loop:                                 "{{ sbdMap }}"
+    - name:                                   "Update Block Device"
+      ansible.builtin.include_tasks:          "1.17.1.3-sbd-deviceUpdate.yaml"
+      loop:                                   "{{ sbdMap }}"
       loop_control:
-        loop_var:                           sdbMap_entry
-        index_var:                          sdbMap_index
+        loop_var:                             sdbMap_entry
+        index_var:                            sdbMap_index
       # vars:
       #   _step:                              "deviceUpdate"
     # Step: 03 - END
     # -------------------------------------+---------------------------------------8
 
-    - name:                                       "Update Device Info: Show SBD Dictionary..."
+    - name:                                   "Update Device Info: Show SBD Dictionary..."
       ansible.builtin.debug:
-        var:                                      sbdMap
-        verbosity:                                2
+        var:                                  sbdMap
+        verbosity:                            2
 
 
     # /*------------------------------------
@@ -160,44 +160,40 @@
     # | create sbd devices
     # |
     # +------------------------------------4
-    - name:                                       "dump SBD Device(s)..."
-      ansible.builtin.command:                    "sbd
-                                                  {%- for entry in sbdMap             +%}
-                                                  -d {{ entry.diskById                }}
-                                                  {%- endfor                          +%}
-                                                  dump
-                                                  "
-      ignore_errors:                              true
-      register:                                   sbdDumpCommand_results
-      run_once:                                   true                                            # run on only one host in play
+    - name:                                   "dump SBD Device(s)..."
+      run_once:                               true                                            # run on only one host in play
+      ansible.builtin.command:                "sbd
+                                              {%- for entry in sbdMap             +%}
+                                              -d {{ entry.diskById                }}
+                                              {%- endfor                          +%}
+                                              dump
+                                              "
+      ignore_errors:                          true
+      register:                               sbdDumpCommand_results
 
-    - name:                                       "Show dump SBD device(s) results..."
+    - name:                                   "Show dump SBD device(s) results..."
+      run_once:                               true                                            # run on only one host in play
       ansible.builtin.debug:
-        var:                                      sbdDumpCommand_results
-        verbosity:                                2
-      run_once:                                   true                                            # run on only one host in play
+        var:                                  sbdDumpCommand_results
+        verbosity:                            2
 
-    - name:                                       "create SBD Device(s)..."
+    - name:                                   "Create SBD Device(s)..."
+      when:                                   sbdDumpCommand_results.rc == 1
+      run_once:                               true                                            # run on only one host in play
       block:
+        - name:                               "create SBD Device(s)..."
+          ansible.builtin.command:            "sbd
+                                              {%- for entry in sbdMap             +%}
+                                              -d {{ entry.diskById                }}
+                                              {%- endfor                          +%}
+                                              -1 60 -4 120 create
+                                              "
+          register:                           sbdCreateCommand_results
 
-        - name:                                   "create SBD Device(s)..."
-          ansible.builtin.command:                "sbd
-                                                  {%- for entry in sbdMap             +%}
-                                                  -d {{ entry.diskById                }}
-                                                  {%- endfor                          +%}
-                                                  -1 60 -4 120 create
-                                                  "
-          register:                               sbdCreateCommand_results
-
-
-        - name:                                   "Show block device results..."
+        - name:                               "Show block device results..."
           ansible.builtin.debug:
-            var:                                  sbdCreateCommand_results
-            verbosity:                            2
-
-      run_once:                                   true                                            # run on only one host in play
-      when:                                       sbdDumpCommand_results.rc == 1
-
+            var:                              sbdCreateCommand_results
+            verbosity:                        2
 
     # /*------------------------------------
     # |
@@ -223,12 +219,13 @@
         mode:                                 '0644'
         backup:                               true
       loop:
-        - { regexp: "^SBD_PACEMAKER=.*",  line: 'SBD_PACEMAKER=yes'     }
-        - { regexp: "^SBD_STARTMODE=.*",  line: 'SBD_STARTMODE=always'  }
+        - { regexp: "^SBD_PACEMAKER=.*",    line: 'SBD_PACEMAKER=yes'     }
+        - { regexp: "^SBD_STARTMODE=.*",    line: 'SBD_STARTMODE=always'  }
+        - { regexp: "^SBD_DELAY_START=.*",  line: 'SBD_DELAY_START=yes'   }
         # Format line as so:
         #   SBD_DEVICE="/dev/disk/by-id/scsi-3600224804208a67da8073b2a9728af19"
         #   SBD_DEVICE="/dev/disk/by-id/scsi-360022480ef971a6c5759f2dc3adf4c96;/dev/disk/by-id/scsi-360022480ea4064ac4952ea8452d66317"
-        - { regexp: "^SBD_DEVICE=.*",     line: 'SBD_DEVICE="
+        - { regexp: "^SBD_DEVICE=.*",       line: 'SBD_DEVICE="
                                                             {%- for entry in sbdMap              %}
                                                             {%-   if loop.index > 1 %};{% endif -%}
                                                             {{    entry.diskById                 }}
@@ -239,12 +236,10 @@
       ansible.builtin.set_fact:
         sbd_device:                          "{{ sbdMap | map(attribute='diskById') | join(';') }}"
 
-
     - name:                                  "Show sbd_device..."
       ansible.builtin.debug:
         var:                                 sbd_device
         verbosity:                           2
-
 
     # /*------------------------------------
     # |
@@ -259,7 +254,6 @@
         group:                                root
         mode:                                 '0644'
 
-
     # /*------------------------------------
     # |
     # | Load softdog kernel module
@@ -270,6 +264,53 @@
         name:                                 softdog
         state:                                present
 
+    - name:                                   "SBD - Configure service file for SUSE"
+      when:                                   ansible_os_family | upper == "SUSE"
+      block:
+        - name:                               "SBD - Copy original service file to /etc/systemd/system"
+          ansible.builtin.copy:
+            src:                              /usr/lib/systemd/system/sbd.service
+            dest:                             /etc/systemd/system/sbd.service
+            remote_src:                       true
+            owner:                            root
+            group:                            root
+            mode:                             '0644'
+
+        - name:                               "SBD - Add Before=corosync.service in Unit section"
+          ansible.builtin.lineinfile:
+            path:                             /etc/systemd/system/sbd.service
+            insertafter:                      '^\[Unit\].*'
+            line:                             'Before=corosync.service'
+            state:                            present
+
+        - name:                               "SBD - Set TimeoutSec in Service section"
+          ansible.builtin.lineinfile:
+            path:                             /etc/systemd/system/sbd.service
+            regexp:                           '^TimeoutSec='
+            line:                             'TimeoutSec=600'
+            insertafter:                      '^\[Service\].*'
+            state:                            present
+
+    - name:                                   "SBD - Configure service file for RedHat"
+      when:                                   ansible_os_family | upper == "REDHAT"
+      block:
+        - name:                               "SBD - Create service override directory"
+          ansible.builtin.file:
+            path:                             /etc/systemd/system/sbd.service.d
+            state:                            directory
+            owner:                            root
+            group:                            root
+            mode:                             '0755'
+
+        - name:                               "SBD - Set increased timeout for delayed start"
+          ansible.builtin.copy:
+            content: |
+                                              [Service]
+                                              TimeoutSec=144
+            dest:                             /etc/systemd/system/sbd.service.d/sbd_delay_start.conf
+            owner:                            root
+            group:                            root
+            mode:                             '0644'
 
 # /*------------------------------------
 # |

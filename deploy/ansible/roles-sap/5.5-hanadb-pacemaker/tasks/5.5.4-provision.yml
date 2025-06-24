@@ -7,7 +7,7 @@
 
 
 # Clustering commands are based on the Host OS
-- name:                                Cluster based on OS in VM
+- name:                                "Cluster Preparation based on OS in VM"
   ansible.builtin.include_tasks:
     file:                              "5.5.4.0-clusterPrep-{{ ansible_os_family }}.yml"
     apply:
@@ -17,7 +17,7 @@
         - "5.5.4.0-cluster-prep"
   when:                                not hana_cluster_existence_check
 
-- name:                                Cluster based on OS in VM
+- name:                                "Cluster Configuration based on OS in VM"
   ansible.builtin.include_tasks:
     file:                              "5.5.4.1-cluster-{{ ansible_os_family }}.yml"
     apply:

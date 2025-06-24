@@ -104,7 +104,7 @@
       ansible.builtin.blockinfile:
         path:                          '{{ scs_instance_profile_path }}'
         block: |
-                                       service/halib = $(DIR_CT_RUN)/saphascriptco.so
+                                       service/halib = $(DIR_EXECUTABLE)/saphascriptco.so
                                        service/halib_cluster_connector = /usr/bin/sap_suse_cluster_connector
       register: scsservicehalib
 
@@ -112,7 +112,7 @@
       ansible.builtin.blockinfile:
         path:                          '{{ ers_instance_profile_path }}'
         block: |
-                                       service/halib = $(DIR_CT_RUN)/saphascriptco.so
+                                       service/halib = $(DIR_EXECUTABLE)/saphascriptco.so
                                        service/halib_cluster_connector = /usr/bin/sap_suse_cluster_connector
       register: ersservicehalib
 
@@ -127,7 +127,7 @@
       ansible.builtin.blockinfile:
         path:                          '{{ scs_instance_profile_path }}'
         block: |
-                                       service/halib = $(DIR_CT_RUN)/saphascriptco.so
+                                       service/halib = $(DIR_EXECUTABLE)/saphascriptco.so
                                        service/halib_cluster_connector = /usr/bin/sap_cluster_connector
       register: scsservicehalib
 
@@ -135,7 +135,7 @@
       ansible.builtin.blockinfile:
         path:                          '{{ ers_instance_profile_path }}'
         block: |
-                                       service/halib = $(DIR_CT_RUN)/saphascriptco.so
+                                       service/halib = $(DIR_EXECUTABLE)/saphascriptco.so
                                        service/halib_cluster_connector = /usr/bin/sap_cluster_connector
       register: ersservicehalib
 
