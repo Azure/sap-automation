@@ -55,7 +55,7 @@ locals {
                                         )
 
   // Management subnet
-    // If resource ID is specified extract the subnet name from it otherwise read it either from input of create using the naming convention
+  // If resource ID is specified extract the subnet name from it otherwise read it either from input of create using the naming convention
   management_subnet_name               = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
                                            split("/", var.infrastructure.virtual_network.management.subnet_mgmt.id)[10]) : (
                                            length(var.infrastructure.virtual_network.management.subnet_mgmt.name) > 0 ? (
