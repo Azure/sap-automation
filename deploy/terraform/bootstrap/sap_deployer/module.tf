@@ -12,6 +12,8 @@ module "sap_deployer" {
                                                    azurerm.main                     = azurerm.main
                                                    azurerm.dnsmanagement            = azurerm.dnsmanagement
                                                    azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
+                                                   azapi.api                        = azapi.api
+                                                   azuread.main                     = azuread.main
                                                  }
   naming                                       = length(var.name_override_file) > 0 ? (
                                                    local.custom_names) : (
