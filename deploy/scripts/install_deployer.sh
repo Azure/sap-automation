@@ -366,7 +366,7 @@ if [ -n "${approve}" ]; then
 	else
 		return_value=${PIPESTATUS[0]}
 	fi
-	if [ $return_value -eq 1 ]; then
+	if [ 1 == $return_value ]; then
 		echo ""
 		echo -e "${bold_red}Terraform apply:                     failed ($return_value)$reset_formatting"
 		echo ""
@@ -384,7 +384,8 @@ else
 	else
 		return_value=${PIPESTATUS[0]}
 	fi
-	if [ $return_value -eq 1 ]; then
+
+	if [ 1 == $return_value ]; then
 		echo ""
 		echo -e "${bold_red}Terraform apply:                     failed ($return_value)$reset_formatting"
 		echo ""
