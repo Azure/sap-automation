@@ -80,7 +80,7 @@ provider "azuread"                     {
                                        }
 
 provider "azapi"                       {
-                                         alias                      = "api"
+                                          alias                      = "restapi"
                                        }
 
 terraform                              {
@@ -100,14 +100,14 @@ terraform                              {
                                                                          }
                                                               azuread =  {
                                                                            source  = "hashicorp/azuread"
-                                                                           version = "3.0.2"
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
                                                                            version = "4.34.0"
                                                                          }
-                                                              azapi =  {
-                                                                           source  = "azure/azapi"
+                                                              azapi =   {
+                                                                           source  = "Azure/azapi"
+                                                                           version = "2.4.0"
                                                                          }
                                                             }
                                        }

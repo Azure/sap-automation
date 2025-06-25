@@ -19,7 +19,6 @@ locals {
                                          }
   deployer                             = {
                                            use                          = var.use_deployer
-                                           application_configuration_id = var.application_configuration_id
                                          }
   key_vault                            = {
                                            id                        = coalesce(var.spn_keyvault_id, local.spn_key_vault_arm_id)

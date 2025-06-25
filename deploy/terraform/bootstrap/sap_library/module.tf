@@ -26,7 +26,6 @@ module "sap_library" {
   storage_account_sapbits           = local.storage_account_sapbits
   storage_account_tfstate           = local.storage_account_tfstate
   use_private_endpoint              = false
-  use_webapp                        = var.use_webapp
   dns_settings                      = local.dns_settings
 }
 

@@ -8,6 +8,8 @@
 #######################################4#######################################8
 locals {
   version_label                        = trimspace(file("${path.module}/../../../configs/version.txt"))
+  ansible_version_label                = trimspace(file("${path.module}/../../../configs/ansible_version.txt"))
+
 
   // Management vnet
 

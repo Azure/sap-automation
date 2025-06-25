@@ -148,7 +148,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
 
 resource "azurerm_private_endpoint" "table_tfstate" {
   provider                             = azurerm.main
-  count                                = var.deployer.use && var.use_private_endpoint && !var.storage_account_tfstate.exists ? 1 : 0
+  count                                = var.deployer.use && var.use_private_endpoint && !var.storage_account_tfstate.exists && var.application_configuration_deployment ? 1 : 0
   depends_on                           = [ azurerm_private_dns_zone.table ]
   name                                 = format("%s%s-table%s",
                                            var.naming.resource_prefixes.storage_private_link_tf,
@@ -192,7 +192,7 @@ resource "azurerm_private_endpoint" "table_tfstate" {
                              }
 
   dynamic "private_dns_zone_group" {
-                                     for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0)
+                                     for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.application_configuration_deployment ? 1 : 0)
                                      content {
                                                name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
                                                private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.table[0].id : data.azurerm_private_dns_zone.table[0].id]

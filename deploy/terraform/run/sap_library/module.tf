@@ -8,9 +8,9 @@
 module "sap_library" {
   source                            = "../../terraform-units/modules/sap_library"
   providers                         = {
-                                       azurerm.main                                = azurerm.main
-                                       azurerm.deployer                            = azurerm.deployer
-                                       azurerm.dnsmanagement                       = azurerm.dnsmanagement
+                                       azurerm.main                     = azurerm.main
+                                       azurerm.deployer                 = azurerm.deployer
+                                       azurerm.dnsmanagement            = azurerm.dnsmanagement
                                        azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                      }
   Agent_IP                          = var.add_Agent_IP ? var.Agent_IP : ""
@@ -27,7 +27,6 @@ module "sap_library" {
   use_custom_dns_a_registration     = var.use_custom_dns_a_registration
   use_private_endpoint              = var.use_private_endpoint
   dns_settings                      = local.dns_settings
-  service_principal                 = local.account
 
 }
 

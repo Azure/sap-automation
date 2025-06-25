@@ -82,10 +82,6 @@ variable "assign_permissions"                    {
                                                     type        = bool
                                                   }
 
-variable "control_plane_name"                     {
-                                                    description = "The name of the control plane"
-                                                    default     = ""
-                                                  }
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitions                          #
@@ -439,13 +435,4 @@ variable "management_network_id"                {
 variable "tags"                                  {
                                                    description = "If provided, tags for all resources"
                                                    default     = {}
-                                                 }
-variable "application_configuration_id"          {
-                                                    description = "Defines the Azure application configuration Resource id"
-                                                    type        = string
-                                                    default     = ""
-                                                    validation {
-                                                      condition     = length(var.application_configuration_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.application_configuration_id))
-                                                      error_message = "If specified the 'application_configuration_id' variable must be a correct Azure resource identifier."
-                                                    }
                                                  }

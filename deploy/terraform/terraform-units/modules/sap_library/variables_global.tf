@@ -100,7 +100,7 @@ variable "enable_purge_control_for_keyvaults" {
                                                 default     = true
                                               }
 
-variable "use_webapp"                        {
+variable "application_configuration_deployment"                        {
                                                default = false
                                              }
 
@@ -121,3 +121,4 @@ variable "short_named_endpoints_nics"     {
                                             description = "If defined, uses short names for private endpoints nics"
                                             default     = false
                                           }
+

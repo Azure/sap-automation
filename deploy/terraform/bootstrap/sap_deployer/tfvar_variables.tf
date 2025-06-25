@@ -36,6 +36,13 @@ variable "prevent_deletion_if_contains_resources" {
                                                     type        = bool
                                                     default     = true
                                                   }
+
+variable "recover"                                {
+                                                   description = "Boolean flag indicating if the deployer should be recovered"
+                                                   default     = false
+                                                   type        = bool
+                                                 }
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitions                          #
@@ -431,7 +438,7 @@ variable "set_secret_expiry"                         {
                                                        type        = bool
                                                      }
 
-variable "enable_rbac_authorization_for_keyvault"    {
+variable "enable_rbac_authorization"                 {
                                                        description = "Enables RBAC authorization for Azure keyvault"
                                                        default     = false
                                                      }
@@ -513,6 +520,7 @@ variable "tags"                                       {
 variable "additional_network_id"                     {
                                                        description = "Agent Network resource ID"
                                                        default     = ""
+
                                                      }
 
 #########################################################################################
@@ -544,12 +552,13 @@ variable "dns_zone_names"                             {
                                                         type        = map(string)
 
                                                         default = {
-                                                          "file_dns_zone_name"   = "privatelink.file.core.windows.net"
-                                                          "blob_dns_zone_name"   = "privatelink.blob.core.windows.net"
-                                                          "table_dns_zone_name"  = "privatelink.table.core.windows.net"
-                                                          "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
+                                                                    "file_dns_zone_name"      = "privatelink.file.core.windows.net"
+                                                                    "blob_dns_zone_name"      = "privatelink.blob.core.windows.net"
+                                                                    "table_dns_zone_name"     = "privatelink.table.core.windows.net"
+                                                                    "vault_dns_zone_name"     = "privatelink.vaultcore.azure.net"
+                                                                    "appconfig_dns_zone_name" = "privatelink.azconfig.io"
 
-                                                        }
+                                                                  }
                                                       }
 
 variable "privatelink_dns_subscription_id"            {
@@ -598,9 +607,23 @@ variable "agent_ado_url"                              {
                                                         default     = ""
                                                       }
 
+variable "agent_ado_project"                         {
+                                                        description = "If provided, contains the project name ADO repository"
+                                                        default     = ""
+                                                      }
+
 variable "ansible_core_version"                       {
                                                         description = "If provided, the version of ansible core to be installed"
-                                                        default     = "2.15"
+                                                        default     = ""
+                                                      }
+
+variable "dev_center_deployment"                      {
+                                                        description = "Boolean flag indicating if a Dev Center should be deployed"
+                                                        default     = false
+                                                      }
+
+variable "DevOpsInfrastructure_object_id"             {
+                                                        description = "Service principal object id for the DevOps Infrastructure"
                                                       }
 
 #########################################################################################

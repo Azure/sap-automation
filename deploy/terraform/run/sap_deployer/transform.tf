@@ -32,6 +32,7 @@ locals {
                                               ),
                                               ""
                                             )) > 0 ? true : false
+
                                           }
     tags                               = merge(
                                             var.tags, var.resourcegroup_tags
@@ -45,6 +46,7 @@ locals {
                                               exists                  = length(var.management_network_arm_id) > 0
                                               address_space           = var.management_network_address_space
                                               flow_timeout_in_minutes = var.management_network_flow_timeout_in_minutes
+                                              name                    = var.management_network_name,
 
                                               subnet_mgmt = {
                                                 name   = var.management_subnet_name,
@@ -74,12 +76,23 @@ locals {
                                                                 prefix = var.webapp_subnet_address_prefix
                                                               }
                                             }
-                                          }
+                                        }
 
     deploy_monitoring_extension          = var.deploy_monitoring_extension
     deploy_defender_extension            = var.deploy_defender_extension
     custom_random_id                     = var.custom_random_id
     bastion_public_ip_tags               = try(var.bastion_public_ip_tags, {})
+    dev_center_deployment                = var.dev_center_deployment
+
+    devops                             = {
+                                           agent_ado_url                  = var.agent_ado_url
+                                           agent_ado_project              = var.agent_ado_project
+                                           agent_pat                      = var.agent_pat
+                                           agent_pool                     = var.agent_pool
+                                           ansible_core_version           = var.ansible_core_version
+                                           tf_version                     = var.tf_version
+                                           DevOpsInfrastructure_object_id = var.DevOpsInfrastructure_object_id
+                                         }
 
                                         }
   deployer                             = {
@@ -152,16 +165,17 @@ locals {
 
                                           }
   key_vault                            = {
-                                           id                        = coalesce(var.deployer_kv_user_arm_id, var.spn_keyvault_id, var.user_keyvault_id)
+                                           id                        = var.user_keyvault_id
                                            exists                    = length(var.user_keyvault_id) > 0 ? true : false
                                            private_key_secret_name   = var.deployer_private_key_secret_name
                                            public_key_secret_name    = var.deployer_public_key_secret_name
                                            username_secret_name      = var.deployer_username_secret_name
                                            password_secret_name      = var.deployer_password_secret_name
-                                           enable_rbac_authorization = var.enable_rbac_authorization_for_keyvault
+                                           enable_rbac_authorization = var.enable_rbac_authorization
                                         }
 
   options                              = {
+                                            enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
                                             enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
                                          }
 
@@ -178,23 +192,31 @@ locals {
                                            use                 = var.app_service_deployment
                                            app_registration_id = var.app_registration_app_id
                                            client_secret       = var.webapp_client_secret
+                                           use                 = var.app_service_deployment
+                                           app_registration_id = var.app_registration_app_id
+                                           client_secret       = var.webapp_client_secret
                                          }
 
   dns_settings                         = {
                                            use_custom_dns_a_registration                = var.use_custom_dns_a_registration
                                            register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
                                            register_endpoints_with_dns                  = var.register_endpoints_with_dns
+                                           register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
+                                           register_endpoints_with_dns                  = var.register_endpoints_with_dns
                                            dns_zone_names                               = var.dns_zone_names
+
+                                           local_dns_resourcegroup_name                 = local.SAPLibrary_resource_group_name
 
                                            local_dns_resourcegroup_name                 = local.SAPLibrary_resource_group_name
 
                                            management_dns_resourcegroup_name            = trimspace(var.management_dns_resourcegroup_name)
                                            management_dns_subscription_id               = var.management_dns_subscription_id
+                                           management_dns_subscription_id               = var.management_dns_subscription_id
 
                                            privatelink_dns_subscription_id              = var.privatelink_dns_subscription_id != var.management_dns_subscription_id ? var.privatelink_dns_subscription_id : var.management_dns_subscription_id
                                            privatelink_dns_resourcegroup_name           = var.management_dns_resourcegroup_name != var.privatelink_dns_resourcegroup_name ? var.privatelink_dns_resourcegroup_name : var.management_dns_resourcegroup_name
+                                           privatelink_dns_subscription_id              = var.privatelink_dns_subscription_id != var.management_dns_subscription_id ? var.privatelink_dns_subscription_id : var.management_dns_subscription_id
+                                           privatelink_dns_resourcegroup_name           = var.management_dns_resourcegroup_name != var.privatelink_dns_resourcegroup_name ? var.privatelink_dns_resourcegroup_name : var.management_dns_resourcegroup_name
                                          }
-
-
 
 }
