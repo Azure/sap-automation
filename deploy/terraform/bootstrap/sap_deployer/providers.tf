@@ -79,6 +79,10 @@ provider "azurerm"                     {
 provider "azuread"                     {
                                        }
 
+provider "azapi"                       {
+                                         alias                      = "api"
+                                       }
+
 terraform                              {
                                          required_version = ">= 1.0"
                                          required_providers {
@@ -101,6 +105,9 @@ terraform                              {
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
                                                                            version = "4.34.0"
+                                                                         }
+                                                              azapi =  {
+                                                                           source  = "azure/azapi"
                                                                          }
                                                             }
                                        }
