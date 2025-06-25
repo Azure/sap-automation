@@ -9,13 +9,11 @@ terraform {
     }
 
     azapi = {
-      alias                 = "api"
       source                = "azure/azapi"
       configuration_aliases = [azapi.api]
     }
 
     azuread = {
-      alias                 = "main"
       source                = "hashicorp/azuread"
       configuration_aliases = [azuread.main]
     }
