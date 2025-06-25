@@ -10,7 +10,7 @@ terraform {
 
     azapi = {
       source                = "azure/azapi"
-      configuration_aliases = [azapi.restapi]
+      configuration_aliases = [azapi.api]
     }
 
     azuread = {
