@@ -611,6 +611,7 @@ if [ ! -f .terraform/terraform.tfstate ]; then
 		echo ""
 		echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 		echo ""
+		terraform -chdir="${terraform_module_directory}" providers
 		exit $return_value
 	fi
 
@@ -640,6 +641,7 @@ else
 			echo ""
 			echo -e "${bold_red}Terraform local init:                  failed$reset_formatting"
 			echo ""
+			terraform -chdir="${terraform_module_directory}" providers
 			exit $return_value
 
 			# terraform -chdir="${terraform_module_directory}" state list
@@ -666,6 +668,7 @@ else
 			echo ""
 			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 			echo ""
+			terraform -chdir="${terraform_module_directory}" providers
 			exit $return_value
 		fi
 
@@ -696,6 +699,7 @@ else
 			echo ""
 			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 			echo ""
+			terraform -chdir="${terraform_module_directory}" providers
 			exit $return_value
 		fi
 	fi

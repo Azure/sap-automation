@@ -114,6 +114,7 @@ stages:
               TF_VAR_agent_ado_url:           $(System.CollectionUri)
               TF_VAR_agent_pat:               $(System.AccessToken)
               TF_VAR_agent_pool:              $(POOL)
+              TF_VAR_agent_ado_project:       $(System.TeamProject)
               TF_VAR_ansible_core_version:    $(ansible_core_version)
               TF_VAR_spn_id:                  $(ARM_OBJECT_ID)
               TF_VAR_tf_version:              $(tf_version)
@@ -149,6 +150,10 @@ stages:
             parameters:
               getLatestFromBranch: true
 
+          - task:                      TerraformInstaller@1
+            displayName:               Install Terraform
+            inputs:
+              terraformVersion:        latest
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -177,6 +182,7 @@ stages:
               TF_VAR_agent_pat:            $(System.AccessToken)
               TF_VAR_agent_pool:           $(POOL)
               TF_VAR_ansible_core_version: $(ansible_core_version)
+              TF_VAR_agent_ado_project:    $(System.TeamProject)
               TF_VAR_spn_id:               $(ARM_OBJECT_ID)
               TF_VAR_tf_version:           $(tf_version)
               USE_MSI:                     $(Use_MSI)

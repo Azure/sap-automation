@@ -123,25 +123,22 @@ if [ $USE_MSI == "true" ]; then
 fi
 if az account show --query name; then
 	echo -e "$green--- Already logged in to Azure ---$reset"
-	LogonToAzure true
 else
 	# Check if running on deployer
-	if [ -f /etc/profile.d/deploy_server.sh ]; then
-		LogonToAzure $USE_MSI
-		unset ARM_CLIENT_SECRET
-		ARM_USE_MSI=true
-		export ARM_USE_MSI
-	else
-		echo "Not running on the deployer server"
-		configureNonDeployer "$TF_VERSION"
+	if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+		configureNonDeployer "${tf_version:-1.12.2}"
 		echo -e "$green--- az login ---$reset"
-		if ! LogonToAzure false; then
-			return_code=$?
+		LogonToAzure $USE_MSI
+		return_code=$?
+		if [ 0 != $return_code ]; then
 			echo -e "$bold_red--- Login failed ---$reset"
 			echo "##vso[task.logissue type=error]az login failed."
 			exit $return_code
 		fi
+	else
+		LogonToAzure $USE_MSI
 	fi
+
 fi
 
 echo -e "$green--- Read deployment details ---$reset"
