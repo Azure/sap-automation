@@ -105,4 +105,3 @@ resource "azurerm_key_vault_secret" "tfstate" {
                                          )
   tags                                 = var.infrastructure.tags
 }
-

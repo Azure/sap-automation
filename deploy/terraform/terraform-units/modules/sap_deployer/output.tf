@@ -239,4 +239,8 @@ output "subnet_bastion_address_prefixes" {
                                         )
 }
 
+output "diagnostics_account_id"                  {
+                                                    description = "Diagnostics Storage Account ID"
+                                                    value       = length(var.deployer.deployer_diagnostics_account_arm_id) == 0 ? azurerm_storage_account.deployer[0].id : var.deployer.deployer_diagnostics_account_arm_id
+                                                 }
 

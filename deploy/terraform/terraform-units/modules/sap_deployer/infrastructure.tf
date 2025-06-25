@@ -72,6 +72,19 @@ resource "azurerm_subnet" "subnet_mgmt" {
                                            )) : (
                                          null)
 
+  dynamic "delegation" {
+                        for_each = range(var.infrastructure.dev_center_deployment ? 1 : 0)
+                        content {
+                          name = "delegation"
+                          service_delegation {
+                            actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+                            name    = "Microsoft.DevOpsInfrastructure/pools"
+                          }
+                        }
+                      }
+
+
+
 }
 
 data "azurerm_subnet" "subnet_mgmt" {

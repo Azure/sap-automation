@@ -44,6 +44,8 @@ locals {
   // Comment out code with users.object_id for the time being.
   // deployer_users_id = try(local.deployer.users.object_id, [])
 
+  // Current service principal
+
   deployer_public_ip_address                = try(var.deployer_tfstate.deployer_public_ip_address, "")
 
   enable_firewall_for_keyvaults_and_storage = try(var.deployer_tfstate.enable_firewall_for_keyvaults_and_storage, false)
@@ -53,7 +55,7 @@ locals {
 
   keyvault_id                               = try(var.deployer_tfstate.deployer_kv_user_arm_id, "")
 
-  management_network_id                     = coalesce(data.azurerm_app_configuration_key.deployer_network_id[0].value, var.deployer.use ? try(var.deployer_tfstate.vnet_mgmt_id, "") : try(var.deployer_tfstate.additional_network_id, ""))
+  management_network_id                     = var.deployer.use ? try(var.deployer_tfstate.vnet_mgmt_id, "") : try(var.deployer_tfstate.additional_network_id, "")
 
   virtual_additional_network_ids            = compact(
                                                 flatten(

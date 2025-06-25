@@ -56,7 +56,7 @@ set -o nounset
 # Terraform templated settings
 #
 rg_name="${rg_name}"
-tfversion="${tfversion}"
+terraform_version="${terraform_version}"
 ARM_CLIENT_ID="${client_id}"
 ARM_SUBSCRIPTION_ID="${subscription_id}"
 ARM_TENANT_ID="${tenant_id}"
@@ -254,9 +254,9 @@ asad_sample_dir="$${asad_home}/samples"
 
 # Terraform installation directories
 tf_base="/opt/terraform"
-tf_dir="$${tf_base}/terraform_$${tfversion}"
+tf_dir="$${tf_base}/terraform_$${terraform_version}"
 tf_bin="$${tf_base}/bin"
-tf_zip="terraform_$${tfversion}_linux_amd64.zip"
+tf_zip="terraform_$${terraform_version}_linux_amd64.zip"
 tf_cache="$${tf_base}/.terraform.d/plugin-cache"
 export AZADHOME="/home/$${local_user}"
 
@@ -449,7 +449,7 @@ sudo mkdir -p \
   "$${tf_bin}" \
   "$${tf_cache}"
 
-wget -nv -O "/$${asad_home}/$${tf_zip}" "https://releases.hashicorp.com/terraform/$${tfversion}/$${tf_zip}"
+wget -nv -O "/$${asad_home}/$${tf_zip}" "https://releases.hashicorp.com/terraform/$${terraform_version}/$${tf_zip}"
 sudo unzip -qq -o "/$${asad_home}/$${tf_zip}" -d "$${tf_dir}"
 sudo ln -vfs "../$(basename "$${tf_dir}")/terraform" "$${tf_bin}/terraform"
 sudo chmod 755 "$${tf_bin}/terraform"
@@ -535,8 +535,6 @@ if [[ -n "$${PAT}" ]]; then
 fi
 
 set -o xtrace
-
-/usr/bin/az extension add --name storage-blob-preview >/dev/null
 
 # Fail if any command exits with a non-zero exit status
 set -o errexit

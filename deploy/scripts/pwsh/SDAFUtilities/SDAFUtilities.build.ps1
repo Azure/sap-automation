@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+#Requires -Module InvokeBuild
+
 task . Clean, Build, ExportHelp, Stats
 
 task CreateManifest CopyPSD, UpdatPublicFunctionsToExport
@@ -10,7 +12,7 @@ task Stats RemoveStats, WriteStats
 $script:ModuleName = Split-Path -Path $PSScriptRoot -Leaf
 $script:ModuleRoot = $PSScriptRoot
 $script:OutPutFolder = "$PSScriptRoot\Output"
-$script:ImportFolders = @('Public', 'Internal')
+$script:ImportFolders = @('Public', 'Private', 'DSCResources')
 $script:PsmPath = Join-Path -Path $PSScriptRoot -ChildPath "Output\$($script:ModuleName)\$($script:ModuleName).psm1"
 $script:PsdPath = Join-Path -Path $PSScriptRoot -ChildPath "Output\$($script:ModuleName)\$($script:ModuleName).psd1"
 $script:HelpPath = Join-Path -Path $PSScriptRoot -ChildPath "Output\$($script:ModuleName)\en-US"
@@ -86,12 +88,23 @@ task UpdatPublicFunctionsToExport -if (Test-Path -Path $script:PublicFolder) {
         Set-Content -Path $script:PsdPath
 }
 
-
-
 task ImportCompipledModule -if (Test-Path -Path $script:PsmPath) {
     Get-Module -Name $script:ModuleName |
         Remove-Module -Force
     Import-Module -Name $script:PsdPath -Force
+}
+
+task ExportCompiledModule -if (Test-Path -Path $script:PsmPath) {
+    $exportParams = @{
+        Path = $script:PsmPath
+        OutputPath = "$script:OutPutFolder\$($script:ModuleName)"
+        Force = $true
+    }
+    Export-ModuleMember @exportParams
+}
+
+task CreateOutputFolder -if (-not(Test-Path -Path $script:OutPutFolder)) {
+    New-Item -ItemType Directory -Path $script:OutPutFolder > $null
 }
 
 task RemoveStats -if (Test-Path -Path "$($script:OutPutFolder)\stats.json") {
@@ -118,3 +131,4 @@ task WriteStats {
 task ExportHelp -if (Test-Path -Path "$script:ModuleRoot\Help") {
     New-ExternalHelp -Path "$script:ModuleRoot\Help" -OutputPath $script:HelpPath
 }
+

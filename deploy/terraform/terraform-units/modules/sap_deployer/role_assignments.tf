@@ -172,3 +172,24 @@ resource "azurerm_role_assignment" "subscription_contributor_msi" {
   role_definition_name                 = "Contributor"
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }
+
+#######################################4#######################################8
+#                                                                              #
+#                              Managed DevOps Pool                             #
+#                                                                              #
+#######################################4#######################################8
+
+
+resource "azurerm_role_assignment" "dev_center_reader" {
+  count                                         = var.infrastructure.dev_center_deployment && var.infrastructure.devops.DevOpsInfrastructure_object_id != "" ? 1 : 0
+  scope                                         = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
+  role_definition_name                          = "Reader"
+  principal_id                                  = var.infrastructure.devops.DevOpsInfrastructure_object_id
+}
+
+resource "azurerm_role_assignment" "dev_center_network_contributor" {
+  count                                         = var.infrastructure.dev_center_deployment && var.infrastructure.devops.DevOpsInfrastructure_object_id != "" ? 1 : 0
+  scope                                         = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
+  role_definition_name                          = "Network Contributor"
+  principal_id                                  = var.infrastructure.devops.DevOpsInfrastructure_object_id
+}
