@@ -13,7 +13,7 @@ module "sap_deployer" {
                                                    azurerm.dnsmanagement            = azurerm.dnsmanagement
                                                    azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                                    azapi.restapi                    = azapi.restapi
-                                                   azuread.main                     = azuread.main
+                                                   azuread.main                     = azuread
                                                  }
   naming                                       = length(var.name_override_file) > 0 ? (
                                                    local.custom_names) : (
@@ -22,10 +22,6 @@ module "sap_deployer" {
   Agent_IP                                     = var.add_Agent_IP ? var.Agent_IP : ""
   additional_network_id                        = var.additional_network_id
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
-  agent_ado_url                                = var.agent_ado_url
-  agent_pat                                    = var.agent_pat
-  agent_pool                                   = var.agent_pool
-  ansible_core_version                         = var.ansible_core_version
   app_service                                  = local.app_service
   arm_client_id                                = var.arm_client_id
   assign_subscription_permissions              = var.deployer_assign_subscription_permissions
@@ -36,7 +32,7 @@ module "sap_deployer" {
   bootstrap                                    = true
   configure                                    = false
   deployer                                     = local.deployer
-  deployer_vm_count                            = var.deployer_count
+  deployer_vm_count                            = var.dev_center_deployment ? 0 : var.deployer_count
   dns_settings                                 = local.dns_settings
   enable_firewall_for_keyvaults_and_storage    = var.enable_firewall_for_keyvaults_and_storage
   enable_purge_control_for_keyvaults           = var.enable_purge_control_for_keyvaults
@@ -53,7 +49,6 @@ module "sap_deployer" {
   spn_id                                       = var.spn_id
   ssh-timeout                                  = var.ssh-timeout
   subnets_to_add                               = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
-  tf_version                                   = var.tf_version
   use_private_endpoint                         = var.use_private_endpoint
   use_service_endpoint                         = var.use_service_endpoint
   webapp_client_secret                         = var.webapp_client_secret

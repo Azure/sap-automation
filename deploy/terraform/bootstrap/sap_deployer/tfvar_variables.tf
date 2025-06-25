@@ -624,6 +624,7 @@ variable "dev_center_deployment"                      {
 
 variable "DevOpsInfrastructure_object_id"             {
                                                         description = "Service principal object id for the DevOps Infrastructure"
+                                                        default     = ""
                                                       }
 
 #########################################################################################
