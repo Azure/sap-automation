@@ -2,6 +2,103 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+function print_banner() {
+	local title="$1"
+	local message="$2"
+
+	local length=${#message}
+	if ((length % 2 == 0)); then
+		message="$message "
+	else
+		message="$message"
+	fi
+
+	length=${#title}
+	if ((length % 2 == 0)); then
+		title="$title "
+	else
+		title="$title"
+	fi
+
+	local type="${3:-info}"
+	local secondary_message="${4:-''}"
+	local tertiary_message="${5:-''}"
+
+	length=${#secondary_message}
+	if ((length % 2 == 0)); then
+		secondary_message="$secondary_message "
+	else
+		secondary_message="$secondary_message"
+	fi
+
+	length=${#tertiary_message}
+	if ((length % 2 == 0)); then
+		tertiary_message="$tertiary_message "
+	else
+		tertiary_message="$tertiary_message"
+	fi
+
+	local boldred="\e[1;31m"
+	local cyan="\e[1;36m"
+	local green="\e[1;32m"
+	local reset="\e[0m"
+	local yellow="\e[0;33m"
+
+	local color
+	case "$type" in
+	error)
+		color="$boldred"
+		;;
+	success)
+		color="$green"
+		;;
+	warning)
+		color="$yellow"
+		;;
+	info)
+		color="$cyan"
+		;;
+	*)
+		color="$cyan"
+		;;
+	esac
+
+	local width=80
+	local padding_title=$(((width - ${#title}) / 2))
+	local padding_message=$(((width - ${#message}) / 2))
+	local padding_secondary_message=$(((width - ${#secondary_message}) / 2))
+
+	local centered_title
+	local centered_message
+	centered_title=$(printf "%*s%s%*s" $padding_title "" "$title" $padding_title "")
+	centered_message=$(printf "%*s%s%*s" $padding_message "" "$message" $padding_message "")
+
+	echo ""
+	echo -e "${color}"
+	echo "#################################################################################"
+	echo "#                                                                               #"
+	echo -e "#${color}${centered_title}${reset}#"
+	echo "#                                                                               #"
+	echo -e "#${color}${centered_message}${reset}#"
+	echo "#                                                                               #"
+
+	if [ ${#secondary_message} -gt 3 ]; then
+		local centered_secondary_message
+		centered_secondary_message=$(printf "%*s%s%*s" $padding_secondary_message "" "$secondary_message" $padding_secondary_message "")
+		echo -e "#${color}${centered_secondary_message}${reset}#"
+		echo "#                                                                               #"
+	fi
+	if [ ${#tertiary_message} -gt 3 ]; then
+		local centered_tertiary_message
+		centered_tertiary_message=$(printf "%*s%s%*s" $padding_tertiary_message "" "$tertiary_message" $padding_tertiary_message "")
+		echo -e "#${color}${centered_tertiary_message}${reset}#"
+		echo "#                                                                               #"
+	fi
+	echo "#################################################################################"
+	echo -e "${reset}"
+	echo ""
+}
+
 function getVariableFromVariableGroup() {
 	local variable_group_id="$1"
 	local variable_name="$2"
@@ -25,9 +122,11 @@ function saveVariableInVariableGroup() {
 	local variable_group_id="$1"
 	local variable_name="$2"
 	local variable_value="$3"
-	return_code=0
+	local local_return_code=0
 
 	if [ -n "$variable_value" ]; then
+
+	  print_banner "Saving variable" "Variable name: $variable_name" "info" "Variable value: $variable_value"
 
 		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
 		if [ "$DEBUG" = True ]; then
@@ -36,10 +135,10 @@ function saveVariableInVariableGroup() {
 		fi
 		if [ ${#az_var} -gt 0 ]; then
 			az pipelines variable-group variable update --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
-			return_code=$?
+			local_return_code=$?
 		else
 			az pipelines variable-group variable create --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
-			return_code=$?
+			local_return_code=$?
 		fi
 	else
 		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
@@ -49,10 +148,10 @@ function saveVariableInVariableGroup() {
 		fi
 		if [ ${#az_var} -gt 0 ]; then
 			az pipelines variable-group variable delete --group-id "${variable_group_id}" --name "${variable_name}" --output none --only-show-errors
-			return_code=$?
+			local_return_code=$?
 		fi
 	fi
-	return $return_code
+	return $local_return_code
 }
 
 function configureNonDeployer() {
@@ -85,7 +184,6 @@ function configureNonDeployer() {
 		sudo mv terraform /bin/
 		rm -f "terraform_${tf_version}_linux_amd64.zip"
 	fi
-
 }
 
 function LogonToAzure() {
@@ -186,8 +284,94 @@ function get_region_from_code() {
 	"WEUS") LOCATION_IN_FILENAME="westus" ;;
 	"WUS2") LOCATION_IN_FILENAME="westus2" ;;
 	"WUS3") LOCATION_IN_FILENAME="westus3" ;;
+	"NZNO") LOCATION_IN_FILENAME="newzealandnorth" ;;
 	*) LOCATION_IN_FILENAME="westeurope" ;;
 	esac
 	echo "$LOCATION_IN_FILENAME"
 
+}
+
+function get_variable_group_id() {
+	local variable_group_name="$1"
+	local variable_group_id
+	var_name="$2"
+
+	unset GROUP_ID
+	variable_group_id=$(az pipelines variable-group list --query "[?name=='$variable_group_name'].id | [0]" --output tsv)
+	if [ -z "$variable_group_id" ]; then
+		return 1
+	fi
+
+	echo ""
+	echo -e "${green}Variable group information:"
+	echo -e "--------------------------------------------------------------------------------${reset}"
+	echo "Variable group name:                 $variable_group_name"
+	echo "Variable group id:                   $variable_group_id"
+	echo ""
+
+	typeset -g "${var_name}" # declare the specified variable as global
+
+	eval "${var_name}=${variable_group_id}" # set the variable in global context
+	return 0
+}
+
+function print_header() {
+	echo ""
+	local green="\e[1;32m"
+	local reset="\e[0m"
+	echo ""
+	echo -e "${green}DevOps information:"
+	echo -e "-------------------------------------------------------------------------------$reset"
+
+	echo "Agent pool:                          $THIS_AGENT"
+	echo "Organization:                        $SYSTEM_COLLECTIONURI"
+	echo "Project:                             $SYSTEM_TEAMPROJECT"
+	echo ""
+	if printenv TF_VAR_agent_pat; then
+		echo "Deployer Agent PAT:                  IsDefined"
+	fi
+	if printenv POOL; then
+		echo "Deployer Agent Pool:                 $POOL"
+	fi
+	echo ""
+	echo -e "${green}Azure CLI version:${reset}"
+	echo -e "${green}-------------------------------------------------${reset}"
+	az --version
+	echo ""
+	echo -e "${green}Terraform version:${reset}"
+	echo -e "${green}-------------------------------------------------${reset}"
+	if [ -f /opt/terraform/bin/terraform ]; then
+		tfPath="/opt/terraform/bin/terraform"
+	else
+		tfPath=$(which terraform)
+	fi
+
+	"${tfPath}" --version
+
+}
+
+function configure_devops() {
+	echo ""
+	echo -e "$green--- Configure devops CLI extension ---$reset"
+	az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
+	az config set extension.dynamic_install_allow_preview=true --output none --only-show-errors
+
+	if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
+		az extension add --name azure-devops --output none --only-show-errors
+	fi
+
+	az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
+
+	if ! az extension list --query "[?contains(name, 'resource-graph')]" --output table; then
+		az extension add --name resource-graph
+	fi
+}
+
+function remove_variable() {
+	local variable_name="$2"
+	local variable_group="$1"
+	variable_value=$(az pipelines variable-group variable list --group-id "${variable_group}" --query "$variable_name.value" --out tsv)
+	if [ ${#variable_value} != 0 ]; then
+		az pipelines variable-group variable delete --group-id "${variable_group}" --name "$variable_name" --yes --only-show-errors
+	fi
 }

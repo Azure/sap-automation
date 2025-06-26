@@ -4,27 +4,34 @@
 
 green="\e[1;32m"
 reset="\e[0m"
-echo -e "$green--- Configure devops CLI extension ---$reset"
-az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors --output none
+
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+parent_directory="$(dirname "$script_directory")"
+
+SCRIPT_NAME="$(basename "$0")"
 
 if [ "$SYSTEM_DEBUG" = True ]; then
-  set -x
-  debug=true
-  export debug
+	set -x
+	debug=true
+	export debug
 fi
 
-ENVIRONMENT=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-echo "Environment:                           $ENVIRONMENT"
+banner_title="Remove SAP System"
 
-LOCATION=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-echo
-echo "Location:                              $LOCATION"
+#call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${parent_directory}/deploy_utils.sh"
 
-NETWORK=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
-echo "Network:                               $NETWORK"
+#call stack has full script name when using source
+source "${script_directory}/helper.sh"
+
+# Print the execution environment details
+print_header
 
 
 SID=$(echo "$SAP_SYSTEM_FOLDERNAME" | awk -F'-' '{print $4}' | xargs)
+echo "System:                                $SAP_SYSTEM_FOLDERNAME"
 echo "SID:                                   $SID"
 
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
@@ -46,6 +53,7 @@ if [ -d ".terraform" ]; then
 fi
 
 if [ -f "$SAP_SYSTEM_TFVARS_FILENAME" ]; then
+	sed -i /"custom_random_id"/d "$SAP_SYSTEM_TFVARS_FILENAME"
   git add "$SAP_SYSTEM_TFVARS_FILENAME"
   changed=1
 fi
