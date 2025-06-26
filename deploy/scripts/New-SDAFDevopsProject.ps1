@@ -32,6 +32,13 @@ else {
   $CreateConnection = $true
 }
 
+if ( $null -ne $Env:SDAF_BRANCH ) {
+  $branch = $Env:SDAF_BRANCH
+}
+else {
+  $branch = "main"
+}
+
 if ( $null -ne $Env:ImportFromGitHub) {
   $ImportFromGitHub = [System.Convert]::ToBoolean($Env:ImportFromGitHub)
 }
@@ -48,17 +55,7 @@ else {
 if ($IsWindows) { $pathSeparator = "\" } else { $pathSeparator = "/" }
 #endregion
 
-#region Install extension
-
-Write-Host "Installing the DevOps extensions" -ForegroundColor Green
-$extension_name = (az devops extension list --organization $ADO_Organization --query "[?extensionName=='Post Build Cleanup'].extensionName | [0]")
-
-if ($extension_name.Length -eq 0) {
-  az devops extension install --organization $ADO_Organization --extension PostBuildCleanup --publisher-id mspremier --output none
-}
-
-#endregion
-$versionLabel = "v3.15.0.0"
+$versionLabel = "v3.14.1.0"
 
 # az logout
 
@@ -79,8 +76,6 @@ if ($Env:AZURE_DEVOPS_EXT_PAT.Length -gt 0) {
   $PAT = $Env:AZURE_DEVOPS_EXT_PAT
   $CreatePAT = $false
 }
-
-
 
 $checkPAT = (az devops user list --organization $ADO_Organization --only-show-errors --top 1)
 if ($checkPAT.Length -eq 0) {
@@ -119,6 +114,7 @@ Write-Host "Using authentication method: $authenticationMethod" -ForegroundColor
 
 az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
 
+az extension add --name azure-devops --only-show-errors
 
 #region Validate parameters
 
@@ -203,15 +199,24 @@ $WEB_APP_CLIENT_SECRET = "Enter your App registration secret here"
 
 #endregion
 
-$fileName = "start.md"
+$fname = "start.md"
 
-Add-Content -Path $fileName -Value "# Welcome to the SDAF Wiki"
-Add-Content -Path $fileName -Value ""
-Add-Content -Path $fileName -Value "## Deployment details"
-Add-Content -Path $fileName -Value ""
-Add-Content -Path $fileName -Value "Azure DevOps organization: $ADO_Organization"
+Add-Content -Path $fname -Value "# Welcome to the SDAF Wiki"
+Add-Content -Path $fname -Value ""
+Add-Content -Path $fname -Value "## Deployment details"
+Add-Content -Path $fname -Value ""
+Add-Content -Path $fname -Value "Azure DevOps organization: $ADO_Organization"
 
+#region Install extension
 
+Write-Host "Installing the DevOps extensions" -ForegroundColor Green
+$extension_name = (az devops extension list --organization $ADO_Organization --query "[?extensionName=='Post Build Cleanup'].extensionName | [0]")
+
+if ($extension_name.Length -eq 0) {
+  az devops extension install --organization $ADO_Organization --extension PostBuildCleanup --publisher-id mspremier --output none
+}
+
+#endregion
 
 #region Create DevOps project
 $Project_ID = (az devops project list --organization $ADO_ORGANIZATION --query "[value[]] | [0] | [? name=='$ADO_PROJECT'].id | [0]" --out tsv)
@@ -220,24 +225,25 @@ if ($Project_ID.Length -eq 0) {
   Write-Host "Creating the project: " $ADO_PROJECT -ForegroundColor Green
   $Project_ID = (az devops project create --name $ADO_PROJECT --description 'SDAF Automation Project' --organization $ADO_ORGANIZATION --visibility private --source-control git --query id --output tsv)
 
-  Add-Content -Path $fileName -Value ""
-  Add-Content -Path $fileName -Value "Using Azure DevOps Project: $ADO_PROJECT"
+  Add-Content -Path $fname -Value ""
+  Add-Content -Path $fname -Value "Using Azure DevOps Project: $ADO_PROJECT"
 
   az devops configure --defaults organization=$ADO_ORGANIZATION project="$ADO_PROJECT"
 
   $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]"  --out tsv)
+  $repo_url = (az repos list --query "[?name=='$ADO_Project'].webUrl | [0]"  --out tsv)
 
   Write-Host "Importing the content from GitHub" -ForegroundColor Green
   az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id   --output none
 
-  az repos update --repository $repo_id --default-branch main  --output none
+  az repos update --repository $repo_id --default-branch $branch   --output none
 
 }
 
 else {
 
-  Add-Content -Path $fileName -Value ""
-  Add-Content -Path $fileName -Value "DevOps Project: $ADO_PROJECT"
+  Add-Content -Path $fname -Value ""
+  Add-Content -Path $fname -Value "DevOps Project: $ADO_PROJECT"
 
   Write-Host "Using an existing project"
 
@@ -247,14 +253,15 @@ else {
   if ($repo_id.Length -ne 0) {
     Write-Host "Using repository '$ADO_Project'" -ForegroundColor Green
   }
+  $repo_url = (az repos list --query "[?name=='$ADO_Project'].webUrl | [0]"  --out tsv)
 
   $repo_size = (az repos list --query "[?name=='$ADO_Project'].size | [0]"  --output tsv)
 
   if ($repo_size -eq 0) {
     Write-Host "Importing the repository from GitHub" -ForegroundColor Green
 
-    Add-Content -Path $fileName -Value ""
-    Add-Content -Path $fileName -Value "Terraform and Ansible code repository stored in the DevOps project (sap-automation)"
+    Add-Content -Path $fname -Value ""
+    Add-Content -Path $fname -Value "Terraform and Ansible code repository stored in the DevOps project (sap-automation)"
 
     az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id   --output tsv
     if ($LastExitCode -eq 1) {
@@ -274,8 +281,16 @@ else {
     }
   }
 
-  az repos update --repository $repo_id --default-branch main  --output none
+  az repos update --repository $repo_id --default-branch $branch   --output none
 }
+
+if ( Test-Path "temprepo") {
+  Write-Host "Removing temprepo" -ForegroundColor Green
+  Remove-Item -Path (Join-Path -PAth Get-Location -ChildPath "temprepo") -Recurse -Force
+}
+
+$tempPath = New-Item -Path (Join-Path -PAth Get-Location -ChildPath "temprepo") -ItemType Directory -Force | Out-Null
+git clone $repo_url $tempPath
 
 if ( $null -ne $Env:ImportFromGitHub) {
   if ([System.Convert]::ToBoolean($Env:ImportFromGitHub)) {
@@ -291,8 +306,8 @@ else {
 
 
 if ($confirmation -ne 'y') {
-  Add-Content -Path $fileName -Value ""
-  Add-Content -Path $fileName -Value "Using the code from the sap-automation repository"
+  Add-Content -Path $fname -Value ""
+  Add-Content -Path $fname -Value "Using the code from the sap-automation repository"
 
   $import_code = $true
   $repo_name = "sap-automation"
@@ -300,7 +315,7 @@ if ($confirmation -ne 'y') {
   az repos create --name $repo_name --query id  --output none
   $code_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]"  --out tsv)
   az repos import create --git-url https://github.com/Azure/SAP-automation --repository $code_repo_id  --output none
-  az repos update --repository $code_repo_id --default-branch main  --output none
+  az repos update --repository $code_repo_id --default-branch $branch   --output none
 
   $import_code = $true
   $repo_name = "sap-samples"
@@ -308,7 +323,7 @@ if ($confirmation -ne 'y') {
   az repos create --name $repo_name --query id  --output none
   $sample_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]"  --out tsv)
   az repos import create --git-url https://github.com/Azure/SAP-automation-samples --repository $sample_repo_id  --output none
-  az repos update --repository $sample_repo_id --default-branch main  --output none
+  az repos update --repository $sample_repo_id --default-branch $branch   --output none
 
   if ($ADO_Project -ne "SAP Deployment Automation Framework") {
 
@@ -317,31 +332,31 @@ if ($confirmation -ne 'y') {
     $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
 
-    $templateName = "resources.yml"
-    if (Test-Path $templateName) {
-      Remove-Item $templateName
+    $templatename = "resources.yml"
+    if (Test-Path $templatename) {
+      Remove-Item $templatename
     }
 
-    Add-Content -Path $templateName ""
-    Add-Content -Path $templateName "parameters:"
-    Add-Content -Path $templateName "  - name: stages"
-    Add-Content -Path $templateName "    type: stageList"
-    Add-Content -Path $templateName "    default: []"
-    Add-Content -Path $templateName ""
-    Add-Content -Path $templateName "stages:"
-    Add-Content -Path $templateName "  - `${{ parameters.stages }}"
-    Add-Content -Path $templateName ""
-    Add-Content -Path $templateName "resources:"
-    Add-Content -Path $templateName "  repositories:"
-    Add-Content -Path $templateName "    - repository: sap-automation"
-    Add-Content -Path $templateName "      type: git"
-    Add-Content -Path $templateName "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $templateName -Value ("      ref: refs/heads/main")
-    #Add-Content -Path $templateName -Value ("      ref: refs/tags/" + $versionLabel)
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "parameters:"
+    Add-Content -Path $templatename "  - name: stages"
+    Add-Content -Path $templatename "    type: stageList"
+    Add-Content -Path $templatename "    default: []"
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "stages:"
+    Add-Content -Path $templatename "  - `${{ parameters.stages }}"
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "resources:"
+    Add-Content -Path $templatename "  repositories:"
+    Add-Content -Path $templatename "    - repository: sap-automation"
+    Add-Content -Path $templatename "      type: git"
+    Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
+    Add-Content -Path $templatename -Value ("      ref: refs/heads/main")
+    #Add-Content -Path $templatename -Value ("      ref: refs/tags/" + $versionLabel)
 
-    $cont = Get-Content -Path $templateName -Raw
+    $cont = Get-Content -Path $templatename -Raw
 
-    $inputFile = "sdaf.json"
+    $inputfile = "sdaf.json"
 
     $postBody = [PSCustomObject]@{
       refUpdates = @(@{
@@ -361,41 +376,41 @@ if ($confirmation -ne 'y') {
         })
     }
 
-    Set-Content -Path $inputFile -Value ($postBody | ConvertTo-Json -Depth 6)
+    Set-Content -Path $inputfile -Value ($postBody | ConvertTo-Json -Depth 6)
 
     az devops invoke `
       --area git --resource pushes `
       --route-parameters project=$ADO_Project repositoryId=$repo_id `
-      --http-method POST --in-file $inputFile `
+      --http-method POST --in-file $inputfile `
       --api-version "6.0" --output none
 
-    Remove-Item $templateName
-    $templateName = "resources_including_samples.yml"
-    Add-Content -Path $templateName ""
-    Add-Content -Path $templateName "parameters:"
-    Add-Content -Path $templateName "  - name: stages"
-    Add-Content -Path $templateName "    type: stageList"
-    Add-Content -Path $templateName "    default: []"
-    Add-Content -Path $templateName ""
-    Add-Content -Path $templateName "stages:"
-    Add-Content -Path $templateName "  - `${{ parameters.stages }}"
-    Add-Content -Path $templateName ""
-    Add-Content -Path $templateName "resources:"
-    Add-Content -Path $templateName "  repositories:"
-    Add-Content -Path $templateName "    - repository: sap-automation"
-    Add-Content -Path $templateName "      type: git"
-    Add-Content -Path $templateName "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $templateName -Value ("      ref: refs/heads/main")
-    #Add-Content -Path $templateName -Value ("      ref: refs/tags/" + $versionLabel)
-    Add-Content -Path $templateName "    - repository: sap-samples"
-    Add-Content -Path $templateName "      type: git"
-    Add-Content -Path $templateName "      name: $ADO_Project/sap-samples"
-    Add-Content -Path $templateName "      ref: refs/heads/main"
+    Remove-Item $templatename
+    $templatename = "resources_including_samples.yml"
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "parameters:"
+    Add-Content -Path $templatename "  - name: stages"
+    Add-Content -Path $templatename "    type: stageList"
+    Add-Content -Path $templatename "    default: []"
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "stages:"
+    Add-Content -Path $templatename "  - `${{ parameters.stages }}"
+    Add-Content -Path $templatename ""
+    Add-Content -Path $templatename "resources:"
+    Add-Content -Path $templatename "  repositories:"
+    Add-Content -Path $templatename "    - repository: sap-automation"
+    Add-Content -Path $templatename "      type: git"
+    Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
+    Add-Content -Path $templatename -Value ("      ref: refs/heads/main")
+    #Add-Content -Path $templatename -Value ("      ref: refs/tags/" + $versionLabel)
+    Add-Content -Path $templatename "    - repository: sap-samples"
+    Add-Content -Path $templatename "      type: git"
+    Add-Content -Path $templatename "      name: $ADO_Project/sap-samples"
+    Add-Content -Path $templatename "      ref: refs/heads/main"
 
     $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
     Remove-Item "sdaf.json"
-    $cont = Get-Content -Path $templateName -Raw
+    $cont = Get-Content -Path $templatename -Raw
 
     $postBody = [PSCustomObject]@{
       refUpdates = @(@{
@@ -415,15 +430,15 @@ if ($confirmation -ne 'y') {
         })
     }
 
-    Set-Content -Path $inputFile -Value ($postBody | ConvertTo-Json -Depth 6)
+    Set-Content -Path $inputfile -Value ($postBody | ConvertTo-Json -Depth 6)
 
     az devops invoke `
       --area git --resource pushes `
       --route-parameters project=$ADO_Project repositoryId=$repo_id `
-      --http-method POST --in-file $inputFile `
+      --http-method POST --in-file $inputfile `
       --api-version "6.0" --output none
 
-    Remove-Item $templateName
+    Remove-Item $templatename
   }
 
   $code_repo_id = (az repos list --query "[?name=='sap-automation'].id | [0]"  --out tsv)
@@ -432,8 +447,8 @@ if ($confirmation -ne 'y') {
   $pipeline_permission_url = "$ADO_ORGANIZATION/$projectID/_apis/pipelines/pipelinePermissions/repository/$projectID.$code_repo_id$queryString"
 }
 else {
-  Add-Content -Path $fileName -Value ""
-  Add-Content -Path $fileName -Value "Using the code directly from GitHub"
+  Add-Content -Path $fname -Value ""
+  Add-Content -Path $fname -Value "Using the code directly from GitHub"
 
   $resources_url = $ADO_ORGANIZATION + "/_git/" + [uri]::EscapeDataString($ADO_Project) + "?path=/pipelines/resources.yml"
 
@@ -481,9 +496,9 @@ $groups.Add($general_group_id)
 #region Create pipelines
 Write-Host "Creating the pipelines in repo: " $repo_name "(" $repo_id ")" -foregroundColor Green
 
-Add-Content -Path $fileName -Value ""
-Add-Content -Path $fileName -Value "### Pipelines"
-Add-Content -Path $fileName -Value ""
+Add-Content -Path $fname -Value ""
+Add-Content -Path $fname -Value "### Pipelines"
+Add-Content -Path $fname -Value ""
 
 $pipeline_name = 'Create Control Plane configuration'
 $sample_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
@@ -493,7 +508,7 @@ if ($sample_pipeline_id.Length -eq 0) {
 }
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $sample_pipeline_id
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
-Add-Content -Path $fileName -Value $log
+Add-Content -Path $fname -Value $log
 
 $pipeline_name = 'Deploy Control plane'
 $control_plane_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
@@ -506,7 +521,7 @@ $pipelines.Add($control_plane_pipeline_id)
 
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $control_plane_pipeline_id
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
-Add-Content -Path $fileName -Value $log
+Add-Content -Path $fname -Value $log
 
 $pipeline_name = 'SAP Workload Zone deployment'
 $wz_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
@@ -519,7 +534,7 @@ $pipelines.Add($wz_pipeline_id)
 
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $wz_pipeline_id
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
-Add-Content -Path $fileName -Value $log
+Add-Content -Path $fname -Value $log
 
 $pipeline_name = 'SAP SID Infrastructure deployment'
 $system_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
@@ -531,7 +546,7 @@ $pipelines.Add($system_pipeline_id)
 
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $system_pipeline_id
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
-Add-Content -Path $fileName -Value $log
+Add-Content -Path $fname -Value $log
 
 $pipeline_name = 'SAP Software acquisition'
 $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
@@ -543,7 +558,7 @@ $pipelines.Add($pipeline_id)
 
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
-Add-Content -Path $fileName -Value $log
+Add-Content -Path $fname -Value $log
 
 $pipeline_name = 'Configuration and SAP installation'
 $installation_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
@@ -555,7 +570,7 @@ $pipelines.Add($installation_pipeline_id)
 
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $installation_pipeline_id
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
-Add-Content -Path $fileName -Value $log
+Add-Content -Path $fname -Value $log
 
 $pipeline_name = 'SAP installation using SAP-CAL'
 $sapcal_installation_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
@@ -567,7 +582,7 @@ $pipelines.Add($sapcal_installation_pipeline_id)
 
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $sapcal_installation_pipeline_id
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
-Add-Content -Path $fileName -Value $log
+Add-Content -Path $fname -Value $log
 
 $pipeline_name = 'Remove System or Workload Zone'
 $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
@@ -579,7 +594,7 @@ $pipelines.Add($pipeline_id)
 
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
-Add-Content -Path $fileName -Value $log
+Add-Content -Path $fname -Value $log
 
 $pipeline_name = 'Remove deployments via ARM'
 $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
@@ -591,7 +606,7 @@ $pipelines.Add($pipeline_id)
 
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
-Add-Content -Path $fileName -Value $log
+Add-Content -Path $fname -Value $log
 
 $pipeline_name = 'Remove control plane'
 $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
@@ -603,7 +618,7 @@ $pipelines.Add($pipeline_id)
 
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
-Add-Content -Path $fileName -Value $log
+Add-Content -Path $fname -Value $log
 
 if ($import_code) {
   $pipeline_name = 'Update repository'
@@ -614,7 +629,7 @@ if ($import_code) {
   $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
   $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
   $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
-  Add-Content -Path $fileName -Value $log
+  Add-Content -Path $fname -Value $log
   $pipelines.Add($pipeline_id)
 }
 
@@ -629,7 +644,7 @@ $pipelines.Add($pipeline_id)
 
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
-Add-Content -Path $fileName -Value $log
+Add-Content -Path $fname -Value $log
 
 if ($true -eq $CreateConnection ) {
   $gh_connection_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
@@ -643,32 +658,32 @@ if ($true -eq $CreateConnection ) {
 
   $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
-  $templateName = "resources.yml"
-  if (Test-Path $templateName) {
-    Remove-Item $templateName
+  $templatename = "resources.yml"
+  if (Test-Path $templatename) {
+    Remove-Item $templatename
   }
 
-  Add-Content -Path $templateName ""
-  Add-Content -Path $templateName "parameters:"
-  Add-Content -Path $templateName "  - name: stages"
-  Add-Content -Path $templateName "    type: stageList"
-  Add-Content -Path $templateName "    default: []"
-  Add-Content -Path $templateName ""
-  Add-Content -Path $templateName "stages:"
-  Add-Content -Path $templateName "  - `${{ parameters.stages }}"
-  Add-Content -Path $templateName ""
-  Add-Content -Path $templateName "resources:"
-  Add-Content -Path $templateName "  repositories:"
-  Add-Content -Path $templateName "    - repository: sap-automation"
-  Add-Content -Path $templateName "      type: GitHub"
-  Add-Content -Path $templateName -Value ("      endpoint: " + $ghConn)
-  Add-Content -Path $templateName "      name: Azure/sap-automation"
-  Add-Content -Path $templateName "      ref: refs/heads/main"
-  #  Add-Content -Path $templateName -Value ("      ref: refs/tags/" + $versionLabel)
+  Add-Content -Path $templatename ""
+  Add-Content -Path $templatename "parameters:"
+  Add-Content -Path $templatename "  - name: stages"
+  Add-Content -Path $templatename "    type: stageList"
+  Add-Content -Path $templatename "    default: []"
+  Add-Content -Path $templatename ""
+  Add-Content -Path $templatename "stages:"
+  Add-Content -Path $templatename "  - `${{ parameters.stages }}"
+  Add-Content -Path $templatename ""
+  Add-Content -Path $templatename "resources:"
+  Add-Content -Path $templatename "  repositories:"
+  Add-Content -Path $templatename "    - repository: sap-automation"
+  Add-Content -Path $templatename "      type: GitHub"
+  Add-Content -Path $templatename -Value ("      endpoint: " + $ghConn)
+  Add-Content -Path $templatename "      name: Azure/sap-automation"
+  Add-Content -Path $templatename "      ref: refs/heads/main"
+  #  Add-Content -Path $templatename -Value ("      ref: refs/tags/" + $versionLabel)
 
-  $cont = Get-Content -Path $templateName -Raw
+  $cont = Get-Content -Path $templatename -Raw
 
-  $inputFile = "sdaf.json"
+  $inputfile = "sdaf.json"
 
   $postBody = [PSCustomObject]@{
     refUpdates = @(@{
@@ -688,39 +703,39 @@ if ($true -eq $CreateConnection ) {
       })
   }
 
-  Set-Content -Path $inputFile -Value ($postBody | ConvertTo-Json -Depth 6)
+  Set-Content -Path $inputfile -Value ($postBody | ConvertTo-Json -Depth 6)
 
   az devops invoke `
     --area git --resource pushes `
     --route-parameters project=$ADO_Project repositoryId=$repo_id `
-    --http-method POST --in-file $inputFile `
+    --http-method POST --in-file $inputfile `
     --api-version "6.0" --output none
 
-  Remove-Item $templateName
-  $templateName = "resources_including_samples.yml"
+  Remove-Item $templatename
+  $templatename = "resources_including_samples.yml"
 
-  Add-Content -Path $templateName "parameters:"
-  Add-Content -Path $templateName " - name: stages"
-  Add-Content -Path $templateName "   type: stageList"
-  Add-Content -Path $templateName "   default: []"
-  Add-Content -Path $templateName ""
-  Add-Content -Path $templateName "stages:"
-  Add-Content -Path $templateName " - `${{ parameters.stages }}"
-  Add-Content -Path $templateName ""
-  Add-Content -Path $templateName "resources:"
-  Add-Content -Path $templateName "  repositories:"
-  Add-Content -Path $templateName "   - repository: sap-automation"
-  Add-Content -Path $templateName "     type: GitHub"
-  Add-Content -Path $templateName -Value ("     endpoint: " + $ghConn)
-  Add-Content -Path $templateName "     name: Azure/sap-automation"
-  Add-Content -Path $templateName "     ref: refs/heads/main"
-  Add-Content -Path $templateName "   - repository: sap-samples"
-  Add-Content -Path $templateName "     type: GitHub"
-  Add-Content -Path $templateName -Value ("     endpoint: " + $ghConn)
-  Add-Content -Path $templateName "     name: Azure/sap-automation-samples"
-  Add-Content -Path $templateName "     ref: refs/heads/main"
+  Add-Content -Path $templatename "parameters:"
+  Add-Content -Path $templatename " - name: stages"
+  Add-Content -Path $templatename "   type: stageList"
+  Add-Content -Path $templatename "   default: []"
+  Add-Content -Path $templatename ""
+  Add-Content -Path $templatename "stages:"
+  Add-Content -Path $templatename " - `${{ parameters.stages }}"
+  Add-Content -Path $templatename ""
+  Add-Content -Path $templatename "resources:"
+  Add-Content -Path $templatename "  repositories:"
+  Add-Content -Path $templatename "   - repository: sap-automation"
+  Add-Content -Path $templatename "     type: GitHub"
+  Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
+  Add-Content -Path $templatename "     name: Azure/sap-automation"
+  Add-Content -Path $templatename "     ref: refs/heads/main"
+  Add-Content -Path $templatename "   - repository: sap-samples"
+  Add-Content -Path $templatename "     type: GitHub"
+  Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
+  Add-Content -Path $templatename "     name: Azure/sap-automation-samples"
+  Add-Content -Path $templatename "     ref: refs/heads/main"
 
-  $cont2 = Get-Content -Path $templateName -Raw
+  $cont2 = Get-Content -Path $templatename -Raw
 
   $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
@@ -744,16 +759,16 @@ if ($true -eq $CreateConnection ) {
       })
   }
 
-  Set-Content -Path $inputFile -Value ($postBody | ConvertTo-Json -Depth 6)
+  Set-Content -Path $inputfile -Value ($postBody | ConvertTo-Json -Depth 6)
 
   az devops invoke `
     --area git --resource pushes `
     --route-parameters project=$ADO_Project repositoryId=$repo_id `
-    --http-method POST --in-file $inputFile `
+    --http-method POST --in-file $inputfile `
     --api-version "6.0" --output none
 
-  Remove-Item $templateName
-  Remove-Item $inputFile
+  Remove-Item $templatename
+  Remove-Item $inputfile
 
   Write-Host ""
   $Service_Connection_Name = "Control_Plane_Service_Connection"
@@ -781,16 +796,16 @@ else {
 
 #endregion
 
-Add-Content -Path $fileName -Value ""
-Add-Content -Path $fileName -Value "### Variable Groups"
-Add-Content -Path $fileName -Value ""
-Add-Content -Path $fileName -Value "SDAF-General"
-Add-Content -Path $fileName -Value $ControlPlanePrefix
-Add-Content -Path $fileName -Value $WorkloadZonePrefix
+Add-Content -Path $fname -Value ""
+Add-Content -Path $fname -Value "### Variable Groups"
+Add-Content -Path $fname -Value ""
+Add-Content -Path $fname -Value "SDAF-General"
+Add-Content -Path $fname -Value $ControlPlanePrefix
+Add-Content -Path $fname -Value $WorkloadZonePrefix
 
-Add-Content -Path $fileName -Value "### Credentials"
-Add-Content -Path $fileName -Value ""
-Add-Content -Path $fileName -Value ("Web Application: " + $ApplicationName)
+Add-Content -Path $fname -Value "### Credentials"
+Add-Content -Path $fname -Value ""
+Add-Content -Path $fname -Value ("Web Application: " + $ApplicationName)
 
 $MSI_objectId = $null
 if ($authenticationMethod -eq "Managed Identity") {
@@ -854,6 +869,12 @@ if ($WebApp) {
     $APP_REGISTRATION_ID = (az ad app create --display-name $ApplicationName --enable-id-token-issuance true --sign-in-audience AzureADMyOrg --required-resource-access $manifestPath --query "appId" --output tsv)
     $ExistingData = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
     $APP_REGISTRATION_OBJECTID = $ExistingData.id
+    az role assignment create --assignee $APP_REGISTRATION_OBJECTID --role "Reader" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
+    az role assignment create --assignee $APP_REGISTRATION_OBJECTID --role "Storage Blob Data Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
+    az role assignment create --assignee $APP_REGISTRATION_OBJECTID --role "Storage Table Data Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
 
     if (Test-Path $manifestPath) { Write-Host "Removing manifest.json" ; Remove-Item $manifestPath }
 
@@ -873,6 +894,8 @@ if ($WebApp) {
 
       Start-Process $API_URL
       Read-Host -Prompt "Once you have created and validated the scope, Press any key to continue"
+
+
     }
 
   }
@@ -887,7 +910,7 @@ if ($authenticationMethod -eq "Service Principal") {
     $spn_name = $Env:SDAF_MGMT_SPN_NAME
   }
 
-  Add-Content -Path $fileName -Value ("Control Plane Service Principal: " + $spn_name)
+  Add-Content -Path $fname -Value ("Control Plane Service Principal: " + $spn_name)
 
   $scopes = "/subscriptions/" + $Control_plane_subscriptionID
 
@@ -898,8 +921,6 @@ if ($authenticationMethod -eq "Service Principal") {
   $ARM_TENANT_ID = ""
   $ARM_CLIENT_SECRET = "Please update"
 
-  $SPN_Created = $false
-  $bSkip = $true
 
   $found_appName = (az ad sp list --all --filter "startswith(displayName, '$spn_name')" --query "[?displayName=='$spn_name'].displayName | [0]" --only-show-errors)
   if ($found_appName.Length -gt 0) {
@@ -937,15 +958,33 @@ if ($authenticationMethod -eq "Service Principal") {
 
   az role assignment create --assignee $ARM_CLIENT_ID --role "User Access Administrator" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
 
+  az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Blob Data Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
+  az role assignment create --assignee $ARM_CLIENT_ID --role "Storage Table Data Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
+  az role assignment create --assignee $ARM_CLIENT_ID --role "App Configuration Data Owner" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
+  az role assignment create --assignee $ARM_CLIENT_ID --role "Private DNS Zone Contributor" --subscription $Control_plane_subscriptionID --scope /subscriptions/$Control_plane_subscriptionID --output none
+
   $Control_plane_groupID = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
   if ($Control_plane_groupID.Length -eq 0) {
     Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
 
     if ($WebApp) {
-      az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines'  PAT=$PAT APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID APP_REGISTRATION_OBJECTID=$APP_REGISTRATION_OBJECTID APP_TENANT_ID=$ARM_TENANT_ID ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF --output none --authorize true
+      if ($authenticationMethod -eq "Managed Identity") {
+        az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines'  PAT=$PAT APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID APP_REGISTRATION_OBJECTID=$APP_REGISTRATION_OBJECTID APP_TENANT_ID=$ARM_TENANT_ID ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF USE_MSI=true CONTROL_PLANE_NAME=$Control_plane_code --output none --authorize true
+      }
+      else {
+        az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines'  PAT=$PAT APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID APP_REGISTRATION_OBJECTID=$APP_REGISTRATION_OBJECTID APP_TENANT_ID=$ARM_TENANT_ID ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF USE_MSI=false CONTROL_PLANE_NAME=$Control_plane_code --output none --authorize true
+      }
     }
     else {
-      az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' PAT=$PAT ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF --output none --authorize true
+      if ($authenticationMethod -eq "Managed Identity") {
+        az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' PAT=$PAT ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF USE_MSI=true CONTROL_PLANE_NAME=$Control_plane_code --output none --authorize true
+      }
+      else {
+        az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' PAT=$PAT ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET='Enter your SPN password here' ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF USE_MSI=FALSE CONTROL_PLANE_NAME=$Control_plane_code --output none --authorize true
+      }
     }
     $Control_plane_groupID = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
   }
@@ -983,10 +1022,10 @@ else {
   if ($Control_plane_groupID.Length -eq 0) {
     Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
     if ($WebApp) {
-      az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' PAT=$PAT APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID APP_REGISTRATION_OBJECTID=$APP_REGISTRATION_OBJECTID APP_TENANT_ID=$ARM_TENANT_ID ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF USE_MSI=true --output none --authorize true
+      az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' PAT=$PAT APP_REGISTRATION_APP_ID=$APP_REGISTRATION_ID APP_REGISTRATION_OBJECTID=$APP_REGISTRATION_OBJECTID APP_TENANT_ID=$ARM_TENANT_ID ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF USE_MSI=true CONTROL_PLANE_NAME=$Control_plane_code --output none --authorize true
     }
     else {
-      az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines'  PAT=$PAT ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF USE_MSI=true --output none --authorize true
+      az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines'  PAT=$PAT ARM_SUBSCRIPTION_ID=$Control_plane_subscriptionID POOL=$Pool_Name AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$wz_pipeline_id SYSTEM_PIPELINE_ID=$system_pipeline_id SDAF_GENERAL_GROUP_ID=$general_group_id SAP_INSTALL_PIPELINE_ID=$installation_pipeline_id TF_LOG=OFF USE_MSI=true CONTROL_PLANE_NAME=$Control_plane_code --output none --authorize true
     }
 
     $Control_plane_groupID = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
@@ -1136,12 +1175,12 @@ $pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) 
 
 $control_plane_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $control_plane_pipeline_id
 
-Add-Content -Path $fileName -Value "## Next steps"
-Add-Content -Path $fileName -Value ""
-Add-Content -Path $fileName -Value ( "Use the [Create Control Plane Configuration Sample](" + $pipeline_url + ") to create the control plane configuration in the region you select." )
-Add-Content -Path $fileName -Value ""
-Add-Content -Path $fileName -Value ( "Once it is complete use the [Deploy Control Plane Pipeline ](" + $control_plane_pipeline_url + ") to create the control plane configuration in the region you select.")
-Add-Content -Path $fileName -Value ""
+Add-Content -Path $fname -Value "## Next steps"
+Add-Content -Path $fname -Value ""
+Add-Content -Path $fname -Value ( "Use the [Create Control Plane Configuration Sample](" + $pipeline_url + ") to create the control plane configuration in the region you select." )
+Add-Content -Path $fname -Value ""
+Add-Content -Path $fname -Value ( "Once it is complete use the [Deploy Control Plane Pipeline ](" + $control_plane_pipeline_url + ") to create the control plane configuration in the region you select.")
+Add-Content -Path $fname -Value ""
 
 $WIKI_NAME_FOUND = (az devops wiki list --query "[?name=='SDAF'].name | [0]")
 if ($WIKI_NAME_FOUND.Length -gt 0) {

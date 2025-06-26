@@ -16,9 +16,11 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source
+#call stack has full script name when using source
 # shellcheck disable=SC1091
 source "${script_directory}/deploy_utils.sh"
+source "${script_directory}/helper.sh"
+
 
 function setSecretValue {
 	local keyvault=$1
@@ -77,7 +79,7 @@ function showhelp {
 
 deploy_using_msi_only=0
 
-INPUT_ARGUMENTS=$(getopt -n set_secrets -o e:r:v:s:c:p:t:b:hwm --longoptions environment:,region:,vault:,subscription:,spn_id:,spn_secret:,tenant_id:,keyvault_subscription:,workload,help,msi -- "$@")
+INPUT_ARGUMENTS=$(getopt -n set_secrets -o e:r:v:s:c:p:t:b:hwma --longoptions environment:,region:,vault:,subscription:,spn_id:,spn_secret:,tenant_id:,keyvault_subscription:,workload,help,msi,ado -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -139,9 +141,18 @@ while :; do
 	esac
 done
 
-if [ "$DEBUG" = True ]; then
+DEBUG=False
+
+if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
+	DEBUG=True
+	echo "Environment variables:"
+	printenv | sort
+
 fi
+export DEBUG
+set -eu
+
 
 while [ -z "${environment}" ]; do
 	read -r -p "Environment name: " environment

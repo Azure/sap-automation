@@ -8,7 +8,7 @@ function Get-IniContent {
     .SYNOPSIS
         Get-IniContent
 
-
+    
 .LINK
     https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
 
@@ -48,11 +48,11 @@ function Out-IniFile {
     <#
         .SYNOPSIS
             Out-IniContent
-
-
+    
+        
     .LINK
         https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
-
+    
         #>
     <#
     #>
@@ -1273,8 +1273,8 @@ resources:
       }
 
 
-      $ConfigurationUrl = "$AdoOrganization/_settings/agentpools"
-      Write-Host "The browser will now open, Please '$AdoProject Build Service' and the Managed Identity as an Administrator using the Security button." -ForegroundColor Blue
+      $ConfigurationUrl = "$AdoOrganization/_settings/agentpools?poolId=$AgentPoolId&view=security"
+      Write-Host "The browser will now open, Please '$AdoProject Build Service' as an Administrator to the Application Pool." -ForegroundColor Blue
 
       Start-Process $ConfigurationUrl
       Read-Host -Prompt "Once you have added the user, Press any key to continue"

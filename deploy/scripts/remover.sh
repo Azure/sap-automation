@@ -16,7 +16,7 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source
+#call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
@@ -379,12 +379,7 @@ if [ -f .terraform/terraform.tfstate ]; then
 
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 	if [ -n "${azure_backend}" ]; then
-		if terraform -chdir="${terraform_module_directory}" init -input=false -force-copy -upgrade=true \
-			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
-			--backend-config "container_name=tfstate" \
-			--backend-config "key=${key}.terraform.tfstate"; then
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
 			echo ""
 			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 			echo ""
@@ -395,7 +390,11 @@ if [ -f .terraform/terraform.tfstate ]; then
 			exit 1
 		fi
 	else
-		if terraform -chdir="${terraform_module_directory}" init -reconfigure -input=false \
+		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		REMOTE_STATE_SA=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+
+		if terraform -chdir="${terraform_module_directory}" init -reconfigure \
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -412,7 +411,7 @@ if [ -f .terraform/terraform.tfstate ]; then
 		fi
 	fi
 else
-	if terraform -chdir="${terraform_module_directory}" init -force-copy -reconfigure -input=false \
+	if terraform -chdir="${terraform_module_directory}" init -reconfigure \
 		--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 		--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 		--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -457,7 +456,7 @@ if [ "$resource_group_exist" ]; then
 			"$deployer_tfstate_key_parameter"
 
 		echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $reset_formatting"
-		terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" \
+		terraform -chdir="${terraform_module_directory}" destroy -refresh=false -var-file="${var_file}" \
 			"$deployer_tfstate_key_parameter"
 
 	elif [ "$deployment_system" == "sap_library" ]; then
@@ -479,7 +478,7 @@ if [ "$resource_group_exist" ]; then
 		terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
 			"$deployer_tfstate_key_parameter"
 
-		terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" "${approve}" -var use_deployer=false \
+		terraform -chdir="${terraform_bootstrap_directory}" destroy -refresh=false -var-file="${var_file}" "${approve}" -var use_deployer=false \
 			"$deployer_tfstate_key_parameter"
 	elif [ "$deployment_system" == "sap_landscape" ]; then
 
@@ -488,71 +487,71 @@ if [ "$resource_group_exist" ]; then
 
 		allParameters=$(printf " -var-file=%s %s %s  %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
-		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_ppk"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Secret 'sid_ppk' removed from state"
-			fi
-		fi
+		# moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_ppk"
+		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+		# 		echo "Secret 'sid_ppk' removed from state"
+		# 	fi
+		# fi
 
-		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_pk"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Secret 'sid_pk' removed from state"
-			fi
-		fi
+		# moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_pk"
+		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+		# 		echo "Secret 'sid_pk' removed from state"
+		# 	fi
+		# fi
 
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_username"
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Secret 'sid_username' removed from state"
-			fi
-		fi
+		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+		# 	moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_username"
+		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+		# 		echo "Secret 'sid_username' removed from state"
+		# 	fi
+		# fi
 
-		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_password"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Secret 'sid_password' removed from state"
-			fi
-		fi
+		# moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_password"
+		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+		# 		echo "Secret 'sid_password' removed from state"
+		# 	fi
+		# fi
 
-		moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_access_key"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Secret 'witness_access_key' removed from state"
-			fi
-		fi
+		# moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_access_key"
+		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+		# 		echo "Secret 'witness_access_key' removed from state"
+		# 	fi
+		# fi
 
-		moduleID="module.sap_landscape.azurerm_key_vault_secret.deployer_keyvault_user_name"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Secret 'deployer_keyvault_user_name' removed from state"
-			fi
-		fi
+		# moduleID="module.sap_landscape.azurerm_key_vault_secret.deployer_keyvault_user_name"
+		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+		# 		echo "Secret 'deployer_keyvault_user_name' removed from state"
+		# 	fi
+		# fi
 
-		moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_name"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Secret 'witness_name' removed from state"
-			fi
-		fi
+		# moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_name"
+		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+		# 		echo "Secret 'witness_name' removed from state"
+		# 	fi
+		# fi
 
-		moduleID="module.sap_landscape.azurerm_key_vault_secret.cp_subscription_id"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Secret 'cp_subscription_id' removed from state"
-			fi
-		fi
-		moduleID="module.sap_landscape.data.azurerm_key_vault_secret.cp_subscription_id"
-		if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-			if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-				echo "Secret 'data.cp_subscription_id' removed from state"
-			fi
-		fi
+		# moduleID="module.sap_landscape.azurerm_key_vault_secret.cp_subscription_id"
+		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+		# 		echo "Secret 'cp_subscription_id' removed from state"
+		# 	fi
+		# fi
+		# moduleID="module.sap_landscape.data.azurerm_key_vault_secret.cp_subscription_id"
+		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+		# 		echo "Secret 'data.cp_subscription_id' removed from state"
+		# 	fi
+		# fi
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee destroy_output.json; then
-				return_value=${PIPESTATUS[0]}
+			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
+				return_value=$?
 			else
 				return_value=${PIPESTATUS[0]}
 			fi
@@ -565,7 +564,7 @@ if [ "$resource_group_exist" ]; then
 
 		else
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
+			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters -parallelism="$parallelism"; then
 				return_value=$?
 			else
 				return_value=$?
@@ -591,12 +590,8 @@ if [ "$resource_group_exist" ]; then
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee destroy_output.json; then
-				return_value=${PIPESTATUS[0]}
-			else
-				return_value=${PIPESTATUS[0]}
-			fi
-			if [ 0 == $return_value ]; then
+			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
+				return_value=$?
 				echo ""
 				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
 				echo ""
@@ -609,7 +604,7 @@ if [ "$resource_group_exist" ]; then
 			fi
 		else
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
+			if terraform -chdir="${terraform_module_directory}" destroy -refresh=false $allParameters -parallelism="$parallelism"; then
 				return_value=$?
 				echo ""
 				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"

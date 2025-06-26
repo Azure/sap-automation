@@ -16,7 +16,7 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source
+#call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
 
 function showhelp {
@@ -26,7 +26,7 @@ function showhelp {
 	echo "#                                                                                       #"
 	echo "#   Usage: sync_deployer.sh                                                             #"
 	echo "#      -o or --storageaccountname      Storage account name for state file              #"
-	echo "#      -s or --state_subscription      Subscription for tfstate storage account         #"
+	echo "#      -s or --subscription            Subscription for tfstate storage account         #"
 	echo "#      -h or --help                    Show help                                        #"
 	echo "#                                                                                       #"
 	echo "#   Example:                                                                            #"
@@ -38,7 +38,7 @@ function showhelp {
 	echo "#########################################################################################"
 }
 
-INPUT_ARGUMENTS=$(getopt -n sync_deployer -o o:s:h --longoptions storageaccountname:,state_subscription:,help -- "$@")
+INPUT_ARGUMENTS=$(getopt -n sync_deployer -o o:s:hv --longoptions storageaccountname:,subscription:,help,verbose -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -48,7 +48,7 @@ fi
 eval set -- "$INPUT_ARGUMENTS"
 while :; do
 	case "$1" in
-	-k | --state_subscription)
+	-s | --subscription)
 		STATE_SUBSCRIPTION="$2"
 		shift 2
 		;;
@@ -61,6 +61,13 @@ while :; do
 		exit 3
 		shift
 		;;
+	-v | --verbose)
+		# Enable debugging
+		set -x
+		# Exit on error
+		set -o errexit
+		shift
+		;;
 	--)
 		shift
 		break
@@ -68,6 +75,7 @@ while :; do
 	esac
 done
 
+echo "Checking the storage account access methods"
 useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --query allowSharedKeyAccess --out tsv)
 
 if [ $useSAS = "true" ]; then

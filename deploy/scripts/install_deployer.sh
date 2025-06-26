@@ -15,7 +15,7 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source
+#call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
@@ -451,47 +451,54 @@ if [ 0 != $return_value ]; then
 	exit $return_value
 fi
 
-if keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \"); then
-	touch "${deployer_config_information}"
-	printf -v val %-.20s "$keyvault"
+if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                Keyvault to use for SPN details:$cyan $val $reset_formatting                 #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+	temp=$(echo "${keyvault}" | grep "Warning")
+	if [ -z "${temp}" ]; then
+		temp=$(echo "${keyvault}" | grep "Backend reinitialization required")
+		if [ -z "${temp}" ]; then
+			touch "${deployer_config_information}"
+			printf -v val %-.20s "$keyvault"
 
-	save_config_var "keyvault" "${deployer_config_information}"
-	TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
-	export TF_VAR_deployer_kv_user_arm_id
-	return_value=0
-else
-	return_value=2
-fi
+			echo ""
+			echo "#########################################################################################"
+			echo "#                                                                                       #"
+			echo -e "#                Keyvault to use for SPN details:$cyan $val $reset_formatting                 #"
+			echo "#                                                                                       #"
+			echo "#########################################################################################"
+			echo ""
 
-sshsecret=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_sshkey_secret_name | tr -d \")
-if [ -n "${sshsecret}" ]; then
-	save_config_var "sshsecret" "${deployer_config_information}"
-fi
+			return_value=0
+		else
+			return_value=2
+		fi
+	fi
 
-deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
-if [ -n "${deployer_public_ip_address}" ]; then
-	save_config_var "deployer_public_ip_address" "${deployer_config_information}"
-fi
+	APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
+	if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
+		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_config_information}"
+		export APPLICATION_CONFIGURATION_ID
+		echo "APPLICATION_CONFIGURATION_ID:         $APPLICATION_CONFIGURATION_ID"
+	fi
 
-deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-if [ -n "${deployer_random_id}" ]; then
-	save_config_var "deployer_random_id" "${deployer_config_information}"
-	custom_random_id="${deployer_random_id:0:3}"
-	sed -i -e /"custom_random_id"/d "${var_file}"
-	printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+	DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+	if [ -n "${DEPLOYER_KEYVAULT}" ]; then
 
+		save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
+		export DEPLOYER_KEYVAULT
+		echo "DEPLOYER_KEYVAULT:                   $DEPLOYER_KEYVAULT"
+	fi
+
+	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+	if [ -n "${deployer_random_id}" ]; then
+		custom_random_id="${deployer_random_id:0:3}"
+		sed -i -e /"custom_random_id"/d "${var_file}"
+		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+
+	fi
 fi
 
 unset TF_DATA_DIR
-
-echo "Exiting: ${SCRIPT_NAME}"
 
 exit $return_value

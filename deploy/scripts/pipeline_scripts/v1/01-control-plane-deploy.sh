@@ -238,7 +238,7 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 fi
 
 export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
-
+print_banner "$banner_title" "Starting the deployment" "info"
 sudo chmod +x "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh"
 if [ "$USE_MSI" != "true" ]; then
 
