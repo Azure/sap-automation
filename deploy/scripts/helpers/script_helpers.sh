@@ -506,7 +506,8 @@ function ImportAndReRunApply {
 	local importParameters=$3
 	local applyParameters=$4
 
-	return_value=0
+	local lreturn_value
+	lreturn_value=0
 
 	if [ -f "$fileName" ]; then
 
@@ -534,13 +535,13 @@ function ImportAndReRunApply {
 					echo terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"
 					# shellcheck disable=SC2086
 					if ! terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
-						return_value=$?
+						lreturn_value=$?
 						echo "Error when importing resource"
 						echo "Terraform import:                      failed"
 						if [ -f "$fileName" ]; then
 							rm "$fileName"
 						fi
-						return $return_value
+						return $lreturn_value
 					else
 						echo "Terraform import:                      succeeded"
 					fi
@@ -563,11 +564,11 @@ function ImportAndReRunApply {
 				echo terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters
 				# shellcheck disable=SC2086
 				if ! terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
-					return_value=${PIPESTATUS[0]}
+					lreturn_value=${PIPESTATUS[0]}
 				else
-					return_value=${PIPESTATUS[0]}
+					lreturn_value=${PIPESTATUS[0]}
 				fi
-				if [ $return_value -eq 1 ]; then
+				if [ $lreturn_value -eq 1 ]; then
 					echo ""
 					echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
 					echo ""
@@ -576,7 +577,7 @@ function ImportAndReRunApply {
 					echo ""
 					echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
 					echo ""
-					return_value=0
+					lreturn_value=0
 				fi
 				echo ""
 				echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
@@ -586,7 +587,7 @@ function ImportAndReRunApply {
 			if [[ -n $errors_occurred ]]; then
 				existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
 				if [[ -n ${existing} ]]; then
-					return_value=0
+					lreturn_value=0
 				else
 					rm "$fileName"
 				fi
@@ -596,11 +597,11 @@ function ImportAndReRunApply {
 			echo -e "${cyan}No resources to import$reset_formatting"
 			echo ""
 			rm "$fileName"
-			return_value=1
+			lreturn_value=1
 		fi
 	fi
 
-	return $return_value
+	return $lreturn_value
 }
 
 function testIfResourceWouldBeRecreated {
@@ -608,7 +609,8 @@ function testIfResourceWouldBeRecreated {
 	local fileName="$2"
 	local shortName="$3"
 	printf -v val '%-40s' "$shortName"
-	return_value=0
+	local lreturn_value
+	lreturn_value=0
 	# || true suppresses the exitcode of grep. To not trigger the strict exit on error
 	willResourceWouldBeRecreated=$(grep "$moduleId" "$fileName" | grep -m1 "must be replaced" || true)
 	if [ -n "${willResourceWouldBeRecreated}" ]; then
@@ -623,18 +625,19 @@ function testIfResourceWouldBeRecreated {
 		echo ""
 		echo ""
 		echo "##vso[task.logissue type=error]Resource will be removed: $shortName"
-		return_value=1
+		lreturn_value=1
 	fi
-	return $return_value
+	return $lreturn_value
 }
 
 function validate_key_vault {
 	local keyvault_to_check=$1
 	local subscription=$2
-	return_value=0
+	local lreturn_value
+	lreturn_value=0
 
 	kv_name_check=$(az keyvault show --name="$keyvault_to_check" --subscription "${subscription}" --query name)
-	return_value=$?
+	lreturn_value=$?
 	if [ -z "$kv_name_check" ]; then
 		echo ""
 		echo "#########################################################################################"
@@ -645,7 +648,7 @@ function validate_key_vault {
 		echo ""
 		sleep 60
 		kv_name_check=$(az keyvault show --name="$keyvault_to_check" --subscription "${subscription}" --query name)
-		return_value=$?
+		lreturn_value=$?
 	fi
 
 	if [ -z "$kv_name_check" ]; then
@@ -674,6 +677,6 @@ function validate_key_vault {
 		return 65
 
 	fi
-	return $return_value
+	return $lreturn_value
 
 }
