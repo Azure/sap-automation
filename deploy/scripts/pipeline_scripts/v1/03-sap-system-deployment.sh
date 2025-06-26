@@ -119,8 +119,13 @@ workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${E
 deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
 export deployer_tfstate_key
 
-DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "DEPLOYER_KEYVAULT" "${workload_environment_file_name}" "deployer_keyvault")
-export DEPLOYER_KEYVAULT
+if [ -v DEPLOYER_KEYVAULT ] && [ -n "$DEPLOYER_KEYVAULT" ]; then
+	# If the variable is already set, use it
+	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
+else
+	DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "DEPLOYER_KEYVAULT" "${workload_environment_file_name}" "deployer_keyvault")
+	export DEPLOYER_KEYVAULT
+fi
 
 
 echo ""

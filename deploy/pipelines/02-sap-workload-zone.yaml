@@ -185,6 +185,7 @@ stages:
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_OBJECT_ID:           $(ARM_OBJECT_ID)
+              DEPLOYER_KEYVAULT:       $(DEPLOYER_KEYVAULT)
               FENCING_SPN_PWD:         $(FENCING_SPN_PWD)
               SAPBITS:                 $(INSTALLATION_MEDIA_ACCOUNT)
               TEST_ONLY:               ${{ parameters.test }}

@@ -60,18 +60,19 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Deploy_SAP_infrastructure
             env:
-              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              LOGON_USING_SPN:          $(Logon_Using_SPN)
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              DEPLOYER_KEYVAULT:        $(DEPLOYER_KEYVAULT)
+              LOGON_USING_SPN:          $(Logon_Using_SPN)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               TEST_ONLY:                ${{ parameters.test }}
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
-              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:            $(ARM_TENANT_ID)
 
 
