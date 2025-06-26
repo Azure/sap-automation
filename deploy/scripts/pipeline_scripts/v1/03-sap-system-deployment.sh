@@ -116,8 +116,12 @@ landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
 
-deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
+deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
 export deployer_tfstate_key
+
+DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "deployer_keyvault")
+export DEPLOYER_KEYVAULT
+
 
 echo ""
 echo -e "${green}Deployment details:"
