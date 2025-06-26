@@ -104,6 +104,7 @@ if [ -f "${filename}" ]; then
 						-e 'kv_name=$vault_name' -e @$SAP_PARAMS                                 \
 						-e 'download_directory=$AGENT_TEMPDIRECTORY'                             \
 						-e '_workspace_directory=$PARAMETERS_FOLDER' $EXTRA_PARAMS               \
+						-e orchestration_ansible_user=$USER \
             -e ansible_ssh_pass='${ANSIBLE_PASSWORD}' $EXTRA_PARAM_FILE ${filename}"
 
 	eval "${command}"
@@ -117,6 +118,7 @@ command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey 
 					-e 'kv_name=$vault_name' -e @$SAP_PARAMS                                    \
 					-e 'download_directory=$AGENT_TEMPDIRECTORY'                                \
 					-e '_workspace_directory=$PARAMETERS_FOLDER'                                \
+					-e orchestration_ansible_user=$USER \
 					-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' $EXTRA_PARAMS $EXTRA_PARAM_FILE   \
           $ANSIBLE_FILE_PATH"
 
@@ -149,6 +151,7 @@ if [ -f "${filename}" ]; then
 	command="ansible-playbook -i '$INVENTORY' --private-key '$PARAMETERS_FOLDER/sshkey'   \
 						-e 'kv_name=$vault_name' -e @$SAP_PARAMS                                    \
 						-e 'download_directory=$AGENT_TEMPDIRECTORY'                                \
+						-e orchestration_ansible_user=$USER \
 						-e '_workspace_directory=$PARAMETERS_FOLDER'                                \
 						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' '${filename}' $EXTRA_PARAMS       \
 						$EXTRA_PARAM_FILE"

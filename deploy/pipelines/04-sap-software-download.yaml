@@ -70,18 +70,18 @@ stages:
             displayName:               Prepare download
             name:                      Preparation
             env:
-              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:            $(ARM_TENANT_ID)
               ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
-              SUSERNAME:                $(S-Username)
-              SPASSWORD:                $(S-Password)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              DEPLOYER_KEYVAULT:        $(DEPLOYER_KEYVAULT)
+              SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              SPASSWORD:                $(S-Password)
+              SUSERNAME:                $(S-Username)
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               USE_MSI:                  $(Use_MSI)
-
   - stage:                             Software_download
     variables:
       - template:                      variables/04-sap-software-download-variables.yaml
@@ -112,14 +112,15 @@ stages:
             displayName:               Download
             name:                      download
             env:
-              ARM_CLIENT_ID:                 $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:             $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:                 $(ARM_TENANT_ID)
-              ARM_SUBSCRIPTION_ID:           $(ARM_SUBSCRIPTION_ID)
-              SAP_AUTOMATION_REPO_PATH:      ${{ parameters.sap_automation_repo_path }}
-              SAMPLE_REPO_PATH:              ${{ parameters.sample_repo_path }}
-              CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              ANSIBLE_COLLECTIONS_PATH:      ~/.ansible/collections:/opt/ansible/collections
-              USE_MSI:                       $(Use_MSI)
-              EXTRA_PARAMETERS:              ${{ parameters.ExtraParams }}
-              AGENT_TEMP_DIRECTORY:          $(Agent.TempDirectory)
+              AGENT_TEMP_DIRECTORY:        $(Agent.TempDirectory)
+              ANSIBLE_COLLECTIONS_PATH:    ~/.ansible/collections:/opt/ansible/collections
+              ARM_CLIENT_ID:               $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:               $(ARM_TENANT_ID)
+              CONFIG_REPO_PATH:            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              DEPLOYER_KEYVAULT:           $(DEPLOYER_KEYVAULT)
+              EXTRA_PARAMETERS:            ${{ parameters.ExtraParams }}
+              SAMPLE_REPO_PATH:            ${{ parameters.sample_repo_path }}
+              SAP_AUTOMATION_REPO_PATH:    ${{ parameters.sap_automation_repo_path }}
+              USE_MSI:                     $(Use_MSI)

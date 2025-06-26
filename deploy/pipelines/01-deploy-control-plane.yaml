@@ -237,6 +237,7 @@ stages:
               USE_MSI:                     $(Use_MSI)
               WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
               keyvault:                    $(DEPLOYER_KEYVAULT)
+              DEPLOYER_KEYVAULT:           $(DEPLOYER_KEYVAULT)
 
   - stage:                             Web_App_Deployment
     pool:                              $(this_agent)
