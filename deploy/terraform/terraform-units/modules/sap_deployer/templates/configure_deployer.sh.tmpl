@@ -680,15 +680,15 @@ sudo mkdir -p "$${DOTNET_INSTALL_DIR}"
 
 case "$(get_distro_name)" in
 ubuntu)
-  echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /etc/profile.d/deploy_server.sh
+  echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | sudo tee -a /etc/profile.d/deploy_server.sh
   export DOTNET_ROOT='/snap/dotnet-sdk/current'
   ;;
 sles)
-  echo "export DOTNET_ROOT=$${DOTNET_INSTALL_DIR}" | tee -a /etc/profile.d/deploy_server.sh
+  echo "export DOTNET_ROOT=$${DOTNET_INSTALL_DIR}" | sudo tee -a /etc/profile.d/deploy_server.sh
   export DOTNET_ROOT="$${DOTNET_INSTALL_DIR}"
   ;;
 rhel*)
-  echo "export DOTNET_ROOT=$${DOTNET_INSTALL_DIR}" | tee -a /etc/profile.d/deploy_server.sh
+  echo "export DOTNET_ROOT=$${DOTNET_INSTALL_DIR}" | sudo tee -a /etc/profile.d/deploy_server.sh
   export DOTNET_ROOT="$${DOTNET_INSTALL_DIR}"
   ;;
 esac
