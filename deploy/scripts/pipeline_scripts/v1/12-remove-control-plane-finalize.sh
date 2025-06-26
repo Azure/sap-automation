@@ -89,9 +89,16 @@ print_header
 # Configure DevOps
 configure_devops
 
-CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
-export "CONTROL_PLANE_NAME"
-VARIABLE_GROUP="SDAF-${CONTROL_PLANE_NAME}"
+ENVIRONMENT_IN_FILENAME=$(echo $DEPLOYER_FOLDERNAME | awk -F'-' '{print $1}')
+LOCATION_CODE_IN_FILENAME=$(echo $DEPLOYER_FOLDERNAME | awk -F'-' '{print $2}')
+
+CONTROL_PLANE_NAME="${ENVIRONMENT_IN_FILENAME}${LOCATION_CODE_IN_FILENAME}"
+export CONTROL_PLANE_NAME
+
+VARIABLE_GROUP="SDAF-${ENVIRONMENT_IN_FILENAME}"
+deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
+deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
@@ -105,10 +112,6 @@ export VARIABLE_GROUP_ID
 set -o pipefail
 
 cd "$CONFIG_REPO_PATH" || exit
-
-deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
-deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 
 echo ""
 echo -e "$cyan Starting the removal of the deployer and its associated infrastructure $reset"
