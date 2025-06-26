@@ -265,7 +265,7 @@ fi
 cd "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
 echo "Current directory:                $(pwd)"
 
-if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_tfvars_file_name}" \
+if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" --parameter_file "${deployer_tfvars_file_name}" \
 	--auto-approve --control_plane_name "$CONTROL_PLANE_NAME"; then
 	return_code=$?
 	echo "##vso[task.logissue type=warning]Return code from install_deployer_v2.sh $return_code."

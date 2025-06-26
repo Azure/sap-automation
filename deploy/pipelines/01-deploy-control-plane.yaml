@@ -123,6 +123,8 @@ stages:
               WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
               keyvault:                       $(DEPLOYER_KEYVAULT)
   - stage:                             PopulateKeyVault
+    dependsOn:
+      - Prepare_Deployer
     pool:                              $(this_agent)
     displayName:                       Save the Deployment Credentials in Azure Keyvault
     variables:
@@ -172,8 +174,8 @@ stages:
 
   - stage:                             Deploy_controlplane
     dependsOn:
-      - Prepare_Deployer
-    condition:                         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
+      - PopulateKeyVault
+    condition:                         eq(dependencies.PopulateKeyVault.result, 'Succeeded')
     pool:                              $(this_agent)
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
