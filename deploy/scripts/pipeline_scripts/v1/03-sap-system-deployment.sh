@@ -115,7 +115,6 @@ WORKLOAD_ZONE_NAME=$(echo "$SAP_SYSTEM_FOLDERNAME" | cut -d'-' -f1-3)
 landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$WORKLOAD_ZONE_NAME"
-control_plane_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 
 deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
 export deployer_tfstate_key
@@ -126,7 +125,6 @@ echo -e "-----------------------------------------------------------------------
 
 echo "WORKLOAD_ZONE_NAME:                  $WORKLOAD_ZONE_NAME"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
-echo "Control Plane Environment File:      $control_plane_environment_file_name"
 
 echo "Environment:                         $ENVIRONMENT"
 echo "Environment(filename):               $ENVIRONMENT_IN_FILENAME"
@@ -195,9 +193,9 @@ echo ""
 echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$SAP_SYSTEM_TFVARS_FILENAME" --type sap_system \
-	--control_plane_name "${CONTROL_PLANE_NAME}" --storage_accountname "$terraform_storage_account_name"  \
-	--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh" --parameter_file "$SAP_SYSTEM_TFVARS_FILENAME" --type sap_system \
+	--deployer_tfstate_key "${deployer_tfstate_key}" --storage_accountname "$terraform_storage_account_name"  \
+	--landscape_tfstate_key "${landscape_tfstate_key}" \
 	--ado --auto-approve ; then
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME completed successfully" "success"

@@ -265,8 +265,8 @@ fi
 cd "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
 echo "Current directory:                $(pwd)"
 
-if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" --parameter_file "${deployer_tfvars_file_name}" \
-	--auto-approve --control_plane_name "$CONTROL_PLANE_NAME"; then
+if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" --parameterfile "${deployer_tfvars_file_name}" \
+	--auto-approve ; then
 	return_code=$?
 	echo "##vso[task.logissue type=warning]Return code from install_deployer_v2.sh $return_code."
 	step=1
@@ -286,21 +286,9 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
 
-	APPLICATION_CONFIGURATION_ID=$(grep -m1 "^APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	export APPLICATION_CONFIGURATION_ID
-
-	APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	export APPLICATION_CONFIGURATION_NAME
-	echo "APPLICATION_CONFIGURATION_NAME:      ${DEPLOYER_KEYVAULT}"
 	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 	if [ 0 -eq $return_code ]; then
-
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
-		if printenv APPLICATION_CONFIGURATION_NAME; then
-			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
-		fi
-
 	fi
 
 fi
