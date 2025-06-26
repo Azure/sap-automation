@@ -116,15 +116,6 @@ if [ "$USE_MSI" != "true" ]; then
 fi
 
 echo ""
-
-environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${REGION_CODE}"
-
-if [ ! -f "$environment_file_name" ]; then
-	if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${REGION_CODE}" ]; then
-		cp "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${REGION_CODE}" "$environment_file_name"
-	fi
-fi
-
 echo -e "$green--- Read parameter values ---$reset"
 
 keyvault_subscription_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription,subscriptionId" --query data[0].subscriptionId --output tsv)

@@ -80,17 +80,31 @@ function LogonToAzure() {
 		echo "Deployment credential ID (SPN):      $ARM_CLIENT_ID"
 		unset ARM_USE_MSI
 		az login --service-principal --client-id "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
+		echo "Logged on as:"
+		az account show --query user --output yaml
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
+
 	else
 		echo "Deployment credentials:              Managed Service Identity"
-		if [[ -f /etc/profile.d/deploy_server.sh ]]; then
+		if [ -f "/etc/profile.d/deploy_server.sh" ]; then
+			echo "Sourcing deploy_server.sh to set up environment variables for MSI authentication"
 			source "/etc/profile.d/deploy_server.sh"
+		else
+			echo "Running az login --identity"
+		  az login --identity --allow-no-subscriptions --client-id "$ARM_CLIENT_ID" --output none
+		fi
 
-			# sourcing deploy_server.sh overwrites ARM_SUBSCRIPTION_ID with control plane subscription id
-			# ensure we are exporting the right ARM_SUBSCRIPTION_ID when authenticating against workload zones.
-			if [[ "$ARM_SUBSCRIPTION_ID" != "$subscriptionId" ]]; then
-				ARM_SUBSCRIPTION_ID=$subscriptionId
-				export ARM_SUBSCRIPTION_ID
-			fi
+		az account show --query user --output yaml
+
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
+
+		# sourcing deploy_server.sh overwrites ARM_SUBSCRIPTION_ID with control plane subscription id
+		# ensure we are exporting the right ARM_SUBSCRIPTION_ID when authenticating against workload zones.
+		if [[ "$ARM_SUBSCRIPTION_ID" != "$subscriptionId" ]]; then
+			ARM_SUBSCRIPTION_ID=$subscriptionId
+			export ARM_SUBSCRIPTION_ID
 		fi
 	fi
 

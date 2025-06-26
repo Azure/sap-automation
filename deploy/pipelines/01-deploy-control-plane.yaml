@@ -122,6 +122,53 @@ stages:
               USE_MSI:                        $(Use_MSI)
               WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
               keyvault:                       $(DEPLOYER_KEYVAULT)
+  - stage:                             PopulateKeyVault
+    pool:                              $(this_agent)
+    displayName:                       Save the Deployment Credentials in Azure Keyvault
+    variables:
+      - template:                      variables/01-deploy-control-plane-variables.yaml
+        parameters:
+          deployer:                    ${{ parameters.deployer }}
+          library:                     ${{ parameters.library }}
+          environment:                 ${{ parameters.environment }}
+          use_webapp_param:            ${{ parameters.use_webapp_param }}
+          use_deployer:                ${{ parameters.use_deployer }}
+          force_reset:                 ${{ parameters.force_reset }}
+    jobs:
+      - job:                           SaveDeploymentCredentials
+        displayName:                   Save the Deployment Credentials
+        workspace:
+          clean:                       all
+        steps:
+          - task:                      PostBuildCleanup@4
+          - task:                      TerraformInstaller@1
+            displayName:               Install Terraform
+            inputs:
+              terraformVersion:        latest
+          - template:                  templates\download.yaml
+            parameters:
+              getLatestFromBranch: true
+
+          - task:                      Bash@3
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+            name:                      StoreSecrets
+            displayName:               Store deployment credentials in Key Vault
+            env:
+              ARM_CLIENT_ID:                $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              ARM_OBJECT_ID:                $(ARM_OBJECT_ID)
+              ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                $(ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
+              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
+              USE_MSI:                      $(Use_MSI)
+              ZONE:                         ${{ upper(parameters.environment) }}
 
   - stage:                             Deploy_controlplane
     dependsOn:

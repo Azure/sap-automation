@@ -48,6 +48,10 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
+          - task:                      TerraformInstaller@1
+            displayName:               Install Terraform
+            inputs:
+              terraformVersion:        latest
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -65,9 +69,9 @@ stages:
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
-              ARM_CLIENT_ID:         $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:     $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID:   $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:         $(ARM_TENANT_ID)
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
 
 

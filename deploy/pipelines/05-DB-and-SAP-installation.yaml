@@ -95,8 +95,6 @@ parameters:
     type:                              boolean
     default:                           false
 
-
-
 # 20220929 MKD - ACSS Registration <BEGIN>
   - name:                              acss_registration
     displayName:                       Register System in ACSS
@@ -146,6 +144,25 @@ stages:
             parameters:
               getLatestFromBranch: true
           - task:                      PostBuildCleanup@4
+          - task:                      Bash@3
+            inputs:
+              targetType:              'inline'
+              failOnStderr:            false
+              script:
+                                      sudo pipx uninstall ansible-core
+
+                                      pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
+
+                                      ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad
+
+                                      ansible --version
+
+            env:
+              ansible_core_version:    $(ansible_core_version)
+            name:                      AnsibleInstallation
+            displayName:               Ansible installation
+
+
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
