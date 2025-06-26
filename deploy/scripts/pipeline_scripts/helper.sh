@@ -108,8 +108,11 @@ function LogonToAzure() {
 			echo "Sourcing deploy_server.sh to set up environment variables for MSI authentication"
 			source "/etc/profile.d/deploy_server.sh"
 		else
+			echo "Running az login --identity"
 		  az login --identity --allow-no-subscriptions --client-id "$ARM_CLIENT_ID" --output none
 		fi
+
+		az account show --query user --output yaml
 
 		TF_VAR_use_spn=false
 		export TF_VAR_use_spn

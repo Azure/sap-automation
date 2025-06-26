@@ -6,8 +6,12 @@ green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
 #External helper functions
-source "sap-automation/deploy/pipelines/helper.sh"
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
 
+#call stack has full scriptname when using source
+source "${script_directory}/helper.sh"
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
@@ -38,7 +42,6 @@ cd "$CONFIG_REPO_PATH" || exit
 environment_file_name=".sap_deployment_automation/$ENVIRONMENT$LOCATION$NETWORK"
 parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml"
 
-az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
 
 echo -e "$green--- Validations ---$reset"
 if [ ! -f "${environment_file_name}" ]; then
@@ -47,8 +50,8 @@ if [ ! -f "${environment_file_name}" ]; then
 	exit 2
 fi
 
-if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
-	echo "##vso[task.logissue type=error]Variable AZURE_SUBSCRIPTION_ID was not defined."
+if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
+	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
 	exit 2
 fi
 
@@ -58,22 +61,35 @@ if [ "azure pipelines" == "$THIS_AGENT" ]; then
 fi
 
 echo -e "$green--- az login ---$reset"
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure false
-else
-	LogonToAzure "$USE_MSI"
+
+# Set logon variables
+if [ $USE_MSI == "true" ]; then
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
 fi
-return_code=$?
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
+if az account show --query name; then
+	echo -e "$green--- Already logged in to Azure ---$reset"
+else
+	# Check if running on deployer
+	if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+		configureNonDeployer "${tf_version:-1.12.2}"
+		echo -e "$green--- az login ---$reset"
+		LogonToAzure $USE_MSI
+	else
+		LogonToAzure $USE_MSI
+	fi
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
 fi
 
-az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
+az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project='$SYSTEM_TEAMPROJECT' --output none --only-show-errors
+
+az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
 echo -e "$green--- Get key_vault name ---$reset"
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
@@ -142,7 +158,7 @@ echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${workload
 echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${workload_prefix}-sid-username"
 echo "##vso[task.setvariable variable=NEW_PARAMETERS;isOutput=true]${new_parameters}"
 
-az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "$control_plane_subscription" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
+az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "$ARM_SUBSCRIPTION_ID" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
 cp sap-parameters.yaml artifacts/.
 cp "${SID}_hosts.yaml" artifacts/.
 

@@ -112,54 +112,34 @@ if [ -z "${VARIABLE_GROUP_ID}" ]; then
 	exit 2
 fi
 
-if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
+if [ ! -v ARM_SUBSCRIPTION_ID ]; then
 	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
 	exit 2
 fi
 
-echo -e "$green--- Validations ---$reset"
+# Set logon variables
 if [ "$USE_MSI" != "true" ]; then
 
-	if [ -v ARM_CLIENT_ID ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
+	ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+	export ARM_TENANT_ID
+	ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+	export ARM_SUBSCRIPTION_ID
+else
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
+fi
 
-	if [ "$ARM_CLIENT_ID" == '$$(ARM_CLIENT_ID)' ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ -v ARM_CLIENT_SECRET ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ "$ARM_CLIENT_SECRET" == '$$(ARM_CLIENT_SECRET)' ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ -v ARM_TENANT_ID ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
-	if [ "$ARM_TENANT_ID" == '$$(ARM_TENANT_ID)' ]; then
-		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $(variable_group) variable group."
-		exit 2
-	fi
-
+if [ -v SYSTEM_ACCESSTOKEN ]; then
+	export TF_VAR_PAT="$SYSTEM_ACCESSTOKEN"
 fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$TF_VERSION" || true
+	configureNonDeployer "${tf_version:-1.12.2}"
 	echo -e "$green--- az login ---$reset"
-	LogonToAzure false || true
-else
-	LogonToAzure "$USE_MSI" || true
 fi
+LogonToAzure $USE_MSI
 return_code=$?
 if [ 0 != $return_code ]; then
 	echo -e "$bold_red--- Login failed ---$reset"
@@ -167,7 +147,11 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
+TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
+export TF_VAR_subscription_id
+
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
+echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "keyvault" || true)
 export key_vault

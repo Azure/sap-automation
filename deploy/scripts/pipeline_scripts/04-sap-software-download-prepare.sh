@@ -6,7 +6,12 @@ green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
 #External helper functions
-source "sap-automation/deploy/pipelines/helper.sh"
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+
+#call stack has full scriptname when using source
+source "${script_directory}/helper.sh"
 
 DEBUG=False
 
@@ -57,28 +62,35 @@ if [ "your S user password" == "$SPASSWORD" ]; then
   exit 2
 fi
 
-echo -e "$green--- az login ---$reset"
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-  configureNonDeployer "$(tf_version)"
-    echo -e "$green--- az login ---$reset"
-  LogonToAzure false
+# Set logon variables
+if [ $USE_MSI == "true" ]; then
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
+fi
+if az account show --query name; then
+	echo -e "$green--- Already logged in to Azure ---$reset"
 else
-  LogonToAzure "$USE_MSI"
+	# Check if running on deployer
+	if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+		configureNonDeployer "${tf_version:-1.12.2}"
+		echo -e "$green--- az login ---$reset"
+		LogonToAzure $USE_MSI
+	else
+		LogonToAzure $USE_MSI
+	fi
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
 fi
-return_code=$?
-if [ 0 != $return_code ]; then
-  echo -e "$bold_red--- Login failed ---$reset"
-  echo "##vso[task.logissue type=error]az login failed."
-  exit $return_code
-fi
-
-az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
 echo -e "$green--- Get key_vault name ---$reset"
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 export VARIABLE_GROUP_ID
-printf -v val '%-15s' "$(variable_group) id:"
+printf -v val '%-15s' "$VARIABLE_GROUP id:"
 echo "$val                      $VARIABLE_GROUP_ID"
 if [ -z "${VARIABLE_GROUP_ID}" ]; then
   echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."

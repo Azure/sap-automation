@@ -2,29 +2,30 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDERNAME"
 green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
 cyan="\e[1;36m"
 
 #External helper functions
-source "sap-automation/deploy/pipelines/helper.sh"
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
 
-DEBUG=False
+#call stack has full scriptname when using source
+source "${script_directory}/helper.sh"
 
+DEBUG=false
 if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
-	set -o errexit
-	DEBUG=True
+	DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
-
 fi
+
 export DEBUG
-
 set -eu
-
-echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDERNAME"
 
 tfvarsFile="LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/$WORKLOAD_ZONE_TFVARS_FILENAME"
 
@@ -129,16 +130,15 @@ else
 		configureNonDeployer "${tf_version:-1.12.2}"
 		echo -e "$green--- az login ---$reset"
 		LogonToAzure $USE_MSI
-		return_code=$?
-		if [ 0 != $return_code ]; then
-			echo -e "$bold_red--- Login failed ---$reset"
-			echo "##vso[task.logissue type=error]az login failed."
-			exit $return_code
-		fi
 	else
 		LogonToAzure $USE_MSI
 	fi
-
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
 fi
 
 echo -e "$green--- Read deployment details ---$reset"
@@ -201,9 +201,6 @@ fi
 workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
 touch "$workload_environment_file_name"
-
-ARM_SUBSCRIPTION_ID=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_SUBSCRIPTION_ID" "${workload_environment_file_name}" "ARM_SUBSCRIPTION_ID")
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 echo -e "$green--- Read parameter values ---$reset"
 
