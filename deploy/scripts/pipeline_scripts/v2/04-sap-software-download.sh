@@ -84,7 +84,7 @@ fi
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
 command="ansible-playbook -e download_directory=$AGENT_TEMP_DIRECTORY \
--e s_user=$SUSERNAME -e BOM_directory=${sample_path} \
+-e BOM_directory=${sample_path} \
 -e bom_base_name=$BOM_NAME \
 -e deployer_kv_name=$KV_NAME \
 -e check_storage_account=$CHECK_STORAGE_ACCOUNT \

@@ -179,22 +179,14 @@ allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 allImportParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 
 if [ ! -d ./.terraform/ ]; then
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#                                   New deployment                                      #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+  print_banner "New deployment" "info"
 	terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
 else
 	if [ -f ./.terraform/terraform.tfstate ]; then
 		azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 		if [ -n "$azure_backend" ]; then
 
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo "#                     The state is already migrated to Azure!!!                         #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
+			print_banner "The state is already migrated to Azure!!!" "info"
 
 			REINSTALL_SUBSCRIPTION=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
 			REINSTALL_ACCOUNTNAME=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
@@ -211,7 +203,7 @@ else
 
 				terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/sap_deployer"/
 
-				if terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state \
 					--backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
 					--backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
 					--backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
@@ -238,34 +230,25 @@ else
 				fi
 			else
 				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
-					echo ""
-					echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-					echo ""
+					print_banner "Install Deployer" "Terraform init: succeeded" "success"
 					terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
 				else
-					echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
+					print_banner "Install Deployer" "Terraform init: failed" "error"
 					exit 10
 				fi
 			fi
 		else
-			if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
-				echo ""
-				echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-				echo ""
+			if terraform -chdir="${terraform_module_directory}" init  -migrate-state -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
+				print_banner "Install Deployer" "Terraform init: succeeded" "success"
 			else
 				echo ""
-				echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-				echo ""
+				print_banner "Install Deployer" "Terraform init: failed" "error"
 				exit 10
 			fi
 		fi
 
 	else
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo "#                                   New deployment                                      #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
+		print_banner "Install Deployer" "New deployment" "info"
 		terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
 	fi
 	echo "Parameters:                          $allParameters"
@@ -273,6 +256,7 @@ else
 fi
 return_value=$?
 if [ 1 == $return_value ]; then
+
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
