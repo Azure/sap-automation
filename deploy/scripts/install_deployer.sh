@@ -254,8 +254,8 @@ else
 	echo "Parameters:                          $allParameters"
 	terraform -chdir="${terraform_module_directory}" refresh $allParameters
 fi
-return_value=$?
-if [ 1 == $return_value ]; then
+install_deployer_return_value=$?
+if [ 1 == $install_deployer_return_value ]; then
 
 	echo ""
 	echo "#########################################################################################"
@@ -265,7 +265,7 @@ if [ 1 == $return_value ]; then
 	echo "#########################################################################################"
 	echo ""
 	unset TF_DATA_DIR
-	exit $return_value
+	exit $install_deployer_return_value
 fi
 
 echo ""
@@ -279,29 +279,29 @@ echo ""
 # shellcheck disable=SC2086
 
 if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false $allParameters | tee plan_output.log; then
-	return_value=${PIPESTATUS[0]}
+	install_deployer_return_value=${PIPESTATUS[0]}
 else
-	return_value=${PIPESTATUS[0]}
+	install_deployer_return_value=${PIPESTATUS[0]}
 fi
-echo "Terraform plan return code:          $return_value"
-if [ 0 == $return_value ]; then
+echo "Terraform plan return code:          $install_deployer_return_value"
+if [ 0 == $install_deployer_return_value ]; then
 	echo ""
 	echo -e "${cyan}Terraform plan:                      succeeded$reset_formatting"
 	echo ""
-	return_value=0
-elif [ 2 == $return_value ]; then
+	install_deployer_return_value=0
+elif [ 2 == $install_deployer_return_value ]; then
 	echo ""
 	echo -e "${cyan}Terraform plan:                      succeeded$reset_formatting"
 	echo ""
-	return_value=0
+	install_deployer_return_value=0
 else
 	echo ""
 	echo -e "${bold_red}Terraform plan:                      failed$reset_formatting"
 	echo ""
-	exit $return_value
+	exit $install_deployer_return_value
 fi
 
-if [ 1 == $return_value ]; then
+if [ 1 == $install_deployer_return_value ]; then
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -314,7 +314,7 @@ if [ 1 == $return_value ]; then
 		rm plan_output.log
 	fi
 	unset TF_DATA_DIR
-	exit $return_value
+	exit $install_deployer_return_value
 fi
 
 if [ -f plan_output.log ]; then
@@ -340,45 +340,45 @@ if [ -f apply_output.json ]; then
 	rm apply_output.json
 fi
 
-return_value=0
+install_deployer_return_value=0
 
 if [ -n "${approve}" ]; then
 	# shellcheck disable=SC2086
 	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
 		$allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee apply_output.json; then
-		return_value=${PIPESTATUS[0]}
+		install_deployer_return_value=${PIPESTATUS[0]}
 	else
-		return_value=${PIPESTATUS[0]}
+		install_deployer_return_value=${PIPESTATUS[0]}
 	fi
-	if [ $return_value -eq 1 ]; then
+	if [ $install_deployer_return_value -eq 1 ]; then
 		echo ""
-		echo -e "${bold_red}Terraform apply:                     failed ($return_value)$reset_formatting"
+		echo -e "${bold_red}Terraform apply:                     failed ($install_deployer_return_value)$reset_formatting"
 		echo ""
 	else
 		# return code 2 is ok
 		echo ""
-		echo -e "${cyan} Terraform apply:                    succeeded ($return_value)$reset_formatting"
+		echo -e "${cyan} Terraform apply:                    succeeded ($install_deployer_return_value)$reset_formatting"
 		echo ""
-		return_value=0
+		install_deployer_return_value=0
 	fi
 else
 	# shellcheck disable=SC2086
 	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
-		return_value=${PIPESTATUS[0]}
+		install_deployer_return_value=${PIPESTATUS[0]}
 	else
-		return_value=${PIPESTATUS[0]}
+		install_deployer_return_value=${PIPESTATUS[0]}
 	fi
-	if [ $return_value -eq 1 ]; then
+	if [ $install_deployer_return_value -eq 1 ]; then
 		echo ""
-		echo -e "${bold_red}Terraform apply:                     failed ($return_value)$reset_formatting"
+		echo -e "${bold_red}Terraform apply:                     failed ($install_deployer_return_value)$reset_formatting"
 		echo ""
 		exit 10
 	else
 		# return code 2 is ok
 		echo ""
-		echo -e "${cyan}Terraform apply:                     succeeded ($return_value)$reset_formatting"
+		echo -e "${cyan}Terraform apply:                     succeeded ($install_deployer_return_value)$reset_formatting"
 		echo ""
-		return_value=0
+		install_deployer_return_value=0
 	fi
 fi
 
@@ -386,63 +386,63 @@ if [ -f apply_output.json ]; then
 	errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 	if [[ -n $errors_occurred ]]; then
-		return_value=10
+		install_deployer_return_value=10
 		if [ -n "${approve}" ]; then
 
 			# shellcheck disable=SC2086
 			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-				return_value=$?
+				install_deployer_return_value=$?
 			else
-				return_value=0
+				install_deployer_return_value=0
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					return_value=$?
+					install_deployer_return_value=$?
 				else
-					return_value=0
+					install_deployer_return_value=0
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					return_value=$?
+					install_deployer_return_value=$?
 				else
-					return_value=0
+					install_deployer_return_value=0
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					return_value=$?
+					install_deployer_return_value=$?
 				else
-					return_value=0
+					install_deployer_return_value=0
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					return_value=$?
+					install_deployer_return_value=$?
 				else
-					return_value=0
+					install_deployer_return_value=0
 				fi
 			fi
 		else
-			return_value=10
+			install_deployer_return_value=10
 		fi
 	fi
 fi
 
-echo "Terraform Apply return code:         $return_value"
+echo "Terraform Apply return code:         $install_deployer_return_value"
 
-if [ 0 != $return_value ]; then
+if [ 0 != $install_deployer_return_value ]; then
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
 	echo -e "#                      $bold_red_underscore !!! Error when Creating the deployer !!! $reset_formatting                       #"
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 	echo ""
-	exit $return_value
+	exit $install_deployer_return_value
 fi
 
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
@@ -463,9 +463,9 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 			echo "#########################################################################################"
 			echo ""
 
-			return_value=0
+			install_deployer_return_value=0
 		else
-			return_value=2
+			install_deployer_return_value=2
 		fi
 	fi
 
@@ -488,4 +488,4 @@ fi
 
 unset TF_DATA_DIR
 
-exit $return_value
+exit $install_deployer_return_value
