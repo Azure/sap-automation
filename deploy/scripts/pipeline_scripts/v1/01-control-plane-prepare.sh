@@ -159,7 +159,7 @@ fi
 
 TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
 if [ -n "$TF_VAR_spn_id" ]; then
-	if is_valid_guid $TF_VAR_spn_id; then
+	if is_valid_guid "$TF_VAR_spn_id"; then
 		export TF_VAR_spn_id
 		echo "Service Principal Object id:         $TF_VAR_spn_id"
 	fi
@@ -283,8 +283,25 @@ fi
 set -eu
 
 if [ -f "${deployer_environment_file_name}" ]; then
-	DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
+
+	# check if DEPLOYER_KEYVAULT is already available as an export
+	if checkforEnvVar "DEPLOYER_KEYVAULT"; then
+		echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
+	else
+		# if not, try to read it from the environment file
+		DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+		# if the variable is not set, fallback to old variable name
+		if [ -z "${DEPLOYER_KEYVAULT}" ]; then
+			DEPLOYER_KEYVAULT=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+		fi
+		echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
+	fi
+
+	# if DEPLOYER_KEYVAULT is still not set, exit with an error
+	if [ -z "${DEPLOYER_KEYVAULT}" ]; then
+		echo "##vso[task.logissue type=error]Deployer Key Vault is not defined in the environment file."
+		exit 1
+	fi
 
 	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 	if [ 0 -eq $return_code ]; then
