@@ -1349,3 +1349,34 @@ function LogonToAzure() {
 		fi
 	fi
 }
+
+################################################################################
+# Function to get the Terraform output value for a given output name           #
+#                                                                              #
+# This function retrieves the value of a Terraform output variable by its name.#
+# If the output variable is not found, it returns a default value if provided. #
+# If no default value is provided, it returns an empty string.                 #
+# It suppresses warnings by redirecting stderr to /dev/null.                   #
+# Arguments:                                                                   #
+#   $1 - The name of the Terraform output variable to retrieve                 #
+#   $2 - Optional default value to return if the output variable is not found	 #
+# Returns:                                                                     #
+#   The value of the Terraform output variable, or a default value if not found#
+################################################################################
+# Example usage:                                                               #
+#   my_var=$(get_terraform_output "my_output_name" "default_value")            #
+#   echo "Variable value: $my_var"                                             #
+################################################################################
+function get_terraform_output() {
+    local output_name="$1"
+		local terraform_module_directory="${2:-.}" # Default to current directory if not provided
+    local default_value="${3:-}"
+
+    # Try to get the output, suppress warnings
+    local value
+    if value=$(terraform -chdir="$terraform_module_directory" output -no-color -raw "$output_name" 2>/dev/null); then
+        echo "$value"
+    else
+        echo "$default_value"
+    fi
+}

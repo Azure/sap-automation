@@ -23,45 +23,150 @@ set -eu
 
 deploy_using_msi_only=0
 keyvault=""
+###############################################################################
+# Function to safely get a secret value from Azure Key Vault                  #
+# Arguments:                                                                  #
+#   1. Key Vault name                                                         #
+#   2. Subscription ID                                                        #
+#   3. Secret name                                                            #
+# Returns:                                                                    #
+#   0 if secret exists, 1 if not found, 2 if error                            #
+# Output:                                                                     #
+#   Secret value if found, empty string if not found                          #
+# Usage:                                                                      #
+#   getSecretValue <keyvault> <subscription> <secret_name>                    #
+###############################################################################
+function getSecretValue {
+    local keyvault=$1
+    local subscription=$2
+    local secret_name=$3
+    local secret_value=""
+    local return_code=0
+
+    if [ -z "$keyvault" ] || [ -z "$subscription" ] || [ -z "$secret_name" ]; then
+        echo ""
+        return 2
+    fi
+
+    # Attempt to get the secret value, suppressing error output
+    secret_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv 2>/dev/null)
+    local az_exit_code=$?
+
+    case $az_exit_code in
+        0)
+            # Secret found successfully
+            echo "$secret_value"
+            return_code=0
+            ;;
+        3)
+            # Secret not found (SecretNotFound error)
+            echo ""
+            return_code=1
+            ;;
+        *)
+            # Other error (permissions, vault not found, etc.)
+            echo ""
+            return_code=2
+            ;;
+    esac
+
+    return $return_code
+}
 
 ###############################################################################
-# Function to set a secret in Azure Key Vault                                 #
+# Function to check if a secret exists in Azure Key Vault                     #
+# Arguments:                                                                  #
+#   1. Key Vault name                                                         #
+#   2. Subscription ID                                                        #
+#   3. Secret name                                                            #
+# Returns:                                                                    #
+#   0 if secret exists, 1 if not found, 2 if error                          #
+# Usage:                                                                      #
+#   secretExists <keyvault> <subscription> <secret_name>                      #
+###############################################################################
+function secretExists {
+    local keyvault=$1
+    local subscription=$2
+    local secret_name=$3
+
+    # Use az keyvault secret list to check existence (more efficient)
+    az keyvault secret list --vault-name "${keyvault}" --subscription "${subscription}" --query "[?name=='${secret_name}'].name" --output tsv 2>/dev/null | grep -q "^${secret_name}$"
+    return $?
+}
+
+###############################################################################
+# Enhanced function to set a secret in Azure Key Vault with better handling   #
 # Arguments:                                                                  #
 #   1. Key Vault name                                                         #
 #   2. Subscription ID                                                        #
 #   3. Secret name                                                            #
 #   4. Secret value                                                           #
 #   5. Secret type                                                            #
-# Returns:             																			                  #
+# Returns:                                                                    #
 #   0 on success, non-zero on failure                                         #
 # Usage:                                                                      #
-#   setSecretValue <keyvault> <subscription> <secret_name> <value> <type>     #
+#   setSecretValueEnhanced <keyvault> <subscription> <secret_name> <value> <type> #
 ###############################################################################
 function setSecretValue {
-	local keyvault=$1
-	local subscription=$2
-	local secret_name=$3
-	local value=$4
-	local type=$5
-	local local_return_code=0
-	current_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv)
-	if [ "${value}" != "${current_value}" ]; then
-		if az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}"; then
-			local_return_code=$?
-		else
-			local_return_code=$?
-			if [ 1 = "${local_return_code}" ]; then
-				az keyvault secret recover --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}"
-				sleep 10
-				az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}"
-				local_return_code=$?
-			else
-				echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
-			fi
-		fi
-	fi
-	return $local_return_code
+    local keyvault=$1
+    local subscription=$2
+    local secret_name=$3
+    local value=$4
+    local type=$5
+    local local_return_code=0
 
+    # Get current value using our safe function
+    local current_value
+    current_value=$(getSecretValue "${keyvault}" "${subscription}" "${secret_name}")
+    local get_result=$?
+
+    case $get_result in
+        0)
+            # Secret exists, compare values
+            if [ "${value}" = "${current_value}" ]; then
+                echo "Secret ${secret_name} already has the correct value"
+                return 0
+            else
+                echo "Secret ${secret_name} exists but has different value, updating..."
+            fi
+            ;;
+        1)
+            # Secret doesn't exist
+            echo "Secret ${secret_name} not found, creating new secret..."
+            ;;
+        2)
+            # Error getting secret (permissions, vault not found, etc.)
+            echo "Error checking secret ${secret_name}, attempting to set anyway..."
+            ;;
+    esac
+
+    # Set the secret
+    if az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}" 2>/dev/null; then
+        local_return_code=0
+        echo "Successfully set secret ${secret_name}"
+    else
+        local_return_code=$?
+        echo "Failed to set secret ${secret_name}, attempting recovery..."
+
+        # Try to recover the secret if it was recently deleted
+        if az keyvault secret recover --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --output none 2>/dev/null; then
+            echo "Secret ${secret_name} recovered, waiting 10 seconds..."
+            sleep 10
+
+            # Try setting again after recovery
+            if az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}" 2>/dev/null; then
+                local_return_code=0
+                echo "Successfully set secret ${secret_name} after recovery"
+            else
+                local_return_code=$?
+                echo "Failed to set secret ${secret_name} even after recovery"
+            fi
+        else
+            echo "Could not recover secret ${secret_name} or it was never deleted"
+        fi
+    fi
+
+    return $local_return_code
 }
 
 ###############################################################################
@@ -338,7 +443,7 @@ function set_all_secrets() {
 	#     upn=$(az account show | grep name | grep @ | cut -d: -f2 | cut -d, -f1 -o tsv | xargs)
 	#     az keyvault set-policy -n "${keyvault}" --secret-permissions get list recover restore set --upn "${upn}"
 	# fi
-	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${subscription}" "configuration"; then
+	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${subscription}" "configuration" >/dev/null; then
 		print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
 	else
 		print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
@@ -349,7 +454,7 @@ function set_all_secrets() {
 
 		#turn off output, we do not want to show the details being uploaded to keyvault
 		secret_name="${prefix}"-client-id
-		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_id}" "configuration"; then
+		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_id}" "configuration" >/dev/null; then
 			print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
 		else
 			print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
@@ -357,7 +462,7 @@ function set_all_secrets() {
 		fi
 
 		secret_name="${prefix}"-tenant-id
-		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${tenant_id}" "configuration"; then
+		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${tenant_id}" "configuration" >/dev/null; then
 			print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
 		else
 			print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
@@ -365,7 +470,7 @@ function set_all_secrets() {
 		fi
 
 		secret_name="${prefix}"-client-secret
-		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_secret}" "secret"; then
+		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_secret}" "secret" >/dev/null; then
 			print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
 		else
 			print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
