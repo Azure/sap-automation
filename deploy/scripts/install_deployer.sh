@@ -179,7 +179,7 @@ allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 allImportParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 
 if [ ! -d ./.terraform/ ]; then
-  print_banner "New deployment" "info"
+	print_banner "New deployment" "info"
 	terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
 else
 	if [ -f ./.terraform/terraform.tfstate ]; then
@@ -238,7 +238,7 @@ else
 				fi
 			fi
 		else
-			if terraform -chdir="${terraform_module_directory}" init  -migrate-state -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
+			if terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
 				print_banner "Install Deployer" "Terraform init: succeeded" "success"
 			else
 				echo ""
@@ -392,29 +392,39 @@ if [ -f apply_output.json ]; then
 			# shellcheck disable=SC2086
 			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 				return_value=$?
+			else
+				return_value=0
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					return_value=$?
+				else
+					return_value=0
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					return_value=$?
+				else
+					return_value=0
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					return_value=$?
+				else
+					return_value=0
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					return_value=$?
+				else
+					return_value=0
 				fi
 			fi
 		else
@@ -457,14 +467,6 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 		else
 			return_value=2
 		fi
-	fi
-
-	# APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
-	APPLICATION_CONFIGURATION_ID=$(get_terraform_output "$terraform_module_directory" "deployer_app_config_id" | tr -d \")
-	if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
-		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_config_information}"
-		export APPLICATION_CONFIGURATION_ID
-		echo "APPLICATION_CONFIGURATION_ID:         $APPLICATION_CONFIGURATION_ID"
 	fi
 
 	DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")

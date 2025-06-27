@@ -282,7 +282,7 @@ if [ 0 == $return_code ]; then
 		remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
 		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_RANDOM_ID"
 		remove_variable "$VARIABLE_GROUP_ID" "LIBRARY_RANDOM_ID"
-
+		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_KEYVAULT"
 	fi
 
 fi
