@@ -114,10 +114,13 @@ SID_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $4}')
 WORKLOAD_ZONE_NAME=$(echo "$SAP_SYSTEM_FOLDERNAME" | cut -d'-' -f1-3)
 landscape_tfstate_key="${SAP_SYSTEM_FOLDERNAME}.terraform.tfstate"
 export landscape_tfstate_key
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT_IN_FILENAME}${LOCATION_CODE_IN_FILENAME}"
+workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT_IN_FILENAME}${LOCATION_CODE_IN_FILENAME}${NETWORK_IN_FILENAME}"
 
 deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
 export deployer_tfstate_key
+
+Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "Terraform_Remote_Storage_Account_Name" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$Terraform_Remote_Storage_Account_Name' | project id, name, subscription" --query data[0].id --output tsv)
 
 if [ -v DEPLOYER_KEYVAULT ] && [ -n "$DEPLOYER_KEYVAULT" ]; then
 	# If the variable is already set, use it
@@ -202,8 +205,8 @@ echo ""
 echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh" --parameter_file "$SAP_SYSTEM_TFVARS_FILENAME" --type sap_system \
-	--deployer_tfstate_key "${deployer_tfstate_key}" --storage_accountname "$terraform_storage_account_name"  \
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh" --parameterfile "$SAP_SYSTEM_TFVARS_FILENAME" --type sap_system \
+	--deployer_tfstate_key "${deployer_tfstate_key}" --storageaccountname "$terraform_storage_account_name"  \
 	--landscape_tfstate_key "${landscape_tfstate_key}" \
 	--ado --auto-approve ; then
 	return_code=$?

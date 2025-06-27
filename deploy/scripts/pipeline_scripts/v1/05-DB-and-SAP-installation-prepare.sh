@@ -5,24 +5,37 @@
 green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
+
+
 #External helper functions
-source "sap-automation/deploy/pipelines/helper.sh"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+parent_directory="$(dirname "$script_directory")"
+grand_parent_directory="$(dirname "$parent_directory")"
+
+SCRIPT_NAME="$(basename "$0")"
+
+banner_title="Software installation"
+
+#call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${grand_parent_directory}/deploy_utils.sh"
+
+#call stack has full script name when using source
+source "${parent_directory}/helper.sh"
 
 DEBUG=False
 
 if [ "$SYSTEM_DEBUG" = True ]; then
-	set -x
-	DEBUG=True
+  set -x
+  DEBUG=True
 	echo "Environment variables:"
 	printenv | sort
 
 fi
 export DEBUG
-
-AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
-export AZURE_DEVOPS_EXT_PAT
-
 set -eu
+
 
 # Print the execution environment details
 print_header
@@ -60,8 +73,8 @@ if [ ! -f "${environment_file_name}" ]; then
 	exit 2
 fi
 
-if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
-	echo "##vso[task.logissue type=error]Variable AZURE_SUBSCRIPTION_ID was not defined."
+if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
+	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
 	exit 2
 fi
 
@@ -70,23 +83,32 @@ if [ "azure pipelines" == "$THIS_AGENT" ]; then
 	exit 2
 fi
 
-echo -e "$green--- az login ---$reset"
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure false
-else
-	LogonToAzure "$USE_MSI"
+# Set logon variables
+if [ $USE_MSI == "true" ]; then
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
 fi
-return_code=$?
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
+if az account show --query name; then
+	echo -e "$green--- Already logged in to Azure ---$reset"
+else
+	# Check if running on deployer
+	if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+		configureNonDeployer "${tf_version:-1.12.2}"
+		echo -e "$green--- az login ---$reset"
+		LogonToAzure $USE_MSI
+	else
+		LogonToAzure $USE_MSI
+	fi
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
 fi
 
-az account set --subscription "$AZURE_SUBSCRIPTION_ID" --output none
+az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
 echo -e "$green--- Get key_vault name ---$reset"
 
