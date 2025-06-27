@@ -202,18 +202,14 @@ function getEnvVarValue() {
 }
 
 function checkforEnvVar() {
-    # Add parameter validation
-    if [ -z "$1" ]; then
-        return 1
-    fi
-
-    local env_var=
-    env_var=$(declare -p "$1" 2>/dev/null)
-    if ! [[ -v $1 && $env_var =~ ^declare\ -x ]]; then
-        return 1
-    else
-        return 0
-    fi
+	local env_var=
+	env_var=$(declare -p "$1" 2>/dev/null)
+	if ! [[ -v $1 && $env_var =~ ^declare\ -x ]]; then
+		return 1
+	else
+#		getEnvVarValue "$1"
+		return 0
+	fi
 }
 
 ###############################################################################
