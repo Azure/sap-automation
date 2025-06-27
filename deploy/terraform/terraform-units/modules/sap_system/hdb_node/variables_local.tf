@@ -486,7 +486,7 @@ locals {
   observer_custom_image_id             = local.enable_deployment ? local.hdb_os.source_image_id : ""
   observer_os                          = local.enable_deployment ? local.hdb_os : null
 
-  site_information                     = flatten(
+  site_information                    = flatten(
                                            [
                                             for idx, server_count in range(var.database_server_count) :
                                               [

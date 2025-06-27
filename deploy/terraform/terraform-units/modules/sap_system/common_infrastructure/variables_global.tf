@@ -76,7 +76,7 @@ variable "infrastructure"                        {
                                        validation {
                                          condition = (
                                            contains(keys(var.infrastructure.virtual_networks.sap), "subnet_admin") ? (
-                                             !var.infrastructure.virtual_networks.sap.subnet_admin.exists_in_workload ? (
+                                             !var.infrastructure.virtual_networks.sap.subnet_admin.exists_in_workload && var.infrastructure.virtual_networks.sap.subnet_admin.defined ? (
                                                length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_admin.id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_admin.prefix, ""))) != 0) : (
                                                true
                                              )) : (
@@ -89,7 +89,7 @@ variable "infrastructure"                        {
                                        validation {
                                                     condition = (
                                                       contains(keys(var.infrastructure.virtual_networks.sap), "subnet_app") ? (
-                                                        !var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? (
+                                                        !var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload && var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
                                                           length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_app.id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_app.prefix, ""))) != 0) : (
                                                           true
                                                         )) : (
@@ -102,7 +102,7 @@ variable "infrastructure"                        {
                                        validation {
                                                     condition = (
                                                       contains(keys(var.infrastructure.virtual_networks.sap), "subnet_db") ? (
-                                                        !var.infrastructure.virtual_networks.sap.subnet_db.exists_in_workload ? (
+                                                        !var.infrastructure.virtual_networks.sap.subnet_db.exists_in_workload && var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
                                                           length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_db.id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_networks.sap.subnet_db.prefix, ""))) != 0) : (
                                                           true
                                                         )) : (

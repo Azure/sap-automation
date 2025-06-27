@@ -231,6 +231,8 @@ deployer_file_parametername=$(basename "${deployer_parameter_file}")
 library_dirname=$(dirname "${library_parameter_file}")
 library_file_parametername=$(basename "${library_parameter_file}")
 
+# relative_deployer_path=$(dirname $(realpath ${deployer_parameter_file}))
+
 relative_path="${deployer_dirname}"
 TF_DATA_DIR="${relative_path}"/.terraform
 export TF_DATA_DIR
@@ -585,13 +587,13 @@ if [ 2 -eq $step ]; then
 		rm -Rf .terraform terraform.tfstate*
 	fi
 
-	echo "Calling install_library.sh with: --parameterfile ${library_file_parametername} --deployer_statefile_foldername ${relative_path} --keyvault ${keyvault} ${autoApproveParameter}"
+	echo "Calling install_library.sh with: --parameterfile ${library_file_parametername} --deployer_statefile_foldername ${deployer_dirname} --keyvault ${keyvault} ${autoApproveParameter}"
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
 		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
 			--parameterfile "${library_file_parametername}" \
-			--deployer_statefile_foldername "${relative_path}" \
+			--deployer_statefile_foldername "${deployer_dirname}" \
 			--keyvault "${keyvault}" --auto-approve; then
 			echo "Bootstrapping of the SAP Library failed"
 			step=2

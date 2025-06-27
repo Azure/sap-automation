@@ -497,11 +497,4 @@ module "output_files" {
   sap_cal_product_name                          = var.sap_cal_product_name
 
   site_information                              = module.hdb_node.site_information
-
-  #########################################################################################
-  #  NVMe Disks                                                                           #
-  #########################################################################################
-  db_use_nvme_disks                             = upper(var.disk_controller_type_database_tier) == "NVME"
-
-  app_use_nvme_disks                            = upper(var.disk_controller_type_app_tier) == "NVME"
 }

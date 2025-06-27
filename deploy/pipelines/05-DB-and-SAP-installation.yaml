@@ -153,7 +153,7 @@ stages:
 
                                       pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
 
-                                      ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad
+                                      ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
 
                                       ansible --version
 
@@ -161,7 +161,10 @@ stages:
               ansible_core_version:    $(ansible_core_version)
             name:                      AnsibleInstallation
             displayName:               Ansible installation
-
+          - task:                      TerraformInstaller@1
+            displayName:               Install Terraform
+            inputs:
+              terraformVersion:        latest
 
           - task:                      Bash@3
             inputs:

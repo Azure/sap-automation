@@ -64,12 +64,6 @@ variable "management_subscription_id"           {
                                                   default     = ""
                                                 }
 
-
-variable "workload_zone_name"                  {
-                                                  description = "This is the name of the workload zone"
-                                                  type        = string
-                                                  default     = ""
-                                                }
 variable "use_deployer"                          {
                                                    description = "Use deployer to deploy the resources"
                                                    default     = true
@@ -94,6 +88,7 @@ variable "resourcegroup_tags"                   {
                                                   description = "Tags to be applied to the resource group"
                                                   default     = {}
                                                 }
+
 
 #######################################4#######################################8
 #                                                                              #
@@ -174,6 +169,7 @@ variable "peer_with_control_plane_vnet"         {
                                                   type        = bool
                                                   default     = true
                                                 }
+
 
 #######################################4#######################################8
 #                                                                              #
@@ -778,10 +774,11 @@ variable "dns_zone_names"                          {
                                                      type        = map(string)
 
                                                      default = {
-                                                                "file_dns_zone_name"   = "privatelink.file.core.windows.net"
-                                                                "blob_dns_zone_name"   = "privatelink.blob.core.windows.net"
-                                                                "table_dns_zone_name"  = "privatelink.table.core.windows.net"
-                                                                "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
+                                                                  "file_dns_zone_name"      = "privatelink.file.core.windows.net"
+                                                                  "blob_dns_zone_name"      = "privatelink.blob.core.windows.net"
+                                                                  "table_dns_zone_name"     = "privatelink.table.core.windows.net"
+                                                                  "vault_dns_zone_name"     = "privatelink.vaultcore.azure.net"
+                                                                  "appconfig_dns_zone_name" = "privatelink.azconfig.io"
                                                                }
                                                    }
 
@@ -1219,9 +1216,6 @@ variable "additional_subnet_id"                {
                                                                }
 
                                                  }
-
-
-
 
 
 #######################################4#######################################8

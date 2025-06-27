@@ -9,6 +9,11 @@
 
 data "azurerm_client_config" "current" {}
 
+data "azurerm_client_config" "current_main" {
+  provider                            = azurerm.workload
+
+}
+
 data "terraform_remote_state" "deployer" {
   backend                              = "azurerm"
 
@@ -25,7 +30,7 @@ data "terraform_remote_state" "deployer" {
 
 data "azurerm_key_vault_secret" "subscription_id" {
   count                                = length(var.subscription_id) > 0 ? 0 : (var.use_spn ? 1 : 0)
-  name                                 = format("%s-subscription-id", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
+  name                                 = format("%s-subscription-id", local.environment)
   key_vault_id                         = local.spn_key_vault_arm_id
   timeouts                             {
                                           read = "1m"
@@ -34,26 +39,32 @@ data "azurerm_key_vault_secret" "subscription_id" {
 
 data "azurerm_key_vault_secret" "client_id" {
   count                                = var.use_spn ? 1 : 0
-  name                                 = format("%s-client-id", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
+  name                                 = format("%s-client-id", local.environment)
   key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
 }
 
 ephemeral "azurerm_key_vault_secret" "client_secret" {
   count                                = var.use_spn ? 1 : 0
-  name                                 = format("%s-client-secret", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
+  name                                 = format("%s-client-secret", local.environment)
   key_vault_id                         = local.spn_key_vault_arm_id
+
 }
 
 data "azurerm_key_vault_secret" "tenant_id" {
   count                                = var.use_spn ? 1 : 0
-  name                                 = format("%s-tenant-id", module.sap_namegenerator.naming.prefix.WORKLOAD_ZONE)
+  name                                 = format("%s-tenant-id", local.environment)
   key_vault_id                         = local.spn_key_vault_arm_id
-
+  timeouts                             {
+                                          read = "1m"
+                                       }
 }
 
 data "azurerm_key_vault_secret" "cp_subscription_id" {
   count                                = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ?  (var.use_spn ? 1 : 0) : 0
-  name                                 = format("%s-subscription-id", data.terraform_remote_state.deployer[0].outputs.control_plane_name)
+  name                                 = format("%s-subscription-id", data.terraform_remote_state.deployer[0].outputs.environment)
   key_vault_id                         = local.spn_key_vault_arm_id
   timeouts                             {
                                           read = "1m"
