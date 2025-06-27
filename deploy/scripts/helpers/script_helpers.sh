@@ -1069,7 +1069,9 @@ function ImportAndReRunApply {
 	local importParameters=$3
 	local applyParameters=$4
 
+	local import_return_value
 	import_return_value=0
+
 	print_banner "ImportAndReRunApply" "In function ImportAndReRunApply" "info"
 
 	if [ -f "$fileName" ]; then
@@ -1079,18 +1081,18 @@ function ImportAndReRunApply {
 		if [[ -n $errors_occurred ]]; then
 			msi_error_count=0
 			msi_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("The role assignment already exists."))' "$fileName")
-			if [[ -n ${msi_errors_temp} ]]; then
-				readarray -t msi_errors < <(echo ${msi_errors_temp} | jq -c '.')
+			if [[ -n "${msi_errors_temp}" ]]; then
+				readarray -t msi_errors < <(echo "${msi_errors_temp}" | jq -c '.')
 				msi_error_count=${#msi_errors[@]}
 			fi
 
 			error_count=0
 			errors_temp=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} ' "$fileName")
-			if [[ -n ${errors_temp} ]]; then
-				readarray -t errors < <(echo ${errors_temp} | jq -c '.')
+			if [[ -n "${errors_temp}" ]]; then
+				readarray -t errors < <(echo "${errors_temp}" | jq -c '.')
 				error_count=${#errors[@]}
 			fi
-			if [[ ${error_count} -gt 0 ]]; then
+			if [[ "${error_count}" -gt 0 ]]; then
 				print_banner "Installer" "Number of errors: $error_count" "error" "Number of permission errors: $msi_error_count"
 
 			else
@@ -1101,7 +1103,7 @@ function ImportAndReRunApply {
 
 			if [[ -n $existing ]]; then
 				import_return_value=5
-				readarray -t errors < <(echo ${existing} | jq -c '.')
+				readarray -t errors < <(echo "${existing}" | jq -c '.')
 
 				for item in "${errors[@]}"; do
 					moduleID=$(jq -c -r '.address ' <<<"$item")
@@ -1122,7 +1124,7 @@ function ImportAndReRunApply {
 				done
 				rm "$fileName"
 				# shellcheck disable=SC2086
-				if terraform -chdir="${terraform_module_directory}" plan -input=false $allImportParameters; then
+				if terraform -chdir="${terraform_module_directory}" plan -input=false $importParameters; then
 					import_return_value=$?
 					print_banner "Installer" "Terraform plan succeeded" "success"
 				else
@@ -1140,7 +1142,8 @@ function ImportAndReRunApply {
 					else
 						import_return_value=${PIPESTATUS[0]}
 					fi
-					if [ $import_return_value -eq 1 ]; then
+					# shellcheck disable=SC2086
+					if [ 1 == $import_return_value ]; then
 						print_banner "Installer" "Errors during the apply phase after importing resources" "error"
 					else
 						# return code 2 is ok
@@ -1156,7 +1159,7 @@ function ImportAndReRunApply {
 				if [[ -n $current_errors ]]; then
 					echo "Errors occurred during the apply phase"
 					echo "-------------------------------------------------------------------------------------"
-					readarray -t errors < <(echo ${current_errors} | jq -c '.')
+					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 
 					for item in "${errors[@]}"; do
 						errorMessage=$(jq -c -r '.summary ' <<<"$item")
@@ -1177,7 +1180,7 @@ function ImportAndReRunApply {
 					import_return_value=5
 					echo "Errors occurred during the apply phase"
 					echo "-------------------------------------------------------------------------------------"
-					readarray -t errors < <(echo ${current_errors} | jq -c '.')
+					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 
 					for item in "${errors[@]}"; do
 						errorMessage=$(jq -c -r '.summary ' <<<"$item")
@@ -1205,6 +1208,7 @@ function ImportAndReRunApply {
 
 	print_banner "ImportAndReRunApply" "Exiting function ImportAndReRunApply" "info" "return code: $import_return_value"
 
+	#shellcheck disable=SC2086
 	return $import_return_value
 }
 
