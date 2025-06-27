@@ -43,8 +43,8 @@ if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 fi
 export VARIABLE_GROUP_ID
 
-file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
-deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
+# file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
+# deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 
 if [ -z "${TF_VAR_ansible_core_version}" ]; then
 	TF_VAR_ansible_core_version=2.16
@@ -56,7 +56,7 @@ mkdir -p .sap_deployment_automation
 
 ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
+CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-2)
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}"
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
