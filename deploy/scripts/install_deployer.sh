@@ -90,6 +90,7 @@ done
 deployment_system=sap_deployer
 
 param_dirname=$(dirname "${parameterfile}")
+param_filename=$(basename "${parameterfile}")
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
 echo "Parameter file:                      ${parameterfile}"
@@ -137,10 +138,22 @@ key=$(echo "${parameterfile}" | cut -d. -f1)
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 deployer_config_information="${automation_config_directory}""${environment}""${region_code}"
+deployer_plan_directory="${automation_config_directory}/plan/"
+deployer_plan_name="${deployer_plan_directory}${param_filename}.tfplan"
 
 param_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
+
+# check if the deployer plan directory exists, if not create it
+if [ ! -d "${deployer_plan_directory}" ]; then
+	mkdir -p "${deployer_plan_directory}"
+	touch "${deployer_plan_name}"
+else
+	if [ ! -f "${deployer_plan_name}" ]; then
+		touch "${deployer_plan_name}"
+	fi
+fi
 
 var_file="${param_dirname}"/"${parameterfile}"
 # Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
@@ -278,7 +291,7 @@ echo ""
 
 # shellcheck disable=SC2086
 
-if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false $allParameters | tee plan_output.log; then
+if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false -out="$deployer_plan_name" $allParameters | tee plan_output.log; then
 	install_deployer_return_value=${PIPESTATUS[0]}
 else
 	install_deployer_return_value=${PIPESTATUS[0]}
@@ -298,6 +311,13 @@ else
 	echo ""
 	echo -e "${bold_red}Terraform plan:                      failed$reset_formatting"
 	echo ""
+	if [ -f "$deployer_plan_name" ]; then
+		echo "Removing the plan file: $deployer_plan_name"
+		# cleanup the plan file as we do not want to use it
+		rm -f "$deployer_plan_name"
+	fi
+
+	# shellcheck disable=SC2086
 	exit $install_deployer_return_value
 fi
 
@@ -345,7 +365,7 @@ install_deployer_return_value=0
 if [ -n "${approve}" ]; then
 	# shellcheck disable=SC2086
 	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-		$allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee apply_output.json; then
+		$allParameters -no-color -compact-warnings -json -input=false -auto-approve "$deployer_plan_name" | tee apply_output.json; then
 		install_deployer_return_value=${PIPESTATUS[0]}
 	else
 		install_deployer_return_value=${PIPESTATUS[0]}
@@ -359,11 +379,17 @@ if [ -n "${approve}" ]; then
 		echo ""
 		echo -e "${cyan} Terraform apply:                    succeeded ($install_deployer_return_value)$reset_formatting"
 		echo ""
+		# remove the plan file as it is not needed anymore
+		if [ -f "$deployer_plan_name" ]; then
+			echo "Removing the plan file: $deployer_plan_name"
+			rm -f "$deployer_plan_name"
+		fi
+		# shellcheck disable=SC2086
 		install_deployer_return_value=0
 	fi
 else
 	# shellcheck disable=SC2086
-	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters "${deployer_plan_name}"; then
 		install_deployer_return_value=${PIPESTATUS[0]}
 	else
 		install_deployer_return_value=${PIPESTATUS[0]}
@@ -378,6 +404,11 @@ else
 		echo ""
 		echo -e "${cyan}Terraform apply:                     succeeded ($install_deployer_return_value)$reset_formatting"
 		echo ""
+		# remove the plan file as it is not needed anymore
+		if [ -f "$deployer_plan_name" ]; then
+			echo "Removing the plan file: $deployer_plan_name"
+			rm -f "$deployer_plan_name"
+		fi
 		install_deployer_return_value=0
 	fi
 fi
@@ -442,6 +473,13 @@ if [ 0 != $install_deployer_return_value ]; then
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 	echo ""
+
+	if [ -f "${deployer_plan_name}" ]; then
+		echo "Removing the plan file: $deployer_plan_name"
+		rm -f "$deployer_plan_name"
+	fi
+
+	# shellcheck disable=SC2086
 	exit $install_deployer_return_value
 fi
 
