@@ -469,6 +469,8 @@ if [ 1 -eq $step ] || [ 3 -eq $step ]; then
 
 					keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
 					save_config_var "keyvault" "${deployer_config_information}"
+					DEPLOYER_KEYVAULT="${keyvault}"
+					save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
 				else
 					echo "Terraform state:                     local"
 				fi

@@ -304,7 +304,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	fi
 
 	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-	if [ 0 -eq $return_code ]; then
+	if [ -n "$DEPLOYER_KEYVAULT" ]; then
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
 	fi
 
