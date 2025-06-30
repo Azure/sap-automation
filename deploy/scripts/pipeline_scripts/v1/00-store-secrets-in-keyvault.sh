@@ -4,6 +4,7 @@
 
 green="\e[1;32m"
 reset="\e[0m"
+bold_red="\e[1;31m"
 
 # External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
