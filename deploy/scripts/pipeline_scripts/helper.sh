@@ -356,22 +356,28 @@ function configure_devops() {
 	az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
 	az config set extension.dynamic_install_allow_preview=true --output none --only-show-errors
 
-	if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
-		az extension add --name azure-devops --output none --only-show-errors
+	# Check if Azure DevOps extension is installed, if not, install it
 
-	else
+	extension_installed=$(az extension list --query "[?contains(name, 'azure-devops')].name | [0]" --output tsv)
+
+	if [  -n  "$extension_installed" ]; then
 		echo "Azure DevOps extension already installed."
 		az extension update --name azure-devops --output none --only-show-errors
+	else
+		az extension add --name azure-devops --output none --only-show-errors
+		echo "Azure DevOps extension installed."
 	fi
 
 	az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
 
-	if ! az extension list --query "[?contains(name, 'resource-graph')]" --output table; then
-		az extension add --name resource-graph
-		echo "Azure Resource Graph extension installed."
-	else
+	extension_installed=$(az extension list --query "[?contains(name, 'resource-graph')].name | [0]" --output tsv)
+
+	if [  -n  "$extension_installed" ]; then
 		echo "Azure Resource Graph extension already installed."
 		az extension update --name resource-graph --output none --only-show-errors
+	else
+		az extension add --name resource-graph --output none --only-show-errors
+		echo "Azure Resource Graph extension installed."
 	fi
 }
 
