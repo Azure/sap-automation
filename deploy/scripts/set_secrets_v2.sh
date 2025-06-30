@@ -48,27 +48,32 @@ function getSecretValue {
         return 2
     fi
 
-    # Attempt to get the secret value, suppressing error output
-    secret_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv 2>/dev/null)
-    local az_exit_code=$?
+		if secretExists "${keyvault}" "${subscription}" "${secret_name}" ; then
 
-    case $az_exit_code in
-        0)
-            # Secret found successfully
-            echo "$secret_value"
-            return_code=0
-            ;;
-        3)
-            # Secret not found (SecretNotFound error)
-            echo ""
-            return_code=1
-            ;;
-        *)
-            # Other error (permissions, vault not found, etc.)
-            echo ""
-            return_code=2
-            ;;
-    esac
+				# Attempt to get the secret value, suppressing error output
+				secret_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv 2>/dev/null)
+				local az_exit_code=$?
+
+				case $az_exit_code in
+						0)
+								# Secret found successfully
+								echo "$secret_value"
+								return_code=0
+								;;
+						3)
+								# Secret not found (SecretNotFound error)
+								echo ""
+								return_code=1
+								;;
+						*)
+								# Other error (permissions, vault not found, etc.)
+								echo ""
+								return_code=2
+								;;
+				esac
+		else
+								return_code=1
+		fi
 
     return $return_code
 }

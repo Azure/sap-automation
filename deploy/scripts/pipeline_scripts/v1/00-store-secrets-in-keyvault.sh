@@ -46,16 +46,15 @@ configure_devops
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.12.2}"
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure $USE_MSI
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
-	fi
-else
-	LogonToAzure $USE_MSI
+fi
+
+echo -e "$green--- az login ---$reset"
+LogonToAzure $USE_MSI
+return_code=$?
+if [ 0 != $return_code ]; then
+	echo -e "$bold_red--- Login failed ---$reset"
+	echo "##vso[task.logissue type=error]az login failed."
+	exit $return_code
 fi
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
@@ -67,38 +66,18 @@ if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 fi
 export VARIABLE_GROUP_ID
 
-if printenv PARENT_VARIABLE_GROUP; then
-	if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
-		echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
-		exit 2
-	else
-		DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
-
-		WZ_DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
-		if [ -z "$WZ_DEPLOYER_KEYVAULT" ]; then
-			az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "DEPLOYER_KEYVAULT" --value "$DEPLOYER_KEYVAULT" --output none
-		else
-			az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "DEPLOYER_KEYVAULT" --value "$DEPLOYER_KEYVAULT" --output none
-		fi
-
-		key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
-		keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
-
-	fi
-	export PARENT_VARIABLE_GROUP_ID
-fi
-
-
-cd "${CONFIG_REPO_PATH}" || exit
-git checkout -q "$BUILD_SOURCEBRANCHNAME"
-
 echo -e "$green--- Validations ---$reset"
 if [ "$USE_MSI" != "true" ]; then
 
 	if ! printenv ARM_SUBSCRIPTION_ID; then
 		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
 		print_banner "$banner_title" "Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group" "error"
+		exit 2
+	fi
+
+	if ! printenv ARM_CLIENT_SECRET; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group" "error"
 		exit 2
 	fi
 
@@ -114,6 +93,32 @@ if [ "$USE_MSI" != "true" ]; then
 		exit 2
 	fi
 fi
+
+
+if [ -v PARENT_VARIABLE_GROUP ]; then
+	if get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
+		DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
+
+		WZ_DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
+		if [ -z "$WZ_DEPLOYER_KEYVAULT" ]; then
+			az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "DEPLOYER_KEYVAULT" --value "$DEPLOYER_KEYVAULT" --output none
+		else
+			az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "DEPLOYER_KEYVAULT" --value "$DEPLOYER_KEYVAULT" --output none
+		fi
+
+		key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
+		keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
+
+	fi
+	export PARENT_VARIABLE_GROUP_ID
+	else
+		echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
+		exit 2
+fi
+
+cd "${CONFIG_REPO_PATH}" || exit
+git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
 echo ""
 echo -e "$green--- Read parameter values ---$reset"
