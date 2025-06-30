@@ -95,7 +95,6 @@ if [ "$USE_MSI" != "true" ]; then
 	fi
 fi
 
-
 if [ -v PARENT_VARIABLE_GROUP ]; then
 	if get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
 		DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
@@ -110,12 +109,12 @@ if [ -v PARENT_VARIABLE_GROUP ]; then
 		key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 		keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
 
-	fi
-	export PARENT_VARIABLE_GROUP_ID
+		export PARENT_VARIABLE_GROUP_ID
 	else
 		echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
 		echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
 		exit 2
+	fi
 fi
 
 cd "${CONFIG_REPO_PATH}" || exit
