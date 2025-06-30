@@ -358,12 +358,20 @@ function configure_devops() {
 
 	if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then
 		az extension add --name azure-devops --output none --only-show-errors
+
+	else
+		echo "Azure DevOps extension already installed."
+		az extension update --name azure-devops --output none --only-show-errors
 	fi
 
 	az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
 
 	if ! az extension list --query "[?contains(name, 'resource-graph')]" --output table; then
 		az extension add --name resource-graph
+		echo "Azure Resource Graph extension installed."
+	else
+		echo "Azure Resource Graph extension already installed."
+		az extension update --name resource-graph --output none --only-show-errors
 	fi
 }
 
