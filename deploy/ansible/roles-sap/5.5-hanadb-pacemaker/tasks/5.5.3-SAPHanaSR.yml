@@ -432,7 +432,7 @@
 
     - name:                            "5.5 HANA Pacemaker - Create sudoers file for SLES"
       ansible.builtin.template:
-        src:                           "20-saphana-suse.j2"
+        src:                           "20-saphana-angi-suse.j2"
         dest:                          "/etc/sudoers.d/20-saphana"
         mode:                          "0440"
         owner:                         root
