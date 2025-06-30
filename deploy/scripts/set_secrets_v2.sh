@@ -95,7 +95,7 @@ function secretExists {
     local secret_name=$3
 
     # Use az keyvault secret list to check existence (more efficient)
-    az keyvault secret list --vault-name "${keyvault}" --subscription "${subscription}" --query "[?name=='${secret_name}'].name" --output tsv 2>/dev/null | grep -q "^${secret_name}$"
+    az keyvault secret list --vault-name "${keyvault}" --subscription "${subscription}" --query "[?name=='${secret_name}'].name | [0]" --output tsv 2>/dev/null | grep -q "^${secret_name}$"
     return $?
 }
 
