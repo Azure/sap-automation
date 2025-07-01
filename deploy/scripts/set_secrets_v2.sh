@@ -23,6 +23,50 @@ set -eu
 
 deploy_using_msi_only=0
 keyvault=""
+
+function ensureKeyVaultAccess {
+    local keyvault=$1
+    local subscription=$2
+    local max_retries=3
+    local retry_count=0
+
+    # Validate inputs
+    if [[ ! "$keyvault" =~ ^[a-zA-Z0-9-]{3,24}$ ]] || ! is_valid_guid "$subscription"; then
+        echo "ERROR: Invalid parameters" >&2
+        return 1
+    fi
+
+    # First, try to access without modifying firewall
+    while [ $retry_count -lt $max_retries ]; do
+        if az keyvault secret list --vault-name "${keyvault}" --subscription "${subscription}" --query "[0].name" --output tsv >/dev/null 2>&1; then
+            echo "Key Vault access confirmed (attempt $((retry_count + 1)))" >&2
+            return 0
+        fi
+
+        if [ $retry_count -eq 0 ]; then
+            # Only add IP rule on first failure
+            echo "Access denied, attempting to add current IP to firewall..." >&2
+            local current_ip
+            current_ip=$(curl -s ipinfo.io/ip 2>/dev/null)
+
+            if [[ "$current_ip" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+                az keyvault network-rule add \
+                    --name "${keyvault}" \
+                    --subscription "${subscription}" \
+                    --ip-address "${current_ip}" \
+                    --output none 2>/dev/null || true
+                sleep 10  # Wait for rule to propagate
+            fi
+        fi
+
+        retry_count=$((retry_count + 1))
+        sleep 5
+    done
+
+    echo "ERROR: Unable to establish Key Vault access after $max_retries attempts" >&2
+    return 1
+}
+
 ###############################################################################
 # Function to safely get a secret value from Azure Key Vault                  #
 # Arguments:                                                                  #
@@ -48,41 +92,30 @@ function getSecretValue {
         return 2
     fi
 
+    # Ensure network access first
+    ensureKeyVaultAccess "${keyvault}" "${subscription}"
+
     if secretExists "${keyvault}" "${subscription}" "${secret_name}" ; then
-				echo "DEBUG: secretExists returned true" >&2
-        # Temporarily disable 'exit on error' for this command
         set +e
-        # Remove 2>/dev/null and add more debugging
-				echo "DEBUG: Current az account: $(az account show --query '{name:name, id:id}' --output json)" >&2
-				echo "DEBUG: About to run az command with params: keyvault='$keyvault', subscription='$subscription', secret_name='$secret_name'" >&2
-				secret_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv)
-				local az_exit_code=$?
-				echo "DEBUG: Command completed. az_exit_code=$az_exit_code" >&2
-				echo "DEBUG: Raw secret_value length: ${#secret_value}" >&2
-				echo "DEBUG: Raw secret_value (first 10 chars): '${secret_value:0:10}'" >&2
-        # Re-enable 'exit on error'
+        secret_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv 2>/dev/null)
+        local az_exit_code=$?
         set -e
-				echo "DEBUG: az_exit_code=$az_exit_code, secret_value='$secret_value'" >&2
 
         case $az_exit_code in
             0)
-                # Secret found successfully
                 echo "$secret_value"
                 return_code=0
                 ;;
             3)
-                # Secret not found (SecretNotFound error)
                 echo ""
                 return_code=1
                 ;;
             *)
-                # Other error (permissions, vault not found, etc.)
                 echo ""
                 return_code=2
                 ;;
         esac
     else
-        echo "DEBUG: secretExists returned false" >&2
         return_code=1
     fi
 
@@ -104,16 +137,19 @@ function secretExists {
     local keyvault=$1
     local subscription=$2
     local secret_name=$3
-
+		local kvSecretExitsCode
     # Use || true to prevent set -e from terminating the script
-    az keyvault secret show --name "${secret_name}" \
-        --vault-name "${keyvault}" \
-        --subscription "${subscription}" \
-        --query "name" --output tsv >/dev/null 2>&1 || true
+		set +e
 
+		az keyvault secret list --vault-name "${keyvault}" \
+			--subscription "${subscription}" \
+			--query "[?name=='${secret_name}'].name | [0]" \
+			--output tsv 2>/dev/null;
+		kvSecretExitsCode=$?
+		set -e
     # Get the actual exit code from PIPESTATUS
 		# shellcheck disable=SC2086
-    return ${PIPESTATUS[0]}
+    return $kvSecretExitsCode
 }
 
 ###############################################################################
