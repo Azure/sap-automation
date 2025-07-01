@@ -49,7 +49,6 @@ function getSecretValue {
     fi
 
 		if secretExists "${keyvault}" "${subscription}" "${secret_name}" ; then
-
 				# Attempt to get the secret value, suppressing error output
 				secret_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv 2>/dev/null)
 				local az_exit_code=$?
@@ -94,12 +93,10 @@ function secretExists {
     local subscription=$2
     local secret_name=$3
 
-		local return_se_code
-		return_se_code=1
-    # Use az keyvault secret list to check existence (more efficient)
-    return_se_code=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${subscription}" --query "[?name=='${secret_name}'].name | [0]" --output tsv 2>/dev/null | grep -q "${secret_name}")
-    # shellcheck disable=SC2086
-    return $return_se_code
+    # Use az keyvault secret list to check existence
+    az keyvault secret list --name "${secret_name}" --vault-name "${keyvault}" \
+			--subscription "${subscription}" --output tsv >/dev/null 2>&1
+    return $?
 }
 
 ###############################################################################
