@@ -49,12 +49,14 @@ function getSecretValue {
     fi
 
     if secretExists "${keyvault}" "${subscription}" "${secret_name}" ; then
+				echo "DEBUG: secretExists returned true" >&2
         # Temporarily disable 'exit on error' for this command
         set +e
         secret_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv 2>/dev/null)
         local az_exit_code=$?
         # Re-enable 'exit on error'
         set -e
+				echo "DEBUG: az_exit_code=$az_exit_code, secret_value='$secret_value'" >&2
 
         case $az_exit_code in
             0)
@@ -74,6 +76,7 @@ function getSecretValue {
                 ;;
         esac
     else
+        echo "DEBUG: secretExists returned false" >&2
         return_code=1
     fi
 
