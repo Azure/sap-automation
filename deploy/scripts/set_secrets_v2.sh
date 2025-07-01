@@ -52,8 +52,14 @@ function getSecretValue {
 				echo "DEBUG: secretExists returned true" >&2
         # Temporarily disable 'exit on error' for this command
         set +e
-        secret_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv 2>/dev/null)
-        local az_exit_code=$?
+        # Remove 2>/dev/null and add more debugging
+				echo "DEBUG: Current az account: $(az account show --query '{name:name, id:id}' --output json)" >&2
+				echo "DEBUG: About to run az command with params: keyvault='$keyvault', subscription='$subscription', secret_name='$secret_name'" >&2
+				secret_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv)
+				local az_exit_code=$?
+				echo "DEBUG: Command completed. az_exit_code=$az_exit_code" >&2
+				echo "DEBUG: Raw secret_value length: ${#secret_value}" >&2
+				echo "DEBUG: Raw secret_value (first 10 chars): '${secret_value:0:10}'" >&2
         # Re-enable 'exit on error'
         set -e
 				echo "DEBUG: az_exit_code=$az_exit_code, secret_value='$secret_value'" >&2
