@@ -94,9 +94,12 @@ function secretExists {
     local subscription=$2
     local secret_name=$3
 
+		local return_se_code
+		return_se_code=1
     # Use az keyvault secret list to check existence (more efficient)
-    az keyvault secret list --vault-name "${keyvault}" --subscription "${subscription}" --query "[?name=='${secret_name}'].name | [0]" --output tsv 2>/dev/null | grep -q "${secret_name}"
-    return $?
+    return_se_code=$(az keyvault secret list --vault-name "${keyvault}" --subscription "${subscription}" --query "[?name=='${secret_name}'].name | [0]" --output tsv 2>/dev/null | grep -q "${secret_name}")
+    # shellcheck disable=SC2086
+    return $return_se_code
 }
 
 ###############################################################################
