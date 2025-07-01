@@ -138,7 +138,6 @@ function secretExists {
     local subscription=$2
     local secret_name=$3
 		local kvSecretExitsCode
-    # Use || true to prevent set -e from terminating the script
 		set +e
 
 		az keyvault secret list --vault-name "${keyvault}" \

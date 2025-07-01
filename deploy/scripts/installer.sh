@@ -741,6 +741,11 @@ if [ 1 != $return_value ]; then
 	fi
 
 	if [ "${deployment_system}" == sap_library ]; then
+		if [ -z "${REMOTE_STATE_SA}" ]; then
+			print_banner "$banner_title" "The SAP Library storage account is not defined" "error"
+			echo "##vso[task.logissue type=error]The SAP Library storage account is not defined"
+			exit 1
+		fi
 		state_path="LIBRARY"
 		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 			tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id | tr -d \")
