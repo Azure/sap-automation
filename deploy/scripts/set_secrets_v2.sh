@@ -48,31 +48,34 @@ function getSecretValue {
         return 2
     fi
 
-		if secretExists "${keyvault}" "${subscription}" "${secret_name}" ; then
-				# Attempt to get the secret value, suppressing error output
-				secret_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv 2>/dev/null)
-				local az_exit_code=$?
+    if secretExists "${keyvault}" "${subscription}" "${secret_name}" ; then
+        # Temporarily disable 'exit on error' for this command
+        set +e
+        secret_value=$(az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --query value --output tsv 2>/dev/null)
+        local az_exit_code=$?
+        # Re-enable 'exit on error'
+        set -e
 
-				case $az_exit_code in
-						0)
-								# Secret found successfully
-								echo "$secret_value"
-								return_code=0
-								;;
-						3)
-								# Secret not found (SecretNotFound error)
-								echo ""
-								return_code=1
-								;;
-						*)
-								# Other error (permissions, vault not found, etc.)
-								echo ""
-								return_code=2
-								;;
-				esac
-		else
-								return_code=1
-		fi
+        case $az_exit_code in
+            0)
+                # Secret found successfully
+                echo "$secret_value"
+                return_code=0
+                ;;
+            3)
+                # Secret not found (SecretNotFound error)
+                echo ""
+                return_code=1
+                ;;
+            *)
+                # Other error (permissions, vault not found, etc.)
+                echo ""
+                return_code=2
+                ;;
+        esac
+    else
+        return_code=1
+    fi
 
     return $return_code
 }
@@ -150,31 +153,39 @@ function setSecretValue {
             ;;
     esac
 
-    # Set the secret
-    if az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}" 2>/dev/null; then
-        local_return_code=0
-        echo "Successfully set secret ${secret_name}"
-    else
-        local_return_code=$?
-        echo "Failed to set secret ${secret_name}, attempting recovery..."
+		set +e
+		az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}" 2>/dev/null
+		local_return_code=$?
+		set -e
 
-        # Try to recover the secret if it was recently deleted
-        if az keyvault secret recover --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --output none 2>/dev/null; then
-            echo "Secret ${secret_name} recovered, waiting 10 seconds..."
-            sleep 10
+		if [ $local_return_code -eq 0 ]; then
+		    echo "Successfully set secret ${secret_name}"
+		else
+		    echo "Failed to set secret ${secret_name}, attempting recovery..."
 
-            # Try setting again after recovery
-            if az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}" 2>/dev/null; then
-                local_return_code=0
-                echo "Successfully set secret ${secret_name} after recovery"
-            else
-                local_return_code=$?
-                echo "Failed to set secret ${secret_name} even after recovery"
-            fi
-        else
-            echo "Could not recover secret ${secret_name} or it was never deleted"
-        fi
-    fi
+		    set +e
+		    az keyvault secret recover --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --output none 2>/dev/null
+		    local recovery_code=$?
+		    set -e
+
+		    if [ $recovery_code -eq 0 ]; then
+		        echo "Secret ${secret_name} recovered, waiting 10 seconds..."
+		        sleep 10
+
+		        set +e
+		        az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none --content-type "${type}" 2>/dev/null
+		        local_return_code=$?
+		        set -e
+
+		        if [ $local_return_code -eq 0 ]; then
+		            echo "Successfully set secret ${secret_name} after recovery"
+		        else
+		            echo "Failed to set secret ${secret_name} even after recovery"
+		        fi
+		    else
+		        echo "Could not recover secret ${secret_name} or it was never deleted"
+		    fi
+		fi
 
     return $local_return_code
 }
