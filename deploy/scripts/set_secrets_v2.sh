@@ -93,12 +93,15 @@ function secretExists {
     local subscription=$2
     local secret_name=$3
 
-    # Use the direct approach - much more reliable
+    # Use || true to prevent set -e from terminating the script
     az keyvault secret show --name "${secret_name}" \
         --vault-name "${keyvault}" \
         --subscription "${subscription}" \
-        --query "name" --output tsv >/dev/null 2>&1
-    return $?
+        --query "name" --output tsv >/dev/null 2>&1 || true
+
+    # Get the actual exit code from PIPESTATUS
+		# shellcheck disable=SC2086
+    return ${PIPESTATUS[0]}
 }
 
 ###############################################################################
