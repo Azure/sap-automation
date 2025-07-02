@@ -24,6 +24,21 @@ set -eu
 deploy_using_msi_only=0
 keyvault=""
 
+function addKeyVaultNetworkRule {
+		local keyvault=$1
+		local subscription=$2
+		local ip_address=$3
+
+		if [[ -z "$keyvault" || -z "$subscription" || -z "$ip_address" ]]; then
+				echo "ERROR: Missing parameters for addKeyVaultNetworkRule" >&2
+				return 1
+		fi
+
+		az keyvault network-rule add --name "${keyvault}" \
+			--subscription "${subscription}" \
+			--ip-address "${ip_address}" --output none 2>/dev/null || true
+}
+
 function ensureKeyVaultAccess {
     local keyvault=$1
     local subscription=$2
@@ -47,16 +62,25 @@ function ensureKeyVaultAccess {
             # Only add IP rule on first failure
             echo "Access denied, attempting to add current IP to firewall..." >&2
             local current_ip
+						local current_local_ip
             current_ip=$(curl -s ipinfo.io/ip 2>/dev/null)
+						# get current local ip from the machine
+						current_local_ip=$(hostname -I | awk '{print $1}')
 
-            if [[ "$current_ip" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-                az keyvault network-rule add \
-                    --name "${keyvault}" \
-                    --subscription "${subscription}" \
-                    --ip-address "${current_ip}" \
-                    --output none 2>/dev/null || true
-                sleep 30  # Wait for rule to propagate
-            fi
+						if [[ "$current_ip" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+								if ! addKeyVaultNetworkRule "$keyvault" "$subscription" "$current_ip"; then
+										echo "Failed to add IP rule for ${current_ip}, trying local IP ${current_local_ip}" >&2
+										addKeyVaultNetworkRule "${keyvault}" "${subscription}" "${current_local_ip}"
+								else
+										echo "Added IP rule for ${current_ip}, waiting for propagation..." >&2
+								fi
+						else
+								echo "ERROR: Invalid IP address format: ${current_ip}" >&2
+								return 1
+						fi
+
+						# Wait for the rule to propagate
+						sleep 30  # Increased wait time for propagation
         fi
 
         retry_count=$((retry_count + 1))
