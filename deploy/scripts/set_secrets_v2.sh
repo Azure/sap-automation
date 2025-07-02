@@ -117,7 +117,7 @@ function getSecretValue {
     fi
 
     # Ensure network access first
-    ensureKeyVaultAccess "${keyvault}" "${subscription}"
+    # ensureKeyVaultAccess "${keyvault}" "${subscription}"
 
     if secretExists "${keyvault}" "${subscription}" "${secret_name}" ; then
         set +e
