@@ -55,7 +55,7 @@ function ensureKeyVaultAccess {
                     --subscription "${subscription}" \
                     --ip-address "${current_ip}" \
                     --output none 2>/dev/null || true
-                sleep 10  # Wait for rule to propagate
+                sleep 30  # Wait for rule to propagate
             fi
         fi
 
