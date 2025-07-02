@@ -1074,31 +1074,38 @@ if [ "${deployment_system}" == sap_deployer ]; then
 
 	fi
 
+	# shellcheck disable=SC2034
 	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
+	save_config_var "deployer_public_ip_address" "${system_config_information}"
 
-	application_configuration_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
-	if [ -n "${application_configuration_id}" ]; then
-		APPLICATION_CONFIGURATION_ID="${application_configuration_id}"
-		export APPLICATION_CONFIGURATION_ID
-		save_config_var "APPLICATION_CONFIGURATION_ID" "${system_config_information}"
+	if (terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \"); then
+		application_configuration_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
+		if [ -n "${application_configuration_id}" ]; then
+			APPLICATION_CONFIGURATION_ID="${application_configuration_id}"
+			export APPLICATION_CONFIGURATION_ID
+			save_config_var "APPLICATION_CONFIGURATION_ID" "${system_config_information}"
+		fi
 	fi
-	keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 
+	if (terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \"); then
+		keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+		if valid_kv_name "$keyvault"; then
+			save_config_var "keyvault" "${system_config_information}"
+		else
+			printf -v val %-40.40s "$keyvault"
+			echo "#########################################################################################"
+			echo "#                                                                                       #"
+			echo -e "#       The provided keyvault is not valid:$bold_red ${val} $reset_formatting  #"
+			echo "#                                                                                       #"
+			echo "#########################################################################################"
+			echo "The provided keyvault is not valid " "${val}" >secret.err
+		fi
+	fi
 fi
 
-if valid_kv_name "$keyvault"; then
-	save_config_var "keyvault" "${system_config_information}"
-else
-	printf -v val %-40.40s "$keyvault"
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#       The provided keyvault is not valid:$bold_red ${val} $reset_formatting  #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo "The provided keyvault is not valid " "${val}" >secret.err
-fi
 
-save_config_var "deployer_public_ip_address" "${system_config_information}"
+
+
 
 if [ "${deployment_system}" == sap_library ]; then
 	REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")

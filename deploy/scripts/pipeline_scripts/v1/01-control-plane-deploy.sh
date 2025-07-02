@@ -371,7 +371,7 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	else
 		echo "Library Terraform state:               remote"
 		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
-			if [ 0 == $return_code ]; then
+			if [ "$return_code" -eq 0 ]; then
 				echo "Removing the library state file"
 				git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
 				added=1
@@ -429,7 +429,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
 fi
 
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-if [ 0 = $return_code ]; then
+if [ "$return_code" -eq 0 ]; then
 	if [ -n "${file_REMOTE_STATE_SA}" ]; then
 		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${file_REMOTE_STATE_SA}"; then
 			echo "Variable Terraform_Remote_Storage_Account_Name was added to the $VARIABLE_GROUP variable group."
