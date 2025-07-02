@@ -284,7 +284,6 @@ function get_region_from_code() {
 	"WEUS") LOCATION_IN_FILENAME="westus" ;;
 	"WUS2") LOCATION_IN_FILENAME="westus2" ;;
 	"WUS3") LOCATION_IN_FILENAME="westus3" ;;
-	"NZNO") LOCATION_IN_FILENAME="newzealandnorth" ;;
 	*) LOCATION_IN_FILENAME="westeurope" ;;
 	esac
 	echo "$LOCATION_IN_FILENAME"

@@ -165,22 +165,22 @@ function secretExists {
 
 		set +e
 
-		echo "DEBUG: Current az account: $(az account show --query '{name:name, id:id}' --output json)" >&2
+		echo "DEBUG: Current az account: $(az account show --query user --output yaml)" >&2
 		echo "DEBUG: About to run az command with params: keyvault='$keyvault', subscription='$subscription', secret_name='$secret_name'" >&2
 
 		az keyvault secret list --vault-name "${keyvault}" \
 			--subscription "${subscription}" \
 			--query "[?name=='${secret_name}'].name | [0]" \
-			--output tsv 2>/dev/null;
+			--output tsv >&2
 		kvSecretExitsCode=$?
 		echo "DEBUG: Command completed. exit_code=$kvSecretExitsCode" >&2
 
 		set -e
 
 		if [ $kvSecretExitsCode -eq 0 ]; then
-			echo "DEBUG: Secret ${secret_name} exists in Key Vault ${keyvault}"
+			echo "DEBUG: Secret ${secret_name} exists in Key Vault ${keyvault}" >&2
 		else
-			echo "DEBUG: Secret ${secret_name} does not exist in Key Vault ${keyvault} - Return code: ${kvSecretExitsCode}"
+			echo "DEBUG: Secret ${secret_name} does not exist in Key Vault ${keyvault} - Return code: ${kvSecretExitsCode}" >&2
 		fi
 
 		# shellcheck disable=SC2086
