@@ -131,7 +131,7 @@ function getSecretValue {
                 return_code=0
                 ;;
             3)
-                echo ""
+                echo "Network Error"
                 return_code=1
                 ;;
             *)
@@ -162,15 +162,27 @@ function secretExists {
     local subscription=$2
     local secret_name=$3
 		local kvSecretExitsCode
+
 		set +e
+
+		echo "DEBUG: Current az account: $(az account show --query '{name:name, id:id}' --output json)" >&2
+		echo "DEBUG: About to run az command with params: keyvault='$keyvault', subscription='$subscription', secret_name='$secret_name'" >&2
 
 		az keyvault secret list --vault-name "${keyvault}" \
 			--subscription "${subscription}" \
 			--query "[?name=='${secret_name}'].name | [0]" \
 			--output tsv 2>/dev/null;
 		kvSecretExitsCode=$?
+		echo "DEBUG: Command completed. exit_code=$kvSecretExitsCode" >&2
+
 		set -e
-    # Get the actual exit code from PIPESTATUS
+
+		if [ $kvSecretExitsCode -eq 0 ]; then
+			echo "DEBUG: Secret ${secret_name} exists in Key Vault ${keyvault}"
+		else
+			echo "DEBUG: Secret ${secret_name} does not exist in Key Vault ${keyvault} - Return code: ${kvSecretExitsCode}"
+		fi
+
 		# shellcheck disable=SC2086
     return $kvSecretExitsCode
 }
