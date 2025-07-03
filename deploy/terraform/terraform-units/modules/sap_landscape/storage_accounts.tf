@@ -396,6 +396,7 @@ resource "azurerm_private_endpoint" "transport" {
                                            local.prefix,
                                            local.resource_suffixes.storage_private_link_transport
                                          )
+  tags                                 = var.tags
   custom_network_interface_name        = format("%s%s%s%s",
                                            var.naming.resource_prefixes.storage_private_link_transport,
                                            local.prefix,
@@ -587,6 +588,7 @@ resource "azurerm_private_endpoint" "install" {
                                            local.prefix,
                                            local.resource_suffixes.storage_private_link_install
                                          )
+  tags                                 = var.tags
   custom_network_interface_name        = format("%s%s%s%s",
                                           var.naming.resource_prefixes.storage_private_link_install,
                                           local.prefix,
