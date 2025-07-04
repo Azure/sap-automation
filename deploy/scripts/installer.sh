@@ -548,7 +548,7 @@ if [ ! -f .terraform/terraform.tfstate ]; then
 		--backend-config "key=${key}.terraform.tfstate"; then
 		return_value=$?
 		print_banner "$banner_title" "Terraform init failed." "error"
-		return $return_value
+		exit $return_value
 	else
 		return_value=$?
 	fi
@@ -587,7 +587,7 @@ else
 		else
 			return_value=10
 			print_banner "$banner_title" "Terraform init failed" "error" "Terraform init return code: $return_value"
-			return $return_value
+			exit $return_value
 		fi
 	else
 		echo "Terraform state:                     remote"
@@ -604,7 +604,7 @@ else
 		else
 			return_value=10
 			print_banner "$banner_title" "Terraform init failed." "error" "Terraform init return code: $return_value"
-			return $return_value
+			exit $return_value
 		fi
 	fi
 fi
@@ -669,7 +669,7 @@ else
 	return_value=${PIPESTATUS[0]}
 	if [ 1 -eq $return_value ]; then
 		print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
-		return $return_value
+		exit $return_value
 	fi
 	apply_needed=1
 
