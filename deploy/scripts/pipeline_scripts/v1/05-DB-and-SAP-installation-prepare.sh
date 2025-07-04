@@ -43,6 +43,36 @@ print_header
 # Configure DevOps
 configure_devops
 
+
+ENVIRONMENT=$(echo "$SAP_SYSTEM_CONFIGURATION_NAME" | awk -F'-' '{print $1}' | xargs)
+
+LOCATION=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $2}' | xargs)
+
+NETWORK=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $3}' | xargs)
+
+SID=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $4}' | xargs)
+
+cd "$CONFIG_REPO_PATH" || exit
+
+environment_file_name=".sap_deployment_automation/$ENVIRONMENT$LOCATION$NETWORK"
+
+echo -e "$green--- Validations ---$reset"
+if [ ! -f "${environment_file_name}" ]; then
+	echo -e "$bold_red--- ${environment_file_name} was not found ---$reset"
+	echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
+	exit 2
+fi
+
+if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
+	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+	exit 2
+fi
+
+if [ "azure pipelines" == "$THIS_AGENT" ]; then
+	echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$ENVIRONMENT variable group"
+	exit 2
+fi
+
 # Set logon variables
 if [ $USE_MSI == "true" ]; then
 	unset ARM_CLIENT_SECRET
@@ -68,6 +98,10 @@ else
 	fi
 fi
 
+parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml"
+
+az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none --only-show-errors
+
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
 then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
@@ -76,37 +110,6 @@ then
 fi
 export VARIABLE_GROUP_ID
 
-ENVIRONMENT=$(echo "$SAP_SYSTEM_CONFIGURATION_NAME" | awk -F'-' '{print $1}' | xargs)
-
-LOCATION=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $2}' | xargs)
-
-NETWORK=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $3}' | xargs)
-
-SID=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $4}' | xargs)
-
-cd "$CONFIG_REPO_PATH" || exit
-
-environment_file_name=".sap_deployment_automation/$ENVIRONMENT$LOCATION$NETWORK"
-parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml"
-
-az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none --only-show-errors
-
-echo -e "$green--- Validations ---$reset"
-if [ ! -f "${environment_file_name}" ]; then
-	echo -e "$bold_red--- ${environment_file_name} was not found ---$reset"
-	echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
-	exit 2
-fi
-
-if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
-	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
-	exit 2
-fi
-
-if [ "azure pipelines" == "$THIS_AGENT" ]; then
-	echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$ENVIRONMENT variable group"
-	exit 2
-fi
 
 echo -e "$green--- Get key_vault name ---$reset"
 
