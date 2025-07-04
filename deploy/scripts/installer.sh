@@ -252,7 +252,7 @@ automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 
 if [ $isCallerV1 -eq 0 ]; then
-	system_config_information="${automation_config_directory}${environment}${region_code}$"
+	system_config_information="${automation_config_directory}${environment}${region_code}"
 elif [ $isCallerV1 -eq 1 ]; then
 	system_config_information="${automation_config_directory}${environment}${region_code}${network_logical_name}"
 fi
