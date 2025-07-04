@@ -149,14 +149,11 @@ mkdir -p artifacts
 
 workload_key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "${workload_environment_file_name}" "workloadkeyvault" || true)
 workload_prefix=$(echo "$SAP_SYSTEM_CONFIGURATION_NAME" | cut -d'-' -f1-3)
-
-control_plane_subscription=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${workload_environment_file_name}" "STATE_SUBSCRIPTION" || true)
+workload_keyvault_subscription_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$workload_key_vault' | project id, name, subscription,subscriptionId" --query data[0].subscriptionId --output tsv)
 
 echo "SID:                                 ${SID}"
 echo "Folder:                              $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
 echo "Workload Key Vault:                  ${workload_key_vault}"
-
-echo "Control Plane Subscription:          ${control_plane_subscription}"
 echo "Workload Prefix:                     ${workload_prefix}"
 
 if [ $EXTRA_PARAMETERS = '$(EXTRA_PARAMETERS)' ]; then
@@ -171,9 +168,8 @@ echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$workload_key_vau
 echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${workload_prefix}-sid-password"
 echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${workload_prefix}-sid-username"
 echo "##vso[task.setvariable variable=NEW_PARAMETERS;isOutput=true]${new_parameters}"
-echo "##vso[task.setvariable variable=CP_SUBSCRIPTION;isOutput=true]${control_plane_subscription}"
 
-az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "$control_plane_subscription" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
+az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "$workload_keyvault_subscription_id" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
 cp sap-parameters.yaml artifacts/.
 cp "${SID}_hosts.yaml" artifacts/.
 
