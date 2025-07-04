@@ -17,8 +17,17 @@ reset_formatting="\e[0m"
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
-parent_caller="${BASH_SOURCE[${#BASH_SOURCE[@]} - 1]}"
+
+parent_caller=""
+
+if [[ "${BASH_SOURCE[2]:-}" ]]; then
+		parent_caller="${BASH_SOURCE[2]##*/}"
+else
+		parent_caller="${BASH_SOURCE[1]##*/}"
+fi
+
 echo "DEBUG: Parent caller: ${parent_caller}"
+# Get the directory of the parent caller
 parent_caller_directory="$(dirname $(realpath "${parent_caller}"))"
 echo "DEBUG: Parent caller directory: ${parent_caller_directory}"
 
