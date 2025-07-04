@@ -56,9 +56,9 @@ cd "$CONFIG_REPO_PATH" || exit
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
+	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}"
 elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
+	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}${NETWORK}"
 fi
 
 echo -e "$green--- Validations ---$reset"
