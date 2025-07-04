@@ -26,7 +26,7 @@ else
 		parent_caller="${BASH_SOURCE[1]##*/}"
 fi
 
-echo "DEBUG: Parent caller: ${parent_caller}"
+echo "DEBUG: Parent caller: ${parent_caller} from ${BASH_SOURCE[2]:-} and ${BASH_SOURCE[1]:-}"
 # Get the directory of the parent caller
 parent_caller_directory="$(dirname $(realpath "${parent_caller}"))"
 echo "DEBUG: Parent caller directory: ${parent_caller_directory}"
