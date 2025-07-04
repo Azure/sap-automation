@@ -227,21 +227,21 @@ fi
 
 echo "Return code from deployment:         ${return_code}"
 
-if [ -f ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" ]; then
-	KEYVAULT=$(grep -m1 "^workload_zone_key_vault=" ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" | awk -F'=' '{print $2}' | xargs || true)
+if [ -f "${workload_environment_file_name}" ]; then
+	KEYVAULT=$(grep -m1 "^workloadkeyvault=" "${workload_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	echo "Key Vault:                  ${KEYVAULT}"
 
 	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 	if [ -n "$KEYVAULT" ]; then
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "$KEYVAULT"
 	fi
+
 fi
 
 if [ -n "$terraform_storage_account_name" ]; then
 	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "$terraform_storage_account_name"
 fi
-
 
 set +o errexit
 

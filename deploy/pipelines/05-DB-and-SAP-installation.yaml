@@ -191,6 +191,7 @@ stages:
               PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
               USE_MSI:                       $(USE_MSI)
               CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+              KEYVAULT:                      $(KEYVAULT)
           - template:                        templates\run-ansible.yaml
             parameters:
               displayName:                   "Parameter validation"
