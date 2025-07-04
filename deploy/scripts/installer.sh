@@ -17,6 +17,17 @@ reset_formatting="\e[0m"
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
+parent_caller="${BASH_SOURCE[${#BASH_SOURCE[@]} - 1]}"
+parent_caller_directory="$(dirname $(realpath "${parent_caller}"))"
+
+# Check if parent caller is from v1 directory
+if [[ "${parent_caller_directory}" == *"/v1/"* || "${parent_caller_directory}" == *"/v1" ]]; then
+    echo "DEBUG: Detected v1 caller"
+		isCallerV1=0
+else
+		echo "DEBUG: Detected v2 caller"
+    isCallerV1=1
+fi
 
 #call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
@@ -239,7 +250,12 @@ fi
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-system_config_information="${automation_config_directory}${environment}${region_code}${network_logical_name}"
+
+if [ $isCallerV1 -eq 0 ]; then
+	system_config_information="${automation_config_directory}${environment}${region_code}$"
+elif [ $isCallerV1 -eq 1 ]; then
+	system_config_information="${automation_config_directory}${environment}${region_code}${network_logical_name}"
+fi
 
 echo "Configuration file:                  $system_config_information"
 echo "Deployment region:                   $region"
