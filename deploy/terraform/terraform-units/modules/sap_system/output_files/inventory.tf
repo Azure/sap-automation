@@ -166,8 +166,8 @@ resource "local_file" "ansible_inventory_new_yml" {
 
                     created_resource_group_name            = var.created_resource_group_name
                     created_resource_group_subscription_id = var.created_resource_group_subscription_id
-                    app_use_nvme_disks                     = var.app_use_nvme_disks
-                    db_use_nvme_disks                      = var.db_use_nvme_disks
+                    app_use_nvme_disks                     = var.infrastructure.disk_controller_type_app_tier
+                    db_use_nvme_disks                      = var.infrastructure.disk_controller_type_database_tier
 
     }
   )
