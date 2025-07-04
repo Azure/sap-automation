@@ -53,7 +53,7 @@ function ensureKeyVaultAccess {
 
     # First, try to access without modifying firewall
     while [ $retry_count -lt $max_retries ]; do
-        if az keyvault secret list --vault-name "${keyvault}" --subscription "${subscription}" --query "[0].name" --output tsv >/dev/null 2>&1; then
+        if az keyvault secret list --vault-name "${keyvault}" --subscription "${subscription}" --query "[0].name" --output tsv --only-show-errors; then
             echo "Key Vault access confirmed (attempt $((retry_count + 1)))" >&2
             return 0
         fi
