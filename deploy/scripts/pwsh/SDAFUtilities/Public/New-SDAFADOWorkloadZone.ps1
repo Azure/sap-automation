@@ -401,8 +401,15 @@ function New-SDAFADOWorkloadZone {
           Write-Host "Using Managed Identity:" $identity
 
           $id = $(az identity list --query "[?name=='$identity'].id" --subscription $subscription --output tsv)
-          $ManagedIdentityObjectId = $(az identity show --ids $id --query "principalId" --output tsv)
+          $ManagedIdentityClientId = $(az identity show --ids $id --query "principalId" --output tsv)
         }
+        else {
+          $ManagedIdentityClientId = $(az identity show --ids $ManagedIdentityObjectId --query "principalId" --output tsv)
+        }
+        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
+        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
+        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_USE_MSI" -VariableValue "true"
+        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
 
         $ServiceEndpointExists = (az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].name | [0]" )
         if ($ServiceEndpointExists.Length -eq 0) {
@@ -418,9 +425,6 @@ function New-SDAFADOWorkloadZone {
             az devops service-endpoint update --id $ServiceEndpointId --enable-for-all true --output none --only-show-errors
           }
 
-          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
-          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
-          SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
 
         }
         else {
