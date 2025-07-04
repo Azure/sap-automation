@@ -144,27 +144,27 @@ stages:
             parameters:
               getLatestFromBranch: true
           - task:                      PostBuildCleanup@4
-          - task:                      Bash@3
-            inputs:
-              targetType:              'inline'
-              failOnStderr:            false
-              script:
-                                      sudo pipx uninstall ansible-core
+          # - task:                      Bash@3
+          #   inputs:
+          #     targetType:              'inline'
+          #     failOnStderr:            false
+          #     script:
+          #                             sudo pipx uninstall ansible-core
 
-                                      pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
+          #                             pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
 
-                                      ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
+          #                             ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
 
-                                      ansible --version
+          #                             ansible --version
 
-            env:
-              ansible_core_version:    $(ansible_core_version)
-            name:                      AnsibleInstallation
-            displayName:               Ansible installation
-          - task:                      TerraformInstaller@1
-            displayName:               Install Terraform
-            inputs:
-              terraformVersion:        latest
+          #   env:
+          #     ansible_core_version:    $(ansible_core_version)
+          #   name:                      AnsibleInstallation
+          #   displayName:               Ansible installation
+          # - task:                      TerraformInstaller@1
+          #   displayName:               Install Terraform
+          #   inputs:
+          #     terraformVersion:        latest
 
           - task:                      Bash@3
             inputs:
