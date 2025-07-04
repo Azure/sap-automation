@@ -23,8 +23,10 @@ parent_caller_directory="$(dirname $(realpath "${parent_caller}"))"
 
 # Check if parent caller is from v1 directory
 if [[ "${parent_caller_directory}" == *"/v1/"* || "${parent_caller_directory}" == *"/v1" ]]; then
-    isCallerV1=0
+    echo "DEBUG: Detected v1 caller"
+		isCallerV1=0
 else
+		echo "DEBUG: Detected v2 caller"
     isCallerV1=1
 fi
 
