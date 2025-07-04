@@ -1122,9 +1122,9 @@ fi
 if [ "${deployment_system}" == sap_landscape ]; then
 
 	if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-		workload_zone_key_vault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
-		if [ -n "${workload_zone_key_vault}" ]; then
-			save_config_var "workload_zone_key_vault" "${system_config_information}"
+		workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
+		if [ -n "${workloadkeyvault}" ]; then
+			save_config_var "workloadkeyvault" "${system_config_information}"
 		fi
 		workload_zone_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 		if [ -n "${workload_zone_random_id}" ]; then
