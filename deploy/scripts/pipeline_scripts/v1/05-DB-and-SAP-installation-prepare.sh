@@ -54,12 +54,17 @@ SID=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $4}' | xargs)
 
 cd "$CONFIG_REPO_PATH" || exit
 
-environment_file_name=".sap_deployment_automation/$ENVIRONMENT$LOCATION$NETWORK"
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
+if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
+elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
+fi
 
 echo -e "$green--- Validations ---$reset"
-if [ ! -f "${environment_file_name}" ]; then
-	echo -e "$bold_red--- ${environment_file_name} was not found ---$reset"
-	echo "##vso[task.logissue type=error]File ${environment_file_name} was not found."
+if [ ! -f "${workload_environment_file_name}" ]; then
+	echo -e "$bold_red--- ${workload_environment_file_name} was not found ---$reset"
+	echo "##vso[task.logissue type=error]File ${workload_environment_file_name} was not found."
 	exit 2
 fi
 
@@ -111,7 +116,7 @@ export VARIABLE_GROUP_ID
 
 echo -e "$green--- Get key_vault name ---$reset"
 
-key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${environment_file_name}" "keyvault")
+key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_Key_Vault" "${workload_environment_file_name}" "keyvault")
 
 echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"
 
@@ -131,7 +136,7 @@ echo "SID:                                 ${SID}"
 echo "Folder:                              $CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
 echo "Hosts file:                          ${SID}_hosts.yaml"
 echo "sap_parameters_file:                 $parameters_filename"
-echo "Configuration file:                  $environment_file_name"
+echo "Configuration file:                  $workload_environment_file_name"
 
 echo -e "$green--- Get Files from the DevOps Repository ---$reset"
 cd "$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"
@@ -142,11 +147,10 @@ sed -i 's|bom_base_name:.*|bom_base_name:                 '"$BOM_BASE_NAME"'|' s
 echo -e "$green--- Get connection details ---$reset"
 mkdir -p artifacts
 
-prefix="${ENVIRONMENT}${LOCATION}${NETWORK}"
+workload_key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "${workload_environment_file_name}" "workloadkeyvault" || true)
+workload_prefix=$(echo "$SAP_SYSTEM_CONFIGURATION_NAME" | cut -d'-' -f1-3)
 
-workload_key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Key_Vault" "${environment_file_name}" "workloadkeyvault" || true)
-workload_prefix=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "${prefix}Workload_Secret_Prefix" "${environment_file_name}" "workload_zone_prefix" || true)
-control_plane_subscription=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${environment_file_name}" "STATE_SUBSCRIPTION" || true)
+control_plane_subscription=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "${workload_environment_file_name}" "STATE_SUBSCRIPTION" || true)
 
 echo "SID:                                 ${SID}"
 echo "Folder:                              $HOME/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}"

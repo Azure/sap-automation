@@ -116,7 +116,14 @@ if [ ! -f "${deployer_environment_file_name}" ]; then
 	echo "##vso[task.logissue type=error]Control plane configuration file $DEPLOYER_ENVIRONMENT$LOCATION_CODE_IN_FILENAME was not found."
 	exit 2
 fi
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
+
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
+if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
+elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
+fi
+
 echo "Workload Zone Environment File:      $workload_environment_file_name"
 touch "$workload_environment_file_name"
 
