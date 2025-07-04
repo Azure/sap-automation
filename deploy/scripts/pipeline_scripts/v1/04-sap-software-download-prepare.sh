@@ -47,6 +47,32 @@ print_header
 # Configure DevOps
 configure_devops
 
+# Set logon variables
+if [ $USE_MSI == "true" ]; then
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
+fi
+
+if az account show --query name; then
+	echo -e "$green--- Already logged in to Azure ---$reset"
+else
+	# Check if running on deployer
+	if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+		configureNonDeployer "${tf_version:-1.12.2}"
+		echo -e "$green--- az login ---$reset"
+		LogonToAzure $USE_MSI
+	else
+		LogonToAzure $USE_MSI
+	fi
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
+fi
+
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
 then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
@@ -54,7 +80,6 @@ then
 	exit 2
 fi
 export VARIABLE_GROUP_ID
-
 
 echo -e "$green--- Validations ---$reset"
 if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
@@ -77,30 +102,6 @@ if [ "your S user password" == "$SPASSWORD" ]; then
   exit 2
 fi
 
-# Set logon variables
-if [ $USE_MSI == "true" ]; then
-	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-fi
-if az account show --query name; then
-	echo -e "$green--- Already logged in to Azure ---$reset"
-else
-	# Check if running on deployer
-	if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-		configureNonDeployer "${tf_version:-1.12.2}"
-		echo -e "$green--- az login ---$reset"
-		LogonToAzure $USE_MSI
-	else
-		LogonToAzure $USE_MSI
-	fi
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
-	fi
-fi
 
 echo -e "$green--- Get key_vault name ---$reset"
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
