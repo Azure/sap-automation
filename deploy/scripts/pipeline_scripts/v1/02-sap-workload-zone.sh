@@ -211,6 +211,7 @@ if [ -z "$tfstate_resource_id" ]; then
 	export tfstate_resource_id
 fi
 
+export SDAFWZ_CALLER_VERSION="v1"
 print_banner "$banner_title" "Starting the deployment" "info"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh" --parameterfile "$WORKLOAD_ZONE_TFVARS_FILENAME" \

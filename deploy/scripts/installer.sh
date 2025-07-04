@@ -18,11 +18,16 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-echo "=== CALL STACK DEBUG ==="
-for i in "${!BASH_SOURCE[@]}"; do
-    echo "BASH_SOURCE[$i]: ${BASH_SOURCE[$i]:-}"
-done
-echo "========================"
+# Detect version from environment variable
+caller_version="${SDAFWZ_CALLER_VERSION:-v2}"
+
+if [[ "$caller_version" == "v1" ]]; then
+    isCallerV1=0
+    echo "INFO: Detected v1 caller via environment variable"
+else
+    isCallerV1=1
+    echo "INFO: Detected v2 caller via environment variable"
+fi
 
 #call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
