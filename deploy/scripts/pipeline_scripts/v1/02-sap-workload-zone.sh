@@ -235,8 +235,13 @@ if [ -f ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" ]; then
 	if [ -n "$KEYVAULT" ]; then
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "$KEYVAULT"
 	fi
-
 fi
+
+if [ -n "$terraform_storage_account_name" ]; then
+	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "$terraform_storage_account_name"
+fi
+
 
 set +o errexit
 
