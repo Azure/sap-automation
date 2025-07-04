@@ -133,7 +133,7 @@ if [ ! -f "${deployer_environment_file_name}" ]; then
 	echo "##vso[task.logissue type=error]Control plane configuration file $DEPLOYER_ENVIRONMENT$DEPLOYER_REGION was not found."
 	exit 2
 fi
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
+workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK_IN_FILENAME}"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
 touch "$workload_environment_file_name"
 
@@ -256,8 +256,8 @@ if [ -f .terraform/terraform.tfstate ]; then
 	added=1
 fi
 
-if [ -f ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}" ]; then
-	git add ".sap_deployment_automation/${WORKLOAD_ZONE_NAME}"
+if [ -f "${workload_environment_file_name}" ]; then
+	git add "${workload_environment_file_name}"
 	added=1
 fi
 
