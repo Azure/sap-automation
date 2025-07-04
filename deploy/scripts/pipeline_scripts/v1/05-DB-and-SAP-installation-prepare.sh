@@ -100,8 +100,6 @@ fi
 
 parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml"
 
-az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none --only-show-errors
-
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
 then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"

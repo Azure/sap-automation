@@ -31,6 +31,12 @@ fi
 export DEBUG
 set -eu
 
+# Print the execution environment details
+print_header
+
+# Configure DevOps
+configure_devops
+
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 if ! az extension list --query "[?contains(name, 'azure-devops')]" --output table; then

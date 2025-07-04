@@ -44,12 +44,6 @@ print_header
 # Configure DevOps
 configure_devops
 
-# Print the execution environment details
-print_header
-
-# Configure DevOps
-configure_devops
-
 # Set logon variables
 if [ $USE_MSI == "true" ]; then
 	unset ARM_CLIENT_SECRET

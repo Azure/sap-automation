@@ -15,7 +15,7 @@ parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
-export SDAFWZ_CALLER_VERSION="v1"
+
 banner_title="Deploy Workload Zone"
 
 #call stack has full script name when using source
