@@ -204,7 +204,7 @@ echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh" --parameterfile "$SAP_SYSTEM_TFVARS_FILENAME" --type sap_system \
 	--deployer_tfstate_key "${deployer_tfstate_key}" --storageaccountname "$terraform_storage_account_name"  \
-	--landscape_tfstate_key "${landscape_tfstate_key}" \
+	--landscape_tfstate_key "${landscape_tfstate_key}" --state_subscription "${terraform_storage_account_subscription_id}" \
 	--ado --auto-approve ; then
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME completed successfully" "success"
