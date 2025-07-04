@@ -18,27 +18,11 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-parent_caller=""
-
-if [[ "${BASH_SOURCE[2]:-}" ]]; then
-		parent_caller="${BASH_SOURCE[2]##*/}"
-else
-		parent_caller="${BASH_SOURCE[1]##*/}"
-fi
-
-echo "DEBUG: Parent caller: ${parent_caller} from ${BASH_SOURCE[2]:-} and ${BASH_SOURCE[1]:-}"
-# Get the directory of the parent caller
-parent_caller_directory="$(dirname $(realpath "${parent_caller}"))"
-echo "DEBUG: Parent caller directory: ${parent_caller_directory}"
-
-# Check if parent caller is from v1 directory
-if [[ "${parent_caller_directory}" == *"/v1/"* || "${parent_caller_directory}" == *"/v1" ]]; then
-    echo "DEBUG: Detected v1 caller"
-		isCallerV1=0
-else
-		echo "DEBUG: Detected v2 caller"
-    isCallerV1=1
-fi
+echo "=== CALL STACK DEBUG ==="
+for i in "${!BASH_SOURCE[@]}"; do
+    echo "BASH_SOURCE[$i]: ${BASH_SOURCE[$i]:-}"
+done
+echo "========================"
 
 #call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
