@@ -18,7 +18,9 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_caller="${BASH_SOURCE[${#BASH_SOURCE[@]} - 1]}"
+echo "DEBUG: Parent caller: ${parent_caller}"
 parent_caller_directory="$(dirname $(realpath "${parent_caller}"))"
+echo "DEBUG: Parent caller directory: ${parent_caller_directory}"
 
 # Check if parent caller is from v1 directory
 if [[ "${parent_caller_directory}" == *"/v1/"* || "${parent_caller_directory}" == *"/v1" ]]; then
