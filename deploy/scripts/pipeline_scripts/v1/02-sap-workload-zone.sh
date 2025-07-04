@@ -15,7 +15,7 @@ parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
-
+export SDAFWZ_CALLER_VERSION="v1"
 banner_title="Deploy Workload Zone"
 
 #call stack has full script name when using source
@@ -128,12 +128,14 @@ NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$DEPLOYER_ENVIRONMENT$DEPLOYER_REGION"
 echo "Deployer Environment File:           $deployer_environment_file_name"
+
 if [ ! -f "${deployer_environment_file_name}" ]; then
 	echo -e "$bold_red--- $DEPLOYER_ENVIRONMENT$DEPLOYER_REGION was not found ---$reset"
 	echo "##vso[task.logissue type=error]Control plane configuration file $DEPLOYER_ENVIRONMENT$DEPLOYER_REGION was not found."
 	exit 2
 fi
-workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK_IN_FILENAME}"
+
+workload_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
 echo "Workload Zone Environment File:      $workload_environment_file_name"
 touch "$workload_environment_file_name"
 
@@ -211,7 +213,6 @@ if [ -z "$tfstate_resource_id" ]; then
 	export tfstate_resource_id
 fi
 
-export SDAFWZ_CALLER_VERSION="v1"
 print_banner "$banner_title" "Starting the deployment" "info"
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh" --parameterfile "$WORKLOAD_ZONE_TFVARS_FILENAME" \
