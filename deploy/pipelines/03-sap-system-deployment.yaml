@@ -68,6 +68,7 @@ stages:
               AZURE_DEVOPS_EXT_PAT:            $(System.AccessToken)
               CONFIG_REPO_PATH:                ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               DEPLOYER_KEYVAULT:               $(DEPLOYER_KEYVAULT)
+              KEYVAULT:                        $(KEYVAULT)
               TERRAFORM_STATE_STORAGE_ACCOUNT: $(TERRAFORM_STATE_STORAGE_ACCOUNT)
               LOGON_USING_SPN:                 $(Logon_Using_SPN)
               SAP_AUTOMATION_REPO_PATH:        ${{ parameters.sap_automation_repo_path }}
