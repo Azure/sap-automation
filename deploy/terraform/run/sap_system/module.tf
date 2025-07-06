@@ -415,6 +415,7 @@ module "output_files" {
   ers_instance_number                           = var.ers_instance_number
   ers_server_loadbalancer_ip                    = module.app_tier.ers_server_loadbalancer_ip
   pas_instance_number                           = var.pas_instance_number
+  app_instance_number                           = var.app_instance_number
   sid_keyvault_user_id                          = module.common_infrastructure.sid_keyvault_user_id
   scs_shared_disks                              = module.app_tier.scs_asd
   scs_cluster_loadbalancer_ip                   = module.app_tier.cluster_loadbalancer_ip
