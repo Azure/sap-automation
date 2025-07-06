@@ -49,7 +49,10 @@
 # NVMe PRE-FLIGHT CHECK
 # -------------------------------------+---------------------------------------8
 - name:                                "1.5 Disk setup: - NVMe Preflight Check"
-  when:                                use_nvme_disks | default(false) | bool
+  when:
+                                       - use_nvme_disks | default(false) | bool
+                                       - hostvars['use_nvme_disks'] is defined
+                                       - hostvars['use_nvme_disks'] | default(false) | bool
   ansible.builtin.include_tasks:       "1.5-nvme-preflight.yml"
   tags:
                                        - sapos-nvme-preflight

@@ -51,7 +51,7 @@
     - name:                            "1.5.4 NVMe Support - Validate system state for conversion"
       ansible.builtin.assert:
         that:
-          - current_nvme_usage.stdout == "nvme_absent" or nvme_force_preparation | default(false)
+          - existing_nvme_config.stdout == "not_configured" or nvme_force_preparation | default(false)
           - active_mounts_count.stdout | int > 0
         fail_msg: |
                                        System validation failed:
