@@ -1,0 +1,271 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |              NVMe Support for Azure VMs - SUSE Specific Tasks              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# -------------------------------------+---------------------------------------8
+#
+# Task: 1.5.4 - NVMe Support - SUSE Specific Tasks
+#
+# -------------------------------------+---------------------------------------8
+
+# SUSE version and distribution validation
+- name:                                "1.5.4 NVMe Support (SUSE) - Validate SUSE distribution and version"
+  ansible.builtin.assert:
+    that:
+      - (ansible_distribution | upper == 'SLES' and ansible_distribution_version is version('15.4', '>=')) or
+        (ansible_distribution | upper == 'SLES_SAP' and ansible_distribution_version is version('15.3', '>='))
+    fail_msg:                          "SUSE version must be SLES 15.4+ or SLES_SAP 15.3+ for NVMe support. Current: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+    success_msg:                       "SUSE version {{ ansible_distribution_version }} is supported for NVMe"
+
+# Set SUSE-specific facts
+- name:                                "1.5.4 NVMe Support (SUSE) - Set SUSE-specific facts"
+  ansible.builtin.set_fact:
+    suse_major_version:                "{{ ansible_distribution_major_version }}"
+    azure_nvme_utils_supported:        "{{
+                                          (ansible_distribution | upper == 'SLES' and ansible_distribution_version is version('15.5', '>=')) or
+                                          (ansible_distribution | upper == 'SLES_SAP' and ansible_distribution_version is version('15.5', '>='))
+                                       }}"
+    grub_config_file:                  "/boot/grub2/grub.cfg"
+    grub_cmdline_param:                "GRUB_CMDLINE_LINUX_DEFAULT"
+
+# Check existing repositories to avoid duplicates
+- name:                                "1.5.4 NVMe Support (SUSE) - Get current repository information"
+  when:                                azure_nvme_utils_supported
+  community.general.zypper_repository_info: {}
+  register:                            existing_repos
+  failed_when:                         false
+
+# Configure Azure NVME Utils repository and package for SUSE
+# - name:                                "1.5.4 NVMe Support (SUSE) - Configure Azure NVME Utils repository"
+#   when:
+#                                        - azure_nvme_utils_supported
+#                                        - existing_repos is succeeded
+#                                        - not (existing_repos.repodatalist | default([]) | selectattr('alias', 'equalto', 'azure_nvme_utils') | list)
+#   block:
+#     - name:                            "1.5.4 NVMe Support (SUSE) - Add Azure NVME Utils repository"
+#       community.general.zypper_repository:
+#         name:                          azure_nvme_utils
+#         description:                   "Copr repo for azure-nvme-utils owned by cjp256"
+#         repo:                          "{{ azure_nvme_utils_repo_urls.suse }}"
+#         priority:                      100
+#         state:                         present
+#         auto_import_keys:              true
+#         disable_gpg_check:             true
+#       register:                        sles_repo_added
+#       retries:                         3
+#       delay:                           10
+#       until:                           sles_repo_added is succeeded
+
+#     - name:                            "1.5.4 NVMe Support (SUSE) - Import GPG key with retry logic"
+#       when:                            sles_repo_added.changed
+#       ansible.builtin.rpm_key:
+#         key:                           "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/pubkey.gpg"
+#         state:                         present
+#       register:                        gpg_key_import
+#       retries:                         3
+#       delay:                           5
+#       until:                           gpg_key_import is succeeded
+
+#     - name:                            "1.5.4 NVMe Support (SUSE) - Validate repository configuration"
+#       community.general.zypper_repository_info:
+#         repo:                          azure_nvme_utils
+#       register:                        repo_validation
+#       failed_when:                     false
+
+#     - name:                            "1.5.4 NVMe Support (SUSE) - Refresh repository cache"
+#       when:                            sles_repo_added.changed
+#       community.general.zypper:
+#         name:                          "*"
+#         update_cache:                  true
+
+# - name:                                "1.5.4 NVMe Support (SUSE) - Install Azure NVME Utils package"
+#   when:                                not azure_nvme_utils_supported
+#   ansible.builtin.package:
+#     name:                              azure-nvme-utils
+#     state:                             present
+#   register:                            nvme_utils_installed
+
+# Check if all required NVMe modules are loaded in initramfs
+- name:                                "1.5.4 NVMe Support (SUSE) - Check basic NVMe modules in initramfs"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       lsinitrd /boot/initrd-$(uname -r) | grep nvme
+  register:                            initramfs_nvme_basic_check
+  failed_when:                         false
+  changed_when:                        false
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Check for all required NVMe modules in initramfs"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       MISSING=0
+                                       REQUIRED_MODULES="nvme nvme-core nvme-fabrics nvme-fc nvme-rdma nvme-loop nvmet nvmet-fc nvme-tcp"
+                                       MISSING_MODULES=""
+                                       for MODULE in $REQUIRED_MODULES; do
+                                         if ! lsinitrd /boot/initrd-$(uname -r) | grep -q "$MODULE"; then
+                                           MISSING_MODULES="$MISSING_MODULES $MODULE"
+                                           MISSING=1
+                                         fi
+                                       done
+                                       if [ $MISSING -eq 1 ]; then
+                                         echo "$MISSING_MODULES"
+                                       fi
+                                       exit $MISSING
+  register:                            nvme_module_complete_check
+  failed_when:                         false
+  changed_when:                        false
+
+# Set SUSE-specific initramfs status facts
+- name:                                "1.5.4 NVMe Support (SUSE) - Set initramfs status facts"
+  ansible.builtin.set_fact:
+    nvme_in_initramfs:                 "{{ initramfs_nvme_basic_check.rc == 0 }}"
+    nvme_modules_complete:             "{{ nvme_module_complete_check.rc == 0 }}"
+    missing_nvme_modules:              "{{ nvme_module_complete_check.stdout | trim if nvme_module_complete_check.rc != 0 else '' }}"
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Display missing NVMe modules"
+  when:                                not nvme_modules_complete
+  ansible.builtin.debug:
+    msg:                               "Missing NVMe modules in SUSE initramfs: {{ missing_nvme_modules }}"
+
+# Configure dracut for NVMe support
+- name:                                "1.5.4 NVMe Support (SUSE) - Create dracut.conf.d directory"
+  when:                                not nvme_modules_complete
+  ansible.builtin.file:
+    path:                              /etc/dracut.conf.d
+    state:                             directory
+    mode:                              '0755'
+    owner:                             root
+    group:                             root
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Add NVMe drivers to dracut configuration"
+  ansible.builtin.copy:
+    src:                               88-nvme-dracut.conf
+    dest:                              /etc/dracut.conf.d/nvme.conf
+    mode:                              '0644'
+    owner:                             root
+    group:                             root
+    force:                             true
+  register:                            dracut_conf_added
+
+# Configure GRUB with NVMe timeout parameters for SUSE
+- name:                                "1.5.4 NVMe Support (SUSE) - Check if GRUB has NVMe timeout parameters"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       grep "{{ grub_cmdline_param }}.*nvme_core.io_timeout=240" /etc/default/grub || true
+  register:                            grub_nvme_timeout_check
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Get current GRUB configuration"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       grep "{{ grub_cmdline_param }}" /etc/default/grub || echo "No {{ grub_cmdline_param }} found"
+  register:                            current_grub_config
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Show current GRUB configuration"
+  ansible.builtin.debug:
+    msg:                               "Current GRUB configuration: {{ current_grub_config.stdout }}"
+    verbosity:                         1
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Add NVMe timeout parameters to GRUB"
+  when:
+    - grub_nvme_timeout_check.rc != 0
+    - '"nvme_core.io_timeout=240" not in current_grub_config.stdout'
+  ansible.builtin.replace:
+    path:                              /etc/default/grub
+    regexp:                            '^({{ grub_cmdline_param }}=")([^"]*)(")$'
+    replace:                           '\1\2 nvme_core.io_timeout=240 nvme_core.admin_timeout=240\3'
+  register:                            grub_updated
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Update GRUB configuration file"
+  when:
+    - grub_updated is defined
+    - grub_updated.changed
+  ansible.builtin.command:             grub2-mkconfig -o {{ grub_config_file }}
+  register:                            grub_config_updated
+  changed_when:                        true
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Verify GRUB configuration update"
+  when:
+    - grub_updated is defined
+    - grub_updated.changed
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       grep "nvme_core.io_timeout=240" /etc/default/grub
+  register:                            grub_verify
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Report GRUB configuration status"
+  when:
+    - grub_updated is defined
+    - grub_updated.changed
+  ansible.builtin.debug:
+    msg:                               "{{ 'GRUB NVMe timeout parameters successfully configured on SUSE' if grub_verify.rc == 0 else 'WARNING: Failed to configure GRUB NVMe timeout parameters on SUSE' }}"
+
+# Rebuild initramfs if needed
+- name:                                "1.5.4 NVMe Support (SUSE) - Rebuild initramfs with dracut"
+  when:                                dracut_conf_added.changed
+  ansible.builtin.command:             dracut -f -v
+  register:                            initramfs_rebuilt
+
+# Install udev rules for Azure NVMe disks
+- name:                                "1.5.4 NVMe Support (SUSE) - Create Azure NVMe LUN calculation helper script"
+  ansible.builtin.copy:
+    src:                               88-azure-nvme-lun-calc
+    dest:                              /usr/local/bin/azure-nvme-lun-calc
+    mode:                              '0755'
+    owner:                             root
+    group:                             root
+    force:                             true
+  register:                            helper_script_created
+
+# https://raw.githubusercontent.com/Azure/SAP-on-Azure-Scripts-and-Utilities/refs/heads/main/NVMe-Preflight-Check/88-azure-nvme-data-disk.rules
+- name:                                "1.5.4 NVMe Support (SUSE) - Install udev rules for Azure NVMe disks"
+  ansible.builtin.copy:
+    src:                               88-azure-nvme-data-disk.rules
+    dest:                              /usr/lib/udev/rules.d/88-azure-data-disk.rules
+    owner:                             root
+    group:                             root
+    force:                             true
+    mode:                              '0644'
+  register:                            udev_rules_added
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Reload udev rules"
+  when:                                udev_rules_added.changed
+  ansible.builtin.command:             udevadm control --reload-rules
+  register:                            udev_rules_reloaded
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Trigger udev rules for existing devices"
+  when:                                udev_rules_added.changed
+  ansible.builtin.command:             udevadm trigger
+  register:                            udev_triggered
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Verify udev rules are applied"
+  when:                                udev_rules_added.changed
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       udevadm info --name=/dev/sda | grep -E "SYMLINK.*disk/azure|DEVLINKS.*disk/azure" || echo "No Azure symlinks found"
+  register:                            udev_verification
+  failed_when:                         false
+  changed_when:                        false
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Display udev verification results"
+  when:
+    - udev_rules_added.changed
+    - udev_verification is defined
+    - udev_verification.stdout is defined
+  ansible.builtin.debug:
+    msg:                               "Udev configuration verification on SUSE: {{ 'Successful - Azure disk symlinks detected' if 'disk/azure' in udev_verification.stdout else 'Note: No Azure disk symlinks detected (normal for systems without data disks)' }}"
+    verbosity:                         1
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Set final SUSE configuration facts"
+  ansible.builtin.set_fact:
+    nvme_suse_configured:              true
+    nvme_udev_rules_installed:         "{{ udev_rules_added.changed | default(false) }}"

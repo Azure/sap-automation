@@ -17,7 +17,7 @@
 
   when:
     - ansible_memory_mb.real.total < 4194304
-    - "PAS not in supported_tiers"
+    - "pas not in supported_tiers"
 - name:                                "ORACLE Post Processing: Set the SGA and PGA Sizes for RAM < 4TB Single Node Deployments"
   ansible.builtin.set_fact:
     main_mem1:                         "{{ ansible_memory_mb.real.total }}"
@@ -25,7 +25,7 @@
     ora_pga:                           "{{ [(pga_temp_l4tb_std | int), 4194304] | min }}"
   when:
     - ansible_memory_mb.real.total < 4194304
-    - "PAS in supported_tiers"
+    - "pas in supported_tiers"
 
 - name:                                "ORACLE Post Processing: Show Main Memory"
   ansible.builtin.debug:

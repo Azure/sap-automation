@@ -17,7 +17,13 @@
     Note: '_' used as dummy variable that can be ignored
 #}
 {%     for disk in disks if (disk.host == inventory_hostname) and (disk.type == disktype) %}
-{%         set _ = pvlist.append('/dev/disk/azure/scsi1/lun' ~ disk.LUN) %}
+{%         if use_nvme_disks | default(false) %}
+{#            Use NVMe disk path format if NVMe is enabled #}
+{%             set _ = pvlist.append('/dev/disk/azure/data/by-lun/' ~ disk.LUN) %}
+{%         else %}
+{#            Use SCSI disk path format by default #}
+{%             set _ = pvlist.append('/dev/disk/azure/scsi1/lun' ~ disk.LUN) %}
+{%         endif %}
 {%     endfor %}
 {#
     Add list of pvs and diskcount to VG dictionary

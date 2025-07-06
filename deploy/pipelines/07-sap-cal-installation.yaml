@@ -220,7 +220,7 @@ stages:
                 echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${workload_prefix}-sid-password"
                 echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${workload_prefix}-sid-username"
                 echo "##vso[task.setvariable variable=NEW_PARAMETERS;isOutput=true]${new_parameters}"
-                echo "##vso[task.setvariable variable=CP_SUBSCRIPTION;isOutput=true]${control_plane_subscription}"
+                echo "##vso[task.setvariable variable=SUBSCRIPTION;isOutput=true]${control_plane_subscription}"
 
 
               echo -e "$green--- az login ---$reset"

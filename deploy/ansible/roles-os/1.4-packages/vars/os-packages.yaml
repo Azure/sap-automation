@@ -204,6 +204,24 @@ packages:
     - { tier: 'ha',     package: 'sap-cluster-connector',                        node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'sap-cluster-connector',                        node_tier: 'ers',            state: 'present' }
     # ------------------------- End - Packages required for Start/Stop ----------------------------------------8
+  redhat8.1:
+  redhat8.2:
+  redhat8.4:
+  redhat8.6:
+    - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
+    - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
+  redhat8.8:
+    - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
+    - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
+    - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
+  redhat8.9:
+    - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
+    - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
+    - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
+  redhat8.10:
+    - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
+    - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
+    - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat9:
     - { tier: 'os',     package: '@base',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'bind-utils',                                   node_tier: 'all',            state: 'present' }
@@ -228,6 +246,7 @@ packages:
     - { tier: 'os',     package: 'tcsh',                                         node_tier: 'all',            state: 'present' }
     # - { tier: 'os',     package: 'unar',                                         node_tier: 'scs',            state: 'present' }
     - { tier: 'os',     package: 'xfsprogs',                                     node_tier: 'all',            state: 'present' }
+    - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
     # https://www.ibm.com/docs/en/db2/11.5?topic=servers-linux
     - { tier: 'os',     package: 'libaio',                                       node_tier: 'db2',            state: 'present' }
@@ -247,6 +266,7 @@ packages:
     - { tier: 'sapos',  package: 'tuned-profiles-sap-hana',                      node_tier: 'hana',           state: 'present' }
     # --------------------------- End - Packages required for HANA ------------------------------------------8
     - { tier: 'sapos',  package: 'autofs',                                       node_tier: 'all',            state: 'present' }
+    - { tier: 'sapos',  package: 'compat-sap-c++-*',                             node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'compat-openssl11',                             node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'csh',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'graphviz',                                     node_tier: 'all',            state: 'present' }
@@ -288,25 +308,13 @@ packages:
     - { tier: 'ha',     package: 'sap-cluster-connector',                        node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'sap-cluster-connector',                        node_tier: 'ers',            state: 'present' }
     # ------------------------- End - Packages required for Start/Stop --------------------------------------8
-  redhat8.1:
-  redhat8.2:
-  redhat8.4:
-  redhat8.6:
-    - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
-    - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
-  redhat8.8:
-    - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
-    - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
-  redhat8.9:
-    - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
-    - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
-  redhat8.10:
-    - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
-    - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat9.0:
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat9.2:
+    - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
+    - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
+  redhat9.4:
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
 
@@ -380,7 +388,7 @@ packages:
     - { tier: 'os',     package: 'libstdc++.so.6',                               node_tier: 'db2',            state: 'present' }
     - { tier: 'os',     package: 'unzip',                                        node_tier: 'db2',            state: 'present' }
     - { tier: 'os',     package: 'libpam.so.0',                                  node_tier: 'db2',            state: 'present' }
-    - { tier: 'db2',   package: 'acl',                                          node_tier: 'db2',             state: 'present' }
+    - { tier: 'db2',    package: 'acl',                                          node_tier: 'db2',             state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
     - { tier: 'os',     package: 'cloud-regionsrv-client',                       node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'cloud-regionsrv-client-plugin-azure',          node_tier: 'all',            state: 'present' }
@@ -418,8 +426,8 @@ packages:
     - { tier: 'ha',     package: 'sap-suse-cluster-connector',                   node_tier: 'ers',            state: 'present' }
     # --------------------------- Begin - Packages required for iSCSI ---------------------------------------8
     # https://learn.microsoft.com/en-us/azure/sap/workloads/high-availability-guide-suse-pacemaker#sbd-with-an-iscsi-target-server
-    - { tier: 'iscsi',  package: 'targetcli-fb',                                 node_tier: 'iscsi',          state: 'present' }
-    - { tier: 'iscsi',  package: 'dbus-1-python',                                node_tier: 'iscsi',          state: 'present' }
+    - { tier: 'os',     package: 'targetcli-fb',                                 node_tier: 'iscsi',          state: 'present' }
+    - { tier: 'os',     package: 'dbus-1-python',                                node_tier: 'iscsi',          state: 'present' }
     # --------------------------- End - Packages required for iSCSI -----------------------------------------8
     # ------------------------ End - packages required for Clustering ---------------------------------------8
   sles_sap15.1:
@@ -473,6 +481,7 @@ packages:
   sles_sap15.5:
     #  - { tier: 'os',     package: 'sle-module-public-cloud',                                  state: 'present' }
     - { tier: 'os',     package: 'python3-xml',                                  node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'azure-vm-utils',                               node_tier: 'all',            state: 'present' }
     #  SLES15 SP4 has removed python 2, no python2-rpm package. Additionally, python-xml is now part of
     # python-base and referenced as python3-xml
     - { tier: 'db2',    package: 'system-user-bin',                              node_tier: 'db2',            state: 'present' }
@@ -487,6 +496,7 @@ packages:
     #  - { tier: 'os',     package: 'sle-module-public-cloud',                                  state: 'present' }
     - { tier: 'os',     package: 'python3-xml',                                  node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'python3-rpm',                                  node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'azure-vm-utils',                               node_tier: 'all',            state: 'present' }
     #  SLES15 SP4 has removed python 2, no python2-rpm package. Additionally, python-xml is now part of
     # python-base and referenced as python3-xml
     - { tier: 'db2',    package: 'system-user-bin',                              node_tier: 'db2',             state: 'present' }

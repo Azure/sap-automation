@@ -20,20 +20,21 @@
     - sbd
 
 - name:                                "1.17.1 iSCSI packages (REDHAT)"
+  when:                                (ansible_os_family | upper) == "REDHAT"
   become:                              true
   become_user:                         root
   ansible.builtin.dnf:
     name:                              "{{ item }}"
     state:                             present
   loop:
-    - open-iscsi
+    - iscsi-initiator-utils
     - sbd
-  when:                                (ansible_os_family | upper) == "REDHAT"
-
+    - fence-agents-sbd
 
 - name:                                "1.17.1 iSCSI packages"
   become:                              true
   become_user:                         root
+  when:                                (ansible_os_family | upper) == "SUSE"
   ansible.builtin.systemd:
     name:                              "{{ item }}"
     enabled:                           true
@@ -41,6 +42,18 @@
     - iscsid
     - iscsi
     - sbd
+
+- name:                                "1.17.1 iSCSI packages"
+  become:                              true
+  become_user:                         root
+  when:                                (ansible_os_family | upper) == "REDHAT"
+  ansible.builtin.systemd:
+    name:                              "{{ item }}"
+    enabled:                           true
+  loop:
+    - iscsid
+    - iscsi
+
 
 - name:                                "1.17.1 iSCSI packages - Get node type on which we will operate"
   ansible.builtin.set_fact:
@@ -77,6 +90,42 @@
   ansible.builtin.debug:
     msg:                               "acl_name_scs_1: {{ acl_name_scs_1 }}, acl_name_scs_2: {{ acl_name_scs_2 }}, acl_name_db_1: {{ acl_name_db_1 }}, acl_name_db_2: {{ acl_name_db_2 }}"
     verbosity:                         2
+
+# some versions of RHEL 9 do not seem to create the /etc/iscsi/initiatorname.iscsi file
+# https://access.redhat.com/solutions/7024764
+# Check and configure initiatorname.iscsi file if needed
+- name:                                "1.17.1 iSCSI configuration - check if /etc/iscsi/initiatorname.iscsi exists"
+  ansible.builtin.stat:
+    path:                              /etc/iscsi/initiatorname.iscsi
+  register:                            initiatorname_iscsistat
+
+- name:                                "1.17.1 iSCSI configuration - run iscsi-iname to get default initiator name"
+  when:
+                                       - not initiatorname_iscsistat.stat.exists
+                                       - iscsi_node_type is defined
+                                       - iscsi_initiator_name is defined
+  ansible.builtin.command:
+    cmd:                               "iscsi-iname"
+  register:                            initiatorname_iscsiname
+  changed_when:                        false
+  failed_when:
+                                       - initiatorname_iscsiname.rc is defined
+                                       - initiatorname_iscsiname.rc != 0
+                                       - initiatorname_iscsiname.rc != 15  # Ignore "session exists"
+
+- name:                                "1.17.1 iSCSI configuration - create /etc/iscsi/initiatorname.iscsi if it does not exist"
+  when:
+                                       - not initiatorname_iscsistat.stat.exists
+                                       - iscsi_node_type is defined
+                                       - iscsi_initiator_name is defined
+                                       - initiatorname_iscsiname is defined
+  ansible.builtin.copy:
+    dest:                              /etc/iscsi/initiatorname.iscsi
+    content:                           "InitiatorName={{ initiatorname_iscsiname.stdout }}"
+    owner:                             root
+    group:                             root
+    mode:                              '0644'
+    backup:                            true
 
 - name:                                "1.17.1 iSCSI configuration - replace InitiatorName - SCS"
   when:
@@ -123,6 +172,11 @@
         - inventory_hostname == secondary_instance_name
 
 - name:                                "1.17.1 iSCSI configuration - restart iSCSI services"
+  become:                              true
+  become_user:                         root
+  when:
+                                       - iscsi_node_type is defined
+                                       - iscsi_initiator_name is defined
   ansible.builtin.systemd:
     name:                              "{{ item }}"
     state:                             restarted

@@ -13,7 +13,7 @@
 # BEGIN
 # ----------------------------------------
 
-- name:                                           "Cluster Type: SBD - parameters to be used..."
+- name:                                           "1.17 Generic Pacemaker - Cluster Type: SBD - parameters to be used..."
   ansible.builtin.debug:
     msg:                                          # Best method for formatting output with Azure Devops Logs
                                                   - "scs_cluster_type:                {{ scs_cluster_type }}"
@@ -38,10 +38,12 @@
 # | Fencing Specific                                                           |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-- name:                                           "Cluster Type: Fencing"
+- name:                                           "1.17 Generic Pacemaker - Cluster Type: Fencing"
+  when:
+                                                  - (database_cluster_type == "AFA") or
+                                                    (scs_cluster_type      == "AFA")        # scs_high_availability = true is already assumed
   block:
-
-    - name:                                       "Cluster Type: Fencing specific..."
+    - name:                                       "1.17 Generic Pacemaker - Cluster Type: Fencing specific..."
       ansible.builtin.debug:
         msg:                                      # Best method for formatting output with Azure Devops Logs
                                                   - "Cluster Type: Fencing specific..."
@@ -58,9 +60,7 @@
         fencing_spn_subscription_id:              "{{ azure_metadata.json.compute.subscriptionId }}"
         resource_group_name:                      "{{ azure_metadata.json.compute.resourceGroupName }}"
 
-  when:
-                                                  - (database_cluster_type == "AFA") or
-                                                    (scs_cluster_type      == "AFA")        # scs_high_availability = true is already assumed
+
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Fencing Specific - END                                                     |
@@ -73,10 +73,12 @@
 # | SBD/ISCSI Specific                                                         |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-- name:                                           "Cluster Type: SBD"
+- name:                                           "1.17 Generic Pacemaker - Cluster Type: SBD"
+  when:
+                                                  - (database_cluster_type == "ASD")   or
+                                                    (scs_cluster_type      == "ASD")
   block:
-
-    - name:                                       "Cluster Type: SBD specific..."
+    - name:                                       "1.17 Generic Pacemaker - Cluster Type: SBD specific..."
       ansible.builtin.debug:
         msg:                                      # Best method for formatting output with Azure Devops Logs
                                                   - "Cluster Type: SBD specific..."
@@ -88,14 +90,14 @@
     #                                               - "database_cluster_type:           {{ database_cluster_type }}"
     #     verbosity:                                2
 
+
+- name:                                           "1.17 Generic Pacemaker - Cluster Type: ISCSI"
   when:
-                                                  - (database_cluster_type == "ASD")   or
-                                                    (scs_cluster_type      == "ASD")
-
-- name:                                           "Cluster Type: SBD"
+                                                  - (database_cluster_type == "ISCSI") or
+                                                    (scs_cluster_type      == "ISCSI")
+  # scs_high_availability = true is already assumed
   block:
-
-    - name:                                       "Cluster Type: ISCI specific..."
+    - name:                                       "1.17 Generic Pacemaker - Cluster Type: ISCI specific..."
       ansible.builtin.debug:
         msg:                                      # Best method for formatting output with Azure Devops Logs
                                                   - "Cluster Type: ISCI specific..."
@@ -107,11 +109,6 @@
     #                                               - "database_cluster_type:           {{ database_cluster_type }}"
     #     verbosity:                                2
 
-    # scs_high_availability = true is already assumed
-  when:
-                                                    (database_cluster_type == "ISCSI") or
-                                                    (scs_cluster_type      == "ISCSI")
-
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | SBD/ISCSI Specific - END                                                   |
@@ -119,22 +116,22 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- name:                                           "1.17 Generic Pacemaker - Extract details"
+- name:                                           "1.17 Generic Pacemaker - Extract primary IP details for each VM"
   ansible.builtin.set_fact:
     primary_ip:                                   "{{ azure_metadata.json.network.interface[0].ipv4.ipAddress[0].privateIpAddress }}"
     subnet_prefix:                                "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
 
 - name:                                           "1.17 Generic Pacemaker - Extract primary VM Name"
+  when:                                           ansible_hostname == primary_instance_name
   ansible.builtin.set_fact:
     primary_vm_name:                              "{{ azure_metadata.json.compute.name }}"
-  when:                                           ansible_hostname == primary_instance_name
 
 - name:                                           "1.17 Generic Pacemaker - Extract secondary VM Name"
+  when:                                           ansible_hostname == secondary_instance_name
   ansible.builtin.set_fact:
     secondary_vm_name:                            "{{ azure_metadata.json.compute.name }}"
-  when:                                           ansible_hostname == secondary_instance_name
 
-- name:                                           "Wait for primary_ip check on first node to finish"
+- name:                                           "1.17 Generic Pacemaker - Wait for primary_ip check on first node to finish"
   when:                                           ansible_hostname == secondary_instance_name
   ansible.builtin.set_fact:
     is_primIP_defined_on_primaryNode:             "{{ hostvars[primary_instance_name].primary_ip is defined }}"
@@ -142,7 +139,7 @@
   delay:                                          60
   until:                                          is_primIP_defined_on_primaryNode
 
-- name:                                           "Wait for primary_ip check on second node to finish"
+- name:                                           "1.17 Generic Pacemaker - Wait for primary_ip check on second node to finish"
   when:                                           ansible_hostname == primary_instance_name
   ansible.builtin.set_fact:
     is_primIP_defined_on_secondaryNode:           "{{ hostvars[secondary_instance_name].primary_ip is defined }}"
@@ -171,6 +168,8 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 - name:                                           "1.17 Generic Pacemaker - Configure SSH Keys for inter-node communication as root for SUSE"
+  when:
+                                                  - ansible_os_family | upper == "SUSE"
   block:
     - name:                                       "1.17 Generic Pacemaker - Ensure there are SSH keys for the root user to communicate between nodes"
       ansible.builtin.shell:                      ssh-keygen -b 4096 -t rsa -f /root/.ssh/id_rsa -q -N ""
@@ -190,14 +189,13 @@
     - name:                                       "1.17 Generic Pacemaker - Set SSH fact"
       ansible.builtin.set_fact:
         cluster_public_ssh_key:                   "{{ cluster_public_ssh_key.stdout }}"
-  when:
-                                                  - ansible_os_family | upper == "SUSE"
+
 
 - name:                                           "1.17 Generic Pacemaker - Wait for ssh key facts to be present"
   when:
                                                   - ansible_os_family | upper == "SUSE"
   block:
-    - name:                                       "Wait for cluster_public_ssh_key check on first node to finish"
+    - name:                                       "1.17 Generic Pacemaker - Wait for cluster_public_ssh_key check on first node to finish"
       when:                                       ansible_hostname == secondary_instance_name
       ansible.builtin.set_fact:
         is_ssh_defined_on_primaryNode:            "{{ hostvars[primary_instance_name].cluster_public_ssh_key is defined }}"
@@ -205,7 +203,7 @@
       delay:                                      60
       until:                                      is_ssh_defined_on_primaryNode
 
-    - name:                                       "Wait for cluster_public_ssh_key check on second node to finish"
+    - name:                                       "1.17 Generic Pacemaker - Wait for cluster_public_ssh_key check on second node to finish"
       when:                                       ansible_hostname == primary_instance_name
       ansible.builtin.set_fact:
         is_ssh_defined_on_secondaryNode:          "{{ hostvars[secondary_instance_name].cluster_public_ssh_key is defined }}"
@@ -252,7 +250,7 @@
       - "pacemaker:                               {{ ansible_facts.packages['pacemaker'] }}"
       - "resource-agents:                         {{ ansible_facts.packages['resource-agents'] }}"
 
-- name:                                           "Verify that the packages are the right version"
+- name:                                           "1.17 Generic Pacemaker - Verify that the packages are the right version"
   ansible.builtin.assert:
     that:
       - 'ansible_facts.packages[ packages_list.name ][0].version is version( packages_list.version , ">=", version_type= packages_list.version_type )'
@@ -263,6 +261,48 @@
   loop_control:
     loop_var:                                     packages_list
 
+# @TODO: Use this variable to determine the cluster stonith type
+# 'sybase' databases do not have the code to cluster them. It can be added in the future.
+# @TODO: Use this variable to determine the cluster stonith type
+# 'sybase' databases do not have the code to cluster them. It can be added in the future.
+- name:                                           "1.17 Generic Pacemaker - Determine STONITH type for pacemaker cluster initialization"
+  ansible.builtin.set_fact:
+    cluster_stonith_type: >-
+                                                  {{ {'value':
+                                                      (database_cluster_type if (node_tier in ['hana', 'db2'] or ['hana', 'db2'] | intersect(supported_tiers)) and database_cluster_type is defined
+                                                      else scs_cluster_type if (node_tier in ['scs', 'ers'] or ['scs', 'ers'] | intersect(supported_tiers)) and scs_cluster_type is defined
+                                                      else "UNDEFINED")
+                                                  }.value | trim }}
+
+# Debug: Display the cluster stonith type
+- name:                                           "1.17 Generic Pacemaker - Show cluster stonith type"
+  ansible.builtin.debug:
+    msg:                                          # Best method for formatting output with Azure Devops Logs
+                                                  - "Cluster STONITH Type:            '{{ cluster_stonith_type }}'"
+    verbosity:                                    2
+
+- name:                                           "1.17 Generic Pacemaker - Determine if OS version is supported for SBD STONITH"
+  when:
+                                                  - ansible_os_family | upper == "REDHAT" or ansible_os_family | upper == "SUSE"
+                                                  - cluster_stonith_type in ['ASD', 'ISCSI']
+  ansible.builtin.set_fact:
+    os_version_supported_for_sbd: >-
+                                                  {{ {'value':
+                                                      (true if ansible_os_family | upper == "REDHAT" and
+                                                            (ansible_distribution_version is version('8.8', '>=') or ansible_distribution_version is version('9.0', '>='))
+                                                      else true if ansible_os_family | upper == "SUSE" and cluster_stonith_type == "ASD" and
+                                                            ansible_distribution_version is version('15.1', '>=')
+                                                      else true if ansible_os_family | upper == "SUSE" and cluster_stonith_type == "ISCSI" and
+                                                            ansible_distribution_version is version('12.5', '>=')
+                                                      else false)
+                                                  }.value | trim }}
+
+# Debug: Display the OS version support for SBD STONITH
+- name:                                           "1.17 Generic Pacemaker - Show OS version support for SBD STONITH"
+  ansible.builtin.debug:
+    msg:                                          # Best method for formatting output with Azure Devops Logs
+                                                  - "OS Version Supported for SBD STONITH: '{{ os_version_supported_for_sbd | default('false') }}'"
+    verbosity:                                    2
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

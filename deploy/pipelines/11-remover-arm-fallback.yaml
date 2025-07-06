@@ -100,7 +100,7 @@ stages:
             inputs:
               deploymentScope:                "Resource Group"
               azureResourceManagerConnection: ${{ parameters.workload_zone_connection }}
-              subscriptionId:                 "$(WL_ARM_SUBSCRIPTION_ID)"
+              subscriptionId:                 "$(ARM_SUBSCRIPTION_ID)"
               action:                         "DeleteRG"
               resourceGroupName:              "$(sap_system_foldername)"
 
@@ -149,7 +149,7 @@ stages:
             inputs:
               deploymentScope:                "Resource Group"
               azureResourceManagerConnection: ${{ parameters.workload_zone_connection }}
-              subscriptionId:                 "$(WL_ARM_SUBSCRIPTION_ID)"
+              subscriptionId:                 "$(ARM_SUBSCRIPTION_ID)"
               action:                         "DeleteRG"
               resourceGroupName:              "$(workload_zone_foldername)"
 
@@ -208,7 +208,7 @@ stages:
 
             displayName:               Remove Control Plane deployment artifacts from WORKSPACES
             env:
-              ARM_SUBSCRIPTION_ID:      $(CP_ARM_SUBSCRIPTION_ID)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               USE_MSI:                  $(Use_MSI)

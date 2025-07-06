@@ -46,6 +46,16 @@
   ansible.builtin.set_fact:
     shareddisk:                        0
 
+# NVMe PRE-FLIGHT CHECK
+# -------------------------------------+---------------------------------------8
+- name:                                "1.5 Disk setup: - NVMe Preflight Check"
+  when:                                use_nvme_disks | default(false) | bool
+  ansible.builtin.include_tasks:       "1.5-nvme-preflight.yml"
+  tags:
+                                       - sapos-nvme-preflight
+
+# -------------------------------------+---------------------------------------8
+
 - name:                                "1.5 Disk setup - Check if the shared disk exists"
   ansible.builtin.set_fact:
     shareddisk:                        "{{ disks | selectattr('host', 'defined') |
@@ -80,6 +90,7 @@
       - "Unique disks:           {{ disktypes }} "
       - "Volume groups:          {{ volume_groups }} "
       - "Logical volumes:        {{ logical_volumes }} "
+      - "NVMe disk usage:        {{ 'Enabled' if use_nvme_disks | default(false) else 'Disabled' }}"
       - "sap mount:              {{ sap_mnt is defined }}"
       - "sap trans:              {% if sap_trans is defined %} {{ sap_trans }}{% else %}provided from SCS{% endif %}"
       - "usr install:            {% if usr_sap_install_mountpoint is defined %} {{ usr_sap_install_mountpoint }}{% else %}provided from SCS{% endif %}"
@@ -99,6 +110,7 @@
   register:                            vgscreated
   when:
     - tier == "sapos"
+
 
 - name:                                "1.5 Disk setup - Print vgcreated details"
   ansible.builtin.debug:

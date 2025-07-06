@@ -53,7 +53,9 @@ Importer/SDAF SDU Importer/SDAFSDUImporter/bin
 __pycache__/
 __pycache__
 *.pyc
-
+.pytest_cache/
+.venv/
+.venv
 # User-specific files
 *.rsuser
 *.suo
@@ -91,3 +93,4 @@ __pycache__
 *.svclog
 *.scc
 .ansible/.lock
+

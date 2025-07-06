@@ -195,14 +195,24 @@
     get_status_maintenance_mode.stdout is not search('true') or
     get_status_maintenance_mode.stdout is search('false')
 
-- name:                                "5.6 SCSERS - SLES - Reboot and wait 3 minutes"
+- name:                                "5.6 SCSERS - SLES - Reboot and wait 4 minutes"
   ansible.builtin.debug:
-    msg:                               "Reboot and wait 3 minutes"
+    msg:                               "Reboot and wait 4 minutes"
 
 - name:                                "5.6 SCSERS - SUSE - Reboot the primary/secondary instance"
   ansible.builtin.reboot:
-    reboot_timeout:                    90
-    post_reboot_delay:                 90
+    reboot_timeout:                    120
+    post_reboot_delay:                 120
+
+- name:                                "5.6 SCSERS - SUSE - Wait for cluster CIB availability after reboot"
+  ansible.builtin.shell: |
+                                       # Check if CIB is accessible and cluster is responsive
+                                       timeout 30 cibadmin -Q > /dev/null 2>&1
+  register:                            cib_check
+  until:                               cib_check.rc == 0
+  retries:                             30
+  delay:                               10
+  tags:                                cluster_readiness
 
 - name:                                "5.6 SCSERS - SUSE - Set the Cluster out of maintenance mode"
   ansible.builtin.shell:               crm configure property maintenance-mode=false
