@@ -48,6 +48,7 @@
       register:                        active_mounts_count
       changed_when:                    false
 
+    # for now nvme_force_preparation is set to true by default
     - name:                            "1.5.4 NVMe Support - Validate system state for conversion"
       ansible.builtin.assert:
         that:
