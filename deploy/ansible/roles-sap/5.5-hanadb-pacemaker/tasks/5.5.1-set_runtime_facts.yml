@@ -92,16 +92,36 @@
 
     - name:                            "5.5 HANA Pacemaker - Get SAPHanaSR package version"
       ansible.builtin.set_fact:
-        saphanaSR_version:             "{{ ansible_facts.packages['SAPHanaSR'][0].version if 'SAPHanaSR' in ansible_facts.packages else '0.0.0' }}"
-        saphanaSR_angi_version:        "{{ ansible_facts.packages['SAPHanaSR-angi'][0].version if 'SAPHanaSR-angi' in ansible_facts.packages else '0.0.0' }}"
+        saphanaSR_version:             "{{
+                                         ansible_facts.packages['SAPHanaSR'][0].version if ansible_os_family | upper == 'SUSE' and 'SAPHanaSR' in ansible_facts.packages
+                                         else ansible_facts.packages['resource-agents-sap-hana'][0].version if ansible_os_family | upper == 'REDHAT' and 'resource-agents-sap-hana' in ansible_facts.packages
+                                         else '0.0.0'
+                                       }}"
 
-    - name:                            "5.5 HANA Pacemaker - Install SAPHanaSR package if not installed"
+    - name:                            "5.5 HANA Pacemaker - Get SAPHanaSR-angi package version"
+      ansible.builtin.set_fact:
+        saphanaSR_angi_version:        "{{
+                                         ansible_facts.packages['SAPHanaSR-angi'][0].version
+                                         if ansible_os_family | upper == 'SUSE' and 'SAPHanaSR-angi' in ansible_facts.packages
+                                         else '0.0.0'
+                                       }}"
+
+    - name:                            "5.5 HANA Pacemaker - Install SAPHanaSR package if not installed - [SUSE]"
       when:
         - saphanaSR_version == '0.0.0'
         - not use_hanasr_angi
-        - distribution_full_id in ['sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6']
+        - ansible_os_family | upper == 'SUSE'
       community.general.zypper:
         name:                          "SAPHanaSR>=0.161.1_BF"
+        state:                         present
+
+    - name:                            "5.5 HANA Pacemaker - Install SAPHanaSR package if not installed - [RHEL]"
+      when:
+        - saphanaSR_version == '0.0.0'
+        - not use_hanasr_angi
+        - ansible_os_family | upper == 'REDHAT'
+      ansible.builtin.dnf:
+        name:                          "resource-agents-sap-hana"
         state:                         present
 
     - name:                            "5.5 HANA Pacemaker - Uninstall the old-style packages before we install SAPHanaSR-angi"

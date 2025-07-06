@@ -32,7 +32,7 @@
       failed_when:                     ascs_vip.rc > 1
 
     - name:                            "5.6 SCSERS - SCS - create Azure LB resource"
-      ansible.builtin.shell:           crm configure primitive nc_{{ sap_sid | upper }}_{{ instance_type | upper }} azure-lb port=620{{ scs_instance_number }}
+      ansible.builtin.shell:           crm configure primitive nc_{{ sap_sid | upper }}_{{ instance_type | upper }} azure-lb port=620{{ scs_instance_number }} op monitor timeout=20s interval=10
       register:                        ascs_lb
       failed_when:                     ascs_lb.rc > 1
 
@@ -149,7 +149,7 @@
       failed_when:                     ers_vip.rc > 1
 
     - name:                            "5.6 SCSERS - ERS - create Azure LB resource "
-      ansible.builtin.shell:           crm configure primitive nc_{{ sap_sid | upper }}_ERS azure-lb port=621{{ ers_instance_number }}
+      ansible.builtin.shell:           crm configure primitive nc_{{ sap_sid | upper }}_ERS azure-lb port=621{{ ers_instance_number }} op monitor timeout=20s interval=10
       register:                        ers_alb
       failed_when:                     ers_alb.rc > 1
 

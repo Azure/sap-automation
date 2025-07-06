@@ -1,0 +1,77 @@
+#!/bin/bash
+# Azure NVMe LUN calculator
+# Handles missing ID_NSID environment variable in older distributions
+#
+# Usage: azure-nvme-lun-calc <device_name> [id_nsid] [id_path]
+#
+# Parameters:
+# $1 - Device name (e.g., nvme0n2)
+# $2 - ID_NSID (optional, may be empty on older distributions)
+# $3 - ID_PATH (optional, fallback source for namespace ID)
+
+DEVICE_NAME="$1"
+ID_NSID="$2"
+ID_PATH="$3"
+
+# Function to extract namespace ID from device name
+extract_nsid_from_device() {
+    local device="$1"
+    # Extract number after 'n' in device name (e.g., nvme0n2 -> 2)
+    echo "$device" | sed -n 's/.*nvme[0-9]*n\([0-9]*\).*/\1/p'
+}
+
+# Function to extract namespace ID from ID_PATH
+extract_nsid_from_path() {
+    local path="$1"
+    # Extract number after 'nvme-' in path (e.g., nvme-2 -> 2)
+    echo "$path" | sed -n 's/.*nvme-\([0-9]*\).*/\1/p'
+}
+
+# Function to get namespace ID from sysfs
+get_nsid_from_sysfs() {
+    local device="$1"
+    local nsid_file="/sys/class/block/$device/nsid"
+
+    if [ -r "$nsid_file" ]; then
+        cat "$nsid_file" 2>/dev/null
+    fi
+}
+
+# Determine namespace ID using multiple methods
+NSID=""
+
+# Method 1: Use provided ID_NSID if available and valid
+if [ -n "$ID_NSID" ] && [ "$ID_NSID" -gt 0 ] 2>/dev/null; then
+    NSID="$ID_NSID"
+
+# Method 2: Extract from sysfs (most reliable)
+elif [ -n "$DEVICE_NAME" ]; then
+    NSID=$(get_nsid_from_sysfs "$DEVICE_NAME")
+
+# Method 3: Extract from device name
+elif [ -n "$DEVICE_NAME" ]; then
+    NSID=$(extract_nsid_from_device "$DEVICE_NAME")
+
+# Method 4: Extract from ID_PATH as fallback
+elif [ -n "$ID_PATH" ]; then
+    NSID=$(extract_nsid_from_path "$ID_PATH")
+fi
+
+# Validate NSID and calculate LUN ID
+if [ -n "$NSID" ] && [ "$NSID" -gt 0 ] 2>/dev/null; then
+    # Azure NVMe namespace mapping: NSID 1 = OS disk, NSID 2+ = data disks
+    # LUN ID = NSID - 2 (first data disk NSID 2 maps to LUN 0)
+    LUN_ID=$((NSID - 2))
+
+    # Ensure LUN ID is not negative (for OS disk or invalid cases)
+    if [ "$LUN_ID" -ge 0 ]; then
+        echo "$LUN_ID"
+    else
+        # OS disk or invalid case - don't create data disk symlink
+        exit 1
+    fi
+else
+    # Could not determine namespace ID
+    echo "ERROR: Could not determine namespace ID for device $DEVICE_NAME" >&2
+    exit 1
+fi

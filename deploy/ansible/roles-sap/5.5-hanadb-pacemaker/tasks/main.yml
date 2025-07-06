@@ -2,16 +2,16 @@
 # Licensed under the MIT License.
 
 ---
-- name:                                "5.5 HANADB Pacemaker - import - set_runtime_facts"
+- name:                                "5.5 HANADB Pacemaker - include - set_runtime_facts"
   ansible.builtin.include_tasks:        5.5.1-set_runtime_facts.yml
 
-- name:                                "5.5 HANADB Pacemaker - import - pre_checks"
+- name:                                "5.5 HANADB Pacemaker - include - pre_checks"
   ansible.builtin.include_tasks:        5.5.2-pre_checks.yml
 
-- name:                                "5.5 HANADB Pacemaker - import - SAP HanaSR"
+- name:                                "5.5 HANADB Pacemaker - include - SAP HanaSR"
   ansible.builtin.include_tasks:       5.5.3-SAPHanaSR.yml
 
-- name:                                "5.5 HANADB Pacemaker - import - SAP HanaSR"
+- name:                                "5.5 HANADB Pacemaker - include - SAP HanaSR - Cluster Preparation"
   ansible.builtin.include_tasks:
     file:                              5.5.4-provision.yml
     apply:
@@ -20,7 +20,7 @@
       become:                          true
       become_user:                     root
 
-- name:                                "5.5 HANADB Pacemaker - import - post_provision_report"
+- name:                                "5.5 HANADB Pacemaker - include - post_provision_report"
   ansible.builtin.include_tasks:        5.5.5-post_provision_report.yml
 
 ...

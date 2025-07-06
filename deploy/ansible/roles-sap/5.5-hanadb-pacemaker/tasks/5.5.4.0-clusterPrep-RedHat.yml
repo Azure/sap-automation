@@ -142,8 +142,11 @@
       block:
         - name:                        "Wait for NFS mount configuration on {{ secondary_instance_name }} to finish"
           ansible.builtin.set_fact:
-            is_nfs_secondary_configured:   "{{ hostvars[secondary_instance_name].chk_nfs_mounts_node2 | length == 0 }}"
-          retries:                     30
+            is_nfs_secondary_configured:   "{{
+                                         hostvars[secondary_instance_name]['chk_nfs_mounts_node2'] is defined and
+                                         hostvars[secondary_instance_name]['chk_nfs_mounts_node2'] | length == 0
+                                       }}"
+          retries:                     10
           delay:                       60
           until:                       is_nfs_secondary_configured
 
