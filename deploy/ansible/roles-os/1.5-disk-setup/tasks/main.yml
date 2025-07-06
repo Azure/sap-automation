@@ -47,12 +47,20 @@
     shareddisk:                        0
 
 # NVMe PRE-FLIGHT CHECK
+- name:                                "1.5 Disk setup: - NVMe Preflight Check - Debug hostvars"
+  ansible.builtin.debug:
+    msg:                               "hostvars[ansible_hostname]['use_nvme_disks']: {{ hostvars[ansible_hostname]['use_nvme_disks'] | default(false) }}"
+  when:
+                                       - use_nvme_disks | default(false) | bool
+  tags:
+                                       - sapos-nvme-debug
+
 # -------------------------------------+---------------------------------------8
 - name:                                "1.5 Disk setup: - NVMe Preflight Check"
   when:
                                        - use_nvme_disks | default(false) | bool
-                                       - hostvars['use_nvme_disks'] is defined
-                                       - hostvars['use_nvme_disks'] | default(false) | bool
+                                       - hostvars[ansible_hostname]['use_nvme_disks'] is defined
+                                       - hostvars[ansible_hostname]['use_nvme_disks'] | default(false) | bool
   ansible.builtin.include_tasks:       "1.5-nvme-preflight.yml"
   tags:
                                        - sapos-nvme-preflight
@@ -104,6 +112,8 @@
 # -------------------------------------+---------------------------------------8
 #
 - name:                                "1.5 Disk setup - Volume Group creation"
+  when:
+    - tier == "sapos"
   community.general.lvg:
     vg:                                "{{ item.vg }}"
     pvs:                               "{{ item.pvs }}"
@@ -111,24 +121,26 @@
     state:                             present
   loop:                                "{{ volume_groups }}"
   register:                            vgscreated
-  when:
-    - tier == "sapos"
-
 
 - name:                                "1.5 Disk setup - Print vgcreated details"
-  ansible.builtin.debug:
-    msg:                               "VOLUME GROUPS: {{ vgscreated | json_query('results[*].item') }}"
-    verbosity:                         2
   when:
     - tier == "sapos"
     - vgscreated is defined
+  ansible.builtin.debug:
+    msg:                               "VOLUME GROUPS: {{ vgscreated | json_query('results[*].item') }}"
+    verbosity:                         2
+  tags:
+                                       - sapos-vgcreated
+                                       - skip_ansible_lint
 
 - name:                                "1.5 Disk setup - Filter the volume group names from vgscreated results"
-  ansible.builtin.set_fact:
-    vgcreatedlist:                     "{{ vgscreated | json_query('results[*].item.vg') }}"
   when:
     - tier == "sapos"
-
+  ansible.builtin.set_fact:
+    vgcreatedlist:                     "{{ vgscreated | json_query('results[*].item.vg') }}"
+  tags:
+                                       - sapos-vgcreated-fact
+                                       - skip_ansible_lint
 
 # CREATE LOGICAL VOLUMES BASED ON VGCREATEDLIST
 # -------------------------------------+---------------------------------------8
