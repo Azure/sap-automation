@@ -146,7 +146,7 @@ mkdir -p artifacts
 
 workload_key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "${workload_environment_file_name}" "workloadkeyvault" || true)
 workload_prefix=$(echo "$SAP_SYSTEM_CONFIGURATION_NAME" | cut -d'-' -f1-3)
-terraform_storage_account=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "${workload_environment_file_nameworkload_environment_file_name}" "REMOTE_STATE_SA" || true)
+terraform_storage_account=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "${workload_environment_file_name}" "REMOTE_STATE_SA" || true)
 tf_state_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$terraform_storage_account' | project id, name, subscription" --query data[0].id --output tsv)
 control_plane_subscription=$(echo "$tf_state_id" | cut -d '/' -f 3)
 
