@@ -920,7 +920,8 @@ if [ "${TEST_ONLY}" == "True" ]; then
 fi
 
 if [ $fatal_errors == 1 ]; then
-	apply_needed=0print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
+	apply_needed=0
+	print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
 	if [ 1 == "$called_from_ado" ]; then
 		unset TF_DATA_DIR
 		echo "Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer" >"${system_config_information}".err
