@@ -50,10 +50,10 @@
       become_user:                     root
       when:                            repo_added.changed
       ansible.builtin.dnf:
-        name:                          azure-nvme-utils
-        update_cache:                  true
+        name:                          '*'
         state:                         present
-      register:                        repo_cache_refreshed
+        update_cache :                 true
+      changed_when:                    false
 
     - name:                            "1.5.4 NVMe Support (RHEL) - Install Azure NVME Utils package"
       ansible.builtin.package:
