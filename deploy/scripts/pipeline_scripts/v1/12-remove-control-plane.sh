@@ -213,24 +213,29 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
 	fi
 fi
 
-if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/.terraform" ]; then
-	git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
-	changed=1
-fi
+if [ 0 -eq $return_code ]; then
+	if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/.terraform" ]; then
+		git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
+		git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
+		changed=1
+		rm "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
+	fi
 
-if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
-	git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
-	changed=1
-fi
+	if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
+		git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+		changed=1
+	fi
 
-if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
-	git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
-	changed=1
-fi
+	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
+		git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+		changed=1
+		rm "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+	fi
 
-if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars" ]; then
-	git rm -q --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars"
-	changed=1
+	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars" ]; then
+		git rm -q --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars"
+		changed=1
+	fi
 fi
 
 if [ 1 == $changed ]; then
