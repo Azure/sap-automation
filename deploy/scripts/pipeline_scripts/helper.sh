@@ -345,7 +345,9 @@ function print_header() {
 		tfPath=$(which terraform)
 	fi
 
-	"${tfPath}" --version
+	if [ -n "$tfPath" ]; then
+		"${tfPath}" --version
+	fi
 
 }
 
