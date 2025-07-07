@@ -218,7 +218,10 @@ if [ 0 -eq $return_code ]; then
 		git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
 		git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
 		changed=1
-		rm "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
+		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
+			rm "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
+		fi
+
 	fi
 
 	if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
