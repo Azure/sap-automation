@@ -983,7 +983,7 @@ resources:
       $ControlPlaneVariableGroupId = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
       if ($ControlPlaneVariableGroupId.Length -eq 0) {
         Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
-        $ControlPlaneVariableGroupId = (az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' ARM_SUBSCRIPTION_ID=$ControlPlaneSubscriptionId ARM_TENANT_ID=$ArmTenantId POOL=$AgentPoolName AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$WorkloadZonePipelineId SYSTEM_PIPELINE_ID=$SystemPipelineId SDAF_GeneralGroupId=$GeneralGroupId SAP_INSTALL_PIPELINE_ID=$InstallationPipelineId TF_LOG=OFF --query id --output tsv --authorize true)
+        $ControlPlaneVariableGroupId = (az pipelines variable-group create --name $ControlPlanePrefix --variables AGENT='Azure Pipelines' ARM_SUBSCRIPTION_ID=$ControlPlaneSubscriptionId ARM_TENANT_ID=$ArmTenantId POOL=$AgentPoolName AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$WorkloadZonePipelineId SYSTEM_PIPELINE_ID=$SystemPipelineId SDAF_GeneralGroupId=$GeneralGroupId SAP_INSTALL_PIPELINE_ID=$InstallationPipelineId TF_LOG=OFF --query id --output tsv --authorize true)
       }
       $VariableGroups.Add($ControlPlaneVariableGroupId)
 

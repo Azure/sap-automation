@@ -8,7 +8,7 @@ function Get-IniContent {
     .SYNOPSIS
         Get-IniContent
 
-    
+
 .LINK
     https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
 
@@ -48,11 +48,11 @@ function Out-IniFile {
     <#
         .SYNOPSIS
             Out-IniContent
-    
-        
+
+
     .LINK
         https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
-    
+
         #>
     <#
     #>
@@ -1077,7 +1077,7 @@ resources:
       $ControlPlaneVariableGroupId = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
       if ($ControlPlaneVariableGroupId.Length -eq 0) {
         Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
-        $ControlPlaneVariableGroupId = (az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' ARM_SUBSCRIPTION_ID=$ControlPlaneSubscriptionId ARM_TENANT_ID=$ArmTenantId POOL=$AgentPoolName AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$WorkloadZonePipelineId SYSTEM_PIPELINE_ID=$SystemPipelineId SDAF_GeneralGroupId=$GeneralGroupId SAP_INSTALL_PIPELINE_ID=$InstallationPipelineId TF_LOG=OFF --query id --output tsv --authorize true)
+        $ControlPlaneVariableGroupId = (az pipelines variable-group create --name $ControlPlanePrefix --variables AGENT='Azure Pipelines' ARM_SUBSCRIPTION_ID=$ControlPlaneSubscriptionId ARM_TENANT_ID=$ArmTenantId POOL=$AgentPoolName AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$WorkloadZonePipelineId SYSTEM_PIPELINE_ID=$SystemPipelineId SDAF_GeneralGroupId=$GeneralGroupId SAP_INSTALL_PIPELINE_ID=$InstallationPipelineId TF_LOG=OFF --query id --output tsv --authorize true)
       }
       $VariableGroups.Add($ControlPlaneVariableGroupId)
 
@@ -1837,7 +1837,7 @@ function New-SDAFADOWorkloadZone {
       $WorkloadZoneVariableGroupId = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors)
       if ($WorkloadZoneVariableGroupId.Length -eq 0) {
         Write-Host "Creating the variable group" $WorkloadZonePrefix -ForegroundColor Green
-        $WorkloadZoneVariableGroupId = (az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' POOL=$AgentPoolName ARM_TENANT_ID=$ArmTenantId ARM_SUBSCRIPTION_ID=$WorkloadZoneSubscriptionId AZURE_CONNECTION_NAME=$ServiceConnectionName TF_LOG=OFF --query id --output tsv --authorize true)
+        $WorkloadZoneVariableGroupId = (az pipelines variable-group create --name $WorkloadZonePrefix --variables AGENT='Azure Pipelines' POOL=$AgentPoolName ARM_TENANT_ID=$ArmTenantId ARM_SUBSCRIPTION_ID=$WorkloadZoneSubscriptionId AZURE_CONNECTION_NAME=$ServiceConnectionName TF_LOG=OFF --query id --output tsv --authorize true)
       }
 
       if ($AuthenticationMethod -eq "Managed Identity") {

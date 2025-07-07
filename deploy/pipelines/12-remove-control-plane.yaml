@@ -99,7 +99,7 @@ stages:
           library:                      ${{ parameters.library }}
           use_deployer:                 ${{ parameters.use_deployer }}
     pool:
-      name:                             $(Agent)
+      name:                             $(AGENT)
     dependsOn:
       - Remove_control_plane_remote
     condition:                          in(dependencies.Remove_control_plane_remote.result, 'Succeeded', 'Skipped')

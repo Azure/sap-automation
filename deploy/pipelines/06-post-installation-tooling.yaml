@@ -58,16 +58,16 @@ variables:
     value:                             ${{ parameters.bom_base_name }}
 
   - name:                              agent_name
-    value:                             $[coalesce(variables['POOL'], variables['Agent'])]
+    value:                             $[coalesce(variables['POOL'], variables['AGENT'])]
 
   - name:                              this_agent
-    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+    value:                             $[lower(coalesce(variables['POOL'], variables['AGENT']))]
 
   - name:                              variable_group
     value:                             SDAF-${{ parameters.environment }}
 
 pool:
-  name:                                $[coalesce(variables['POOL'], variables['Agent'])]
+  name:                                $[coalesce(variables['POOL'], variables['AGENT'])]
 
 stages:
   - stage:                             Preparation_for_Ansible

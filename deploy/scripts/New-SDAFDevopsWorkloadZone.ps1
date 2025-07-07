@@ -236,7 +236,7 @@ if ($authenticationMethod -eq "Service Principal") {
   $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]"  --only-show-errors )
   if ($GroupID.Length -eq 0) {
     Write-Host "Creating the variable group" $WorkloadZonePrefix -ForegroundColor Green
-    az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF USE_MSI=false --output none --authorize true
+    az pipelines variable-group create --name $WorkloadZonePrefix --variables AGENT='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF USE_MSI=false --output none --authorize true
     $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]"   --only-show-errors)
   }
 
@@ -247,7 +247,7 @@ else {
   $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]"  --only-show-errors )
   if ($GroupID.Length -eq 0) {
     Write-Host "Creating the variable group" $WorkloadZonePrefix -ForegroundColor Green
-    az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF USE_MSI=true --output none --authorize true
+    az pipelines variable-group create --name $WorkloadZonePrefix --variables AGENT='Azure Pipelines' ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF USE_MSI=true --output none --authorize true
 
     $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]"   --only-show-errors)
   }
