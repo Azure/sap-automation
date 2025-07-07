@@ -58,6 +58,12 @@
         state:                         present
       register:                        nvme_utils_installed
 
+    - name:                            "1.5.4 NVMe Support (RHEL) - Install Azure NVME cli package"
+      ansible.builtin.package:
+        name:                          nvme-cli
+        state:                         present
+      register:                        nvme_utils_installed
+
 # Check if all required NVMe modules are loaded in initramfs
 - name:                                "1.5.4 NVMe Support (RHEL) - Check basic NVMe modules in initramfs"
   ansible.builtin.shell: |

@@ -40,55 +40,12 @@
   register:                            existing_repos
   failed_when:                         false
 
-# Configure Azure NVME Utils repository and package for SUSE
-# - name:                                "1.5.4 NVMe Support (SUSE) - Configure Azure NVME Utils repository"
-#   when:
-#                                        - azure_nvme_utils_supported
-#                                        - existing_repos is succeeded
-#                                        - not (existing_repos.repodatalist | default([]) | selectattr('alias', 'equalto', 'azure_nvme_utils') | list)
-#   block:
-#     - name:                            "1.5.4 NVMe Support (SUSE) - Add Azure NVME Utils repository"
-#       community.general.zypper_repository:
-#         name:                          azure_nvme_utils
-#         description:                   "Copr repo for azure-nvme-utils owned by cjp256"
-#         repo:                          "{{ azure_nvme_utils_repo_urls.suse }}"
-#         priority:                      100
-#         state:                         present
-#         auto_import_keys:              true
-#         disable_gpg_check:             true
-#       register:                        sles_repo_added
-#       retries:                         3
-#       delay:                           10
-#       until:                           sles_repo_added is succeeded
-
-#     - name:                            "1.5.4 NVMe Support (SUSE) - Import GPG key with retry logic"
-#       when:                            sles_repo_added.changed
-#       ansible.builtin.rpm_key:
-#         key:                           "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/pubkey.gpg"
-#         state:                         present
-#       register:                        gpg_key_import
-#       retries:                         3
-#       delay:                           5
-#       until:                           gpg_key_import is succeeded
-
-#     - name:                            "1.5.4 NVMe Support (SUSE) - Validate repository configuration"
-#       community.general.zypper_repository_info:
-#         repo:                          azure_nvme_utils
-#       register:                        repo_validation
-#       failed_when:                     false
-
-#     - name:                            "1.5.4 NVMe Support (SUSE) - Refresh repository cache"
-#       when:                            sles_repo_added.changed
-#       community.general.zypper:
-#         name:                          "*"
-#         update_cache:                  true
-
-# - name:                                "1.5.4 NVMe Support (SUSE) - Install Azure NVME Utils package"
-#   when:                                not azure_nvme_utils_supported
-#   ansible.builtin.package:
-#     name:                              azure-nvme-utils
-#     state:                             present
-#   register:                            nvme_utils_installed
+- name:                                "1.5.4 NVMe Support (SUSE) - Install Azure NVME Utils package"
+  when:                                not azure_nvme_utils_supported
+  ansible.builtin.package:
+    name:                              nvme-cli
+    state:                             present
+  register:                            nvme_utils_installed
 
 # Check if all required NVMe modules are loaded in initramfs
 - name:                                "1.5.4 NVMe Support (SUSE) - Check basic NVMe modules in initramfs"
