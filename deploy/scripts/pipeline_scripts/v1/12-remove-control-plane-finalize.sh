@@ -210,6 +210,7 @@ if [ 0 == $return_code ]; then
 	changed=0
 
 	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile" ]; then
+		echo "Resetting deployer TFvars file: $deployerTFvarsFile"
 		sed -i /"custom_random_id"/d "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile"
 		git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile"
 		changed=1

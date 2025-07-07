@@ -264,41 +264,16 @@ else
 	if [ -n "$VARIABLE_GROUP_ID" ]; then
 		print_banner "Remove workload zone" "Deleting variables" "info"
 
-		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --out tsv)
-		if [ ${#variable_value} != 0 ]; then
-			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --yes --only-show-errors
-		fi
+		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_KEYVAULT"
 
-		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Deployer_Key_Vault.value" --out tsv)
-		if [ ${#variable_value} != 0 ]; then
-			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Deployer_Key_Vault --yes --only-show-errors
-		fi
-
-		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Terraform_Remote_Storage_Account_Name.value" --out tsv)
-		if [ ${#variable_value} != 0 ]; then
-			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Account_Name --yes --only-show-errors
-		fi
-
-		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Terraform_Remote_Storage_Subscription.value" --out tsv)
-		if [ ${#variable_value} != 0 ]; then
-			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Terraform_Remote_Storage_Subscription --yes --only-show-errors
-		fi
-
-		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "TERRAFORM_STATE_STORAGE_ACCOUNT.value" --out tsv)
-		if [ ${#variable_value} != 0 ]; then
-			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name TERRAFORM_STATE_STORAGE_ACCOUNT --yes --only-show-errors
-		fi
-
-		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "KEYVAULT.value" --out tsv)
-		if [ ${#variable_value} != 0 ]; then
-			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name KEYVAULT --yes --only-show-errors
-		fi
-
-		variable_value=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "Deployer_State_FileName.value" --out tsv)
-		if [ ${#variable_value} != 0 ]; then
-			az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name Deployer_State_FileName --yes --only-show-errors
-		fi
-
+		remove_variable "$VARIABLE_GROUP_ID" "APPSERVICE_NAME"
+		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
+		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
+		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
+		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_STATE_FILENAME"
+		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
+		remove_variable "$VARIABLE_GROUP_ID" "TERRAFORM_STATE_STORAGE_ACCOUNT"
+		remove_variable "$VARIABLE_GROUP_ID" "KEYVAULT"
 	fi
 fi
 exit $return_code

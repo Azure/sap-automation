@@ -30,7 +30,6 @@ if [ "$SYSTEM_DEBUG" = True ]; then
 
 fi
 
-
 export DEBUG
 set -eu
 # Ensure that the exit status of a pipeline command is non-zero if any
@@ -98,14 +97,12 @@ libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVA
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 
-
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 else
-  DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT")
+	DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT")
 
 	TF_VAR_spn_keyvault_id=$(az keyvault show --name "$DEPLOYER_KEYVAULT" --subscription "$ARM_SUBSCRIPTION_ID" --query id -o tsv)
 	export TF_VAR_spn_keyvault_id
@@ -173,12 +170,12 @@ if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_controlplane.sh" \
 	--resource_group "$REMOTE_STATE_RG" \
 	--ado --auto-approve --keep_agent; then
 	return_code=$?
-  print_banner "$banner_title" "Control Plane $DEPLOYER_FOLDERNAME removal step 1 completed" "success"
+	print_banner "$banner_title" "Control Plane $DEPLOYER_FOLDERNAME removal step 1 completed" "success"
 
 	echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 1 completed."
 else
 	return_code=$?
-  print_banner "$banner_title" "Control Plane $DEPLOYER_FOLDERNAME removal step 1 failed" "error"
+	print_banner "$banner_title" "Control Plane $DEPLOYER_FOLDERNAME removal step 1 failed" "error"
 fi
 
 echo "Return code from remove_control_plane_v2: $return_code."
@@ -194,6 +191,7 @@ if [ -f "$deployer_environment_file_name" ]; then
 fi
 
 if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile" ]; then
+	echo "Resetting library TFvars file: $libraryTFvarsFile"
 	sed -i /"custom_random_id"/d "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile"
 	git add -f "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile"
 	changed=1
