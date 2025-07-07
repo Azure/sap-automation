@@ -179,22 +179,20 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Deploy SAP Workload Zone
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_OBJECT_ID:           $(ARM_OBJECT_ID)
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
               ARM_USE_MSI:             $(Use_MSI)
+              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
+              CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               DEPLOYER_KEYVAULT:       $(DEPLOYER_KEYVAULT)
               FENCING_SPN_PWD:         $(FENCING_SPN_PWD)
-              SAPBITS:                 $(INSTALLATION_MEDIA_ACCOUNT)
-              TEST_ONLY:               ${{ parameters.test }}
-              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
-              TF_LOG:                  $(TF_LOG)
-              TF_IN_AUTOMATION:        true
-              TF_VAR_subscription_id:  $(ARM_SUBSCRIPTION_ID)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              LOGON_USING_SPN:         $(Logon_Using_SPN)
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              TEST_ONLY:               ${{ parameters.test }}
+              TF_IN_AUTOMATION:        true
+              TF_LOG:                  $(TF_LOG)
+              TF_VAR_subscription_id:  $(ARM_SUBSCRIPTION_ID)
               USE_MSI:                 $(Use_MSI)
