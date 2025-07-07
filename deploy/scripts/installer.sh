@@ -1095,15 +1095,6 @@ if [ "${deployment_system}" == sap_deployer ]; then
 	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
 	save_config_var "deployer_public_ip_address" "${system_config_information}"
 
-	if (terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \"); then
-		application_configuration_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
-		if [ -n "${application_configuration_id}" ]; then
-			APPLICATION_CONFIGURATION_ID="${application_configuration_id}"
-			export APPLICATION_CONFIGURATION_ID
-			save_config_var "APPLICATION_CONFIGURATION_ID" "${system_config_information}"
-		fi
-	fi
-
 	if (terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \"); then
 		keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 		if valid_kv_name "$keyvault"; then
