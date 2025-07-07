@@ -24,7 +24,7 @@ source "${grand_parent_directory}/deploy_utils.sh"
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
 
-echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $SAP_SYSTEM_FOLDERNAME"
+echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $SAP_SYSTEM_FOLDERNAME"
 
 DEBUG=False
 
