@@ -180,8 +180,8 @@ resource "azurerm_linux_virtual_machine" "scs" {
   # Set the disc controller type, default SCSI
   disk_controller_type                 = var.infrastructure.disk_controller_type_app_tier
 
-  vtpm_enabled                         = var.infrastructure.disk_controller_type_app_tier == "NVMe"
-  secure_boot_enabled                  = var.infrastructure.disk_controller_type_app_tier == "NVMe"
+  vtpm_enabled                         = true
+  secure_boot_enabled                  = true
 
   encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
