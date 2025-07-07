@@ -42,7 +42,7 @@ variables:
     value:                             $[variables['Terraform_Remote_Storage_Subscription']]
 
   - name:                              deployer_tfstate_key
-    value:                             $[variables['Deployer_State_FileName']]
+    value:                             $[variables['DEPLOYER_STATE_FILENAME']]
 
   - name:                              key_vault
     value:                             $[variables['Deployer_Key_Vault']]

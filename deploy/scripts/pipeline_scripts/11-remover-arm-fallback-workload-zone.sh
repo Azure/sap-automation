@@ -108,7 +108,7 @@ if [ -n "$VARIABLE_GROUP_ID" ]; then
 	remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
 	remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
 	remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
-	remove_variable "$VARIABLE_GROUP_ID" "Deployer_State_FileName"
+	remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_STATE_FILENAME"
 	remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
 	remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
 	remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_ID"

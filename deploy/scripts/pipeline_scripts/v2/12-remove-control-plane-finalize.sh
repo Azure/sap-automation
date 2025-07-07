@@ -273,7 +273,7 @@ if [ 0 == $return_code ]; then
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
-		remove_variable "$VARIABLE_GROUP_ID" "Deployer_State_FileName"
+		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_STATE_FILENAME"
 		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_URL_BASE"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_IDENTITY"

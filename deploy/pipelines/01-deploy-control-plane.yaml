@@ -303,8 +303,8 @@ stages:
                 -SAP_INSTALL_PIPELINE_ID $(SAP_INSTALL_PIPELINE_ID)
                 -SDAF_GENERAL_GROUP_ID $(SDAF_GENERAL_GROUP_ID)
                 -IS_PIPELINE_DEPLOYMENT true
-                -CONTROLPLANE_ENV $(ControlPlaneEnvironment)
-                -CONTROLPLANE_LOC $(ControlPlaneLocation)'
+                -CONTROLPLANE_ENV $(CONTROL_PLANE_ENVIRONMENT)
+                -CONTROLPLANE_LOC $(CONTROL_PLANE_LOCATION)'
             env:
               ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
               SYSTEM_PIPELINE_ID:      $(SYSTEM_PIPELINE_ID)

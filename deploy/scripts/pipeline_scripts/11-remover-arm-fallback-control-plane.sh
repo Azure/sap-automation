@@ -93,7 +93,7 @@ if [ 0 == $library_return_code ] && [ 0 == $deployer_return_code ]; then
 	if [ -n "$VARIABLE_GROUP_ID" ]; then
 		echo "Deleting variables"
 
-		remove_variable "$VARIABLE_GROUP_ID" "Deployer_State_FileName"
+		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_STATE_FILENAME"
 		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_URL_BASE"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_IDENTITY"

@@ -431,34 +431,18 @@ fi
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 if [ "$return_code" -eq 0 ]; then
 	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${file_REMOTE_STATE_SA}"; then
-			echo "Variable Terraform_Remote_Storage_Account_Name was added to the $VARIABLE_GROUP variable group."
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${file_REMOTE_STATE_SA}"; then
+			echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was added to the $VARIABLE_GROUP variable group."
 		else
-			echo "##vso[task.logissue type=error]Variable Terraform_Remote_Storage_Account_Name was not added to the $VARIABLE_GROUP variable group."
-			echo "Variable Terraform_Remote_Storage_Account_Name was not added to the $VARIABLE_GROUP variable group."
+			echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
+			echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
 		fi
 	fi
 
-	if [ -n "${file_REMOTE_STATE_RG}" ]; then
-		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Resource_Group_Name" "${file_REMOTE_STATE_RG}"; then
-			echo "Variable Terraform_Remote_Storage_Resource_Group_Name was added to the $VARIABLE_GROUP variable group."
-		else
-			echo "##vso[task.logissue type=error]Variable Terraform_Remote_Storage_Resource_Group_Name was not added to the $VARIABLE_GROUP variable group."
-			echo "Variable Terraform_Remote_Storage_Resource_Group_Name was not added to the $VARIABLE_GROUP variable group."
-		fi
-	fi
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Subscription" "$ARM_SUBSCRIPTION_ID"; then
-		echo "Variable Terraform_Remote_Storage_Subscription was added to the $VARIABLE_GROUP variable group."
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"; then
+		echo "Variable DEPLOYER_STATE_FILENAME was added to the $VARIABLE_GROUP variable group."
 	else
-		echo "##vso[task.logissue type=error]Variable Terraform_Remote_Storage_Subscription was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable Terraform_Remote_Storage_Subscription was not added to the $VARIABLE_GROUP variable group."
-	fi
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "$deployer_tfstate_key"; then
-		echo "Variable Deployer_State_FileName was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable Deployer_State_FileName was not added to the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable DEPLOYER_STATE_FILENAME was not added to the $VARIABLE_GROUP variable group."
 		echo "Variable Deployer_State_FileName was not added to the $VARIABLE_GROUP variable group."
 	fi
 
@@ -469,18 +453,18 @@ if [ "$return_code" -eq 0 ]; then
 		echo "Variable DEPLOYER_KEYVAULT was not added to the $VARIABLE_GROUP variable group."
 	fi
 
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneEnvironment" "$ENVIRONMENT"; then
-		echo "Variable ControlPlaneEnvironment was added to the $VARIABLE_GROUP variable group."
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_ENVIRONMENT" "$ENVIRONMENT"; then
+		echo "Variable CONTROL_PLANE_ENVIRONMENT was added to the $VARIABLE_GROUP variable group."
 	else
-		echo "##vso[task.logissue type=error]Variable ControlPlaneEnvironment was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable ControlPlaneEnvironment was not added to the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_ENVIRONMENT was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable CONTROL_PLANE_ENVIRONMENT was not added to the $VARIABLE_GROUP variable group."
 	fi
 
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ControlPlaneLocation" "$LOCATION"; then
-		echo "Variable ControlPlaneLocation was added to the $VARIABLE_GROUP variable group."
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"; then
+		echo "Variable CONTROL_PLANE_LOCATION was added to the $VARIABLE_GROUP variable group."
 	else
-		echo "##vso[task.logissue type=error]Variable ControlPlaneLocation was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable ControlPlaneLocation was not added to the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_LOCATION was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable CONTROL_PLANE_LOCATION was not added to the $VARIABLE_GROUP variable group."
 	fi
 
 fi
