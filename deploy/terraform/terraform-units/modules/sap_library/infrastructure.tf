@@ -34,7 +34,7 @@ data "azurerm_resource_group" "library" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && length(var.dns_settings.dns_label) > 0 && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && length(var.dns_settings.dns_label) > 0 && !var.use_custom_dns_a_registration ? 1 : 0
   depends_on                           = [
                                            azurerm_private_dns_zone.dns
                                          ]
@@ -58,7 +58,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && !var.use_custom_dns_a_registration ? 1 : 0
   depends_on                           = [
                                            azurerm_storage_account.storage_tfstate,
                                            azurerm_private_dns_zone.blob
@@ -84,7 +84,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_private_endpoint ? 1 : 0
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   depends_on                           = [
                                             azurerm_private_dns_zone.vault
                                          ]
@@ -110,7 +110,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault_management" {
   provider                             = azurerm.dnsmanagement
-  count                                = try(length(var.deployer_tfstate.additional_network_id) > 0, false) && var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_private_endpoint ? 1 : 0
+  count                                = try(length(var.deployer_tfstate.additional_network_id) > 0, false) && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   depends_on                           = [
                                             azurerm_private_dns_zone.vault
                                          ]
