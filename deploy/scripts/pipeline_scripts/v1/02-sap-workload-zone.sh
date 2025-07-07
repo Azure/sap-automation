@@ -37,6 +37,12 @@ fi
 export DEBUG
 set -eu
 
+# Print the execution environment details
+print_header
+
+# Configure DevOps
+configure_devops
+
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 WORKLOAD_ZONE_NAME=$(echo "$WORKLOAD_ZONE_FOLDERNAME" | cut -d'-' -f1-3)
@@ -128,7 +134,6 @@ NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 
 deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$DEPLOYER_ENVIRONMENT$DEPLOYER_REGION"
 echo "Deployer Environment File:           $deployer_environment_file_name"
-
 if [ ! -f "${deployer_environment_file_name}" ]; then
 	echo -e "$bold_red--- $DEPLOYER_ENVIRONMENT$DEPLOYER_REGION was not found ---$reset"
 	echo "##vso[task.logissue type=error]Control plane configuration file $DEPLOYER_ENVIRONMENT$DEPLOYER_REGION was not found."

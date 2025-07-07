@@ -71,8 +71,6 @@ cd "$CONFIG_REPO_PATH" || exit
 
 parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml"
 
-
-
 echo -e "$green--- Validations ---$reset"
 
 if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then

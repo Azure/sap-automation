@@ -308,7 +308,7 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 			added=1
 		fi
 		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
-			if [ "$return_code" -eq 0 ]; then
+			if [ 0 -eq "$return_code" ]; then
 				echo "Removing the deployer state zip file"
 				git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 
@@ -383,7 +383,7 @@ if [ 1 = $added ]; then
 fi
 
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-if [ "$return_code" -eq 0 ]; then
+if [ 0 -eq "$return_code" ]; then
 
 	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
 		echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."

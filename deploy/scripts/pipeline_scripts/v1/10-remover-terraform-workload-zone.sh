@@ -204,7 +204,7 @@ fi
 cd "$CONFIG_REPO_PATH/LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME" || exit
 
 if ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh \
-	--parameterfile $WORKLOAD_ZONE_TFVARS_FILENAME \
+	--parameterfile "$WORKLOAD_ZONE_TFVARS_FILENAME" \
 	--type sap_landscape \
 	--state_subscription "${terraform_storage_account_subscription_id}" \
 	--storageaccountname "${terraform_storage_account_name}" \
