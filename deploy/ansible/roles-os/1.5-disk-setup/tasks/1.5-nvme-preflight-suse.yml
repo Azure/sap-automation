@@ -59,18 +59,24 @@
 - name:                                "1.5.4 NVMe Support (SUSE) - Check for all required NVMe modules in initramfs"
   ansible.builtin.shell: |
                                        set -o pipefail
-                                       MISSING=0
                                        REQUIRED_MODULES="nvme nvme-core nvme-fabrics nvme-fc nvme-rdma nvme-loop nvmet nvmet-fc nvme-tcp"
+                                       MISSING=0
                                        MISSING_MODULES=""
+
                                        for MODULE in $REQUIRED_MODULES; do
-                                         if ! lsinitrd /boot/initrd-$(uname -r) | grep -q "$MODULE"; then
+                                         # Temporarily disable pipefail for this check since lsinitrd may have warnings
+                                         set +o pipefail
+                                         if ! lsinitrd /boot/initrd-$(uname -r) 2>/dev/null | grep -q "${MODULE}\.ko"; then
                                            MISSING_MODULES="$MISSING_MODULES $MODULE"
                                            MISSING=1
                                          fi
+                                         set -o pipefail
                                        done
+
                                        if [ $MISSING -eq 1 ]; then
                                          echo "$MISSING_MODULES"
                                        fi
+
                                        exit $MISSING
   register:                            nvme_module_complete_check
   failed_when:                         false
@@ -133,7 +139,7 @@
 - name:                                "1.5.4 NVMe Support (SUSE) - Add NVMe timeout parameters to GRUB"
   when:
     - grub_nvme_timeout_check.rc != 0
-    - '"nvme_core.io_timeout=240" not in current_grub_config.stdout'
+    - '"nvme_core.admin_timeout=240" not in current_grub_config.stdout'
   ansible.builtin.replace:
     path:                              /etc/default/grub
     regexp:                            '^({{ grub_cmdline_param }}=")([^"]*)(")$'
