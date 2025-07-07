@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 parameters:
-  azureClientId: ""
+  azureClientId:    ""
   azureClientSecret: ""
   azureTenantId: ""
   azureSubscriptionId: ""
@@ -20,170 +20,31 @@ parameters:
   userNameSecretName: ""
 
 steps:
-  - bash: |
-      #!/bin/bash
-      # Exit immediately if a command exits with a non-zero status.
-      # Treat unset variables as an error when substituting.
-      if [ "$DEBUG" = True ]; then
-        cyan="\e[1;36m"
-        reset_formatting="\e[0m"
-        echo -e "$cyanEnabling debug mode$reset_formatting"
-        set -x
-        set -o errexit
-      fi
-      #Stage could be executed on a different machine by default, need to login again for ansible
-      #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
-
-      control_plane_subscription=$(Terraform_Remote_Storage_Subscription)
-      export control_plane_subscription
-
-      deployer_file=/etc/profile.d/deploy_server.sh
-
-      # Set logon variables
-      if [ $USE_MSI == "true" ]; then
-        unset ARM_CLIENT_SECRET
-        ARM_USE_MSI=true
-        export ARM_USE_MSI
-      fi
-      if az account show --query name; then
-        echo -e "$green--- Already logged in to Azure ---$reset"
-      else
-        # Check if running on deployer
-        if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-          echo -e "$green--- az login ---$reset"
-          if [ $USE_MSI == "true" ]; then
-            az login --identity --client-id $ARM_CLIENT_ID --output none
-          else
-            az login --service-principal -u $ARM_CLIENT_ID -p=$ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
-          fi
-        fi
-        return_code=$?
-        if [ 0 != $return_code ]; then
-          echo -e "$bold_red--- Login failed ---$reset"
-          echo "##vso[task.logissue type=error]az login failed."
-          exit $return_code
-        fi
-      fi
-
-      set -eu
-
-      if [ ! -f $PARAMETERS_FOLDER/sshkey ]; then
-        echo "##[section]Retrieving sshkey..."
-        az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$VAULT_NAME" --query value -o tsv > "$PARAMETERS_FOLDER/sshkey"
-        sudo chmod 600 "$PARAMETERS_FOLDER"/sshkey
-      fi
-
-      password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$VAULT_NAME" --query value -o tsv)
-
-      echo "Extra parameters passed: " "$EXTRA_PARAMS"
-
-      base=$(basename "$ANSIBLE_FILE_PATH")
-
-      filename_without_prefix=$(echo "$base" | awk -F'.' '{print $1}')
-      filename=./config/Ansible/"${filename_without_prefix}"_pre.yml
-      return_code=0
-
-      echo "Extra parameters passed: " $EXTRA_PARAMS
-      echo "Check for file: ${filename}"
-
-      command="ansible --version"
-      eval $command
-
-      EXTRA_PARAM_FILE=""
-
-      if [ -f $PARAMETERS_FOLDER/extra-params.yaml ]; then
-        echo "Extra parameter file passed: " $PARAMETERS_FOLDER/extra-params.yaml
-
-        EXTRA_PARAM_FILE="-e @$PARAMETERS_FOLDER/extra-params.yaml"
-      fi
-
-
-      ############################################################################################
-      #                                                                                          #
-      # Run Pre tasks if Ansible playbook with the correct naming exists                         #
-      #                                                                                          #
-      ############################################################################################
-
-      if [ -f  "${filename}" ]; then
-        echo "##[group]- preconfiguration"
-
-        redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS "$EXTRA_PARAMS" $EXTRA_PARAM_FILE ${filename} -e 'kv_name=$VAULT_NAME'"
-        echo "##[section]Executing [$redacted_command]..."
-
-        command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey  -e 'kv_name=$VAULT_NAME' \
-              -e @$SAP_PARAMS -e 'download_directory=$(Agent.TempDirectory)' -e '_workspace_directory=$PARAMETERS_FOLDER' "$EXTRA_PARAMS"  \
-              -e ansible_ssh_pass='${password_secret}' $EXTRA_PARAM_FILE ${filename}"
-
-        eval $command
-        return_code=$?
-        echo "##[section]Ansible playbook ${filename} execution completed with exit code [$return_code]"
-        echo "##[endgroup]"
-
-      fi
-
-      command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey   -e 'kv_name=$VAULT_NAME'   \
-        -e @$SAP_PARAMS -e 'download_directory=$(Agent.TempDirectory)' -e '_workspace_directory=$PARAMETERS_FOLDER' \
-        -e ansible_ssh_pass='${password_secret}' "$EXTRA_PARAMS" $EXTRA_PARAM_FILE                                  \
-         $ANSIBLE_FILE_PATH"
-
-
-      redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS "$EXTRA_PARAMS" $EXTRA_PARAM_FILE $ANSIBLE_FILE_PATH  -e 'kv_name=$VAULT_NAME'"
-
-      echo "##[section]Executing [$redacted_command]..."
-      echo "##[group]- output"
-      eval $command
-      return_code=$?
-      echo "##[section]Ansible playbook execution completed with exit code [$return_code]"
-      echo "##[endgroup]"
-
-
-      filename=./config/Ansible/"${filename_without_prefix}"_post.yml
-      echo "Check for file: ${filename}"
-
-
-      ############################################################################################
-      #                                                                                          #
-      # Run Post tasks if Ansible playbook with the correct naming exists                        #
-      #                                                                                          #
-      ############################################################################################
-
-      if [ -f  ${filename} ]; then
-
-        echo "##[group]- postconfiguration"
-        redacted_command="ansible-playbook -i "$INVENTORY" -e @"$SAP_PARAMS" "$EXTRA_PARAMS" $EXTRA_PARAM_FILE "${filename}"  -e 'kv_name=$VAULT_NAME'"
-        echo "##[section]Executing [$redacted_command]..."
-
-        command="ansible-playbook -i "$INVENTORY" --private-key $PARAMETERS_FOLDER/sshkey   -e 'kv_name=$VAULT_NAME'      \
-              -e @$SAP_PARAMS -e 'download_directory=$(Agent.TempDirectory)' -e '_workspace_directory=$PARAMETERS_FOLDER' \
-              -e ansible_ssh_pass='${password_secret}' ${filename}  "$EXTRA_PARAMS" $EXTRA_PARAM_FILE"
-
-        eval $command
-        return_code=$?
-        echo "##[section]Ansible playbook ${filename} execution completed with exit code [$return_code]"
-        echo "##[endgroup]"
-
-      fi
-
-      exit $return_code
-
-    displayName: ${{ parameters.displayName }}
-    env:
-      ARM_CLIENT_ID: ${{ parameters.azureClientId }}
-      ARM_CLIENT_SECRET: ${{ parameters.azureClientSecret }}
-      ARM_TENANT_ID: ${{ parameters.azureTenantId }}
-      ARM_SUBSCRIPTION_ID: ${{ parameters.azureSubscriptionId }}
-      USE_MSI: ${{ parameters.USE_MSI }}
-      ANSIBLE_COLLECTIONS_PATH: ~/.ansible/collections:/opt/ansible/collections
-      ANSIBLE_PYTHON_INTERPRETER: auto_silent
-      ANSIBLE_DISPLAY_SKIPPED_HOSTS: false
-      ANSIBLE_HOST_KEY_CHECKING: false
-      ANSIBLE_FILE_PATH: ${{ parameters.ansibleFilePath }}
-      ANSIBLE_CONFIG: ${{ parameters.ansibleConfigPath }}
-      PARAMETERS_FOLDER: ${{ parameters.parametersFolder }}
-      EXTRA_PARAMS: ${{ parameters.extraParams }}
-      SAP_PARAMS: ${{ parameters.sapParams }}
-      INVENTORY: ${{ parameters.parametersFolder }}/${{ parameters.sidHosts }}
-      SSH_KEY_NAME: ${{ parameters.secretName }}
-      VAULT_NAME: ${{ parameters.vaultName }}
-      PASSWORD_KEY_NAME: ${{ parameters.passwordSecretName }}
-      USERNAME_KEY_NAME: ${{ parameters.userNameSecretName }}
+- task:                             Bash@3
+  name:                             ${{ parameters.name }}
+  displayName:                      ${{ parameters.displayName }}
+  inputs:
+    targetType:                     'filePath'
+    filePath:                       "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/05-run-ansible.sh"
+    failOnStderr:                   false
+    workingDirectory:               "$(System.DefaultWorkingDirectory)"
+  env:
+    ARM_CLIENT_ID:                  ${{ parameters.azureClientId }}
+    ARM_CLIENT_SECRET:              ${{ parameters.azureClientSecret }}
+    ARM_TENANT_ID:                  ${{ parameters.azureTenantId }}
+    ARM_SUBSCRIPTION_ID:            ${{ parameters.azureSubscriptionId }}
+    USE_MSI:                        ${{ parameters.USE_MSI }}
+    ANSIBLE_COLLECTIONS_PATH:       ~/.ansible/collections:/opt/ansible/collections
+    ANSIBLE_PYTHON_INTERPRETER:     auto_silent
+    ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
+    ANSIBLE_HOST_KEY_CHECKING:      false
+    ANSIBLE_FILE_PATH:              ${{ parameters.ansibleFilePath }}
+    ANSIBLE_CONFIG:                 ${{ parameters.ansibleConfigPath }}
+    PARAMETERS_FOLDER:              ${{ parameters.parametersFolder }}
+    EXTRA_PARAMS:                   ${{ parameters.extraParams }}
+    SAP_PARAMS:                     ${{ parameters.sapParams }}
+    INVENTORY:                      ${{ parameters.parametersFolder }}/${{ parameters.sidHosts }}
+    SSH_KEY_NAME:                   ${{ parameters.secretName }}
+    VAULT_NAME:                     ${{ parameters.vaultName }}
+    PASSWORD_KEY_NAME:              ${{ parameters.passwordSecretName }}
+    USERNAME_KEY_NAME:              ${{ parameters.userNameSecretName }}
