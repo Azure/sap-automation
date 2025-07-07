@@ -237,7 +237,6 @@ function show_help_remover_v2 {
 	return 0
 }
 
-
 #########################################################################################
 #                                                                                       #
 # Function to show help for the installer script                                        #
@@ -485,7 +484,6 @@ function control_plane_missing {
 
 }
 
-
 #########################################################################################
 #                                                                                       #
 # Function to show help for the installer script                                        #
@@ -702,7 +700,6 @@ function validate_exports {
 	return 0
 }
 
-
 #########################################################################################
 #                                                                                       #
 # Function to validate the WEb App exports needed for the script                        #
@@ -754,7 +751,6 @@ function validate_webapp_exports {
 
 	return 0
 }
-
 
 #########################################################################################
 #                                                                                       #
@@ -1071,6 +1067,8 @@ function ImportAndReRunApply {
 
 	local import_return_value
 	import_return_value=0
+	local msi_error_count=0
+	local error_count=0
 
 	print_banner "ImportAndReRunApply" "In function ImportAndReRunApply" "info"
 
@@ -1079,14 +1077,13 @@ function ImportAndReRunApply {
 		errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
 
 		if [[ -n $errors_occurred ]]; then
-			msi_error_count=0
+
 			msi_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("The role assignment already exists."))' "$fileName")
 			if [[ -n "${msi_errors_temp}" ]]; then
 				readarray -t msi_errors < <(echo "${msi_errors_temp}" | jq -c '.')
 				msi_error_count=${#msi_errors[@]}
 			fi
 
-			error_count=0
 			errors_temp=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} ' "$fileName")
 			if [[ -n "${errors_temp}" ]]; then
 				readarray -t errors < <(echo "${errors_temp}" | jq -c '.')
@@ -1094,7 +1091,6 @@ function ImportAndReRunApply {
 			fi
 			if [[ "${error_count}" -gt 0 ]]; then
 				print_banner "Installer" "Number of errors: $error_count" "error" "Number of permission errors: $msi_error_count"
-
 			else
 				print_banner "Installer" "Number of permission errors: $msi_error_count - can safely be ignored" "info"
 			fi
@@ -1204,6 +1200,14 @@ function ImportAndReRunApply {
 			import_return_value=0
 		fi
 
+	fi
+
+	if [ "$error_count" -gt "$msi_error_count" ]; then
+		print_banner "ImportAndReRunApply" "Errors occurred during the apply phase" "error"
+		echo "##vso[task.logissue type=error]Errors occurred during the apply phase"
+		import_return_value=5
+	else
+		import_return_value=0
 	fi
 
 	print_banner "ImportAndReRunApply" "Exiting function ImportAndReRunApply" "info" "return code: $import_return_value"
@@ -1372,15 +1376,15 @@ function LogonToAzure() {
 #   echo "Variable value: $my_var"                                             #
 ################################################################################
 function get_terraform_output() {
-    local output_name="$1"
-		local terraform_module_directory="${2:-.}" # Default to current directory if not provided
-    local default_value="${3:-}"
+	local output_name="$1"
+	local terraform_module_directory="${2:-.}" # Default to current directory if not provided
+	local default_value="${3:-}"
 
-    # Try to get the output, suppress warnings
-    local value
-    if value=$(terraform -chdir="$terraform_module_directory" output -no-color -raw "$output_name" 2>/dev/null); then
-        echo "$value"
-    else
-        echo "$default_value"
-    fi
+	# Try to get the output, suppress warnings
+	local value
+	if value=$(terraform -chdir="$terraform_module_directory" output -no-color -raw "$output_name" 2>/dev/null); then
+		echo "$value"
+	else
+		echo "$default_value"
+	fi
 }
