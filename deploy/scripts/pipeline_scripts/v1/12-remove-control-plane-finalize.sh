@@ -123,19 +123,18 @@ if [ ! -f "$deployerTFvarsFile" ]; then
 	exit 2
 fi
 
-if [ ! -f "${libraryTFvarsFile}" ]; then
-	echo -e "$bold_red--- File ${libraryTFvarsFile}  was not found ---$reset"
-	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
-	exit 2
-fi
-
 TF_VAR_deployer_tfstate_key="$deployer_tfstate_key"
 export TF_VAR_deployer_tfstate_key
 
 CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
 export "CONTROL_PLANE_NAME"
 
-deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/$CONTROL_PLANE_NAME"
+automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
+if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	deployer_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}"
+elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	deployer_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}${NETWORK}"
+fi
 
 echo -e "$green--- Information ---$reset"
 
@@ -155,28 +154,6 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
-key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-
-if [ -n "${key_vault_id}" ]; then
-	if [ "azure pipelines" = "$THIS_AGENT" ]; then
-		key_vault_resource_group=$(echo "$key_vault_id" | cut -d'/' -f5)
-		key_vault=$(echo "$key_vault_id" | cut -d'/' -f9)
-
-		az keyvault update --name "$key_vault" --resource-group "$key_vault_resource_group" --public-network-access Enabled --output none --only-show-errors
-		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-		echo "Adding the IP to the keyvault firewall rule and sleep for 30 seconds"
-		az keyvault network-rule add --name "${key_vault}" --ip-address "${this_ip}" --only-show-errors --output none
-		sleep 30
-	fi
-fi
-
-if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-
-	app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
-	app_config_resource_group=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f5)
-	az appconfig update --name "$app_config_name" --resource-group "$app_config_resource_group" --enable-public-network true --output none --only-show-errors
-	sleep 30
-fi
 cd "$CONFIG_REPO_PATH" || exit
 echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
 
