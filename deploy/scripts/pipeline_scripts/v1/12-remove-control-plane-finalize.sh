@@ -270,22 +270,21 @@ if [ 0 == $return_code ]; then
 		echo "Deleting variables"
 
 		remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_ID"
-		remove_variable "$VARIABLE_GROUP_ID" "HAS_APPSERVICE_DEPLOYED"
 		remove_variable "$VARIABLE_GROUP_ID" "APPSERVICE_NAME"
+		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_KEYVAULT"
+		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_RANDOM_ID"
+		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_STATE_FILENAME"
+		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
+		remove_variable "$VARIABLE_GROUP_ID" "HAS_APPSERVICE_DEPLOYED"
+		remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
+		remove_variable "$VARIABLE_GROUP_ID" "LIBRARY_RANDOM_ID"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
-		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_STATE_FILENAME"
-		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
-		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_URL_BASE"
-		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_IDENTITY"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_ID"
+		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_IDENTITY"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_RESOURCE_GROUP"
-		remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
-		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_RANDOM_ID"
-		remove_variable "$VARIABLE_GROUP_ID" "LIBRARY_RANDOM_ID"
-		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_KEYVAULT"
-
+		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_URL_BASE"
 	fi
 
 fi
