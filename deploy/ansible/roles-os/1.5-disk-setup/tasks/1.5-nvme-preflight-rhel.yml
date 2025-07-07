@@ -48,8 +48,6 @@
     - name:                            "1.5.4 NVMe Support (RHEL) - Refresh repository cache"
       when:                            repo_added.changed
       ansible.builtin.shell:           dnf makecache
-      args:
-        warn:                          false
       changed_when:                    false
 
     - name:                            "1.5.4 NVMe Support (RHEL) - Install Azure NVME Utils package"
