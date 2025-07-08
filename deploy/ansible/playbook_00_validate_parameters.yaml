@@ -414,7 +414,7 @@
       ansible.builtin.set_fact:
         deployer_free_temp_disk_space: 40
       when:
-        - deployer_free_temp_disk_space is not defined
+                                       - deployer_free_temp_disk_space is not defined
       tags:
                                        - always
 
@@ -423,7 +423,7 @@
         that:                          (mnt_free_diskspace | first | int / (1024 * 1024 * 1024) | int) > ( deployer_free_temp_disk_space )
         fail_msg:                      "The deployer needs at least {{ deployer_free_temp_disk_space }} GB of free disk space in /mnt"
       when:
-        - mnt_free_diskspace | length > 0
+                                       - mnt_free_diskspace | length > 0
       tags:
                                        - 0.0-agent-diskspace
 
@@ -444,18 +444,18 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- hosts: "{{ sap_sid | upper }}_DB  :
-    {{ sap_sid | upper }}_SCS :
-    {{ sap_sid | upper }}_ERS :
-    {{ sap_sid | upper }}_PAS :
-    {{ sap_sid | upper }}_APP :
-    {{ sap_sid | upper }}_WEB :
-    {{ sap_sid | upper }}_OBSERVER_DB"
+- hosts:                               "{{ sap_sid | upper }}_DB  :
+                                         {{ sap_sid | upper }}_SCS :
+                                         {{ sap_sid | upper }}_ERS :
+                                         {{ sap_sid | upper }}_PAS :
+                                         {{ sap_sid | upper }}_APP :
+                                         {{ sap_sid | upper }}_WEB :
+                                         {{ sap_sid | upper }}_OBSERVER_DB"
 
   name:                                "0.0 Validations - Validate SAP-Parameters"
   gather_facts:                        false
   vars_files:
-    - vars/ansible-input-api.yaml # API Input template with defaults
+                                       - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
 
     - name:                            "0.0 Validations: - Wait for system to become reachable"
@@ -577,10 +577,6 @@
     - name:                            "0.0 Validations - Check internet connectivity"
       ansible.builtin.uri:
         url:                           "{{ url_internet }}"
-        # headers:
-        #   Authorization: "Bearer {{ access_token }}"
-        #   Content-Type: application/json
-        #   Accept: application/json
         status_code:
           - 200
           - 403
