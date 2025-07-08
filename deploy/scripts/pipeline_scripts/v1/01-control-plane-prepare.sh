@@ -2,39 +2,108 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
-cyan="\e[1;36m"
 
-#External helper functions
+# External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
+SCRIPT_NAME="$(basename "$0")"
+banner_title="Prepare Control Plane"
+
 #call stack has full script name when using source
-source "${parent_directory}/helper.sh"
+# shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
 
-DEBUG=false
+#call stack has full script name when using source
+source "${parent_directory}/helper.sh"
+
+echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the SAP Workload zone defined in $ZONE"
+print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
+
+DEBUG=False
+
 if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
-	DEBUG=true
+	DEBUG=True
 	echo "Environment variables:"
 	printenv | sort
-fi
 
+fi
 export DEBUG
 set -eu
 
 # Print the execution environment details
 print_header
-echo ""
 
 # Configure DevOps
 configure_devops
+
+# Check if running on deployer
+if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+	configureNonDeployer "${tf_version:-1.12.2}"
+else
+	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export PATH=$PATH:$path
+	if [ "$USE_MSI" == "true" ]; then
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+		echo "Deployment using:                    Managed Identity"
+	else
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
+		ARM_USE_MSI=false
+		export ARM_USE_MSI
+		echo "Deployment using:                    Service Principal"
+	fi
+	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+	export ARM_CLIENT_ID
+
+fi
+
+if [ -v servicePrincipalId ]; then
+	ARM_CLIENT_ID="$servicePrincipalId"
+	export ARM_CLIENT_ID
+	TF_VAR_spn_id=$ARM_CLIENT_ID
+	export TF_VAR_spn_id
+fi
+
+if [ -v servicePrincipalKey ]; then
+	unset ARM_OIDC_TOKEN
+	ARM_CLIENT_SECRET="$servicePrincipalKey"
+	export ARM_CLIENT_SECRET
+else
+	ARM_OIDC_TOKEN="$idToken"
+	export ARM_OIDC_TOKEN
+	ARM_USE_OIDC=true
+	export ARM_USE_OIDC
+	unset ARM_CLIENT_SECRET
+fi
+
+if [ -v tenantId ]; then
+	ARM_TENANT_ID="$tenantId"
+	export ARM_TENANT_ID
+fi
+
+if az account show --query name; then
+	echo -e "$green--- Already logged in to Azure ---$reset"
+else
+
+	LogonToAzure $USE_MSI
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
+fi
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
@@ -115,54 +184,7 @@ fi
 
 git checkout -q "$BUILD_SOURCEBRANCHNAME"
 
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
-
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$TF_VERSION"
-
-	ARM_CLIENT_ID="$servicePrincipalId"
-	export ARM_CLIENT_ID
-	TF_VAR_spn_id=$ARM_CLIENT_ID
-	export TF_VAR_spn_id
-
-	if printenv servicePrincipalKey; then
-		unset ARM_OIDC_TOKEN
-		ARM_CLIENT_SECRET="$servicePrincipalKey"
-		export ARM_CLIENT_SECRET
-	else
-		ARM_OIDC_TOKEN="$idToken"
-		export ARM_OIDC_TOKEN
-		ARM_USE_OIDC=true
-		export ARM_USE_OIDC
-		unset ARM_CLIENT_SECRET
-	fi
-
-	ARM_TENANT_ID="$tenantId"
-	export ARM_TENANT_ID
-
-	ARM_USE_AZUREAD=true
-	export ARM_USE_AZUREAD
-else
-	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export PATH=$PATH:$path
-	if [ "$USE_MSI" == "true" ]; then
-		TF_VAR_use_spn=false
-		export TF_VAR_use_spn
-		ARM_USE_MSI=true
-		export ARM_USE_MSI
-		echo "Deployment using:                    Managed Identity"
-	else
-		TF_VAR_use_spn=true
-		export TF_VAR_use_spn
-		ARM_USE_MSI=false
-		export ARM_USE_MSI
-		echo "Deployment using:                    Service Principal"
-	fi
-	ARM_CLIENT_ID=$(grep -m 1 "export ARM_CLIENT_ID=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-	export ARM_CLIENT_ID
-fi
 
 TF_VAR_spn_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "${deployer_environment_file_name}" "ARM_OBJECT_ID")
 if [ -n "$TF_VAR_spn_id" ]; then
