@@ -193,17 +193,14 @@
   register:                            initramfs_rebuilt
 
 # Install udev rules for Azure NVMe disks
-- name:                                "1.5.4 NVMe Support (RHEL) - Create Azure NVMe LUN calculation helper script"
+- name:                                "1.5.4 NVMe Support (SUSE) - Create Azure NVMe LUN calculation helper script"
   ansible.builtin.copy:
+    src:                               88-azure-nvme-lun-calc
     dest:                              /usr/local/bin/azure-nvme-lun-calc
     mode:                              '0755'
     owner:                             root
     group:                             root
-    content: |
-      #!/bin/bash
-      # Azure NVMe LUN calculator
-      # Takes namespace ID and returns LUN ID (NSID - 2)
-      echo $(($1 - 2))
+    force:                             true
   register:                            helper_script_created
 
 - name:                                "1.5.4 NVMe Support (RHEL) - Install udev rules for Azure NVMe disks"
