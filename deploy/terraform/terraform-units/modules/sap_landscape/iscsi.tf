@@ -351,7 +351,7 @@ resource "azurerm_key_vault_secret" "iscsi_password" {
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_role_assignment.kv_user_msi_rbac,
-                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer
+                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer,
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_role_assignment.role_assignment_spn,
