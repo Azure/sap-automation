@@ -6,15 +6,14 @@ green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
 
-
-#External helper functions
+# External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
-
 banner_title="Deploy SAP System"
 
 #call stack has full script name when using source
@@ -25,6 +24,7 @@ source "${grand_parent_directory}/deploy_utils.sh"
 source "${parent_directory}/helper.sh"
 
 echo "##vso[build.updatebuildnumber]Deploying the SAP System defined in $SAP_SYSTEM_FOLDERNAME"
+print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 DEBUG=False
 
@@ -42,6 +42,12 @@ set -eu
 print_header
 
 # Configure DevOps
+configure_devops
+
+# Check if running on deployer
+if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+	configureNonDeployer "${tf_version:-1.12.2}"
+fi
 configure_devops
 
 # Set logon variables
@@ -69,15 +75,12 @@ else
 	fi
 fi
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
 fi
 export VARIABLE_GROUP_ID
-
-print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 tfvarsFile="SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FILENAME"
 
@@ -101,6 +104,29 @@ LOCATION_CODE_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $2}'
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 NETWORK_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $3}')
 SID_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $4}')
+
+
+if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
+	echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	exit 2
+fi
+
+if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
+	echo "##vso[task.logissue type=error]The location setting in $SAP_SYSTEM_TFVARS_FILENAME '$LOCATION' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	exit 2
+fi
+
+if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
+	echo "##vso[task.logissue type=error]The network_logical_name setting in $SAP_SYSTEM_TFVARS_FILENAME '$NETWORK' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+	exit 2
+fi
+
+if [ "$SID" != "$SID_IN_FILENAME" ]; then
+	echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_TFVARS_FILENAME '$SID' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
+	exit 2
+fi
+
+
 WORKLOAD_ZONE_NAME=$(echo "$SAP_SYSTEM_FOLDERNAME" | cut -d'-' -f1-3)
 landscape_tfstate_key="${ENVIRONMENT_IN_FILENAME}-${LOCATION_CODE_IN_FILENAME}-${NETWORK_IN_FILENAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
@@ -142,26 +168,6 @@ echo "Network:                             $NETWORK"
 echo "Network(filename):                   $NETWORK_IN_FILENAME"
 echo "SID:                                 $SID"
 echo "SID(filename):                       $SID_IN_FILENAME"
-
-if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-	echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-	exit 2
-fi
-
-if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-	echo "##vso[task.logissue type=error]The location setting in $SAP_SYSTEM_TFVARS_FILENAME '$LOCATION' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-	exit 2
-fi
-
-if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
-	echo "##vso[task.logissue type=error]The network_logical_name setting in $SAP_SYSTEM_TFVARS_FILENAME '$NETWORK' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-	exit 2
-fi
-
-if [ "$SID" != "$SID_IN_FILENAME" ]; then
-	echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_TFVARS_FILENAME '$SID' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
-	exit 2
-fi
 
 if [ -z "$DEPLOYER_KEYVAULT" ]; then
 	echo "##vso[task.logissue type=error]Key vault name is not defined in ${workload_environment_file_name})."
