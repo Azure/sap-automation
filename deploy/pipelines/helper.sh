@@ -81,7 +81,7 @@ function LogonToAzure() {
 		unset ARM_USE_MSI
 		az login --service-principal --client-id "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
 		echo "Logged on as:"
-		az account show --query user --output yaml
+		az account show --query user --output table
 		TF_VAR_use_spn=true
 		export TF_VAR_use_spn
 
@@ -95,7 +95,7 @@ function LogonToAzure() {
 		  az login --identity --allow-no-subscriptions --client-id "$ARM_CLIENT_ID" --output none
 		fi
 
-		az account show --query user --output yaml
+		az account show --query user --output table
 
 		TF_VAR_use_spn=false
 		export TF_VAR_use_spn
