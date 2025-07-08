@@ -234,13 +234,13 @@
                                          (initramfs_rebuilt is defined and initramfs_rebuilt.changed)
                                        }}"
 
-- name:                                "1.5.4 NVMe Support - Debug reboot requirement before status"
-  ansible.builtin.debug:
-    msg:                               "Reboot required after NVMe configuration changes: {{ nvme_reboot_required | default(false) | bool }}"
+# - name:                                "1.5.4 NVMe Support - Debug reboot requirement before status"
+#   ansible.builtin.debug:
+#     msg:                               "Reboot required after NVMe configuration changes: {{ nvme_reboot_required | default(false) | bool }}"
 
-- name:                               "1.5.4 NVMe Support - override reboot requirement for debug"
-  ansible.builtin.set_fact:
-    nvme_reboot_required:              true
+# - name:                               "1.5.4 NVMe Support - override reboot requirement for debug"
+#   ansible.builtin.set_fact:
+#     nvme_reboot_required:              true
 
 - name:                                "1.5.4 NVMe Support - Display reboot requirement status"
   ansible.builtin.debug:
