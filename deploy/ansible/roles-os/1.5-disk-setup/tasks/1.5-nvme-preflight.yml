@@ -79,6 +79,9 @@
         verbosity:                     1
 
 # Set global facts and perform initial validations
+# based on https://learn.microsoft.com/en-in/azure/virtual-machines/enable-nvme-interface#supported-linux-os-images
+# while it is documented that RHEL 8.6 is supported, it has not been tested
+# and may not work as expected. This is a known issue.
 - name:                                "1.5.4 NVMe Support - Set global distribution facts"
   ansible.builtin.set_fact:
     is_redhat:                         "{{ ansible_os_family | upper == 'REDHAT' and ansible_distribution_version is version('8.6', '>=') }}"
