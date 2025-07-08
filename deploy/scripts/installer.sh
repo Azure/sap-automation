@@ -21,12 +21,14 @@ script_directory="$(dirname "${full_script_path}")"
 # Detect version from environment variable
 caller_version="${SDAFWZ_CALLER_VERSION:-v2}"
 
+banner_title="Installer"
+
 if [[ "$caller_version" == "v1" ]]; then
-    isCallerV1=0
-    echo "INFO: Detected v1 caller via environment variable"
+	isCallerV1=0
+	echo "INFO: Detected v1 caller via environment variable"
 else
-    isCallerV1=1
-    echo "INFO: Detected v2 caller via environment variable"
+	isCallerV1=1
+	echo "INFO: Detected v2 caller via environment variable"
 fi
 
 #call stack has full script name when using source
@@ -113,6 +115,7 @@ while :; do
 	case "$1" in
 	-t | --type)
 		deployment_system="$2"
+		banner_title="Install $2"
 		shift 2
 		;;
 	-p | --parameterfile)
@@ -190,6 +193,7 @@ fi
 
 if [ -z "${deployment_system}" ]; then
 	printf -v val %-40.40s "$deployment_system"
+
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
 	echo -e "#  $bold_red Incorrect system deployment type specified: ${val}$reset_formatting#"
@@ -242,6 +246,7 @@ key=$(echo "${parameterfile_name}" | cut -d. -f1)
 network_logical_name=""
 
 if [ "${deployment_system}" == sap_system ]; then
+	banner_title="Install SAP System Infrastructure"
 	load_config_vars "$parameterfile_name" "network_logical_name"
 	network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
 fi
@@ -306,6 +311,7 @@ else
 fi
 
 if [ "${deployment_system}" == sap_deployer ]; then
+	banner_title="Install Deployer"
 	deployer_tfstate_key=${key}.terraform.tfstate
 	ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
 	export ARM_SUBSCRIPTION_ID
