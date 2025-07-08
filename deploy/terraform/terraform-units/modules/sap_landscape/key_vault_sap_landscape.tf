@@ -477,12 +477,15 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
                                            time_sleep.wait_for_role_assignment,
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_private_dns_zone_virtual_network_link.vault,
+                                           azurerm_key_vault_access_policy.kv_user,
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.kv_user_msi_rbac,
+                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer,
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_spn_officer,
-                                           azurerm_role_assignment.kv_user_msi_rbac,
-                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer
+                                           azurerm_role_assignment.role_assignment_spn_officer
                                          ]
   count                                = length(var.key_vault.private_key_secret_name) == 0 ? 1 : 0
   content_type                         = "secret"
@@ -521,12 +524,15 @@ resource "azurerm_key_vault_secret" "sid_pk" {
                                            time_sleep.wait_for_role_assignment,
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_private_dns_zone_virtual_network_link.vault,
+                                           azurerm_key_vault_access_policy.kv_user,
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.kv_user_msi_rbac,
+                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer,
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_spn_officer,
-                                           azurerm_role_assignment.kv_user_msi_rbac,
-                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer
+                                           azurerm_role_assignment.role_assignment_spn_officer
                                          ]
   count                                = length(var.key_vault.public_key_secret_name) == 0 ? 1 : 0
   content_type                         = "secret"
@@ -570,12 +576,15 @@ resource "azurerm_key_vault_secret" "sid_username" {
                                            time_sleep.wait_for_role_assignment,
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_private_dns_zone_virtual_network_link.vault,
+                                           azurerm_key_vault_access_policy.kv_user,
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.kv_user_msi_rbac,
+                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer,
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_spn_officer,
-                                           azurerm_role_assignment.kv_user_msi_rbac,
-                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer
+                                           azurerm_role_assignment.role_assignment_spn_officer
                                          ]
   count                                = length(var.key_vault.username_secret_name) == 0 ? 1 : 0
   content_type                         = "configuration"
@@ -617,12 +626,15 @@ resource "azurerm_key_vault_secret" "sid_password" {
                                            time_sleep.wait_for_role_assignment,
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_private_dns_zone_virtual_network_link.vault,
+                                           azurerm_key_vault_access_policy.kv_user,
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.kv_user_msi_rbac,
+                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer,
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_spn_officer,
-                                           azurerm_role_assignment.kv_user_msi_rbac,
-                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer
+                                           azurerm_role_assignment.role_assignment_spn_officer
                                          ]
   count                                = length(var.key_vault.password_secret_name) == 0 ? 1 : 0
   name                                 = local.sid_password_secret_name
@@ -649,12 +661,15 @@ resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
                                            time_sleep.wait_for_role_assignment,
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_private_dns_zone_virtual_network_link.vault,
+                                           azurerm_key_vault_access_policy.kv_user,
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.kv_user_msi_rbac,
+                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer,
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_spn_officer,
-                                           azurerm_role_assignment.kv_user_msi_rbac,
-                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer
+                                           azurerm_role_assignment.role_assignment_spn_officer
                                          ]
   content_type                         = "configuration"
   name                                 = "deployer-kv-name"
@@ -697,12 +712,15 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
                                            time_sleep.wait_for_role_assignment,
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_private_dns_zone_virtual_network_link.vault,
+                                           azurerm_key_vault_access_policy.kv_user,
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.kv_user_msi_rbac,
+                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer,
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_spn_officer,
-                                           azurerm_role_assignment.kv_user_msi_rbac,
-                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer
+                                           azurerm_role_assignment.role_assignment_spn_officer
                                          ]
   count                                = 1
   content_type                         = "secret"
