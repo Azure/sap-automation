@@ -269,7 +269,7 @@ resource "azurerm_key_vault_secret" "iscsi_ppk" {
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_role_assignment.kv_user_msi_rbac,
-                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer
+                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer,
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_role_assignment.role_assignment_spn,
@@ -297,7 +297,7 @@ resource "azurerm_key_vault_secret" "iscsi_pk" {
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_role_assignment.kv_user_msi_rbac,
-                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer
+                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer,
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_role_assignment.role_assignment_spn,
@@ -324,7 +324,7 @@ resource "azurerm_key_vault_secret" "iscsi_username" {
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_role_assignment.kv_user_msi_rbac,
-                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer
+                                           azurerm_role_assignment.kv_user_msi_rbac_secret_officer,
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_role_assignment.role_assignment_spn,
