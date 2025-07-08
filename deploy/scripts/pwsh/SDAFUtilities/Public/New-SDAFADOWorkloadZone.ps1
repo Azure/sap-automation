@@ -366,7 +366,7 @@ function New-SDAFADOWorkloadZone {
 
       $ControlPlaneVariableGroupId = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
       $AgentPoolName = ""
-      if ($ControlPlaneVariableGroupId.Length -eq 0) {
+      if ($ControlPlaneVariableGroupId.Length -ne 0) {
         $AgentPoolName = (az pipelines variable-group variable list --group-id $ControlPlaneVariableGroupId --query "POOL.value" --out tsv)
       }
 
@@ -491,6 +491,8 @@ function New-SDAFADOWorkloadZone {
         SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $WorkloadZoneClientClientId
         SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_CLIENT_SECRET" -VariableValue $WorkloadZoneClientSecret -IsSecret
         SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $WorkloadZoneClientObjectId
+        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "USE_MSI" -VariableValue "false"
+        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_USE_MSI" -VariableValue "false"
 
         Write-Host "Create the Service Endpoint in Azure for the workload zone" -ForegroundColor Green
 
