@@ -147,7 +147,7 @@ if [ -z "$deployer_tfstate_key" ]; then
 	else
 		# Delete the old variable
 
-		az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name "Deployer_State_FileName" --output none --only-show-errors
+		az pipelines variable-group variable delete --group-id "${VARIABLE_GROUP_ID}" --name "Deployer_State_FileName"
 	  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"
 	fi
 fi
