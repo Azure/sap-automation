@@ -147,7 +147,7 @@ function saveVariableInVariableGroup() {
 			echo "Variable length: ${#az_var}"
 		fi
 		if [ ${#az_var} -gt 0 ]; then
-			az pipelines variable-group variable delete --group-id "${variable_group_id}" --name "${variable_name}" --output none --only-show-errors
+			az pipelines variable-group variable delete --group-id "${variable_group_id}" --name "${variable_name}" --yes --output none --only-show-errors
 			local_return_code=$?
 		fi
 	fi
