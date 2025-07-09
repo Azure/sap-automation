@@ -223,6 +223,16 @@
     msg:                               "Warning: fstab still contains device paths that should be converted to UUIDs: {{ fstab_verify.stdout_lines }}"
   when:                                fstab_verify.stdout != ''
 
+# DEBUG: Show status of checks made
+- name:                                "1.5.4 NVMe Support - Debug NVMe module check"
+  ansible.builtin.debug:
+    msg:
+      - "Dracut configuration added    : {{ dracut_conf_added is defined and dracut_conf_added.changed }}"
+      - "NVMe utils installed          : {{ nvme_utils_installed is defined and nvme_utils_installed.changed }}"
+      - "Udev rules added              : {{ udev_rules_added is defined and udev_rules_added.changed }}"
+      - "GRUB updated                  : {{ grub_updated is defined and grub_updated.changed }}"
+      - "Initramfs rebuilt             : {{ initramfs_rebuilt is defined and initramfs_rebuilt.changed }}"
+
 # Conditional reboot based on actual changes made
 - name:                                "1.5.4 NVMe Support - Determine if reboot is required"
   ansible.builtin.set_fact:
@@ -238,9 +248,10 @@
 #   ansible.builtin.debug:
 #     msg:                               "Reboot required after NVMe configuration changes: {{ nvme_reboot_required | default(false) | bool }}"
 
-# - name:                               "1.5.4 NVMe Support - override reboot requirement for debug"
-#   ansible.builtin.set_fact:
-#     nvme_reboot_required:              true
+- name:                                "1.5.4 NVMe Support - override reboot requirement for debug"
+  when:                                ansible_os_family | upper == 'SUSE'
+  ansible.builtin.set_fact:
+    nvme_reboot_required:              true
 
 - name:                                "1.5.4 NVMe Support - Display reboot requirement status"
   ansible.builtin.debug:
