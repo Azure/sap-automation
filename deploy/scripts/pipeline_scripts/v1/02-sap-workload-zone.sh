@@ -144,10 +144,14 @@ if [ -z "$deployer_tfstate_key" ]; then
 		echo -e "$bold_red--- DEPLOYER_STATE_FILENAME not found in variable group $PARENT_VARIABLE_GROUP ---$reset"
 		echo "##vso[task.logissue type=error]DEPLOYER_STATE_FILENAME not found in variable group $PARENT_VARIABLE_GROUP."
 		exit 2
+	else
+		# Delete the old variable
+	  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" ""
+	  saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"
 	fi
 fi
 export deployer_tfstate_key
-saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"
+
 
 DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "deployer_keyvault")
 export DEPLOYER_KEYVAULT
