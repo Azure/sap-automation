@@ -137,6 +137,15 @@ echo "Workload Zone Environment File:      $workload_environment_file_name"
 touch "$workload_environment_file_name"
 
 deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "${workload_environment_file_name}" "deployer_tfstate_key")
+if [ -z "$deployer_tfstate_key" ]; then
+	deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
+	if [ -z "$deployer_tfstate_key" ]; then
+
+		echo -e "$bold_red--- DEPLOYER_STATE_FILENAME not found in variable group $PARENT_VARIABLE_GROUP ---$reset"
+		echo "##vso[task.logissue type=error]DEPLOYER_STATE_FILENAME not found in variable group $PARENT_VARIABLE_GROUP."
+		exit 2
+	fi
+fi
 export deployer_tfstate_key
 saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"
 
