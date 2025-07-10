@@ -547,8 +547,8 @@ locals {
                                                                                       exists = length(coalesce(data.terraform_remote_state.landscape.outputs.landscape_key_vault_spn_arm_id, var.user_keyvault_id)) > 0
                                                                                     }
                                            spn                                    = {
-                                                                                      id     = coalesce(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, var.spn_keyvault_id)
-                                                                                      exists = length(coalesce(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, var.spn_keyvault_id)) > 0
+                                                                                      id     = coalesce(data.terraform_remote_state.landscape.outputs.spn_kv_id, var.spn_keyvault_id)
+                                                                                      exists = length(coalesce(data.terraform_remote_state.landscape.outputs.spn_kv_id, var.spn_keyvault_id)) > 0
                                                                                     }
                                           #  private_key_secret_name                = var.workload_zone_private_key_secret_name
                                           #  public_key_secret_name                 = var.workload_zone_public_key_secret_name

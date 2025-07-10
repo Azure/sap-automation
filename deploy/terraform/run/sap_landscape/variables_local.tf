@@ -28,11 +28,6 @@ locals {
 
   // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate
 
-
-  spn_key_vault_arm_id                 = try(local.key_vault.keyvault_id_for_deployment_credentials,
-                                           try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id,
-                                           ""))
-
   deployer_subscription_id             = coalesce(
                                            try(data.terraform_remote_state.deployer[0].outputs.created_resource_group_subscription_id,""),
                                            length(var.spn_keyvault_id) > 0 ? (split("/", var.spn_keyvault_id)[2]) : (""),
