@@ -39,6 +39,8 @@ provider "azurerm"                     {
                                                                        recover_soft_deleted         = !var.enable_purge_control_for_keyvaults
                                                                     }
                                                    }
+                                         partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
+                                         use_azuread_auth           = true
                                        }
 
 provider "azurerm"                     {
@@ -52,13 +54,12 @@ provider "azurerm"                     {
                                                                      purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
                                                                      purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
                                                                    }
-                                                    storage        {
-                                                                        data_plane_available = true
-                                                                   }
+
                                                   }
 
                                          partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
                                          alias                      = "main"
+                                         use_azuread_auth           = true
                                        }
 
 provider "azurerm"                     {
