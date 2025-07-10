@@ -161,7 +161,7 @@ output "sid_username_secret_name"                {
 
 output "spn_kv_id"                               {
                                                    description = "Name of key vault secret containing deployment credentials"
-                                                   value       = local.keyvault.spn.id
+                                                   value       = local.key_vault.spn.id
                                                  }
 
 output "workloadzone_kv_name"                    {
