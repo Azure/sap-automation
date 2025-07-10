@@ -39,7 +39,7 @@ resource "azurerm_storage_account" "sapmnt" {
                                         )
   location                             = var.infrastructure.region
   account_tier                         = "Premium"
-  account_replication_type             = "ZRS"
+  account_replication_type             = var.infrastructure.storage_account_replication_type
   account_kind                         = "FileStorage"
   https_traffic_only_enabled            = false
   min_tls_version                      = "TLS1_2"

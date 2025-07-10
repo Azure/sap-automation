@@ -1191,6 +1191,11 @@ variable "disk_controller_type_app_tier"        {
                                                   default     = "SCSI"
                                                 }
 
+variable "storage_account_replication_type"     {
+                                                  description = "Storage account replication type"
+                                                  default     = "ZRS"
+                                                }
+
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #
