@@ -429,8 +429,8 @@ resource "azurerm_managed_disk" "web" {
 
   zone                                 = !local.use_web_avset ? (
                                            upper(var.application_tier.web_os.os_type) == "LINUX" ? (
-                                             azurerm_linux_virtual_machine.web[local.web_data_disks[count.index].vm_index].zone) : (
-                                             azurerm_windows_virtual_machine.web[local.web_data_disks[count.index].vm_index].zone
+                                             try(azurerm_linux_virtual_machine.web[local.web_data_disks[count.index].vm_index].zone, null)) : (
+                                             try(azurerm_windows_virtual_machine.web[local.web_data_disks[count.index].vm_index].zone, null)
                                            )) : (
                                            null
                                          )
