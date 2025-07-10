@@ -284,16 +284,6 @@ resource "azurerm_storage_account" "storage_sapbits" {
   tags                                 = var.infrastructure.tags
 }
 
-resource "azurerm_role_assignment" "storage_sapbits" {
-  provider                             = azurerm.main
-  count                                = var.storage_account_sapbits.exists ? 0 : 1
-  # count                                = var.enable_storage_role_assignment && !local.sa_tfstate_exists ? 1 : 0
-  scope                                = azurerm_storage_account.storage_sapbits[0].id
-  role_definition_name                 = "Storage Blob Data Contributor"
-  principal_id                         = data.azuread_client_config.current.object_id
-
-}
-
 resource "azurerm_storage_account_network_rules" "storage_sapbits" {
   provider                             = azurerm.main
   count                                = var.storage_account_sapbits.enable_firewall_for_keyvaults_and_storage && !var.storage_account_tfstate.exists ? 1 : 0
