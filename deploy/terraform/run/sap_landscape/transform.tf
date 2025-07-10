@@ -24,7 +24,7 @@ locals {
                                            name                    = var.nat_gateway_name
                                            id                      = try(var.nat_gateway_arm_id, "")
                                            region                  = lower(coalesce(var.location, try(var.infrastructure.region, "")))
-                                           public_ip_zones         = try(var.nat_gateway_public_ip_zones, ["1", "2", "3"])
+                                           public_ip_zones         = try(var.nat_gateway_public_ip_zones, lower(coalesce(var.location, try(var.infrastructure.region, ""))) == "eastus2euap" ? ["1", "2", "3", "4"] : ["1", "2", "3"])
                                            public_ip_id            = try(var.nat_gateway_public_ip_arm_id, "")
                                            idle_timeout_in_minutes = var.nat_gateway_idle_timeout_in_minutes
                                            ip_tags                 = try(var.nat_gateway_public_ip_tags, {})

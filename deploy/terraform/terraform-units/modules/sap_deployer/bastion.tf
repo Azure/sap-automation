@@ -54,7 +54,10 @@ resource "azurerm_public_ip" "bastion" {
                                            data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                            azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                          )
-  zones                                = [1,2,3]
+  zones                                = lower(var.infrastructure.virtual_network.management.exists ? (
+                                           data.azurerm_virtual_network.vnet_mgmt[0].location) : (
+                                           azurerm_virtual_network.vnet_mgmt[0].location
+                                         )) == "eastus2euap" ? [1,2,3,4] : [1,2,3]
   ip_tags                              = var.infrastructure.bastion_public_ip_tags
   lifecycle                            {
                                          create_before_destroy = true
