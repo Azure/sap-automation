@@ -474,8 +474,8 @@ resource "azurerm_managed_disk" "scs" {
 
   zone                                 = !local.use_scs_avset ? (
                                            upper(var.application_tier.scs_os.os_type) == "LINUX" ? (
-                                             azurerm_linux_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].zone) : (
-                                             azurerm_windows_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].zone
+                                             try(azurerm_linux_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].zone,null)) : (
+                                             try(azurerm_windows_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].zone,null)
                                            )) : (
                                            null
                                          )
