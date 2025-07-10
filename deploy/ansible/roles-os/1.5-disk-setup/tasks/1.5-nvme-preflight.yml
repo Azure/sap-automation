@@ -224,7 +224,7 @@
   when:                                fstab_verify.stdout != ''
 
 # DEBUG: Show status of checks made
-- name:                                "1.5.4 NVMe Support - Debug NVMe module check"
+- name:                                "1.5.4 NVMe Support - Debug NVMe actual changes made check"
   ansible.builtin.debug:
     msg:
       - "Dracut configuration added    : {{ dracut_conf_added is defined and dracut_conf_added.changed }}"
@@ -232,6 +232,10 @@
       - "Udev rules added              : {{ udev_rules_added is defined and udev_rules_added.changed }}"
       - "GRUB updated                  : {{ grub_updated is defined and grub_updated.changed }}"
       - "Initramfs rebuilt             : {{ initramfs_rebuilt is defined and initramfs_rebuilt.changed }}"
+
+- name:                                "1.5.4 NVMe Support - Fail NVMe tasks"
+  ansible.builtin.fail:
+    msg:                               "No changes were made to the system for NVMe preparation. Ensure that the system is in a valid state for NVMe configuration."
 
 # Conditional reboot based on actual changes made
 - name:                                "1.5.4 NVMe Support - Determine if reboot is required"
