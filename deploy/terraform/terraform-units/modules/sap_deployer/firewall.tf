@@ -48,10 +48,7 @@ resource "azurerm_public_ip" "firewall" {
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )
-  zones                                      = lower(var.infrastructure.virtual_network.management.exists ? (
-                                                 data.azurerm_virtual_network.vnet_mgmt[0].location) : (
-                                                 azurerm_virtual_network.vnet_mgmt[0].location
-                                               )) == "eastus2euap" ? [1,2,3,4] : [1,2,3]
+  zones                                      = lower(var.infrastructure.region) == "eastus2euap" ? ["1","2","3","4"] : ["1","2","3"]
   ip_tags                                    = try(length(var.firewall.ip_tags) > 0 ? (
                                                  var.firewall.ip_tags) : (
                                                  null
