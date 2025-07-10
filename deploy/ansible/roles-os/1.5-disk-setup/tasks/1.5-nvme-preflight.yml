@@ -205,8 +205,8 @@
     msg:                               "Warning: Failed to convert device {{ item.item }} to UUID. Manual intervention may be required."
   loop:                                "{{ (fstab_sd_updated.results | default([])) + (fstab_azure_updated.results | default([])) }}"
   when:
-    - item.failed is defined
-    - item.failed
+                                       - item.failed is defined
+                                       - item.failed
   loop_control:
     label:                             "{{ item.item }}"
 
@@ -248,16 +248,12 @@
   ansible.builtin.debug:
     msg:                               "Reboot required after NVMe configuration changes: {{ nvme_reboot_required | default(false) | bool }}"
 
-- name: "Debug - Verify nvme_reboot_required value"
-  ansible.builtin.debug:
-    msg:
-      - "nvme_reboot_required value: {{ nvme_reboot_required }}"
-      - "nvme_reboot_required type: {{ nvme_reboot_required | type_debug }}"
-      - "Boolean evaluation: {{ nvme_reboot_required | bool }}"
-
-- name:                                "1.5.4 NVMe Support - Fail NVMe tasks"
-  ansible.builtin.fail:
-    msg:                               "No changes were made to the system for NVMe preparation. Ensure that the system is in a valid state for NVMe configuration."
+# - name:                                "1.5.4 NVMe Support - Verify nvme_reboot_required value"
+#   ansible.builtin.debug:
+#     msg:
+#       - "nvme_reboot_required value    : {{ nvme_reboot_required }}"
+#       - "nvme_reboot_required type     : {{ nvme_reboot_required | type_debug }}"
+#       - "Boolean evaluation            : {{ nvme_reboot_required | bool }}"
 
 - name:                                "1.5.4 NVMe Support - Reboot the system to apply changes"
   when:                                nvme_reboot_required | default(false) | bool

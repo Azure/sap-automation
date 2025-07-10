@@ -79,18 +79,24 @@
 - name:                                "1.5.4 NVMe Support (RHEL) - Check for all required NVMe modules in initramfs"
   ansible.builtin.shell: |
                                        set -o pipefail
-                                       MISSING=0
                                        REQUIRED_MODULES="nvme nvme-core nvme-fabrics nvme-fc nvme-rdma nvme-loop nvmet nvmet-fc nvme-tcp"
+                                       MISSING=0
                                        MISSING_MODULES=""
+
                                        for MODULE in $REQUIRED_MODULES; do
-                                         if ! lsinitrd /boot/initramfs-$(uname -r).img | grep -q "$MODULE"; then
+                                         # Temporarily disable pipefail for this check since lsinitrd may have warnings
+                                         set +o pipefail
+                                         if ! lsinitrd /boot/initrd-$(uname -r) 2>/dev/null | grep -q "${MODULE}\.ko"; then
                                            MISSING_MODULES="$MISSING_MODULES $MODULE"
                                            MISSING=1
                                          fi
+                                         set -o pipefail
                                        done
+
                                        if [ $MISSING -eq 1 ]; then
                                          echo "$MISSING_MODULES"
                                        fi
+
                                        exit $MISSING
   register:                            nvme_module_complete_check
   failed_when:                         false
@@ -152,8 +158,8 @@
 
 - name:                                "1.5.4 NVMe Support (RHEL) - Add NVMe timeout parameters to GRUB"
   when:
-    - grub_nvme_timeout_check.rc != 0
-    - '"nvme_core.io_timeout=240" not in current_grub_config.stdout'
+                                       - grub_nvme_timeout_check.rc != 0
+                                       - '"nvme_core.io_timeout=240" not in current_grub_config.stdout'
   ansible.builtin.replace:
     path:                              /etc/default/grub
     regexp:                            '^({{ grub_cmdline_param }}=")([^"]*)(")$'
@@ -162,16 +168,16 @@
 
 - name:                                "1.5.4 NVMe Support (RHEL) - Update GRUB configuration file"
   when:
-    - grub_updated is defined
-    - grub_updated.changed
+                                       - grub_updated is defined
+                                       - grub_updated.changed
   ansible.builtin.command:             grub2-mkconfig -o {{ grub_config_file }}
   register:                            grub_config_updated
   changed_when:                        true
 
 - name:                                "1.5.4 NVMe Support (RHEL) - Verify GRUB configuration update"
   when:
-    - grub_updated is defined
-    - grub_updated.changed
+                                       - grub_updated is defined
+                                       - grub_updated.changed
   ansible.builtin.shell: |
                                        set -o pipefail
                                        grep "nvme_core.io_timeout=240" /etc/default/grub
@@ -181,8 +187,8 @@
 
 - name:                                "1.5.4 NVMe Support (RHEL) - Report GRUB configuration status"
   when:
-    - grub_updated is defined
-    - grub_updated.changed
+                                       - grub_updated is defined
+                                       - grub_updated.changed
   ansible.builtin.debug:
     msg:                               "{{ 'GRUB NVMe timeout parameters successfully configured on RHEL' if grub_verify.rc == 0 else 'WARNING: Failed to configure GRUB NVMe timeout parameters on RHEL' }}"
 
@@ -234,9 +240,9 @@
 
 - name:                                "1.5.4 NVMe Support (RHEL) - Display udev verification results"
   when:
-    - udev_rules_added.changed
-    - udev_verification is defined
-    - udev_verification.stdout is defined
+                                       - udev_rules_added.changed
+                                       - udev_verification is defined
+                                       - udev_verification.stdout is defined
   ansible.builtin.debug:
     msg:                               "Udev configuration verification on RHEL: {{ 'Successful - Azure disk symlinks detected' if 'disk/azure' in udev_verification.stdout else 'Note: No Azure disk symlinks detected (normal for systems without data disks)' }}"
     verbosity:                         1
