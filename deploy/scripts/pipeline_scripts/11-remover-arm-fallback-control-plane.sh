@@ -88,7 +88,7 @@ echo -e "$green--- Removing deployment automation configuration from devops repo
 echo "##vso[task.setprogress value=90;]Progress Indicator"
 echo -e "$green--- Deleting variables ---$reset"
 
-if [ 0 == $library_return_code ] && [ 0 == $deployer_return_code ]; then
+if [  0 == $deployer_return_code ]; then
 
 	if [ -n "$VARIABLE_GROUP_ID" ]; then
 		echo "Deleting variables"
@@ -102,6 +102,7 @@ if [ 0 == $library_return_code ] && [ 0 == $deployer_return_code ]; then
 		remove_variable "$VARIABLE_GROUP_ID" "HAS_APPSERVICE_DEPLOYED"
 		remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
 		remove_variable "$VARIABLE_GROUP_ID" "LIBRARY_RANDOM_ID"
+		remove_variable "$VARIABLE_GROUP_ID" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
@@ -156,6 +157,11 @@ if [ 0 == $library_return_code ] && [ 0 == $deployer_return_code ]; then
 
 	if [ -f ".sap_deployment_automation/${ENVIRONMENT}-${LOCATION}-${NETWORK}" ]; then
 		git rm -q --ignore-unmatch ".sap_deployment_automation/${ENVIRONMENT}-${LOCATION}-${NETWORK}"
+		changed=1
+	fi
+
+	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}" ]; then
+		git rm -q --ignore-unmatch ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}"
 		changed=1
 	fi
 
