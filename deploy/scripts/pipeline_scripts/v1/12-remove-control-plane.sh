@@ -162,8 +162,6 @@ echo "Deployer Key Vault:                  ${key_vault}"
 
 echo -e "$green--- Running the remove remove_controlplane that destroys SAP library ---$reset"
 
-terraform --version
-
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_controlplane.sh" \
 	--deployer_parameter_file "$deployerTFvarsFile" \
 	--library_parameter_file "$libraryTFvarsFile" \
