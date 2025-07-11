@@ -357,24 +357,26 @@ if [ 0 == "$step" ]; then
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-			if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+			if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
 				--parameterfile "${deployer_file_parametername}" --auto-approve; then
-				echo "Bootstrapping of the deployer failed"
+				return_code=$?
+			else
+				return_code=$?
+				echo "Bootstrapping of the deployer failed ($return_code)"
 				step=0
 				save_config_var "step" "${deployer_config_information}"
 				exit 10
-			else
-				return_code=$?
 			fi
 		else
-			if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+			if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
 				--parameterfile "${deployer_file_parametername}"; then
-				echo "Bootstrapping of the deployer failed"
+				return_code=$?
+			else
+				return_code=$?
+				echo "Bootstrapping of the deployer failed ($return_code)"
 				step=0
 				save_config_var "step" "${deployer_config_information}"
 				exit 10
-			else
-				return_code=$?
 			fi
 		fi
 		return_code=$?

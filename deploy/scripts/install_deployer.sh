@@ -483,47 +483,34 @@ if [ 0 != $install_deployer_return_value ]; then
 	exit $install_deployer_return_value
 fi
 
-if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+if DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \"); then
+	touch "${deployer_config_information}"
+	printf -v val %-.20s "$DEPLOYER_KEYVAULT"
+	save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
+	export DEPLOYER_KEYVAULT
 
-	keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-	temp=$(echo "${keyvault}" | grep "Warning")
-	if [ -z "${temp}" ]; then
-		temp=$(echo "${keyvault}" | grep "Backend reinitialization required")
-		if [ -z "${temp}" ]; then
-			touch "${deployer_config_information}"
-			printf -v val %-.20s "$keyvault"
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                Keyvault to use for SPN details:$cyan $val $reset_formatting                 #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
 
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                Keyvault to use for SPN details:$cyan $val $reset_formatting                 #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
+	install_deployer_return_value=0
+else
+	install_deployer_return_value=2
+fi
 
-			install_deployer_return_value=0
-		else
-			install_deployer_return_value=2
-		fi
-	fi
+deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+if [ -n "${deployer_random_id}" ]; then
+	custom_random_id="${deployer_random_id:0:3}"
+	sed -i -e /"custom_random_id"/d "${var_file}"
+	printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
-	DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
-	if [ -n "${DEPLOYER_KEYVAULT}" ]; then
-
-		save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
-		export DEPLOYER_KEYVAULT
-		echo "DEPLOYER_KEYVAULT:                   $DEPLOYER_KEYVAULT"
-	fi
-
-	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-	if [ -n "${deployer_random_id}" ]; then
-		custom_random_id="${deployer_random_id:0:3}"
-		sed -i -e /"custom_random_id"/d "${var_file}"
-		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
-
-	fi
 fi
 
 unset TF_DATA_DIR
+echo "Exiting: ${SCRIPT_NAME} ($install_deployer_return_value)"
 
 exit $install_deployer_return_value
