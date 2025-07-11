@@ -496,13 +496,16 @@ else
 	echo "#########################################################################################"
 	echo ""
 	install_library_return_value=0
+	if [ -f apply_output.json ]; then
+		rm apply_output.json
+	fi
 fi
 
 if [ -f apply_output.json ]; then
 	errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 	if [[ -n $errors_occurred ]]; then
-		install_library_return_value=10
+
 		if [ -n "${approve}" ]; then
 
 			# shellcheck disable=SC2086
