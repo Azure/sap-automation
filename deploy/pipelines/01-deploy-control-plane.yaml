@@ -143,10 +143,6 @@ stages:
           clean:                       all
         steps:
           - task:                      PostBuildCleanup@4
-          - task:                      TerraformInstaller@1
-            displayName:               Install Terraform
-            inputs:
-              terraformVersion:        latest
           - template:                  templates\download.yaml
             parameters:
               getLatestFromBranch: true
@@ -200,10 +196,6 @@ stages:
             parameters:
               getLatestFromBranch: true
 
-          - task:                      TerraformInstaller@1
-            displayName:               Install Terraform
-            inputs:
-              terraformVersion:        latest
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
