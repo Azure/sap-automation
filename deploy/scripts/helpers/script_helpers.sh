@@ -1098,7 +1098,6 @@ function ImportAndReRunApply {
 			existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
 
 			if [[ -n $existing ]]; then
-				import_return_value=5
 				readarray -t errors < <(echo "${existing}" | jq -c '.')
 
 				for item in "${errors[@]}"; do
@@ -1115,9 +1114,11 @@ function ImportAndReRunApply {
 								import_return_value=$?
 							fi
 						fi
-
+					else
+						import_return_value=$?
 					fi
 				done
+
 				rm "$fileName"
 				# shellcheck disable=SC2086
 				if terraform -chdir="${terraform_module_directory}" plan -input=false $importParameters; then
@@ -1128,7 +1129,7 @@ function ImportAndReRunApply {
 					print_banner "Installer" "Terraform plan failed" "error"
 				fi
 
-				if [ $import_return_value -ne 2 ]; then
+				if [ $import_return_value -ne 1 ]; then
 
 					print_banner "Installer" "Re-running Terraform apply after import" "info"
 
@@ -1147,12 +1148,14 @@ function ImportAndReRunApply {
 						if [ -f "$fileName" ]; then
 							rm "$fileName"
 						fi
+						import_return_value=0
 					fi
 				fi
 			else
 				current_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}' "$fileName")
 
 				if [[ -n $current_errors ]]; then
+					import_return_value=5
 					echo "Errors occurred during the apply phase"
 					echo "-------------------------------------------------------------------------------------"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
@@ -1167,7 +1170,7 @@ function ImportAndReRunApply {
 				if [ -f "$fileName" ]; then
 					rm "$fileName"
 				fi
-				import_return_value=5
+
 			fi
 			if [ -f "$fileName" ]; then
 				current_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}' "$fileName")

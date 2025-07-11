@@ -963,6 +963,9 @@ if [ 1 == $apply_needed ]; then
 
 	allParameters=$(printf " -var-file=%s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}" "${approve} ")
 	allImportParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}")
+	if [ -f apply_output.json ]; then
+		rm apply_output.json
+	fi
 
 	if [ -n "${approve}" ]; then
 		# shellcheck disable=SC2086
@@ -986,9 +989,15 @@ if [ 1 == $apply_needed ]; then
 	elif [ $return_value -eq 2 ]; then
 		# return code 2 is ok
 		print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
+		if [ -f apply_output.json ]; then
+			rm apply_output.json
+		fi
 		return_value=0
 	else
 		print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
+		if [ -f apply_output.json ]; then
+			rm apply_output.json
+		fi
 		return_value=0
 	fi
 
