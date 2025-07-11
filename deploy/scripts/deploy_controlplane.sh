@@ -399,10 +399,10 @@ if [ 0 == "$step" ]; then
 		fi
 	fi
 
-	load_config_vars "${deployer_config_information}" "keyvault"
-	echo "Key vault:             ${keyvault}"
+	load_config_vars "${deployer_config_information}" "DEPLOYER_KEYVAULT"
+	echo "Key vault:             ${DEPLOYER_KEYVAULT}"
 
-	if [ -z "$keyvault" ]; then
+	if [ -z "$DEPLOYER_KEYVAULT" ]; then
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
 		echo -e "#                       $bold_red  Bootstrapping of the deployer failed $reset_formatting                         #"
@@ -423,7 +423,7 @@ if [ 0 == "$step" ]; then
 	cd "$root_dirname" || exit
 
 	load_config_vars "${deployer_config_information}" "sshsecret"
-	load_config_vars "${deployer_config_information}" "keyvault"
+	load_config_vars "${deployer_config_information}" "DEPLOYER_KEYVAULT"
 	load_config_vars "${deployer_config_information}" "deployer_public_ip_address"
 
 	echo "##vso[task.setprogress value=20;]Progress Indicator"
@@ -458,7 +458,7 @@ if [ 0 != "$step" ]; then
 
 if [ 1 -eq $step ] || [ 3 -eq $step ]; then
 	# If the keyvault is not set, check the terraform state file
-	if [ -z "$keyvault" ]; then
+	if [ -z "$DEPLOYER_KEYVAULT" ]; then
 		key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
 		cd "${deployer_dirname}" || exit
 		if [ -f ./.terraform/terraform.tfstate ]; then
