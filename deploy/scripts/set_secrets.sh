@@ -28,6 +28,14 @@ if [ -v ARM_SUBSCRIPTION_ID ]; then
 	subscription="$ARM_SUBSCRIPTION_ID"
 fi
 
+if [ "$DEBUG" = True ]; then
+	# Enable debugging
+	set -x
+	# Exit on error
+	set -o errexit
+fi
+
+
 function setSecretValue {
 	local keyvault=$1
 	local subscription=$2
