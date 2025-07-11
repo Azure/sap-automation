@@ -354,7 +354,6 @@ save_config_vars "${environment_config_information}" \
 	keyvault \
 	environment \
 	subscription \
-	client_id \
 	tenant_id \
 	STATE_SUBSCRIPTION
 
