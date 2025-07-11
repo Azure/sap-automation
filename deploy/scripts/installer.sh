@@ -353,6 +353,7 @@ else
 	echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 	TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
 	export TF_VAR_deployer_tfstate_key
+	save_config_var "deployer_tfstate_key" "${system_config_information}"
 fi
 
 export TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
