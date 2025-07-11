@@ -1204,11 +1204,15 @@ function ImportAndReRunApply {
 		fi
 
 	fi
+	if [ "$error_count" -gt 0 ]; then
 
-	if [ "$error_count" -gt "$msi_error_count" ]; then
-		print_banner "ImportAndReRunApply" "Errors occurred during the apply phase" "error"
-		echo "##vso[task.logissue type=error]Errors occurred during the apply phase"
-		import_return_value=5
+		if [ "$error_count" -gt "$msi_error_count" ]; then
+			print_banner "ImportAndReRunApply" "Errors occurred during the apply phase" "error"
+			echo "##vso[task.logissue type=error]Errors occurred during the apply phase"
+			import_return_value=5
+		else
+			import_return_value=0
+		fi
 	else
 		import_return_value=0
 	fi
