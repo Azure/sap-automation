@@ -469,7 +469,7 @@ variable "use_service_endpoint"                       {
 
 
 variable "deployer_diagnostics_account_arm_id"        {
-                                                        description = "Azure resource identifier for an existing storage accout that will be used for diagnostic logs"
+                                                        description = "Azure resource identifier for an existing storage account that will be used for diagnostic logs"
                                                         default     = ""
                                                         validation {
                                                           condition     = length(var.deployer_diagnostics_account_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.deployer_diagnostics_account_arm_id))
@@ -480,7 +480,7 @@ variable "deployer_diagnostics_account_arm_id"        {
 
 variable "tf_version"                                 {
                                                         description = "Terraform version to install on deployer"
-                                                        default     = "1.9.8"
+                                                        default     = "1.12.2"
                                                       }
 
 variable "name_override_file"                         {
