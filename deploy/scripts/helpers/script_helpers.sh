@@ -1132,6 +1132,7 @@ function ImportAndReRunApply {
 				if [ $import_return_value -ne 1 ]; then
 
 					print_banner "Installer" "Re-running Terraform apply after import" "info"
+					error_count=0
 
 					# shellcheck disable=SC2086
 					if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
@@ -1204,19 +1205,23 @@ function ImportAndReRunApply {
 		fi
 
 	fi
-	if [ "$error_count" -gt 0 ]; then
+	if [ "$import_return_value" -ne 0 ]; then
+		print_banner "ImportAndReRunApply" "Terraform apply failed with return code: $import_return_value" "error"
+		echo "##vso[task.logissue type=error]Terraform apply failed with return code: $import_return_value"
+	else
+		if [ "$error_count" -gt 0 ]; then
 
-		if [ "$error_count" -gt "$msi_error_count" ]; then
-			print_banner "ImportAndReRunApply" "Errors occurred during the apply phase" "error"
-			echo "##vso[task.logissue type=error]Errors occurred during the apply phase"
-			import_return_value=5
+			if [ "$error_count" -gt "$msi_error_count" ]; then
+				print_banner "ImportAndReRunApply" "Errors occurred during the apply phase" "error"
+				echo "##vso[task.logissue type=error]Errors occurred during the apply phase"
+				import_return_value=5
+			else
+				import_return_value=0
+			fi
 		else
 			import_return_value=0
 		fi
-	else
-		import_return_value=0
 	fi
-
 	print_banner "ImportAndReRunApply" "Exiting function ImportAndReRunApply" "info" "return code: $import_return_value"
 
 	#shellcheck disable=SC2086
