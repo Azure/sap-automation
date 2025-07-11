@@ -358,7 +358,6 @@ if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file
 	return_value=$?
 	print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
 else
-	return_value=0
 	print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
 fi
 
