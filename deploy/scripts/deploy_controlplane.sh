@@ -522,6 +522,7 @@ if [ 0 != "$step" ]; then
 			else
 				if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
 					--environment "${environment}" \
+					--msi \
 					--region "${region_code}" \
 					--vault "${keyvault}" \
 					--subscription "${subscription:-$ARM_SUBSCRIPTION_ID}" \
