@@ -392,6 +392,8 @@ if [ -f .terraform/terraform.tfstate ]; then
 		else
 			return_value=$?
 			print_banner "Remove Control Plane " "Terraform init failed (library - local)" "error"
+			unset TF_DATA_DIR
+			exit 20
 		fi
 	else
 		echo "Terraform state:                     local"
@@ -401,6 +403,8 @@ if [ -f .terraform/terraform.tfstate ]; then
 		else
 			return_value=$?
 			print_banner "Remove Control Plane " "Terraform init failed (library - local)" "error"
+			unset TF_DATA_DIR
+			exit 20
 		fi
 	fi
 else
@@ -411,12 +415,9 @@ else
 	else
 		return_value=$?
 		print_banner "Remove Control Plane " "Terraform init failed (library - local)" "error"
+		unset TF_DATA_DIR
+		exit 20
 	fi
-fi
-
-if [ 0 != $return_code ]; then
-	unset TF_DATA_DIR
-	return 20
 fi
 
 extra_vars=""
@@ -431,41 +432,33 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 export TF_use_spn=false
 
 print_banner "Remove Control Plane " "Running Terraform destroy (library)" "info"
-use_spn="false"
-if checkforEnvVar TF_VAR_use_spn; then
-	use_spn=$(echo $TF_VAR_use_spn | tr "[:upper:]" "[:lower:]")
-fi
 
-if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-file="${library_parameter_file}" -var use_deployer=false -var "use_spn=$use_spn" "${approve_parameter}"; then
+if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-file="${library_parameter_file}" "${approve_parameter}"; then
 	return_value=$?
 	print_banner "Remove Control Plane " "Terraform destroy (library) succeeded" "success"
 else
 	return_value=$?
 	print_banner "Remove Control Plane " "Terraform destroy (library) failed" "error"
+	unset TF_DATA_DIR
 	exit 20
 fi
 
-if [ 0 != $return_value ]; then
-	exit $return_value
-else
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#                                       Reset settings                                  #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+echo ""
+echo "#########################################################################################"
+echo "#                                                                                       #"
+echo "#                                       Reset settings                                  #"
+echo "#                                                                                       #"
+echo "#########################################################################################"
+echo ""
 
-	STATE_SUBSCRIPTION=''
-	REMOTE_STATE_SA=''
-	REMOTE_STATE_RG=''
-	save_config_vars "${deployer_config_information}" \
-		tfstate_resource_id \
-		REMOTE_STATE_SA \
-		REMOTE_STATE_RG \
-		STATE_SUBSCRIPTION
-
-fi
+STATE_SUBSCRIPTION=''
+REMOTE_STATE_SA=''
+REMOTE_STATE_RG=''
+save_config_vars "${deployer_config_information}" \
+	tfstate_resource_id \
+	REMOTE_STATE_SA \
+	REMOTE_STATE_RG \
+	STATE_SUBSCRIPTION
 
 cd "${current_directory}" || exit
 step=1
