@@ -240,7 +240,7 @@ if [ -z "${keyvault}" ]; then
 fi
 
 if [ 0 = "${deploy_using_msi_only:-}" ]; then
-	if [ -z "${client_id}" ]; then
+	if [ -z "${client_id:-$ARM_CLIENT_ID}" ]; then
 		load_config_vars "${environment_config_information}" "client_id"
 		if [ -z "$client_id" ]; then
 			read -r -p "SPN App ID: " client_id

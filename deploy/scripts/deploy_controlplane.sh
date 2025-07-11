@@ -501,15 +501,17 @@ if [ 0 != "$step" ]; then
 		fi
 
 		if [ 1 -eq $step ]; then
-			if [ -n "$client_secret" ]; then
+
+			if [ "$deploy_using_msi_only" -eq 0 ]; then
 
 				if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
 					--environment "${environment}" \
 					--region "${region_code}" \
 					--vault "${keyvault}" \
-					--spn_id "${client_id}" \
-					--spn_secret "${client_secret}" \
-					--tenant_id "${tenant_id}"; then
+					--spn_id "${client_id:-$ARM_CLIENT_ID}" \
+					--subscription "${subscription:-$ARM_SUBSCRIPTION_ID}" \
+					--spn_secret "${client_secret:-$ARM_CLIENT_SECRET}" \
+					--tenant_id "${tenant_id:-$ARM_TENANT_ID}"; then
 					echo ""
 					echo -e "${cyan}Set secrets:                           succeeded$reset_formatting"
 					echo ""
@@ -522,7 +524,8 @@ if [ 0 != "$step" ]; then
 					--environment "${environment}" \
 					--region "${region_code}" \
 					--vault "${keyvault}" \
-					--tenant_id "${tenant_id}"; then
+					--subscription "${subscription:-$ARM_SUBSCRIPTION_ID}" \
+					--tenant_id "${tenant_id:-$ARM_TENANT_ID}"; then
 					echo ""
 					echo -e "${cyan}Set secrets:                           succeeded$reset_formatting"
 					echo ""
