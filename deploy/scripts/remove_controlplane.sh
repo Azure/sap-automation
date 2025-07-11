@@ -443,7 +443,7 @@ if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-fi
 else
 	return_value=$?
 	print_banner "Remove Control Plane " "Terraform destroy (library) failed" "error"
-	return 20
+	exit 20
 fi
 
 if [ 0 != $return_value ]; then
