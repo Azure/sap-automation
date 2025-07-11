@@ -563,7 +563,7 @@ az account set --subscription "${terraform_storage_account_subscription_id}"
 if [ ! -f .terraform/terraform.tfstate ]; then
 	print_banner "$banner_title" "New deployment" "info"
 
-	if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
+	if ! terraform -chdir="${terraform_module_directory}" init -upgrade  -input=false \
 		--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 		--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 		--backend-config "storage_account_name=${terraform_storage_account_name}" \
@@ -585,7 +585,7 @@ else
 
 			terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
 
-			if terraform -chdir="${terraform_module_directory}" init -migrate-state  -upgrade=true --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			if terraform -chdir="${terraform_module_directory}" init -migrate-state  -upgrade  --backend-config "path=${param_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "$banner_title" "Terraform local init succeeded" "success"
 			else
@@ -597,7 +597,7 @@ else
 
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 
-		if terraform -chdir="${terraform_module_directory}" init -force-copy  -upgrade=true -migrate-state \
+		if terraform -chdir="${terraform_module_directory}" init -force-copy -upgrade  -migrate-state \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
@@ -616,7 +616,7 @@ else
 		echo "Terraform state:                     remote"
 		print_banner "$banner_title" "The system has already been deployed and the state file is in Azure" "info"
 
-		if terraform -chdir="${terraform_module_directory}" init  -upgrade=true -force-copy -migrate-state \
+		if terraform -chdir="${terraform_module_directory}" init  -upgrade -force-copy -migrate-state \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
