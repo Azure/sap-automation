@@ -289,7 +289,7 @@ variable "deployer_size"                        {
 
 variable "deployer_count"                       {
                                                   description = "Number of deployer VMs to be created"
-                                                  default     = 1
+                                                  default     = 0
                                                 }
 
 variable "deployer_disk_type"                   {

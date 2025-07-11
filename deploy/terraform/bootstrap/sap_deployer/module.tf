@@ -32,7 +32,7 @@ module "sap_deployer" {
   bootstrap                                    = true
   configure                                    = false
   deployer                                     = local.deployer
-  deployer_vm_count                            = var.dev_center_deployment ? 0 : var.deployer_count
+  deployer_vm_count                            = var.deployer_count
   dns_settings                                 = local.dns_settings
   enable_firewall_for_keyvaults_and_storage    = false # This can only be set once we have private DNS in place var.enable_firewall_for_keyvaults_and_storage
   enable_purge_control_for_keyvaults           = var.enable_purge_control_for_keyvaults
