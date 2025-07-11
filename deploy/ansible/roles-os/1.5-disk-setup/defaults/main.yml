@@ -12,7 +12,7 @@ distribution_full_id: "{{ ansible_distribution | lower ~ ansible_distribution_ve
 # NVMe Support Configuration
 use_nvme_disks: false                  # Set to true when using NVMe disk controller
 nvme_udev_rules_installed: false       # Track if udev rules are installed
-
+nvme_include_admin_timeout: true     # Include nvme_core.admin_timeout parameter (recommended)
 prepare_for_nvme: false                # Set to true to run NVMe preparation tasks
 nvme_force_preparation: true           # Force NVMe preparation even if already configured
 nvme_skip_reboot: false                # Skip automatic reboot after NVMe configuration
