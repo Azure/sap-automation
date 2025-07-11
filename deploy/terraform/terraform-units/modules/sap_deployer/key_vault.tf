@@ -110,7 +110,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_systemidentity" {
   provider                             = azurerm.main
-  count                                = var.key_vault.enable_rbac_authorization || var.key_vault.exists ? 0 : var.deployer_vm_count
+  count                                = !var.key_vault.enable_rbac_authorization || var.key_vault.exists ? 0 : var.deployer_vm_count
 
   key_vault_id                         = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   tenant_id                            = azurerm_linux_virtual_machine.deployer[count.index].identity[0].tenant_id
@@ -132,7 +132,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_systemidentity" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
   provider                             = azurerm.main
-  count                                = var.key_vault.enable_rbac_authorization || var.key_vault.exists ? 0 : length(var.spn_id) != 36 ? 0 : 1
+  count                                = !var.key_vault.enable_rbac_authorization || var.key_vault.exists ? 0 : length(var.spn_id) != 36 ? 0 : 1
 
   key_vault_id                         = azurerm_key_vault.kv_user[0].id
   tenant_id                            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].tenant_id : data.azurerm_user_assigned_identity.deployer[0].tenant_id
@@ -164,7 +164,7 @@ resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
   provider                             = azurerm.main
-  count                                = var.key_vault.enable_rbac_authorization || var.key_vault.exists ? 0 : length(var.spn_id) != 36 ? 0 : length(compact(var.additional_users_to_add_to_keyvault_policies))
+  count                                = !var.key_vault.enable_rbac_authorization || var.key_vault.exists ? 0 : length(var.spn_id) != 36 ? 0 : length(compact(var.additional_users_to_add_to_keyvault_policies))
   key_vault_id                         = azurerm_key_vault.kv_user[0].id
 
   tenant_id                            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].tenant_id : data.azurerm_user_assigned_identity.deployer[0].tenant_id
