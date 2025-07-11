@@ -1,14 +1,13 @@
 #!/bin/bash
-
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#error codes include those from /usr/include/sysexits.h
+# Ensure that the exit status of a pipeline command is non-zero if any
+# stage of the pipefile has a non-zero exit status.
+set -o pipefail
 
 #colors for terminal
-
 bold_red="\e[1;31m"
-cyan="\e[1;36m"
 reset_formatting="\e[0m"
 
 #External helper functions
@@ -16,11 +15,18 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full script name when using source
-# shellcheck disable=SC1091
-source "${script_directory}/deploy_utils.sh"
-source "${script_directory}/helper.sh"
+# Detect version from environment variable
+caller_version="${SDAFWZ_CALLER_VERSION:-v2}"
 
+#call stack has full script name when using source
+source "${script_directory}/deploy_utils.sh"
+
+#helper files
+source "${script_directory}/helpers/script_helpers.sh"
+
+if [ -v ARM_SUBSCRIPTION_ID ]; then
+	subscription="$ARM_SUBSCRIPTION_ID"
+fi
 
 function setSecretValue {
 	local keyvault=$1
