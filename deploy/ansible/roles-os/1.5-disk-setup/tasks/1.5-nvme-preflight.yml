@@ -230,7 +230,7 @@
       - "Dracut configuration added    : {{ dracut_conf_added is defined and dracut_conf_added.changed }}"
       - "NVMe utils installed          : {{ nvme_utils_installed is defined and nvme_utils_installed.changed }}"
       - "Udev rules added              : {{ udev_rules_added is defined and udev_rules_added.changed }}"
-      - "GRUB updated                  : {{ grub_updated is defined and grub_updated.changed }}"
+      - "GRUB updated                  : {{ grub_updated | default(false) | bool }}"
       - "Initramfs rebuilt             : {{ initramfs_rebuilt is defined and initramfs_rebuilt.changed }}"
 
 # Conditional reboot based on actual changes made
@@ -240,7 +240,7 @@
                                          (dracut_conf_added is defined and dracut_conf_added.changed) or
                                          (nvme_utils_installed is defined and nvme_utils_installed.changed) or
                                          (udev_rules_added is defined and udev_rules_added.changed) or
-                                         (grub_updated is defined and grub_updated.changed) or
+                                         (grub_updated | default(false) | bool) or
                                          (initramfs_rebuilt is defined and initramfs_rebuilt.changed)
                                        }}"
 
