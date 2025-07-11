@@ -146,7 +146,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "blob_agent" {
                                            var.naming.resource_prefixes.dns_link,
                                            local.prefix,
                                            var.naming.separator,
-                                           "vault-agent"
+                                           "blob-agent"
                                          )
   resource_group_name                  = length(var.dns_settings.privatelink_dns_subscription_id) == 0 ? (
                                            var.infrastructure.resource_group.exists ? (
