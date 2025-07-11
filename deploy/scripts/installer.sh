@@ -551,7 +551,7 @@ check_output=0
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
-if [ $DEBUG == True ]; then
+if [ "$DEBUG" == True ]; then
 	printenv | grep ARM
 	printenv | grep TF_VAR
 fi
