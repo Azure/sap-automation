@@ -204,7 +204,7 @@ if [ -z "$subscription" ]; then
 	load_config_vars "${environment_config_information}" "subscription"
 fi
 
-if [ "$workload" != 1 ]; then
+if [ "${workload:-0}" != 1 ]; then
 	load_config_vars "${environment_config_information}" "STATE_SUBSCRIPTION"
 	if [ "$STATE_SUBSCRIPTION" ]; then
 		subscription=${STATE_SUBSCRIPTION}
