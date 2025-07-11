@@ -69,7 +69,58 @@ if [ ${#resourceGroupName} != 0 ]; then
 	echo "##vso[task.setprogress value=30;]Progress Indicator"
 else
 	print_banner "Removal using ARM" "Resource group: $LIBRARY_FOLDERNAME was not found" "warning"
+fi
 
+
+if [  0 == $library_return_code ]; then
+
+	if [ -n "$VARIABLE_GROUP_ID" ]; then
+		echo "Deleting variables"
+
+		remove_variable "$VARIABLE_GROUP_ID" "LIBRARY_RANDOM_ID"
+		remove_variable "$VARIABLE_GROUP_ID" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME"
+		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
+		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
+		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
+
+	fi
+	cd "$CONFIG_REPO_PATH" || exit
+	git checkout -q $BUILD_SOURCEBRANCHNAME
+	git pull
+	changed=0
+
+	echo "##vso[build.updatebuildnumber]Removing control plane $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
+	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile" ]; then
+		sed -i /"custom_random_id"/d "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile"
+		git add -f "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile"
+		changed=1
+	fi
+
+	if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/.terraform" ]; then
+		git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
+		changed=1
+	fi
+
+	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
+		git rm -q --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+		changed=1
+	fi
+
+	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars" ]; then
+		git rm -q --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars"
+		changed=1
+	fi
+
+	if [ 1 == $changed ]; then
+		git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+		git config --global user.name "$BUILD_REQUESTEDFOR"
+		git commit -m "Added updates from devops deployment $BUILD_BUILDNUMBER [skip ci]"
+		if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+			echo "##vso[task.logissue type=warning]Changes pushed to $BUILD_SOURCEBRANCHNAME"
+		else
+			echo "##vso[task.logissue type=error]Failed to push changes to $BUILD_SOURCEBRANCHNAME"
+		fi
+	fi
 fi
 
 deployer_return_code=0
@@ -101,11 +152,6 @@ if [  0 == $deployer_return_code ]; then
 		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
 		remove_variable "$VARIABLE_GROUP_ID" "HAS_APPSERVICE_DEPLOYED"
 		remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
-		remove_variable "$VARIABLE_GROUP_ID" "LIBRARY_RANDOM_ID"
-		remove_variable "$VARIABLE_GROUP_ID" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME"
-		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
-		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
-		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_ID"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_IDENTITY"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_RESOURCE_GROUP"
@@ -118,11 +164,6 @@ if [  0 == $deployer_return_code ]; then
 	changed=0
 
 	echo "##vso[build.updatebuildnumber]Removing control plane $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
-	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile" ]; then
-		sed -i /"custom_random_id"/d "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile"
-		git add -f "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile"
-		changed=1
-	fi
 
 	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile" ]; then
 		sed -i /"custom_random_id"/d "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile"
@@ -137,16 +178,6 @@ if [  0 == $deployer_return_code ]; then
 
 	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 		git rm -q --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
-		changed=1
-	fi
-
-	if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/.terraform" ]; then
-		git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
-		changed=1
-	fi
-
-	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
-		git rm -q --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
 		changed=1
 	fi
 
@@ -167,11 +198,6 @@ if [  0 == $deployer_return_code ]; then
 
 	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
 		git rm -q --ignore-unmatch ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
-		changed=1
-	fi
-
-	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars" ]; then
-		git rm -q --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/backend-config.tfvars"
 		changed=1
 	fi
 
