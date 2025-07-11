@@ -49,6 +49,18 @@ recover=0
 ado_flag="none"
 deploy_using_msi_only=0
 
+if [ -v ARM_TENANT_ID ]; then
+	tenant_id="$ARM_TENANT_ID"
+fi
+
+if [ -v ARM_CLIENT_ID ]; then
+	client_id="$ARM_CLIENT_ID"
+fi
+
+if [ -v ARM_SUBSCRIPTION_ID ]; then
+	subscription="$ARM_SUBSCRIPTION_ID"
+fi
+
 INPUT_ARGUMENTS=$(getopt -n deploy_controlplane -o d:l:s:c:p:t:a:k:ifohrvm --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storageaccountname:,vault:,auto-approve,force,only_deployer,help,recover,ado,msi -- "$@")
 VALID_ARGUMENTS=$?
 
@@ -357,29 +369,29 @@ if [ 0 == "$step" ]; then
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-			if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
-				--parameterfile "${deployer_file_parametername}" --auto-approve; then
-				return_code=$?
-			else
-				return_code=$?
-				echo "Bootstrapping of the deployer failed ($return_code)"
-				step=0
-				save_config_var "step" "${deployer_config_information}"
-				exit 10
-			fi
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+			--parameterfile "${deployer_file_parametername}" --auto-approve; then
+			return_code=$?
 		else
-			if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
-				--parameterfile "${deployer_file_parametername}"; then
-				return_code=$?
-			else
-				return_code=$?
-				echo "Bootstrapping of the deployer failed ($return_code)"
-				step=0
-				save_config_var "step" "${deployer_config_information}"
-				exit 10
-			fi
+			return_code=$?
+			echo "Bootstrapping of the deployer failed ($return_code)"
+			step=0
+			save_config_var "step" "${deployer_config_information}"
+			exit 10
 		fi
-		return_code=$?
+	else
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
+			--parameterfile "${deployer_file_parametername}"; then
+			return_code=$?
+		else
+			return_code=$?
+			echo "Bootstrapping of the deployer failed ($return_code)"
+			step=0
+			save_config_var "step" "${deployer_config_information}"
+			exit 10
+		fi
+	fi
+	return_code=$?
 
 	echo "Return code from install_deployer:   ${return_code}"
 	if [ 0 != $return_code ]; then
@@ -457,15 +469,15 @@ export TF_DATA_DIR
 cd "${deployer_dirname}" || exit
 if [ 0 != "$step" ]; then
 
-if [ 1 -eq $step ] || [ 3 -eq $step ]; then
-	# If the keyvault is not set, check the terraform state file
-	if [ -z "$DEPLOYER_KEYVAULT" ]; then
-		key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
-		cd "${deployer_dirname}" || exit
-		if [ -f ./.terraform/terraform.tfstate ]; then
-			azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
-			if [ -n "$azure_backend" ]; then
-				echo "Terraform state:                     remote"
+	if [ 1 -eq $step ] || [ 3 -eq $step ]; then
+		# If the keyvault is not set, check the terraform state file
+		if [ -z "$DEPLOYER_KEYVAULT" ]; then
+			key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
+			cd "${deployer_dirname}" || exit
+			if [ -f ./.terraform/terraform.tfstate ]; then
+				azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+				if [ -n "$azure_backend" ]; then
+					echo "Terraform state:                     remote"
 
 					terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
 					terraform -chdir="${terraform_module_directory}" init -upgrade=true
@@ -488,21 +500,36 @@ if [ 1 -eq $step ] || [ 3 -eq $step ]; then
 			fi
 		fi
 
-		if [ 1 -eq $step ] && [ -n "$client_secret" ]; then
+		if [ 1 -eq $step ]; then
+			if [ -n "$client_secret" ]; then
 
-			if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
-				--environment "${environment}" \
-				--region "${region_code}" \
-				--vault "${keyvault}" \
-				--spn_id "${client_id}" \
-				--spn_secret "${client_secret}" \
-				--tenant_id "${tenant_id}"; then
-				echo ""
-				echo -e "${cyan}Set secrets:                           succeeded$reset_formatting"
-				echo ""
+				if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
+					--environment "${environment}" \
+					--region "${region_code}" \
+					--vault "${keyvault}" \
+					--spn_id "${client_id}" \
+					--spn_secret "${client_secret}" \
+					--tenant_id "${tenant_id}"; then
+					echo ""
+					echo -e "${cyan}Set secrets:                           succeeded$reset_formatting"
+					echo ""
+				else
+					echo -e "${bold_red}Set secrets:                           succeeded$reset_formatting"
+					exit 10
+				fi
 			else
-				echo -e "${bold_red}Set secrets:                           succeeded$reset_formatting"
-				exit 10
+				if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
+					--environment "${environment}" \
+					--region "${region_code}" \
+					--vault "${keyvault}" \
+					--tenant_id "${tenant_id}"; then
+					echo ""
+					echo -e "${cyan}Set secrets:                           succeeded$reset_formatting"
+					echo ""
+				else
+					echo -e "${bold_red}Set secrets:                           succeeded$reset_formatting"
+					exit 10
+				fi
 			fi
 		fi
 
