@@ -437,7 +437,7 @@ if checkforEnvVar TF_VAR_use_spn; then
 	use_spn=$(echo $TF_VAR_use_spn | tr "[:upper:]" "[:lower:]")
 fi
 
-if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-file="${library_parameter_file}" -var use_deployer=false -refresh=false -var "use_spn=$use_spn" "${approve_parameter}"; then
+if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-file="${library_parameter_file}" -var use_deployer=false -var "use_spn=$use_spn" "${approve_parameter}"; then
 	return_value=$?
 	print_banner "Remove Control Plane " "Terraform destroy (library) succeeded" "success"
 else
