@@ -321,39 +321,29 @@ else
 					--backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
 					--backend-config "container_name=tfstate" \
 					--backend-config "key=${key}.terraform.tfstate"; then
-					echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+					print_banner "$banner_title" "Terraform init succeeded." "success"
 
 					terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" -input=false \
 						-var deployer_statefile_foldername="${deployer_statefile_foldername}"
 				else
-					echo ""
-					echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
-					echo ""
-					return 10
+					print_banner "$banner_title" "Terraform init failed." "error" "Terraform init return code: $return_value"
+					exit 10
 				fi
 			else
 				if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
-					echo ""
-					echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-					echo ""
+					print_banner "$banner_title" "Terraform init succeeded." "success"
 					terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
 				else
-					echo ""
-					echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
-					echo ""
-					return 10
+					print_banner "$banner_title" "Terraform init failed." "error" "Terraform init return code: $return_value"
+					exit 10
 				fi
 			fi
 		else
 			if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
-				echo ""
-				echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-				echo ""
+				print_banner "$banner_title" "Terraform init succeeded." "success"
 			else
-				echo ""
-				echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
-				echo ""
-				return 10
+				print_banner "$banner_title" "Terraform init failed." "error" "Terraform init return code: $return_value"
+				exit 10
 			fi
 
 		fi
@@ -361,13 +351,11 @@ else
 	else
 		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
 			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+			print_banner "$banner_title" "Terraform init succeeded." "success"
 			echo ""
 		else
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
-			return 10
+			print_banner "$banner_title" "Terraform init failed." "error" "Terraform init return code: $return_value"
+			exit 10
 		fi
 	fi
 fi
@@ -394,26 +382,13 @@ if [ -n "${deployer_statefile_foldername}" ]; then
 		-var deployer_statefile_foldername="${deployer_statefile_foldername}" | tee -a plan_output.log
 	install_library_return_value=${PIPESTATUS[0]}
 	if [ $install_library_return_value -eq 1 ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $bold_red_underscore Errors during the plan phase $reset_formatting                               #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+		print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
 
 		unset TF_DATA_DIR
 		exit $install_library_return_value
 
 	else
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                             $cyan  Terraform plan succeeded $reset_formatting                               #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		echo ""
+		print_banner "$banner_title" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
 	fi
 	allParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
 	allImportParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
@@ -423,25 +398,13 @@ else
 		-var-file="${var_file}" -input=false | tee -a plan_output.log
 	install_library_return_value=${PIPESTATUS[0]}
 	if [ $install_library_return_value -eq 1 ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $bold_red_underscore Errors during the plan phase $reset_formatting                               #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+
+		print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
 
 		unset TF_DATA_DIR
 		exit $install_library_return_value
 	else
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                             $cyan  Terraform plan succeeded $reset_formatting                               #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		echo ""
+		print_banner "$banner_title" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
 
 		unset TF_DATA_DIR
 		exit $install_library_return_value
@@ -471,7 +434,7 @@ echo ""
 
 if [ -n "${approve}" ]; then
 	# shellcheck disable=SC2086
-	terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters --auto-approve | tee -a apply_output.json
+	terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters --auto-approve | tee apply_output.json
 	install_library_return_value=${PIPESTATUS[0]}
 
 else
@@ -481,20 +444,12 @@ else
 fi
 
 if [ $install_library_return_value -eq 1 ]; then
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                         $bold_red_underscore Errors during the apply phase $reset_formatting                               #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+
+	print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
+
 else
 	# return code 2 is ok
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                             $cyan  Terraform apply succeeded $reset_formatting                              #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
 	install_library_return_value=0
 	if [ -f apply_output.json ]; then
 		rm apply_output.json
@@ -557,13 +512,7 @@ if [ -f apply_output.json ]; then
 fi
 
 if [ 1 == $install_library_return_value ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                          $bold_red_underscore Errors during the apply phase $reset_formatting                              #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
 	unset TF_DATA_DIR
 	exit $install_library_return_value
 fi
