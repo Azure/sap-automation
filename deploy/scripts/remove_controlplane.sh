@@ -402,7 +402,6 @@ if [ -f .terraform/terraform.tfstate ]; then
 			return_value=$?
 			print_banner "Remove Control Plane " "Terraform init failed (library - local)" "error"
 		fi
-
 	fi
 else
 	echo "Terraform state:                     unknown"
@@ -469,11 +468,11 @@ else
 fi
 
 cd "${current_directory}" || exit
+step=1
+save_config_var "step" "${deployer_config_information}"
 
 if [ 1 -eq $keep_agent ]; then
 	echo "Keeping the Azure DevOps agent"
-	step=1
-	save_config_var "step" "${deployer_config_information}"
 
 else
 	cd "${deployer_dirname}" || exit
@@ -528,7 +527,6 @@ else
 		echo ""
 	fi
 
-	return_value=$?
 	step=0
 	save_config_var "step" "${deployer_config_information}"
 	if [ 0 != $return_value ]; then
