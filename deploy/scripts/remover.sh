@@ -247,7 +247,9 @@ fi
 load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
 
 load_config_vars "${system_config_information}" "keyvault"
-TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+TF_VAR_deployer_kv_user_arm_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$keyvault' | project id, name, subscription" --query data[0].id --output tsv)
+export TF_VAR_deployer_kv_user_arm_id
+
 export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
 
 echo "Configuration file:                  $system_config_information"
