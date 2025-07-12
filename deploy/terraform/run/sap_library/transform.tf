@@ -89,7 +89,7 @@ locals {
                                            create_privatelink_dns_zones              = var.create_privatelink_dns_zones
 
                                            additional_network_id                     = trimspace(coalesce(var.additional_network_id,
-                                                                                                          var.use_deployer ? contains(data.terraform_remote_state.deployer[0].outputs, "additional_network_id") ? data.terraform_remote_state.deployer[0].outputs.additional_network_id : "" : "",
+                                                                                                          var.use_deployer ? contains(keys(data.terraform_remote_state.deployer[0].outputs), "additional_network_id") ? data.terraform_remote_state.deployer[0].outputs.additional_network_id : "" : "",
                                                                                                           " "))
 
                                          }
