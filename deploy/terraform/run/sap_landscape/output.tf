@@ -33,7 +33,7 @@ output "public_network_access_enabled"          {
                                                   value = var.public_network_access_enabled || !var.use_private_endpoint
                                                 }
 
-output "random_id"                              {
+output "random_identifier"                   {
                                                   description = "Random ID for workload zone"
                                                   value       = substr(coalesce(var.custom_random_id, module.sap_landscape.random_id),0,3)
                                                 }
