@@ -282,7 +282,7 @@
       - Azure NVMe Utils Package: {{ 'Installed' if nvme_utils_installed is defined and nvme_utils_installed.changed else 'Already Installed or Not Required' }}
       - Dracut Configuration: {{ 'Added' if dracut_conf_added is defined and dracut_conf_added.changed else 'Already Configured' }}
       - Initramfs Rebuild: {{ 'Performed' if initramfs_rebuilt is defined and initramfs_rebuilt.changed else 'Not Required' }}
-      - GRUB Configuration: {{ 'Updated' if grub_updated is defined and grub_updated.changed else 'Already Configured or Not Required' }}
+      - GRUB Configuration: {{ 'Updated' if grub_updated is defined and (grub_updated | default(false) | bool) else 'Already Configured or Not Required' }}
       - Udev Rules: {{ 'Installed' if udev_rules_added is defined and udev_rules_added.changed else 'Already Installed' }}
       - FSTAB UUID Conversion: {{ 'Performed' if (fstab_sd_updated is defined and fstab_sd_updated.changed) or (fstab_azure_updated is defined and fstab_azure_updated.changed) else 'Not Required' }}
       - System Reboot: {{ 'Performed' if system_rebooted is defined and system_rebooted.changed else 'Not Required' }}
