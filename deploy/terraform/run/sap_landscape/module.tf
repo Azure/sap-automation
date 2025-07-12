@@ -8,7 +8,6 @@
 
 module "sap_landscape" {
   source                                       = "../../terraform-units/modules/sap_landscape"
-  depends_on                                   = [ module.sap_namegenerator ]
   providers                                    = {
                                                    azurerm.main                     = azurerm.workload
                                                    azurerm.deployer                 = azurerm.deployer
