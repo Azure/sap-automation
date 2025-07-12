@@ -39,13 +39,14 @@ resource "azurerm_storage_account" "sapmnt" {
                                         )
   location                             = var.infrastructure.region
   account_tier                         = "Premium"
-  account_replication_type             = "ZRS"
+  account_replication_type             = var.infrastructure.storage_account_replication_type
   account_kind                         = "FileStorage"
   https_traffic_only_enabled            = false
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
   cross_tenant_replication_enabled     = false
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
+  default_to_oauth_authentication      = true
 
 
   public_network_access_enabled        = try(var.landscape_tfstate.public_network_access_enabled, true)

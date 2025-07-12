@@ -11,7 +11,7 @@
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
   provider                             = azurerm.dnsmanagement
-  count                                = local.use_Azure_native_DNS && var.use_private_endpoint && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
+  count                                = local.use_Azure_native_DNS && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
   depends_on                           = [
                                            azurerm_virtual_network.vnet_sap,
                                            azurerm_subnet.app,
@@ -29,11 +29,12 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
   private_dns_zone_name                = var.dns_settings.dns_label
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = true
+  tags                                 = var.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = local.use_Azure_native_DNS && var.use_private_endpoint ? 1 : 0
+  count                                = local.use_Azure_native_DNS && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
   depends_on                           = [
                                            azurerm_virtual_network.vnet_sap,
                                            azurerm_subnet.app,
@@ -51,11 +52,12 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
   private_dns_zone_name                = var.dns_settings.dns_zone_names.file_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
+  tags                                 = var.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = local.use_Azure_native_DNS  && var.use_private_endpoint ? 1 : 0
+  count                                = local.use_Azure_native_DNS && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
   depends_on                           = [
                                            azurerm_virtual_network.vnet_sap,
                                            azurerm_storage_account.witness_storage,
@@ -71,11 +73,12 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
   private_dns_zone_name                = var.dns_settings.dns_zone_names.blob_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
+  tags                                 = var.tags
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = local.use_Azure_native_DNS && var.use_private_endpoint ? 1 : 0
+  count                                = local.use_Azure_native_DNS && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
   depends_on                           = [
                                            azurerm_virtual_network.vnet_sap,
                                            azurerm_key_vault.kv_user
@@ -90,12 +93,13 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
   private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
+  tags                                 = var.tags
 }
 
 
 # resource "azurerm_private_dns_a_record" "transport" {
 #   provider                             = azurerm.privatelinkdnsmanagement
-#   count                                = var.use_private_endpoint && var.create_transport_storage && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
+#   count                                =  var.create_transport_storage && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
 #   name                                 = replace(
 #                                            lower(
 #                                              format("%s", local.landscape_shared_transport_storage_account_name)
@@ -116,7 +120,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
 
 # resource "azurerm_private_dns_a_record" "install" {
 #   provider                             = azurerm.privatelinkdnsmanagement
-#   count                                = var.use_private_endpoint && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.install_private_endpoint_id) == 0 ? 1 : 0
+#   count                                =  local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.install_private_endpoint_id) == 0 ? 1 : 0
 #   name                                 = replace(
 #                                            lower(
 #                                              format("%s", local.landscape_shared_install_storage_account_name)
@@ -148,7 +152,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
 # resource "azurerm_private_dns_a_record" "witness_storage" {
 #   provider                             = azurerm.privatelinkdnsmanagement
 #   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
-#   name                                 = lower(local.witness_storageaccount_name)
+#   name                                 = lower(lvar.naming.storageaccount_names.WORKLOAD_ZONE.witness_storageaccount_name)
 #   zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
 #   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 #   ttl                                  = 3600
@@ -161,7 +165,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
 # resource "azurerm_private_dns_a_record" "storage_bootdiag" {
 #   provider                             = azurerm.privatelinkdnsmanagement
 #   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
-#   name                                 = lower(local.storageaccount_name)
+#   name                                 = lower(var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_storageaccount_name)
 
 #   zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
 #   resource_group_name                  = local.resource_group_exists ? (
@@ -175,7 +179,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
 
 data "azurerm_private_dns_a_record" "install" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.use_private_endpoint && length(var.install_private_endpoint_id) > 0 ? 1 : 0
+  count                                =  length(var.install_private_endpoint_id) > 0 ? 1 : 0
   name                                 = replace(
                                           lower(
                                             format("%s", local.landscape_shared_install_storage_account_name)
@@ -189,7 +193,7 @@ data "azurerm_private_dns_a_record" "install" {
 
 data "azurerm_private_dns_a_record" "transport" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.create_transport_storage && var.use_private_endpoint && length(var.transport_private_endpoint_id) > 0 ? 1 : 0
+  count                                = var.create_transport_storage &&  length(var.transport_private_endpoint_id) > 0 ? 1 : 0
   name                                 = replace(
                                            lower(
                                              format("%s", local.landscape_shared_transport_storage_account_name)

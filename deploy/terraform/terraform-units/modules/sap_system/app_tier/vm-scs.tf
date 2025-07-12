@@ -31,7 +31,7 @@ resource "azurerm_network_interface" "scs" {
                                          private_ip_address = try(pub.value.nic_ips[count.index],
                                            var.application_tier.use_DHCP ? (
                                              null) : (
-                                             cidrhost(local.application_subnet_exists ?
+                                             cidrhost(var.infrastructure.virtual_networks.sap.subnet_app.exists ?
                                                data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] :
                                                azurerm_subnet.subnet_sap_app[0].address_prefixes[0],
                                                tonumber(count.index) + local.ip_offsets.scs_vm + pub.value.offset
@@ -144,9 +144,9 @@ resource "azurerm_linux_virtual_machine" "scs" {
 
   virtual_machine_scale_set_id         = length(var.scale_set_id) > 0 ? var.scale_set_id : null
 
-  patch_mode                                             = var.infrastructure.patch_mode
+  patch_mode                           = var.infrastructure.patch_mode
 
-  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  patch_assessment_mode                = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
   //If length of zones > 1 distribute servers evenly across zones
   zone                                 = local.use_scs_avset ? null : try(local.scs_zones[count.index % max(local.scs_zone_count, 1)], null)
@@ -177,6 +177,8 @@ resource "azurerm_linux_virtual_machine" "scs" {
 # patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(var.application_tier.scs_tags, var.tags)
+  # Set the disc controller type, default SCSI
+  disk_controller_type                 = var.infrastructure.disk_controller_type_app_tier
 
   encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
@@ -472,8 +474,8 @@ resource "azurerm_managed_disk" "scs" {
 
   zone                                 = !local.use_scs_avset ? (
                                            upper(var.application_tier.scs_os.os_type) == "LINUX" ? (
-                                             azurerm_linux_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].zone) : (
-                                             azurerm_windows_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].zone
+                                             try(azurerm_linux_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].zone,null)) : (
+                                             try(azurerm_windows_virtual_machine.scs[local.scs_data_disks[count.index].vm_index].zone,null)
                                            )) : (
                                            null
                                          )

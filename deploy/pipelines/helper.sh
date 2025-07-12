@@ -49,20 +49,26 @@ function configureNonDeployer() {
 
 	sudo apt-get -qq install zip
 
-	echo -e "$green --- Install terraform ---$reset"
+	if ! which terraform; then
+		if [ -n "$tf_version" ]; then
+			echo -e "$green--- Install Terraform version $tf_version ---$reset"
+			tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip"
+		else
+			echo -e "$green--- Install latest Terraform ---$reset"
+			tf_version=$(curl -s https://checkpoint-api.hashicorp.com/v1/check/terraform | jq -r '.current_version')
+			tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip"
+		fi
 
-	wget -q "$tf_url"
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo "##vso[task.logissue type=error]Unable to download Terraform version $tf_version."
-		exit 2
+		wget -q "$tf_url"
+		return_code=$?
+		if [ 0 != $return_code ]; then
+			echo "##vso[task.logissue type=error]Unable to download Terraform version $tf_version."
+			exit 2
+		fi
+		unzip -qq "terraform_${tf_version}_linux_amd64.zip"
+		sudo mv terraform /bin/
+		rm -f "terraform_${tf_version}_linux_amd64.zip"
 	fi
-	unzip -qq "terraform_${tf_version}_linux_amd64.zip"
-	sudo mv terraform /bin/
-	rm -f "terraform_${tf_version}_linux_amd64.zip"
-
-	az extension add --name storage-blob-preview --allow-preview true --output none >/dev/null
-
 }
 
 function LogonToAzure() {
@@ -74,9 +80,25 @@ function LogonToAzure() {
 		echo "Deployment credential ID (SPN):      $ARM_CLIENT_ID"
 		unset ARM_USE_MSI
 		az login --service-principal --client-id "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
+		echo "Logged on as:"
+		az account show --query user --output table
+		TF_VAR_use_spn=true
+		export TF_VAR_use_spn
+
 	else
 		echo "Deployment credentials:              Managed Service Identity"
-		source "/etc/profile.d/deploy_server.sh"
+		if [ -f "/etc/profile.d/deploy_server.sh" ]; then
+			echo "Sourcing deploy_server.sh to set up environment variables for MSI authentication"
+			source "/etc/profile.d/deploy_server.sh"
+		else
+			echo "Running az login --identity"
+		  az login --identity --allow-no-subscriptions --client-id "$ARM_CLIENT_ID" --output none
+		fi
+
+		az account show --query user --output table
+
+		TF_VAR_use_spn=false
+		export TF_VAR_use_spn
 
 		# sourcing deploy_server.sh overwrites ARM_SUBSCRIPTION_ID with control plane subscription id
 		# ensure we are exporting the right ARM_SUBSCRIPTION_ID when authenticating against workload zones.

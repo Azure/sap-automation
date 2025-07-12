@@ -8,9 +8,9 @@
 module "sap_library" {
   source                            = "../../terraform-units/modules/sap_library"
   providers                         = {
-                                       azurerm.main          = azurerm.main
-                                       azurerm.deployer      = azurerm.deployer
-                                       azurerm.dnsmanagement = azurerm.dnsmanagement
+                                       azurerm.main                     = azurerm.main
+                                       azurerm.deployer                 = azurerm.deployer
+                                       azurerm.dnsmanagement            = azurerm.dnsmanagement
                                        azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                      }
 
@@ -22,12 +22,10 @@ module "sap_library" {
   key_vault                         = local.key_vault
   naming                            = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
   place_delete_lock_on_resources    = var.place_delete_lock_on_resources
-  service_principal                 = var.use_deployer ? local.service_principal : local.account
   short_named_endpoints_nics        = var.short_named_endpoints_nics
   storage_account_sapbits           = local.storage_account_sapbits
   storage_account_tfstate           = local.storage_account_tfstate
   use_private_endpoint              = false
-  use_webapp                        = var.use_webapp
   dns_settings                      = local.dns_settings
 }
 

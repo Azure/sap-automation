@@ -64,6 +64,7 @@ stages:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
           - task:                      PostBuildCleanup@4
+
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -95,7 +96,7 @@ stages:
           library:                      ${{ parameters.library }}
           use_deployer:                 ${{ parameters.use_deployer }}
     pool:
-      name:                             $(Agent)
+      name:                             $(AGENT)
     dependsOn:
       - Remove_control_plane_remote
     condition:                          in(dependencies.Remove_control_plane_remote.result, 'Succeeded', 'Skipped')
@@ -110,6 +111,10 @@ stages:
           - template:                  templates\download.yaml
             parameters:
               getLatestFromBranch:     true
+          - task:                      TerraformInstaller@1
+            displayName:               Install Terraform
+            inputs:
+              terraformVersion:        latest
           - task:                      PostBuildCleanup@4
           - task:                      AzureCLI@2
             continueOnError:           false

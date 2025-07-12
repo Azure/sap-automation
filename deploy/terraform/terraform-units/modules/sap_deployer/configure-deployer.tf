@@ -24,17 +24,17 @@ resource "null_resource" "prepare-deployer" {
 
   provisioner "file"                     {
                                            content = templatefile(format("%s/templates/configure_deployer.sh.tmpl", path.module), {
-                                             tfversion            = var.tf_version
-                                             rg_name              = local.resourcegroup_name,
+                                             ado_repo             = var.infrastructure.devops.agent_ado_url,
+                                             ansible_core_version = var.infrastructure.devops.ansible_core_version
                                              client_id            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].client_id : data.azurerm_user_assigned_identity.deployer[0].client_id ,
+                                             local_user           = local.username,
+                                             pat                  = var.infrastructure.devops.agent_pat,
+                                             pool                 = var.infrastructure.devops.agent_pool,
+                                             rg_name              = local.resourcegroup_name,
                                              subscription_id      = data.azurerm_subscription.primary.subscription_id,
                                              tenant_id            = data.azurerm_subscription.primary.tenant_id,
-                                             local_user           = local.username,
-                                             pool                 = var.agent_pool,
-                                             pat                  = var.agent_pat,
-                                             ado_repo             = var.agent_ado_url,
-                                             use_webapp           = var.use_webapp
-                                             ansible_core_version = var.ansible_core_version
+                                             terraform_version    = var.infrastructure.devops.tf_version
+                                             use_webapp           = var.app_service.use
                                              }
                                            )
 
@@ -61,19 +61,19 @@ resource "null_resource" "prepare-deployer" {
 }
 
 resource "local_file" "configure_deployer" {
-  count                                = local.enable_deployer_public_ip ? 0 : 0
+  count                                = local.enable_deployer_public_ip ? 0 : var.deployer_vm_count > 0 ? 0 : 0
   content                              = templatefile(format("%s/templates/configure_deployer.sh.tmpl", path.module), {
-                                           tfversion            = var.tf_version,
+                                           terraform_version    = var.infrastructure.devops.tf_version,
                                            rg_name              = local.resourcegroup_name,
                                            client_id            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].client_id : data.azurerm_user_assigned_identity.deployer[0].client_id,
                                            subscription_id      = data.azurerm_subscription.primary.subscription_id,
                                            tenant_id            = data.azurerm_subscription.primary.tenant_id,
                                            local_user           = local.username,
-                                           pool                 = var.agent_pool,
-                                           pat                  = var.agent_pat,
-                                           ado_repo             = var.agent_ado_url,
-                                           use_webapp           = var.use_webapp
-                                           ansible_core_version = var.ansible_core_version
+                                           pool                 = var.infrastructure.devops.agent_pool,
+                                           pat                  = var.infrastructure.devops.agent_pat,
+                                           ado_repo             = var.infrastructure.devops.agent_ado_url,
+                                           use_webapp           = var.infrastructure.devops.app_service.use
+                                           ansible_core_version = var.infrastructure.devops.ansible_core_version
                                            }
                                          )
   filename                             = format("%s/configure_deployer.sh", path.cwd)

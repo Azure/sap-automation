@@ -1,4 +1,4 @@
-# SAPDeploymentUtilities
+# SAPtUtilities
 
 SAP Deployment Automation utilities
 

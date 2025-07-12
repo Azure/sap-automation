@@ -23,6 +23,7 @@ $Workload_zone_subscriptionID = $Env:SDAF_WorkloadZoneSubscriptionID
 $Workload_zoneSubscriptionName = $Env:SDAF_WorkloadZoneSubscriptionName
 $Workload_zone_code = $Env:SDAF_WORKLOAD_ZONE_CODE
 
+$Workload_zone_prefix = "SDAF-" + $Workload_zone_code
 
 if ( $null -ne $Env:CreateConnections) {
   $CreateConnection = [System.Convert]::ToBoolean($Env:CreateConnections)
@@ -39,8 +40,8 @@ if ($Workload_zone_code.Length -eq 0) {
 
 
 if ($Workload_zone_subscriptionID.Length -eq 0) {
-  Write-Host "$Env:ControlPlaneSubscriptionID is not set!" -ForegroundColor Red
-  $Title = "Choose the subscription for the Control Plane"
+  Write-Host "$Env:SDAF_WorkloadZoneSubscriptionID is not set!" -ForegroundColor Red
+  $Title = "Choose the subscription for the Workload Zone"
   $subscriptions = $(az account list --query "[].{Name:name}" -o table | Sort-Object)
   Show-Menu($subscriptions[2..($subscriptions.Length - 1)])
 
@@ -193,6 +194,8 @@ if ($Env:SDAF_WorkloadZone_SPN_NAME.Length -ne 0) {
 }
 else {
   if ($authenticationMethod -eq "Service Principal") {
+    $workload_zone_spn_name = $Workload_zone_prefix + " Deployment credential"
+
     $workload_zone_spn_name = Read-Host "Please provide the Service Principal name to be used for the deployments in the workload zone"
   }
 }
@@ -233,7 +236,7 @@ if ($authenticationMethod -eq "Service Principal") {
   $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]"  --only-show-errors )
   if ($GroupID.Length -eq 0) {
     Write-Host "Creating the variable group" $WorkloadZonePrefix -ForegroundColor Green
-    az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF Logon_Using_SPN=true USE_MSI=false --output none --authorize true
+    az pipelines variable-group create --name $WorkloadZonePrefix --variables AGENT='Azure Pipelines' ARM_CLIENT_ID=$ARM_CLIENT_ID ARM_OBJECT_ID=$ARM_OBJECT_ID ARM_CLIENT_SECRET=$ARM_CLIENT_SECRET ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID ARM_TENANT_ID=$ARM_TENANT_ID POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF USE_MSI=false --output none --authorize true
     $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]"   --only-show-errors)
   }
 
@@ -244,7 +247,8 @@ else {
   $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]"  --only-show-errors )
   if ($GroupID.Length -eq 0) {
     Write-Host "Creating the variable group" $WorkloadZonePrefix -ForegroundColor Green
-    az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF Logon_Using_SPN=false USE_MSI=true --output none --authorize true
+    az pipelines variable-group create --name $WorkloadZonePrefix --variables AGENT='Azure Pipelines' ARM_SUBSCRIPTION_ID=$Workload_zone_subscriptionID POOL=$Pool_Name AZURE_CONNECTION_NAME=$Service_Connection_Name TF_LOG=OFF USE_MSI=true --output none --authorize true
+
     $GroupID = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]"   --only-show-errors)
   }
 }

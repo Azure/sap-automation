@@ -1,5 +1,4 @@
-﻿#Region '.\Private\helper_functions.ps1' -1
-
+﻿#Region './Private/helper_functions.ps1' 0
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
@@ -8,7 +7,7 @@ function Get-IniContent {
     .SYNOPSIS
         Get-IniContent
 
-    
+
 .LINK
     https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
 
@@ -48,11 +47,11 @@ function Out-IniFile {
     <#
         .SYNOPSIS
             Out-IniContent
-    
-        
+
+
     .LINK
         https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
-    
+
         #>
     <#
     #>
@@ -89,9 +88,8 @@ function Out-IniFile {
     }
 }
 
-#EndRegion '.\Private\helper_functions.ps1' 90
-#Region '.\Public\New-SDAFADOProject.ps1' -1
-
+#EndRegion './Private/helper_functions.ps1' 90
+#Region './Public/New-SDAFADOProject.ps1' 0
 #Requires -Version 5.1
 
 <#
@@ -1000,7 +998,7 @@ resources:
 
       $GeneralGroupId = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
       if ($GeneralGroupId.Length -eq 0) {
-        az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.12.2" ansible_core_version="2.17" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
+        az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.12.2" ansible_core_version="2.16" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
         $GeneralGroupId = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
         az pipelines variable-group variable update --group-id $GeneralGroupId --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
       }
@@ -1077,7 +1075,7 @@ resources:
       $ControlPlaneVariableGroupId = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
       if ($ControlPlaneVariableGroupId.Length -eq 0) {
         Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
-        $ControlPlaneVariableGroupId = (az pipelines variable-group create --name $ControlPlanePrefix --variables Agent='Azure Pipelines' ARM_SUBSCRIPTION_ID=$ControlPlaneSubscriptionId ARM_TENANT_ID=$ArmTenantId POOL=$AgentPoolName AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$WorkloadZonePipelineId SYSTEM_PIPELINE_ID=$SystemPipelineId SDAF_GeneralGroupId=$GeneralGroupId SAP_INSTALL_PIPELINE_ID=$InstallationPipelineId TF_LOG=OFF --query id --output tsv --authorize true)
+        $ControlPlaneVariableGroupId = (az pipelines variable-group create --name $ControlPlanePrefix --variables AGENT='Azure Pipelines' ARM_SUBSCRIPTION_ID=$ControlPlaneSubscriptionId ARM_TENANT_ID=$ArmTenantId POOL=$AgentPoolName AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$WorkloadZonePipelineId SYSTEM_PIPELINE_ID=$SystemPipelineId SDAF_GeneralGroupId=$GeneralGroupId SAP_INSTALL_PIPELINE_ID=$InstallationPipelineId TF_LOG=OFF --query id --output tsv --authorize true)
       }
       $VariableGroups.Add($ControlPlaneVariableGroupId)
 
@@ -1458,9 +1456,8 @@ resources:
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOProject
-#EndRegion '.\Public\New-SDAFADOProject.ps1' 1367
-#Region '.\Public\New-SDAFADOWorkloadZone.ps1' -1
-
+#EndRegion './Public/New-SDAFADOProject.ps1' 1367
+#Region './Public/New-SDAFADOWorkloadZone.ps1' 0
 #Requires -Version 5.1
 
 <#
@@ -1829,15 +1826,15 @@ function New-SDAFADOWorkloadZone {
 
       $ControlPlaneVariableGroupId = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
       $AgentPoolName = ""
-      if ($ControlPlaneVariableGroupId.Length -eq 0) {
-        $AgentPoolName = (az pipelines variable-group variable list --group-id $VariableGroupId --query "POOL.value" --out tsv)
+      if ($ControlPlaneVariableGroupId.Length -ne 0) {
+        $AgentPoolName = (az pipelines variable-group variable list --group-id $ControlPlaneVariableGroupId --query "POOL.value" --out tsv)
       }
 
       $ServiceConnectionName = $WorkloadZoneCode + "_WorkloadZone_Service_Connection"
       $WorkloadZoneVariableGroupId = (az pipelines variable-group list --query "[?name=='$WorkloadZonePrefix'].id | [0]" --only-show-errors)
       if ($WorkloadZoneVariableGroupId.Length -eq 0) {
         Write-Host "Creating the variable group" $WorkloadZonePrefix -ForegroundColor Green
-        $WorkloadZoneVariableGroupId = (az pipelines variable-group create --name $WorkloadZonePrefix --variables Agent='Azure Pipelines' POOL=$AgentPoolName ARM_TENANT_ID=$ArmTenantId ARM_SUBSCRIPTION_ID=$WorkloadZoneSubscriptionId AZURE_CONNECTION_NAME=$ServiceConnectionName TF_LOG=OFF --query id --output tsv --authorize true)
+        $WorkloadZoneVariableGroupId = (az pipelines variable-group create --name $WorkloadZonePrefix --variables AGENT='Azure Pipelines' POOL=$AgentPoolName ARM_TENANT_ID=$ArmTenantId ARM_SUBSCRIPTION_ID=$WorkloadZoneSubscriptionId AZURE_CONNECTION_NAME=$ServiceConnectionName TF_LOG=OFF --query id --output tsv --authorize true)
       }
 
       if ($AuthenticationMethod -eq "Managed Identity") {
@@ -1864,8 +1861,15 @@ function New-SDAFADOWorkloadZone {
           Write-Host "Using Managed Identity:" $identity
 
           $id = $(az identity list --query "[?name=='$identity'].id" --subscription $subscription --output tsv)
-          $ManagedIdentityObjectId = $(az identity show --ids $id --query "principalId" --output tsv)
+          $ManagedIdentityClientId = $(az identity show --ids $id --query "principalId" --output tsv)
         }
+        else {
+          $ManagedIdentityClientId = $(az identity show --ids $ManagedIdentityObjectId --query "principalId" --output tsv)
+        }
+        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
+        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
+        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_USE_MSI" -VariableValue "true"
+        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
 
         $ServiceEndpointExists = (az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].name | [0]" )
         if ($ServiceEndpointExists.Length -eq 0) {
@@ -1881,9 +1885,6 @@ function New-SDAFADOWorkloadZone {
             az devops service-endpoint update --id $ServiceEndpointId --enable-for-all true --output none --only-show-errors
           }
 
-          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
-          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
-          SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
 
         }
         else {
@@ -1950,6 +1951,8 @@ function New-SDAFADOWorkloadZone {
         SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $WorkloadZoneClientClientId
         SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_CLIENT_SECRET" -VariableValue $WorkloadZoneClientSecret -IsSecret
         SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $WorkloadZoneClientObjectId
+        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "USE_MSI" -VariableValue "false"
+        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_USE_MSI" -VariableValue "false"
 
         Write-Host "Create the Service Endpoint in Azure for the workload zone" -ForegroundColor Green
 
@@ -1991,9 +1994,8 @@ function New-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOWorkloadZone
-#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 531
-#Region '.\Public\New-SDAFUserAssignedIdentity.ps1' -1
-
+#EndRegion './Public/New-SDAFADOWorkloadZone.ps1' 537
+#Region './Public/New-SDAFUserAssignedIdentity.ps1' 0
 function New-SDAFUserAssignedIdentity {
   [CmdletBinding()]
   param (
@@ -2119,9 +2121,8 @@ function New-SDAFUserAssignedIdentity {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFUserAssignedIdentity
-#EndRegion '.\Public\New-SDAFUserAssignedIdentity.ps1' 126
-#Region '.\Public\Remove-SDAFADOProject.ps1' -1
-
+#EndRegion './Public/New-SDAFUserAssignedIdentity.ps1' 126
+#Region './Public/Remove-SDAFADOProject.ps1' 0
 #Requires -Version 5.1
 
 <#
@@ -2384,9 +2385,8 @@ function Remove-SDAFADOProject {
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFADOProject
-#EndRegion '.\Public\Remove-SDAFADOProject.ps1' 263
-#Region '.\Public\Remove-SDAFADOWorkloadZone.ps1' -1
-
+#EndRegion './Public/Remove-SDAFADOProject.ps1' 263
+#Region './Public/Remove-SDAFADOWorkloadZone.ps1' 0
 #Requires -Version 5.1
 
 <#
@@ -2659,9 +2659,8 @@ function Remove-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFADOWorkloadZone
-#EndRegion '.\Public\Remove-SDAFADOWorkloadZone.ps1' 273
-#Region '.\Public\Remove-SDAFUserAssignedIdentity.ps1' -1
-
+#EndRegion './Public/Remove-SDAFADOWorkloadZone.ps1' 273
+#Region './Public/Remove-SDAFUserAssignedIdentity.ps1' 0
 function Remove-SDAFUserAssignedIdentity {
   [CmdletBinding()]
   param (
@@ -2740,4 +2739,4 @@ function Remove-SDAFUserAssignedIdentity {
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFUserAssignedIdentity
-#EndRegion '.\Public\Remove-SDAFUserAssignedIdentity.ps1' 79
+#EndRegion './Public/Remove-SDAFUserAssignedIdentity.ps1' 79

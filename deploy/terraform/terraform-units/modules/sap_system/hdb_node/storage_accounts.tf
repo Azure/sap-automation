@@ -39,6 +39,7 @@ resource "azurerm_storage_account" "hanashared" {
   cross_tenant_replication_enabled     = false
 
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
+  default_to_oauth_authentication      = true
   tags                                 = var.tags
 
   network_rules {

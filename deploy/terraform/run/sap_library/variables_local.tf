@@ -36,8 +36,7 @@ locals {
                                          )
 
   // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate
-  spn_key_vault_arm_id                 = var.use_deployer ?  data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : ""
-
+  spn_key_vault_arm_id                 = var.use_deployer ?  coalesce(var.spn_keyvault_id, try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, "")) : ""
 
   custom_names                         = length(var.name_override_file) > 0 ? (
                                            jsondecode(file(format("%s/%s", path.cwd, var.name_override_file)))) : (

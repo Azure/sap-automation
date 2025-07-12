@@ -3,7 +3,7 @@
 
 #######################################4#######################################8
 #                                                                              #
-#                              Variable definitioms                            #
+#                              Variable definitions                            #
 #                                                                              #
 #######################################4#######################################8
 
@@ -38,22 +38,22 @@ variable "infrastructure"              {
 
                                          validation {
                                                       condition = (
-                                                        contains(keys(var.infrastructure), "vnets") ? (
-                                                          length(trimspace(try(var.infrastructure.vnets.management.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.vnets.management.address_space, ""))) != 0) : (
+                                                        contains(keys(var.infrastructure), "virtual_network") ? (
+                                                          length(trimspace(try(var.infrastructure.virtual_network.management.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_network.management.address_space, ""))) != 0) : (
                                                           true
                                                         )
                                                       )
-                                                      error_message = "Either the arm_id or address_space of the VNet must be specified in the infrastructure.vnets.management block."
+                                                      error_message = "Either the arm_id or address_space of the VNet must be specified in the infrastructure.virtual_network.management block."
                                                     }
 
                                          validation {
                                                       condition = (
-                                                        contains(keys(var.infrastructure), "vnets") ? (
-                                                          length(trimspace(try(var.infrastructure.vnets.management.subnet_mgmt.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.vnets.management.subnet_mgmt.prefix, ""))) != 0) : (
+                                                        contains(keys(var.infrastructure), "virtual_network") ? (
+                                                          length(trimspace(try(var.infrastructure.virtual_network.management.subnet_mgmt.arm_id, ""))) != 0 || length(trimspace(try(var.infrastructure.virtual_network.management.subnet_mgmt.prefix, ""))) != 0) : (
                                                           true
                                                         )
                                                       )
-                                                      error_message = "Either the arm_id or prefix of the subnet must be specified in the infrastructure.vnets.management.subnet_management block."
+                                                      error_message = "Either the arm_id or prefix of the subnet must be specified in the infrastructure.virtual_network.management.subnet_management block."
                                                     }
 
                                        }

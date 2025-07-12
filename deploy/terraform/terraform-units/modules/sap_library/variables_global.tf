@@ -20,8 +20,15 @@ variable "infrastructure"              {
                                                     }
                                        }
 
-variable "storage_account_sapbits"     {}
-variable "storage_account_tfstate"     {}
+variable "storage_account_sapbits"     {
+                                         description = "Details of the storage account for SAP installation media and the Bill of Materials files"
+                                         default     = {}
+                                       }
+
+variable "storage_account_tfstate"     {
+                                         description = "Details of the storage account for Terraform"
+                                         default     = {}
+                                       }
 variable "dns_settings"                {
                                          description = "DNS details for the deployment"
                                          default     = {}
@@ -47,7 +54,7 @@ variable "key_vault"                   {
                                          validation {
                                                       condition = (
                                                         contains(keys(var.key_vault), "kv_user_id") ? (
-                                                          length(split("/", var.key_vault.kv_user_id)) == 9) || length(var.key_vault.kv_user_id) == 0 : (
+                                                          length(split("/", var.key_vault.keyvault_id_for_system_credentials)) == 9) || length(var.key_vault.keyvault_id_for_system_credentials) == 0 : (
                                                           true
                                                         )
                                                       )
@@ -74,9 +81,6 @@ variable "deployer_tfstate"           {
                                         description = "terraform.tfstate of deployer"
                                         default     = {}
                                       }
-variable "service_principal"          {
-                                        description = "Current service principal used to authenticate to Azure"
-                                      }
 
 variable "use_private_endpoint"       {
                                         description = "Boolean value indicating if private endpoint should be used for the deployment"
@@ -96,7 +100,7 @@ variable "enable_purge_control_for_keyvaults" {
                                                 default     = true
                                               }
 
-variable "use_webapp"                        {
+variable "application_configuration_deployment"                        {
                                                default = false
                                              }
 
@@ -117,3 +121,4 @@ variable "short_named_endpoints_nics"     {
                                             description = "If defined, uses short names for private endpoints nics"
                                             default     = false
                                           }
+

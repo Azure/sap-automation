@@ -4,8 +4,6 @@
 
 locals {
 
-  use_webapp     = lower(var.use_webapp)
-
   infrastructure =                  {
     environment                        = coalesce(
                                           var.environment,
@@ -21,122 +19,93 @@ locals {
                                               ),
                                               ""
                                             )
-                                            arm_id = try(
+                                            id = try(
                                               coalesce(
                                                 var.resourcegroup_arm_id,
                                                 try(var.infrastructure.resource_group.arm_id, "")
                                               ),
                                               ""
                                             )
+                                            exists = length(try(
+                                              coalesce(
+                                                var.resourcegroup_arm_id,
+                                                try(var.infrastructure.resource_group.arm_id, "")
+                                              ),
+                                              ""
+                                            )) > 0 ? true : false
+                                            exists = length(try(
+                                              coalesce(
+                                                var.resourcegroup_arm_id,
+                                                try(var.infrastructure.resource_group.arm_id, "")
+                                              ),
+                                              ""
+                                            )) > 0 ? true : false
                                           }
     tags                               = merge(
                                             var.tags, var.resourcegroup_tags
                                         )
 
-    vnets                              = {
+    virtual_network                   = {
                                             management = {
-                                              name = try(
-                                                coalesce(
-                                                  var.management_network_name,
-                                                  try(var.infrastructure.vnets.management.name, "")
-                                                ),
-                                                ""
-                                              )
-                                              arm_id = try(
-                                                coalesce(
-                                                  var.management_network_arm_id,
-                                                  try(var.infrastructure.vnets.management.arm_id, "")
-                                                ),
-                                                ""
-                                              )
-                                              address_space = try(
-                                                coalesce(
-                                                  var.management_network_address_space,
-                                                  try(var.infrastructure.vnets.management.address_space, "")
-                                                ),
-                                                ""
-                                              )
-                                              flow_timeout_in_minutes=var.network_flow_timeout_in_minutes
-
+                                              name                    = var.management_network_name,
+                                              id                      = var.management_network_arm_id,
+                                              exists                  = length(var.management_network_arm_id) > 0 ? true : false
+                                              address_space           = var.management_network_address_space
+                                              flow_timeout_in_minutes = var.management_network_flow_timeout_in_minutes
                                               subnet_mgmt = {
-                                                name = try(
-                                                  coalesce(
-                                                    var.management_subnet_name,
-                                                    try(var.infrastructure.vnets.management.subnet_mgmt.name, "")
-                                                  ),
-                                                  ""
-                                                )
-                                                arm_id = try(
-                                                  coalesce(
-                                                    var.management_subnet_arm_id,
-                                                    try(var.infrastructure.vnets.management.subnet_mgmt.arm_id, "")
-                                                  ),
-                                                  ""
-                                                )
-                                                prefix = try(
-                                                  coalesce(
-                                                    var.management_subnet_address_prefix,
-                                                    try(var.infrastructure.vnets.management.subnet_mgmt.prefix, "")
-                                                  ),
-                                                  ""
-                                                )
+                                                name   = var.management_subnet_name,
+                                                exists = length(var.management_subnet_arm_id) > 0 ? true : false
+                                                id     = var.management_subnet_arm_id
+                                                prefix = var.management_subnet_address_prefix
                                                 nsg = {
-                                                  name = try(
-                                                    coalesce(
-                                                      var.management_subnet_nsg_name,
-                                                      try(var.infrastructure.vnets.management.nsg_mgmt.name, "")
-                                                    ),
-                                                    ""
-                                                  )
-                                                  arm_id = try(
-                                                    coalesce(
-                                                      var.management_subnet_nsg_arm_id,
-                                                      try(var.infrastructure.vnets.management.nsg_mgmt.arm_id, "")
-                                                    ),
-                                                    ""
-                                                  )
-                                                  allowed_ips = try(
-                                                    coalesce(
-                                                      var.management_subnet_nsg_allowed_ips,
-                                                      try(var.management_subnet_nsg_arm_id, "")
-                                                    ),
-                                                    []
-                                                  )
+                                                  name        = var.management_subnet_nsg_name
+                                                  exists      = length(var.management_subnet_nsg_arm_id) > 0 ? true : false
+                                                  id          = var.management_subnet_nsg_arm_id
+                                                  allowed_ips = var.management_subnet_nsg_allowed_ips
                                                 }
                                               }
-                                              subnet_fw = {
-                                                arm_id = try(
-                                                  coalesce(
-                                                    var.management_firewall_subnet_arm_id,
-                                                    try(var.infrastructure.vnets.management.subnet_fw.arm_id, "")
-                                                  ),
-                                                  ""
-                                                )
-                                                prefix = try(
-                                                  coalesce(
-                                                    var.management_firewall_subnet_address_prefix,
-                                                    try(var.infrastructure.vnets.management.subnet_fw.prefix, "")
-                                                  ),
-                                                  ""
-                                                )
-                                              }
-                                              subnet_bastion = {
-                                                arm_id = var.management_bastion_subnet_arm_id
-                                                prefix = var.management_bastion_subnet_address_prefix
-                                              }
-                                              subnet_webapp = {
-                                                arm_id = var.webapp_subnet_arm_id
-                                                prefix = var.webapp_subnet_address_prefix
-                                              }
+
+                                              subnet_firewall = {
+                                                                  id     = var.management_firewall_subnet_arm_id
+                                                                  exists = length(var.management_firewall_subnet_arm_id) > 0 ? true : false
+                                                                  prefix = var.management_firewall_subnet_address_prefix
+                                                                }
+                                              subnet_firewall = {
+                                                                  id     = var.management_firewall_subnet_arm_id
+                                                                  exists = length(var.management_firewall_subnet_arm_id) > 0 ? true : false
+                                                                  prefix = var.management_firewall_subnet_address_prefix
+                                                                }
+                                              subnet_bastion =  {
+                                                                  id     = var.management_bastion_subnet_arm_id
+                                                                  exists = length(var.management_bastion_subnet_arm_id) > 0 ? true : false
+                                                                  prefix = var.management_bastion_subnet_address_prefix
+                                                                }
+                                              subnet_webapp =   {
+                                                                  id     = var.webapp_subnet_arm_id
+                                                                  exists = length(var.webapp_subnet_arm_id) > 0 ? true : false
+                                                                  prefix = var.webapp_subnet_address_prefix
+                                                                }
                                             }
                                           }
+
     deploy_monitoring_extension        = var.deploy_monitoring_extension
     deploy_defender_extension          = var.deploy_defender_extension
 
     custom_random_id                   = var.custom_random_id
     bastion_public_ip_tags             = try(var.bastion_public_ip_tags, {})
 
-                                        }
+    dev_center_deployment              = var.dev_center_deployment
+    devops                             = {
+                                           agent_ado_url                  = var.agent_ado_url
+                                           agent_ado_project              = var.agent_ado_project
+                                           agent_pat                      = var.agent_pat
+                                           agent_pool                     = var.agent_pool
+                                           ansible_core_version           = var.ansible_core_version
+                                           tf_version                     = var.tf_version
+                                           DevOpsInfrastructure_object_id = var.DevOpsInfrastructure_object_id
+                                         }
+
+  }
 
   deployer                             = {
                                            size = try(
@@ -197,8 +166,7 @@ locals {
                                            devops_authentication_type          = var.app_service_devops_authentication_type
                                            encryption_at_host_enabled          = var.encryption_at_host_enabled
                                            deployer_public_ip_tags             = try(var.deployer_public_ip_tags, {})
-
-
+                                           license_type                        = var.license_type
                                          }
 
   authentication                       = {
@@ -209,17 +177,20 @@ locals {
 
                                           }
   key_vault                            = {
-                                           kv_user_id                = var.user_keyvault_id
-                                           kv_exists                 = length(var.user_keyvault_id) > 0 ? true : false
-                                           kv_sshkey_prvt            = var.deployer_private_key_secret_name
-                                           kv_sshkey_pub             = var.deployer_public_key_secret_name
-                                           kv_username               = var.deployer_username_secret_name
-                                           kv_pwd                    = var.deployer_password_secret_name
+                                           id                        = var.user_keyvault_id
+                                           exists                    = length(var.user_keyvault_id) > 0 ? true : false
+                                           private_key_secret_name   = var.deployer_private_key_secret_name
+                                           public_key_secret_name    = var.deployer_public_key_secret_name
+                                           username_secret_name      = var.deployer_username_secret_name
+                                           password_secret_name      = var.deployer_password_secret_name
                                            enable_rbac_authorization = var.enable_rbac_authorization
 
                                         }
   options                              = {
-                                            enable_deployer_public_ip = var.deployer_count > 0 && (var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false))
+                                            enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
+                                            use_spn                   = var.use_spn
+                                            enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
+                                            use_spn                   = var.use_spn
                                          }
 
   firewall                             = {
@@ -229,25 +200,36 @@ locals {
                                            ip_tags              = try(var.firewall_public_ip_tags, {})
                                          }
 
-  assign_subscription_permissions      = try(var.deployer_assign_subscription_permissions, false)
+
+
   app_service                          = {
-                                           use = var.use_webapp
-                                           app_id = var.app_registration_app_id
-                                           client_secret = var.webapp_client_secret
+                                           use                 = var.app_service_deployment
+                                           app_registration_id = var.app_registration_app_id
+                                           client_secret       = var.webapp_client_secret
+                                           use                 = var.app_service_deployment
+                                           app_registration_id = var.app_registration_app_id
+                                           client_secret       = var.webapp_client_secret
                                          }
 
   dns_settings                         = {
                                            use_custom_dns_a_registration                = var.use_custom_dns_a_registration
+                                           register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
+                                           register_endpoints_with_dns                  = var.register_endpoints_with_dns
+                                           register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
+                                           register_endpoints_with_dns                  = var.register_endpoints_with_dns
                                            dns_zone_names                               = var.dns_zone_names
 
+                                           local_dns_resourcegroup_name                 = ""
+
+                                           local_dns_resourcegroup_name                 = ""
+
                                            management_dns_resourcegroup_name            = trimspace(var.management_dns_resourcegroup_name)
-                                           management_dns_subscription_id               = trimspace(var.management_dns_subscription_id)
+                                           management_dns_subscription_id               = var.management_dns_subscription_id
+                                           management_dns_subscription_id               = var.management_dns_subscription_id
 
-                                           sap_library_resource_group_name              = ""
+                                           privatelink_dns_subscription_id              = var.privatelink_dns_subscription_id != var.management_dns_subscription_id ? var.privatelink_dns_subscription_id : var.management_dns_subscription_id
+                                           privatelink_dns_resourcegroup_name           = var.management_dns_resourcegroup_name != var.privatelink_dns_resourcegroup_name ? var.privatelink_dns_resourcegroup_name : var.management_dns_resourcegroup_name
 
-                                           privatelink_dns_subscription_id              = trimspace(coalesce(var.privatelink_dns_subscription_id,var.management_dns_subscription_id, " "))
-                                           privatelink_dns_resourcegroup_name           = trimspace(coalesce(var.management_dns_resourcegroup_name, var.privatelink_dns_resourcegroup_name, " "))
-                                           register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
                                          }
 
 }

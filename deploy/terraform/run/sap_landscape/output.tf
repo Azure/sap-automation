@@ -131,12 +131,17 @@ output "landscape_key_vault_private_arm_id"      {
 
 output "landscape_key_vault_spn_arm_id"          {
                                                    description = "Azure resource identifier for the deployment credential keyvault"
-                                                   value       = local.spn_key_vault_arm_id
+                                                   value       = var.spn_keyvault_id
                                                  }
 
 output "landscape_key_vault_user_arm_id"         {
                                                    description = "Azure resource identifier for the user credential keyvault"
                                                    value       = length(var.user_keyvault_id) > 0 ? var.user_keyvault_id : module.sap_landscape.kv_user
+                                                 }
+
+output "user_credential_vault_id"         {
+                                                   description = "Azure resource identifier for the user credential keyvault"
+                                                   value       = module.sap_landscape.user_credential_vault_id
                                                  }
 
 output "sid_password_secret_name"                {
@@ -156,12 +161,12 @@ output "sid_username_secret_name"                {
 
 output "spn_kv_id"                               {
                                                    description = "Name of key vault secret containing deployment credentials"
-                                                   value       = local.spn_key_vault_arm_id
+                                                   value       = local.key_vault.spn.id
                                                  }
 
 output "workloadzone_kv_name"                    {
                                                    description = "Workload zone keyvault name"
-                                                   value       = lower(length(var.user_keyvault_id) > 0 ? split("/", var.user_keyvault_id)[8] : try(split("/", module.sap_landscape.kv_user)[8], ""))
+                                                   value       = length(var.user_keyvault_id) > 0 ? split("/", var.user_keyvault_id)[8] : try(split("/", module.sap_landscape.kv_user)[8], "")
                                                  }
 
 ###############################################################################
@@ -202,26 +207,26 @@ output "dns_label"                               {
 
 output "dns_resource_group_name"                 {
                                                    description = "Resource group name for the resource group containing the local Private DNS Zone"
-                                                   value = local.saplib_resource_group_name
+                                                   value = local.SAPLibrary_resource_group_name
                                                  }
 
 output "management_dns_resourcegroup_name"       {
                                                    description = "Resource group name for the resource group containing the public Private DNS Zone"
-                                                   value       = coalesce(var.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+                                                   value       = coalesce(var.management_dns_resourcegroup_name, local.SAPLibrary_resource_group_name)
                                                  }
 
 output "management_dns_subscription_id"          {
                                                    description = "Subscription ID for the public Private DNS Zone"
-                                                   value       = coalesce(var.management_dns_subscription_id, local.saplib_subscription_id)
+                                                   value       = coalesce(var.management_dns_subscription_id, local.SAPLibrary_subscription_id)
                                                  }
 
 output "privatelink_dns_resourcegroup_name"       {
-                                                   value       = coalesce(var.privatelink_dns_resourcegroup_name, var.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+                                                   value       = coalesce(var.privatelink_dns_resourcegroup_name, var.management_dns_resourcegroup_name, local.SAPLibrary_resource_group_name)
                                                  }
 
 output "privatelink_dns_subscription_id"          {
                                                    description = "Subscription ID for the PrivateLink Private DNS Zones"
-                                                   value       = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.saplib_subscription_id)
+                                                   value       = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.SAPLibrary_subscription_id)
                                                  }
 
 

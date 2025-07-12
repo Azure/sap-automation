@@ -32,6 +32,7 @@
                                        }}"
     grub_config_file:                  "/boot/grub2/grub.cfg"
     grub_cmdline_param:                "GRUB_CMDLINE_LINUX_DEFAULT"
+    nvme_timeout_params:               "nvme_core.io_timeout=240{{ ' nvme_core.admin_timeout=240' if nvme_include_admin_timeout | default(true) else '' }}"
 
 # Check existing repositories to avoid duplicates
 - name:                                "1.5.4 NVMe Support (SUSE) - Get current repository information"
@@ -40,55 +41,12 @@
   register:                            existing_repos
   failed_when:                         false
 
-# Configure Azure NVME Utils repository and package for SUSE
-# - name:                                "1.5.4 NVMe Support (SUSE) - Configure Azure NVME Utils repository"
-#   when:
-#                                        - azure_nvme_utils_supported
-#                                        - existing_repos is succeeded
-#                                        - not (existing_repos.repodatalist | default([]) | selectattr('alias', 'equalto', 'azure_nvme_utils') | list)
-#   block:
-#     - name:                            "1.5.4 NVMe Support (SUSE) - Add Azure NVME Utils repository"
-#       community.general.zypper_repository:
-#         name:                          azure_nvme_utils
-#         description:                   "Copr repo for azure-nvme-utils owned by cjp256"
-#         repo:                          "{{ azure_nvme_utils_repo_urls.suse }}"
-#         priority:                      100
-#         state:                         present
-#         auto_import_keys:              true
-#         disable_gpg_check:             true
-#       register:                        sles_repo_added
-#       retries:                         3
-#       delay:                           10
-#       until:                           sles_repo_added is succeeded
-
-#     - name:                            "1.5.4 NVMe Support (SUSE) - Import GPG key with retry logic"
-#       when:                            sles_repo_added.changed
-#       ansible.builtin.rpm_key:
-#         key:                           "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/pubkey.gpg"
-#         state:                         present
-#       register:                        gpg_key_import
-#       retries:                         3
-#       delay:                           5
-#       until:                           gpg_key_import is succeeded
-
-#     - name:                            "1.5.4 NVMe Support (SUSE) - Validate repository configuration"
-#       community.general.zypper_repository_info:
-#         repo:                          azure_nvme_utils
-#       register:                        repo_validation
-#       failed_when:                     false
-
-#     - name:                            "1.5.4 NVMe Support (SUSE) - Refresh repository cache"
-#       when:                            sles_repo_added.changed
-#       community.general.zypper:
-#         name:                          "*"
-#         update_cache:                  true
-
-# - name:                                "1.5.4 NVMe Support (SUSE) - Install Azure NVME Utils package"
-#   when:                                not azure_nvme_utils_supported
-#   ansible.builtin.package:
-#     name:                              azure-nvme-utils
-#     state:                             present
-#   register:                            nvme_utils_installed
+- name:                                "1.5.4 NVMe Support (SUSE) - Install Azure NVME Utils package"
+  when:                                not azure_nvme_utils_supported
+  ansible.builtin.package:
+    name:                              nvme-cli
+    state:                             present
+  register:                            nvme_utils_installed
 
 # Check if all required NVMe modules are loaded in initramfs
 - name:                                "1.5.4 NVMe Support (SUSE) - Check basic NVMe modules in initramfs"
@@ -102,18 +60,24 @@
 - name:                                "1.5.4 NVMe Support (SUSE) - Check for all required NVMe modules in initramfs"
   ansible.builtin.shell: |
                                        set -o pipefail
-                                       MISSING=0
                                        REQUIRED_MODULES="nvme nvme-core nvme-fabrics nvme-fc nvme-rdma nvme-loop nvmet nvmet-fc nvme-tcp"
+                                       MISSING=0
                                        MISSING_MODULES=""
+
                                        for MODULE in $REQUIRED_MODULES; do
-                                         if ! lsinitrd /boot/initrd-$(uname -r) | grep -q "$MODULE"; then
+                                         # Temporarily disable pipefail for this check since lsinitrd may have warnings
+                                         set +o pipefail
+                                         if ! lsinitrd /boot/initrd-$(uname -r) 2>/dev/null | grep -q "${MODULE}\.ko"; then
                                            MISSING_MODULES="$MISSING_MODULES $MODULE"
                                            MISSING=1
                                          fi
+                                         set -o pipefail
                                        done
+
                                        if [ $MISSING -eq 1 ]; then
                                          echo "$MISSING_MODULES"
                                        fi
+
                                        exit $MISSING
   register:                            nvme_module_complete_check
   failed_when:                         false
@@ -152,11 +116,20 @@
   register:                            dracut_conf_added
 
 # Configure GRUB with NVMe timeout parameters for SUSE
-- name:                                "1.5.4 NVMe Support (SUSE) - Check if GRUB has NVMe timeout parameters"
+- name:                                "1.5.4 NVMe Support (SUSE) - Check existing NVMe timeout configuration"
   ansible.builtin.shell: |
                                        set -o pipefail
-                                       grep "{{ grub_cmdline_param }}.*nvme_core.io_timeout=240" /etc/default/grub || true
-  register:                            grub_nvme_timeout_check
+                                       grep -q "nvme_core.io_timeout=240" /etc/default/grub /etc/grub.conf /boot/grub/grub.cfg /boot/grub2/grub.cfg 2>/dev/null
+  register:                            suse_nvme_timeout_check
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Check for admin timeout (if enabled)"
+  when:                                nvme_include_admin_timeout | default(true)
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       grep -q "nvme_core.admin_timeout=240" /etc/default/grub 2>/dev/null
+  register:                            suse_nvme_admin_timeout_check
   changed_when:                        false
   failed_when:                         false
 
@@ -164,50 +137,97 @@
   ansible.builtin.shell: |
                                        set -o pipefail
                                        grep "{{ grub_cmdline_param }}" /etc/default/grub || echo "No {{ grub_cmdline_param }} found"
-  register:                            current_grub_config
+  register:                            suse_current_grub_config
   changed_when:                        false
   failed_when:                         false
 
-- name:                                "1.5.4 NVMe Support (SUSE) - Show current GRUB configuration"
+- name:                                "1.5.4 NVMe Support (SUSE) - Display configuration status"
   ansible.builtin.debug:
-    msg:                               "Current GRUB configuration: {{ current_grub_config.stdout }}"
+    msg:
+      - "Distribution                  : {{ ansible_distribution }}"
+      - "GRUB Parameter                : {{ grub_cmdline_param }}"
+      - "Current config                : {{ suse_current_grub_config.stdout | truncate(100) }}..."
+      - "NVMe io_timeout present       : {{ 'Yes' if suse_nvme_timeout_check.rc == 0 else 'No' }}"
+      - "NVMe admin_timeout present    : {{ 'Yes' if suse_nvme_admin_timeout_check is defined and suse_nvme_admin_timeout_check.rc == 0 else 'No' if nvme_include_admin_timeout | default(true) else 'Not checked' }}"
     verbosity:                         1
 
-- name:                                "1.5.4 NVMe Support (SUSE) - Add NVMe timeout parameters to GRUB"
+- name:                                "1.5.4 NVMe Support (SUSE) - Configure NVMe timeout parameters"
   when:
-    - grub_nvme_timeout_check.rc != 0
-    - '"nvme_core.io_timeout=240" not in current_grub_config.stdout'
-  ansible.builtin.replace:
-    path:                              /etc/default/grub
-    regexp:                            '^({{ grub_cmdline_param }}=")([^"]*)(")$'
-    replace:                           '\1\2 nvme_core.io_timeout=240 nvme_core.admin_timeout=240\3'
-  register:                            grub_updated
+                                       - suse_nvme_timeout_check.rc != 0 or
+                                         (nvme_include_admin_timeout | default(true) and (suse_nvme_admin_timeout_check is not defined or suse_nvme_admin_timeout_check.rc != 0))
+  block:
+    # Handle case where we need to add admin_timeout to existing io_timeout line
+    - name:                            "1.5.4 NVMe Support (SUSE) - Add admin timeout to existing configuration"
+      when:
+                                       - suse_nvme_timeout_check.rc == 0
+                                       - nvme_include_admin_timeout | default(true)
+                                       - suse_nvme_admin_timeout_check is defined
+                                       - suse_nvme_admin_timeout_check.rc != 0
+      ansible.builtin.replace:
+        path:                          /etc/default/grub
+        regexp:                        '^({{ grub_cmdline_param }}=".*nvme_core\.io_timeout=240)([^"]*")$'
+        replace:                       '\1 nvme_core.admin_timeout=240\2'
+      register:                        suse_grub_admin_added
 
+    # Handle existing parameter line (full replacement)
+    - name:                            "1.5.4 NVMe Support (SUSE) - Update existing GRUB parameter line"
+      when:
+                                       - grub_cmdline_param in suse_current_grub_config.stdout
+                                       - suse_nvme_timeout_check.rc != 0
+      ansible.builtin.replace:
+        path:                          /etc/default/grub
+        regexp:                        '^({{ grub_cmdline_param }}=")([^"]*)(")$'
+        replace:                       '\1\2 {{ nvme_timeout_params }}\3'
+      register:                        suse_grub_updated_existing
+
+    # Handle missing parameter line
+    - name:                            "1.5.4 NVMe Support (SUSE) - Add new GRUB parameter line"
+      when:
+                                       - grub_cmdline_param not in suse_current_grub_config.stdout
+                                       - suse_nvme_timeout_check.rc != 0
+      ansible.builtin.lineinfile:
+        path:                          /etc/default/grub
+        line:                          '{{ grub_cmdline_param }}="{{ nvme_timeout_params }}"'
+        state:                         present
+      register:                        suse_grub_updated_new
+
+    - name:                            "1.5.4 NVMe Support (SUSE) - Set update status"
+      ansible.builtin.set_fact:
+        grub_updated:                  "{{
+                                           (suse_grub_admin_added.changed if suse_grub_admin_added is defined else false) or
+                                           (suse_grub_updated_existing.changed if suse_grub_updated_existing is defined else false) or
+                                           (suse_grub_updated_new.changed if suse_grub_updated_new is defined else false)
+                                       }}"
+
+# Update GRUB configuration file
 - name:                                "1.5.4 NVMe Support (SUSE) - Update GRUB configuration file"
-  when:
-    - grub_updated is defined
-    - grub_updated.changed
-  ansible.builtin.command:             grub2-mkconfig -o {{ grub_config_file }}
-  register:                            grub_config_updated
+  when:                                grub_updated | default(false)
+  ansible.builtin.command:             grub2-mkconfig -o /boot/grub2/grub.cfg
+  register:                            suse_grub_config_updated
   changed_when:                        true
 
-- name:                                "1.5.4 NVMe Support (SUSE) - Verify GRUB configuration update"
-  when:
-    - grub_updated is defined
-    - grub_updated.changed
+# Simple verification
+- name:                                "1.5.4 NVMe Support (SUSE) - Verify configuration"
+  when:                                grub_updated | default(false)
   ansible.builtin.shell: |
                                        set -o pipefail
-                                       grep "nvme_core.io_timeout=240" /etc/default/grub
-  register:                            grub_verify
+                                       if grep -q "nvme_core.io_timeout=240" /etc/default/grub; then
+                                         echo "SUCCESS: io_timeout configured"
+                                         if grep -q "nvme_core.admin_timeout=240" /etc/default/grub; then
+                                           echo "SUCCESS: admin_timeout also configured"
+                                         fi
+                                         exit 0
+                                       else
+                                         echo "ERROR: io_timeout verification failed"
+                                         exit 1
+                                       fi
+  register:                            suse_grub_verify
   changed_when:                        false
   failed_when:                         false
 
-- name:                                "1.5.4 NVMe Support (SUSE) - Report GRUB configuration status"
-  when:
-    - grub_updated is defined
-    - grub_updated.changed
+- name:                                "1.5.4 NVMe Support (SUSE) - Report GRUB status"
   ansible.builtin.debug:
-    msg:                               "{{ 'GRUB NVMe timeout parameters successfully configured on SUSE' if grub_verify.rc == 0 else 'WARNING: Failed to configure GRUB NVMe timeout parameters on SUSE' }}"
+    msg:                               "{{ suse_grub_verify.stdout if grub_updated | default(false) else 'No GRUB changes needed - NVMe timeout already configured' }}"
 
 # Rebuild initramfs if needed
 - name:                                "1.5.4 NVMe Support (SUSE) - Rebuild initramfs with dracut"
@@ -258,9 +278,9 @@
 
 - name:                                "1.5.4 NVMe Support (SUSE) - Display udev verification results"
   when:
-    - udev_rules_added.changed
-    - udev_verification is defined
-    - udev_verification.stdout is defined
+                                       - udev_rules_added.changed
+                                       - udev_verification is defined
+                                       - udev_verification.stdout is defined
   ansible.builtin.debug:
     msg:                               "Udev configuration verification on SUSE: {{ 'Successful - Azure disk symlinks detected' if 'disk/azure' in udev_verification.stdout else 'Note: No Azure disk symlinks detected (normal for systems without data disks)' }}"
     verbosity:                         1

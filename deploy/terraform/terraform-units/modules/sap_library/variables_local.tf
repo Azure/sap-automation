@@ -15,10 +15,9 @@ locals {
                                               )
 
   // Resource group
-  resource_group_exists                     = length(var.infrastructure.resource_group.arm_id) > 0
 
-  resource_group_name                       = local.resource_group_exists ? (
-                                                try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
+  resource_group_name                       = var.infrastructure.resource_group.exists ? (
+                                                try(split("/", var.infrastructure.resource_group.id)[4], "")) : (
                                                 length(var.infrastructure.resource_group.name) > 0 ? (
                                                   var.infrastructure.resource_group.name) : (
                                                   format("%s%s%s",
@@ -28,32 +27,24 @@ locals {
                                                   )
                                                 )
                                               )
-  resource_group_library_location           = local.resource_group_exists ? (
+  resource_group_library_location           = var.infrastructure.resource_group.exists ? (
                                                  data.azurerm_resource_group.library[0].location) : (
                                                  azurerm_resource_group.library[0].location
                                                )
 
   // Storage account for sapbits
-  sa_sapbits_exists                         = length(var.storage_account_sapbits.arm_id) > 0
-  sa_sapbits_name                           = local.sa_sapbits_exists ? (
-                                                split("/", var.storage_account_sapbits.arm_id)[8]) : (
+  storage_account_SAPmedia                  = var.storage_account_sapbits.exists ? (
+                                                split("/", var.storage_account_sapbits.id)[8]) : (
                                                 length(var.storage_account_sapbits.name) > 0 ? (
                                                   var.storage_account_sapbits.name) : (
                                                   var.naming.storageaccount_names.LIBRARY.library_storageaccount_name
                                                 )
                                               )
 
-
-
-  // Storage account for tfstate
-  sa_tfstate_exists                         = length(var.storage_account_tfstate.arm_id) > 0
-
-
   // Comment out code with users.object_id for the time being.
   // deployer_users_id = try(local.deployer.users.object_id, [])
 
   // Current service principal
-  service_principal                         = try(var.service_principal, {})
 
   deployer_public_ip_address                = try(var.deployer_tfstate.deployer_public_ip_address, "")
 
@@ -63,6 +54,8 @@ locals {
   use_local_privatelink_dns                 = var.dns_settings.create_privatelink_dns_zones && !var.use_custom_dns_a_registration && length(trimspace(var.dns_settings.privatelink_dns_resourcegroup_name)) == 0
 
   keyvault_id                               = try(var.deployer_tfstate.deployer_kv_user_arm_id, "")
+
+  management_network_id                     = var.deployer.use ? try(var.deployer_tfstate.vnet_mgmt_id, "") : try(var.deployer_tfstate.additional_network_id, "")
 
   virtual_additional_network_ids            = compact(
                                                 flatten(

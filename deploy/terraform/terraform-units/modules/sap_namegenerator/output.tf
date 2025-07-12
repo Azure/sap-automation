@@ -88,7 +88,9 @@ output "naming" {
 output "naming_new" {
   description                          = "values for naming convention"
   value                                =  {
-                                             app_ppg_names = local.app_ppg_names
+                                             app_ppg_names         = local.app_ppg_names
+                                             appconfig_name        = local.deployer_appconfig_name
+                                             location_short        = local.location_short
                                           }
 
 }

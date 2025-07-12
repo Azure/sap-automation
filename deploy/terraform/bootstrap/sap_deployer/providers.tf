@@ -39,6 +39,9 @@ provider "azurerm"                     {
                                                                        recover_soft_deleted         = !var.enable_purge_control_for_keyvaults
                                                                     }
                                                    }
+                                         partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
+                                         storage_use_azuread        = true
+
                                        }
 
 provider "azurerm"                     {
@@ -52,13 +55,13 @@ provider "azurerm"                     {
                                                                      purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
                                                                      purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
                                                                    }
-                                                    storage        {
-                                                                        data_plane_available = true
-                                                                   }
+
                                                   }
 
                                          partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
                                          alias                      = "main"
+                                         storage_use_azuread        = true
+
                                        }
 
 provider "azurerm"                     {
@@ -79,6 +82,10 @@ provider "azurerm"                     {
 provider "azuread"                     {
                                        }
 
+provider "azapi"                       {
+                                          alias                      = "restapi"
+                                       }
+
 terraform                              {
                                          required_version = ">= 1.0"
                                          required_providers {
@@ -96,11 +103,14 @@ terraform                              {
                                                                          }
                                                               azuread =  {
                                                                            source  = "hashicorp/azuread"
-                                                                           version = "3.0.2"
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.32.0"
+                                                                           version = "4.35.0"
+                                                                         }
+                                                              azapi =   {
+                                                                           source  = "Azure/azapi"
+                                                                           version = "2.5.0"
                                                                          }
                                                             }
                                        }

@@ -17,7 +17,7 @@
     Note: '_' used as dummy variable that can be ignored
 #}
 {%     for disk in disks if (disk.host == inventory_hostname) and (disk.type == disktype) %}
-{%         if use_nvme_disks | default(false) %}
+{%         if hostvars[inventory_hostname]['use_nvme_disks'] | default(false) %}
 {#            Use NVMe disk path format if NVMe is enabled #}
 {%             set _ = pvlist.append('/dev/disk/azure/data/by-lun/' ~ disk.LUN) %}
 {%         else %}

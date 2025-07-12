@@ -15,14 +15,11 @@ Description:
 #                                                                              #
 #######################################4#######################################8
 
-resource "time_sleep" "wait_for_VM" {
-  create_duration                      = "30s"
-}
 
 data "azurerm_subscription" "primary" {}
 data "azurerm_client_config" "current" {}
 
-// Public IP addresse and nic for Deployer
+// Public IP address and nic for Deployer
 resource "azurerm_public_ip" "deployer" {
   count                                = local.enable_deployer_public_ip ? var.deployer_vm_count : 0
   name                                 = format("%s%s%s%s%s",
@@ -34,11 +31,11 @@ resource "azurerm_public_ip" "deployer" {
                                          )
   allocation_method                    = "Static"
   sku                                  = "Standard"
-  resource_group_name                  = local.resource_group_exists ? (
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
                                          )
-  location                             = local.resource_group_exists ? (
+  location                             = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
@@ -50,6 +47,7 @@ resource "azurerm_public_ip" "deployer" {
                                               ]
                                               create_before_destroy = true
                                         }
+  tags                                 = var.infrastructure.tags
 }
 
 resource "azurerm_network_interface" "deployer" {
@@ -61,25 +59,25 @@ resource "azurerm_network_interface" "deployer" {
                                          var.naming.virtualmachine_names.DEPLOYER[count.index],
                                          var.naming.resource_suffixes.nic
                                        )
-  resource_group_name                  = local.resource_group_exists ? (
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
                                          )
-  location                             = local.resource_group_exists ? (
+  location                             = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
 
   ip_configuration                       {
                                            name                          = "ipconfig1"
-                                           subnet_id                     = local.management_subnet_exists ? (
+                                           subnet_id                     = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
                                                                             data.azurerm_subnet.subnet_mgmt[0].id) : (
                                                                             azurerm_subnet.subnet_mgmt[0].id
                                                                           )
                                            private_ip_address            = try(var.deployer.private_ip_address[count.index], var.deployer.use_DHCP ? (
                                                                              null) : (
                                                                              cidrhost(
-                                                                               local.management_subnet_deployed_prefixes[0],
+                                                                               var.infrastructure.virtual_network.management.subnet_mgmt.prefix,
                                                                                tonumber(count.index) + 4
                                                                              )
                                                                              )
@@ -98,8 +96,8 @@ resource "azurerm_network_interface" "deployer" {
 resource "azurerm_user_assigned_identity" "deployer" {
   count                                = length(var.deployer.user_assigned_identity_id) == 0 ? 1 : 0
   name                                 = format("%s%s%s", var.naming.resource_prefixes.msi, local.prefix, var.naming.resource_suffixes.msi)
-  resource_group_name                  = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
-  location                             = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
+  resource_group_name                  = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
+  location                             = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   tags                                 = var.infrastructure.tags
 }
 
@@ -113,6 +111,8 @@ data "azurerm_user_assigned_identity" "deployer" {
 // Linux Virtual Machine for Deployer
 resource "azurerm_linux_virtual_machine" "deployer" {
   count                                = var.deployer_vm_count
+  depends_on                           = [ azurerm_key_vault.kv_user,
+                                           azurerm_key_vault_secret.pk ]
 
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.vm,
@@ -122,16 +122,18 @@ resource "azurerm_linux_virtual_machine" "deployer" {
                                            var.naming.resource_suffixes.vm
                                          )
   computer_name                        = var.naming.virtualmachine_names.DEPLOYER[count.index]
-  resource_group_name                  = local.resource_group_exists ? (
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
                                          )
-  location                             = local.resource_group_exists ? (
+  location                             = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
 
   network_interface_ids                = [azurerm_network_interface.deployer[count.index].id]
+
+  license_type                         = length(var.deployer.license_type) > 0 ? var.deployer.license_type : null
   size                                 = var.deployer.size
   admin_username                       = local.username
   admin_password                       = var.deployer.authentication.type != "password" ? null: local.password
@@ -140,8 +142,6 @@ resource "azurerm_linux_virtual_machine" "deployer" {
   source_image_id                      = var.deployer.os.source_image_id != "" ? var.deployer.os.source_image_id : null
 
   encryption_at_host_enabled           = var.deployer.encryption_at_host_enabled
-
-  tags                                 = var.infrastructure.tags
 
   os_disk                                {
                                             name                   = format("%s%s%s%s%s",
@@ -204,7 +204,23 @@ resource "azurerm_linux_virtual_machine" "deployer" {
                                             timeout     = var.ssh-timeout
                                           }
 
+  tags                                 = local.tags
+
+  lifecycle                                {
+                                             ignore_changes = [ identity ]
+                                           }
 }
+
+
+#Private endpoint tend to take a while to be created, so we need to wait for it to be ready before we can use it
+resource "time_sleep" "wait_for_VM" {
+  create_duration                      = "60s"
+
+  depends_on                           = [
+                                           azurerm_linux_virtual_machine.deployer
+                                         ]
+}
+
 resource "azurerm_virtual_machine_extension" "configure" {
   count                                = var.auto_configure_deployer ? var.deployer_vm_count : 0
 
@@ -219,7 +235,6 @@ resource "azurerm_virtual_machine_extension" "configure" {
   publisher                            = "Microsoft.Azure.Extensions"
   type                                 = "CustomScript"
   type_handler_version                 = "2.1"
-  tags                                 = var.infrastructure.tags
   protected_settings                   = jsonencode(
                                            {
                                              "script" = base64encode(
@@ -227,23 +242,23 @@ resource "azurerm_virtual_machine_extension" "configure" {
                                                  format(
                                                  "%s/templates/configure_deployer.sh.tmpl", path.module),
                                                  {
-                                                   tfversion            = var.tf_version,
+                                                   terraform_version    = var.infrastructure.devops.tf_version,
                                                    rg_name              = local.resourcegroup_name,
                                                    client_id            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].client_id : data.azurerm_user_assigned_identity.deployer[0].client_id,
                                                    subscription_id      = data.azurerm_subscription.primary.subscription_id,
                                                    tenant_id            = data.azurerm_subscription.primary.tenant_id,
                                                    local_user           = local.username
-                                                   pool                 = var.agent_pool
-                                                   pat                  = var.agent_pat
-                                                   ado_repo             = var.agent_ado_url
-                                                   use_webapp           = var.use_webapp
-                                                   ansible_core_version = var.ansible_core_version
+                                                   pool                 = var.infrastructure.devops.agent_pool
+                                                   pat                  = var.infrastructure.devops.agent_pat
+                                                   ado_repo             = var.infrastructure.devops.agent_ado_url
+                                                   use_webapp           = var.app_service.use
+                                                   ansible_core_version = var.infrastructure.devops.ansible_core_version
                                                  }
                                                )
                                              )
                                            }
                                          )
-
+  tags                                 = var.infrastructure.tags
 }
 
 resource "azurerm_virtual_machine_extension" "monitoring_extension_deployer_lnx" {
@@ -252,7 +267,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_deployer_lnx"
                                            var.deployer_vm_count) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_linux_virtual_machine.deployer[count.index].id
-  name                                 = "Microsoft.Azure.Monitor.AzureMonitorLinuxAgent"
+  name                                 = "AzureMonitorLinuxAgent"
   publisher                            = "Microsoft.Azure.Monitor"
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
@@ -267,18 +282,27 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_deployer_lnx" 
                                            var.deployer_vm_count) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_linux_virtual_machine.deployer[count.index].id
-  name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityLinuxAgent"
+  name                                 = "AzureSecurityLinuxAgent"
   publisher                            = "Microsoft.Azure.Security.Monitoring"
   type                                 = "AzureSecurityLinuxAgent"
   type_handler_version                 = "2.0"
   auto_upgrade_minor_version           = true
-  tags                                 = var.infrastructure.tags
+  automatic_upgrade_enabled            = true
 
   settings                             = jsonencode(
                                             {
                                               "enableGenevaUpload"  = true,
                                               "enableAutoConfig"  = true,
                                               "reportSuccessOnUnsupportedDistro"  = true,
+                                              "authentication" = {
+                                                "managedIdentity" = {
+                                                  "identifier-name" : "mi_res_id",
+                                                  "identifier-value" : (var.deployer.user_assigned_identity_id) == 0 ? (
+                                                    azurerm_user_assigned_identity.deployer[0].id) : (
+                                                    data.azurerm_user_assigned_identity.deployer[0].id)
+                                                }
+                                                }
                                             }
                                           )
+  tags                                 = var.infrastructure.tags
 }

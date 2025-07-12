@@ -15,7 +15,7 @@ Description:
 
 output "created_resource_group_id" {
   description                          = "Created resource group ID"
-  value                                = local.resource_group_exists ? (
+  value                                = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].id) : (
                                            azurerm_resource_group.deployer[0].id
                                          )
@@ -23,7 +23,7 @@ output "created_resource_group_id" {
 
 output "created_resource_group_subscription_id" {
   description                          = "Created resource group' subscription ID"
-  value                                = local.resource_group_exists ? (
+  value                                = var.infrastructure.resource_group.exists ? (
                                            split("/", data.azurerm_resource_group.deployer[0].id))[2] : (
                                            split("/", azurerm_resource_group.deployer[0].id)[2]
                                          )
@@ -32,7 +32,7 @@ output "created_resource_group_subscription_id" {
 // Deployer resource group name
 output "created_resource_group_name" {
   description                          = "Created resource group name"
-  value                                = local.resource_group_exists ? (
+  value                                = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
                                          )
@@ -40,7 +40,7 @@ output "created_resource_group_name" {
 
 output "created_resource_group_location" {
   description                          = "Created resource group's location"
-  value                                = local.resource_group_exists ? (
+  value                                = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
@@ -93,33 +93,32 @@ output "deployer_user_assigned_identity" {
 // Details of management vnet that is deployed/imported
 output "vnet_mgmt_id" {
   description                          = "Management VNet ID"
-  value                                = local.management_virtual_network_exists ? data.azurerm_virtual_network.vnet_mgmt[0].id : azurerm_virtual_network.vnet_mgmt[0].id
+  value                                = var.infrastructure.virtual_network.management.exists ? data.azurerm_virtual_network.vnet_mgmt[0].id : azurerm_virtual_network.vnet_mgmt[0].id
 }
 
 // Details of management subnet that is deployed/imported
 output "subnet_mgmt_id" {
   description                          = "Management Subnet ID"
-  value                                = local.management_subnet_exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
+  value                                = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? data.azurerm_subnet.subnet_mgmt[0].id : azurerm_subnet.subnet_mgmt[0].id
 }
 
 // Details of management subnet that is deployed/imported
 output "subnet_mgmt_address_prefixes" {
   description                          = "Management Subnet Address Prefixes"
-  value                                = local.management_subnet_exists ? data.azurerm_subnet.subnet_mgmt[0].address_prefixes : azurerm_subnet.subnet_mgmt[0].address_prefixes
+  value                                = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? data.azurerm_subnet.subnet_mgmt[0].address_prefixes : azurerm_subnet.subnet_mgmt[0].address_prefixes
 }
 
 // Deatils of webapp subnet that is deployed/imported
 output "subnet_webapp_id" {
   description                          = "Webapp Subnet ID"
-  value                                = var.use_webapp ? (local.webapp_subnet_exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id) : ""
+  value                                = var.app_service.use ? (var.infrastructure.virtual_network.management.subnet_webapp.exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id) : ""
 }
 
 // Details of the management vnet NSG that is deployed/imported
 output "nsg_mgmt" {
   description                          = "Management VNet NSG"
-  value                                = local.management_subnet_nsg_exists ? data.azurerm_network_security_group.nsg_mgmt[0] : azurerm_network_security_group.nsg_mgmt[0]
+  value                                = var.infrastructure.virtual_network.management.subnet_mgmt.nsg.exists ? data.azurerm_network_security_group.nsg_mgmt[0] : azurerm_network_security_group.nsg_mgmt[0]
 }
-
 
 output "random_id" {
   description                          = "Random ID for deployer"
@@ -128,7 +127,7 @@ output "random_id" {
 
 output "user_vault_name" {
   description                          = "Key Vault Name"
-  value                                = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
+  value                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].name : azurerm_key_vault.kv_user[0].name
 }
 
 ###############################################################################
@@ -140,13 +139,13 @@ output "user_vault_name" {
 // output the secret name of private key
 output "ppk_secret_name" {
   description                          = "Private Key Secret Name"
-  value                                = local.enable_key ? local.ppk_secret_name : ""
+  value                                = local.enable_key ? local.private_key_secret_name : ""
 }
 
 // output the secret name of public key
 output "pk_secret_name" {
   description                          = "Public Key Secret Name"
-  value                                = local.enable_key ? local.pk_secret_name : ""
+  value                                = local.enable_key ? local.public_key_secret_name : ""
 }
 
 output "username_secret_name" {
@@ -168,7 +167,7 @@ output "deployer_user" {
 
 output "deployer_keyvault_user_arm_id" {
   description                          = "Azure resource ID of the deployer key vault"
-  value                                = var.key_vault.kv_exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  value                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
 
 
@@ -198,17 +197,17 @@ output "firewall_id" {
 
 output "webapp_url_base" {
   description                          = "Webapp URL Base"
-  value                                = var.use_webapp ? try(azurerm_windows_web_app.webapp[0].name, "") : ""
+  value                                = var.app_service.use ? try(azurerm_windows_web_app.webapp[0].name, "") : ""
 }
 
 output "webapp_identity" {
   description                          = "Webapp Identity"
-  value                                = var.use_webapp ? try(azurerm_windows_web_app.webapp[0].identity[0].principal_id, "") :  ""
+  value                                = var.app_service.use ? try(azurerm_windows_web_app.webapp[0].identity[0].principal_id, "") :  ""
 }
 
 output "webapp_id" {
   description                          = "Webapp ID"
-  value                                = var.use_webapp ? try(azurerm_windows_web_app.webapp[0].id, "") : ""
+  value                                = var.app_service.use ? try(azurerm_windows_web_app.webapp[0].id, "") : ""
 }
 
 ###############################################################################
@@ -232,12 +231,16 @@ output "extension_ids" {
 output "subnet_bastion_address_prefixes" {
   description                          = "Bastion Subnet Address Prefixes"
   value                                = var.bastion_deployment ? (
-                                          length(var.infrastructure.vnets.management.subnet_bastion.arm_id) == 0 ? (
-                                            azurerm_subnet.bastion[0].address_prefixes) : (
-                                            data.azurerm_subnet.bastion[0].address_prefixes
+                                          var.infrastructure.virtual_network.management.subnet_bastion.exists ? (
+                                            data.azurerm_subnet.bastion[0].address_prefixes) : (
+                                            azurerm_subnet.bastion[0].address_prefixes
                                           )) : (
                                           [""]
                                         )
 }
 
+output "diagnostics_account_id"                  {
+                                                    description = "Diagnostics Storage Account ID"
+                                                    value       = length(var.deployer.deployer_diagnostics_account_arm_id) == 0 ? azurerm_storage_account.deployer[0].id : var.deployer.deployer_diagnostics_account_arm_id
+                                                 }
 

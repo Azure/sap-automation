@@ -4182,9 +4182,9 @@
         }
       ]
     },
-    "M832ixs_v2": {
+    "M832is_v16_v3": {
       "compute": {
-        "vm_size":                "Standard_M416ms_v2"
+        "vm_size":                "Standard_M832is_v16_v3"
       },
       "storage": [
         {
@@ -4200,12 +4200,87 @@
           "fullname":             "",
           "count":                1,
           "disk_type":            "PremiumV2_LRS",
-          "size_gb":              28400,
+          "size_gb":              19200,
           "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            0,
-          "disk_iops_read_write": 25000,
-          "disk_mbps_read_write": 1200
+          "disk_iops_read_write": 60000,
+          "disk_mbps_read_write": 4000
+        },
+        {
+          "name":                 "log",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              512,
+          "caching":              "None",
+          "write_accelerator":    false,
+          "lun_start":            3,
+          "disk_iops_read_write": 10000,
+          "disk_mbps_read_write": 600
+        },
+        {
+          "name":                 "shared",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              1024,
+          "caching":              "None",
+          "write_accelerator":    false,
+          "lun_start":            6,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
+        },
+        {
+          "name":                 "sap",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              128,
+          "caching":              "None",
+          "write_accelerator":    false,
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
+        },
+        {
+          "name":                 "backup",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              5096,
+          "caching":              "None",
+          "write_accelerator":    false,
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
+        }
+      ]
+    },
+    "M832ids_v16_v3": {
+      "compute": {
+        "vm_size":                "Standard_M832ids_v16_v3"
+      },
+      "storage": [
+        {
+          "name":                 "os",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "Premium_LRS",
+          "size_gb":              128,
+          "caching":              "ReadWrite"
+        },
+        {
+          "name":                 "data",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              15200,
+          "caching":              "None",
+          "write_accelerator":    false,
+          "lun_start":            0,
+          "disk_iops_read_write": 60000,
+          "disk_mbps_read_write": 4000
         },
         {
           "name":                 "log",
@@ -4292,6 +4367,156 @@
           "write_accelerator":    false,
           "lun_start":            3,
           "disk_iops_read_write": 9000,
+          "disk_mbps_read_write": 600
+        },
+        {
+          "name":                 "shared",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              1024,
+          "caching":              "None",
+          "write_accelerator":    false,
+          "lun_start":            6,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
+        },
+        {
+          "name":                 "sap",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              128,
+          "caching":              "None",
+          "write_accelerator":    false,
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
+        },
+        {
+          "name":                 "backup",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              5096,
+          "caching":              "None",
+          "write_accelerator":    false,
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
+        }
+      ]
+    },
+    "M896ixds_32_v31": {
+      "compute": {
+        "vm_size":                "Standard_M896ixds_32_v31"
+      },
+      "storage": [
+        {
+          "name":                 "os",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "Premium_LRS",
+          "size_gb":              128,
+          "caching":              "ReadWrite"
+        },
+        {
+          "name":                 "data",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              30400,
+          "caching":              "None",
+          "write_accelerator":    false,
+          "lun_start":            0,
+          "disk_iops_read_write": 80000,
+          "disk_mbps_read_write": 2000
+        },
+        {
+          "name":                 "log",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              512,
+          "caching":              "None",
+          "write_accelerator":    false,
+          "lun_start":            3,
+          "disk_iops_read_write": 10000,
+          "disk_mbps_read_write": 600
+        },
+        {
+          "name":                 "shared",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              1024,
+          "caching":              "None",
+          "write_accelerator":    false,
+          "lun_start":            6,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
+        },
+        {
+          "name":                 "sap",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              128,
+          "caching":              "None",
+          "write_accelerator":    false,
+          "lun_start":            14,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
+        },
+        {
+          "name":                 "backup",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              5096,
+          "caching":              "None",
+          "write_accelerator":    false,
+          "lun_start":            15,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 125
+        }
+      ]
+    },
+    "M1792ixds_32_v31": {
+      "compute": {
+        "vm_size":                "Standard_M1792ixds_32_v31"
+      },
+      "storage": [
+        {
+          "name":                 "os",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "Premium_LRS",
+          "size_gb":              128,
+          "caching":              "ReadWrite"
+        },
+        {
+          "name":                 "data",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              30400,
+          "caching":              "None",
+          "write_accelerator":    false,
+          "lun_start":            0,
+          "disk_iops_read_write": 80000,
+          "disk_mbps_read_write": 2000
+        },
+        {
+          "name":                 "log",
+          "fullname":             "",
+          "count":                1,
+          "disk_type":            "PremiumV2_LRS",
+          "size_gb":              512,
+          "caching":              "None",
+          "write_accelerator":    false,
+          "lun_start":            3,
+          "disk_iops_read_write": 10000,
           "disk_mbps_read_write": 600
         },
         {
