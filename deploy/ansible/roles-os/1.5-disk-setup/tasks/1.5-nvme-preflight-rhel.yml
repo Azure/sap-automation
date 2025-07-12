@@ -14,16 +14,20 @@
 # -------------------------------------+---------------------------------------8
 
 # RHEL version and distribution validation
-- name:                                "1.5.4 NVMe Support (RHEL) - Validate RHEL distribution and version"
+# While RHEL 8.6 is documented as the minimum version for NVMe support,
+# we have encountered issues directly configuring NVMe disk controller during
+# deployment. We will enforce a minimum of 8.8 to ensure compatibility with
+# Azure deployment.
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Validate RHEL distribution and version"
   ansible.builtin.assert:
     that:
       - ansible_distribution == 'RedHat'
-      - ansible_distribution_version is version('8.6', '>=')
-    fail_msg:                          "RHEL version must be 8.6 or higher for NVMe support. Current: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+      - ansible_distribution_version is version('8.8', '>=')
+    fail_msg:                          "RHEL version must be 8.8 or higher for NVMe support. Current: {{ ansible_distribution }} {{ ansible_distribution_version }}"
     success_msg:                       "RHEL version {{ ansible_distribution_version }} is supported for NVMe"
 
 # Set RHEL-specific facts
-- name:                                "1.5.4 NVMe Support (RHEL) - Set RHEL-specific facts"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Set RHEL-specific facts"
   ansible.builtin.set_fact:
     rhel_major_version:                "{{ ansible_distribution_major_version }}"
     azure_nvme_utils_supported:        "{{ ansible_distribution_version is version('9.0', '>=') }}"
@@ -31,45 +35,22 @@
     grub_cmdline_param:                "{{ 'GRUB_CMDLINE_LINUX_DEFAULT' if ansible_distribution | lower == 'oraclelinux' else 'GRUB_CMDLINE_LINUX' }}"
     nvme_timeout_params:               "nvme_core.io_timeout=240{{ ' nvme_core.admin_timeout=240' if nvme_include_admin_timeout | default(true) else '' }}"
 
-# Configure Azure NVME Utils repository and package for RHEL
-- name:                                "1.5.4 NVMe Support (RHEL) - Configure Azure NVME Utils repository"
+# Check existing repositories to avoid duplicates
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Get current repository information"
   when:                                azure_nvme_utils_supported
-  block:
-    - name:                            "1.5.4 NVMe Support (RHEL) - Add Azure NVME Utils repository"
-      ansible.builtin.yum_repository:
-        name:                          azure_nvme_utils
-        description:                   "Copr repo for azure-nvme-utils owned by cjp256"
-        baseurl:                       "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ rhel_major_version }}-x86_64/"
-        gpgcheck:                      true
-        gpgkey:                        "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/pubkey.gpg"
-        enabled:                       true
-        state:                         present
-      register:                        repo_added
+  community.general.zypper_repository_info: {}
+  register:                            existing_repos
+  failed_when:                         false
 
-    - name:                            "1.5.4 NVMe Support (RHEL) - Refresh repository cache"
-      become:                          true
-      become_user:                     root
-      when:                            repo_added.changed
-      ansible.builtin.dnf:
-        name:                          '*'
-        state:                         present
-        update_cache :                 true
-      changed_when:                    false
-
-    - name:                            "1.5.4 NVMe Support (RHEL) - Install Azure NVME Utils package"
-      ansible.builtin.package:
-        name:                          azure-nvme-utils
-        state:                         present
-      register:                        nvme_utils_installed
-
-    - name:                            "1.5.4 NVMe Support (RHEL) - Install Azure NVME cli package"
-      ansible.builtin.package:
-        name:                          nvme-cli
-        state:                         present
-      register:                        nvme_utils_installed
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Install Azure NVME Utils package"
+  when:                                not azure_nvme_utils_supported
+  ansible.builtin.package:
+    name:                              nvme-cli
+    state:                             present
+  register:                            nvme_utils_installed
 
 # Check if all required NVMe modules are loaded in initramfs
-- name:                                "1.5.4 NVMe Support (RHEL) - Check basic NVMe modules in initramfs"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Check basic NVMe modules in initramfs"
   ansible.builtin.shell: |
                                        set -o pipefail
                                        lsinitrd /boot/initramfs-$(uname -r).img | grep nvme
@@ -77,7 +58,7 @@
   failed_when:                         false
   changed_when:                        false
 
-- name:                                "1.5.4 NVMe Support (RHEL) - Check for all required NVMe modules in initramfs"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Check for all required NVMe modules in initramfs"
   ansible.builtin.shell: |
                                        set -o pipefail
                                        REQUIRED_MODULES="nvme nvme-core nvme-fabrics nvme-fc nvme-rdma nvme-loop nvmet nvmet-fc nvme-tcp"
@@ -104,19 +85,19 @@
   changed_when:                        false
 
 # Set RHEL-specific initramfs status facts
-- name:                                "1.5.4 NVMe Support (RHEL) - Set initramfs status facts"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Set initramfs status facts"
   ansible.builtin.set_fact:
     nvme_in_initramfs:                 "{{ initramfs_nvme_basic_check.rc == 0 }}"
     nvme_modules_complete:             "{{ nvme_module_complete_check.rc == 0 }}"
     missing_nvme_modules:              "{{ nvme_module_complete_check.stdout | trim if nvme_module_complete_check.rc != 0 else '' }}"
 
-- name:                                "1.5.4 NVMe Support (RHEL) - Display missing NVMe modules"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Display missing NVMe modules"
   when:                                not nvme_modules_complete
   ansible.builtin.debug:
-    msg:                               "Missing NVMe modules in RHEL initramfs: {{ missing_nvme_modules }}"
+    msg:                               "Missing NVMe modules in RHEL/OL initramfs: {{ missing_nvme_modules }}"
 
 # Configure dracut for NVMe support
-- name:                                "1.5.4 NVMe Support (RHEL) - Create dracut.conf.d directory"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Create dracut.conf.d directory"
   when:                                not nvme_modules_complete
   ansible.builtin.file:
     path:                              /etc/dracut.conf.d
@@ -125,7 +106,7 @@
     owner:                             root
     group:                             root
 
-- name:                                "1.5.4 NVMe Support (RHEL) - Add NVMe drivers to dracut configuration"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Add NVMe drivers to dracut configuration"
   ansible.builtin.copy:
     src:                               88-nvme-dracut.conf
     dest:                              /etc/dracut.conf.d/nvme.conf
