@@ -608,7 +608,7 @@ resource "azurerm_private_endpoint" "install" {
                                           var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.id : azurerm_subnet.app[0].id) : (
                                           ""
                                         )
-  tags                                 = var.tags
+
 
   private_service_connection {
                                name = format("%s%s%s",
