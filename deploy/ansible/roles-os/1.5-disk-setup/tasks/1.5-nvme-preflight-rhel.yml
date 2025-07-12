@@ -29,7 +29,7 @@
     azure_nvme_utils_supported:        "{{ ansible_distribution_version is version('9.0', '>=') }}"
     grub_config_file:                  "{{ '/boot/efi/EFI/redhat/grub.cfg' if is_uefi_system else '/boot/grub2/grub.cfg' }}"
     grub_cmdline_param:                "{{ 'GRUB_CMDLINE_LINUX_DEFAULT' if ansible_distribution | lower == 'oraclelinux' else 'GRUB_CMDLINE_LINUX' }}"
-    nvme_timeout_params:               "nvme_core.io_timeout=240 nvme_core.admin_timeout=240"
+    nvme_timeout_params:               "nvme_core.io_timeout=240{{ ' nvme_core.admin_timeout=240' if nvme_include_admin_timeout | default(true) else '' }}"
 
 # Configure Azure NVME Utils repository and package for RHEL
 - name:                                "1.5.4 NVMe Support (RHEL) - Configure Azure NVME Utils repository"
@@ -136,11 +136,20 @@
   register:                            dracut_conf_added
 
 # Configure GRUB with NVMe timeout parameters for RHEL
-- name:                                "1.5.4 NVMe Support (RHEL/OL) - Check for existing NVMe timeout configuration"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Check existing NVMe timeout configuration"
   ansible.builtin.shell: |
                                        set -o pipefail
                                        grep -q "nvme_core.io_timeout=240" /etc/default/grub /etc/grub.conf /boot/grub/grub.cfg /boot/grub2/grub.cfg 2>/dev/null
   register:                            nvme_timeout_check
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Check for admin timeout (if enabled)"
+  when:                                nvme_include_admin_timeout | default(true)
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       grep -q "nvme_core.admin_timeout=240" /etc/default/grub 2>/dev/null
+  register:                            nvme_admin_timeout_check
   changed_when:                        false
   failed_when:                         false
 
@@ -152,59 +161,94 @@
   changed_when:                        false
   failed_when:                         false
 
-- name:                                "1.5.4 NVMe Support (RHEL/OL) - Display current configuration status"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Display configuration status"
   ansible.builtin.debug:
     msg:
+      - "Distribution                  : {{ ansible_distribution }}"
       - "GRUB Parameter                : {{ grub_cmdline_param }}"
-      - "Current config                : {{ current_grub_config.stdout }}"
-      - "NVMe timeout configured       : {{ 'Yes' if nvme_timeout_check.rc == 0 else 'No' }}"
+      - "Current config                : {{ current_grub_config.stdout | truncate(100) }}..."
+      - "NVMe io_timeout present       : {{ 'Yes' if nvme_timeout_check.rc == 0 else 'No' }}"
+      - "NVMe admin_timeout present    : {{ 'Yes' if nvme_admin_timeout_check is defined and nvme_admin_timeout_check.rc == 0 else 'No' if nvme_include_admin_timeout | default(true) else 'Not checked' }}"
     verbosity:                         1
 
-- name:                                "1.5.4 NVMe Support (RHEL/OL) - Add NVMe timeout parameters to GRUB"
-  when:                                nvme_timeout_check.rc != 0
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Configure NVMe timeout parameters"
+  when:
+                                       - nvme_timeout_check.rc != 0 or
+                                         (nvme_include_admin_timeout | default(true) and (nvme_admin_timeout_check is not defined or nvme_admin_timeout_check.rc != 0))
   block:
+    # Handle case where we need to add admin_timeout to existing io_timeout line
+    - name:                            "1.5.4 NVMe Support (RHEL/OL) - Add admin timeout to existing configuration"
+      when:
+                                       - nvme_timeout_check.rc == 0
+                                       - nvme_include_admin_timeout | default(true)
+                                       - nvme_admin_timeout_check is defined
+                                       - nvme_admin_timeout_check.rc != 0
+      ansible.builtin.replace:
+        path:                          /etc/default/grub
+        regexp:                        '^({{ grub_cmdline_param }}=".*nvme_core\.io_timeout=240)([^"]*")$'
+        replace:                       '\1 nvme_core.admin_timeout=240\2'
+      register:                        grub_admin_added
+
     # Handle existing parameter line
-    - name:                            "1.5.4 NVMe Support (RHEL/OL) - Update existing GRUB cmdline parameter"
+    - name:                            "1.5.4 NVMe Support (RHEL/OL) - Update existing GRUB parameter line"
+      when:
+                                       - grub_cmdline_param in current_grub_config.stdout
+                                       - nvme_timeout_check.rc != 0
       ansible.builtin.replace:
         path:                          /etc/default/grub
         regexp:                        '^({{ grub_cmdline_param }}=")([^"]*)(")$'
         replace:                       '\1\2 {{ nvme_timeout_params }}\3'
       register:                        grub_updated_existing
-      when:                            grub_cmdline_param in current_grub_config.stdout
 
     # Handle missing parameter line
-    - name:                            "1.5.4 NVMe Support (RHEL/OL) - Add new GRUB cmdline parameter"
+    - name:                            "1.5.4 NVMe Support (RHEL/OL) - Add new GRUB parameter line"
+      when:
+                                       - grub_cmdline_param not in current_grub_config.stdout
+                                       - nvme_timeout_check.rc != 0
       ansible.builtin.lineinfile:
         path:                          /etc/default/grub
         line:                          '{{ grub_cmdline_param }}="{{ nvme_timeout_params }}"'
         state:                         present
       register:                        grub_updated_new
-      when:                            grub_cmdline_param not in current_grub_config.stdout
 
     - name:                            "1.5.4 NVMe Support (RHEL/OL) - Set update status"
       ansible.builtin.set_fact:
-        grub_updated:                  "{{ (grub_updated_existing.changed if grub_updated_existing is defined else false) or (grub_updated_new.changed if grub_updated_new is defined else false) }}"
+        grub_updated:                  "{{
+                                           (grub_admin_added.changed if grub_admin_added is defined else false) or
+                                           (grub_updated_existing.changed if grub_updated_existing is defined else false) or
+                                           (grub_updated_new.changed if grub_updated_new is defined else false)
+                                       }}"
 
-
-- name:                                "1.5.4 NVMe Support (RHEL) - Update GRUB configuration file"
-  when:                                grub_updated | default(false) | bool
-  ansible.builtin.command:             grub2-mkconfig -o {{ grub_config_file }}
+# Update GRUB configuration file
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Update GRUB configuration file"
+  when:                                grub_updated | default(false)
+  ansible.builtin.command:             grub2-mkconfig -o /boot/grub2/grub.cfg
   register:                            grub_config_updated
   changed_when:                        true
 
+# Simple verification
 - name:                                "1.5.4 NVMe Support (RHEL/OL) - Verify configuration"
-  when:                                grub_updated | default(false) | bool
+  when:                                grub_updated | default(false)
   ansible.builtin.shell: |
                                        set -o pipefail
-                                       grep -q "nvme_core.io_timeout=240" /etc/default/grub
+                                       if grep -q "nvme_core.io_timeout=240" /etc/default/grub; then
+                                         echo "SUCCESS: io_timeout configured"
+                                         if grep -q "nvme_core.admin_timeout=240" /etc/default/grub; then
+                                           echo "SUCCESS: admin_timeout also configured"
+                                         fi
+                                         exit 0
+                                       else
+                                         echo "ERROR: io_timeout verification failed"
+                                         exit 1
+                                       fi
   register:                            grub_verify
   changed_when:                        false
   failed_when:                         false
 
-- name:                                "1.5.4 NVMe Support (RHEL) - Report GRUB configuration status"
-  when:                                grub_updated | default(false) | bool
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Report GRUB status"
   ansible.builtin.debug:
-    msg:                               "{{ 'SUCCESS: NVMe timeout parameters configured' if grub_verify.rc == 0 else 'WARNING: Configuration may have failed' }}"
+    msg:                               "{{ grub_verify.stdout if grub_updated | default(false) else 'No GRUB changes needed - NVMe timeout already configured' }}"
+    verbosity:                         1
 
 # Rebuild initramfs if needed
 - name:                                "1.5.4 NVMe Support (RHEL) - Rebuild initramfs with dracut"

@@ -46,16 +46,18 @@
   ansible.builtin.set_fact:
     shareddisk:                        0
 
-# NVMe PRE-FLIGHT CHECK
+# NVMe CHECK
+# -------------------------------------+---------------------------------------8
 - name:                                "1.5 Disk setup: - NVMe Preflight Check - Debug hostvars"
-  ansible.builtin.debug:
-    msg:                               "hostvars[ansible_hostname]['use_nvme_disks']: {{ hostvars[ansible_hostname]['use_nvme_disks'] | default(false) }}"
   when:
-                                       - use_nvme_disks | default(false) | bool
+                                       - hostvars[ansible_hostname]['use_nvme_disks'] is defined
+                                       - hostvars[ansible_hostname]['use_nvme_disks'] | default(false) | bool
+  ansible.builtin.debug:
+    msg:
+      - "hostvars[ansible_hostname]['use_nvme_disks'] : {{ hostvars[ansible_hostname]['use_nvme_disks'] | default(false) }}"
   tags:
                                        - sapos-nvme-debug
 
-# -------------------------------------+---------------------------------------8
 - name:                                "1.5 Disk setup: - NVMe Preflight Check"
   when:
                                        - hostvars[ansible_hostname]['use_nvme_disks'] is defined
