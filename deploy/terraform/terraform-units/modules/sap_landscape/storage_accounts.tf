@@ -419,7 +419,6 @@ resource "azurerm_private_endpoint" "transport" {
                                             azurerm_subnet.app[0].id)) : (
                                           ""
                                         )
-  tags                                 = var.tags
   private_service_connection {
                                name = format("%s%s%s",
                                         var.naming.resource_prefixes.storage_private_svc_transport,
