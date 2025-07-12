@@ -348,7 +348,7 @@ else
 	fi
 fi
 
-deployer_statefile_foldername_path="${param_dirname}"
+deployer_statefile_foldername_path=$(dirname "${deployer_parameter_file}")
 if [ 0 != $return_value ]; then
 	unset TF_DATA_DIR
 	exit 10
@@ -433,7 +433,7 @@ export TF_use_spn=false
 
 print_banner "Remove Control Plane " "Running Terraform destroy (library)" "info"
 
-if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-file="${library_parameter_file}"  -var deployer_statefile_foldername="${deployer_statefile_foldername}" "${approve_parameter}"; then
+if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-file="${library_parameter_file}"  -var deployer_statefile_foldername="${deployer_statefile_foldername_path}" "${approve_parameter}"; then
 	return_value=$?
 	print_banner "Remove Control Plane " "Terraform destroy (library) succeeded" "success"
 else
