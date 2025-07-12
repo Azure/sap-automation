@@ -49,7 +49,7 @@ variables:
   - group:                             SDAF-${{ parameters.environment }}
 
   - name:                              run_on
-    value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['Agent'])]
+    value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['AGENT'])]
 
   - name:                              variable_group
     value:                             SDAF-${{ parameters.environment }}
@@ -76,7 +76,7 @@ variables:
     value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
   - name:                              this_agent
-    value:                             $[upper(coalesce(variables['POOL'], variables['Agent']))]
+    value:                             $[upper(coalesce(variables['POOL'], variables['AGENT']))]
 
   - name:                              connection_name
     value:                             ${{ parameters.connection_name }}

@@ -95,8 +95,6 @@ parameters:
     type:                              boolean
     default:                           false
 
-
-
 # 20220929 MKD - ACSS Registration <BEGIN>
   - name:                              acss_registration
     displayName:                       Register System in ACSS
@@ -146,6 +144,28 @@ stages:
             parameters:
               getLatestFromBranch: true
           - task:                      PostBuildCleanup@4
+          # - task:                      Bash@3
+          #   inputs:
+          #     targetType:              'inline'
+          #     failOnStderr:            false
+          #     script:
+          #                             sudo pipx uninstall ansible-core
+
+          #                             pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
+
+          #                             ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
+
+          #                             ansible --version
+
+          #   env:
+          #     ansible_core_version:    $(ansible_core_version)
+          #   name:                      AnsibleInstallation
+          #   displayName:               Ansible installation
+          # - task:                      TerraformInstaller@1
+          #   displayName:               Install Terraform
+          #   inputs:
+          #     terraformVersion:        latest
+
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -155,22 +175,23 @@ stages:
             name:                      Preparation
             displayName:               Preparation for Ansible
             env:
+              ANSIBLE_COLLECTIONS_PATH:      /opt/ansible/collections
+              ANSIBLE_HOST_KEY_CHECKING:     false
+              ARM_CLIENT_ID:                 $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:             $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:                 $(ARM_TENANT_ID)
+              ARM_USE_MSI:                   $(USE_MSI)
+              AZURE_DEVOPS_EXT_PAT:          $(System.AccessToken)
+              BOM_BASE_NAME:                 ${{ parameters.bom_base_name }}
+              CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+              EXTRA_PARAMETERS:              $(EXTRA_PARAMETERS)
+              KEYVAULT:                      $(KEYVAULT)
+              PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
+              SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
               SCRIPT_PATH:                   $${{ parameters.sap_automation_repo_path }}/deploy/pipelines/templates/*.sh
               SYSTEM_ACCESSTOKEN:            $(System.AccessToken)
-              AZURE_DEVOPS_EXT_PAT:          $(System.AccessToken)
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              AZURE_CLIENT_ID:               $(ARM_CLIENT_ID)
-              AZURE_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
-              AZURE_TENANT_ID:               $(ARM_TENANT_ID)
-              AZURE_SUBSCRIPTION_ID:         $(Terraform_Remote_Storage_Subscription)
-              ANSIBLE_COLLECTIONS_PATH:      /opt/ansible/collections
-              CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              BOM_BASE_NAME:                 ${{ parameters.bom_base_name }}
-              SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
-              EXTRA_PARAMETERS:              $(EXTRA_PARAMETERS)
-              PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
               USE_MSI:                       $(USE_MSI)
-              CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - template:                        templates\run-ansible.yaml
             parameters:
               displayName:                   "Parameter validation"

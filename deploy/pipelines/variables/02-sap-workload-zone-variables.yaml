@@ -119,7 +119,7 @@ variables:
     value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
   - name:                              this_agent
-    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+    value:                             $[lower(coalesce(variables['POOL'], variables['AGENT']))]
 
   - name:                              test
     value:                             ${{ parameters.test }}

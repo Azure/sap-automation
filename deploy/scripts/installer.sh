@@ -18,16 +18,24 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source
+# Detect version from environment variable
+caller_version="${SDAFWZ_CALLER_VERSION:-v2}"
+
+banner_title="Installer"
+
+if [[ "$caller_version" == "v1" ]]; then
+	isCallerV1=0
+	echo "INFO: Detected v1 caller via environment variable"
+else
+	isCallerV1=1
+	echo "INFO: Detected v2 caller via environment variable"
+fi
+
+#call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
-
-SCRIPT_NAME="$(basename "$0")"
-
-echo "Entering: ${SCRIPT_NAME}"
-
 
 function showhelp {
 	echo ""
@@ -107,6 +115,7 @@ while :; do
 	case "$1" in
 	-t | --type)
 		deployment_system="$2"
+		banner_title="Install $2"
 		shift 2
 		;;
 	-p | --parameterfile)
@@ -172,31 +181,19 @@ parameterfile_name=$(basename "${parameterfile}")
 param_dirname=$(dirname "${parameterfile}")
 
 if [ "${param_dirname}" != '.' ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#  $bold_red Please run this command from the folder containing the parameter file $reset_formatting              #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+	print_banner "Installer" "Please run this command from the folder containing the parameter file" "error"
 	exit 3
 fi
 
 if [ ! -f "${parameterfile}" ]; then
 	printf -v val %-35.35s "$parameterfile"
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                 $bold_red  Parameter file does not exist: ${val} $reset_formatting #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-
-	echo "Parameter file does not exist: ${val}" >"${system_config_information}".err
-
+	print_banner "Installer" "Parameter file does not exist: ${val}" "error"
 	exit 2 #No such file or directory
 fi
 
 if [ -z "${deployment_system}" ]; then
 	printf -v val %-40.40s "$deployment_system"
+
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
 	echo -e "#  $bold_red Incorrect system deployment type specified: ${val}$reset_formatting#"
@@ -249,6 +246,7 @@ key=$(echo "${parameterfile_name}" | cut -d. -f1)
 network_logical_name=""
 
 if [ "${deployment_system}" == sap_system ]; then
+	banner_title="Install SAP System Infrastructure"
 	load_config_vars "$parameterfile_name" "network_logical_name"
 	network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]")
 fi
@@ -257,7 +255,12 @@ fi
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
-system_config_information="${automation_config_directory}${environment}${region_code}${network_logical_name}"
+
+if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	system_config_information="${automation_config_directory}${environment}${region_code}"
+elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	system_config_information="${automation_config_directory}${environment}${region_code}${network_logical_name}"
+fi
 
 echo "Configuration file:                  $system_config_information"
 echo "Deployment region:                   $region"
@@ -308,6 +311,7 @@ else
 fi
 
 if [ "${deployment_system}" == sap_deployer ]; then
+	banner_title="Install Deployer"
 	deployer_tfstate_key=${key}.terraform.tfstate
 	ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
 	export ARM_SUBSCRIPTION_ID
@@ -317,25 +321,12 @@ if [[ -z $STATE_SUBSCRIPTION ]]; then
 fi
 
 if [[ -n $STATE_SUBSCRIPTION ]]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#       $cyan Changing the subscription to: $STATE_SUBSCRIPTION $reset_formatting            #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "Installer" "Changing the subscription to ${STATE_SUBSCRIPTION}" "info"
 	az account set --sub "${STATE_SUBSCRIPTION}"
 
 	return_code=$?
 	if [ 0 != $return_code ]; then
-
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#         $bold_red  The deployment account (MSI or SPN) does not have access to $reset_formatting                #"
-		echo -e "#                      $bold_red ${STATE_SUBSCRIPTION} $reset_formatting                           #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-
+		print_banner "Installer" "The deployment account (MSI or SPN) does not have access to ${STATE_SUBSCRIPTION}" "error"
 		echo "##vso[task.logissue type=error]The deployment account (MSI or SPN) does not have access to ${STATE_SUBSCRIPTION}"
 		exit $return_code
 	fi
@@ -362,6 +353,7 @@ else
 	echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 	TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
 	export TF_VAR_deployer_tfstate_key
+	save_config_var "deployer_tfstate_key" "${system_config_information}"
 fi
 
 export TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
@@ -373,15 +365,7 @@ if [ "${deployment_system}" != sap_deployer ]; then
 
 			save_config_var "deployer_tfstate_key" "${system_config_information}"
 		else
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                          $bold_red_underscore!Deployer state file name is missing!$reset_formatting                        #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
-
-			echo "Deployer terraform statefile name is missing" >"${system_config_information}".err
+			print_banner "Installer" "Deployer terraform statefile name is missing" "error"
 			unset TF_DATA_DIR
 			exit 2
 		fi
@@ -427,16 +411,7 @@ if [ "${deployment_system}" == sap_system ]; then
 			save_config_var "landscape_tfstate_key" "${system_config_information}"
 
 		else
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                     $bold_red Workload zone terraform statefile name is missing $reset_formatting               #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
-
-			echo "Workload zone terraform statefile name is missing"
-
+			print_banner "Installer" "Workload zone terraform statefile name is missing" "error"
 			unset TF_DATA_DIR
 			exit 2
 		fi
@@ -451,12 +426,7 @@ else
 		save_config_var "STATE_SUBSCRIPTION" "${system_config_information}"
 	else
 		printf -v val %-40.40s "$STATE_SUBSCRIPTION"
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "# The provided state_subscription is not valid:$bold_red ${val}$reset_formatting#"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo "The provided subscription for Terraform remote state is not valid:${val}" >"${system_config_information}".err
+		print_banner "Installer" "The provided state_subscription is not valid: ${val}" "error"
 		exit 65
 	fi
 
@@ -471,12 +441,7 @@ if [[ -n ${subscription} ]]; then
 		echo "Valid subscription format"
 	else
 		printf -v val %-40.40s "$subscription"
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#   The provided subscription is not valid:$bold_red ${val} $reset_formatting#   "
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo "The provided subscription is not valid:${val}" >"${system_config_information}".err
+		print_banner "Installer" "The provided subscription is not valid: ${val}" "error"
 		exit 65
 	fi
 	export ARM_SUBSCRIPTION_ID="${subscription}"
@@ -570,177 +535,119 @@ echo "State file:                          ${key}.terraform.tfstate"
 echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
 echo "Deployer state file:                 ${deployer_tfstate_key}"
 echo "Workload zone state file:            ${landscape_tfstate_key}"
-echo "Terraform state resource ID:         ${tfstate_resource_id}"
+echo "Terraform state resource id:         ${tfstate_resource_id}"
 echo "Current directory:                   $(pwd)"
 echo ""
 
 TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 export TF_VAR_subscription_id
 
+terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+
 check_output=0
 
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
-if [ $DEBUG == True ]; then
+if [ "$DEBUG" == True ]; then
 	printenv | grep ARM
 	printenv | grep TF_VAR
 fi
 
 new_deployment=0
 
-if [ ! -f .terraform/terraform.tfstate ]; then
-	echo ""
-	echo -e "${cyan}New deployment${reset_formatting}"
-	echo ""
-	deployment_parameter=" -var deployment=new "
-	check_output=0
+az account set --subscription "${terraform_storage_account_subscription_id}"
 
-	if terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
-		--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-		--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-		--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+if [ ! -f .terraform/terraform.tfstate ]; then
+	print_banner "$banner_title" "New deployment" "info"
+
+	if ! terraform -chdir="${terraform_module_directory}" init -upgrade  -input=false \
+		--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
+		--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
+		--backend-config "storage_account_name=${terraform_storage_account_name}" \
 		--backend-config "container_name=tfstate" \
 		--backend-config "key=${key}.terraform.tfstate"; then
 		return_value=$?
-		echo ""
-		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-		echo ""
+		print_banner "$banner_title" "Terraform init failed." "error"
+		exit $return_value
 	else
 		return_value=$?
-		echo ""
-		echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-		echo ""
-		exit $return_value
 	fi
 
 else
 	new_deployment=1
-	check_output=1
 
-	local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
-	if [ -n "$local_backend" ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                              ${cyan}Migrating the state to Azure${reset_formatting}                             #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+	if local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate); then
+		if [ -n "$local_backend" ]; then
+			print_banner "$banner_title" "Migrating the state to Azure" "info"
 
-		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
+			terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
 
-		if terraform -chdir="${terraform_module_directory}" init -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"; then
-			return_value=$?
-			echo ""
-			echo -e "${cyan}Terraform local init:                  succeeded$reset_formatting"
-			echo ""
-		else
-			return_value=$?
-			echo ""
-			echo -e "${bold_red}Terraform local init:                  failed$reset_formatting"
-			echo ""
-			exit $return_value
-
-			# terraform -chdir="${terraform_module_directory}" state list
+			if terraform -chdir="${terraform_module_directory}" init -migrate-state  -upgrade  --backend-config "path=${param_dirname}/terraform.tfstate"; then
+				return_value=$?
+				print_banner "$banner_title" "Terraform local init succeeded" "success"
+			else
+				return_value=10
+				print_banner "$banner_title" "Terraform local init failed" "error" "Terraform init return code: $return_value"
+				exit $return_value
+			fi
 		fi
 
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 
-		if terraform -chdir="${terraform_module_directory}" init -force-copy \
-			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+		if terraform -chdir="${terraform_module_directory}" init -force-copy -upgrade  -migrate-state \
+			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
+			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
+			--backend-config "storage_account_name=${terraform_storage_account_name}" \
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
 			return_value=$?
-			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-			echo ""
+			print_banner "$banner_title" "Terraform init succeeded." "success"
 
-			allParameters=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}" "${deployer_parameter}")
-
-			# terraform -chdir="${terraform_module_directory}" state list
+			allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 		else
-			return_value=$?
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
+			return_value=10
+			print_banner "$banner_title" "Terraform init failed" "error" "Terraform init return code: $return_value"
 			exit $return_value
 		fi
-
 	else
 		echo "Terraform state:                     remote"
+		print_banner "$banner_title" "The system has already been deployed and the state file is in Azure" "info"
 
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#            $cyan The system has already been deployed and the statefile is in Azure $reset_formatting       #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-
-		check_output=1
-		if  terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade=true \
-			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+		if terraform -chdir="${terraform_module_directory}" init  -upgrade -force-copy -migrate-state \
+			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
+			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
+			--backend-config "storage_account_name=${terraform_storage_account_name}" \
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
 			return_value=$?
-			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-			echo ""
+			print_banner "$banner_title" "Terraform init succeeded." "success"
 		else
-			return_value=$?
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
+			return_value=10
+			print_banner "$banner_title" "Terraform init failed." "error" "Terraform init return code: $return_value"
 			exit $return_value
 		fi
 	fi
 fi
 
-if [ 1 -eq "$check_output" ]; then
+if [ 1 -eq "$new_deployment" ]; then
 	if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                                 $cyan  New deployment $reset_formatting                                      #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-
+		print_banner "$banner_title" "New deployment" "info"
 		deployment_parameter=" -var deployment=new "
 		new_deployment=0
-		check_output=0
-
 	else
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $cyan Existing deployment was detected$reset_formatting                            #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-
+		print_banner "$banner_title" "Existing deployment was detected" "info"
 		deployment_parameter=""
 		new_deployment=0
-		check_output=true
 	fi
 fi
 
 if [ 1 -eq $new_deployment ]; then
-	deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \" || true)
+	deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version | tr -d \")
 	if [ -z "${deployed_using_version}" ]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#   $bold_red The environment was deployed using an older version of the Terraform templates$reset_formatting     #"
-		echo "#                                                                                       #"
-		echo "#                               !!! Risk for Data loss !!!                              #"
-		echo "#                                                                                       #"
-		echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
+		print_banner "$banner_title" "The environment was deployed using an older version of the Terraform templates" "error" "Please inspect the output of Terraform plan carefully!"
 
 		if [ 1 == $called_from_ado ]; then
 			unset TF_DATA_DIR
@@ -755,158 +662,41 @@ if [ 1 -eq $new_deployment ]; then
 	else
 		version_parameter="-var terraform_template_version=${deployed_using_version}"
 
-		printf -v val %-.20s "$deployed_using_version"
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#              $cyan Deployed using the Terraform templates version: $val $reset_formatting               #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		version_compare "${deployed_using_version}" "3.13.2.0"
-		older_version=$?
-		if [ 2 == $older_version ]; then
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#           $bold_red  Deployed using an older version $reset_formatting                                          #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
-			echo "##vso[task.logissue type=warning]Deployed using an older version ${deployed_using_version}. Performing state management operations"
+		print_banner "$banner_title" "Deployed using the Terraform templates version: $deployed_using_version" "info"
 
-			# Remediating the Storage Accounts and File Shares
-			if [ "${deployment_system}" == sap_library ]; then
-				moduleID='module.sap_library.azurerm_storage_account.storage_sapbits[0]'
-				storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name)
-				storage_account_rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name)
-				STORAGE_ACCOUNT_ID=$(az storage account show --name "${storage_account_name}" --resource-group "${storage_account_rg_name}" --query "id" --output tsv)
-				export STORAGE_ACCOUNT_ID
-
-				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
-
-				resourceGroupName=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "resourceGroup" --output tsv)
-				resourceType=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "type" --output tsv)
-				resourceName=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "name" --output tsv)
-
-				az resource lock create --lock-type CanNotDelete -n "SAP Media account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
-				unset STORAGE_ACCOUNT_ID
-
-				moduleID='module.sap_library.azurerm_storage_container.storagecontainer_sapbits[0]'
-				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
-
-				moduleID='module.sap_library.azurerm_storage_account.storage_tfstate[0]'
-
-				STORAGE_ACCOUNT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id)
-				export STORAGE_ACCOUNT_ID
-
-				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "providers/Microsoft.Storage/storageAccounts"
-
-				resourceGroupName=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "resourceGroup" --output tsv)
-				resourceType=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "type" --output tsv)
-				resourceName=$(az resource show --ids "${STORAGE_ACCOUNT_ID}" --query "name" --output tsv)
-				az resource lock create --lock-type CanNotDelete -n "Terraform state account delete lock" --resource-group "${resourceGroupName}" --resource "${resourceName}" --resource-type "${resourceType}" --output none
-				unset STORAGE_ACCOUNT_ID
-
-				moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfstate[0]'
-				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
-
-				moduleID='module.sap_library.azurerm_storage_container.storagecontainer_tfvars[0]'
-				ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "resource_manager_id"
-
-			fi
-
-			if [ "${deployment_system}" == sap_deployer ]; then
-
-				moduleID='module.sap_deployer.azurerm_storage_account.deployer[0]'
-				if terraform -chdir="${terraform_module_directory}" state rm ${moduleID}; then
-					echo "Removed the diagnostics storage account state object"
-				fi
-			fi
-
-			if [ "${deployment_system}" == sap_system ]; then
-
-				moduleID='module.common_infrastructure.azurerm_storage_account.sapmnt[0]'
-				if terraform -chdir="${terraform_module_directory}" state rm ${moduleID}; then
-					echo "Removed the transport private DNS record"
-				fi
-
-				moduleID='module.common_infrastructure.azurerm_storage_share.sapmnt[0]'
-				if terraform -chdir="${terraform_module_directory}" state rm ${moduleID}; then
-					echo "Removed the transport private DNS record"
-				fi
-
-				moduleID='module.hdb_node.azurerm_storage_account.hanashared[0]'
-				if terraform -chdir="${terraform_module_directory}" state rm ${moduleID}; then
-					echo "Removed the transport private DNS record"
-				fi
-				moduleID='module.hdb_node.azurerm_storage_share.hanashared[0]'
-				if terraform -chdir="${terraform_module_directory}" state rm ${moduleID}; then
-					echo "Removed the transport private DNS record"
-				fi
-
-				moduleID='module.hdb_node.azurerm_storage_account.hanashared[1]'
-				if terraform -chdir="${terraform_module_directory}" state rm ${moduleID}; then
-					echo "Removed the transport private DNS record"
-				fi
-				moduleID='module.hdb_node.azurerm_storage_share.hanashared[1]'
-				if terraform -chdir="${terraform_module_directory}" state rm ${moduleID}; then
-					echo "Removed the transport private DNS record"
-				fi
-
-			fi
-
-		fi
 	fi
 fi
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo -e "#                            $cyan Running Terraform plan $reset_formatting                                   #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+print_banner "$banner_title" "Running Terraform Plan" "cyan"
 
 if [ -f plan_output.log ]; then
 	rm plan_output.log
 fi
 
-allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
+# Default to use MSI
+credentialVariable=" -var use_spn=false "
+if checkforEnvVar TF_VAR_use_spn; then
+	use_spn=$(echo $TF_VAR_use_spn | tr "[:upper:]" "[:lower:]")
+	if [ "$use_spn" == "true" ]; then
+		credentialVariable=" -var use_spn=true "
+	fi
+fi
 
-# shellcheck disable=SC2086
+allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}")
+apply_needed=0
+
 if terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee plan_output.log; then
 	return_value=${PIPESTATUS[0]}
+	print_banner "$banner_title" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
 else
 	return_value=${PIPESTATUS[0]}
-fi
-echo "Terraform Plan return code:          $return_value"
-
-if [ $return_value -eq 1 ]; then
-	echo ""
-	echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	if [[ $DEBUG == True ]]; then
-		printenv | grep ARM
-		printenv | grep TF_VAR
+	if [ 1 -eq $return_value ]; then
+		print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
+		exit $return_value
 	fi
-	exit $return_value
-else
-	return_value=$?
-
-	echo ""
-	echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
-	echo ""
+	apply_needed=1
 
 fi
-
-apply_needed=1
 
 state_path="SYSTEM"
 if [ 1 != $return_value ]; then
@@ -974,6 +764,11 @@ if [ 1 != $return_value ]; then
 	fi
 
 	if [ "${deployment_system}" == sap_library ]; then
+		if [ -z "${REMOTE_STATE_SA}" ]; then
+			print_banner "$banner_title" "The SAP Library storage account is not defined" "error"
+			echo "##vso[task.logissue type=error]The SAP Library storage account is not defined"
+			exit 1
+		fi
 		state_path="LIBRARY"
 		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 			tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id | tr -d \")
@@ -1121,29 +916,11 @@ if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.web" "
 	fatal_errors=1
 fi
 
-echo "TEST_ONLY:  $TEST_ONLY"
 if [ "${TEST_ONLY}" == "True" ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                                 $cyan Running plan only. $reset_formatting                                  #"
-	echo "#                                                                                       #"
-	echo "#                                  No deployment performed.                             #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 
 	if [ $fatal_errors == 1 ]; then
-		apply_needed=0
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                               $bold_red_underscore!!! Risk for Data loss !!!$reset_formatting                              #"
-		echo "#                                                                                       #"
-		echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+		print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
 		exit 10
 	fi
 	exit 0
@@ -1151,15 +928,7 @@ fi
 
 if [ $fatal_errors == 1 ]; then
 	apply_needed=0
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                               $bold_red_underscore!!! Risk for Data loss !!!$reset_formatting                              #"
-	echo "#                                                                                       #"
-	echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
 	if [ 1 == "$called_from_ado" ]; then
 		unset TF_DATA_DIR
 		echo "Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer" >"${system_config_information}".err
@@ -1191,20 +960,17 @@ if [ 1 == $apply_needed ]; then
 		rm plan_output.log
 	fi
 
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                            $cyan Running Terraform apply $reset_formatting                                  #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "$banner_title" "Running Terraform apply" "info"
 
-	allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${approve}")
-	allImportParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}")
+	allParameters=$(printf " -var-file=%s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}" "${approve} ")
+	allImportParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}")
+	if [ -f apply_output.json ]; then
+		rm apply_output.json
+	fi
 
 	if [ -n "${approve}" ]; then
 		# shellcheck disable=SC2086
-		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee apply_output.json; then
+		if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee apply_output.json; then
 			return_value=${PIPESTATUS[0]}
 		else
 			return_value=${PIPESTATUS[0]}
@@ -1212,77 +978,93 @@ if [ 1 == $apply_needed ]; then
 
 	else
 		# shellcheck disable=SC2086
-		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters | tee apply_output.json; then
-			return_value=${PIPESTATUS[0]}
+		if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
+			return_value=$?
 		else
-			return_value=${PIPESTATUS[0]}
+			return_value=$?
 		fi
 	fi
 
 	if [ $return_value -eq 1 ]; then
-		echo ""
-		echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-		echo ""
+		print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
 	elif [ $return_value -eq 2 ]; then
 		# return code 2 is ok
-		echo ""
-		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-		echo ""
+		print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
+		if [ -f apply_output.json ]; then
+			rm apply_output.json
+		fi
 		return_value=0
 	else
-		echo ""
-		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-		echo ""
+		print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
+		if [ -f apply_output.json ]; then
+			rm apply_output.json
+		fi
 		return_value=0
 	fi
 
 	if [ -f apply_output.json ]; then
+
 		errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 		if [[ -n $errors_occurred ]]; then
-			return_value=10
 			if [ -n "${approve}" ]; then
-				echo -e "${cyan}Retrying Terraform apply:$reset_formatting"
 
 				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 					return_value=$?
+				else
+					return_value=$?
+					print_banner "$banner_title" "First retry failed" "success" "ImportAndReRunApply return code: $return_value"
 				fi
 
 				sleep 10
-				echo -e "${cyan}Retrying Terraform apply:$reset_formatting"
 
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 						return_value=$?
+					else
+						return_value=$?
+						print_banner "$banner_title" "Second retry failed" "success" "ImportAndReRunApply return code: $return_value"
 					fi
 				fi
 
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 						return_value=$?
+					else
+						return_value=$?
+						print_banner "$banner_title" "Third retry failed" "success" "ImportAndReRunApply return code: $return_value"
 					fi
 
 				fi
 
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 						return_value=$?
+					else
+						return_value=$?
+						print_banner "$banner_title" "Fourth retry failed" "success" "ImportAndReRunApply return code: $return_value"
 					fi
 				fi
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 						return_value=$?
+					else
+						return_value=$?
+						print_banner "$banner_title" "Fifth retry failed" "success" "ImportAndReRunApply return code: $return_value"
 					fi
 				fi
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 						return_value=$?
+					else
+						return_value=$?
+						print_banner "$banner_title" "Sixth retry failed" "success" "ImportAndReRunApply return code: $return_value"
 					fi
 				fi
 			else
@@ -1297,13 +1079,7 @@ if [ -f apply_output.json ]; then
 fi
 
 if [ 1 == $return_value ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                       $bold_red_underscore!!! Errors during the apply phase !!!$reset_formatting                           #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "$banner_title" "Errors during the apply phase" "error"
 	unset TF_DATA_DIR
 	exit $return_value
 fi
@@ -1331,132 +1107,43 @@ if [ "${deployment_system}" == sap_deployer ]; then
 
 	fi
 
+	# shellcheck disable=SC2034
 	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
-	keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+	save_config_var "deployer_public_ip_address" "${system_config_information}"
 
-	created_resource_group_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
-	echo ""
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	echo ""
-
-	full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-	script_directory="$(dirname "${full_script_path}")"
-	az deployment group create --resource-group "${created_resource_group_name}" --name "ControlPlane_Deployer_${created_resource_group_name}" \
-		--template-file "${script_directory}/templates/empty-deployment.json" --output none
-	return_value=0
-	if [ 1 == $called_from_ado ]; then
-
-		if [ -n "${deployer_random_id}" ]; then
-			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_RANDOM_ID.value")
-			if [ -z "${az_var}" ]; then
-				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_RANDOM_ID --value "${deployer_random_id}" --output none --only-show-errors
-			else
-				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_RANDOM_ID --value "${deployer_random_id}" --output none --only-show-errors
-			fi
-		fi
-
-		if [ -n "${created_resource_group_name}" ]; then
-			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_RESOURCE_GROUP.value")
-			if [ -z "${az_var}" ]; then
-				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_RESOURCE_GROUP --value "$created_resource_group_name" --output none --only-show-errors
-			else
-				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_RESOURCE_GROUP --value "$created_resource_group_name" --output none --only-show-errors
-			fi
-		fi
-
-		if [[ "${TF_VAR_use_webapp}" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
-			webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
-			if [ -n "${webapp_url_base}" ]; then
-				az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_URL_BASE.value")
-				if [ -z "${az_var}" ]; then
-					az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
-				else
-					az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
-				fi
-			fi
-
-			webapp_identity=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_identity | tr -d \")
-			if [ -n "${webapp_identity}" ]; then
-				az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_IDENTITY.value")
-				if [ -z "${az_var}" ]; then
-					az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_IDENTITY --value "$webapp_identity" --output none --only-show-errors
-				else
-					az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_IDENTITY --value "$webapp_identity" --output none --only-show-errors
-				fi
-			fi
-
-			webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
-			if [ -n "${webapp_id}" ]; then
-				az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_ID.value")
-				if [ -z "${az_var}" ]; then
-					az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
-				else
-					az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
-				fi
-			fi
+	if (terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \"); then
+		keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+		if valid_kv_name "$keyvault"; then
+			save_config_var "keyvault" "${system_config_information}"
+		else
+			printf -v val %-40.40s "$keyvault"
+			echo "#########################################################################################"
+			echo "#                                                                                       #"
+			echo -e "#       The provided keyvault is not valid:$bold_red ${val} $reset_formatting  #"
+			echo "#                                                                                       #"
+			echo "#########################################################################################"
+			echo "The provided keyvault is not valid " "${val}" >secret.err
 		fi
 	fi
-
-fi
-
-if valid_kv_name "$keyvault"; then
-	save_config_var "keyvault" "${system_config_information}"
-else
-	printf -v val %-40.40s "$keyvault"
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#       The provided keyvault is not valid:$bold_red ${val} $reset_formatting  #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo "The provided keyvault is not valid " "${val}" >secret.err
-fi
-
-save_config_var "deployer_public_ip_address" "${system_config_information}"
-
-if [ "${deployment_system}" == sap_system ]; then
-
-	rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
-
-	echo ""
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	echo ""
-	full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-	script_directory="$(dirname "${full_script_path}")"
-	az deployment group create --resource-group "${rg_name}" --name "SAP_${rg_name}" --subscription "$ARM_SUBSCRIPTION_ID" \
-		--template-file "${script_directory}/templates/empty-deployment.json" --output none
-
 fi
 
 if [ "${deployment_system}" == sap_landscape ]; then
-	save_config_vars "${system_config_information}" \
-		landscape_tfstate_key
 
-	rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
-	echo ""
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	echo ""
-	full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-	script_directory="$(dirname "${full_script_path}")"
-	az deployment group create --resource-group "${rg_name}" --name "SAP-WORKLOAD-ZONE_${rg_name}" --subscription "$ARM_SUBSCRIPTION_ID" \
-		--template-file "${script_directory}/templates/empty-deployment.json" --output none
+	if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+		workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
+		if [ -n "${workloadkeyvault}" ]; then
+			save_config_var "workloadkeyvault" "${system_config_information}"
+		fi
+		workload_zone_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+		if [ -n "${workload_zone_random_id}" ]; then
+			save_config_var "workload_zone_random_id" "${system_config_information}"
+			custom_random_id="${workload_zone_random_id:0:3}"
+			sed -i -e /"custom_random_id"/d "${parameterfile}"
+			printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+
+		fi
+	fi
+
 fi
 
 if [ "${deployment_system}" == sap_library ]; then
@@ -1471,43 +1158,8 @@ if [ "${deployment_system}" == sap_library ]; then
 		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
 	fi
-	if [ 1 == $called_from_ado ]; then
-
-		if [ -n "${sapbits_storage_account_name}" ]; then
-			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "INSTALLATION_MEDIA_ACCOUNT.value")
-			if [ -z "${az_var}" ]; then
-				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "${sapbits_storage_account_name}" --output none --only-show-errors
-			else
-				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "${sapbits_storage_account_name}" --output none --only-show-errors
-			fi
-		fi
-		if [ -n "${library_random_id}" ]; then
-			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "LIBRARY_RANDOM_ID.value")
-			if [ -z "${az_var}" ]; then
-				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID --value "${library_random_id}" --output none --only-show-errors
-			else
-				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID --value "${library_random_id}" --output none --only-show-errors
-			fi
-		fi
-
-	fi
 
 	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
-	rg_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
-
-	echo ""
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                        $cyan  Capturing telemetry  $reset_formatting                                        #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	echo ""
-
-	full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-	script_directory="$(dirname "${full_script_path}")"
-	az deployment group create --resource-group "${rg_name}" --name "SAP-LIBRARY_${rg_name}" --template-file "${script_directory}/templates/empty-deployment.json" --output none
 
 fi
 
@@ -1586,6 +1238,4 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-echo "Exiting: ${SCRIPT_NAME}"
 exit $return_value
-

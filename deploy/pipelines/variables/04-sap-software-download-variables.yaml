@@ -35,7 +35,7 @@ variables:
     value:                             $[not( ${{ parameters.re_download }} )]
 
   - name:                              this_agent
-    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+    value:                             $[lower(coalesce(variables['POOL'], variables['AGENT']))]
 
   - name:                              key_vault
     value:                             $[variables['Deployer_Key_Vault']]

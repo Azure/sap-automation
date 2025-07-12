@@ -12,7 +12,7 @@
 #
 # As part of doing so it will:
 #
-#   * Installs the specifed version of terraform so that it
+#   * Installs the specified version of terraform so that it
 #     is available for all users.
 #
 #   * Installs the Azure CLI using the provided installer

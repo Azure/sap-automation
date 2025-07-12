@@ -29,7 +29,7 @@ parameters:
 trigger:                               none
 
 pool:
-  name:                                $[coalesce(variables['POOL'], variables['Agent'])]
+  name:                                $[coalesce(variables['POOL'], variables['AGENT'])]
 
 variables:
   - group:                             "SDAF-General"
@@ -40,7 +40,7 @@ variables:
     value:                             ${{ parameters.deployer_environment_parameter }}
 
   - name:                              this_agent
-    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
+    value:                             $[lower(coalesce(variables['POOL'], variables['AGENT']))]
 
   - name:                              storage_account_name
     value:                             ${{ parameters.storage_account_name }}

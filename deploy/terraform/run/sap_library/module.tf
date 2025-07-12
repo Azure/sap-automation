@@ -27,7 +27,6 @@ module "sap_library" {
   use_custom_dns_a_registration     = var.use_custom_dns_a_registration
   use_private_endpoint              = var.use_private_endpoint
   dns_settings                      = local.dns_settings
-  service_principal                 = local.account
 
 }
 

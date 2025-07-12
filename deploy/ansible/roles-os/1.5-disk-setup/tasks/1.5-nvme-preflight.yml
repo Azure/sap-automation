@@ -48,10 +48,11 @@
       register:                        active_mounts_count
       changed_when:                    false
 
+    # for now nvme_force_preparation is set to true by default
     - name:                            "1.5.4 NVMe Support - Validate system state for conversion"
       ansible.builtin.assert:
         that:
-          - current_nvme_usage.stdout == "nvme_absent" or nvme_force_preparation | default(false)
+          - existing_nvme_config.stdout == "not_configured" or nvme_force_preparation | default(false)
           - active_mounts_count.stdout | int > 0
         fail_msg: |
                                        System validation failed:
@@ -78,6 +79,9 @@
         verbosity:                     1
 
 # Set global facts and perform initial validations
+# based on https://learn.microsoft.com/en-in/azure/virtual-machines/enable-nvme-interface#supported-linux-os-images
+# while it is documented that RHEL 8.6 is supported, it has not been tested
+# and may not work as expected. This is a known issue.
 - name:                                "1.5.4 NVMe Support - Set global distribution facts"
   ansible.builtin.set_fact:
     is_redhat:                         "{{ ansible_os_family | upper == 'REDHAT' and ansible_distribution_version is version('8.6', '>=') }}"
@@ -201,8 +205,8 @@
     msg:                               "Warning: Failed to convert device {{ item.item }} to UUID. Manual intervention may be required."
   loop:                                "{{ (fstab_sd_updated.results | default([])) + (fstab_azure_updated.results | default([])) }}"
   when:
-    - item.failed is defined
-    - item.failed
+                                       - item.failed is defined
+                                       - item.failed
   loop_control:
     label:                             "{{ item.item }}"
 
@@ -219,6 +223,16 @@
     msg:                               "Warning: fstab still contains device paths that should be converted to UUIDs: {{ fstab_verify.stdout_lines }}"
   when:                                fstab_verify.stdout != ''
 
+# DEBUG: Show status of checks made
+- name:                                "1.5.4 NVMe Support - Debug NVMe actual changes made check"
+  ansible.builtin.debug:
+    msg:
+      - "Dracut configuration added    : {{ dracut_conf_added is defined and dracut_conf_added.changed }}"
+      - "NVMe utils installed          : {{ nvme_utils_installed is defined and nvme_utils_installed.changed }}"
+      - "Udev rules added              : {{ udev_rules_added is defined and udev_rules_added.changed }}"
+      - "GRUB updated                  : {{ grub_updated | default(false) | bool }}"
+      - "Initramfs rebuilt             : {{ initramfs_rebuilt is defined and initramfs_rebuilt.changed }}"
+
 # Conditional reboot based on actual changes made
 - name:                                "1.5.4 NVMe Support - Determine if reboot is required"
   ansible.builtin.set_fact:
@@ -226,9 +240,20 @@
                                          (dracut_conf_added is defined and dracut_conf_added.changed) or
                                          (nvme_utils_installed is defined and nvme_utils_installed.changed) or
                                          (udev_rules_added is defined and udev_rules_added.changed) or
-                                         (grub_updated is defined and grub_updated.changed) or
+                                         (grub_updated | default(false) | bool) or
                                          (initramfs_rebuilt is defined and initramfs_rebuilt.changed)
                                        }}"
+
+- name:                                "1.5.4 NVMe Support - Debug reboot requirement before status"
+  ansible.builtin.debug:
+    msg:                               "Reboot required after NVMe configuration changes: {{ nvme_reboot_required | default(false) | bool }}"
+
+# - name:                                "1.5.4 NVMe Support - Verify nvme_reboot_required value"
+#   ansible.builtin.debug:
+#     msg:
+#       - "nvme_reboot_required value    : {{ nvme_reboot_required }}"
+#       - "nvme_reboot_required type     : {{ nvme_reboot_required | type_debug }}"
+#       - "Boolean evaluation            : {{ nvme_reboot_required | bool }}"
 
 - name:                                "1.5.4 NVMe Support - Reboot the system to apply changes"
   when:                                nvme_reboot_required | default(false) | bool
@@ -257,7 +282,7 @@
       - Azure NVMe Utils Package: {{ 'Installed' if nvme_utils_installed is defined and nvme_utils_installed.changed else 'Already Installed or Not Required' }}
       - Dracut Configuration: {{ 'Added' if dracut_conf_added is defined and dracut_conf_added.changed else 'Already Configured' }}
       - Initramfs Rebuild: {{ 'Performed' if initramfs_rebuilt is defined and initramfs_rebuilt.changed else 'Not Required' }}
-      - GRUB Configuration: {{ 'Updated' if grub_updated is defined and grub_updated.changed else 'Already Configured or Not Required' }}
+      - GRUB Configuration: {{ 'Updated' if grub_updated is defined and (grub_updated | default(false) | bool) else 'Already Configured or Not Required' }}
       - Udev Rules: {{ 'Installed' if udev_rules_added is defined and udev_rules_added.changed else 'Already Installed' }}
       - FSTAB UUID Conversion: {{ 'Performed' if (fstab_sd_updated is defined and fstab_sd_updated.changed) or (fstab_azure_updated is defined and fstab_azure_updated.changed) else 'Not Required' }}
       - System Reboot: {{ 'Performed' if system_rebooted is defined and system_rebooted.changed else 'Not Required' }}

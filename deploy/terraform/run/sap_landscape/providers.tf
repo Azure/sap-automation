@@ -17,9 +17,8 @@
 
 provider "azurerm"                     {
                                          features {}
-                                         subscription_id            = coalesce(var.management_subscription,var.subscription_id, local.deployer_subscription_id)
+                                         subscription_id            = coalesce(var.management_subscription_id,var.subscription_id, local.deployer_subscription_id)
                                          use_msi                    = true
-
                                          storage_use_azuread        = true
                                        }
 
@@ -30,9 +29,9 @@ provider "azurerm"                     {
                                                                    }
                                                     key_vault      {
                                                                       purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
-                                                                      purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
-                                                                      purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
-                                                                      purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
+                                                                      purge_soft_deleted_keys_on_destroy         = false
+                                                                      purge_soft_deleted_secrets_on_destroy      = false
+                                                                      purge_soft_deleted_certificates_on_destroy = false
                                                                    }
                                                     storage        {
                                                                         data_plane_available = var.data_plane_available
@@ -40,9 +39,9 @@ provider "azurerm"                     {
 
                                                   }
                                          subscription_id            = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value
-                                         client_id                  = var.use_spn ? local.spn.client_id : null
-                                         client_secret              = var.use_spn ? local.spn.client_secret : null
-                                         tenant_id                  = var.use_spn ? local.spn.tenant_id : null
+                                         client_id                  = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value: null
+                                         client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.client_secret[0].value: null
+                                         tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value: null
                                          use_msi                    = var.use_spn ? false : true
                                          storage_use_azuread        = true
 
@@ -53,53 +52,61 @@ provider "azurerm"                     {
 
 provider "azurerm"                     {
                                          features {}
+                                         alias                      = "deployer"
+                                         subscription_id            = coalesce(var.management_dns_subscription_id, local.SAPLibrary_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "", local.SAPLibrary_subscription_id)
+                                         client_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_client_id[0].value : null
+                                         client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.cp_client_secret[0].value : null
+                                         tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_tenant_id[0].value: null
+                                         use_msi                    = var.use_spn ? false : true
+                                         storage_use_azuread        = true
+                                       }
+
+
+provider "azurerm"                     {
+                                         features {}
                                          alias                      = "dnsmanagement"
-                                         subscription_id            = coalesce(var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
-                                         client_id                  = var.use_spn ? local.cp_spn.client_id : null
-                                         client_secret              = var.use_spn ? local.cp_spn.client_secret : null
-                                         tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
+                                         subscription_id            = coalesce(var.management_dns_subscription_id, local.SAPLibrary_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
+                                         client_id                  = var.use_spn ? coalesce(data.azurerm_key_vault_secret.cp_client_id[0].value, data.azurerm_key_vault_secret.client_id[0].value): null
+                                         client_secret              = var.use_spn ? coalesce(ephemeral.azurerm_key_vault_secret.cp_client_secret[0].value, ephemeral.azurerm_key_vault_secret.client_secret[0].value): null
+                                         tenant_id                  = var.use_spn ? coalesce(data.azurerm_key_vault_secret.cp_tenant_id[0].value, data.azurerm_key_vault_secret.tenant_id[0].value): null
                                          use_msi                    = var.use_spn ? false : true
                                          storage_use_azuread        = true
                                        }
 
 provider "azurerm"                     {
                                          features {}
-                                         alias                           = "privatelinkdnsmanagement"
-                                         subscription_id                 = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
-                                         client_id                       = var.use_spn ? local.cp_spn.client_id : null
-                                         client_secret                   = var.use_spn ? local.cp_spn.client_secret : null
-                                         tenant_id                       = var.use_spn ? local.cp_spn.tenant_id : null
-                                         use_msi                         = var.use_spn ? false : true
-                                         storage_use_azuread             = true
-                                         resource_provider_registrations = "none"
+                                         alias                      = "privatelinkdnsmanagement"
+                                         subscription_id            = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.SAPLibrary_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
+                                         client_id                  = var.use_spn ? coalesce(data.azurerm_key_vault_secret.cp_client_id[0].value, data.azurerm_key_vault_secret.client_id[0].value) : null
+                                         client_secret              = var.use_spn ? coalesce(ephemeral.azurerm_key_vault_secret.cp_client_secret[0].value, ephemeral.azurerm_key_vault_secret.client_secret[0].value): null
+                                         tenant_id                  = var.use_spn ? coalesce(data.azurerm_key_vault_secret.cp_tenant_id[0].value, data.azurerm_key_vault_secret.tenant_id[0].value): null
+                                         use_msi                    = var.use_spn ? false : true
+                                         storage_use_azuread        = true
                                        }
 
 provider "azurerm"                     {
                                          features {}
-                                         subscription_id            = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
-                                         use_msi                    = var.use_spn ? false : true
-                                         client_id                  = var.use_spn ? local.cp_spn.client_id : null
-                                         client_secret              = var.use_spn ? local.cp_spn.client_secret : null
-                                         tenant_id                  = var.use_spn ? local.cp_spn.tenant_id : null
+                                         subscription_id            = coalesce(var.management_dns_subscription_id, local.SAPLibrary_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
+                                         use_msi                    = true
                                          alias                      = "peering"
                                          storage_use_azuread        = true
 
                                        }
 
 provider "azuread"                     {
-                                         client_id                  = var.use_spn ? local.spn.client_id : null
-                                         client_secret              = var.use_spn ? local.spn.client_secret : null
-                                         tenant_id                  = local.spn.tenant_id
+                                         client_id                  = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value: null
+                                         client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.client_secret[0].value: null
+                                         tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value: null
                                          use_msi                    = var.use_spn ? false : true
                                        }
 
 provider "azapi"                       {
-                                          alias                      = "api"
-                                          subscription_id            = local.spn.subscription_id
-                                          client_id                  = var.use_spn ? local.spn.client_id : null
-                                          client_secret              = var.use_spn ? local.spn.client_secret : null
-                                          tenant_id                  = local.spn.tenant_id
-                                          use_msi                    = var.use_spn ? false : true
+                                         alias                      = "api"
+                                         subscription_id            = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value
+                                         client_id                  = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value: null
+                                         client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.client_secret[0].value: null
+                                         tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value: null
+                                         use_msi                    = var.use_spn ? false : true
                                       }
 
 terraform                              {
@@ -123,10 +130,11 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.32.0"
+                                                                           version = "4.35.0"
                                                                          }
                                                               azapi =    {
                                                                            source  = "azure/azapi"
+                                                                           version = "2.5.0"
                                                                          }
                                                             }
                                        }

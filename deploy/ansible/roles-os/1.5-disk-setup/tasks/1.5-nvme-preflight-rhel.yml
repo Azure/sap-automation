@@ -14,52 +14,43 @@
 # -------------------------------------+---------------------------------------8
 
 # RHEL version and distribution validation
-- name:                                "1.5.4 NVMe Support (RHEL) - Validate RHEL distribution and version"
+# While RHEL 8.6 is documented as the minimum version for NVMe support,
+# we have encountered issues directly configuring NVMe disk controller during
+# deployment. We will enforce a minimum of 8.8 to ensure compatibility with
+# Azure deployment.
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Validate RHEL distribution and version"
   ansible.builtin.assert:
     that:
       - ansible_distribution == 'RedHat'
-      - ansible_distribution_version is version('8.6', '>=')
-    fail_msg:                          "RHEL version must be 8.6 or higher for NVMe support. Current: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+      - ansible_distribution_version is version('8.8', '>=')
+    fail_msg:                          "RHEL version must be 8.8 or higher for NVMe support. Current: {{ ansible_distribution }} {{ ansible_distribution_version }}"
     success_msg:                       "RHEL version {{ ansible_distribution_version }} is supported for NVMe"
 
 # Set RHEL-specific facts
-- name:                                "1.5.4 NVMe Support (RHEL) - Set RHEL-specific facts"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Set RHEL-specific facts"
   ansible.builtin.set_fact:
     rhel_major_version:                "{{ ansible_distribution_major_version }}"
     azure_nvme_utils_supported:        "{{ ansible_distribution_version is version('9.0', '>=') }}"
     grub_config_file:                  "{{ '/boot/efi/EFI/redhat/grub.cfg' if is_uefi_system else '/boot/grub2/grub.cfg' }}"
-    grub_cmdline_param:                "GRUB_CMDLINE_LINUX"
+    grub_cmdline_param:                "{{ 'GRUB_CMDLINE_LINUX_DEFAULT' if ansible_distribution | lower == 'oraclelinux' else 'GRUB_CMDLINE_LINUX' }}"
+    nvme_timeout_params:               "nvme_core.io_timeout=240{{ ' nvme_core.admin_timeout=240' if nvme_include_admin_timeout | default(true) else '' }}"
 
-# Configure Azure NVME Utils repository and package for RHEL
-- name:                                "1.5.4 NVMe Support (RHEL) - Configure Azure NVME Utils repository"
+# Check existing repositories to avoid duplicates
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Get current repository information"
   when:                                azure_nvme_utils_supported
-  block:
-    - name:                            "1.5.4 NVMe Support (RHEL) - Add Azure NVME Utils repository"
-      ansible.builtin.yum_repository:
-        name:                          azure_nvme_utils
-        description:                   "Copr repo for azure-nvme-utils owned by cjp256"
-        baseurl:                       "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/rhel-{{ rhel_major_version }}-x86_64/"
-        gpgcheck:                      true
-        gpgkey:                        "https://download.copr.fedorainfracloud.org/results/cjp256/azure-nvme-utils/pubkey.gpg"
-        enabled:                       true
-        state:                         present
-      register:                        repo_added
+  community.general.zypper_repository_info: {}
+  register:                            existing_repos
+  failed_when:                         false
 
-    - name:                            "1.5.4 NVMe Support (RHEL) - Refresh repository cache"
-      when:                            repo_added.changed
-      ansible.builtin.shell:           dnf makecache
-      args:
-        warn:                          false
-      changed_when:                    false
-
-    - name:                            "1.5.4 NVMe Support (RHEL) - Install Azure NVME Utils package"
-      ansible.builtin.package:
-        name:                          azure-nvme-utils
-        state:                         present
-      register:                        nvme_utils_installed
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Install Azure NVME Utils package"
+  when:                                not azure_nvme_utils_supported
+  ansible.builtin.package:
+    name:                              nvme-cli
+    state:                             present
+  register:                            nvme_utils_installed
 
 # Check if all required NVMe modules are loaded in initramfs
-- name:                                "1.5.4 NVMe Support (RHEL) - Check basic NVMe modules in initramfs"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Check basic NVMe modules in initramfs"
   ansible.builtin.shell: |
                                        set -o pipefail
                                        lsinitrd /boot/initramfs-$(uname -r).img | grep nvme
@@ -67,40 +58,46 @@
   failed_when:                         false
   changed_when:                        false
 
-- name:                                "1.5.4 NVMe Support (RHEL) - Check for all required NVMe modules in initramfs"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Check for all required NVMe modules in initramfs"
   ansible.builtin.shell: |
                                        set -o pipefail
-                                       MISSING=0
                                        REQUIRED_MODULES="nvme nvme-core nvme-fabrics nvme-fc nvme-rdma nvme-loop nvmet nvmet-fc nvme-tcp"
+                                       MISSING=0
                                        MISSING_MODULES=""
+
                                        for MODULE in $REQUIRED_MODULES; do
-                                         if ! lsinitrd /boot/initramfs-$(uname -r).img | grep -q "$MODULE"; then
+                                         # Temporarily disable pipefail for this check since lsinitrd may have warnings
+                                         set +o pipefail
+                                         if ! lsinitrd /boot/initrd-$(uname -r) 2>/dev/null | grep -q "${MODULE}\.ko"; then
                                            MISSING_MODULES="$MISSING_MODULES $MODULE"
                                            MISSING=1
                                          fi
+                                         set -o pipefail
                                        done
+
                                        if [ $MISSING -eq 1 ]; then
                                          echo "$MISSING_MODULES"
                                        fi
+
                                        exit $MISSING
   register:                            nvme_module_complete_check
   failed_when:                         false
   changed_when:                        false
 
 # Set RHEL-specific initramfs status facts
-- name:                                "1.5.4 NVMe Support (RHEL) - Set initramfs status facts"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Set initramfs status facts"
   ansible.builtin.set_fact:
     nvme_in_initramfs:                 "{{ initramfs_nvme_basic_check.rc == 0 }}"
     nvme_modules_complete:             "{{ nvme_module_complete_check.rc == 0 }}"
     missing_nvme_modules:              "{{ nvme_module_complete_check.stdout | trim if nvme_module_complete_check.rc != 0 else '' }}"
 
-- name:                                "1.5.4 NVMe Support (RHEL) - Display missing NVMe modules"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Display missing NVMe modules"
   when:                                not nvme_modules_complete
   ansible.builtin.debug:
-    msg:                               "Missing NVMe modules in RHEL initramfs: {{ missing_nvme_modules }}"
+    msg:                               "Missing NVMe modules in RHEL/OL initramfs: {{ missing_nvme_modules }}"
 
 # Configure dracut for NVMe support
-- name:                                "1.5.4 NVMe Support (RHEL) - Create dracut.conf.d directory"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Create dracut.conf.d directory"
   when:                                not nvme_modules_complete
   ansible.builtin.file:
     path:                              /etc/dracut.conf.d
@@ -109,7 +106,7 @@
     owner:                             root
     group:                             root
 
-- name:                                "1.5.4 NVMe Support (RHEL) - Add NVMe drivers to dracut configuration"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Add NVMe drivers to dracut configuration"
   ansible.builtin.copy:
     src:                               88-nvme-dracut.conf
     dest:                              /etc/dracut.conf.d/nvme.conf
@@ -120,15 +117,24 @@
   register:                            dracut_conf_added
 
 # Configure GRUB with NVMe timeout parameters for RHEL
-- name:                                "1.5.4 NVMe Support (RHEL) - Check if GRUB has NVMe timeout parameters"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Check existing NVMe timeout configuration"
   ansible.builtin.shell: |
                                        set -o pipefail
-                                       grep "{{ grub_cmdline_param }}.*nvme_core.io_timeout=240" /etc/default/grub || true
-  register:                            grub_nvme_timeout_check
+                                       grep -q "nvme_core.io_timeout=240" /etc/default/grub /etc/grub.conf /boot/grub/grub.cfg /boot/grub2/grub.cfg 2>/dev/null
+  register:                            nvme_timeout_check
   changed_when:                        false
   failed_when:                         false
 
-- name:                                "1.5.4 NVMe Support (RHEL) - Get current GRUB configuration"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Check for admin timeout (if enabled)"
+  when:                                nvme_include_admin_timeout | default(true)
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       grep -q "nvme_core.admin_timeout=240" /etc/default/grub 2>/dev/null
+  register:                            nvme_admin_timeout_check
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Get current GRUB configuration"
   ansible.builtin.shell: |
                                        set -o pipefail
                                        grep "{{ grub_cmdline_param }}" /etc/default/grub || echo "No {{ grub_cmdline_param }} found"
@@ -136,46 +142,94 @@
   changed_when:                        false
   failed_when:                         false
 
-- name:                                "1.5.4 NVMe Support (RHEL) - Show current GRUB configuration"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Display configuration status"
   ansible.builtin.debug:
-    msg:                               "Current GRUB configuration: {{ current_grub_config.stdout }}"
+    msg:
+      - "Distribution                  : {{ ansible_distribution }}"
+      - "GRUB Parameter                : {{ grub_cmdline_param }}"
+      - "Current config                : {{ current_grub_config.stdout | truncate(100) }}..."
+      - "NVMe io_timeout present       : {{ 'Yes' if nvme_timeout_check.rc == 0 else 'No' }}"
+      - "NVMe admin_timeout present    : {{ 'Yes' if nvme_admin_timeout_check is defined and nvme_admin_timeout_check.rc == 0 else 'No' if nvme_include_admin_timeout | default(true) else 'Not checked' }}"
     verbosity:                         1
 
-- name:                                "1.5.4 NVMe Support (RHEL) - Add NVMe timeout parameters to GRUB"
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Configure NVMe timeout parameters"
   when:
-    - grub_nvme_timeout_check.rc != 0
-    - '"nvme_core.io_timeout=240" not in current_grub_config.stdout'
-  ansible.builtin.replace:
-    path:                              /etc/default/grub
-    regexp:                            '^({{ grub_cmdline_param }}=")([^"]*)(")$'
-    replace:                           '\1\2 nvme_core.io_timeout=240 nvme_core.admin_timeout=240\3'
-  register:                            grub_updated
+                                       - nvme_timeout_check.rc != 0 or
+                                         (nvme_include_admin_timeout | default(true) and (nvme_admin_timeout_check is not defined or nvme_admin_timeout_check.rc != 0))
+  block:
+    # Handle case where we need to add admin_timeout to existing io_timeout line
+    - name:                            "1.5.4 NVMe Support (RHEL/OL) - Add admin timeout to existing configuration"
+      when:
+                                       - nvme_timeout_check.rc == 0
+                                       - nvme_include_admin_timeout | default(true)
+                                       - nvme_admin_timeout_check is defined
+                                       - nvme_admin_timeout_check.rc != 0
+      ansible.builtin.replace:
+        path:                          /etc/default/grub
+        regexp:                        '^({{ grub_cmdline_param }}=".*nvme_core\.io_timeout=240)([^"]*")$'
+        replace:                       '\1 nvme_core.admin_timeout=240\2'
+      register:                        grub_admin_added
 
-- name:                                "1.5.4 NVMe Support (RHEL) - Update GRUB configuration file"
-  when:
-    - grub_updated is defined
-    - grub_updated.changed
-  ansible.builtin.command:             grub2-mkconfig -o {{ grub_config_file }}
+    # Handle existing parameter line
+    - name:                            "1.5.4 NVMe Support (RHEL/OL) - Update existing GRUB parameter line"
+      when:
+                                       - grub_cmdline_param in current_grub_config.stdout
+                                       - nvme_timeout_check.rc != 0
+      ansible.builtin.replace:
+        path:                          /etc/default/grub
+        regexp:                        '^({{ grub_cmdline_param }}=")([^"]*)(")$'
+        replace:                       '\1\2 {{ nvme_timeout_params }}\3'
+      register:                        grub_updated_existing
+
+    # Handle missing parameter line
+    - name:                            "1.5.4 NVMe Support (RHEL/OL) - Add new GRUB parameter line"
+      when:
+                                       - grub_cmdline_param not in current_grub_config.stdout
+                                       - nvme_timeout_check.rc != 0
+      ansible.builtin.lineinfile:
+        path:                          /etc/default/grub
+        line:                          '{{ grub_cmdline_param }}="{{ nvme_timeout_params }}"'
+        state:                         present
+      register:                        grub_updated_new
+
+    - name:                            "1.5.4 NVMe Support (RHEL/OL) - Set update status"
+      ansible.builtin.set_fact:
+        grub_updated:                  "{{
+                                           (grub_admin_added.changed if grub_admin_added is defined else false) or
+                                           (grub_updated_existing.changed if grub_updated_existing is defined else false) or
+                                           (grub_updated_new.changed if grub_updated_new is defined else false)
+                                       }}"
+
+# Update GRUB configuration file
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Update GRUB configuration file"
+  when:                                grub_updated | default(false)
+  ansible.builtin.command:             grub2-mkconfig -o /boot/grub2/grub.cfg
   register:                            grub_config_updated
   changed_when:                        true
 
-- name:                                "1.5.4 NVMe Support (RHEL) - Verify GRUB configuration update"
-  when:
-    - grub_updated is defined
-    - grub_updated.changed
+# Simple verification
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Verify configuration"
+  when:                                grub_updated | default(false)
   ansible.builtin.shell: |
                                        set -o pipefail
-                                       grep "nvme_core.io_timeout=240" /etc/default/grub
+                                       if grep -q "nvme_core.io_timeout=240" /etc/default/grub; then
+                                         echo "SUCCESS: io_timeout configured"
+                                         if grep -q "nvme_core.admin_timeout=240" /etc/default/grub; then
+                                           echo "SUCCESS: admin_timeout also configured"
+                                         fi
+                                         exit 0
+                                       else
+                                         echo "ERROR: io_timeout verification failed"
+                                         exit 1
+                                       fi
   register:                            grub_verify
   changed_when:                        false
   failed_when:                         false
 
-- name:                                "1.5.4 NVMe Support (RHEL) - Report GRUB configuration status"
-  when:
-    - grub_updated is defined
-    - grub_updated.changed
+- name:                                "1.5.4 NVMe Support (RHEL/OL) - Report GRUB status"
   ansible.builtin.debug:
-    msg:                               "{{ 'GRUB NVMe timeout parameters successfully configured on RHEL' if grub_verify.rc == 0 else 'WARNING: Failed to configure GRUB NVMe timeout parameters on RHEL' }}"
+    msg:                               "{{ grub_verify.stdout if grub_updated | default(false) else 'No GRUB changes needed - NVMe timeout already configured' }}"
+    verbosity:                         1
 
 # Rebuild initramfs if needed
 - name:                                "1.5.4 NVMe Support (RHEL) - Rebuild initramfs with dracut"
@@ -184,17 +238,14 @@
   register:                            initramfs_rebuilt
 
 # Install udev rules for Azure NVMe disks
-- name:                                "1.5.4 NVMe Support (RHEL) - Create Azure NVMe LUN calculation helper script"
+- name:                                "1.5.4 NVMe Support (SUSE) - Create Azure NVMe LUN calculation helper script"
   ansible.builtin.copy:
+    src:                               88-azure-nvme-lun-calc
     dest:                              /usr/local/bin/azure-nvme-lun-calc
     mode:                              '0755'
     owner:                             root
     group:                             root
-    content: |
-      #!/bin/bash
-      # Azure NVMe LUN calculator
-      # Takes namespace ID and returns LUN ID (NSID - 2)
-      echo $(($1 - 2))
+    force:                             true
   register:                            helper_script_created
 
 - name:                                "1.5.4 NVMe Support (RHEL) - Install udev rules for Azure NVMe disks"
@@ -228,9 +279,9 @@
 
 - name:                                "1.5.4 NVMe Support (RHEL) - Display udev verification results"
   when:
-    - udev_rules_added.changed
-    - udev_verification is defined
-    - udev_verification.stdout is defined
+                                       - udev_rules_added.changed
+                                       - udev_verification is defined
+                                       - udev_verification.stdout is defined
   ansible.builtin.debug:
     msg:                               "Udev configuration verification on RHEL: {{ 'Successful - Azure disk symlinks detected' if 'disk/azure' in udev_verification.stdout else 'Note: No Azure disk symlinks detected (normal for systems without data disks)' }}"
     verbosity:                         1

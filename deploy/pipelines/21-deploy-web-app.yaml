@@ -7,7 +7,7 @@ trigger:
 - none
 
 pool:
-  name:                                $[coalesce(variables['POOL'], variables['Agent'])]
+  name:                                $[coalesce(variables['POOL'], variables['AGENT'])]
   vmImage:                             'ubuntu-latest'
 
 parameters:

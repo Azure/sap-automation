@@ -2,73 +2,41 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-green="\e[1;32m"
-reset="\e[0m"
-bold_red="\e[1;31m"
-#External helper functions
-source "sap-automation/deploy/pipelines/helper.sh"
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"
+script_directory="$(dirname "${full_script_path}")"
+parent_directory="$(dirname "$script_directory")"
+SCRIPT_NAME="$(basename "$0")"
 
-DEBUG=False
+source "${parent_directory}/deploy_utils.sh"
+set -e
 
-if [ "$SYSTEM_DEBUG" = True ]; then
-  set -x
-  DEBUG=True
-	echo "Environment variables:"
-	printenv | sort
+return_code=0
 
-fi
-export DEBUG
-set -eu
+if checkforDevOpsVar APPLICATION_CONFIGURATION_NAME; then
+  APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 
-cd "$CONFIG_REPO_PATH" || exit
-
-sample_path="$SAMPLE_REPO_PATH/SAP"
-
-if [ "$USE_MSI" != "true" ]; then
-  if [ -z "$ARM_CLIENT_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
-    exit 2
-  fi
-
-  if [ -z "$ARM_CLIENT_SECRET" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
-    exit 2
-  fi
-
-  if [ -z "$ARM_TENANT_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined."
-    exit 2
-  fi
-fi
-
-echo -e "$green--- az login ---$reset"
-# Check if running on deployer
-if [ ! -f /etc/profile.d/deploy_server.sh ]; then
-  echo -e "$green--- az login ---$reset"
-  LogonToAzure false
+	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+		export APPLICATION_CONFIGURATION_ID
+		echo ""
+		echo "Running v2 script"
+		export SDAFWZ_CALLER_VERSION="v2"
+		echo ""
+		"${script_directory}/v2/$SCRIPT_NAME"
+	else
+		echo ""
+		echo "Running v1 script"
+		export SDAFWZ_CALLER_VERSION="v1"
+		echo ""
+		"${script_directory}/v1/$SCRIPT_NAME"
+	fi
 else
-  LogonToAzure "$USE_MSI"
-fi
-return_code=$?
-
-if [ 0 != $return_code ]; then
-  echo -e "$bold_red--- Login failed ---$reset"
-  echo "##vso[task.logissue type=error]az login failed."
-  exit $return_code
+	echo ""
+	echo "Running v1 script"
+	export SDAFWZ_CALLER_VERSION="v1"
+	echo ""
+	"${script_directory}/v1/$SCRIPT_NAME"
 fi
 
-az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
+echo "Return code: $return_code"
 
-command="ansible-playbook -e download_directory=$AGENT_TEMP_DIRECTORY \
--e s_user=$SUSERNAME -e BOM_directory=${sample_path} \
--e bom_base_name=$BOM_NAME \
--e deployer_kv_name=$KV_NAME \
--e check_storage_account=$CHECK_STORAGE_ACCOUNT \
- $EXTRA_PARAMETERS $SAP_AUTOMATION_REPO_PATH/deploy/ansible/playbook_bom_downloader.yaml"
-
-echo "##[section]Executing [$command]..."
-echo "##[group]- output"
-eval $command
-return_code=$?
-echo "##[endgroup]"
 exit $return_code

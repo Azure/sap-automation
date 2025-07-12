@@ -98,8 +98,54 @@ parameters:
     default:                           false
 
 stages:
-  - stage: Deploy_SAP_workload_zone
-    condition: and(not(failed()), not(canceled()))
+  - stage:                             PopulateKeyVault
+    pool:                              $(this_agent)
+    displayName:                       Save the Deployment Credentials in Azure Keyvault
+    variables:
+      - template:                      variables/02-sap-workload-zone-variables.yaml
+        parameters:
+          workload_zone:               ${{ parameters.workload_zone }}
+          workload_environment:        ${{ parameters.workload_environment }}
+          deployer_environment:        ${{ parameters.deployer_environment }}
+          deployer_region:             ${{ parameters.deployer_region }}
+          inherit_settings:            ${{ parameters.inherit_settings }}
+    jobs:
+      - job:                           SaveDeploymentCredentials
+        displayName:                   Save the Deployment Credentials
+        workspace:
+          clean:                       all
+        steps:
+          - task:                      PostBuildCleanup@4
+          - template:                  templates\download.yaml
+            parameters:
+              getLatestFromBranch: true
+
+          - task:                      Bash@3
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+            name:                      StoreSecrets
+            displayName:               Store deployment credentials in Key Vault
+            env:
+              ARM_CLIENT_ID:                $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              ARM_OBJECT_ID:                $(ARM_OBJECT_ID)
+              ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                $(ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
+              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
+              USE_MSI:                      $(Use_MSI)
+              ZONE:                         ${{ upper(parameters.workload_environment) }}
+
+
+  - stage:                             Deploy_SAP_workload_zone
+    dependsOn:
+                                       - PopulateKeyVault
+    condition:                         eq(dependencies.PopulateKeyVault.result, 'Succeeded')
     displayName: Deploy SAP workload zone
     variables:
       - template:                      variables/02-sap-workload-zone-variables.yaml
@@ -125,21 +171,20 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Deploy SAP Workload Zone
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_OBJECT_ID:           $(ARM_OBJECT_ID)
-              FENCING_SPN_PWD:         $(FENCING_SPN_PWD)
-              SAPBITS:                 $(INSTALLATION_MEDIA_ACCOUNT)
-              TEST_ONLY:               ${{ parameters.test }}
+              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              ARM_USE_MSI:             $(Use_MSI)
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
-              TF_LOG:                  $(TF_LOG)
-              TF_IN_AUTOMATION:        true
-              TF_VAR_subscription_id:  $(ARM_SUBSCRIPTION_ID)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              LOGON_USING_SPN:         $(Logon_Using_SPN)
+              DEPLOYER_KEYVAULT:       $(DEPLOYER_KEYVAULT)
+              FENCING_SPN_PWD:         $(FENCING_SPN_PWD)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              TEST_ONLY:               ${{ parameters.test }}
+              TF_IN_AUTOMATION:        true
+              TF_LOG:                  $(TF_LOG)
+              TF_VAR_subscription_id:  $(ARM_SUBSCRIPTION_ID)
               USE_MSI:                 $(Use_MSI)
-

@@ -7,24 +7,24 @@
 #                                                                              #
 #######################################4#######################################8
 resource "azurerm_subnet" "firewall" {
-  count                                      = var.firewall.deployment && !local.firewall_subnet_exists ? 1 : 0
+  count                                      = var.firewall.deployment && !var.infrastructure.virtual_network.management.subnet_firewall.exists ? 1 : 0
   name                                       = local.firewall_subnet_name
-  address_prefixes                           = [local.firewall_subnet_prefix]
-  resource_group_name                        = local.management_virtual_network_exists ? (
+  address_prefixes                           = [var.infrastructure.virtual_network.management.subnet_firewall.prefix]
+  resource_group_name                        = var.infrastructure.virtual_network.management.exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )
-  virtual_network_name                       = local.management_virtual_network_exists ? (
+  virtual_network_name                       = var.infrastructure.virtual_network.management.exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].name
                                                )
 }
 
 data "azurerm_subnet" "firewall" {
-  count                                      = var.firewall.deployment && local.firewall_subnet_exists ? 1 : 0
-  name                                       = split("/", local.firewall_subnet_arm_id)[10]
-  resource_group_name                        = split("/", local.firewall_subnet_arm_id)[4]
-  virtual_network_name                       = split("/", local.firewall_subnet_arm_id)[8]
+  count                                      = var.firewall.deployment && var.infrastructure.virtual_network.management.subnet_firewall.exists ? 1 : 0
+  name                                       = split("/", var.infrastructure.virtual_network.management.subnet_firewall.id)[10]
+  resource_group_name                        = split("/", var.infrastructure.virtual_network.management.subnet_firewall.id)[4]
+  virtual_network_name                       = split("/", var.infrastructure.virtual_network.management.subnet_firewall.id)[8]
 }
 
 resource "azurerm_public_ip" "firewall" {
@@ -39,21 +39,25 @@ resource "azurerm_public_ip" "firewall" {
   allocation_method                          = "Static"
   sku                                        = "Standard"
 
-  location                                   = local.management_virtual_network_exists ? (
+  location                                   = var.infrastructure.virtual_network.management.exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].location) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].location
                                                )
 
-  resource_group_name                        = local.management_virtual_network_exists ? (
+  resource_group_name                        = var.infrastructure.virtual_network.management.exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                )
-  zones                                      = [1,2,3] # - optional property.
-  ip_tags                                    = var.firewall.ip_tags
+  zones                                      = lower(var.infrastructure.region) == "eastus2euap" ? ["1","2","3","4"] : ["1","2","3"]
+  ip_tags                                    = try(length(var.firewall.ip_tags) > 0 ? (
+                                                 var.firewall.ip_tags) : (
+                                                 null
+                                               ), null)
   lifecycle                                  {
                                                 create_before_destroy = true
                                              }
-  tags                                       = var.infrastructure.tags
+
+  tags                                       =  var.infrastructure.tags
 }
 
 resource "azurerm_firewall" "firewall" {
@@ -66,20 +70,18 @@ resource "azurerm_firewall" "firewall" {
                                               )
   sku_tier                                   = "Standard"
   sku_name                                   = "AZFW_VNet"
-  resource_group_name                        = local.resource_group_exists ? (
+  resource_group_name                        = var.infrastructure.resource_group.exists ? (
                                                  data.azurerm_resource_group.deployer[0].name) : (
                                                  azurerm_resource_group.deployer[0].name
                                                )
-  location                                   = local.resource_group_exists ? (
+  location                                   = var.infrastructure.resource_group.exists ? (
                                                  data.azurerm_resource_group.deployer[0].location) : (
                                                  azurerm_resource_group.deployer[0].location
                                                )
 
-  tags                                       = var.infrastructure.tags
-
   ip_configuration                             {
                                                  name                 = "ipconfig1"
-                                                 subnet_id            = local.firewall_subnet_exists ? (
+                                                 subnet_id            = var.infrastructure.virtual_network.management.subnet_firewall.exists ? (
                                                                           data.azurerm_subnet.firewall[0].id) : (
                                                                           azurerm_subnet.firewall[0].id
                                                                         )
@@ -88,6 +90,7 @@ resource "azurerm_firewall" "firewall" {
   lifecycle                                    {
                                                   create_before_destroy = true
                                                }
+  tags                                 = var.infrastructure.tags
 
 }
 
@@ -101,18 +104,19 @@ resource "azurerm_route_table" "rt" {
                                                  var.naming.resource_suffixes.routetable
                                                )
   bgp_route_propagation_enabled              = false
-  resource_group_name                        = local.resource_group_exists ? (
+  resource_group_name                        = var.infrastructure.resource_group.exists ? (
                                                  data.azurerm_resource_group.deployer[0].name) : (
                                                  azurerm_resource_group.deployer[0].name
                                                )
-  location                                   = local.resource_group_exists ? (
+  location                                   = var.infrastructure.resource_group.exists ? (
                                                  data.azurerm_resource_group.deployer[0].location) : (
                                                  azurerm_resource_group.deployer[0].location
                                                )
+  tags                                 = var.infrastructure.tags
 }
 
 resource "azurerm_route" "admin" {
-  count                                      = var.firewall.deployment && !local.firewall_subnet_exists ? 1 : 0
+  count                                      = var.firewall.deployment && !var.infrastructure.virtual_network.management.subnet_firewall.exists ? 1 : 0
   name                                       = format("%s%s%s%s",
                                                  var.naming.resource_prefixes.fw_route,
                                                  local.prefix,
@@ -123,7 +127,7 @@ resource "azurerm_route" "admin" {
   address_prefix                             = "0.0.0.0/0"
   next_hop_type                              = "VirtualAppliance"
   next_hop_in_ip_address                     = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
-  resource_group_name                        = local.resource_group_exists ? (
+  resource_group_name                        = var.infrastructure.resource_group.exists ? (
                                                  data.azurerm_resource_group.deployer[0].name) : (
                                                  azurerm_resource_group.deployer[0].name
                                                )
@@ -140,7 +144,7 @@ resource "random_integer" "priority" {
   max                                        = 3999
   keepers                                    = {
                                                  # Generate a new ID only when a new resource group is defined
-                                                 resource_group = local.resource_group_exists ? (
+                                                 resource_group = var.infrastructure.resource_group.exists ? (
                                                   data.azurerm_resource_group.deployer[0].name) : (
                                                   azurerm_resource_group.deployer[0].name
                                                 )
@@ -156,7 +160,7 @@ resource "azurerm_firewall_network_rule_collection" "firewall-azure" {
                                                  var.naming.resource_suffixes.firewall_rule_app
                                                )
   azure_firewall_name                        = azurerm_firewall.firewall[0].name
-  resource_group_name                        = local.resource_group_exists ? (
+  resource_group_name                        = var.infrastructure.resource_group.exists ? (
                                                  data.azurerm_resource_group.deployer[0].name) : (
                                                  azurerm_resource_group.deployer[0].name
                                                )

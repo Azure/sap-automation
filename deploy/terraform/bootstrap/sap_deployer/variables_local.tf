@@ -9,16 +9,17 @@
 
 locals {
   version_label                        = trimspace(file("${path.module}/../../../configs/version.txt"))
+  ansible_version_label                = trimspace(file("${path.module}/../../../configs/ansible_version.txt"))
 
   // Management vnet
-  vnet_mgmt_arm_id                     = try(local.infrastructure.vnets.management.arm_id, "")
+  vnet_mgmt_arm_id                     = try(local.infrastructure.virtual_network.management.arm_id, "")
   vnet_mgmt_exists                     = length(local.vnet_mgmt_arm_id) > 0
 
   //There is no default as the name is mandatory unless arm_id is specified
   vnet_mgmt_name                      = local.vnet_mgmt_exists ? (
                                           split("/", local.vnet_mgmt_arm_id)[8]) : (
-                                          length(local.infrastructure.vnets.management.name) > 0 ? (
-                                            local.infrastructure.vnets.management.name) : (
+                                          length(local.infrastructure.virtual_network.management.name) > 0 ? (
+                                            local.infrastructure.virtual_network.management.name) : (
                                             "DEP00"
                                           )
                                         )

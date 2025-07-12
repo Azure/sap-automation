@@ -4,8 +4,9 @@
 
 locals {
 
+  parsed_tfstate_id                    = provider::azurerm::parse_resource_id(var.tfstate_resource_id)
   tfstate_resource_id                  = try(var.tfstate_resource_id, "")
-  tfstate_storage_account_name         = split("/", local.tfstate_resource_id)[8]
+  tfstate_storage_account_name         = local.parsed_tfstate_id["resource_name"]
   ansible_container_name               = try(var.naming.resource_suffixes.ansible, "ansible")
 
   kv_name                              = split("/", var.sid_keyvault_user_id)[8]

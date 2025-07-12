@@ -16,7 +16,7 @@ locals {
 // Creates storage account for storing tfstate
 resource "azurerm_storage_account" "storage_tfstate" {
   provider                             = azurerm.main
-  count                                = local.sa_tfstate_exists ? 0 : 1
+  count                                = var.storage_account_tfstate.exists ? 0 : 1
   name                                 = length(var.storage_account_tfstate.name) > 0 ? (
                                             var.storage_account_tfstate.name) : (
                                             var.naming.storageaccount_names.LIBRARY.terraformstate_storageaccount_name
@@ -36,6 +36,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
 
   cross_tenant_replication_enabled     = false
   shared_access_key_enabled            = var.storage_account_sapbits.shared_access_key_enabled
+  default_to_oauth_authentication      = true
 
   blob_properties {
                     delete_retention_policy {
@@ -57,27 +58,17 @@ resource "azurerm_storage_account" "storage_tfstate" {
 
 data "azuread_client_config" "current" {}
 
-resource "azurerm_role_assignment" "storage_tfstate" {
-  provider                             = azurerm.main
-  count                                = local.sa_tfstate_exists ? 0 : 1
-  # count                                = var.enable_storage_role_assignment && !local.sa_tfstate_exists ? 1 : 0
-  scope                                = azurerm_storage_account.storage_tfstate[0].id
-  role_definition_name                 = "Storage Blob Data Contributor"
-  principal_id                         = data.azuread_client_config.current.object_id
-
-}
-
 // Imports existing storage account to use for tfstate
 data "azurerm_storage_account" "storage_tfstate" {
   provider                             = azurerm.main
-  count                                = local.sa_tfstate_exists ? 1 : 0
-  name                                 = split("/", var.storage_account_tfstate.arm_id)[8]
-  resource_group_name                  = split("/", var.storage_account_tfstate.arm_id)[4]
+  count                                = var.storage_account_tfstate.exists ? 1 : 0
+  name                                 = split("/", var.storage_account_tfstate.id)[8]
+  resource_group_name                  = split("/", var.storage_account_tfstate.id)[4]
 }
 
 resource "azurerm_storage_account_network_rules" "storage_tfstate" {
   provider                             = azurerm.main
-  count                                = var.storage_account_tfstate.enable_firewall_for_keyvaults_and_storage  && !local.sa_tfstate_exists ? 1 : 0
+  count                                = var.storage_account_tfstate.enable_firewall_for_keyvaults_and_storage  && !var.storage_account_tfstate.exists ? 1 : 0
   storage_account_id                   = azurerm_storage_account.storage_tfstate[0].id
   default_action                       = var.bootstrap ? "Allow" : local.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
 
@@ -98,56 +89,19 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
             }
 }
 
-# resource "azurerm_private_dns_a_record" "storage_tfstate_pep_a_record_registry" {
-#   provider                             = azurerm.privatelinkdnsmanagement
-#   count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_private_endpoint && var.use_custom_dns_a_registration && !local.sa_tfstate_exists ? 1 : 0
-#   depends_on                           = [
-#                                            azurerm_private_dns_zone.blob
-#                                          ]
-#   name                                 = lower(azurerm_storage_account.storage_tfstate[0].name)
-#   zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
-#   resource_group_name                  = coalesce(
-#                                            var.dns_settings.privatelink_dns_resourcegroup_name,
-#                                            var.dns_settings.management_dns_resourcegroup_name,
-#                                            local.resource_group_exists ? (
-#                                              data.azurerm_resource_group.library[0].name
-#                                              ) : (
-#                                              azurerm_resource_group.library[0].name
-#                                            )
-#                                          )
-#   ttl                                  = 3600
-#   records                              = [azurerm_private_endpoint.storage_tfstate[0].private_service_connection[0].private_ip_address]
-
-#   lifecycle {
-#               ignore_changes = [tags]
-#             }
-# }
-
-#Errors can occur when the dns record has not properly been activated, add a wait timer to give
-#it just a little bit more time
-# resource "time_sleep" "wait_for_dns_refresh" {
-#   create_duration                      = "120s"
-
-#   depends_on                           = [
-#                                            azurerm_private_dns_a_record.storage_tfstate_pep_a_record_registry,
-#                                            azurerm_private_dns_a_record.storage_sapbits_pep_a_record_registry
-#                                          ]
-# }
-
-
 resource "azurerm_private_endpoint" "storage_tfstate" {
   provider                             = azurerm.main
-  count                                = var.deployer.use && var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
+  count                                = var.deployer.use && var.use_private_endpoint && !var.storage_account_tfstate.exists ? 1 : 0
   name                                 = format("%s%s%s",
                                            var.naming.resource_prefixes.storage_private_link_tf,
                                            local.prefix,
                                            var.naming.resource_suffixes.storage_private_link_tf
                                          )
-  resource_group_name                  = local.resource_group_exists ? (
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.library[0].name) : (
                                            azurerm_resource_group.library[0].name
                                          )
-  location                             = local.resource_group_exists ? (
+  location                             = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.library[0].location) : (
                                            azurerm_resource_group.library[0].location
                                          )
@@ -170,8 +124,8 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
                                  var.naming.resource_suffixes.storage_private_svc_tf
                                )
                                is_manual_connection = false
-                               private_connection_resource_id = local.sa_tfstate_exists ? (
-                                 var.storage_account_tfstate.arm_id) : (
+                               private_connection_resource_id = var.storage_account_tfstate.exists ? (
+                                 var.storage_account_tfstate.id) : (
                                  azurerm_storage_account.storage_tfstate[0].id
                                )
                                subresource_names = [
@@ -194,18 +148,18 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
 
 resource "azurerm_private_endpoint" "table_tfstate" {
   provider                             = azurerm.main
-  count                                = var.deployer.use && var.use_private_endpoint && !local.sa_tfstate_exists && var.use_webapp ? 1 : 0
+  count                                = var.deployer.use && var.use_private_endpoint && !var.storage_account_tfstate.exists && var.application_configuration_deployment ? 1 : 0
   depends_on                           = [ azurerm_private_dns_zone.table ]
   name                                 = format("%s%s-table%s",
                                            var.naming.resource_prefixes.storage_private_link_tf,
                                            local.prefix,
                                            var.naming.resource_suffixes.storage_private_link_tf
                                          )
-  resource_group_name                  = local.resource_group_exists ? (
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.library[0].name) : (
                                            azurerm_resource_group.library[0].name
                                          )
-  location                             = local.resource_group_exists ? (
+  location                             = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.library[0].location) : (
                                            azurerm_resource_group.library[0].location
                                          )
@@ -228,8 +182,8 @@ resource "azurerm_private_endpoint" "table_tfstate" {
                                  var.naming.resource_suffixes.storage_private_svc_tf
                                )
                                is_manual_connection = false
-                               private_connection_resource_id = local.sa_tfstate_exists ? (
-                                 var.storage_account_tfstate.arm_id) : (
+                               private_connection_resource_id = var.storage_account_tfstate.exists ? (
+                                 var.storage_account_tfstate.id) : (
                                  azurerm_storage_account.storage_tfstate[0].id
                                )
                                subresource_names = [
@@ -238,7 +192,7 @@ resource "azurerm_private_endpoint" "table_tfstate" {
                              }
 
   dynamic "private_dns_zone_group" {
-                                     for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_webapp ? 1 : 0)
+                                     for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.application_configuration_deployment ? 1 : 0)
                                      content {
                                                name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
                                                private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.table[0].id : data.azurerm_private_dns_zone.table[0].id]
@@ -259,7 +213,7 @@ resource "azurerm_storage_container" "storagecontainer_tfstate" {
                                          ]
   name                                 = var.storage_account_tfstate.tfstate_blob_container.name
 
-  storage_account_id                   = local.sa_tfstate_exists ? (
+  storage_account_id                   = var.storage_account_tfstate.exists ? (
                                              data.azurerm_storage_account.storage_tfstate[0].id) : (
                                              azurerm_storage_account.storage_tfstate[0].id
                                            )
@@ -271,11 +225,27 @@ data "azurerm_storage_container" "storagecontainer_tfstate" {
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.tfstate_blob_container.is_existing ? 1 : 0
   name                                 = var.storage_account_tfstate.tfstate_blob_container.name
-                                           storage_account_name = local.sa_tfstate_exists ? (
+                                           storage_account_name = var.storage_account_tfstate.exists > 0 ? (
                                              data.azurerm_storage_account.storage_tfstate[0].name) : (
                                              azurerm_storage_account.storage_tfstate[0].name
                                            )
 }
+
+resource "azurerm_storage_container" "storagecontainer_tfvars" {
+  provider                             = azurerm.main
+  depends_on                           = [
+                                           azurerm_private_endpoint.storage_tfstate,
+                                         ]
+  name                                 = "tfvars"
+
+  storage_account_id                   = var.storage_account_tfstate.exists ? (
+                                             data.azurerm_storage_account.storage_tfstate[0].id) : (
+                                             azurerm_storage_account.storage_tfstate[0].id
+                                           )
+
+  container_access_type                = "private"
+}
+
 
 ##############################################################################################
 #
@@ -284,7 +254,7 @@ data "azurerm_storage_container" "storagecontainer_tfstate" {
 ##############################################################################################
 resource "azurerm_storage_account" "storage_sapbits" {
   provider                             = azurerm.main
-  count                                = local.sa_sapbits_exists ? 0 : 1
+  count                                = var.storage_account_sapbits.exists ? 0 : 1
   name                                 = length(var.storage_account_sapbits.name) > 0 ? (
                                            var.storage_account_sapbits.name) : (
                                            var.naming.storageaccount_names.LIBRARY.library_storageaccount_name
@@ -302,6 +272,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
   cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.storage_account_sapbits.public_network_access_enabled
   shared_access_key_enabled            = var.storage_account_sapbits.shared_access_key_enabled
+  default_to_oauth_authentication      = true
 
   routing {
             publish_microsoft_endpoints = true
@@ -310,21 +281,12 @@ resource "azurerm_storage_account" "storage_sapbits" {
   lifecycle {
               ignore_changes = [tags]
             }
-}
-
-resource "azurerm_role_assignment" "storage_sapbits" {
-  provider                             = azurerm.main
-  count                                = local.sa_tfstate_exists ? 0 : 1
-  # count                                = var.enable_storage_role_assignment && !local.sa_tfstate_exists ? 1 : 0
-  scope                                = azurerm_storage_account.storage_sapbits[0].id
-  role_definition_name                 = "Storage Blob Data Contributor"
-  principal_id                         = data.azuread_client_config.current.object_id
-
+  tags                                 = var.infrastructure.tags
 }
 
 resource "azurerm_storage_account_network_rules" "storage_sapbits" {
   provider                             = azurerm.main
-  count                                = var.storage_account_sapbits.enable_firewall_for_keyvaults_and_storage && !local.sa_tfstate_exists ? 1 : 0
+  count                                = var.storage_account_sapbits.enable_firewall_for_keyvaults_and_storage && !var.storage_account_tfstate.exists ? 1 : 0
   storage_account_id                   = azurerm_storage_account.storage_sapbits[0].id
   default_action                       = var.bootstrap ? "Allow" : local.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
   ip_rules                             = local.deployer_public_ip_address_used ? (
@@ -346,7 +308,7 @@ resource "azurerm_storage_account_network_rules" "storage_sapbits" {
 
 resource "azurerm_management_lock" "storage_sapbits" {
   provider                             = azurerm.main
-  count                                = (local.sa_sapbits_exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
+  count                                = var.storage_account_sapbits.exists ? 0 : var.place_delete_lock_on_resources ? 1 : 0
   name                                 = format("%s-lock", azurerm_storage_account.storage_sapbits[0].name)
   scope                                = azurerm_storage_account.storage_sapbits[0].id
   lock_level                           = "CanNotDelete"
@@ -357,33 +319,9 @@ resource "azurerm_management_lock" "storage_sapbits" {
 }
 
 
-# resource "azurerm_private_dns_a_record" "storage_sapbits_pep_a_record_registry" {
-#   provider                             = azurerm.privatelinkdnsmanagement
-#   count                                = var.use_private_endpoint && var.use_custom_dns_a_registration && !local.sa_sapbits_exists ? 1 : 0
-#   depends_on                           = [
-#                                            azurerm_private_dns_zone.blob
-#                                          ]
-
-#   name                                 = lower(azurerm_storage_account.storage_sapbits[0].name)
-#   zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
-#   resource_group_name                  = coalesce(
-#                                            var.dns_settings.privatelink_dns_resourcegroup_name,
-#                                            var.dns_settings.management_dns_resourcegroup_name,
-#                                             local.resource_group_exists ? (
-#                                               data.azurerm_resource_group.library[0].name) : (
-#                                               azurerm_resource_group.library[0].name)
-#                                          )
-#   ttl                                  = 3600
-#   records                              = [azurerm_private_endpoint.storage_sapbits[0].private_service_connection[0].private_ip_address]
-
-#   lifecycle {
-#               ignore_changes = [tags]
-#             }
-# }
-
 data "azurerm_storage_account" "storage_sapbits" {
   provider                             = azurerm.main
-  count                                = local.sa_sapbits_exists ? 1 : 0
+  count                                = var.storage_account_sapbits.exists ? 1 : 0
   name                                 = split("/", var.storage_account_sapbits.arm_id)[8]
   resource_group_name                  = split("/", var.storage_account_sapbits.arm_id)[4]
 }
@@ -391,18 +329,18 @@ data "azurerm_storage_account" "storage_sapbits" {
 
 resource "azurerm_private_endpoint" "storage_sapbits" {
   provider                             = azurerm.main
-  count                                = var.deployer.use && var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
+  count                                = var.deployer.use && var.use_private_endpoint && !var.storage_account_sapbits.exists ? 1 : 0
   name                                 = format("%s%s%s",
                                            var.naming.resource_prefixes.storage_private_link_sap,
                                            local.prefix,
                                            var.naming.resource_suffixes.storage_private_link_sap
                                          )
-  resource_group_name                  = local.resource_group_exists ? (
+  resource_group_name                  = var.infrastructure.resource_group.exists ? (
                                           data.azurerm_resource_group.library[0].name) : (
                                           azurerm_resource_group.library[0].name
                                         )
 
-  location                             = local.resource_group_exists ? (
+  location                             = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.library[0].location) : (
                                            azurerm_resource_group.library[0].location
                                          )
@@ -424,7 +362,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
                                          var.naming.resource_suffixes.storage_private_svc_sap
                                        )
                                is_manual_connection = false
-                               private_connection_resource_id = local.sa_sapbits_exists ? (
+                               private_connection_resource_id = var.storage_account_sapbits.exists ? (
                                  data.azurerm_storage_account.storage_sapbits[0].id) : (
                                  azurerm_storage_account.storage_sapbits[0].id
                                )
@@ -445,6 +383,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
   lifecycle {
     ignore_changes = [tags]
   }
+  tags                                 = var.infrastructure.tags
 }
 
 // Creates the storage container inside the storage account for SAP bits
@@ -455,7 +394,7 @@ resource "azurerm_storage_container" "storagecontainer_sapbits" {
                                            azurerm_private_endpoint.storage_sapbits
                                          ]
   name                                 = var.storage_account_sapbits.sapbits_blob_container.name
-  storage_account_id                   = local.sa_sapbits_exists ? (
+  storage_account_id                   = var.storage_account_sapbits.exists ? (
                                              data.azurerm_storage_account.storage_sapbits[0].id) : (
                                              azurerm_storage_account.storage_sapbits[0].id
                                            )
@@ -468,7 +407,7 @@ data "azurerm_storage_container" "storagecontainer_sapbits" {
   provider                             = azurerm.main
   count                                = var.storage_account_sapbits.sapbits_blob_container.is_existing ? 1 : 0
   name                                 = var.storage_account_sapbits.sapbits_blob_container.name
-                                           storage_account_name = local.sa_sapbits_exists ? (
+                                           storage_account_name = !var.storage_account_sapbits.exists ? (
                                              data.azurerm_storage_account.storage_sapbits[0].name) : (
                                              azurerm_storage_account.storage_sapbits[0].name
                                            )
@@ -479,7 +418,7 @@ resource "azurerm_storage_share" "fileshare_sapbits" {
   provider                             = azurerm.main
   count                                = !var.storage_account_sapbits.file_share.is_existing ? 0 : 0
   name                                 = var.storage_account_sapbits.file_share.name
-  storage_account_id                   = local.sa_sapbits_exists ? (
+  storage_account_id                   = !var.storage_account_sapbits.exists ? (
                                              data.azurerm_storage_account.storage_sapbits[0].id) : (
                                              azurerm_storage_account.storage_sapbits[0].id
                                            )
@@ -492,7 +431,11 @@ data "azurerm_private_dns_zone" "storage" {
   name                                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,
-                                           var.dns_settings.management_dns_resourcegroup_name
+                                           var.dns_settings.management_dns_resourcegroup_name,
+                                           var.infrastructure.resource_group.exists ? (
+                                                    split("/", data.azurerm_resource_group.library[0].id))[2] : (
+                                                    split("/", azurerm_resource_group.library[0].id)[2]
+                                                  )
                                            )
 
 }
@@ -503,26 +446,30 @@ data "azurerm_private_dns_zone" "table" {
   name                                 = var.dns_settings.dns_zone_names.table_dns_zone_name
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,
-                                           var.dns_settings.management_dns_resourcegroup_name
+                                           var.dns_settings.management_dns_resourcegroup_name,
+                                           var.infrastructure.resource_group.exists ? (
+                                                    split("/", data.azurerm_resource_group.library[0].id))[2] : (
+                                                    split("/", azurerm_resource_group.library[0].id)[2]
+                                                  )
                                            )
 
 }
 
 # data "azurerm_network_interface" "storage_tfstate" {
-#   count                                = var.use_private_endpoint && !local.sa_tfstate_exists ? 1 : 0
+#   count                                = var.use_private_endpoint && "var.storage_account_tfstate.exists ? 1 : 0
 #   name                                 = azurerm_private_endpoint.storage_tfstate[count.index].network_interface[0].name
 #   resource_group_name                  = split("/", azurerm_private_endpoint.storage_tfstate[count.index].network_interface[0].id)[4]
 # }
 
 # data "azurerm_network_interface" "storage_sapbits" {
-#   count                                = var.use_private_endpoint && !local.sa_sapbits_exists ? 1 : 0
+#   count                                = var.use_private_endpoint && !!var.storage_account_sapbits.exists ? 1 : 0
 #   name                                 = azurerm_private_endpoint.storage_sapbits[count.index].network_interface[0].name
 #   resource_group_name                  = split("/", azurerm_private_endpoint.storage_sapbits[count.index].network_interface[0].id)[4]
 # }
 
 resource "azurerm_management_lock" "storage_tfstate" {
   provider                             = azurerm.main
-  count                                = (local.sa_tfstate_exists) ? 0 : var.place_delete_lock_on_resources ? 1 : 0
+  count                                = var.storage_account_tfstate.exists ? 0 : var.place_delete_lock_on_resources ? 1 : 0
   name                                 = format("%s-lock", azurerm_storage_account.storage_tfstate[0].name)
   scope                                = azurerm_storage_account.storage_tfstate[0].id
   lock_level                           = "CanNotDelete"
@@ -532,29 +479,3 @@ resource "azurerm_management_lock" "storage_tfstate" {
   }
 }
 
-// Creates the storage container inside the storage account for sapsystem
-resource "azurerm_storage_container" "storagecontainer_tfvars" {
-  provider                             = azurerm.main
-  count                                = var.storage_account_tfstate.tfvars_blob_container.is_existing ? 0 : 1
-  depends_on                           = [
-                                           azurerm_private_endpoint.storage_tfstate
-                                         ]
-  name                                 = var.storage_account_tfstate.tfvars_blob_container.name
-  storage_account_id                   = local.sa_tfstate_exists ? (
-                                           data.azurerm_storage_account.storage_tfstate[0].id) : (
-                                           azurerm_storage_account.storage_tfstate[0].id
-                                         )
-
-
-  container_access_type                = "private"
-}
-
-data "azurerm_storage_container" "storagecontainer_tfvars" {
-  provider                             = azurerm.main
-  count                                = var.storage_account_tfstate.tfvars_blob_container.is_existing ? 1 : 0
-  name                                 = var.storage_account_tfstate.tfvars_blob_container.name
-  storage_account_name                 = local.sa_tfstate_exists ? (
-                                           data.azurerm_storage_account.storage_tfstate[0].name) : (
-                                           azurerm_storage_account.storage_tfstate[0].name
-                                         )
-}

@@ -10,16 +10,15 @@ module "sap_landscape" {
   source                                       = "../../terraform-units/modules/sap_landscape"
   providers                                    = {
                                                    azurerm.main                     = azurerm.workload
-                                                   azurerm.deployer                 = azurerm
+                                                   azurerm.deployer                 = azurerm.deployer
                                                    azurerm.dnsmanagement            = azurerm.dnsmanagement
                                                    azurerm.peering                  = azurerm.peering
-                                                   azapi.api                        = azapi.api
                                                    azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
+                                                   azapi.api                        = azapi.api
                                                  }
 
   additional_users_to_add_to_keyvault_policies = var.additional_users_to_add_to_keyvault_policies
   Agent_IP                                     = var.add_Agent_IP ? var.Agent_IP : ""
-  additional_network_id                        = var.additional_network_id
   ANF_settings                                 = local.ANF_settings
   authentication                               = local.authentication
   create_transport_storage                     = var.create_transport_storage
@@ -42,10 +41,9 @@ module "sap_landscape" {
                                                  )
   NFS_provider                                 = var.NFS_provider
   options                                      = local.options
-  peer_with_control_plane_vnet                 = var.peer_with_control_plane_vnet
+  peer_with_control_plane_vnet                 = var.use_deployer ? var.peer_with_control_plane_vnet : false
   place_delete_lock_on_resources               = var.place_delete_lock_on_resources
   public_network_access_enabled                = var.public_network_access_enabled
-  service_principal                            = var.use_spn ? local.service_principal : local.account
   soft_delete_retention_days                   = var.soft_delete_retention_days
   storage_account_replication_type             = var.storage_account_replication_type
   tags                                         = var.tags
@@ -65,12 +63,12 @@ module "sap_landscape" {
 
 module "sap_namegenerator" {
   source                                       = "../../terraform-units/modules/sap_namegenerator"
-  codename                                     = lower(try(local.infrastructure.codename, ""))
-  environment                                  = local.infrastructure.environment
-  iscsi_server_count                           = try(local.infrastructure.iscsi.iscsi_count, 0)
-  location                                     = local.infrastructure.region
+  codename                                     = lower(try(var.codename, ""))
+  environment                                  = var.environment
+  iscsi_server_count                           = var.iscsi_count
+  location                                     = lower(var.location)
   random_id                                    = coalesce(var.custom_random_id, module.sap_landscape.random_id)
-  sap_vnet_name                                = local.infrastructure.virtual_networks.sap.logical_name
+  sap_vnet_name                                = var.network_logical_name
   utility_vm_count                             = var.utility_vm_count
 }
 

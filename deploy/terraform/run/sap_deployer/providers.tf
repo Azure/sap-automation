@@ -92,6 +92,16 @@ provider "azurerm"                     {
                                         #  use_msi                    = false #var.use_spn ? false : true
                                        }
 
+provider "azapi"                       {
+                                          alias                      = "restapi"
+                                          subscription_id            = var.subscription_id
+                                          use_msi                    = var.use_spn ? false : true
+                                       }
+
+provider "azuread"                     {
+                                         use_msi                    = var.use_spn ? false : true
+                                       }
+
 
 terraform                              {
                                          required_version = ">= 1.0"
@@ -110,12 +120,16 @@ terraform                              {
                                                                          }
                                                               azuread =  {
                                                                            source  = "hashicorp/azuread"
-                                                                           version = "3.0.2"
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.32.0"
+                                                                           version = "4.35.0"
                                                                          }
+                                                              azapi =   {
+                                                                           source  = "Azure/azapi"
+                                                                           version = "2.5.0"
+                                                                         }
+
                                                             }
                                        }
 

@@ -8,28 +8,25 @@
 #######################################4#######################################8
 locals {
   version_label                        = trimspace(file("${path.module}/../../../configs/version.txt"))
+  ansible_version_label                = trimspace(file("${path.module}/../../../configs/ansible_version.txt"))
+
 
   // Management vnet
-  vnet_mgmt_arm_id                     = try(local.infrastructure.vnets.management.arm_id, "")
-  vnet_mgmt_exists                     = length(local.vnet_mgmt_arm_id) > 0
 
   //There is no default as the name is mandatory unless arm_id is specified
-  vnet_mgmt_name                       = local.vnet_mgmt_exists ? (
-                                           split("/", local.vnet_mgmt_arm_id)[8]) : (
-                                           length(local.infrastructure.vnets.management.name) > 0 ? (
-                                             local.infrastructure.vnets.management.name) : (
+  vnet_mgmt_name                       = local.infrastructure.virtual_network.management.exists ? (
+                                           split("/", local.infrastructure.virtual_network.management.id)[8]) : (
+                                           length(local.infrastructure.virtual_network.management.name) > 0 ? (
+                                             local.infrastructure.virtual_network.management.name) : (
                                              "DEP00"
                                            )
                                          )
 
- // Locate the tfstate storage account
   parsed_id                           = provider::azurerm::parse_resource_id(var.tfstate_resource_id)
 
   SAPLibrary_subscription_id          = local.parsed_id["subscription_id"]
   SAPLibrary_resource_group_name      = local.parsed_id["resource_group_name"]
   tfstate_storage_account_name        = local.parsed_id["resource_name"]
-  tfstate_container_name              = module.sap_namegenerator.naming.resource_suffixes.tfstate
-
 
   // Default naming of vnet has multiple parts. Taking the second-last part as the name incase the name ends with -vnet
   vnet_mgmt_parts                      = length(split("-", local.vnet_mgmt_name))

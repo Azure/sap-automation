@@ -1,14 +1,13 @@
 #!/bin/bash
-
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#error codes include those from /usr/include/sysexits.h
+# Ensure that the exit status of a pipeline command is non-zero if any
+# stage of the pipefile has a non-zero exit status.
+set -o pipefail
 
 #colors for terminal
-
 bold_red="\e[1;31m"
-cyan="\e[1;36m"
 reset_formatting="\e[0m"
 
 #External helper functions
@@ -16,9 +15,26 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source
-# shellcheck disable=SC1091
+# Detect version from environment variable
+caller_version="${SDAFWZ_CALLER_VERSION:-v2}"
+
+#call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
+
+#helper files
+source "${script_directory}/helpers/script_helpers.sh"
+
+if [ -v ARM_SUBSCRIPTION_ID ]; then
+	subscription="$ARM_SUBSCRIPTION_ID"
+fi
+
+if [ "$DEBUG" = True ]; then
+	# Enable debugging
+	set -x
+	# Exit on error
+	set -o errexit
+fi
+
 
 function setSecretValue {
 	local keyvault=$1
@@ -77,7 +93,7 @@ function showhelp {
 
 deploy_using_msi_only=0
 
-INPUT_ARGUMENTS=$(getopt -n set_secrets -o e:r:v:s:c:p:t:b:hwm --longoptions environment:,region:,vault:,subscription:,spn_id:,spn_secret:,tenant_id:,keyvault_subscription:,workload,help,msi -- "$@")
+INPUT_ARGUMENTS=$(getopt -n set_secrets -o e:r:v:s:c:p:t:b:hwma --longoptions environment:,region:,vault:,subscription:,spn_id:,spn_secret:,tenant_id:,keyvault_subscription:,workload,help,msi,ado -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -139,9 +155,18 @@ while :; do
 	esac
 done
 
-if [ "$DEBUG" = True ]; then
+DEBUG=False
+
+if [ "$SYSTEM_DEBUG" = True ]; then
 	set -x
+	DEBUG=True
+	echo "Environment variables:"
+	printenv | sort
+
 fi
+export DEBUG
+set -eu
+
 
 while [ -z "${environment}" ]; do
 	read -r -p "Environment name: " environment
@@ -187,7 +212,7 @@ if [ -z "$subscription" ]; then
 	load_config_vars "${environment_config_information}" "subscription"
 fi
 
-if [ "$workload" != 1 ]; then
+if [ "${workload:-0}" != 1 ]; then
 	load_config_vars "${environment_config_information}" "STATE_SUBSCRIPTION"
 	if [ "$STATE_SUBSCRIPTION" ]; then
 		subscription=${STATE_SUBSCRIPTION}
@@ -223,7 +248,7 @@ if [ -z "${keyvault}" ]; then
 fi
 
 if [ 0 = "${deploy_using_msi_only:-}" ]; then
-	if [ -z "${client_id}" ]; then
+	if [ -z "${client_id:-$ARM_CLIENT_ID}" ]; then
 		load_config_vars "${environment_config_information}" "client_id"
 		if [ -z "$client_id" ]; then
 			read -r -p "SPN App ID: " client_id
@@ -329,7 +354,6 @@ save_config_vars "${environment_config_information}" \
 	keyvault \
 	environment \
 	subscription \
-	client_id \
 	tenant_id \
 	STATE_SUBSCRIPTION
 

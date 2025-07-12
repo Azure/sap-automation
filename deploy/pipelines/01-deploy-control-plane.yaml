@@ -114,6 +114,7 @@ stages:
               TF_VAR_agent_ado_url:           $(System.CollectionUri)
               TF_VAR_agent_pat:               $(System.AccessToken)
               TF_VAR_agent_pool:              $(POOL)
+              TF_VAR_agent_ado_project:       $(System.TeamProject)
               TF_VAR_ansible_core_version:    $(ansible_core_version)
               TF_VAR_spn_id:                  $(ARM_OBJECT_ID)
               TF_VAR_tf_version:              $(tf_version)
@@ -121,11 +122,57 @@ stages:
               USE_MSI:                        $(Use_MSI)
               WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
               keyvault:                       $(DEPLOYER_KEYVAULT)
+  - stage:                             PopulateKeyVault
+    dependsOn:
+      - Prepare_Deployer
+    pool:                              $(this_agent)
+    displayName:                       Save the Deployment Credentials in Azure Keyvault
+    variables:
+      - template:                      variables/01-deploy-control-plane-variables.yaml
+        parameters:
+          deployer:                    ${{ parameters.deployer }}
+          library:                     ${{ parameters.library }}
+          environment:                 ${{ parameters.environment }}
+          use_webapp_param:            ${{ parameters.use_webapp_param }}
+          use_deployer:                ${{ parameters.use_deployer }}
+          force_reset:                 ${{ parameters.force_reset }}
+    jobs:
+      - job:                           SaveDeploymentCredentials
+        displayName:                   Save the Deployment Credentials
+        workspace:
+          clean:                       all
+        steps:
+          - task:                      PostBuildCleanup@4
+          - template:                  templates\download.yaml
+            parameters:
+              getLatestFromBranch: true
+
+          - task:                      Bash@3
+            inputs:
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
+              failOnStderr:            false
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+            name:                      StoreSecrets
+            displayName:               Store deployment credentials in Key Vault
+            env:
+              ARM_CLIENT_ID:                $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
+              ARM_OBJECT_ID:                $(ARM_OBJECT_ID)
+              ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                $(ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
+              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              DEPLOYER_KEYVAULT:            $(DEPLOYER_KEYVAULT)
+              SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
+              USE_MSI:                      $(Use_MSI)
+              ZONE:                         ${{ upper(parameters.environment) }}
 
   - stage:                             Deploy_controlplane
     dependsOn:
-      - Prepare_Deployer
-    condition:                         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
+      - PopulateKeyVault
+    condition:                         eq(dependencies.PopulateKeyVault.result, 'Succeeded')
     pool:                              $(this_agent)
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
@@ -177,11 +224,13 @@ stages:
               TF_VAR_agent_pat:            $(System.AccessToken)
               TF_VAR_agent_pool:           $(POOL)
               TF_VAR_ansible_core_version: $(ansible_core_version)
+              TF_VAR_agent_ado_project:    $(System.TeamProject)
               TF_VAR_spn_id:               $(ARM_OBJECT_ID)
               TF_VAR_tf_version:           $(tf_version)
               USE_MSI:                     $(Use_MSI)
               WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
               keyvault:                    $(DEPLOYER_KEYVAULT)
+              DEPLOYER_KEYVAULT:           $(DEPLOYER_KEYVAULT)
 
   - stage:                             Web_App_Deployment
     pool:                              $(this_agent)
@@ -246,8 +295,8 @@ stages:
                 -SAP_INSTALL_PIPELINE_ID $(SAP_INSTALL_PIPELINE_ID)
                 -SDAF_GENERAL_GROUP_ID $(SDAF_GENERAL_GROUP_ID)
                 -IS_PIPELINE_DEPLOYMENT true
-                -CONTROLPLANE_ENV $(ControlPlaneEnvironment)
-                -CONTROLPLANE_LOC $(ControlPlaneLocation)'
+                -CONTROLPLANE_ENV $(CONTROL_PLANE_ENVIRONMENT)
+                -CONTROLPLANE_LOC $(CONTROL_PLANE_LOCATION)'
             env:
               ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
               SYSTEM_PIPELINE_ID:      $(SYSTEM_PIPELINE_ID)

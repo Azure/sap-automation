@@ -54,6 +54,7 @@ module "sap_namegenerator" {
 module "common_infrastructure" {
   source                                        = "../../terraform-units/modules/sap_system/common_infrastructure"
   providers                                     = {
+                                                    azurerm.deployer                 = azurerm.deployer
                                                     azurerm.main                     = azurerm.system
                                                     azurerm.dnsmanagement            = azurerm.dnsmanagement
                                                     azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
@@ -88,7 +89,6 @@ module "common_infrastructure" {
   sapmnt_private_endpoint_id                    = var.sapmnt_private_endpoint_id
   sapmnt_volume_size                            = var.sapmnt_volume_size
   scaleset_id                                   = var.scaleset_id
-  service_principal                             = var.use_spn ? local.service_principal : local.account
   tags                                          = var.tags
   terraform_template_version                    = var.terraform_template_version
   use_private_endpoint                          = var.use_private_endpoint
@@ -108,11 +108,10 @@ module "hdb_node" {
   source                                        = "../../terraform-units/modules/sap_system/hdb_node"
   depends_on                                    = [module.common_infrastructure]
   providers                                     = {
-                                                    azurerm.deployer                 = azurerm
+                                                    azurerm.deployer                 = azurerm.deployer
                                                     azurerm.main                     = azurerm.system
                                                     azurerm.dnsmanagement            = azurerm.dnsmanagement
                                                     azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
-                                                    # azapi.api                                 = azapi.api
                                                   }
 
   admin_subnet                                  = module.common_infrastructure.admin_subnet
@@ -189,7 +188,7 @@ module "hdb_node" {
 module "app_tier" {
   source                                        = "../../terraform-units/modules/sap_system/app_tier"
   providers                                     = {
-                                                    azurerm.deployer                 = azurerm
+                                                    azurerm.deployer                 = azurerm.deployer
                                                     azurerm.main                     = azurerm.system
                                                     azurerm.dnsmanagement            = azurerm.dnsmanagement
                                                     azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
@@ -244,7 +243,7 @@ module "app_tier" {
 module "anydb_node" {
   source                                        = "../../terraform-units/modules/sap_system/anydb_node"
   providers                                     = {
-                                                    azurerm.deployer                 = azurerm
+                                                    azurerm.deployer                 = azurerm.deployer
                                                     azurerm.main                     = azurerm.system
                                                     azurerm.dnsmanagement            = azurerm.dnsmanagement
                                                     azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
@@ -379,11 +378,11 @@ module "output_files" {
                                                   )))
   loadbalancers                                 = module.hdb_node.loadbalancers
 
-  subnet_cidr_anf                             = module.hdb_node.ANF_subnet_prefix
-  subnet_cidr_app                             = module.app_tier.subnet_cidr_app
-  subnet_cidr_client                          = module.common_infrastructure.subnet_cidr_client
-  subnet_cidr_db                              = module.common_infrastructure.subnet_cidr_db
-  subnet_cidr_storage                         = module.common_infrastructure.subnet_cidr_storage
+  subnet_cidr_anf                               = module.hdb_node.ANF_subnet_prefix
+  subnet_cidr_app                               = module.app_tier.subnet_cidr_app
+  subnet_cidr_client                            = module.common_infrastructure.subnet_cidr_client
+  subnet_cidr_db                                = module.common_infrastructure.subnet_cidr_db
+  subnet_cidr_storage                           = module.common_infrastructure.subnet_cidr_storage
 
   #########################################################################################
   #  SAP Application information                                                          #
@@ -454,7 +453,7 @@ module "output_files" {
   dns                                           = try(data.terraform_remote_state.landscape.outputs.dns_label, "")
   use_custom_dns_a_registration                 = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, false)
   management_dns_subscription_id                = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name             = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
+  management_dns_resourcegroup_name             = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.SAPLibrary_resource_group_name)
   dns_zone_names                                = var.dns_zone_names
   dns_a_records_for_secondary_names             = var.dns_a_records_for_secondary_names
 

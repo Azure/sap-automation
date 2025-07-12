@@ -16,7 +16,7 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source
+#call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
@@ -95,7 +95,7 @@ function missing {
 
 force=0
 ado=0
-INPUT_ARGUMENTS=$(getopt -n remove_region -o d:l:s:b:r:ihag --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,auto-approve,ado,help,keep_agent -- "$@")
+INPUT_ARGUMENTS=$(getopt -n remove_control_plane -o d:l:s:b:r:ihag --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,auto-approve,ado,help,keep_agent -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -194,15 +194,12 @@ generic_config_information="${automation_config_directory}"/config
 deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
 
 load_config_vars "${deployer_config_information}" "step"
-if [ 1 -eq $keep_agent ]; then
-	echo "Keeping the Azure DevOps agent"
-	if [ 1 -eq $step ]; then
-		exit 0
-	fi
+if [ 1 -eq $step ]; then
+	exit 0
+fi
 
-	if [ 0 -eq $step ]; then
-		exit 0
-	fi
+if [ 0 -eq $step ]; then
+	exit 0
 fi
 
 if [ -z "$deployer_config_information" ]; then
@@ -297,6 +294,9 @@ else
 	export ARM_USE_AZUREAD=true
 fi
 
+TF_VAR_subscription_id="${STATE_SUBSCRIPTION}"
+export TF_VAR_subscription_id
+
 # Reinitialize
 echo ""
 echo "#########################################################################################"
@@ -315,75 +315,56 @@ if [ -f init_error.log ]; then
 	rm init_error.log
 fi
 
+terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
+
 if [ -f .terraform/terraform.tfstate ]; then
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 	if [ -n "$azure_backend" ]; then
 		echo "Terraform state:                     remote"
-
-		# Initialize the state file and copy to local
-
-		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo "#                     Running Terraform init (deployer - local)                         #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		if terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
+		if terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"; then
 			return_value=$?
-			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-			echo ""
+			print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
 		else
 			return_value=$?
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
+			print_banner "Remove Control Plane " "Terraform init failed (deployer - local)" "error"
 		fi
+
 	else
-		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
-		if terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"; then
+		echo "Terraform state:                     local"
+		if terraform -chdir="${terraform_module_directory}" init -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
 			return_value=$?
-			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-			echo ""
+			print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
 		else
 			return_value=$?
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
+			print_banner "Remove Control Plane " "Terraform init failed (deployer - local)" "error"
 		fi
+
 	fi
 else
-	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
-	if terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"; then
+	echo "Terraform state:                     unknown"
+	if terraform -chdir="${terraform_module_directory}" init -reconfigure -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
 		return_value=$?
-		echo ""
-		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-		echo ""
+		print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
 	else
 		return_value=$?
-		echo ""
-		echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-		echo ""
+		print_banner "Remove Control Plane " "Terraform init failed (deployer - local)" "error"
 	fi
 fi
 
-deployer_statefile_foldername_path="${param_dirname}"
+deployer_statefile_foldername_path=$(dirname "${deployer_parameter_file}")
 if [ 0 != $return_value ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#               $bold_red Error when initializing Terraform (deployer - local) $reset_formatting                  #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	cat init_error.log
-	rm init_error.log
 	unset TF_DATA_DIR
 	exit 10
 fi
+
+if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
+	return_value=$?
+	print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
+else
+	print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
+fi
+
+print_banner "Remove Control Plane " "Running Terraform init (library - local)" "info"
 
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 	keyvault_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
@@ -404,88 +385,42 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 
 #Reinitialize
 
-key=$(echo "${library_tfvars_filename}" | cut -d. -f1)
-
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                             Running Terraform init (library)                          #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
-echo ""
-echo "#  subscription_id=${subscription}"
-echo "#  backend-config resource_group_name=${resource_group}"
-echo "#  storage_account_name=${storage_account}"
-echo "#  container_name=tfstate"
-echo "#  key=${key}.terraform.tfstate"
-
-if [ -f ./.terraform/terraform.tfstate ]; then
+if [ -f .terraform/terraform.tfstate ]; then
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 	if [ -n "$azure_backend" ]; then
-
-		echo "State is stored in Azure"
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo "#                     Running Terraform init (library - local)                          #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-
-		#Initialize the statefile and copy to local
-		if terraform -chdir="${terraform_module_directory}" init -force-copy -migrate-state --backend-config \
-			"path=${param_dirname}/terraform.tfstate" -var deployer_statefile_folder="${deployer_statefile_foldername_path}"; then
+		echo "Terraform state:                     remote"
+		if terraform -chdir="${terraform_module_directory}" init -upgrade -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
 			return_value=$?
-			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-			echo ""
+			print_banner "Remove Control Plane " "Terraform init succeeded (library - local)" "success"
 		else
 			return_value=$?
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
+			print_banner "Remove Control Plane " "Terraform init failed (library - local)" "error"
+			unset TF_DATA_DIR
+			exit 20
 		fi
 	else
-		if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate" \
-			-var deployer_statefile_folder="${deployer_statefile_foldername_path}"; then
+		echo "Terraform state:                     local"
+		if terraform -chdir="${terraform_module_directory}" init -upgrade -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
 			return_value=$?
-			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-			echo ""
+			print_banner "Remove Control Plane " "Terraform init succeeded (library - local)" "success"
 		else
 			return_value=$?
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
+			print_banner "Remove Control Plane " "Terraform init failed (library - local)" "error"
+			unset TF_DATA_DIR
+			exit 20
 		fi
 	fi
 else
-	if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate" \
-		-var deployer_statefile_folder="${deployer_statefile_foldername_path}"; then
+	echo "Terraform state:                     unknown"
+	if terraform -chdir="${terraform_module_directory}" init -upgrade -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
 		return_value=$?
-		echo ""
-		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-		echo ""
+		print_banner "Remove Control Plane " "Terraform init succeeded (library - local)" "success"
 	else
 		return_value=$?
-		echo ""
-		echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-		echo ""
+		print_banner "Remove Control Plane " "Terraform init failed (library - local)" "error"
+		unset TF_DATA_DIR
+		exit 20
 	fi
-fi
-
-if [ 0 != $return_code ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#               $bold_red Error when initializing Terraform (library - local) $reset_formatting                   #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	unset TF_DATA_DIR
-	exit 1
-
 fi
 
 extra_vars=""
@@ -499,64 +434,41 @@ var_file="${param_dirname}"/"${library_tfvars_filename}"
 export TF_DATA_DIR="${param_dirname}/.terraform"
 export TF_use_spn=false
 
+print_banner "Remove Control Plane " "Running Terraform destroy (library)" "info"
+
+if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-file="${library_parameter_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername_path}" "${approve_parameter}"; then
+	return_value=$?
+	print_banner "Remove Control Plane " "Terraform destroy (library) succeeded" "success"
+else
+	return_value=$?
+	print_banner "Remove Control Plane " "Terraform destroy (library) failed" "error"
+	unset TF_DATA_DIR
+	exit 20
+fi
+
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
-echo "#                     Running Terraform destroy (library)                               #"
+echo "#                                       Reset settings                                  #"
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
 
-if terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" -var use_deployer=false \
-	-var deployer_statefile_foldername="${deployer_statefile_foldername_path}" "${approve_parameter}"; then
-	return_value=$?
-	echo ""
-	echo -e "${cyan}Terraform destroy:                      succeeded$reset_formatting"
-	echo ""
-	if [ -f "${param_dirname}/terraform.tfstate" ]; then
-		rm "${param_dirname}/terraform.tfstate"
-	fi
-	if [ -f "${param_dirname}/terraform.tfstate.backup" ]; then
-		rm "${param_dirname}/terraform.tfstate.backup"
-	fi
-	if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then
-		rm "${param_dirname}/.terraform/terraform.tfstate"
-	fi
-else
-	return_value=$?
-	echo ""
-	echo -e "${bold_red}Terraform destroy:                      failed$reset_formatting"
-	echo ""
-fi
-
-if [ 0 != $return_value ]; then
-	exit $return_value
-else
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#                                       Reset settings                                  #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-
-	STATE_SUBSCRIPTION=''
-	REMOTE_STATE_SA=''
-	REMOTE_STATE_RG=''
-	save_config_vars "${deployer_config_information}" \
-		tfstate_resource_id \
-		REMOTE_STATE_SA \
-		REMOTE_STATE_RG \
-		STATE_SUBSCRIPTION
-
-fi
+STATE_SUBSCRIPTION=''
+REMOTE_STATE_SA=''
+REMOTE_STATE_RG=''
+save_config_vars "${deployer_config_information}" \
+	tfstate_resource_id \
+	REMOTE_STATE_SA \
+	REMOTE_STATE_RG \
+	STATE_SUBSCRIPTION
 
 cd "${current_directory}" || exit
+step=1
+save_config_var "step" "${deployer_config_information}"
 
 if [ 1 -eq $keep_agent ]; then
 	echo "Keeping the Azure DevOps agent"
-	step=1
-	save_config_var "step" "${deployer_config_information}"
 
 else
 	cd "${deployer_dirname}" || exit
@@ -611,7 +523,6 @@ else
 		echo ""
 	fi
 
-	return_value=$?
 	step=0
 	save_config_var "step" "${deployer_config_information}"
 	if [ 0 != $return_value ]; then

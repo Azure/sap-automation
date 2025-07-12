@@ -3,7 +3,7 @@
 
 #######################################4#######################################8
 #                                                                              #
-#                          Resource group definitioms                          #
+#                          Resource group definitions                          #
 #                                                                              #
 #######################################4#######################################8
 
@@ -27,6 +27,15 @@ output "environment"                             {
                                                    value       = var.environment
                                                  }
 
+output "location_short"                          {
+                                                   description = "Deployer Location short name"
+                                                   value       = module.sap_namegenerator.naming_new.location_short
+                                                 }
+
+output "network_logical_name"                    {
+                                                   description = "Deployer Location short name"
+                                                   value       = var.management_network_logical_name
+                                                 }
 
 output "created_resource_group_location"         {
                                                    description = "Created resource group's location"
@@ -36,6 +45,12 @@ output "created_resource_group_location"         {
 output "random_id"                               {
                                                    description = "Random ID for deployer"
                                                    value       = substr(coalesce(var.custom_random_id, module.sap_deployer.random_id), 0, 3)
+                                                 }
+
+
+output "diagnostics_account_id"                  {
+                                                    description = "Diagnostics Storage Account ID"
+                                                    value       = module.sap_deployer.diagnostics_account_id
                                                  }
 
 ###############################################################################
@@ -126,6 +141,12 @@ output "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
                                                                 value       = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
                                                               }
 
+output "additional_network_id"                     {
+                                                       description = "Agent Network resource ID"
+                                                       value       = length(var.additional_network_id) > 0 ? provider::azurerm::normalise_resource_id(split("/subnets/",var.additional_network_id)[0]) : null
+                                                     }
+
+
 ###############################################################################
 #                                                                             #
 #                                 Key Vault                                   #
@@ -197,17 +218,22 @@ output "automation_version"                      {
 
 output "webapp_url_base"                         {
                                                    description = "The URL of the configuration Web Application"
-                                                   value       = var.use_webapp ? module.sap_deployer.webapp_url_base : ""
+                                                   value       = var.app_service_deployment ? module.sap_deployer.webapp_url_base : ""
                                                  }
 
 output "webapp_identity"                         {
                                                    description = "The identity of the configuration Web Application"
-                                                   value       = var.use_webapp ? module.sap_deployer.webapp_identity : ""
+                                                   value       = var.app_service_deployment ? module.sap_deployer.webapp_identity : ""
                                                  }
 
 output "webapp_id"                               {
                                                    description = "The Azure resource ID of the configuration Web Application"
-                                                   value       = var.use_webapp ? module.sap_deployer.webapp_id : ""
+                                                   value       = var.app_service_deployment ? module.sap_deployer.webapp_id : ""
+                                                 }
+
+output "app_service_deployment"                  {
+                                                   description = "Is the App Service deployed"
+                                                   value       = var.app_service_deployment
                                                  }
 
 ###############################################################################
@@ -225,4 +251,4 @@ output "deployer_extension_ids"                  {
 output "Agent_IP"                                {
                                                     description = "The IP address of the agent"
                                                     value       = var.Agent_IP
-                                                  }
+                                                 }

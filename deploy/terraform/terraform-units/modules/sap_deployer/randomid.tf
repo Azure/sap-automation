@@ -11,7 +11,7 @@ resource "random_id" "deployer" {
 resource "random_password" "deployer" {
   count                                = (
                                            local.enable_password
-                                           && !local.pwd_exist
+                                           && length(var.key_vault.password_secret_name) == 0
                                            && try(var.authentication.password, "") == ""
                                          ) ? 1 : 0
 

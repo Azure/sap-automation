@@ -18,8 +18,19 @@ reset_formatting="\e[0m"
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
+parent_caller="${BASH_SOURCE[${#BASH_SOURCE[@]} - 1]}"
+parent_caller_directory="$(dirname $(realpath "${parent_caller}"))"
 
-#call stack has full scriptname when using source
+# Check if parent caller is from v1 directory
+if [[ "${parent_caller_directory}" == *"/v1/"* || "${parent_caller_directory}" == *"/v1" ]]; then
+    echo "DEBUG: Detected v1 caller"
+		isCallerV1=0
+else
+		echo "DEBUG: Detected v2 caller"
+    isCallerV1=1
+fi
+
+#call stack has full script name when using source
 # shellcheck disable=SC1091
 source "${script_directory}/deploy_utils.sh"
 
@@ -219,16 +230,23 @@ fi
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 
-if [ "$deployer_environment" != "$environment" ]; then
-	if [ -f "${automation_config_directory}/${environment}${region_code}" ]; then
-		# Add support for having multiple vnets in the same environment and zone - rename exiting file to support seamless transition
-		if [ -f "${automation_config_directory}/${environment}${region_code}${network_logical_name}" ]; then
-			mv "${automation_config_directory}/${environment}${region_code}" "${automation_config_directory}/${environment}${region_code}${network_logical_name}"
+if [ $isCallerV1 -eq 1 ]; then
+	if [ "$deployer_environment" != "$environment" ]; then
+		if [ -f "${automation_config_directory}/${environment}${region_code}" ]; then
+			# Add support for having multiple vnets in the same environment and zone - rename exiting file to support seamless transition
+			if [ -f "${automation_config_directory}/${environment}${region_code}${network_logical_name}" ]; then
+				mv "${automation_config_directory}/${environment}${region_code}" "${automation_config_directory}/${environment}${region_code}${network_logical_name}"
+			fi
 		fi
 	fi
 fi
 
-workload_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
+if [ $isCallerV1 -eq 0 ]; then
+	workload_config_information="${automation_config_directory}/${environment}${region_code}"
+elif [ $isCallerV1 -eq 1 ]; then
+	workload_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
+fi
+
 touch "${workload_config_information}"
 deployer_config_information="${automation_config_directory}/${deployer_environment}${region_code}"
 save_config_vars "${workload_config_information}" \
@@ -241,6 +259,15 @@ if [ "${force}" == 1 ]; then
 	rm -Rf .terraform terraform.tfstate*
 fi
 
+echo ""
+echo "Configuration file:                  $workload_config_information"
+echo "Deployment region:                   $region"
+echo "Deployment region code:              $region_code"
+echo "Deployment environment:              $deployer_environment"
+echo "Deployer Keyvault:                   $keyvault"
+echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
+echo "Remote state storage account:        $REMOTE_STATE_SA"
+echo "Target Subscription:                 $subscription"
 
 if [[ -n $STATE_SUBSCRIPTION ]]; then
 	if is_valid_guid "$STATE_SUBSCRIPTION"; then
@@ -288,21 +315,8 @@ if [ -n "$keyvault" ]; then
 		echo "The provided keyvault is not valid: ${val}" >"${workload_config_information}".err
 		exit 65
 	fi
-else
-	load_config_vars "${deployer_config_information}" "keyvault"
-	save_config_var "keyvault" "${workload_config_information}"
-fi
 
-echo ""
-echo "Deployer config file:                $deployer_config_information"
-echo "Configuration file:                  $workload_config_information"
-echo "Deployment region:                   $region"
-echo "Deployment region code:              $region_code"
-echo "Deployment environment:              $deployer_environment"
-echo "Deployer Keyvault:                   $keyvault"
-echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
-echo "Remote state storage account:        $REMOTE_STATE_SA"
-echo "Target Subscription:                 $subscription"
+fi
 
 if [ ! -f "${workload_config_information}" ]; then
 	# Ask for deployer environment name and try to read the deployer state file and resource group details from the configuration file
@@ -336,6 +350,8 @@ fi
 if [ -z "$tfstate_resource_id" ]; then
 	echo "No tfstate_resource_id"
 	if [ -n "$deployer_environment" ]; then
+		deployer_config_information="${automation_config_directory}"/"${deployer_environment}""${region_code}"
+		echo "Deployer config file:                $deployer_config_information"
 		if [ -f "$deployer_config_information" ]; then
 			load_config_vars "${deployer_config_information}" "keyvault"
 			load_config_vars "${deployer_config_information}" "REMOTE_STATE_RG"
@@ -654,20 +670,20 @@ TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 export TF_VAR_subscription_id
 
 if [ ! -d .terraform/ ]; then
-	if terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+	if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
 		--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 		--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 		--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
 		--backend-config "container_name=tfstate" \
 		--backend-config "key=${key}.terraform.tfstate"; then
-		return_value=0
-		echo ""
-		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-		echo ""
-	else
 		return_value=$?
 		echo ""
 		echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
+		echo ""
+	else
+		return_value=0
+		echo ""
+		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 		echo ""
 	fi
 else
@@ -675,32 +691,32 @@ else
 	local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
 	if [ -n "${local_backend}" ]; then
 
-		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
+		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
-			return_value=0
-			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-			echo ""
-		else
 			return_value=$?
 			echo ""
 			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
+			echo ""
+		else
+			return_value=0
+			echo ""
+			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 			echo ""
 		fi
 	else
-		if terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
-			return_value=0
-			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-			echo ""
-		else
+		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
 			return_value=$?
 			echo ""
 			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
+			echo ""
+		else
+			return_value=0
+			echo ""
+			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 			echo ""
 		fi
 
@@ -717,10 +733,10 @@ if [ 0 != $return_value ]; then
 	echo "Terraform initialization failed"
 	exit $return_value
 fi
-if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-	check_output=0
-else
+if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 	check_output=1
+else
+	check_output=0
 fi
 
 save_config_var "REMOTE_STATE_SA" "${workload_config_information}"
@@ -892,7 +908,7 @@ echo ""
 allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
 
 # shellcheck disable=SC2086
-if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee plan_output.log; then
+if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee plan_output.log; then
 	return_value=${PIPESTATUS[0]}
 else
 	return_value=${PIPESTATUS[0]}
@@ -1023,16 +1039,17 @@ if [ 1 == $apply_needed ]; then
 
 	if [ -n "${approve}" ]; then
 		# Using if so that no zero return codes don't fail -o errexit
-		if terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParameters -input=false | tee apply_output.json; then
+		if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" -no-color -json $allParameters -input=false | tee apply_output.json; then
 			return_value=${PIPESTATUS[0]}
 		else
 			return_value=${PIPESTATUS[0]}
 		fi
-		echo "Return value:                        $return_value"
+		echo    "Return value:                        $return_value"
 		if [ $return_value -eq 1 ]; then
 			echo ""
 			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
 			echo ""
+			exit $return_value
 		else
 			# return code 2 is ok
 			echo ""
@@ -1045,7 +1062,7 @@ if [ 1 == $apply_needed ]; then
 		terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters
 		return_value=$?
 
-		echo "Return value:                        $return_value"
+		echo    "Return value:                        $return_value"
 		if [ $return_value -ne 1 ]; then
 			echo ""
 			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
