@@ -86,6 +86,25 @@
           tags:
             - always
 
+        - name:                        "OS configuration playbook: - Retrieve Subscription ID, Resource Group Name and Virtual Machine name"
+          ansible.builtin.uri:
+            url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
+            use_proxy:                 false
+            headers:
+              Metadata:                true
+          register:                    azure_metadata
+          no_log:                      true
+          tags:
+            - always
+
+        - name:                        "SAP OS configuration playbook: - : Extract Subscription ID, Resource Group Name and Virtual Machine name"
+          ansible.builtin.set_fact:
+            subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
+            resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
+            vm_name:                   "{{ azure_metadata.json.compute.name }}"
+          tags:
+            - always
+
         - name:                        "OS configuration playbook: - Create directories"
           become:                      true
           ansible.builtin.file:
