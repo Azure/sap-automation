@@ -1059,7 +1059,7 @@ if [ 1 == $apply_needed ]; then
 		fi
 	else
 		# Using if so that no zero return codes don't fail -o errexit
-		terraform -chdir="${terraform_module_directory}" apply -detailed-exitcode -parallelism="${parallelism}" $allParameters
+		terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters
 		return_value=$?
 
 		echo    "Return value:                        $return_value"
