@@ -122,6 +122,14 @@ deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/$
 deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 library_configuration_file="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
+
+if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"; then
+	echo "Variable DEPLOYER_STATE_FILENAME was added to the $VARIABLE_GROUP variable group."
+else
+	echo "##vso[task.logissue type=error]Variable DEPLOYER_STATE_FILENAME was not added to the $VARIABLE_GROUP variable group."
+	echo "Variable Deployer_State_FileName was not added to the $VARIABLE_GROUP variable group."
+fi
+
 if [ -f "${deployer_environment_file_name}" ]; then
 	step=$(grep -m1 "^step=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs)
 	echo "Step:                                $step"
@@ -467,12 +475,6 @@ if [ "$return_code" -eq 0 ]; then
 		fi
 	fi
 
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"; then
-		echo "Variable DEPLOYER_STATE_FILENAME was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable DEPLOYER_STATE_FILENAME was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable Deployer_State_FileName was not added to the $VARIABLE_GROUP variable group."
-	fi
 
 	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$file_key_vault"; then
 		echo "Variable DEPLOYER_KEYVAULT was added to the $VARIABLE_GROUP variable group."
