@@ -144,27 +144,27 @@ stages:
             parameters:
               getLatestFromBranch: true
           - task:                      PostBuildCleanup@4
-          # - task:                      Bash@3
-          #   inputs:
-          #     targetType:              'inline'
-          #     failOnStderr:            false
-          #     script:
-          #                             sudo pipx uninstall ansible-core
+          - task:                      Bash@3
+            inputs:
+              targetType:              'inline'
+              failOnStderr:            false
+              script:
+                                      sudo pipx uninstall ansible-core
 
-          #                             pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
+                                      pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
 
-          #                             ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
+                                      ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
 
-          #                             ansible --version
+                                      ansible --version
 
-          #   env:
-          #     ansible_core_version:    $(ansible_core_version)
-          #   name:                      AnsibleInstallation
-          #   displayName:               Ansible installation
-          # - task:                      TerraformInstaller@1
-          #   displayName:               Install Terraform
-          #   inputs:
-          #     terraformVersion:        latest
+            env:
+              ansible_core_version:    $(ansible_core_version)
+            name:                      AnsibleInstallation
+            displayName:               Install Ansible
+          - task:                      TerraformInstaller@1
+            displayName:               Install Terraform
+            inputs:
+              terraformVersion:        latest
 
           - task:                      Bash@3
             inputs:
@@ -200,7 +200,7 @@ stages:
               secretName:                    "$(Preparation.SSH_KEY_NAME)"
               passwordSecretName:            "$(Preparation.PASSWORD_KEY_NAME)"
               userNameSecretName:            "$(Preparation.USERNAME_KEY_NAME)"
-              vaultName:                     $(Preparation.VAULT_NAME)
+              vaultName:                     $(KEYVAULT)
               parametersFolder:              $(Preparation.FOLDER)
               sapParams:                     "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
               sidHosts:                      $(Preparation.HOSTS)
@@ -220,7 +220,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -228,7 +228,7 @@ stages:
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
                   CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.sap_os_configuration, true) }}:
@@ -240,7 +240,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -260,7 +260,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -280,7 +280,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -300,7 +300,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -320,7 +320,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -328,7 +328,7 @@ stages:
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
+                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
                   CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.high_availability_configuration, true) }}:
@@ -340,7 +340,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -360,7 +360,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -380,7 +380,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -400,7 +400,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -420,7 +420,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -440,7 +440,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -460,7 +460,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
@@ -482,7 +482,7 @@ stages:
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
                   userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(Preparation.VAULT_NAME)
+                  vaultName:                 $(KEYVAULT)
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)

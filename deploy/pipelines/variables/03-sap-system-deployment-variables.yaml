@@ -33,19 +33,16 @@ variables:
     value:                             $[lower(coalesce(variables['POOL'], variables['AGENT']))]
 
   - name:                              REMOTE_STATE_SA
-    value:                             $[variables['Terraform_Remote_Storage_Account_Name']]
-
-  - name:                              REMOTE_STATE_RG
-    value:                             $[variables['Terraform_Remote_Storage_Resource_Group_Name']]
+    value:                             $[variables['TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME']]
 
   - name:                              STATE_SUBSCRIPTION
-    value:                             $[variables['Terraform_Remote_Storage_Subscription']]
+    value:                             $[variables['ARM_SUBSCRIPTION_ID']]
 
   - name:                              deployer_tfstate_key
     value:                             $[variables['DEPLOYER_STATE_FILENAME']]
 
   - name:                              key_vault
-    value:                             $[variables['Deployer_Key_Vault']]
+    value:                             $[variables['DEPLOYER_KEYVAULT']]
 
   - name:                              test_only
     value:                             ${{ parameters.test }}
