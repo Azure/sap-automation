@@ -85,6 +85,12 @@ locals {
                                                                   exists = length(var.webapp_subnet_arm_id) > 0 ? true : false
                                                                   prefix = var.webapp_subnet_address_prefix
                                                                 }
+                                              subnet_agent =    {
+                                                                  name   = var.agent_subnet_name,
+                                                                  id     = var.agent_subnet_arm_id
+                                                                  exists = length(var.agent_subnet_arm_id) > 0 ? true : false
+                                                                  prefix = var.agent_subnet_address_prefix
+                                                                }
                                             }
                                           }
 
