@@ -38,4 +38,4 @@ variables:
     value:                             $[lower(coalesce(variables['POOL'], variables['AGENT']))]
 
   - name:                              key_vault
-    value:                             $[variables['Deployer_Key_Vault']]
+    value:                             $[variables['DEPLOYER_KEYVAULT']]
