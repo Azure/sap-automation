@@ -228,7 +228,7 @@
       failed_when:                     crm_configure_result.rc > 1
       when:
         - use_msi_for_clusters
-        - distribution_full_id in ["sles_sap12.5", "sles_sap15.1","sles_sap15.2", "sles_sap15.3", "sles_sap15.4", "sles_sap15.5", "sles_sap15.6"]
+        - distribution_full_id in ["sles_sap12.5", "sles_sap15.1","sles_sap15.2", "sles_sap15.3", "sles_sap15.4", "sles_sap15.5", "sles_sap15.6", "sles_sap15.7"]
 
 
     - name:                            "1.17 Generic Pacemaker - Stonith Timeout Property"

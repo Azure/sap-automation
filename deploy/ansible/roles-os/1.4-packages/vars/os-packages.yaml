@@ -507,6 +507,16 @@ packages:
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'ers',            state: 'present' }
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'hana',           state: 'present' }
+  sles_sap15.7:
+    - { tier: 'os',     package: 'python3-xml',                                  node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'python3-rpm',                                  node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'azure-vm-utils',                               node_tier: 'all',            state: 'present' }
+    - { tier: 'db2',    package: 'system-user-bin',                              node_tier: 'db2',             state: 'present' }
+    - { tier: 'ha',     package: 'sapstartsrv-resource-agents',                  node_tier: 'scs',            state: 'present' }
+    - { tier: 'ha',     package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',            state: 'present' }
+    - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'scs',            state: 'present' }
+    - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'ers',            state: 'present' }
+    - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'hana',           state: 'present' }
   # Adding packages for Oracle linux 8.4 to start with, copied the list from RHEL.
   # Adding additional Oracle linux packages as per SAP Note 2069760 - Oracle Linux 7.x SAP Installation and
   # Upgrade. Need to add the groupinstall command.
