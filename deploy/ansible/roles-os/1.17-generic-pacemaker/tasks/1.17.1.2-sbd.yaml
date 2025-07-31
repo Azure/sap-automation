@@ -289,7 +289,6 @@
             content: |
                                               [Service]
                                               TimeoutSec=259
-                                              Before=corosync.service
             dest:                             /etc/systemd/system/sbd.service.d/sbd_delay_start.conf
             owner:                            root
             group:                            root
