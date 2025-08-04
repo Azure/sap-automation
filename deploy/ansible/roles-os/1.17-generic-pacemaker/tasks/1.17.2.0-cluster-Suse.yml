@@ -327,7 +327,7 @@
                                          op monitor interval="600" timeout="15"
 
     - name:                            "1.17 Generic Pacemaker - Set the Stonith SBD Timeout Property"
-      ansible.builtin.shell:           crm configure property stonith-timeout=144
+      ansible.builtin.shell:           crm configure property stonith-timeout=210
 
     - name:                            "1.17 Generic Pacemaker - Enable Stonith"
       ansible.builtin.shell:           crm configure property stonith-enabled=true

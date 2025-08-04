@@ -39,7 +39,7 @@
                                        crm configure property \$id="cib-bootstrap-options"
                                          stonith-enabled="true"
                                          stonith-action="reboot"
-                                         stonith-timeout="144s"
+                                         stonith-timeout="210s"
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure CIB Bootstrap Options are set"
       when:                            database_cluster_type not in ["ISCSI", "ASD"]
