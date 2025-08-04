@@ -383,7 +383,7 @@ resource "azurerm_private_endpoint" "transport" {
                                            azurerm_subnet.app,
                                            azurerm_private_dns_zone_virtual_network_link.vnet_sap_file
                                          ]
-  count                                = var.create_transport_storage && var.use_private_endpoint && local.use_AFS_for_shared ? (
+  count                                = var.create_transport_storage && var.use_private_endpoint && local.use_AFS_for_shared && var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
                                            length(var.transport_storage_account_id) > 0 ? (
                                              0) : (
                                              1
@@ -413,12 +413,9 @@ resource "azurerm_private_endpoint" "transport" {
                                           azurerm_resource_group.resource_group[0].location
                                         )
 
-  subnet_id                             = var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
-                                          var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
+  subnet_id                             = var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
                                             var.infrastructure.virtual_networks.sap.subnet_app.id) : (
-                                            azurerm_subnet.app[0].id)) : (
-                                          ""
-                                        )
+                                            azurerm_subnet.app[0].id)
   private_service_connection {
                                name = format("%s%s%s",
                                         var.naming.resource_prefixes.storage_private_svc_transport,
@@ -576,7 +573,7 @@ resource "azurerm_private_endpoint" "install" {
                                            azurerm_storage_share.install,
                                            azurerm_storage_share.install_smb
                                          ]
-  count                                = local.use_AFS_for_shared && var.use_private_endpoint ? (
+  count                                = local.use_AFS_for_shared && var.use_private_endpoint && var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
                                            length(var.install_private_endpoint_id) > 0 ? (
                                              0) : (
                                              1
@@ -604,10 +601,7 @@ resource "azurerm_private_endpoint" "install" {
                                           data.azurerm_resource_group.resource_group[0].location) : (
                                           azurerm_resource_group.resource_group[0].location
                                         )
-  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
-                                          var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.id : azurerm_subnet.app[0].id) : (
-                                          ""
-                                        )
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.id : azurerm_subnet.app[0].id
 
 
   private_service_connection {
