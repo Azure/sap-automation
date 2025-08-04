@@ -112,7 +112,7 @@ locals {
                                            logical_name             = var.network_logical_name
                                            flow_timeout_in_minutes  = var.network_flow_timeout_in_minutes
                                            enable_route_propagation = var.network_enable_route_propagation
-                                           id                       = var.network_arm_id
+                                           arm_id                   = var.network_arm_id
                                            exists                   = length(var.network_arm_id) > 0
                                            address_space            = flatten(can(tostring(var.network_address_space)) ? tolist(split(",", var.network_address_space)) : [var.network_address_space])
 
