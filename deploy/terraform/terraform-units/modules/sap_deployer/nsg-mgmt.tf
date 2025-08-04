@@ -40,10 +40,7 @@ resource "azurerm_subnet_network_security_group_association" "associate_nsg_mgmt
                                            data.azurerm_subnet.subnet_mgmt[0].id) : (
                                            azurerm_subnet.subnet_mgmt[0].id
                                          )
-  network_security_group_id            = var.infrastructure.virtual_network.management.subnet_mgmt.nsg.exists ? (
-                                           data.azurerm_network_security_group.nsg_mgmt[0].id) : (
-                                           azurerm_network_security_group.nsg_mgmt[0].id
-                                         )
+  network_security_group_id            = azurerm_network_security_group.nsg_mgmt[0].id
 }
 
 // Add SSH network security rule
