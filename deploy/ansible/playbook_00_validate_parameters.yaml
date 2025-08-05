@@ -458,12 +458,12 @@
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
 
-    - name:                            "0.0 Validations: - Wait for system to become reachable"
-      ansible.builtin.wait_for_connection:
-        timeout:                       120
-      register:                        wait_for_connection_results
-      tags:
-                                       - always
+    # - name:                            "0.0 Validations: - Wait for system to become reachable"
+    #   ansible.builtin.wait_for_connection:
+    #     timeout:                       120
+    #   register:                        wait_for_connection_results
+    #   tags:
+    #                                    - always
 
     - name:                            "0.0 Validations: - Gather facts for first time"
       ansible.builtin.setup:
