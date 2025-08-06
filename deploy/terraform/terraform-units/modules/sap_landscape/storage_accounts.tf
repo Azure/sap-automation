@@ -74,7 +74,8 @@ data "azurerm_storage_account" "storage_bootdiag" {
 
 resource "azurerm_private_endpoint" "storage_bootdiag" {
   provider                             = azurerm.main
-  count                                = var.use_private_endpoint && var.infrastructure.virtual_networks.sap.subnet_app.defined && (length(var.diagnostics_storage_account.id) == 0) ? 1 : 0
+  # We cannot use .defined here as it would break if the customer provides the Azure Resource Id for the app subnet
+  count                                = var.use_private_endpoint && (var.infrastructure.virtual_networks.sap.subnet_app.defined || var.infrastructure.virtual_networks.sap.subnet_app.exists) && (length(var.diagnostics_storage_account.id) == 0) ? 1 : 0
   depends_on                           = [
                                            azurerm_subnet.app
                                          ]
@@ -383,7 +384,9 @@ resource "azurerm_private_endpoint" "transport" {
                                            azurerm_subnet.app,
                                            azurerm_private_dns_zone_virtual_network_link.vnet_sap_file
                                          ]
-  count                                = var.create_transport_storage && var.use_private_endpoint && local.use_AFS_for_shared && var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
+  count                                = var.create_transport_storage && var.use_private_endpoint && local.use_AFS_for_shared && (
+                                            var.infrastructure.virtual_networks.sap.subnet_app.defined || var.infrastructure.virtual_networks.sap.subnet_app.exists
+                                          ) ? (
                                            length(var.transport_storage_account_id) > 0 ? (
                                              0) : (
                                              1
@@ -573,7 +576,7 @@ resource "azurerm_private_endpoint" "install" {
                                            azurerm_storage_share.install,
                                            azurerm_storage_share.install_smb
                                          ]
-  count                                = local.use_AFS_for_shared && var.use_private_endpoint && var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
+  count                                = local.use_AFS_for_shared && var.use_private_endpoint && (var.infrastructure.virtual_networks.sap.subnet_app.defined || var.infrastructure.virtual_networks.sap.subnet_app.exists) ? (
                                            length(var.install_private_endpoint_id) > 0 ? (
                                              0) : (
                                              1
