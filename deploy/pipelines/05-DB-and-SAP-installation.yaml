@@ -149,11 +149,18 @@ stages:
               targetType:              'inline'
               failOnStderr:            false
               script:
-                                      sudo pipx uninstall ansible-core
+                                       if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+                                        ansible_core_installed_version=$(ansible --version | grep "core " | cut -d ' ' -f3 | cut -d ']' -f1)
+                                        if [ -z "$ansible_core_installed_version" ]; then
+                                          pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
+                                          ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
+                                        elif [ "$ansible_core_installed_version" != "${ansible_core_version:-2.16.5}" ]; then
+                                            sudo pipx uninstall ansible-core
+                                            pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
+                                        fi
 
-                                      pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
-
-                                      ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
+                                        ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
+                                      fi
 
                                       ansible --version
 
