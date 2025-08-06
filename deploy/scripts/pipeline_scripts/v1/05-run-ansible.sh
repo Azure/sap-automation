@@ -75,7 +75,9 @@ else
 	fi
 fi
 
+echo "Key Vault name: $VAULT_NAME"
 key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$VAULT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+echo "Key Vault ID: $key_vault_id"
 key_vault_subscription=$(echo "$key_vault_id" | cut -d '/' -f 3)
 
 if [ -n "$key_vault_subscription" ]; then
