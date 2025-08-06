@@ -460,7 +460,7 @@
 
     - name:                            "0.0 Validations: - Wait for system to become reachable"
       ansible.builtin.wait_for_connection:
-        timeout:                       300
+        timeout:                       120
       register:                        wait_for_connection_results
       tags:
                                        - always
