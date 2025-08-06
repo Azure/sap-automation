@@ -30,10 +30,10 @@ steps:
     failOnStderr:                   false
     workingDirectory:               "$(System.DefaultWorkingDirectory)"
   env:
-    ARM_CLIENT_ID:                  ${{ parameters.azureClientId }}
-    ARM_CLIENT_SECRET:              ${{ parameters.azureClientSecret }}
-    ARM_TENANT_ID:                  ${{ parameters.azureTenantId }}
-    ARM_SUBSCRIPTION_ID:            ${{ parameters.azureSubscriptionId }}
+    AZURE_CLIENT_ID:                ${{ parameters.azureClientId }}
+    AZURE_CLIENT_SECRET:            ${{ parameters.azureClientSecret }}
+    AZURE_TENANT_ID:                ${{ parameters.azureTenantId }}
+    AZURE_SUBSCRIPTION_ID:          ${{ parameters.azureSubscriptionId }}
     USE_MSI:                        ${{ parameters.USE_MSI }}
     ANSIBLE_COLLECTIONS_PATH:       ~/.ansible/collections:/opt/ansible/collections
     ANSIBLE_PYTHON_INTERPRETER:     auto_silent
