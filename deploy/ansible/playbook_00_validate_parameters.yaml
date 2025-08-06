@@ -458,6 +458,13 @@
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
 
+    - name:                            "0.0 Validations: - Wait for system to become reachable"
+      ansible.builtin.wait_for_connection:
+        timeout:                       120
+      register:                        wait_for_connection_results
+      tags:
+                                       - always
+
     - name:                            "0.0 Validations: - Gather facts for first time"
       ansible.builtin.setup:
       tags:
@@ -484,6 +491,15 @@
       when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
       ansible.builtin.set_fact:
         python_version: "python2"
+      tags:
+                                       - always
+
+    - name:                            "0.0 Validations: - Set Python version for modern systems"
+      when:
+        - (ansible_distribution | lower ~ ansible_distribution_major_version) not in ['sles_sap12']
+        - python_version is not defined
+      ansible.builtin.set_fact:
+        python_version: "python3"
       tags:
                                        - always
 
