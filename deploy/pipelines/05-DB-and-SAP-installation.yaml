@@ -153,7 +153,7 @@ stages:
                 echo "installing pipx"
                 python3 -m pip install --user pipx
                 python3 -m pipx ensurepath
-                sudo pipx uninstall ansible-core
+                pipx uninstall ansible-core
 
                 pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
 
