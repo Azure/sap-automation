@@ -494,15 +494,6 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations: - Set Python version for modern systems"
-      when:
-        - (ansible_distribution | lower ~ ansible_distribution_major_version) not in ['sles_sap12']
-        - python_version is not defined
-      ansible.builtin.set_fact:
-        python_version: "python3"
-      tags:
-                                       - always
-
     - name:                            "0.0 Validations - Get details from local host"
       ansible.builtin.set_fact:
         subscription_id: "{{ hostvars.localhost.subscription_id }}"

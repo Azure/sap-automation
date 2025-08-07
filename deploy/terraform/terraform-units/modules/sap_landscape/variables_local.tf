@@ -554,7 +554,7 @@ locals {
   ##############################################################################################
 
   iscsi_subnet_name                                  = var.infrastructure.virtual_networks.sap.subnet_iscsi.exists ? (
-                                                      try(split("/", var.infrastructure.virtual_networks.sap.arm_id)[10], "")) : (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.id)[10], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_iscsi.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_iscsi.name) : (
                                                         format("%s%s%s%s",

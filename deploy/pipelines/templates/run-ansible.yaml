@@ -2,23 +2,23 @@
 # Licensed under the MIT License.
 
 parameters:
-  azureClientId:    ""
-  azureClientSecret: ""
-  azureTenantId: ""
-  azureSubscriptionId: ""
-  USE_MSI: ""
-  displayName: ""
-  ansibleFilePath: ""
-  ansibleConfigPath: ""
-  sidHosts: ""
-  secretName: ""
-  vaultName: ""
-  parametersFolder: ""
-  extraParams: ""
-  sapParams: ""
-  passwordSecretName: ""
-  userNameSecretName: ""
-  terraformStateStorageAccount: ""
+  azureClientId: ''
+  azureClientSecret: ''
+  azureTenantId: ''
+  azureSubscriptionId: ''
+  USE_MSI: ''
+  displayName: ''
+  ansibleFilePath: ''
+  ansibleConfigPath: ''
+  sidHosts:  ''
+  secretName: ''
+  vaultName: ''
+  parametersFolder: ''
+  extraParams: ''
+  sapParams: ''
+  passwordSecretName: ''
+  userNameSecretName: ''
+  terraformStateStorageAccount: ''
 
 steps:
 - task:                             Bash@3
