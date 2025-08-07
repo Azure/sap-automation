@@ -150,11 +150,11 @@ stages:
               failOnStderr:            false
               script: |
 
-                if [ -f "/etc/profile.d/deploy_server.sh"]; then
+                if [ ! -f "/etc/profile.d/deploy_server.sh" ]; then
                   echo "installing pipx"
                   python3 -m pip install pipx; python3 -m pipx ensurepath
 
-                  source ~/.bashrc; pipx uninstall ansible-core
+                  source ~/.bashrc; pipx uninstall ansible-core --verbose
 
                   pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
                   ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
