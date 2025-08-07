@@ -53,10 +53,10 @@ def convert_kwargs_to_tags(kwargs):
             token = key.strip()+"="+value.strip()
             tokens.add(token)
         return tokens
-    except Exception:
+    except Exception as ex:
         # return empty set in case anything goes wrong
-        print("encountered exception while converting kwargs to tags")
-        traceback.print_exec()
+        print(f"encountered exception while converting kwargs to tags: {ex}")
+        traceback.print_exc()
         return set()
 
 
@@ -81,6 +81,9 @@ def try_get_error_code(message, *args, **kwargs):
             if not valid_tags:
                 valid_tags=set()
             print(f"valid_tags = {valid_tags}")
+            if not isinstance(message, str):
+                print(f"Warning: message is not a string, got {type(message)}: {message}")
+                continue
             if re.match(matcher, message):
                 # if the tags supplied are in the list of valid tags
                 # or the valid_tags set is empty (meaning the regex
@@ -94,9 +97,10 @@ def try_get_error_code(message, *args, **kwargs):
                         f"supplied tag list = {tag_list}")
             else:
                 print("regular expression could not be matched.")
-    except:
+    except Exception as ex:
         # Handle any unexpected exceptions while processing the error
         # messages
+        print(f"Exception in try_get_error_code: {ex}")
         traceback.print_exc()
 
     return message
@@ -121,16 +125,23 @@ def try_get_error_code_results(result_obj, *args, **kwargs):
         results = result_obj["results"]
         for result in results:
             print(f'result item = {result}')
+            if not isinstance(result, dict) or "msg" not in result:
+                print(f"Warning: result is not a dict or missing 'msg' key: {result}")
+                continue
             message = result["msg"]
+            if not isinstance(message, str):
+                print(f"Warning: message is not a string, got {type(message)}: {message}")
+                continue
             error_coded_message = try_get_error_code(message, tags)
             if error_coded_message != message:
                 return error_coded_message
             else:
                 print("Message conversion not done")
-    except:
+    except Exception as ex:
         # This handling some unforeseen errors caused due to
         # indexing into dictionary. No special handling is
         # required as we shall pass back the object unconverted.
+        print(f"Exception in try_get_error_code_results: {ex}")
         traceback.print_exc()
     return result_obj
 
