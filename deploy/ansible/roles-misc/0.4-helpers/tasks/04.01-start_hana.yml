@@ -52,6 +52,8 @@
       register:                        hana_running
       failed_when:                     hana_running.rc != 3
 
+  vars:
+    ansible_python_interpreter:        python3
   environment:
     HOME:                              "/usr/sap/{{ db_sid | upper }}/home"
     DIR_EXECUTABLE:                    "/usr/sap/{{ DB }}/exe"
