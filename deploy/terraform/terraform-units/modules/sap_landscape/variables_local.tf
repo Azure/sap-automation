@@ -187,7 +187,7 @@ locals {
   ##############################################################################################
 
   admin_subnet_name                               = var.infrastructure.virtual_networks.sap.subnet_admin.exists ? (
-                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_admin)[10], "")) : (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_admin.id)[10], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_admin.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_admin.name) : (
                                                         format("%s%s%s%s",

@@ -189,7 +189,7 @@
 
             - name:                    "5.5.4.1 HANA Cluster configuration - configure ordering constraints for SAPHana clone RHEL 8.x or 9.x"
               ansible.builtin.shell: >
-                                       pcs constraint order stop SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone then stop {{ item.group_name }}
+                                       pcs constraint order stop SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone then stop {{ item.group_name }} symmetrical=false
               register:                constraint
               loop:
                 - { group_name: 'g_hana_{{ db_sid | upper }}_NFS_1' }
@@ -200,7 +200,7 @@
 
             - name:                    "5.5.4.1 HANA Cluster configuration - configure ordering constraints for SAPHANA topology clone RHEL 8.x or 9.x"
               ansible.builtin.shell: >
-                                       pcs constraint order stop SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone then stop {{ item.group_name }}
+                                       pcs constraint order stop SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone then stop {{ item.group_name }} symmetrical=false
               register:                constraint
               loop:
                 - { group_name: 'g_hana_{{ db_sid | upper }}_NFS_1' }
