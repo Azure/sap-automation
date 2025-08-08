@@ -23,7 +23,7 @@
                                          no-quorum-policy="ignore"
                                          stonith-enabled="true"
                                          stonith-action="reboot"
-                                         stonith-timeout="144s"
+                                         stonith-timeout="210s"
 
     - name:                            "5.8 HANA Pacemaker Scaleout - Ensure CIB Bootstrap Options are set"
       when:                            database_cluster_type not in ["ISCSI", "ASD"]
