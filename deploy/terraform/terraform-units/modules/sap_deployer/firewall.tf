@@ -70,13 +70,19 @@ resource "azurerm_firewall" "firewall" {
                                               )
   sku_tier                                   = "Standard"
   sku_name                                   = "AZFW_VNet"
-  resource_group_name                        = var.infrastructure.resource_group.exists ? (
-                                                 data.azurerm_resource_group.deployer[0].name) : (
-                                                 azurerm_resource_group.deployer[0].name
+  resource_group_name                        = var.infrastructure.virtual_network.management.exists ? (
+                                                 data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
+                                                 var.infrastructure.resource_group.exists ? (
+                                                   data.azurerm_resource_group.deployer[0].name) : (
+                                                   azurerm_resource_group.deployer[0].name
+                                                 )
                                                )
-  location                                   = var.infrastructure.resource_group.exists ? (
-                                                 data.azurerm_resource_group.deployer[0].location) : (
-                                                 azurerm_resource_group.deployer[0].location
+  location                                   = var.infrastructure.virtual_network.management.exists ? (
+                                                 data.azurerm_virtual_network.vnet_mgmt[0].location) : (
+                                                 var.infrastructure.resource_group.exists ? (
+                                                   data.azurerm_resource_group.deployer[0].location) : (
+                                                   azurerm_resource_group.deployer[0].location
+                                                 )
                                                )
 
   ip_configuration                             {
@@ -104,13 +110,19 @@ resource "azurerm_route_table" "rt" {
                                                  var.naming.resource_suffixes.routetable
                                                )
   bgp_route_propagation_enabled              = false
-  resource_group_name                        = var.infrastructure.resource_group.exists ? (
-                                                 data.azurerm_resource_group.deployer[0].name) : (
-                                                 azurerm_resource_group.deployer[0].name
+  resource_group_name                        = var.infrastructure.virtual_network.management.exists ? (
+                                                 data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
+                                                 var.infrastructure.resource_group.exists ? (
+                                                   data.azurerm_resource_group.deployer[0].name) : (
+                                                   azurerm_resource_group.deployer[0].name
+                                                 )
                                                )
-  location                                   = var.infrastructure.resource_group.exists ? (
-                                                 data.azurerm_resource_group.deployer[0].location) : (
-                                                 azurerm_resource_group.deployer[0].location
+  location                                   = var.infrastructure.virtual_network.management.exists ? (
+                                                 data.azurerm_virtual_network.vnet_mgmt[0].location) : (
+                                                 var.infrastructure.resource_group.exists ? (
+                                                   data.azurerm_resource_group.deployer[0].location) : (
+                                                   azurerm_resource_group.deployer[0].location
+                                                 )
                                                )
   tags                                 = var.infrastructure.tags
 }
@@ -127,9 +139,12 @@ resource "azurerm_route" "admin" {
   address_prefix                             = "0.0.0.0/0"
   next_hop_type                              = "VirtualAppliance"
   next_hop_in_ip_address                     = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
-  resource_group_name                        = var.infrastructure.resource_group.exists ? (
-                                                 data.azurerm_resource_group.deployer[0].name) : (
-                                                 azurerm_resource_group.deployer[0].name
+  resource_group_name                        = var.infrastructure.virtual_network.management.exists ? (
+                                                 data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
+                                                 var.infrastructure.resource_group.exists ? (
+                                                   data.azurerm_resource_group.deployer[0].name) : (
+                                                   azurerm_resource_group.deployer[0].name
+                                                 )
                                                )
 }
 
@@ -160,9 +175,12 @@ resource "azurerm_firewall_network_rule_collection" "firewall-azure" {
                                                  var.naming.resource_suffixes.firewall_rule_app
                                                )
   azure_firewall_name                        = azurerm_firewall.firewall[0].name
-  resource_group_name                        = var.infrastructure.resource_group.exists ? (
-                                                 data.azurerm_resource_group.deployer[0].name) : (
-                                                 azurerm_resource_group.deployer[0].name
+  resource_group_name                        = var.infrastructure.virtual_network.management.exists ? (
+                                                 data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
+                                                 var.infrastructure.resource_group.exists ? (
+                                                   data.azurerm_resource_group.deployer[0].name) : (
+                                                   azurerm_resource_group.deployer[0].name
+                                                 )
                                                )
   priority                                   = random_integer.priority.result
   action                                     = "Allow"

@@ -33,6 +33,11 @@
     python_version:                    "python2"
   when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
 
+- name:                                "1.7 chrony: - Set default Python version"
+  ansible.builtin.set_fact:
+    python_version:                    "{{ ansible_python_interpreter | default('python') }}"
+  when:                                 python_version is not defined
+
 # TODO: This should probably be moved into the 1.4-packages role
 - name:                                "1.7 chrony: - Collect facts about installed packages"
   ansible.builtin.package_facts:
@@ -44,7 +49,7 @@
     var:                               ansible_facts.packages
     verbosity:                         2
   vars:
-    ansible_python_interpreter:        "{{ python_version }}"
+    ansible_python_interpreter:        "{{ python_version | default('python') }}"
 
 # The ntp package should have been uninstalled during the execution
 # of the 1.4-packages role.
