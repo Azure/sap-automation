@@ -21,15 +21,18 @@
     - intel_idle.max_cstate:             '1'
     - processor.max_cstate:              '1'
 
-- name:                                "2.10.0 sap-notes: - Update GRUB config for UEFI systems"
-  ansible.builtin.command:             grub2-mkconfig -o /boot/efi/EFI/BOOT/grub.cfg
-  changed_when:                        false
-  when:                                "'/boot/efi' in ansible_mounts | map(attribute='mount') | list"
+- name:                                "2.10.1 sap-notes: - Add GRUB arguments to the config if RHEL 8.6 or later"
+  when:                                "ansible_distribution_major_version | int == 8"
+  block:
+    - name:                            "2.10.0 sap-notes: - Update GRUB config for UEFI systems"
+      ansible.builtin.command:         grub2-mkconfig -o /boot/efi/EFI/BOOT/grub.cfg
+      changed_when:                    false
+      when:                            "'/boot/efi' in ansible_mounts | map(attribute='mount') | list"
 
-- name:                                "2.10.0 sap-notes: - Update GRUB config for non UEFI systems"
-  ansible.builtin.command:             grub2-mkconfig -o /boot/grub2/grub.cfg
-  changed_when:                        false
-  when:                                "'/boot/efi' not in ansible_mounts | map(attribute='mount') | list"
+    - name:                            "2.10.0 sap-notes: - Update GRUB config for non UEFI systems"
+      ansible.builtin.command:         grub2-mkconfig -o /boot/grub2/grub.cfg
+      changed_when:                    false
+      when:                            "'/boot/efi' not in ansible_mounts | map(attribute='mount') | list"
 
 ...
 # /*----------------------------------------------------------------------------8
