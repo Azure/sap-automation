@@ -74,7 +74,7 @@ resource "azurerm_role_assignment" "resource_group_contributor_msi" {
 
 resource "azurerm_role_assignment" "resource_group_contributor_spn" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.assign_permissions && length(var.infrastructure.spn_id) > 0 ? 1 : 0
+  count                                = var.infrastructure.assign_permissions && length(var.infrastructure.spn_id) > 0 && try(var.deployer_tfstate.deployer_msi_id, "") != var.infrastructure.spn_id ? 1 : 0
   scope                                = var.infrastructure.resource_group.exists ? (
                                                  data.azurerm_resource_group.library[0].id) : (
                                                  azurerm_resource_group.library[0].id

@@ -16,10 +16,10 @@ variables:
   - group:                             SDAF-${{ parameters.environment }}
 
   - name:                              agent_name
-    value:                             $[coalesce(variables['POOL'], variables['AGENT'])]
+    value:                             $[coalesce(variables['POOL'], variables['Agent'])]
 
   - name:                              this_agent
-    value:                             $[lower(coalesce(variables['POOL'], variables['AGENT']))]
+    value:                             $[lower(coalesce(variables['POOL'], variables['Agent']))]
 
   - name:                              variable_group
     value:                             SDAF-${{ parameters.environment }}

@@ -23,11 +23,11 @@ source "${grand_parent_directory}/deploy_utils.sh"
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
 
-DEBUG=False
+DEBUG=false
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "$SYSTEM_DEBUG" = true ]; then
 	set -x
-	DEBUG=True
+	DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
 

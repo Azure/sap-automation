@@ -75,6 +75,12 @@ locals {
                                                                   exists = length(var.webapp_subnet_arm_id) > 0 ? true : false
                                                                   prefix = var.webapp_subnet_address_prefix
                                                                 }
+                                              subnet_agent =    {
+                                                                  name   = var.agent_subnet_name,
+                                                                  id     = var.agent_subnet_arm_id
+                                                                  exists = length(var.agent_subnet_arm_id) > 0 ? true : false
+                                                                  prefix = var.agent_subnet_address_prefix
+                                                                }
                                             }
                                         }
 
@@ -177,6 +183,7 @@ locals {
   options                              = {
                                             enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
                                             enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
+                                            use_spn = var.use_spn
                                          }
 
   firewall                             = {

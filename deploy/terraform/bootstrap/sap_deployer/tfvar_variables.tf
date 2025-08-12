@@ -627,6 +627,32 @@ variable "DevOpsInfrastructure_object_id"             {
                                                         default     = ""
                                                       }
 
+#######################################4#######################################8
+#                                                                              #
+#                              Agent Subnet variables                          #
+#                                                                              #
+#######################################4#######################################8
+
+variable "agent_subnet_name"                    {
+                                                  description = "The name of the subnet into which the managed agents will be deployed"
+                                                  default     = ""
+                                                }
+
+variable "agent_subnet_arm_id"                  {
+                                                  description = "Azure resource identifier for the existing subnet into which the managed agents will be deployed"
+                                                  default     = ""
+                                                  validation {
+                                                    condition     = length(var.agent_subnet_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.agent_subnet_arm_id))
+                                                    error_message = "If specified the 'agent_subnet_arm_id' variable must be a correct Azure resource identifier."
+                                                  }
+                                                }
+
+variable "agent_subnet_address_prefix"          {
+                                                  description = "The address prefix of the subnet into which the managed agents will be deployed"
+                                                  default     = ""
+                                                }
+
+
 #########################################################################################
 #                                                                                       #
 #  Web Application settings                                                             #

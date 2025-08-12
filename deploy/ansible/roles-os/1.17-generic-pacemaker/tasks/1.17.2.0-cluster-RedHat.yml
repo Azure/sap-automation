@@ -131,7 +131,7 @@
 
     - name:                            "1.17 Generic Pacemaker - Set stonith-timeout property"
       ansible.builtin.command:
-        cmd:                           "pcs property set stonith-timeout=144"
+        cmd:                           "pcs property set stonith-timeout=210"
       register:                        pcs_stonith_timeout_result
       changed_when:                    pcs_stonith_timeout_result.rc == 0
 

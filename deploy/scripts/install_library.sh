@@ -147,6 +147,7 @@ else
 	exit 2
 fi
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
+deployer_tf_state="${key}.terraform.tfstate"
 
 if [ -z "${environment}" ]; then
 	echo "#########################################################################################"
@@ -324,7 +325,7 @@ else
 					print_banner "$banner_title" "Terraform init succeeded." "success"
 
 					terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" -input=false \
-						-var deployer_statefile_foldername="${deployer_statefile_foldername}"
+						-var deployer_tfstate_key="${deployer_tf_state}"
 				else
 					print_banner "$banner_title" "Terraform init failed." "error" "Terraform init return code: $return_value"
 					exit 10

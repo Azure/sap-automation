@@ -24,7 +24,6 @@
     state:                             present
   loop:
                                        - { name: 'targetcli-fb' }
-                                       - { name: 'dbus-1-python'}
   tags:
                                        - "iscsi-targetcli"
 
