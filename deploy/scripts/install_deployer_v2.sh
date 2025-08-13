@@ -5,9 +5,6 @@
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
-#colors for terminal
-bold_red="\e[1;31m"
-reset_formatting="\e[0m"
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -21,8 +18,6 @@ set -euo pipefail
 if [[ "${DEBUG:-false}" == 'true' ]]; then
 	# Enable debugging
 	set -x
-	# Exit on error
-	set -o errexit
 	echo "Environment variables:"
 	printenv | sort
 fi
@@ -274,6 +269,7 @@ function install_deployer() {
 			azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 			if [ -n "$azure_backend" ]; then
 				print_banner "$banner_title" "State already migrated to Azure" "warning"
+
 				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -force-copy -backend-config "path=${param_dirname}/terraform.tfstate"; then
 					return_value=$?
 					print_banner "$banner_title" "Terraform init succeeded." "success"
@@ -311,7 +307,7 @@ function install_deployer() {
 
 	# shellcheck disable=SC2086
 
-	if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false $allParameters | tee plan_output.log; then
+	if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false $allParameters | tee plan_output.log; then
 		return_value=${PIPESTATUS[0]}
 	else
 		return_value=${PIPESTATUS[0]}
@@ -331,7 +327,7 @@ function install_deployer() {
 		rm plan_output.log
 	fi
 
-	if [ "${TEST_ONLY}" == "True" ]; then
+	if [ "${TEST_ONLY:-false}" == "true" ]; then
 		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 		exit 10
 	fi
@@ -447,7 +443,7 @@ function install_deployer() {
 		export DEPLOYER_KEYVAULT
 	fi
 
-	APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
+	APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_id | tr -d \")
 	if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
 		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_config_information}"
 		export APPLICATION_CONFIGURATION_ID
@@ -465,6 +461,31 @@ function install_deployer() {
 		print_banner "$banner_title" "Application Configuration: $val" "info"
 		save_config_var "APP_SERVICE_NAME" "${deployer_config_information}"
 		export APP_SERVICE_NAME
+	fi
+
+	APPLICATION_CONFIGURATION_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_config_deployment | tr -d \")
+	if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
+		save_config_var "APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_config_information}"
+		export APPLICATION_CONFIGURATION_DEPLOYMENT
+		echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  $APPLICATION_CONFIGURATION_DEPLOYMENT"
+	fi
+
+	ARM_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_client_id | tr -d \")
+	if [ -n "${ARM_CLIENT_ID}" ]; then
+		save_config_var "ARM_CLIENT_ID" "${deployer_config_information}"
+		export ARM_CLIENT_ID
+	fi
+
+	ARM_OBJECT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
+	if [ -n "${ARM_OBJECT_ID}" ]; then
+		save_config_var "ARM_OBJECT_ID" "${deployer_config_information}"
+		export ARM_OBJECT_ID
+	fi
+
+	DevOpsInfrastructureObjectId=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw DevOpsInfrastructureObjectId | tr -d \")
+	if [ -n "${DevOpsInfrastructureObjectId}" ]; then
+		save_config_var "DevOpsInfrastructureObjectId" "${deployer_config_information}"
+		export DevOpsInfrastructureObjectId
 	fi
 
 	HAS_WEBAPP=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")

@@ -93,8 +93,9 @@ function source_helper_scripts() {
 ############################################################################################
 
 function parse_arguments() {
+	approve=""
 	local input_opts
-	input_opts=$(getopt -n installer_v2 -o p:t:o:d:l:s:n:c:w:ahif --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help -- "$@")
+	input_opts=$(getopt -n installer_v2 -o p:t:o:d:l:s:n:c:w:ahif --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help,devops,github -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -106,7 +107,21 @@ function parse_arguments() {
 	while true; do
 		case "$1" in
 		-a | --ado)
-			called_from_ado=1
+			called_from_devops=1
+			approve="--auto-approve"
+			TF_IN_AUTOMATION=true
+			export TF_IN_AUTOMATION
+			shift
+			;;
+		--devops)
+			called_from_devops=1
+			approve="--auto-approve"
+			TF_IN_AUTOMATION=true
+			export TF_IN_AUTOMATION
+			shift
+			;;
+		--github)
+			called_from_devops=1
 			approve="--auto-approve"
 			TF_IN_AUTOMATION=true
 			export TF_IN_AUTOMATION
@@ -124,8 +139,6 @@ function parse_arguments() {
 			;;
 		-n | --application_configuration_name)
 			APPLICATION_CONFIGURATION_NAME="$2"
-			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-			export APPLICATION_CONFIGURATION_ID
 			export APPLICATION_CONFIGURATION_NAME
 			shift 2
 			;;
@@ -151,6 +164,7 @@ function parse_arguments() {
 			;;
 		-w | --workload_zone_name)
 			WORKLOAD_ZONE_NAME="$2"
+			export
 			shift 2
 			;;
 		-f | --force)
@@ -181,7 +195,7 @@ function parse_arguments() {
 		print_banner "Installer" "Please run this command from the folder containing the parameter file" "error"
 	fi
 
-	if [ ! -f "${parameterfile_name}" ]; then
+	if [ ! -f "${parameterFilename}" ]; then
 		print_banner "Installer" "Parameter file does not exist: ${parameterFilename}" "error"
 	fi
 
@@ -204,22 +218,28 @@ function parse_arguments() {
 	fi
 
 	if [ "${deployment_system}" == sap_system ] || [ "${deployment_system}" == sap_landscape ]; then
-		WORKLOAD_ZONE_NAME=$(echo $parameterfile_name | cut -d'-' -f1-3)
-		if [ -n "$WORKLOAD_ZONE_NAME" ]; then
+		if [ -v WORKLOAD_ZONE_NAME ]; then
 			landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 			TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
 			export TF_VAR_landscape_tfstate_key
 		else
-			WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
-			if [ -z $WORKLOAD_ZONE_NAME ] && [ -n "$landscape_tfstate_key" ]; then
+			WORKLOAD_ZONE_NAME=$(echo $parameterfile_name | cut -d'-' -f1-3)
+			if [ -n "$WORKLOAD_ZONE_NAME" ]; then
+				landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+				TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
+				export TF_VAR_landscape_tfstate_key
+			else
 				WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
+				if [ -z $WORKLOAD_ZONE_NAME ] && [ -n "$landscape_tfstate_key" ]; then
+					WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
+				fi
 			fi
 		fi
 	fi
 
 	if [ "${deployment_system}" == sap_system ]; then
 		if [ -z "${landscape_tfstate_key}" ]; then
-			if [ 1 != $called_from_ado ]; then
+			if [ 1 != $called_from_devops ]; then
 				read -r -p "Workload terraform statefile name: " landscape_tfstate_key
 				save_config_var "landscape_tfstate_key" "${system_config_information}"
 			else
@@ -235,10 +255,16 @@ function parse_arguments() {
 	fi
 
 	if [ "${deployment_system}" != sap_deployer ]; then
+		if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+
+			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+			export APPLICATION_CONFIGURATION_ID
+		fi
+
 		TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
 		export TF_VAR_application_configuration_id
 		if [ -z "${deployer_tfstate_key}" ]; then
-			if [ 1 != $called_from_ado ]; then
+			if [ 1 != $called_from_devops ]; then
 				read -r -p "Deployer terraform state file name: " deployer_tfstate_key
 				save_config_var "deployer_tfstate_key" "${system_config_information}"
 			else
@@ -247,6 +273,8 @@ function parse_arguments() {
 				return 2
 			fi
 		fi
+	else
+		unset TF_VAR_application_configuration_id
 	fi
 
 	if [ -n "${deployer_tfstate_key}" ]; then
@@ -327,6 +355,9 @@ function retrieve_parameters() {
 			print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
 
 			tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
+			if [ -z "$tfstate_resource_id" ]; then
+				tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
+			fi
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
 
 			TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
@@ -510,7 +541,7 @@ function test_for_removal() {
 function sdaf_installer() {
 	landscape_tfstate_key=""
 	landscape_tfstate_key_exists="false"
-	called_from_ado=0
+	called_from_devops=0
 	extra_vars=""
 	WORKLOAD_ZONE_NAME=""
 	local green="\e[0;32m"
@@ -564,7 +595,7 @@ function sdaf_installer() {
 	echo "Deployment region code:              $region_code"
 	echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
-	if [ "$DEBUG" = True ]; then
+	if [ "$DEBUG" = true ]; then
 		print_banner "Installer - $deployment_system" "Enabling debug mode" "info"
 		echo "Azure login info:"
 		az account show --query user --output table
@@ -574,7 +605,7 @@ function sdaf_installer() {
 		printenv | grep ARM_
 	fi
 
-	if [ 1 == $called_from_ado ]; then
+	if [ 1 == $called_from_devops ]; then
 		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 		export TF_VAR_Agent_IP=$this_ip
 		echo "Agent IP:                            $this_ip"
@@ -673,17 +704,20 @@ function sdaf_installer() {
 	if [ ! -f .terraform/terraform.tfstate ]; then
 		print_banner "$banner_title" "New deployment" "info"
 
-		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
 			return_value=$?
-			print_banner "$banner_title" "Terraform init failed." "error"
-			return $return_value
 		else
 			return_value=$?
+			print_banner "$banner_title" "Terraform init failed." "error"
+			if [ "$DEBUG" = true ]; then
+				az account show --output yaml
+			fi
+			return $return_value
 		fi
 
 	else
@@ -759,7 +793,7 @@ function sdaf_installer() {
 		if [ -z "${deployed_using_version}" ]; then
 			print_banner "$banner_title" "The environment was deployed using an older version of the Terraform templates" "error" "Please inspect the output of Terraform plan carefully!"
 
-			if [ 1 == $called_from_ado ]; then
+			if [ 1 == $called_from_devops ]; then
 				unset TF_DATA_DIR
 				exit 1
 			fi
@@ -789,17 +823,16 @@ function sdaf_installer() {
 	allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}")
 	apply_needed=0
 
-	if terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee plan_output.log; then
-		return_value=${PIPESTATUS[0]}
+	terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee plan_output.log || true
+	return_value=${PIPESTATUS[0]}
+	if [ 0 -eq $return_value ]; then
 		print_banner "$banner_title" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
+		apply_needed=1
 	else
-		return_value=${PIPESTATUS[0]}
 		if [ 1 -eq $return_value ]; then
 			print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
 			return $return_value
 		fi
-		apply_needed=1
-
 	fi
 
 	state_path="SYSTEM"
@@ -809,13 +842,10 @@ function sdaf_installer() {
 	if [ "${deployment_system}" == sap_deployer ]; then
 		state_path="DEPLOYER"
 
-		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-			DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
-			if [ -n "$DEPLOYER_KEYVAULT" ]; then
-				save_config_var "DEPLOYER_KEYVAULT" "${system_config_information}"
-			fi
+		DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+		if [ -n "$DEPLOYER_KEYVAULT" ]; then
+			save_config_var "DEPLOYER_KEYVAULT" "${system_config_information}"
 		fi
-
 	fi
 
 	if [ "${deployment_system}" == sap_landscape ]; then
@@ -828,11 +858,9 @@ function sdaf_installer() {
 
 	if [ "${deployment_system}" == sap_library ]; then
 		state_path="LIBRARY"
-		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-			tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id | tr -d \")
-			save_config_vars "${system_config_information}" \
-				tfstate_resource_id
-		fi
+		tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id | tr -d \")
+		save_config_vars "${system_config_information}" \
+			tfstate_resource_id
 
 		# Define an array resources
 		resources=(
@@ -891,7 +919,7 @@ function sdaf_installer() {
 
 	# apply_needed=1 - This is already set above line: 736 - 740
 
-	if [ "${TEST_ONLY}" == "True" ]; then
+	if [ "${TEST_ONLY}" == "true" ]; then
 		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 
 		if [ $fatal_errors == 1 ]; then
@@ -904,7 +932,7 @@ function sdaf_installer() {
 	if [ $fatal_errors == 1 ]; then
 		apply_needed=0
 		print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
-		if [ 1 == "$called_from_ado" ]; then
+		if [ 1 == "$called_from_devops" ]; then
 			unset TF_DATA_DIR
 			echo ##vso[task.logissue type=error]Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer
 			exit 1
@@ -941,12 +969,8 @@ function sdaf_installer() {
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee apply_output.json; then
-				return_value=${PIPESTATUS[0]}
-			else
-				return_value=${PIPESTATUS[0]}
-			fi
-
+			terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee apply_output.json
+			return_value=${PIPESTATUS[0]}
 		else
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
@@ -956,9 +980,9 @@ function sdaf_installer() {
 			fi
 		fi
 
-		if [ $return_value -eq 1 ]; then
+		if [ 1 -eq $return_value ]; then
 			print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
-		elif [ $return_value -eq 2 ]; then
+		elif [ 2 -eq $return_value ]; then
 			# return code 2 is ok
 			print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
 			return_value=0
@@ -975,56 +999,38 @@ function sdaf_installer() {
 				if [ -n "${approve}" ]; then
 
 					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-						return_value=$?
-					else
-						return_value=0
-					fi
+					ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism
+					return_value=$?
 
 					sleep 10
 
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=$?
-						else
-							return_value=0
-						fi
+						ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism
+						return_value=$?
 					fi
 
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=$?
-						else
-							return_value=0
-						fi
+						ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism
+						return_value=$?
 
 					fi
 
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=$?
-						else
-							return_value=0
-						fi
+						ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism
+						return_value=$?
 					fi
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=$?
-						else
-							return_value=0
-						fi
+						ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism
+						return_value=$?
 					fi
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=$?
-						else
-							return_value=0
-						fi
+						ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism
+						return_value=$?
 					fi
 				else
 					return_value=10
@@ -1039,15 +1045,9 @@ function sdaf_installer() {
 
 	persist_files
 
-	if [ ${DEBUG:-False} == True ]; then
+	if [ ${DEBUG:-false} == true ]; then
 		echo "Terraform state file:"
 		terraform -chdir="${terraform_module_directory}" output -json
-	fi
-
-	if [ 0 -ne $return_value ]; then
-		print_banner "$banner_title" "Errors during the apply phase" "error"
-		unset TF_DATA_DIR
-		return $return_value
 	fi
 
 	if [ "${deployment_system}" == sap_deployer ]; then
@@ -1068,7 +1068,7 @@ function sdaf_installer() {
 				export DEPLOYER_KEYVAULT
 			fi
 
-			APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
+			APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_id | tr -d \")
 			if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
 				save_config_var "APPLICATION_CONFIGURATION_ID" "${system_config_information}"
 				export APPLICATION_CONFIGURATION_ID
@@ -1090,14 +1090,14 @@ function sdaf_installer() {
 
 		DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color deployer_kv_user_name | tr -d \")
 
-		app_config_id=$(terraform -chdir="${terraform_module_directory}" output -no-color deployer_app_config_id | tr -d \")
+		app_config_id=$(terraform -chdir="${terraform_module_directory}" output -no-color application_configuration_id | tr -d \")
 
 		app_service_name=$(terraform -chdir="${terraform_module_directory}" output -no-color webapp_url_base | tr -d \")
 
 		app_service_deployment=$(terraform -chdir="${terraform_module_directory}" output -no-color app_service_deployment | tr -d \")
 
 		echo ""
-		if [ 1 == $called_from_ado ]; then
+		if [ 1 == $called_from_devops ]; then
 			if [ -n "${app_config_id}" ]; then
 				az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value")
 				if [ -z "${az_var}" ]; then
@@ -1153,7 +1153,12 @@ function sdaf_installer() {
 	unset TF_DATA_DIR
 	print_banner "$banner_title" "Deployment completed." "success" "Exiting $SCRIPT_NAME"
 
-	exit 0
+	if [ 0 -ne $return_value ]; then
+		print_banner "$banner_title" "Errors during the apply phase" "error"
+		unset TF_DATA_DIR
+	fi
+	exit $return_value
+
 }
 
 ###############################################################################

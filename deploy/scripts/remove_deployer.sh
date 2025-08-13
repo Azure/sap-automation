@@ -85,7 +85,7 @@ while :; do
 	esac
 done
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" = true ]; then
 	set -x
 	set -o errexit
 fi

@@ -11,9 +11,9 @@ script_directory="$(dirname "${full_script_path}")"
 SCRIPT_NAME="$(basename "$0")"
 
 if printenv DEBUG; then
-	if [ $DEBUG = True ]; then
+	if [ $DEBUG = true ]; then
 		set -x
-		DEBUG=True
+		DEBUG=true
 		echo "prefix variables:"
 		printenv | sort
 	fi
@@ -165,7 +165,7 @@ function secretExists {
 
 	set +e
 
-	if [ "$DEBUG" == True ]; then
+	if [ "${DEBUG:-false}" == true ]; then
 		echo "DEBUG: Current az account: $(az account show --query user --output yaml)" >&2
 		echo "DEBUG: About to run az command with params: keyvault='$keyvault', subscription='$subscription', secret_name='$secret_name'" >&2
 	fi
@@ -175,19 +175,19 @@ function secretExists {
 		--query "[?name=='${secret_name}'].name | [0]" \
 		--output tsv >&2
 	kvSecretExitsCode=$?
-	if [ "$DEBUG" == True ]; then
+	if [ "${DEBUG:-false}" == true ]; then
 		echo "DEBUG: Command completed. exit_code=$kvSecretExitsCode" >&2
 	fi
 
 	set -e
 
 	if [ $kvSecretExitsCode -eq 0 ]; then
-		if [ "$DEBUG" == True ]; then
+		if [ "${DEBUG:-false}" == true ]; then
 			echo "DEBUG: Secret ${secret_name} exists in Key Vault ${keyvault}" >&2
 		fi
 	else
 		# If the secret does not exist, we return 1
-		if [ "$DEBUG" == True ]; then
+		if [ "${DEBUG:-false}" == true ]; then
 			echo "DEBUG: Secret ${secret_name} does not exist in Key Vault ${keyvault} - Return code: ${kvSecretExitsCode}" >&2
 		fi
 	fi
@@ -380,8 +380,10 @@ function parse_arguments() {
 			;;
 		-n | --application_configuration_name)
 			APPLICATION_CONFIGURATION_NAME="$2"
-			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-			export APPLICATION_CONFIGURATION_ID
+			if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+				APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+				export APPLICATION_CONFIGURATION_ID
+			fi
 			export APPLICATION_CONFIGURATION_NAME
 			shift 2
 			;;
@@ -492,11 +494,16 @@ function retrieve_parameters() {
 
 				print_banner "$banner_title" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
 
-				keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
-				print_banner "$banner_title" "Key vault: $keyvault" "info" "${CONTROL_PLANE_NAME}_KeyVaultName ${prefix}"
+				if [ -v DEPLOYER_KEYVAULT ]; then
+					keyvault="$DEPLOYER_KEYVAULT"
+					keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$keyvault' | project id, name, subscription" --query data[0].id --output tsv)
+				else
+					keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+					print_banner "$banner_title" "Key vault: $keyvault" "info" "${CONTROL_PLANE_NAME}_KeyVaultName ${prefix}"
 
-				keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-				STATE_SUBSCRIPTION=$(echo "$keyvault_id" | cut -d'/' -f3)
+					keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+					STATE_SUBSCRIPTION=$(echo "$keyvault_id" | cut -d'/' -f3)
+				fi
 
 				export keyvault
 			fi

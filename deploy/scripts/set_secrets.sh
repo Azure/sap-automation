@@ -28,7 +28,7 @@ if [ -v ARM_SUBSCRIPTION_ID ]; then
 	subscription="$ARM_SUBSCRIPTION_ID"
 fi
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" = true ]; then
 	# Enable debugging
 	set -x
 	# Exit on error
@@ -155,11 +155,11 @@ while :; do
 	esac
 done
 
-DEBUG=False
+DEBUG=false
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "$SYSTEM_DEBUG" = true ]; then
 	set -x
-	DEBUG=True
+	DEBUG=true
 	echo "Environment variables:"
 	printenv | sort
 

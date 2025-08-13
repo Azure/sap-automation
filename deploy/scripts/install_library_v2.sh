@@ -15,11 +15,10 @@ script_directory="$(dirname "${full_script_path}")"
 set -euo pipefail
 
 # Enable debug mode if DEBUG is set to 'true'
-if [[ "${DEBUG:-false}" == 'true' ]]; then
+if [[ "${DEBUG:-false}" = true ]]; then
 	# Enable debugging
 	set -x
 	# Exit on error
-	DEBUG=true
 	set -o errexit
 	echo "Environment variables:"
 	printenv | sort
@@ -150,11 +149,7 @@ function parse_arguments() {
 			;;
 		-n | --application_configuration_name)
 			APPLICATION_CONFIGURATION_NAME="$2"
-			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-			export APPLICATION_CONFIGURATION_ID
 			export APPLICATION_CONFIGURATION_NAME
-			TF_VAR_application_configuration_id="${APPLICATION_CONFIGURATION_ID}"
-			export TF_VAR_application_configuration_id
 			shift 2
 			;;
 		-h | --help)
@@ -204,6 +199,13 @@ function parse_arguments() {
 		return $?
 	fi
 
+	if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+		APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+		export APPLICATION_CONFIGURATION_ID
+	fi
+	TF_VAR_application_configuration_id="${APPLICATION_CONFIGURATION_ID}"
+	export TF_VAR_application_configuration_id
+
 	return 0
 
 }
@@ -234,12 +236,15 @@ function retrieve_parameters() {
 			TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
 			TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
 
+			DEPLOYER_KEYVAULT=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+
 			management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
 			TF_VAR_management_subscription_id=${management_subscription_id}
 
 			export TF_VAR_deployer_kv_user_arm_id
 			export TF_VAR_management_subscription_id
 			export TF_VAR_spn_keyvault_id
+			export DEPLOYER_KEYVAULT
 
 		fi
 
@@ -345,6 +350,10 @@ function install_library() {
 		parallelism=$TF_PARALLELLISM
 	fi
 	echo "Parallelism count:                   $parallelism"
+
+	if [ "{$ARM_USE_MSI:-false}" = true ]; then
+		unset ARM_CLIENT_SECRET
+	fi
 
 	extra_vars=""
 	if [ -f terraform.tfvars ]; then
@@ -468,9 +477,9 @@ function install_library() {
 
 	return_value=0
 
-	if [ "${TEST_ONLY}" == "True" ]; then
+	if [ "${TEST_ONLY:-false}" == "true" ]; then
 		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
-		exit 10
+		exit 100
 	fi
 	print_banner "$banner_title" "Running Terraform apply" "info"
 
@@ -551,7 +560,7 @@ function install_library() {
 		return $return_value
 	fi
 
-	if [ "$DEBUG" = True ]; then
+	if [ "$DEBUG" = true ]; then
 		terraform -chdir="${terraform_module_directory}" output
 	fi
 
