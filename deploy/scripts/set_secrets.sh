@@ -350,13 +350,6 @@ echo ""
 echo "Key vault:                           ${keyvault}"
 echo "Subscription:                        ${STATE_SUBSCRIPTION}"
 
-save_config_vars "${environment_config_information}" \
-	keyvault \
-	environment \
-	subscription \
-	tenant_id \
-	STATE_SUBSCRIPTION
-
 secret_name="${environment}"-subscription-id
 
 # az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" >stdout.az 2>&1
