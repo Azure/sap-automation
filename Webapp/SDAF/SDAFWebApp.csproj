@@ -24,7 +24,6 @@
     <PackageReference Include="Azure.ResourceManager.Resources" Version="1.11.0" />
     <PackageReference Include="Azure.ResourceManager.Storage" Version="1.4.4" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.25.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="6.0.36" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.12.0" />
     <PackageReference Include="Microsoft.Identity.Web" Version="3.13.0" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="3.13.0" />
