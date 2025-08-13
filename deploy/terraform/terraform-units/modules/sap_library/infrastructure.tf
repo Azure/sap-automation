@@ -164,7 +164,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault_agent" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault_additional" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && length(var.dns_settings.additional_network_id) > 0 ? 1 : 0
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && length(var.dns_settings.additional_network_id) > 0 && try(var.dns_settings.additional_network_id != try(var.deployer_tfstate.additional_network_id,"") , false) ? 1 : 0
   depends_on                           = [
                                             azurerm_private_dns_zone.vault
                                          ]
