@@ -139,7 +139,9 @@ stages:
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              AGENT_POOL:               $(POOL)  - stage:                             PopulateKeyVault
+              AGENT_POOL:               $(POOL)
+
+  - stage:                             PopulateKeyVault
     dependsOn:
       - Prepare_Deployer
     pool:                              $(this_agent)

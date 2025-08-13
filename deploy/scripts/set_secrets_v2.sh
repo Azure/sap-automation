@@ -550,6 +550,7 @@ function set_all_secrets() {
 
 	echo "Key vault:                           ${keyvault}"
 	echo "Subscription:                        ${STATE_SUBSCRIPTION}"
+	echo "Prefix:                              ${prefix}"
 
 	secret_name="${prefix}"-subscription-id
 
