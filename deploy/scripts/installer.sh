@@ -132,10 +132,16 @@ while :; do
 		;;
 	-d | --deployer_tfstate_key)
 		deployer_tfstate_key="$2"
+		CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d"-" -f1-3)
+		TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+		export TF_VAR_control_plane_name
 		shift 2
 		;;
 	-l | --landscape_tfstate_key)
 		landscape_tfstate_key="$2"
+		WORKLOAD_ZONE_NAME=$(echo "$landscape_tfstate_key" | cut -d"-" -f1-3)
+		TF_VAR_workload_zone_name="$WORKLOAD_ZONE_NAME"
+		export TF_VAR_workload_zone_name
 		shift 2
 		;;
 	-a | --ado)
@@ -164,10 +170,12 @@ while :; do
 	esac
 done
 
-if [ "$DEBUG" == True ]; then
+if [ "$DEBUG" == true ]; then
 	echo -e "${cyan}Enabling debug mode$reset_formatting"
 	set -x
 	set -o errexit
+	az account show --output yaml
+	printenv
 fi
 
 echo "Parameter file:                      $parameterfile"
@@ -357,6 +365,9 @@ else
 fi
 
 export TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
+CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d"-" -f1-3)
+TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+export TF_VAR_control_plane_name
 
 if [ "${deployment_system}" != sap_deployer ]; then
 	if [ -z "${deployer_tfstate_key}" ]; then
@@ -551,7 +562,7 @@ check_output=0
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
-if [ "$DEBUG" == True ]; then
+if [ "$DEBUG" == true ]; then
 	printenv | grep ARM
 	printenv | grep TF_VAR
 fi
@@ -563,7 +574,7 @@ az account set --subscription "${terraform_storage_account_subscription_id}"
 if [ ! -f .terraform/terraform.tfstate ]; then
 	print_banner "$banner_title" "New deployment" "info"
 
-	if ! terraform -chdir="${terraform_module_directory}" init -upgrade  -input=false \
+	if ! terraform -chdir="${terraform_module_directory}" init -upgrade -input=false \
 		--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 		--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 		--backend-config "storage_account_name=${terraform_storage_account_name}" \
@@ -585,19 +596,20 @@ else
 
 			terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
 
-			if terraform -chdir="${terraform_module_directory}" init -migrate-state  -upgrade  --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			if terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "$banner_title" "Terraform local init succeeded" "success"
 			else
 				return_value=10
 				print_banner "$banner_title" "Terraform local init failed" "error" "Terraform init return code: $return_value"
+
 				exit $return_value
 			fi
 		fi
 
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 
-		if terraform -chdir="${terraform_module_directory}" init -force-copy -upgrade  -migrate-state \
+		if terraform -chdir="${terraform_module_directory}" init -force-copy -upgrade -migrate-state \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
@@ -616,7 +628,7 @@ else
 		echo "Terraform state:                     remote"
 		print_banner "$banner_title" "The system has already been deployed and the state file is in Azure" "info"
 
-		if terraform -chdir="${terraform_module_directory}" init  -upgrade -force-copy -migrate-state \
+		if terraform -chdir="${terraform_module_directory}" init -upgrade -force-copy -migrate-state \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
@@ -709,46 +721,35 @@ if [ 1 != $return_value ]; then
 			deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
 			save_config_var "deployer_public_ip_address" "${system_config_information}"
 
+			APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")
+			if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
+				save_config_var "APPLICATION_CONFIGURATION_NAME" "${deployer_config_information}"
+				export APPLICATION_CONFIGURATION_NAME
+				echo "APPLICATION_CONFIGURATION_NAME:         $APPLICATION_CONFIGURATION_NAME"
+			fi
+
+			APPLICATION_CONFIGURATION_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_config_deployment | tr -d \")
+			if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
+				save_config_var "APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_config_information}"
+				export APPLICATION_CONFIGURATION_DEPLOYMENT
+				echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  $APPLICATION_CONFIGURATION_DEPLOYMENT"
+			fi
+
+			APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+			if [ -n "${APP_SERVICE_NAME}" ]; then
+				save_config_var "APP_SERVICE_NAME" "${deployer_config_information}"
+				export APP_SERVICE_NAME
+			fi
+
+			HAS_WEBAPP=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
+			if [ -n "${HAS_WEBAPP}" ]; then
+				save_config_var "HAS_WEBAPP" "${deployer_config_information}"
+				export HAS_WEBAPP
+			fi
+
 			keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 			if [ -n "$keyvault" ]; then
-				save_config_var "keyvault" "${system_config_information}"
-			fi
-			if [ 1 == $called_from_ado ]; then
-
-				if [[ "$TF_VAR_use_webapp" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
-					webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
-
-					if [ -n "$webapp_url_base" ]; then
-						az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_URL_BASE.value")
-						if [ -z "${az_var}" ]; then
-							az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
-						else
-							az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
-						fi
-					fi
-
-					webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
-					if [ -n "$webapp_id" ]; then
-						az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_ID.value")
-						if [ -z "${az_var}" ]; then
-							az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
-						else
-							az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
-						fi
-					fi
-
-					msi_object_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
-
-					if [ -n "$msi_object_id" ]; then
-						az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "MSI_ID.value")
-						if [ -z "${az_var}" ]; then
-							az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name MSI_ID --value "$msi_object_id" --output none --only-show-errors
-						else
-							az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name MSI_ID --value "$msi_object_id" --output none --only-show-errors
-						fi
-					fi
-
-				fi
+				save_config_var "keyvault" "${deployer_config_information}"
 			fi
 
 		fi
@@ -916,7 +917,7 @@ if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.web" "
 	fatal_errors=1
 fi
 
-if [ "${TEST_ONLY}" == "True" ]; then
+if [ "${TEST_ONLY}" == "true" ]; then
 	print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 
 	if [ $fatal_errors == 1 ]; then
@@ -1125,6 +1126,21 @@ if [ "${deployment_system}" == sap_deployer ]; then
 			echo "The provided keyvault is not valid " "${val}" >secret.err
 		fi
 	fi
+
+	APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")
+	if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
+		save_config_var "APPLICATION_CONFIGURATION_NAME" "${system_config_information}"
+		export APPLICATION_CONFIGURATION_NAME
+		echo "APPLICATION_CONFIGURATION_NAME:         $APPLICATION_CONFIGURATION_NAME"
+	fi
+
+	APPLICATION_CONFIGURATION_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_config_deployment | tr -d \")
+	if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
+		save_config_var "APPLICATION_CONFIGURATION_DEPLOYMENT" "${system_config_information}"
+		export APPLICATION_CONFIGURATION_DEPLOYMENT
+		echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  $APPLICATION_CONFIGURATION_DEPLOYMENT"
+	fi
+
 fi
 
 if [ "${deployment_system}" == sap_landscape ]; then

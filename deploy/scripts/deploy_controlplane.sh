@@ -139,7 +139,7 @@ while :; do
 	esac
 done
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" = true ]; then
 	# Enable debugging
 	set -x
 	# Exit on error
@@ -424,7 +424,7 @@ if [ 0 == "$step" ]; then
 		echo "Bootstrapping of the deployer failed" >"${deployer_config_information}".err
 		exit 10
 	fi
-	if [ "$FORCE_RESET" = True ]; then
+	if [ "$FORCE_RESET" = true ]; then
 		step=0
 		save_config_var "step" "${deployer_config_information}"
 		exit 0

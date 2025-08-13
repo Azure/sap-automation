@@ -56,6 +56,7 @@ function showhelp {
 	echo "#########################################################################################"
 }
 
+approve=""
 #process inputs - may need to check the option i for auto approve as it is not used
 INPUT_ARGUMENTS=$(getopt -n install_deployer -o p:ih --longoptions parameterfile:,auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
@@ -116,7 +117,7 @@ if [ "$param_dirname" != '.' ]; then
 	exit 3
 fi
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" = true ]; then
 	set -x
 	set -o errexit
 fi
@@ -421,41 +422,41 @@ if [ -f apply_output.json ]; then
 		if [ -n "${approve}" ]; then
 
 			# shellcheck disable=SC2086
-			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-				install_deployer_return_value=$?
-			else
+			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 				install_deployer_return_value=0
+			else
+				install_deployer_return_value=$?
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					install_deployer_return_value=$?
-				else
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					install_deployer_return_value=0
+				else
+					install_deployer_return_value=$?
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					install_deployer_return_value=$?
-				else
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					install_deployer_return_value=0
+				else
+					install_deployer_return_value=$?
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					install_deployer_return_value=$?
-				else
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					install_deployer_return_value=0
+				else
+					install_deployer_return_value=$?
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					install_deployer_return_value=$?
-				else
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
 					install_deployer_return_value=0
+				else
+					install_deployer_return_value=$?
 				fi
 			fi
 		else
@@ -502,12 +503,43 @@ else
 	install_deployer_return_value=2
 fi
 
+APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")
+if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
+	save_config_var "APPLICATION_CONFIGURATION_NAME" "${deployer_config_information}"
+	export APPLICATION_CONFIGURATION_NAME
+	echo "APPLICATION_CONFIGURATION_NAME:         $APPLICATION_CONFIGURATION_NAME"
+fi
+
+APPLICATION_CONFIGURATION_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_config_deployment | tr -d \")
+if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
+	save_config_var "APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_config_information}"
+	export APPLICATION_CONFIGURATION_DEPLOYMENT
+	echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  $APPLICATION_CONFIGURATION_DEPLOYMENT"
+fi
+
 deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 if [ -n "${deployer_random_id}" ]; then
 	custom_random_id="${deployer_random_id:0:3}"
-	sed -i -e /"custom_random_id"/d "${var_file}"
+	sed -i -e /"custom_random_id"/d "${parameterfile}"
 	printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+fi
 
+ARM_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_client_id | tr -d \")
+if [ -n "${ARM_CLIENT_ID}" ]; then
+	save_config_var "ARM_CLIENT_ID" "${deployer_config_information}"
+	export ARM_CLIENT_ID
+fi
+
+ARM_OBJECT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
+if [ -n "${ARM_OBJECT_ID}" ]; then
+	save_config_var "ARM_OBJECT_ID" "${deployer_config_information}"
+	export ARM_OBJECT_ID
+fi
+
+DevOpsInfrastructureObjectId=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw DevOpsInfrastructureObjectId | tr -d \")
+if [ -n "${DevOpsInfrastructureObjectId}" ]; then
+	save_config_var "DevOpsInfrastructureObjectId" "${deployer_config_information}"
+	export DevOpsInfrastructureObjectId
 fi
 
 unset TF_DATA_DIR

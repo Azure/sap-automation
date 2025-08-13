@@ -22,7 +22,7 @@ source "${script_directory}/deploy_utils.sh"
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" = true ]; then
 	set -x
 	set -o errexit
 fi
@@ -101,10 +101,16 @@ while :; do
 		;;
 	-d | --deployer_tfstate_key)
 		deployer_tfstate_key="$2"
+		CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d"-" -f1-3)
+		TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+		export TF_VAR_control_plane_name
 		shift 2
 		;;
 	-l | --landscape_tfstate_key)
 		landscape_tfstate_key="$2"
+		WORKLOAD_ZONE_NAME=$(echo "$landscape_tfstate_key" | cut -d"-" -f1-3)
+		TF_VAR_workload_zone_name="$WORKLOAD_ZONE_NAME"
+		export TF_VAR_workload_zone_name
 		shift 2
 		;;
 	-i | --auto-approve)
