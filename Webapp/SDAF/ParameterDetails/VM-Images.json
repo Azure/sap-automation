@@ -168,6 +168,30 @@
     }
   },
   {
+    "name": "Red Hat 9.4",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-APPS",
+      "sku": "94sapapps-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 9.4 HA",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-HA",
+      "sku": "94-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
     "name": "SUSE 12 SP5",
     "data": {
       "os_type": "LINUX",
@@ -222,6 +246,18 @@
       "source_image_id": "",
       "publisher": "SUSE",
       "offer": "sles-sap-15-sp6",
+      "sku": "gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "SUSE 15 SP7",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "SUSE",
+      "offer": "sles-sap-15-sp7",
       "sku": "gen2",
       "version": "latest",
       "type": "marketplace"

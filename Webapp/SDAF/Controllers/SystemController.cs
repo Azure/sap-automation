@@ -1,17 +1,19 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using SDAFWebApp.Models;
-using SDAFWebApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
+using Microsoft.TeamFoundation.Common;
 using Newtonsoft.Json;
+using SDAFWebApp.Models;
+using SDAFWebApp.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -202,7 +204,20 @@ namespace SDAFWebApp.Controllers
                     system.Id = Helper.GenerateId(system);
                     DateTime currentDateAndTime = DateTime.Now;
                     system.LastModified = currentDateAndTime.ToShortDateString();
-                    system.subscription_id = system.subscription.Replace("/subscriptions/","");
+
+                    if (!system.subscription.IsNullOrEmpty())
+                    {
+                        system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+                    }
+                    if (system.custom_random_id.IsNullOrEmpty())
+                    {
+                        string chars = "ABCDEF0123456789";
+                        var random = new Random();
+                        system.custom_random_id = new string(Enumerable.Range(0, 3)
+                            .Select(_ => chars[random.Next(chars.Length)]).ToArray());
+                    }
+
+
                     SystemEntity systemEntity = new(system);
                     await _systemService.CreateAsync(systemEntity);
                     TempData["success"] = "Successfully created system " + system.Id;
@@ -287,7 +302,17 @@ namespace SDAFWebApp.Controllers
                 }
 
                 string path = $"/SYSTEM/{id}/{id}.tfvars";
-                system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+                if (!system.subscription.IsNullOrEmpty())
+                {
+                    system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+                }
+                if (system.custom_random_id.IsNullOrEmpty())
+                {
+                    string chars = "ABCDEF0123456789";
+                    var random = new Random();
+                    system.custom_random_id = new string(Enumerable.Range(0, 3)
+                        .Select(_ => chars[random.Next(chars.Length)]).ToArray());
+                }
                 string content = Helper.ConvertToTerraform(system);
 
                 await restHelper.UpdateRepo(path, content);
@@ -449,7 +474,18 @@ namespace SDAFWebApp.Controllers
                                 system.Description = system.database_platform + " distributed system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
                             }
                         }
-                        system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+                        if (!system.subscription.IsNullOrEmpty())
+                        {
+                            system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+                        }
+                        if (system.custom_random_id.IsNullOrEmpty())
+                        {
+                            string chars = "ABCDEF0123456789";
+                            var random = new Random();
+                            system.custom_random_id = new string(Enumerable.Range(0, 3)
+                                .Select(_ => chars[random.Next(chars.Length)]).ToArray());
+                        }
+
                         await SubmitNewAsync(system);
                         string id = system.Id;
                         string path = $"/SYSTEM/{id}/{id}.tfvars";
@@ -487,6 +523,18 @@ namespace SDAFWebApp.Controllers
                                 system.Description = system.database_platform + " distributed system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
                             }
                         }
+                        if (!system.subscription.IsNullOrEmpty())
+                        {
+                            system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+                        }
+                        if (system.custom_random_id.IsNullOrEmpty())
+                        {
+                            string chars = "ABCDEF0123456789";
+                            var random = new Random();
+                            system.custom_random_id = new string(Enumerable.Range(0, 3)
+                                .Select(_ => chars[random.Next(chars.Length)]).ToArray());
+                        }
+
                         DateTime currentDateAndTime = DateTime.Now;
                         system.LastModified = currentDateAndTime.ToShortDateString();
                         await _systemService.UpdateAsync(new SystemEntity(system));

@@ -214,13 +214,13 @@ namespace SDAFWebApp.Models
 
         public bool? use_private_endpoint { get; set; } = true;
 
-        public bool? use_service_endpoint { get; set; }
+        public bool? use_service_endpoint { get; set; } = true;
 
         public bool? register_endpoints_with_dns { get; set; } = true;
 
         public bool? shared_access_key_enabled { get; set; } = false;
 
-        public bool? shared_access_key_enabled_nfs { get; set; } = true;
+        public bool? shared_access_key_enabled_nfs { get; set; } = false;
 
 
 
@@ -704,7 +704,7 @@ namespace SDAFWebApp.Models
         public string patch_mode { get; set; } = "ImageDefault";
         public string patch_assessment_mode { get; set; } = "ImageDefault";
 
-
+        public string? custom_random_id { get; set; }
 
     }
 

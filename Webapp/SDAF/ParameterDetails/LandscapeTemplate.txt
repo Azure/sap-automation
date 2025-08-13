@@ -39,6 +39,9 @@ $$name_override_file$$
 # The subscription ID is used to control where the resources are deployed
 $$subscription_id$$
 
+# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults
+$$custom_random_id$$
+
 #########################################################################################
 #                                                                                       #
 #  Networking                                                                           #
