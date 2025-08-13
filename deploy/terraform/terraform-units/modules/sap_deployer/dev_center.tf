@@ -1,6 +1,16 @@
+resource "time_sleep" "wait_for_role_assignments" {
+  count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
+  create_duration                               = "60s"
+
+    triggers                             = {
+                                           role_assignment_reader = try(azurerm_role_assignment.dev_center_reader[0].id, "")
+                                           dev_center_network_contributor = try(azurerm_role_assignment.dev_center_network_contributor[0].id, "")
+                                         }
+}
 
 resource "azurerm_dev_center" "deployer" {
   count                                         = var.infrastructure.dev_center_deployment ? 1 : 0
+  depends_on                                    = [ time_sleep.wait_for_role_assignments ]
   name                                          = lower(format("%s%s%s%s",
                                                     var.naming.resource_prefixes.dev_center,
                                                     var.infrastructure.environment,
