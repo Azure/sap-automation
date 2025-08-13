@@ -165,7 +165,7 @@ resource "azurerm_netapp_volume" "transport" {
 
   export_policy_rule {
                        allowed_clients     = ["0.0.0.0/0"]
-                       protocols_enabled   = ["NFSv4.1"]
+                       protocol            = ["NFSv4.1"]
                        rule_index          = 1
                        unix_read_only      = false
                        unix_read_write     = true
@@ -279,7 +279,7 @@ resource "azurerm_netapp_volume" "install" {
 
   export_policy_rule {
                        allowed_clients     = ["0.0.0.0/0"]
-                       protocols_enabled   = ["NFSv4.1"]
+                       protocol            = ["NFSv4.1"]
                        rule_index          = 1
                        unix_read_only      = false
                        unix_read_write     = true

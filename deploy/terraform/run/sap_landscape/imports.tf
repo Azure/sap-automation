@@ -8,16 +8,13 @@
 
 
 data "azurerm_client_config" "current" {}
-
 data "azurerm_client_config" "current_main" {
   provider                            = azurerm.workload
-
 }
-
 data "terraform_remote_state" "deployer" {
   backend                              = "azurerm"
 
-  count                                = var.use_deployer && length(try(var.deployer_tfstate_key, "")) > 0 ? 1 : 0
+  count                                = length(var.deployer_tfstate_key) > 0 ? 1 : 0
   config                               = {
                                            resource_group_name  = local.SAPLibrary_resource_group_name
                                            storage_account_name = local.tfstate_storage_account_name
@@ -70,7 +67,14 @@ data "azurerm_key_vault_secret" "cp_subscription_id" {
                                           read = "1m"
                                        }
 }
-
+data "azurerm_key_vault_secret" "cp_subscription_id_v2" {
+  count                                = 1
+  name                                 = format("%s-subscription-id", var.control_plane_name)
+  key_vault_id                         = local.key_vault.spn.id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
 data "azurerm_key_vault_secret" "cp_client_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-id", data.terraform_remote_state.deployer[0].outputs.environment)
@@ -87,6 +91,58 @@ ephemeral "azurerm_key_vault_secret" "cp_client_secret" {
 data "azurerm_key_vault_secret" "cp_tenant_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-tenant-id", data.terraform_remote_state.deployer[0].outputs.environment)
+  key_vault_id                         = local.key_vault.spn.id
+}
+
+data "azurerm_key_vault_secret" "subscription_id_v2" {
+  count                                = length(var.subscription_id) > 0 ? 0 : (var.use_spn ? 1 : 0)
+  name                                 = format("%s-subscription-id", local.workload_zone_name)
+  key_vault_id                         = local.key_vault.spn.id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
+
+data "azurerm_key_vault_secret" "client_id_v2" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-client-id", local.workload_zone_name)
+  key_vault_id                         = local.key_vault.spn.id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
+ephemeral "azurerm_key_vault_secret" "client_secret_v2" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-client-secret", local.workload_zone_name)
+  key_vault_id                         = local.key_vault.spn.id
+
+}
+
+data "azurerm_key_vault_secret" "tenant_id_v2" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-tenant-id", local.workload_zone_name)
+  key_vault_id                         = local.key_vault.spn.id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
+
+data "azurerm_key_vault_secret" "cp_client_id_v2" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-client-id", var.control_plane_name)
+  key_vault_id                         = local.key_vault.spn.id
+
+}
+
+ephemeral "azurerm_key_vault_secret" "cp_client_secret_v2" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-client-secret", var.control_plane_name)
+  key_vault_id                         = local.key_vault.spn.id
+}
+
+data "azurerm_key_vault_secret" "cp_tenant_id_v2" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-tenant-id", var.control_plane_name)
   key_vault_id                         = local.key_vault.spn.id
 }
 

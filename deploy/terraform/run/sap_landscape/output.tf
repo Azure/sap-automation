@@ -136,7 +136,7 @@ output "landscape_key_vault_spn_arm_id"          {
 
 output "landscape_key_vault_user_arm_id"         {
                                                    description = "Azure resource identifier for the user credential keyvault"
-                                                   value       = length(var.user_keyvault_id) > 0 ? var.user_keyvault_id : module.sap_landscape.kv_user
+                                                   value       = trimspace(length(var.user_keyvault_id)) > 0 ? var.user_keyvault_id : module.sap_landscape.kv_user
                                                  }
 
 output "user_credential_vault_id"         {
@@ -160,6 +160,11 @@ output "sid_username_secret_name"                {
                                                  }
 
 output "spn_kv_id"                               {
+                                                   description = "Name of key vault secret containing deployment credentials"
+                                                   value       = local.key_vault.spn.id
+                                                 }
+
+output "spn_credential_vault_id"                 {
                                                    description = "Name of key vault secret containing deployment credentials"
                                                    value       = local.key_vault.spn.id
                                                  }
@@ -377,4 +382,4 @@ output ams_resource_id                          {
 output ng_resource_id                           {
                                                   description = "NAT Gateway resource ID"
                                                   value       = module.sap_landscape.ng_resource_id
-                                                }
+                                                 }
