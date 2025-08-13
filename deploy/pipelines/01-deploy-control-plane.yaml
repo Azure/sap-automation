@@ -122,7 +122,24 @@ stages:
               USE_MSI:                        $(Use_MSI)
               WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
               keyvault:                       $(DEPLOYER_KEYVAULT)
-  - stage:                             PopulateKeyVault
+          - task:                      AzureCLI@2
+            continueOnError:           false
+            inputs:
+              azureSubscription:       ${{parameters.connection_name}}
+              scriptType:              bash
+              scriptLocation:          'scriptPath'
+              scriptPath:              "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-control-plane-permission-pipelines.sh"
+              addSpnToEnvironment:     true
+              visibleAzLogin:          false
+              failOnStandardError:     false
+            name:                      PermissionPipelines
+            displayName:               Permission the pipelines
+            env:
+              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
+              AGENT_POOL:               $(POOL)  - stage:                             PopulateKeyVault
     dependsOn:
       - Prepare_Deployer
     pool:                              $(this_agent)
