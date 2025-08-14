@@ -1076,6 +1076,8 @@ function ImportAndReRunApply {
 	local error_count=0
 
 	print_banner "ImportAndReRunApply" "In function ImportAndReRunApply" "info"
+	# echo "Import parameters: ${importParameters[*]}"
+	# echo "Apply parameters: ${applyParameters[*]}"
 
 	if [ -f "$fileName" ]; then
 		retry_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("A retryable error occurred."))' "$fileName")
