@@ -117,7 +117,7 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
 
 resource "azurerm_role_assignment" "role_assignment_vault_ssi" {
   provider                             = azurerm.deployer
-  count                                = var.key_vault.enable_rbac_authorization && var.deployer_tfstate.deployer_uai.principal_id != data.azurerm_client_config.current.object_id ? 1 : 0
+  count                                = var.enable_rbac_authorization_for_keyvault && var.deployer_tfstate.deployer_uai.principal_id != data.azurerm_client_config.current.object_id ? 1 : 0
   scope                                = var.key_vault.user.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
@@ -130,7 +130,6 @@ resource "azurerm_role_assignment" "role_assignment_vault_ssi" {
                                           delete = "5m"
                                        }
 }
-
 
 resource "azurerm_role_assignment" "role_assignment_msi_officer" {
   provider                             = azurerm.deployer
