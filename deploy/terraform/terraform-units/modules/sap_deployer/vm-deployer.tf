@@ -111,8 +111,7 @@ data "azurerm_user_assigned_identity" "deployer" {
 // Linux Virtual Machine for Deployer
 resource "azurerm_linux_virtual_machine" "deployer" {
   count                                = var.deployer_vm_count
-  depends_on                           = [ azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_secret.pk ]
+  depends_on                           = [ azurerm_key_vault.kv_user ]
 
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.vm,
@@ -214,7 +213,8 @@ resource "azurerm_linux_virtual_machine" "deployer" {
 
 #Private endpoint tend to take a while to be created, so we need to wait for it to be ready before we can use it
 resource "time_sleep" "wait_for_VM" {
-  create_duration                      = "60s"
+
+  create_duration                      = var.deployer_vm_count > 0 ? "60s" : "5s"
 
   depends_on                           = [
                                            azurerm_linux_virtual_machine.deployer

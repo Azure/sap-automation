@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-
 locals {
 
   infrastructure =                  {
@@ -110,9 +109,7 @@ locals {
                                            tf_version                     = var.tf_version
                                            DevOpsInfrastructure_object_id = var.DevOpsInfrastructure_object_id
                                          }
-
   }
-
   deployer                             = {
                                            size = try(
                                              coalesce(
@@ -193,10 +190,10 @@ locals {
 
                                         }
   options                              = {
-                                            enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
-                                            use_spn                   = var.use_spn
-                                            enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
-                                            use_spn                   = var.use_spn
+                                            enable_deployer_public_ip       = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
+                                            use_spn                         = var.use_spn
+                                            assign_resource_permissions     = var.deployer_assign_resource_permissions
+                                            assign_subscription_permissions = var.deployer_assign_subscription_permissions
                                          }
 
   firewall                             = {
