@@ -1127,20 +1127,6 @@ if [ "${deployment_system}" == sap_deployer ]; then
 		fi
 	fi
 
-	APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")
-	if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
-		save_config_var "APPLICATION_CONFIGURATION_NAME" "${system_config_information}"
-		export APPLICATION_CONFIGURATION_NAME
-		echo "APPLICATION_CONFIGURATION_NAME:         $APPLICATION_CONFIGURATION_NAME"
-	fi
-
-	APPLICATION_CONFIGURATION_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_config_deployment | tr -d \")
-	if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
-		save_config_var "APPLICATION_CONFIGURATION_DEPLOYMENT" "${system_config_information}"
-		export APPLICATION_CONFIGURATION_DEPLOYMENT
-		echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  $APPLICATION_CONFIGURATION_DEPLOYMENT"
-	fi
-
 fi
 
 if [ "${deployment_system}" == sap_landscape ]; then
