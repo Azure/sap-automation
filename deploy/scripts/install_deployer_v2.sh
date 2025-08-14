@@ -378,14 +378,14 @@ function install_deployer() {
 			if [[ -n $errors_occurred ]]; then
 				return_value=0
 				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 					return_value=0
 				else
 					return_value=$?
 				fi
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 						return_value=0
 					else
 						return_value=$?
@@ -393,7 +393,7 @@ function install_deployer() {
 				fi
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 						return_value=0
 					else
 						return_value=$?
@@ -401,7 +401,7 @@ function install_deployer() {
 				fi
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 						return_value=0
 					else
 						return_value=$?
@@ -409,7 +409,7 @@ function install_deployer() {
 				fi
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 						return_value=0
 					else
 						return_value=$?
@@ -417,7 +417,7 @@ function install_deployer() {
 				fi
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
-					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 						return_value=0
 					else
 						return_value=$?

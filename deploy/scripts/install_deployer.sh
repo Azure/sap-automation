@@ -422,14 +422,14 @@ if [ -f apply_output.json ]; then
 		if [ -n "${approve}" ]; then
 
 			# shellcheck disable=SC2086
-			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 				install_deployer_return_value=0
 			else
 				install_deployer_return_value=$?
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 					install_deployer_return_value=0
 				else
 					install_deployer_return_value=$?
@@ -437,7 +437,7 @@ if [ -f apply_output.json ]; then
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 					install_deployer_return_value=0
 				else
 					install_deployer_return_value=$?
@@ -445,7 +445,7 @@ if [ -f apply_output.json ]; then
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 					install_deployer_return_value=0
 				else
 					install_deployer_return_value=$?
@@ -453,7 +453,7 @@ if [ -f apply_output.json ]; then
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 					install_deployer_return_value=0
 				else
 					install_deployer_return_value=$?
