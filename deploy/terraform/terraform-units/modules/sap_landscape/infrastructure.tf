@@ -184,6 +184,7 @@ resource "azurerm_virtual_network_peering" "peering_sap_management" {
 # // Peers additional VNET to SAP VNET
 resource "azurerm_virtual_network_peering" "peering_additional_network_sap" {
   provider                             = azurerm.peering
+  depends_on                           = [ azurerm_subnet.admin, azurerm_subnet.app, azurerm_subnet.db, azurerm_subnet.web, azurerm_subnet.iscsi, azurerm_subnet.storage, azurerm_subnet.ams, azurerm_subnet.anf ]
   count                                = length(try(var.infrastructure.additional_network_id, "")) > 0 ? 1 : 0
   name                                 = substr(
                                            format("%s_to_%s",
@@ -210,6 +211,7 @@ resource "azurerm_virtual_network_peering" "peering_additional_network_sap" {
 
 resource "azurerm_virtual_network_peering" "peering_sap_additional_network" {
   provider                             = azurerm.main
+  depends_on                           = [ azurerm_subnet.admin, azurerm_subnet.app, azurerm_subnet.db, azurerm_subnet.web, azurerm_subnet.iscsi, azurerm_subnet.storage, azurerm_subnet.ams, azurerm_subnet.anf ]
   count                                = length(try(var.infrastructure.additional_network_id, "")) > 0 ? 1 : 0
   name                                 = substr(
                                            format("%s_to_%s",
