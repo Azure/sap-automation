@@ -20,10 +20,10 @@ locals {
                                             trimspace(var.custom_prefix)) : (
                                             trimspace(var.naming.prefix.SDU)
                                           )
-  resource_group_exists                = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
+  resource_group_exists                = length(try(var.infrastructure.resource_group.id, "")) > 0
   // Resource group
   resourcegroup_name                   = local.resource_group_exists ? (
-                                           try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
+                                           try(split("/", var.infrastructure.resource_group.id)[4], "")) : (
                                            coalesce(
                                              try(var.infrastructure.resource_group.name, ""),
                                              format("%s%s%s",
@@ -169,7 +169,7 @@ locals {
 
   //PPG
   var_ppg                              = try(var.infrastructure.ppg, {})
-  ppg_arm_ids                          = try(var.infrastructure.ppg.arm_ids, [])
+  ppg_arm_ids                          = try(var.infrastructure.ppg.ids, [])
   ppg_exists                           = length(local.ppg_arm_ids) > 0 ? true : false
   ppg_names                            = try(local.var_ppg.names, [
                                            format("%s%s%s",
@@ -179,7 +179,7 @@ locals {
                                            )
                                          ])
 
-  app_ppg_exists                       = try(length(var.infrastructure.app_ppg.arm_ids) > 0 ? true : false, false)
+  app_ppg_exists                       = try(length(var.infrastructure.app_ppg.ids) > 0 ? true : false, false)
   isHANA                               = try(upper(var.database.platform), "NONE") == "HANA"
 
   ##############################################################################################
@@ -282,7 +282,7 @@ locals {
   # application_subnet_defined = length(try(var.infrastructure.virtual_networks.sap.subnet_app, {})) > 0
   # application_subnet_prefix  = local.application_subnet_defined ? try(var.infrastructure.virtual_networks.sap.subnet_app.prefix, "") : ""
   # application_subnet_arm_id = local.application_subnet_defined ? (
-  #   try(var.infrastructure.virtual_networks.sap.subnet_app.arm_id, "")) : (
+  #   try(var.infrastructure.virtual_networks.sap.subnet_app.id, "")) : (
   #   var.landscape_tfstate.app_subnet_id
   # )
 
@@ -290,9 +290,9 @@ locals {
 
   # application_subnet_name = local.application_subnet_defined ? (
   #   local.application_subnet_exists ? (
-  #     split("/", var.infrastructure.virtual_networks.sap.subnet_app.arm_id)[10]) : (
+  #     split("/", var.infrastructure.virtual_networks.sap.subnet_app.id)[10]) : (
   #     length(var.infrastructure.virtual_networks.sap.subnet_app.name) > 0 ? (
-  #       var.infrastructure.virtual_networks.sap.subnet_app.arm_id) : (
+  #       var.infrastructure.virtual_networks.sap.subnet_app.id) : (
   #       format("%s%s%s",
   #         local.prefix,
   #         var.naming.separator,
@@ -302,7 +302,7 @@ locals {
   #   ""
   # )
 
-  # sub_app_nsg_arm_id = try(var.infrastructure.virtual_networks.sap.subnet_app.nsg.arm_id, try(var.landscape_tfstate.app_nsg_id, ""))
+  # sub_app_nsg_arm_id = try(var.infrastructure.virtual_networks.sap.subnet_app.nsg.id, try(var.landscape_tfstate.app_nsg_id, ""))
   # sub_app_nsg_exists = length(local.application_subnet_nsg_arm_id) > 0
   # sub_app_nsg_name = local.application_subnet_nsg_exists ? (
   #   try(split("/", local.application_subnet_nsg_arm_id)[8], "")) : (

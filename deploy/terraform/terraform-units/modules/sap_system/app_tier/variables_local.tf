@@ -38,7 +38,7 @@ locals {
   sid                                  = upper(var.application_tier.sid)
   prefix                               = trimspace(var.naming.prefix.SDU)
   // Resource group
-  resource_group_exists                = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
+  resource_group_exists                = length(try(var.infrastructure.resource_group.id, "")) > 0
 
   sid_auth_type                        = upper(var.application_tier.app_os.os_type) == "LINUX" ? (
                                            try(var.application_tier.authentication.type, "key")) : (

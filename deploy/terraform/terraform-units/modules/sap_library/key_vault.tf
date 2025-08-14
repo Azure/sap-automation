@@ -24,7 +24,7 @@ resource "azurerm_key_vault_secret" "saplibrary_access_key" {
                                          ]
   content_type                         = "secret"
   name                                 = "sapbits-access-key"
-  value                                = length(var.storage_account_sapbits.arm_id) > 0 ? (
+  value                                = length(var.storage_account_sapbits.id) > 0 ? (
                                            data.azurerm_storage_account.storage_sapbits[0].primary_access_key) : (
                                            azurerm_storage_account.storage_sapbits[0].primary_access_key
                                          )

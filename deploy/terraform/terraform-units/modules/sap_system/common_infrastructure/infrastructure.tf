@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "resource_group" {
 // Imports data of existing resource group
 data "azurerm_resource_group" "resource_group" {
   provider                             = azurerm.main
-  count                                = length(try(var.infrastructure.resource_group.arm_id, "")) > 0 ? 1 : 0
-  name                                 = split("/", var.infrastructure.resource_group.arm_id)[4]
+  count                                = length(try(var.infrastructure.resource_group.id, "")) > 0 ? 1 : 0
+  name                                 = split("/", var.infrastructure.resource_group.id)[4]
 }
 
 #######################################4#######################################8
@@ -97,8 +97,8 @@ resource "azurerm_proximity_placement_group" "app_ppg" {
 data "azurerm_proximity_placement_group" "app_ppg" {
   provider                             = azurerm.main
   count                                = var.infrastructure.use_app_proximityplacementgroups ? (local.app_ppg_exists ? max(length(local.zones), 1) : 0) : 0
-  name                                 = split("/", var.infrastructure.app_ppg.arm_ids[count.index])[8]
-  resource_group_name                  = split("/", var.infrastructure.app_ppg.arm_ids[count.index])[4]
+  name                                 = split("/", var.infrastructure.app_ppg.ids[count.index])[8]
+  resource_group_name                  = split("/", var.infrastructure.app_ppg.ids[count.index])[4]
 }
 
 //ASG
