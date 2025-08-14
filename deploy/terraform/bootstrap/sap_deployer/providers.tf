@@ -106,7 +106,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.39.0"
+                                                                           version = "4.35.0"
                                                                          }
                                                               azapi =   {
                                                                            source  = "Azure/azapi"
