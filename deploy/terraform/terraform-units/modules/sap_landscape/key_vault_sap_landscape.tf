@@ -113,6 +113,22 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
                                        }
 }
 
+resource "azurerm_role_assignment" "role_assignment_vault_ssi" {
+  provider                             = azurerm.deployer
+  count                                = var.enable_rbac_authorization_for_keyvault && var.deployer_tfstate.deployer_uai.principal_id != data.azurerm_client_config.current.object_id ? 1 : 0
+  scope                                = var.key_vault.user.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+  role_definition_name                 = "Key Vault Administrator"
+  principal_id                         = data.azurerm_client_config.current.object_id
+  timeouts                             {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                       }
+}
+
 resource "azurerm_role_assignment" "role_assignment_msi_officer" {
   provider                             = azurerm.deployer
   count                                = var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions ? 1 : 0
