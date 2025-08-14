@@ -322,8 +322,8 @@ resource "azurerm_management_lock" "storage_sapbits" {
 data "azurerm_storage_account" "storage_sapbits" {
   provider                             = azurerm.main
   count                                = var.storage_account_sapbits.exists ? 1 : 0
-  name                                 = split("/", var.storage_account_sapbits.arm_id)[8]
-  resource_group_name                  = split("/", var.storage_account_sapbits.arm_id)[4]
+  name                                 = split("/", var.storage_account_sapbits.id)[8]
+  resource_group_name                  = split("/", var.storage_account_sapbits.id)[4]
 }
 
 

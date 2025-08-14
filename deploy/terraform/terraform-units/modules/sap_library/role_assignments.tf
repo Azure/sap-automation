@@ -1,10 +1,21 @@
-resource "azurerm_role_assignment" "webapp_blob" {
+resource "azurerm_role_assignment" "storage_tfstate" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.assign_permissions && var.deployer.use ? (
-                                           length(try(var.deployer_tfstate.deployer_msi_id, "")) > 0 ? 1 : 0) : (
-                                           0
-                                           )
+  count                                = var.storage_account_sapbits.exists ? 0 : var.infrastructure.assign_permissions ? 1 : 0
+  # count                                = var.enable_storage_role_assignment && !local.sa_tfstate_exists ? 1 : 0
   scope                                = azurerm_storage_account.storage_tfstate[0].id
+  role_definition_name                 = "Storage Blob Data Contributor"
+  principal_id                         = data.azuread_client_config.current.object_id
+
+  lifecycle {
+    create_before_destroy              = true
+  }
+
+}
+
+resource "azurerm_role_assignment" "blob_msi" {
+  provider                             = azurerm.main
+  count                               = var.deployer.use && length(try(var.deployer_tfstate.deployer_msi_id, "")) > 0 ? (var.deployer_tfstate.deployer_msi_id != data.azuread_client_config.current.object_id && var.infrastructure.assign_permissions ? 1 : 0) : 0
+  scope                                =  var.storage_account_tfstate.exists ? data.azurerm_storage_account.storage_tfstate[0].id : azurerm_storage_account.storage_tfstate[0].id
   role_definition_name                 = "Storage Blob Data Contributor"
   principal_id                         = var.deployer_tfstate.deployer_msi_id
 }
@@ -15,22 +26,10 @@ resource "azurerm_role_assignment" "webapp_table" {
                                            length(try(var.deployer_tfstate.deployer_msi_id, "")) > 0 ? 1 : 0) : (
                                            0
                                            )
-  scope                                = azurerm_storage_account.storage_tfstate[0].id
+  scope                                = var.storage_account_tfstate.exists ? data.azurerm_storage_account.storage_tfstate[0].id : azurerm_storage_account.storage_tfstate[0].id
   role_definition_name                 = "Storage Table Data Contributor"
   principal_id                         = var.deployer_tfstate.deployer_msi_id
 }
-
-resource "azurerm_role_assignment" "blob_msi" {
-  provider                             = azurerm.main
-  count                                = var.infrastructure.assign_permissions && var.deployer.use ? (
-                                           length(try(var.deployer_tfstate.deployer_msi_id, "")) > 0 ? 1 : 0) : (
-                                           0
-                                           )
-  scope                                = azurerm_storage_account.storage_tfstate[0].id
-  role_definition_name                 = "Storage Blob Data Owner"
-  principal_id                         = var.deployer_tfstate.deployer_msi_id
-}
-
 resource "azurerm_role_assignment" "dns_msi" {
   provider                             = azurerm.main
   count                                = var.infrastructure.assign_permissions && var.deployer.use ? (

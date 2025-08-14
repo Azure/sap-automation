@@ -33,7 +33,7 @@ resource "azurerm_subnet_network_security_group_association" "admin" {
                                         ]
 
   subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_admin.exists ? (
-                                          var.infrastructure.virtual_networks.sap.subnet_admin.arm_id) : (
+                                          var.infrastructure.virtual_networks.sap.subnet_admin.id) : (
                                           azurerm_subnet.admin[0].id
                                           )
   network_security_group_id            = azurerm_network_security_group.admin[0].id
@@ -64,7 +64,7 @@ resource "azurerm_subnet_network_security_group_association" "db" {
   depends_on                           = [
                                            azurerm_subnet.db
                                          ]
-  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_db.exists ? var.infrastructure.virtual_networks.sap.subnet_db.arm_id : azurerm_subnet.db[0].id
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_db.exists ? var.infrastructure.virtual_networks.sap.subnet_db.id : azurerm_subnet.db[0].id
   network_security_group_id            = azurerm_network_security_group.db[0].id
 }
 
@@ -94,7 +94,7 @@ resource "azurerm_subnet_network_security_group_association" "app" {
   depends_on                           = [
                                            azurerm_subnet.app
                                          ]
-  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.arm_id : azurerm_subnet.app[0].id
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.id : azurerm_subnet.app[0].id
   network_security_group_id            = azurerm_network_security_group.app[0].id
 }
 
@@ -123,7 +123,7 @@ resource "azurerm_network_security_group" "web" {
 resource "azurerm_subnet_network_security_group_association" "web" {
   provider                             = azurerm.main
   count                                = var.infrastructure.virtual_networks.sap.subnet_web.defined && !var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists ? 1 : 0
-  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_web.exists ? var.infrastructure.virtual_networks.sap.subnet_web.arm_id : azurerm_subnet.web[0].id
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_web.exists ? var.infrastructure.virtual_networks.sap.subnet_web.id : azurerm_subnet.web[0].id
   network_security_group_id            = azurerm_network_security_group.web[0].id
 }
 
@@ -152,7 +152,7 @@ resource "azurerm_network_security_group" "storage" {
 resource "azurerm_subnet_network_security_group_association" "storage" {
   provider                             = azurerm.main
   count                                = var.infrastructure.virtual_networks.sap.subnet_storage.defined && !var.infrastructure.virtual_networks.sap.subnet_storage.nsg.exists ? 1 : 0
-  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_storage.exists ? var.infrastructure.virtual_networks.sap.subnet_storage.arm_id : azurerm_subnet.storage[0].id
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_storage.exists ? var.infrastructure.virtual_networks.sap.subnet_storage.id : azurerm_subnet.storage[0].id
   network_security_group_id            = azurerm_network_security_group.storage[0].id
 }
 
