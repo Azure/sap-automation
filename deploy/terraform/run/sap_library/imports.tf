@@ -5,6 +5,9 @@
     Description:
       Import deployer resources
 */
+data "azurerm_client_config" "current" {
+                                         provider                   = azurerm.deployer
+                                       }
 
 data "terraform_remote_state" "deployer"          {
                                                     backend =    "azurerm"
