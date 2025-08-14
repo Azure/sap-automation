@@ -38,7 +38,7 @@ source "${script_directory}/deploy_utils.sh"
 # shellcheck disable=SC1091
 source "${script_directory}/helpers/script_helpers.sh"
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" = true ]; then
 	set -x
 	set -o errexit
 fi
@@ -66,6 +66,9 @@ while :; do
 		;;
 	-d | --deployer_tfstate_key)
 		deployer_tfstate_key="$2"
+		CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d"-" -f1-3)
+		TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+		export TF_VAR_control_plane_name
 		shift 2
 		;;
 	-e | --deployer_environment)
@@ -944,7 +947,7 @@ fi
 echo "Terraform Plan return code:          $return_value"
 apply_needed=1
 
-if [ "${TEST_ONLY}" == "True" ]; then
+if [ "${TEST_ONLY}" == "true" ]; then
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"

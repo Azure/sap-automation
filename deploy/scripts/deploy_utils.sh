@@ -18,7 +18,10 @@ fi
 
 function save_config_var() {
 	local var_name=$1 var_file=$2
-	sed -i -e "" -e /$var_name/d "${var_file}"
+	if [ -f "${var_file}" ]; then
+		sed -i -e "" -e /$var_name/d "${var_file}"
+	fi
+
 	echo "${var_name}=${!var_name}" >>"${var_file}"
 }
 

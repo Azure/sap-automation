@@ -129,7 +129,7 @@ namespace SDAFWebApp.Controllers
                         str.AppendLine($"  \"{t.Key}\" = \"{t.Value}\",");
                     }
                 }
-                str.Append("}");
+                str.Append('}');
             }
             else if (property.PropertyType.IsArray)
             {
@@ -140,7 +140,7 @@ namespace SDAFWebApp.Controllers
                     str.Append($"\"{val}\", ");
                 }
                 str.Remove(str.Length - 2, 2);
-                str.Append("]");
+                str.Append(']');
             }
             else if (property.PropertyType == typeof(Image))
             {
@@ -156,7 +156,7 @@ namespace SDAFWebApp.Controllers
                     str.AppendLine("  sku = " + $"\"{img.sku}\",");
                     str.AppendLine("  version = " + $"\"{img.version}\",");
                     str.AppendLine("  type = " + $"\"{img.type}\"");
-                    str.Append("}");
+                    str.Append('}');
                 }
                 else
                 {
@@ -266,7 +266,7 @@ namespace SDAFWebApp.Controllers
             // a display name.
             MemberInfo property =
                 typeof(FileUploadModel).GetProperty(
-                    formFile.Name[(formFile.Name.IndexOf(".", StringComparison.Ordinal) + 1)..]);
+                    formFile.Name[(formFile.Name.IndexOf('.', StringComparison.Ordinal) + 1)..]);
 
             if (property != null)
             {
@@ -373,22 +373,22 @@ namespace SDAFWebApp.Controllers
                     jsonString.AppendLine("}");
                     break;
                 }
-                else if (currLine.StartsWith("#") || currLine == "")
+                else if (currLine.StartsWith('#') || currLine == "")
                 {
                     continue;
                 }
-                else if (currLine.StartsWith("}"))
+                else if (currLine.StartsWith('}'))
                 {
                     jsonString.Remove(jsonString.Length - 3, 1);
                     jsonString.AppendLine("},");
                 }
                 else
                 {
-                    int equalIndex = currLine.IndexOf("=");
+                    int equalIndex = currLine.IndexOf('=');
                     if (equalIndex >= 0)
                     {
                         string key = currLine[..equalIndex].Trim();
-                        if (!key.StartsWith("\""))
+                        if (!key.StartsWith('\"'))
                         {
                             key = "\"" + key + "\"";
                         }
@@ -398,11 +398,11 @@ namespace SDAFWebApp.Controllers
                         {
                             value += "[";
                             currLine = stringReader.ReadLine();
-                            while (!currLine.StartsWith("}"))
+                            while (!currLine.StartsWith('}'))
                             {
-                                equalIndex = currLine.IndexOf("=");
+                                equalIndex = currLine.IndexOf('=');
                                 var tagKey = currLine[..equalIndex].Trim();
-                                if (!tagKey.StartsWith("\""))
+                                if (!tagKey.StartsWith('\"'))
                                 {
                                     tagKey = "\"" + tagKey + "\"";
                                 }
@@ -415,29 +415,29 @@ namespace SDAFWebApp.Controllers
                             value = value.Trim(',');
                             value += "],";
                         }
-                        else if (key.ToLower() == "\"network_address_space\"")
-                        {
-                            value = currLine[(equalIndex + 1)..].Trim();
-                            if (!value.StartsWith('['))
-                            {
-                                value += ",";
-                            }
-                            else
-                            {
-                                string fixedValue = value.Replace('[', ' ').Replace(']', ' ');
-                                value = fixedValue.Trim() + ",";
-                            }
+                        //else if (key.ToLower() == "\"network_address_space\"")
+                        //{
+                        //    value = currLine[(equalIndex + 1)..].Trim();
+                        //    if (!value.StartsWith('['))
+                        //    {
+                        //        value += ",";
+                        //    }
+                        //    else
+                        //    {
+                        //        string fixedValue = value.Replace('[', ' ').Replace(']', ' ');
+                        //        value = fixedValue.Trim() + ",";
+                        //    }
 
-                        }
+                        //}
                         else if (key.EndsWith("configuration_settings\""))
                         {
                             value += "[";
-                            currLine = stringReader.ReadLine();
-                            while (!currLine.StartsWith("}"))
+                            currLine = stringReader.ReadLine().Trim();
+                            while (!currLine.StartsWith('}'))
                             {
-                                equalIndex = currLine.IndexOf("=");
+                                equalIndex = currLine.IndexOf('=');
                                 var tagKey = currLine[..equalIndex].Trim();
-                                if (!tagKey.StartsWith("\""))
+                                if (!tagKey.StartsWith('\"'))
                                 {
                                     tagKey = "\"" + tagKey + "\"";
                                 }
@@ -445,7 +445,7 @@ namespace SDAFWebApp.Controllers
                                 value += "{";
                                 value += "\"Key\":" + tagKey + "," + "\"Value\":" + tagValue.Trim(',');
                                 value += "},";
-                                currLine = stringReader.ReadLine();
+                                currLine = stringReader.ReadLine().Trim();
                             }
                             value = value.Trim(',');
                             value += "],";
@@ -453,7 +453,7 @@ namespace SDAFWebApp.Controllers
                         else
                         {
                             value = currLine[(equalIndex + 1)..].Trim();
-                            if (!value.EndsWith(",") && !value.EndsWith("{"))
+                            if (!value.EndsWith(',') && !value.EndsWith('{'))
                             {
                                 value += ",";
                             }

@@ -36,7 +36,6 @@ $$environment$$
 # The location value is a mandatory field, it is used to control where the resources are deployed
 $$location$$
 
-
 # The subscription ID is used to control where the resources are deployed
 $$subscription_id$$
 
@@ -65,12 +64,14 @@ $$Description$$
 #                                                                                       #
 #########################################################################################
 
-
 # If you want to provide a custom naming json use the following parameter.
 $$name_override_file$$
 
 # If you want to customize the disk sizes for VMs use the following parameter to specify the custom sizing file.
 $$custom_disk_sizes_filename$$
+
+# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults
+$$custom_random_id$$
 
 # use_secondary_ips controls if the virtual machines should be deployed with two IP addresses. Required for SAP Virtual Hostname support
 $$use_secondary_ips$$

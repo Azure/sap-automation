@@ -17,8 +17,7 @@ namespace SDAFWebApp.Models
                 network_logical_name != null
                 ;
         }
-        #pragma warning disable IDE1006 // Naming Styles
-
+        
         [DisplayName("Workload zone ID")]
         public string Id { get; set; }
 
@@ -55,6 +54,8 @@ namespace SDAFWebApp.Models
 
         public Tag[] tags { get; set; }
 
+        public string custom_random_id { get; set; }
+
 
         public bool? deploy_monitoring_extension { get; set; } = true;
 
@@ -74,7 +75,7 @@ namespace SDAFWebApp.Models
         [VnetRequired]
         [DisplayName("Network address")]
         [AddressPrefixValidator(ErrorMessage = "Network address space must be a valid RFC 1918 address")]
-        public string network_address_space { get; set; }
+        public string[] network_address_space { get; set; }
         public string network_name { get; set; }
 
         [NetworkAddressValidator(ErrorMessage = "Invalid network address arm id")]
@@ -250,7 +251,7 @@ namespace SDAFWebApp.Models
 
         public bool? enable_firewall_for_keyvaults_and_storage { get; set; } = true;
 
-        public bool? public_network_access_enabled { get; set; } = true;
+        public bool? public_network_access_enabled { get; set; } = false;
 
         public bool? ANF_use_existing_pool { get; set; }
 
@@ -328,7 +329,7 @@ namespace SDAFWebApp.Models
 
         public bool? enable_rbac_authorization_for_keyvault { get; set; } = false;
 
-        public int? soft_delete_retention_days { get; set; } = 14;
+        public int? soft_delete_retention_days { get; set; } = 7;
 
         public bool? set_secret_expiry { get; set; } = false;
 
@@ -376,7 +377,7 @@ namespace SDAFWebApp.Models
 
         public bool? shared_access_key_enabled { get; set; } = false;
 
-        public bool? shared_access_key_enabled_nfs { get; set; } = true;
+        public bool? shared_access_key_enabled_nfs { get; set; } = false;
 
         public bool? install_always_create_fileshares { get; set; } = true;
 
@@ -495,6 +496,10 @@ namespace SDAFWebApp.Models
         public int? nat_gateway_idle_timeout_in_minutes { get; set; }
 
         public Tag[] nat_gateway_public_ip_tags { get; set; }
+
+        
+
+
 #pragma warning restore IDE1006 // Naming Styles
 
     }

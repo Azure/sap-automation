@@ -24,7 +24,7 @@ resource "azurerm_key_vault_secret" "saplibrary_access_key" {
                                          ]
   content_type                         = "secret"
   name                                 = "sapbits-access-key"
-  value                                = length(var.storage_account_sapbits.arm_id) > 0 ? (
+  value                                = length(var.storage_account_sapbits.id) > 0 ? (
                                            data.azurerm_storage_account.storage_sapbits[0].primary_access_key) : (
                                            azurerm_storage_account.storage_sapbits[0].primary_access_key
                                          )
@@ -35,6 +35,11 @@ resource "azurerm_key_vault_secret" "saplibrary_access_key" {
                                           null
                                         )
   tags                                 = var.infrastructure.tags
+  lifecycle {
+    ignore_changes = [
+      expiration_date
+    ]
+  }
 
 }
 
@@ -61,6 +66,11 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
                                            null
                                          )
   tags                                 = var.infrastructure.tags
+  lifecycle {
+    ignore_changes = [
+      expiration_date
+    ]
+  }
 }
 
 resource "azurerm_key_vault_secret" "sa_connection_string" {
@@ -71,7 +81,7 @@ resource "azurerm_key_vault_secret" "sa_connection_string" {
                                             azurerm_private_dns_zone_virtual_network_link.vault,
                                             azurerm_private_dns_zone_virtual_network_link.vault_agent
                                          ]
-  count                                = length(var.key_vault.id) > 0 ? 1 : 0
+  count                                = length(var.key_vault.id) > 0 && var.storage_account_sapbits.shared_access_key_enabled ? 1 : 0
   content_type                         = "secret"
   name                                 = "sa-connection-string"
   value                                = var.storage_account_tfstate.exists ? (
@@ -84,6 +94,11 @@ resource "azurerm_key_vault_secret" "sa_connection_string" {
                                            null
                                          )
   tags                                 = var.infrastructure.tags
+  lifecycle {
+    ignore_changes = [
+      expiration_date
+    ]
+  }
 }
 
 resource "azurerm_key_vault_secret" "tfstate" {
@@ -104,4 +119,9 @@ resource "azurerm_key_vault_secret" "tfstate" {
                                            null
                                          )
   tags                                 = var.infrastructure.tags
+  lifecycle {
+    ignore_changes = [
+      expiration_date
+    ]
+  }
 }

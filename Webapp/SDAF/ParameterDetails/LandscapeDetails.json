@@ -104,6 +104,15 @@
         "Display": 1
       },
       {
+        "Name": "custom_random_id",
+        "Required": false,
+        "Description": "The parameter can be used to control the random 3 digits at the end of the resource names",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "save_naming_information",
         "Required": false,
         "Description": "If defined, will create a naming information json file for the resources, see <a href='https://learn.microsoft.com/en-us/azure/sap/automation/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
@@ -291,7 +300,7 @@
         "Name": "network_address_space",
         "Required": true,
         "Description": "Virtual network address space. Ensure sufficient size for all the workload Virtual machines and other network resources.",
-        "Type": "field",
+        "Type": "list",
         "Options": [],
         "Overrules": "",
         "Display": 1

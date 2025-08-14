@@ -5,12 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Net.Http.Headers;
+using Microsoft.TeamFoundation.Common;
 using Newtonsoft.Json;
 using SDAFWebApp.Models;
 using SDAFWebApp.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -192,7 +194,18 @@ namespace SDAFWebApp.Controllers
                     landscape.Id = Helper.GenerateId(landscape);
                     DateTime currentDateAndTime = DateTime.Now;
                     landscape.LastModified = currentDateAndTime.ToShortDateString();
-                    landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                    if (!landscape.subscription.IsNullOrEmpty())
+                    {
+                        landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                    }
+
+                    if (landscape.custom_random_id.IsNullOrEmpty())
+                    {
+                        string chars = "ABCDEF0123456789";
+                        var random = new Random();
+                        landscape.custom_random_id = new string(Enumerable.Range(0, 3)
+                            .Select(_ => chars[random.Next(chars.Length)]).ToArray());
+                    }
 
                     await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
                     TempData["success"] = "Successfully created workload zone " + landscape.Id;
@@ -247,7 +260,18 @@ namespace SDAFWebApp.Controllers
                 LandscapeModel landscape = await GetById(id, partitionKey);
 
                 string path = $"/LANDSCAPE/{id}/{id}.tfvars";
-                landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                if (!landscape.subscription.IsNullOrEmpty())
+                {
+                    landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                }
+                if (landscape.custom_random_id.IsNullOrEmpty())
+                {
+                    string chars = "ABCDEF0123456789";
+                    var random = new Random();
+                    landscape.custom_random_id = new string(Enumerable.Range(0, 3)
+                        .Select(_ => chars[random.Next(chars.Length)]).ToArray());
+                }
+
                 string content = Helper.ConvertToTerraform(landscape);
 
                 await restHelper.UpdateRepo(path, content);
@@ -342,6 +366,18 @@ namespace SDAFWebApp.Controllers
                     if (newId != landscape.Id)
                     {
                         landscape.Id = newId;
+                        if (!landscape.subscription.IsNullOrEmpty())
+                        {
+                            landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                        }
+                        if (landscape.custom_random_id.IsNullOrEmpty())
+                        {
+                            string chars = "ABCDEF0123456789";
+                            var random = new Random();
+                            landscape.custom_random_id = new string(Enumerable.Range(0, 3)
+                                .Select(_ => chars[random.Next(chars.Length)]).ToArray());
+                        }
+
                         await SubmitNewAsync(landscape);
                         string id = landscape.Id;
                         string path = $"/LANDSCAPE/{id}/{id}.tfvars";
@@ -369,6 +405,17 @@ namespace SDAFWebApp.Controllers
                         }
                         DateTime currentDateAndTime = DateTime.Now;
                         landscape.LastModified = currentDateAndTime.ToShortDateString();
+                        if (!landscape.subscription.IsNullOrEmpty())
+                        {
+                            landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                        }
+                        if (landscape.custom_random_id.IsNullOrEmpty())
+                        {
+                            string chars = "ABCDEF0123456789";
+                            var random = new Random();
+                            landscape.custom_random_id = new string(Enumerable.Range(0, 3)
+                                .Select(_ => chars[random.Next(chars.Length)]).ToArray());
+                        }
 
                         await _landscapeService.UpdateAsync(new LandscapeEntity(landscape));
                         TempData["success"] = "Successfully updated workload zone " + landscape.Id;
