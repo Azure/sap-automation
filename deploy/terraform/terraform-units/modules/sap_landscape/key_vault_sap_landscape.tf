@@ -339,7 +339,8 @@ resource "time_sleep" "wait_for_role_assignment" {
                                            azurerm_role_assignment.role_assignment_spn_officer,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_private_endpoint.kv_user,
-                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                           azurerm_private_dns_zone_virtual_network_link.vault,
+                                           azurerm_role_assignment.role_assignment_vault_ssi
 
                                          ]
 }
