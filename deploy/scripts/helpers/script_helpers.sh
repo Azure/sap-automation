@@ -59,7 +59,7 @@ function print_banner() {
 		secondary_message="$secondary_message"
 	fi
 
-	local boldred="\e[1;31m"
+	local bold_red="\e[1;31m"
 	local cyan="\e[1;36m"
 	local green="\e[1;32m"
 	local reset="\e[0m"
@@ -68,7 +68,7 @@ function print_banner() {
 	local color
 	case "$type" in
 	error)
-		color="$boldred"
+		color="$bold_red"
 		;;
 	success)
 		color="$green"
@@ -865,7 +865,12 @@ function validate_dependencies {
 
 	# if /opt/terraform exists, assign permissions to the user
 	if [ -d /opt/terraform ]; then
-		sudo chown -R "$USER" /opt/terraform
+		current_owner=$(stat /opt/terraform --format %U)
+		if [ "$current_owner" != "$USER" ]; then
+			print_banner "Installer" "Changing ownership of /opt/terraform to $USER" "info"
+			# Change ownership to the current user
+			sudo chown -R "$USER" /opt/terraform
+		fi
 	fi
 
 	# Check terraform
@@ -1071,7 +1076,22 @@ function ImportAndReRunApply {
 	local error_count=0
 
 	print_banner "ImportAndReRunApply" "In function ImportAndReRunApply" "info"
+	# echo "Import parameters: ${importParameters[*]}"
+	# echo "Apply parameters: ${applyParameters[*]}"
 
+	if [ -f "$fileName" ]; then
+		retry_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("A retryable error occurred."))' "$fileName")
+		if [[ -n "${retry_errors_temp}" ]]; then
+		  rm "$fileName"
+			sleep 30
+			# shellcheck disable=SC2086
+			if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
+				import_return_value=${PIPESTATUS[0]}
+			else
+				import_return_value=${PIPESTATUS[0]}
+			fi
+		fi
+	fi
 	if [ -f "$fileName" ]; then
 
 		errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
@@ -1108,14 +1128,17 @@ function ImportAndReRunApply {
 					echo terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"
 					echo ""
 					# shellcheck disable=SC2086
-					if ! terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
+					if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
+						import_return_value=$?
+					else
+						import_return_value=$?
 						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-							if ! terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
+							if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
+								import_return_value=$?
+							else
 								import_return_value=$?
 							fi
 						fi
-					else
-						import_return_value=$?
 					fi
 				done
 
@@ -1156,9 +1179,9 @@ function ImportAndReRunApply {
 				current_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}' "$fileName")
 
 				if [[ -n $current_errors ]]; then
-					import_return_value=5
-					echo "Errors occurred during the apply phase"
-					echo "-------------------------------------------------------------------------------------"
+					import_return_value=0
+					echo -e "$bold_red Errors occurred during the apply phase:$reset"
+					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 
 					for item in "${errors[@]}"; do
@@ -1177,10 +1200,11 @@ function ImportAndReRunApply {
 				current_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary}' "$fileName")
 
 				if [[ -n $current_errors ]]; then
-					import_return_value=5
-					echo "Errors occurred during the apply phase"
-					echo "-------------------------------------------------------------------------------------"
+
+					echo -e "$bold_red Errors occurred during the apply phase:$reset"
+					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
+					error_count=${#errors[@]}
 
 					for item in "${errors[@]}"; do
 						errorMessage=$(jq -c -r '.summary ' <<<"$item")
@@ -1349,15 +1373,24 @@ function LogonToAzure() {
 		echo "Deployment credentials:              Service Principal"
 		echo "Deployment credential ID (SPN):      $ARM_CLIENT_ID"
 		unset ARM_USE_MSI
-		az login --service-principal --username "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
+		az login --service-principal --client-id "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
 		echo "Logged on as:"
-		az account show --query user --output yaml
+		az account show --query user --output table
 		TF_VAR_use_spn=true
 		export TF_VAR_use_spn
 
 	else
 		echo "Deployment credentials:              Managed Service Identity"
-		source "/etc/profile.d/deploy_server.sh"
+		if [ -f "/etc/profile.d/deploy_server.sh" ]; then
+			echo "Sourcing deploy_server.sh to set up environment variables for MSI authentication"
+			source "/etc/profile.d/deploy_server.sh"
+		else
+			echo "Running az login --identity"
+			az login --identity --allow-no-subscriptions --client-id "$ARM_CLIENT_ID" --output none
+		fi
+
+		az account show --query user --output table
+
 		TF_VAR_use_spn=false
 		export TF_VAR_use_spn
 

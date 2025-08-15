@@ -76,9 +76,15 @@ output "deployer_msi_id"                         {
                                                  }
 
 output "deployer_user_assigned_identity"         {
-                                                   description = "The Object ID of the deployer MSI"
+                                                   description = "The object id of the deployer User Assigned Identity"
                                                    value = module.sap_deployer.deployer_user_assigned_identity
                                                  }
+
+output "deployer_client_id"                      {
+                                                   description = "The client id of the deployer User Assigned Identity"
+                                                   value = module.sap_deployer.deployer_client_id
+                                                 }
+
 
 output "deployer_public_ip_address"              {
                                                    description = "Public IP address of the deployer"
@@ -138,7 +144,7 @@ output "subnet_webapp_id"                        {
 
 output "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
                                                                 description = "List of subnets to add to the firewall for keyvaults and storage"
-                                                                value       = var.subnets_to_add_to_firewall_for_keyvaults_and_storage
+                                                                value       = compact(concat(var.subnets_to_add_to_firewall_for_keyvaults_and_storage, [module.sap_deployer.agent_subnet_id]))
                                                               }
 
 output "additional_network_id"                     {
@@ -251,4 +257,15 @@ output "deployer_extension_ids"                  {
 output "Agent_IP"                                {
                                                     description = "The IP address of the agent"
                                                     value       = var.Agent_IP
+                                                 }
+
+###############################################################################
+#                                                                             #
+#                                Dev Center                                   #
+#                                                                             #
+###############################################################################
+
+output "DevOpsInfrastructureObjectId"            {
+                                                   description = "DevOps Infrastructure Object ID"
+                                                   value       = var.DevOpsInfrastructure_object_id
                                                  }

@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "resource_group" {
 // Imports data of existing resource group
 data "azurerm_resource_group" "resource_group" {
   provider                             = azurerm.main
-  count                                = length(try(var.infrastructure.resource_group.arm_id, "")) > 0 ? 1 : 0
-  name                                 = split("/", var.infrastructure.resource_group.arm_id)[4]
+  count                                = length(try(var.infrastructure.resource_group.id, "")) > 0 ? 1 : 0
+  name                                 = split("/", var.infrastructure.resource_group.id)[4]
 }
 
 #######################################4#######################################8

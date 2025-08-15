@@ -20,10 +20,10 @@ locals {
                                             trimspace(var.custom_prefix)) : (
                                             trimspace(var.naming.prefix.SDU)
                                           )
-  resource_group_exists                = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
+  resource_group_exists                = length(try(var.infrastructure.resource_group.id, "")) > 0
   // Resource group
   resourcegroup_name                   = local.resource_group_exists ? (
-                                           try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
+                                           try(split("/", var.infrastructure.resource_group.id)[4], "")) : (
                                            coalesce(
                                              try(var.infrastructure.resource_group.name, ""),
                                              format("%s%s%s",

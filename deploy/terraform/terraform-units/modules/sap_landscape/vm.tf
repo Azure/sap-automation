@@ -29,7 +29,7 @@ resource "azurerm_network_interface" "utility_vm" {
 
   ip_configuration {
                     name                          = "ipconfig1"
-                    subnet_id                     = var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.arm_id : azurerm_subnet.app[0].id
+                    subnet_id                     = var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.id : azurerm_subnet.app[0].id
                     private_ip_address            = var.vm_settings.use_DHCP ? (
                                                        null) : (var.vm_settings.private_ip_address[count.index]
                                                      )

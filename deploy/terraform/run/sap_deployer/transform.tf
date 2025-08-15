@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-
 locals {
   infrastructure = {
     environment                        = coalesce(
@@ -181,9 +180,10 @@ locals {
                                         }
 
   options                              = {
-                                            enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
-                                            enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
-                                            use_spn = var.use_spn
+                                            enable_deployer_public_ip       = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
+                                            use_spn                         = var.use_spn
+                                            assign_resource_permissions     = var.deployer_assign_resource_permissions
+                                            assign_subscription_permissions = var.deployer_assign_subscription_permissions
                                          }
 
   firewall                             = {
@@ -193,7 +193,7 @@ locals {
                                            ip_tags              = var.firewall_public_ip_tags
                                          }
 
-  assign_subscription_permissions      = try(var.deployer_assign_subscription_permissions, false)
+
 
   app_service                          = {
                                            use                 = var.app_service_deployment
