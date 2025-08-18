@@ -279,32 +279,6 @@ resource "azurerm_role_assignment" "kv_user_msi_rbac" {
                                        }
 }
 
-resource "azurerm_role_assignment" "kv_user_msi_rbac_secret_officer" {
-  provider                             = azurerm.deployer
-  count                                = !var.key_vault.user.exists && var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions ? (
-                                           0) : (
-                                           length(var.deployer_tfstate) > 0 ? (
-                                             length(var.deployer_tfstate.deployer_uai) == 2 ? (
-                                               1) : (
-                                               0
-                                             )) : (
-                                             0
-                                           )
-                                         )
-  scope                               = var.key_vault.user.exists ? (
-                                           data.azurerm_key_vault.kv_user[0].id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-
-  role_definition_name                 = "Key Vault Secrets Officer"
-  principal_id                         = var.deployer_tfstate.deployer_uai.principal_id
-  timeouts                             {
-                                          read   = "1m"
-                                          create = "5m"
-                                          delete = "5m"
-                                       }
-}
-
 ###############################################################################
 #                                                                             #
 #                                       Secrets                               #
@@ -525,12 +499,13 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
 
 data "azurerm_key_vault_secret" "sid_ppk" {
   provider                              = azurerm.main
-  count                                 = var.key_vault.user.exists && length(var.key_vault.private_key_secret_name) > 0 ? 1 : 0
-  depends_on                           = [
+  count                                 = length(var.key_vault.private_key_secret_name) > 0 ? 1 : 0
+  depends_on                            = [
                                            time_sleep.wait_for_role_assignment,
                                            azurerm_private_endpoint.kv_user,
+                                           azurerm_key_vault_secret.sid_ppk,
                                            azurerm_private_dns_zone_virtual_network_link.vault
-                                         ]
+                                          ]
   name                                  = local.sid_public_key_secret_name
   key_vault_id                          = var.key_vault.user.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
