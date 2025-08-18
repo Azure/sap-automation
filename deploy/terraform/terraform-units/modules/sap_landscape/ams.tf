@@ -24,7 +24,7 @@ resource "azurerm_subnet_route_table_association" "ams" {
 
 # Created AMS instance if log analytics workspace is NOT defined
 resource "azapi_resource" "ams_instance" {
-  type                                  = "Microsoft.Workloads/monitors@2024-02-01-preview"
+  type                                  = "Microsoft.Workloads/monitors@2024-12-01-preview"
   count                                 = local.create_ams_instance && var.infrastructure.virtual_networks.sap.subnet_ams.defined ? 1 : 0
   name                                  = local.ams_instance_name
   location                              = local.region

@@ -431,7 +431,10 @@ namespace SDAFWebApp.Controllers
             dynamicVariables.ARM_CLIENT_SECRET = JToken.FromObject(environment.variables.ARM_CLIENT_SECRET);
             dynamicVariables.ARM_TENANT_ID = JToken.FromObject(environment.variables.ARM_TENANT_ID);
             dynamicVariables.ARM_SUBSCRIPTION_ID = JToken.FromObject(environment.variables.ARM_SUBSCRIPTION_ID);
-            dynamicVariables.sap_fqdn = JToken.FromObject(environment.variables.sap_fqdn);
+            dynamicVariables.APPLICATION_CONFIGURATION_NAME = JToken.FromObject(environment.variables.APPLICATION_CONFIGURATION_NAME);
+            dynamicVariables.TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME = JToken.FromObject(environment.variables.TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME);
+            dynamicVariables.DEPLOYER_KEYVAULT = JToken.FromObject(environment.variables.DEPLOYER_KEYVAULT);
+            dynamicVariables.CONTROL_PLANE_NAME = JToken.FromObject(environment.variables.CONTROL_PLANE_NAME);
             dynamicVariables.POOL = JToken.FromObject(environment.variables.POOL);
 
             dynamicEnvironment.variables = dynamicVariables;

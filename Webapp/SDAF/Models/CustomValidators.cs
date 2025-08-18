@@ -40,8 +40,30 @@ namespace SDAFWebApp.Models
         }
         private static bool RegexValidation(object value, string pattern)
         {
-            if (value == null || Regex.IsMatch((string)value, pattern)) return true;
-            else return false;
+            if(value == null) return true; // Allow null values to pass validation
+
+            bool isArray = value.GetType().IsArray;
+            bool returnValue = true;
+            if (isArray)
+            {
+                string[] arr = value as string[];
+                foreach (string v in arr)
+                {
+                    if (!Regex.IsMatch(v, pattern))
+                    {
+                        returnValue = false;
+                    }
+                }
+            }
+            else
+            {
+                if (!Regex.IsMatch((string)value, pattern))
+                {
+                    returnValue = false;
+                }
+
+            }
+            return returnValue;
         }
         public class AddressPrefixValidator : ValidationAttribute
         {
@@ -344,10 +366,12 @@ namespace SDAFWebApp.Models
                 bool isDefault = (bool)context.ObjectInstance.GetType().GetProperty("IsDefault").GetValue(context.ObjectInstance);
                 if (isDefault) return ValidationResult.Success;
 
-                string prefix = (string)value;
+                // Safe cast using 'as'
+                string[] arr = value as string[];
+
                 string armId = (string)context.ObjectInstance.GetType().GetProperty("network_arm_id").GetValue(context.ObjectInstance);
 
-                if (prefix == null && armId == null)
+                if (arr.All(string.IsNullOrWhiteSpace) && armId == null)
                 {
                     return new ValidationResult($"At least one of network_address_space or network_arm_id must be present.");
                 }

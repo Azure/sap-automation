@@ -18,7 +18,17 @@ locals {
 
                                          }
   deployer                             = {
-                                           use                       = var.use_deployer
+                                           use                          = var.use_deployer
+                                           control_plane_name           = trimspace(coalesce(var.control_plane_name,
+                                                                                             contains(keys(data.terraform_remote_state.deployer[0].outputs), "control_plane_name") ? (
+                                                                                               data.terraform_remote_state.deployer[0].outputs.control_plane_name) : (
+                                                                                               " "),
+                                                                                             " "))
+                                           resource_group_name          = format("%s-INFRASTRUCTURE", trimspace(coalesce(var.control_plane_name,
+                                                                                             contains(keys(data.terraform_remote_state.deployer[0].outputs), "control_plane_name") ? (
+                                                                                               data.terraform_remote_state.deployer[0].outputs.control_plane_name) : (
+                                                                                               " "),
+                                                                                             " ")))
                                          }
   key_vault                            = {
                                            id                        = coalesce(try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id,""), var.spn_keyvault_id, local.spn_key_vault_arm_id)
@@ -88,9 +98,7 @@ locals {
 
                                            create_privatelink_dns_zones              = var.create_privatelink_dns_zones
 
-                                           additional_network_id                     = trimspace(coalesce(var.additional_network_id,
-                                                                                                          var.use_deployer ? contains(keys(data.terraform_remote_state.deployer[0].outputs), "additional_network_id") ? data.terraform_remote_state.deployer[0].outputs.additional_network_id : "" : "",
-                                                                                                          " "))
+                                           additional_network_id                     = var.additional_network_id
 
                                          }
 }

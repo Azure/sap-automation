@@ -84,6 +84,12 @@ output "deployer_user_assigned_identity" {
   description                          = "Deployer System Assigned Identity"
   value                                = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].principal_id : azurerm_user_assigned_identity.deployer[0].principal_id
 }
+
+output "deployer_client_id" {
+  description                          = "Deployer User Assigned Identity (Client Id)"
+  value                                = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].client_id : azurerm_user_assigned_identity.deployer[0].client_id
+}
+
 ###############################################################################
 #                                                                             #
 #                                  Network                                    #
@@ -112,6 +118,11 @@ output "subnet_mgmt_address_prefixes" {
 output "subnet_webapp_id" {
   description                          = "Webapp Subnet ID"
   value                                = var.app_service.use ? (var.infrastructure.virtual_network.management.subnet_webapp.exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id) : ""
+}
+
+output "agent_subnet_id" {
+  description                          = "Agent Subnet ID"
+  value                                = var.infrastructure.dev_center_deployment ? (var.infrastructure.virtual_network.management.subnet_agent.exists ? data.azurerm_subnet.subnet_agent[0].id : azurerm_subnet.subnet_agent[0].id) : ""
 }
 
 // Details of the management vnet NSG that is deployed/imported

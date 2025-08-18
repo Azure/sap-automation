@@ -409,12 +409,12 @@ function sdaf_remover() {
 
 	print_banner "$banner_title" "Removal starter." "info" "Entering $SCRIPT_NAME"
 
-	if ! retrieve_parameters	; then
+	if ! retrieve_parameters; then
 		print_banner "$banner_title" "Retrieving parameters failed" "error"
 		return $?
 	fi
 
-	parallelism=10
+	parallelism=5
 
 	#Provide a way to limit the number of parallel tasks for Terraform
 	if checkforEnvVar "TF_PARALLELLISM"; then
@@ -436,7 +436,7 @@ function sdaf_remover() {
 	echo "Deployment region code:              $region_code"
 	echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
-	if [ "${DEBUG:-False}" = True ]; then
+	if [ "${DEBUG:-false}" = true ]; then
 		print_banner "$banner_title - $deployment_system" "Enabling debug mode" "info"
 		set -x
 		set -o errexit
@@ -597,60 +597,6 @@ function sdaf_remover() {
 
 		allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 
-		# echo "Listing the resources in the state file"
-
-		# if terraform -chdir="${terraform_module_directory}" state list; then
-
-		# 	moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_ppk"
-		# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 			echo "Secret 'sid_ppk' removed from state"
-		# 		fi
-		# 	fi
-
-		# 	moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_pk"
-		# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 			echo "Secret 'sid_pk' removed from state"
-		# 		fi
-		# 	fi
-
-		# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_username"
-		# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 			echo "Secret 'sid_username' removed from state"
-		# 		fi
-		# 	fi
-
-		# 	moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_password"
-		# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 			echo "Secret 'sid_password' removed from state"
-		# 		fi
-		# 	fi
-
-		# 	moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_access_key"
-		# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 			echo "Secret 'witness_access_key' removed from state"
-		# 		fi
-		# 	fi
-
-		# 	moduleID="module.sap_landscape.azurerm_key_vault_secret.deployer_keyvault_user_name"
-		# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 			echo "Secret 'deployer_keyvault_user_name' removed from state"
-		# 		fi
-		# 	fi
-
-		# 	moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_name"
-		# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 			echo "Secret 'witness_name' removed from state"
-		# 		fi
-		# 	fi
-		# fi
-
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
@@ -680,10 +626,11 @@ function sdaf_remover() {
 	else
 
 		allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
+		fileName="destroy_output.json"
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
+			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee "$fileName"; then
 				return_value=${PIPESTATUS[0]}
 				print_banner "$banner_title - $deployment_system" "Terraform destroy succeeded" "success"
 			else
@@ -701,10 +648,29 @@ function sdaf_remover() {
 			fi
 		fi
 
-		if [ -f destroy_output.json ]; then
-			errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
+		if [ -f "$fileName" ]; then
+			errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
 
 			if [[ -n $errors_occurred ]]; then
+
+				retry_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("You can only retry the Delete operation"))' "$fileName")
+				if [[ -n "${retry_errors_temp}" ]]; then
+					rm "$fileName"
+					sleep 30
+					# shellcheck disable=SC2086
+					if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee "$fileName"; then
+						return_value=${PIPESTATUS[0]}
+						print_banner "$banner_title - $deployment_system" "Terraform destroy succeeded" "success"
+					else
+						return_value=${PIPESTATUS[0]}
+						print_banner "$banner_title - $deployment_system" "Terraform destroy failed" "error"
+					fi
+					errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
+				fi
+			fi
+
+			if [[ -n $errors_occurred ]]; then
+
 				print_banner "$banner_title - $deployment_system" "Errors during the destroy phase" "success"
 				echo ""
 				echo "#########################################################################################"

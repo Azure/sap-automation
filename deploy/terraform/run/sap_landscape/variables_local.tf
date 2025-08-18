@@ -75,6 +75,5 @@ locals {
                                            ) || (
                                            var.management_dns_resourcegroup_name != (local.SAPLibrary_resource_group_name)
                                          )
-
-
+  workload_zone_name                   = upper(format("%s-%s-%s", var.environment, module.sap_namegenerator.naming_new.location_short, var.network_logical_name))
 }

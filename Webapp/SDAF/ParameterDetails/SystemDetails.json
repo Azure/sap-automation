@@ -133,6 +133,15 @@
         "Display": 1
       },
       {
+        "Name": "custom_random_id",
+        "Required": false,
+        "Description": "The parameter can be used to control the random 3 digits at the end of the resource names",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "name_override_file",
         "Required": false,
         "Description": "If provided,defines a json formatted file defining the name overrides, see <a href='https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
@@ -327,7 +336,6 @@
       {
         "Name": "shared_access_key_enabled_nfs",
         "Required": false,
-        "Description": "Storage account authorization using Shared Access Key (NFS shares).",
         "Description": "Storage account authorization using Shared Access Key (NFS shares).",
         "Type": "checkbox",
         "Options": [],

@@ -180,7 +180,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
 data "azurerm_private_dns_a_record" "install" {
   provider                             = azurerm.privatelinkdnsmanagement
   count                                =  length(var.install_private_endpoint_id) > 0 ? 1 : 0
-  name                                 = replace(
+  name                                 = length(var.install_storage_account_id) > 0 ? split("/", var.install_storage_account_id)[8] : replace(
                                           lower(
                                             format("%s", local.landscape_shared_install_storage_account_name)
                                           ),
@@ -194,7 +194,7 @@ data "azurerm_private_dns_a_record" "install" {
 data "azurerm_private_dns_a_record" "transport" {
   provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.create_transport_storage &&  length(var.transport_private_endpoint_id) > 0 ? 1 : 0
-  name                                 = replace(
+  name                                 = length(var.transport_storage_account_id) > 0 ? split("/", var.transport_storage_account_id)[8] : replace(
                                            lower(
                                              format("%s", local.landscape_shared_transport_storage_account_name)
                                            ),

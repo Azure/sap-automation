@@ -265,6 +265,9 @@ resource "azurerm_key_vault_secret" "iscsi_ppk" {
   provider                             = azurerm.main
   count                                = (var.key_vault.user.exists && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
   depends_on                           = [
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault,
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
@@ -273,7 +276,7 @@ resource "azurerm_key_vault_secret" "iscsi_ppk" {
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_spn_officer,
+                                           azurerm_role_assignment.role_assignment_spn_officer
                                         ]
   content_type                         = "secret"
   name                                 = local.iscsi_ppk_name
@@ -293,6 +296,9 @@ resource "azurerm_key_vault_secret" "iscsi_pk" {
   provider                             = azurerm.main
   count                                = (var.key_vault.user.exists && local.enable_iscsi_auth_key && !local.iscsi_key_exist) ? 1 : 0
   depends_on                           = [
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault,
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
@@ -301,7 +307,7 @@ resource "azurerm_key_vault_secret" "iscsi_pk" {
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_spn_officer,
+                                           azurerm_role_assignment.role_assignment_spn_officer
                                          ]
   content_type                         = "secret"
   name                                 = local.iscsi_pk_name
@@ -320,6 +326,9 @@ resource "azurerm_key_vault_secret" "iscsi_username" {
   provider                             = azurerm.main
   count                                = (var.key_vault.user.exists && local.enable_iscsi && !local.iscsi_username_exist) ? 1 : 0
   depends_on                           = [
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault,
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
@@ -328,7 +337,7 @@ resource "azurerm_key_vault_secret" "iscsi_username" {
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_spn_officer,
+                                           azurerm_role_assignment.role_assignment_spn_officer
                                          ]
   content_type                         = "configuration"
   name                                 = local.iscsi_username_name
@@ -347,6 +356,9 @@ resource "azurerm_key_vault_secret" "iscsi_password" {
   provider                             = azurerm.main
   count                                = (var.key_vault.user.exists && local.enable_iscsi_auth_password && !local.iscsi_pwd_exist) ? 1 : 0
   depends_on                           = [
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault,
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_private_endpoint.kv_user,
@@ -355,7 +367,7 @@ resource "azurerm_key_vault_secret" "iscsi_password" {
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_spn_officer,
+                                           azurerm_role_assignment.role_assignment_spn_officer
                                          ]
   content_type                         = "secret"
   name                                 = local.iscsi_pwd_name
