@@ -113,6 +113,22 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
                                        }
 }
 
+resource "azurerm_role_assignment" "role_assignment_vault_ssi" {
+  provider                             = azurerm.deployer
+  count                                = var.enable_rbac_authorization_for_keyvault && var.deployer_tfstate.deployer_uai.principal_id != data.azurerm_client_config.current.object_id ? 1 : 0
+  scope                                = var.key_vault.user.exists ? (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+  role_definition_name                 = "Key Vault Administrator"
+  principal_id                         = data.azurerm_client_config.current.object_id
+  timeouts                             {
+                                          read   = "1m"
+                                          create = "5m"
+                                          delete = "5m"
+                                       }
+}
+
 resource "azurerm_role_assignment" "role_assignment_msi_officer" {
   provider                             = azurerm.deployer
   count                                = var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions ? 1 : 0
@@ -265,17 +281,18 @@ resource "azurerm_role_assignment" "kv_user_msi_rbac" {
 
 resource "azurerm_role_assignment" "kv_user_msi_rbac_secret_officer" {
   provider                             = azurerm.deployer
-  count                                = !var.key_vault.user.exists && var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions ? (
-                                           0) : (
-                                           length(var.deployer_tfstate) > 0 ? (
-                                             length(var.deployer_tfstate.deployer_uai) == 2 ? (
-                                               1) : (
-                                               0
-                                             )) : (
-                                             0
-                                           )
-                                         )
-  scope                               = var.key_vault.user.exists ? (
+  count                                = 0
+  //count                                = !var.key_vault.user.exists && var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions ? (
+  //                                         0) : (
+  //                                         length(var.deployer_tfstate) > 0 ? (
+  //                                           length(var.deployer_tfstate.deployer_uai) == 2 ? (
+  //                                             1) : (
+  //                                             0
+  //                                           )) : (
+  //                                           0
+  //                                         )
+  //                                       )
+  scope                                = var.key_vault.user.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
@@ -323,7 +340,8 @@ resource "time_sleep" "wait_for_role_assignment" {
                                            azurerm_role_assignment.role_assignment_spn_officer,
                                            azurerm_role_assignment.role_assignment_msi_officer,
                                            azurerm_private_endpoint.kv_user,
-                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                           azurerm_private_dns_zone_virtual_network_link.vault,
+                                           azurerm_role_assignment.role_assignment_vault_ssi
 
                                          ]
 }
@@ -509,11 +527,11 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
 data "azurerm_key_vault_secret" "sid_ppk" {
   provider                              = azurerm.main
   count                                 = length(var.key_vault.private_key_secret_name) > 0 ? 1 : 0
-  depends_on                           = [
+  depends_on                            = [
                                            time_sleep.wait_for_role_assignment,
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_private_dns_zone_virtual_network_link.vault
-                                         ]
+                                          ]
   name                                  = local.sid_public_key_secret_name
   key_vault_id                          = var.key_vault.user.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
@@ -560,7 +578,7 @@ data "azurerm_key_vault_secret" "sid_pk" {
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_private_dns_zone_virtual_network_link.vault
                                          ]
-  count                                = length(var.key_vault.public_key_secret_name) >  0 ? 1 : 0
+  count                                = var.key_vault.user.exists && length(var.key_vault.public_key_secret_name) >  0 ? 1 : 0
   name                                 = local.sid_private_key_secret_name
   key_vault_id                         = var.key_vault.user.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
