@@ -15,12 +15,12 @@
 - name:                                "ANF Mount: Set the NFSmount options"
   ansible.builtin.set_fact:
     mnt_options:                       'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys'
-  when: distribution_full_id not in ['redhat8.4', 'redhat8.6', 'redhat8.8', 'redhat9.0', 'redhat9.2', 'redhat9.4', 'sles_sap15.2', 'sles_sap15.3', 'sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6', 'sles_sap15.7']
+  when: distribution_full_id not in ['redhat8.4', 'redhat8.6', 'redhat8.8', 'redhat9.0', 'redhat9.2', 'redhat9.4', redhat9.6', 'sles_sap15.2', 'sles_sap15.3', 'sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6', 'sles_sap15.7']
 
 - name:                                "ANF Mount: Set the NFSmount options"
   ansible.builtin.set_fact:
     mnt_options:                       'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys,nconnect=8'
-  when: distribution_full_id in ['redhat8.4', 'redhat8.6', 'redhat8.8', 'redhat9.0', 'redhat9.2', 'redhat9.4', 'sles_sap15.2', 'sles_sap15.3', 'sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6', 'sles_sap15.7']
+  when: distribution_full_id in ['redhat8.4', 'redhat8.6', 'redhat8.8', 'redhat9.0', 'redhat9.2', 'redhat9.4', redhat9.6', 'sles_sap15.2', 'sles_sap15.3', 'sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6', 'sles_sap15.7']
 
 - name:                                "ANF Mount: Define this SID"
   ansible.builtin.set_fact:

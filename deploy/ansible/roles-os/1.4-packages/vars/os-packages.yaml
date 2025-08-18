@@ -317,6 +317,9 @@ packages:
   redhat9.4:
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
+  redhat9.6:
+    - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
+    - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
 
   sles_sap12:
     - { tier: 'os',     package: 'chrony',                                       node_tier: 'all',            state: 'present' }
