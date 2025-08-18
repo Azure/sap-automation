@@ -283,17 +283,18 @@ resource "azurerm_role_assignment" "kv_user_msi_rbac" {
 
 resource "azurerm_role_assignment" "kv_user_msi_rbac_secret_officer" {
   provider                             = azurerm.deployer
-  count                                = !var.key_vault.user.exists && var.key_vault.enable_rbac_authorization && var.options.assign_permissions ? (
-                                           0) : (
-                                           length(var.deployer_tfstate) > 0 ? (
-                                             length(var.deployer_tfstate.deployer_uai) == 2 ? (
-                                               1) : (
-                                               0
-                                             )) : (
-                                             0
-                                           )
-                                         )
-  scope                               = var.key_vault.user.exists ? (
+  count                                = 0
+  //count                                = !var.key_vault.user.exists && var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions ? (
+  //                                         0) : (
+  //                                         length(var.deployer_tfstate) > 0 ? (
+  //                                           length(var.deployer_tfstate.deployer_uai) == 2 ? (
+  //                                             1) : (
+  //                                             0
+  //                                           )) : (
+  //                                           0
+  //                                         )
+  //                                       )
+  scope                                = var.key_vault.user.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
@@ -520,7 +521,6 @@ data "azurerm_key_vault_secret" "sid_ppk" {
   depends_on                            = [
                                            time_sleep.wait_for_role_assignment,
                                            azurerm_private_endpoint.kv_user,
-                                           azurerm_key_vault_secret.sid_ppk,
                                            azurerm_private_dns_zone_virtual_network_link.vault
                                           ]
   name                                  = local.sid_public_key_secret_name
