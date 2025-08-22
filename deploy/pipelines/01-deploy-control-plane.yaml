@@ -90,7 +90,7 @@ stages:
               scriptLocation:          'scriptPath'
               scriptPath:              $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-control-plane-prepare.sh
               addSpnToEnvironment:     true
-              visibleAzLogin:          false
+              visibleAzLogin:          true
               failOnStandardError:     false
 
             displayName: Prepare control plane
