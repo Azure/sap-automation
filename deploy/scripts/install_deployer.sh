@@ -480,8 +480,6 @@ if [ 0 != $install_deployer_return_value ]; then
 		rm -f "$deployer_plan_name"
 	fi
 
-	# shellcheck disable=SC2086
-	exit $install_deployer_return_value
 fi
 
 if DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \"); then
