@@ -299,7 +299,6 @@ if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" --parameterf
 	echo "##vso[task.logissue type=warning]Return code from install_deployer.sh $return_code."
 	step=1
 	save_config_var "step" "${deployer_environment_file_name}"
-
 else
 	return_code=$?
 	echo "##vso[task.logissue type=error]Return code from install_deployer.sh $return_code."
