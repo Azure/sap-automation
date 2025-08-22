@@ -398,6 +398,7 @@ else
 	if [ $install_deployer_return_value -eq 1 ]; then
 		echo ""
 		echo -e "${bold_red}Terraform apply:                     failed ($install_deployer_return_value)$reset_formatting"
+		az account show --query user --output yaml
 		echo ""
 		exit 10
 	else
