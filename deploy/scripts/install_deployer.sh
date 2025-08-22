@@ -495,8 +495,6 @@ if DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 	echo ""
-
-	install_deployer_return_value=0
 else
 	install_deployer_return_value=2
 fi
