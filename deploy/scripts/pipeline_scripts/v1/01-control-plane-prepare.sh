@@ -94,6 +94,7 @@ fi
 
 if az account show --query name; then
 	echo -e "$green--- Already logged in to Azure ---$reset"
+	az account show --query user --output yaml
 else
 
 	LogonToAzure $USE_MSI
