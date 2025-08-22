@@ -304,7 +304,7 @@ else
 	echo "##vso[task.logissue type=error]Return code from install_deployer.sh $return_code."
 	step=0
 	save_config_var "step" "${deployer_environment_file_name}"
-	exit 10
+
 fi
 
 set -eu
