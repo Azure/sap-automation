@@ -84,7 +84,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob-agent" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && contains(keys(var.deployer_tfstate), "additional_network_id") ? length(var.deployer_tfstate.additional_network_id) > 0 : false ? 1 : 0
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && (contains(keys(var.deployer_tfstate), "additional_network_id") ? can(provider::azurerm::parse_resource_id(var.deployer_tfstate.additional_network_id)) : false) ? 1 : 0
   depends_on                           = [
                                            azurerm_storage_account.storage_tfstate,
                                            azurerm_private_dns_zone.blob
