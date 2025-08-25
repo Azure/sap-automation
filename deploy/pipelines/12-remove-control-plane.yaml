@@ -63,7 +63,6 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
-          - task:                      PostBuildCleanup@4
           - task:                      TerraformInstaller@1
             displayName:               Install Terraform
             inputs:
