@@ -121,14 +121,14 @@ NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
 	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
-	deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$DEPLOYER_ENVIRONMENT$DEPLOYER_REGION"
+	deployer_environment_file_name="${automation_config_directory}/$DEPLOYER_ENVIRONMENT$DEPLOYER_REGION"
 elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
 	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
-	deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$DEPLOYER_ENVIRONMENT"
+	deployer_environment_file_name="${automation_config_directory}/$DEPLOYER_ENVIRONMENT"
 fi
 if [ ! -f "${deployer_environment_file_name}" ]; then
-	echo -e "$bold_red--- $DEPLOYER_ENVIRONMENT$DEPLOYER_REGION was not found ---$reset"
-	echo "##vso[task.logissue type=error]Control plane configuration file $DEPLOYER_ENVIRONMENT$DEPLOYER_REGION was not found."
+	echo -e "$bold_red--- $deployer_environment_file_name was not found ---$reset"
+	echo "##vso[task.logissue type=error]Control plane configuration file $deployer_environment_file_name was not found."
 	exit 2
 else
 	echo "Deployer Environment File:           $deployer_environment_file_name"
