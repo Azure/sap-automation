@@ -122,11 +122,12 @@ automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
 	echo "Running v1 script"
 	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
-	deployer_environment_file_name="${automation_config_directory}/$DEPLOYER_ENVIRONMENT$DEPLOYER_REGION"
+	ENVIRONMENT_IN_NAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $1}')
+	deployer_environment_file_name="${automation_config_directory}$ENVIRONMENT_IN_NAME$DEPLOYER_REGION"
 elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
 	echo "Running v2 script"
 	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
-	deployer_environment_file_name="${automation_config_directory}/$DEPLOYER_ENVIRONMENT"
+	deployer_environment_file_name="${automation_config_directory}$DEPLOYER_ENVIRONMENT"
 fi
 if [ ! -f "${deployer_environment_file_name}" ]; then
 	echo -e "$bold_red--- $deployer_environment_file_name was not found ---$reset"
