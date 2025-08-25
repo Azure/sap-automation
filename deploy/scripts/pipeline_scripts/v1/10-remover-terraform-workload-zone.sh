@@ -109,19 +109,23 @@ LOCATION_CODE_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$DEPLOYER_ENVIRONMENT$LOCATION_CODE_IN_FILENAME"
-echo "Deployer Environment File:           $deployer_environment_file_name"
-if [ ! -f "${deployer_environment_file_name}" ]; then
-	echo -e "$bold_red--- $DEPLOYER_ENVIRONMENT$ENVIRONMENT was not found ---$reset"
-	echo "##vso[task.logissue type=error]Control plane configuration file $DEPLOYER_ENVIRONMENT$LOCATION_CODE_IN_FILENAME was not found."
-	exit 2
-fi
-
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	echo "Running v1 script"
 	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
+	ENVIRONMENT_IN_NAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $1}')
+	deployer_environment_file_name="${automation_config_directory}$ENVIRONMENT_IN_NAME$DEPLOYER_REGION"
 elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	echo "Running v2 script"
 	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
+	deployer_environment_file_name="${automation_config_directory}$DEPLOYER_ENVIRONMENT"
+fi
+if [ ! -f "${deployer_environment_file_name}" ]; then
+	echo -e "$bold_red--- $deployer_environment_file_name was not found ---$reset"
+	echo "##vso[task.logissue type=error]Control plane configuration file $deployer_environment_file_name was not found."
+	exit 2
+else
+	echo "Deployer Environment File:           $deployer_environment_file_name"
 fi
 
 echo "Workload Zone Environment File:      $workload_environment_file_name"
