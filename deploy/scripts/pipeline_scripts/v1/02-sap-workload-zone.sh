@@ -120,9 +120,11 @@ NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	echo "Running v1 script"
 	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
 	deployer_environment_file_name="${automation_config_directory}/$DEPLOYER_ENVIRONMENT$DEPLOYER_REGION"
 elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+	echo "Running v2 script"
 	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 	deployer_environment_file_name="${automation_config_directory}/$DEPLOYER_ENVIRONMENT"
 fi
