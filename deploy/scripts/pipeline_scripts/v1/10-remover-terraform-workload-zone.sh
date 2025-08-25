@@ -114,6 +114,7 @@ if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
 	echo "Running v1 script"
 	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
 	ENVIRONMENT_IN_NAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $1}')
+	DEPLOYER_REGION=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $2}')
 	deployer_environment_file_name="${automation_config_directory}$ENVIRONMENT_IN_NAME$DEPLOYER_REGION"
 elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
 	echo "Running v2 script"
