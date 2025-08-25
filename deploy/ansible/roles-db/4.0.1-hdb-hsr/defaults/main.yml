@@ -16,7 +16,7 @@
 hana_replication_mode:                 sync
 hana_operation_mode:                   logreplay
 hana_1_hsr_user:                       hdbhasync
-hana_1_hsr_password:                   HSRpassw0rd
+hana_1_hsr_password:                   "{{ hana_system_user_password | default(main_password) }}"
 
 # For low spec Dev instances the timeout needs to be high
 # A delay of 2 seconds is also recommended

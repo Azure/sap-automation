@@ -398,6 +398,7 @@ else
 	if [ $install_deployer_return_value -eq 1 ]; then
 		echo ""
 		echo -e "${bold_red}Terraform apply:                     failed ($install_deployer_return_value)$reset_formatting"
+		az account show --query user --output yaml
 		echo ""
 		exit 10
 	else
@@ -480,8 +481,6 @@ if [ 0 != $install_deployer_return_value ]; then
 		rm -f "$deployer_plan_name"
 	fi
 
-	# shellcheck disable=SC2086
-	exit $install_deployer_return_value
 fi
 
 if DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \"); then
@@ -497,8 +496,6 @@ if DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 	echo ""
-
-	install_deployer_return_value=0
 else
 	install_deployer_return_value=2
 fi
