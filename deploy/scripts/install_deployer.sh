@@ -56,7 +56,6 @@ function showhelp {
 	echo "#########################################################################################"
 }
 
-approve=""
 #process inputs - may need to check the option i for auto approve as it is not used
 INPUT_ARGUMENTS=$(getopt -n install_deployer -o p:ih --longoptions parameterfile:,auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
@@ -391,9 +390,9 @@ if [ -n "${approve}" ]; then
 else
 	# shellcheck disable=SC2086
 	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" "${deployer_plan_name}"; then
-		install_deployer_return_value=${PIPESTATUS[0]}
+		install_deployer_return_value=$?
 	else
-		install_deployer_return_value=${PIPESTATUS[0]}
+		install_deployer_return_value=$?
 	fi
 	if [ $install_deployer_return_value -eq 1 ]; then
 		echo ""
