@@ -255,16 +255,8 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
 
 resource "azurerm_role_assignment" "kv_user_msi_rbac" {
   provider                             = azurerm.deployer
-  count                                = !var.key_vault.user.exists && var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions ? (
-                                           0) : (
-                                           length(var.deployer_tfstate) > 0 ? (
-                                             length(var.deployer_tfstate.deployer_uai) == 2 ? (
-                                               1) : (
-                                               0
-                                             )) : (
-                                             0
-                                           )
-                                         )
+
+  count                               = !var.key_vault.user.exists && var.enable_rbac_authorization_for_keyvault && var.options.assign_permissions && length(var.deployer_tfstate.deployer_uai.principal_id) > 0 ? 1 : 0
   scope                               = var.key_vault.user.exists ? (
                                            data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
