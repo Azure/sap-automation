@@ -389,7 +389,7 @@ if [ -n "${approve}" ]; then
 	fi
 else
 	# shellcheck disable=SC2086
-	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" "${deployer_plan_name}"; then
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" ; then
 		install_deployer_return_value=$?
 	else
 		install_deployer_return_value=$?
