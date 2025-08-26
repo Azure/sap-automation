@@ -508,13 +508,13 @@ locals {
                                            {
                                              name                          = "IPConfig1"
                                              subnet_id                     = local.enable_deployment ? (
-                                                                               (var.infrastructure.virtual_networks.sap.subnet_web.exists ||
-                                                                                 var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ||
-                                                                                 var.infrastructure.virtual_networks.sap.subnet_app.exists ||
-                                                                                 var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ) ? (
-                                                                                   coalesce(data.azurerm_subnet.subnet_sap_web[0].id, data.azurerm_subnet.subnet_sap_app[0].id)) : (
-                                                                                   coalesce(azurerm_subnet.subnet_sap_web[0].id,azurerm_subnet.subnet_sap_app[0].id)
-                                                                               )) : (
+                                                                               coalesce(
+                                                                                var.infrastructure.virtual_networks.sap.subnet_web.exists || var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ? data.azurerm_subnet.subnet_sap_web[0].id : "",
+                                                                                var.infrastructure.virtual_networks.sap.subnet_app.exists || var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? data.azurerm_subnet.subnet_sap_web[0].id : "",
+                                                                                var.infrastructure.virtual_networks.sap.subnet_web.defined ? azurerm_subnet.subnet_sap_web[0].id : "",
+                                                                                var.infrastructure.virtual_networks.sap.subnet_app.defined ? azurerm_subnet.subnet_sap_app[0].id : "",
+                                                                                " ")
+                                                                                ) : (
                                                                                ""
                                                                              )
                                              nic_ips                       = local.web_nic_ips
@@ -528,10 +528,13 @@ locals {
                                            {
                                              name                          = "IPConfig2"
                                              subnet_id                     = local.enable_deployment ? (
-                                                                               var.infrastructure.virtual_networks.sap.subnet_web.exists || var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ? (
-                                                                                 coalesce(data.azurerm_subnet.subnet_sap_web[0].id, data.azurerm_subnet.subnet_sap_app[0].id)) : (
-                                                                                 coalesce(azurerm_subnet.subnet_sap_web[0].id,azurerm_subnet.subnet_sap_app[0].id)
-                                                                               )) : (
+                                                                               coalesce(
+                                                                                var.infrastructure.virtual_networks.sap.subnet_web.exists || var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ? data.azurerm_subnet.subnet_sap_web[0].id : "",
+                                                                                var.infrastructure.virtual_networks.sap.subnet_app.exists || var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? data.azurerm_subnet.subnet_sap_web[0].id : "",
+                                                                                var.infrastructure.virtual_networks.sap.subnet_web.defined ? azurerm_subnet.subnet_sap_web[0].id : "",
+                                                                                var.infrastructure.virtual_networks.sap.subnet_app.defined ? azurerm_subnet.subnet_sap_app[0].id : "",
+                                                                                " ")
+                                                                                ) : (
                                                                                ""
                                                                              )
                                              offset                        = local.webdispatcher_count
