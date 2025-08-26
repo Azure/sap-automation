@@ -71,7 +71,7 @@ output "db_subnet_id"                            {
 
 output "db_nsg_id"                               {
                                                    description = "Azure resource identifier for the database subnet network security group"
-                                                   value       = module.sap_landscape.db_nsg_id
+                                                   value       = length(var.db_subnet_nsg_arm_id) > 0 ? var.db_subnet_nsg_arm_id : module.sap_landscape.db_nsg_id
                                                  }
 
 output "ams_subnet_id"                           {
