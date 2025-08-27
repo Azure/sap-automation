@@ -93,14 +93,14 @@ locals {
 
 
   // By default, Ansible ssh key for SID uses generated public key.
-  // Provide sshkey.path_to_public_key and path_to_private_key overides it
+  // Provide sshkey.path_to_public_key and path_to_private_key overrides it
 
   sid_public_key                                  = var.key_vault.user.exists ? (
-                                                      try(data.azurerm_key_vault_secret.sid_pk[0].value, "")) : (
+                                                      coalesce(data.azurerm_key_vault_secret.sid_pk[0].value, try(file(var.authentication.path_to_public_key), try(tls_private_key.sid[0].public_key_openssh, "")))) : (
                                                       try(file(var.authentication.path_to_public_key), try(tls_private_key.sid[0].public_key_openssh, ""))
                                                     )
   sid_private_key                                 = var.key_vault.user.exists ? (
-                                                      try(data.azurerm_key_vault_secret.sid_ppk[0].value, "")) : (
+                                                      coalesce(data.azurerm_key_vault_secret.sid_ppk[0].value, try(file(var.authentication.path_to_private_key), try(tls_private_key.sid[0].private_key_pem, "")))) : (
                                                       try(file(var.authentication.path_to_private_key), try(tls_private_key.sid[0].private_key_pem, ""))
                                                     )
 
