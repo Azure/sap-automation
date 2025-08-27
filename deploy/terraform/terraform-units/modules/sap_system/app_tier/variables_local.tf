@@ -72,7 +72,7 @@ locals {
                                                       local.resource_suffixes.app_subnet))): (
                                                     length(var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload) > 0 ? (
                                                       split("/", var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload)[10]) : (
-                                                      "" )
+                                                      "" ))
 
 
   ##############################################################################################
@@ -114,7 +114,7 @@ locals {
                                                       local.resource_suffixes.web_subnet))): (
                                                     length(var.infrastructure.virtual_networks.sap.subnet_web.id_in_workload) > 0 ? (
                                                       split("/", var.infrastructure.virtual_networks.sap.subnet_web.id_in_workload)[10]) : (
-                                                      "" )
+                                                      "" ))
 
 
 
