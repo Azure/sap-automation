@@ -331,10 +331,11 @@ locals {
                                                       ),
                                                       var.naming.separator,
                                                       local.resource_suffixes.storage_subnet))): (
-                                           length(var.infrastructure.virtual_networks.sap.storage_subnet.id_in_workload) > 0 ?
-                                                    split("/", var.infrastructure.virtual_networks.sap.storage_subnet.id_in_workload)[10] :
-                                                    ""
-                                                      )
+                                           contains(keys(var.infrastructure.virtual_networks.sap), "storage_subnet") ?
+                                              length(var.infrastructure.virtual_networks.sap.storage_subnet.id_in_workload) > 0 ?
+                                                split("/", var.infrastructure.virtual_networks.sap.storage_subnet.id_in_workload)[10] :
+                                                "":
+                                              "")
 
 
   storage_subnet_nsg_name                = var.infrastructure.virtual_networks.sap.subnet_storage.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_storage.nsg.exists_in_workload ? (
