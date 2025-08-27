@@ -485,7 +485,7 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
                                          ]
   count                                = length(var.key_vault.private_key_secret_name) == 0 ? 1 : 0
   content_type                         = "secret"
-  name                                 = local.sid_public_key_secret_name
+  name                                 = var.key_vault.private_key_secret_name
   value                                = local.sid_private_key
   key_vault_id                         = var.key_vault.user.exists ? (
                                             data.azurerm_key_vault.kv_user[0].id) : (
