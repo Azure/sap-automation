@@ -690,7 +690,7 @@ if terraform -chdir="$terraform_module_directory" plan $allParameters -input=fal
 	print_banner "$banner_title" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
 else
 	return_value=${PIPESTATUS[0]}
-	return_value=0
+
 	if [ 1 -eq $return_value ]; then
 		print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
 		# exit $return_value
