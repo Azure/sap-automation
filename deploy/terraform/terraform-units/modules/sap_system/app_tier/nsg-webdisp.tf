@@ -11,6 +11,7 @@
 resource "azurerm_network_security_group" "nsg_web" {
   provider                             = azurerm.main
   count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_web.defined ? (var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_web.nsg.exists_in_workload ? 0 : 1) : 0
+
   name                                 = local.web_subnet_nsg_name
   resource_group_name                  = var.options.nsg_asg_with_vnet ? (
                                            var.network_resource_group) : (

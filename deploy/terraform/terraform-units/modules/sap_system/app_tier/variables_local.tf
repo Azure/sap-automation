@@ -44,6 +44,11 @@ locals {
                                            try(var.application_tier.authentication.type, "key")) : (
                                            "password"
                                          )
+
+
+
+  enable_deployment                    = var.application_tier.enable_deployment
+
   enable_auth_password                 = local.enable_deployment && local.sid_auth_type == "password"
   enable_auth_key                      = local.enable_deployment && local.sid_auth_type == "key"
 
