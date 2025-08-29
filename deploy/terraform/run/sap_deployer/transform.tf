@@ -10,9 +10,7 @@ locals {
     region                             = coalesce(var.location, try(var.infrastructure.region, ""))
     codename                           = try(var.codename, try(var.infrastructure.codename, ""))
     resource_group                     = {
-                                            name   = var.resourcegroup_name,
-                                            id     = var.resourcegroup_arm_id
-                                            exists = length(var.resourcegroup_arm_id) > 0 ? true : false
+                                            exists = length(var.resourcegroup_arm_id) > 0
                                           }
     tags                               = merge(
                                             var.tags, var.resourcegroup_tags
