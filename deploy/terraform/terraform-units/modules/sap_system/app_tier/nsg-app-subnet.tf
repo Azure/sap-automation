@@ -8,7 +8,7 @@
 #######################################4#######################################8
 resource "azurerm_network_security_group" "nsg_app" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_app.defined ? (var.infrastructure.virtual_networks.sap.subnet_app.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_app.nsg.exists_in_workload ? 0 : 1) : 0
+  count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_app.defined ? 1 : 0
 
   name                                 = local.application_subnet_nsg_name
   resource_group_name                  = var.options.nsg_asg_with_vnet ? (
