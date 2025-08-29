@@ -30,7 +30,7 @@ data "azurerm_network_security_group" "nsg_app" {
 
 resource "azurerm_subnet_network_security_group_association" "Associate_nsg_app" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment  && var.infrastructure.virtual_networks.sap.subnet_app.defined ? (var.infrastructure.virtual_networks.sap.subnet_app.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_app.nsg.exists_in_workload ? 0 : 1) : 0
+  count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_app.defined ? 1 : 0
   subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
                                            coalesce(var.infrastructure.virtual_networks.sap.subnet_app.id, var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload)) : (
                                            azurerm_subnet.subnet_sap_app[0].id
