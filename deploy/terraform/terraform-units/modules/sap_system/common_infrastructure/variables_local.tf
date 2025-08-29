@@ -206,8 +206,8 @@ locals {
                                                       ),
                                                       var.naming.separator,
                                                       local.resource_suffixes.admin_subnet))): (
-                                           length(var.infrastructure.virtual_networks.sap.subnet_admin.id_in_workload) > 0 ?
-                                                    try(split("/", var.infrastructure.virtual_networks.sap.subnet_admin.id_in_workload)[10], "") :
+                                           can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.subnet_admin.id_in_workload)) ? (
+                                                    try(split("/", var.infrastructure.virtual_networks.sap.subnet_admin.id_in_workload)[10], "")) :
                                                     ""
                                                       )
 
@@ -249,8 +249,8 @@ locals {
                                                       ),
                                                       var.naming.separator,
                                                       local.resource_suffixes.db_subnet))): (
-                                           length(var.infrastructure.virtual_networks.sap.subnet_db.id_in_workload) > 0 ?
-                                                    try(split("/", var.infrastructure.virtual_networks.sap.subnet_db.id_in_workload)[10], "") :
+                                           can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.subnet_db.id_in_workload)) ? (
+                                                    try(split("/", var.infrastructure.virtual_networks.sap.subnet_db.id_in_workload)[10], "")) :
                                                     ""
                                                       )
 
@@ -332,7 +332,7 @@ locals {
                                                       var.naming.separator,
                                                       local.resource_suffixes.storage_subnet))): (
                                            contains(keys(var.infrastructure.virtual_networks.sap), "storage_subnet") ?
-                                              length(var.infrastructure.virtual_networks.sap.storage_subnet.id_in_workload) > 0 ?
+                                              can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.storage_subnet.id_in_workload)) ?
                                                 try(split("/", var.infrastructure.virtual_networks.sap.storage_subnet.id_in_workload)[10], "") :
                                                 "":
                                               "")
