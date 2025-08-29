@@ -86,7 +86,7 @@ resource "azurerm_subnet_network_security_group_association" "admin" {
 # Creates network security rule to allow internal traffic for SAP db subnet
 resource "azurerm_network_security_rule" "nsr_internal_db" {
   provider                             = azurerm.main
-  count                                = local.enable_db_deployment && var.infrastructure.virtual_networks.sap.subnet_db.defined ? (var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists_in_workload ? 0 : 1) : 0
+  count                                = local.enable_db_deployment && var.infrastructure.virtual_networks.sap.subnet_db.defined ? (var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists_in_workload ? 0 : 1) : 0
   name                                 = "allow-internal-traffic"
   resource_group_name                  = var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists ? (
                                            data.azurerm_network_security_group.db[0].resource_group_name) : (
