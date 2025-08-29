@@ -25,7 +25,7 @@ resource "azurerm_network_interface" "observer" {
 
   ip_configuration {
                     name      = "IPConfig1"
-                    subnet_id = try(var.admin_subnet.id, var.landscape_tfstate.admin_subnet_id)
+                    subnet_id = coalesce(var.admin_subnet.id, var.landscape_tfstate.admin_subnet_id, var.db_subnet.id, var.landscape_tfstate.db_subnet_id)
                     private_ip_address = var.database.use_DHCP ? (
                       null) : (
                       try(var.database.observer_vm_ips[count.index],
