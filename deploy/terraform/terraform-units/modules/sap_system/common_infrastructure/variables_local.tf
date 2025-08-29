@@ -206,8 +206,7 @@ locals {
                                                       ),
                                                       var.naming.separator,
                                                       local.resource_suffixes.admin_subnet))): (
-                                           length(var.infrastructure.virtual_networks.sap.subnet_admin.id_in_workload) > 0 ?
-                                                    split("/", var.infrastructure.virtual_networks.sap.subnet_admin.id_in_workload)[10] :
+                                                    try(split("/", var.infrastructure.virtual_networks.sap.subnet_admin.id_in_workload)[10], "") :
                                                     ""
                                                       )
 
