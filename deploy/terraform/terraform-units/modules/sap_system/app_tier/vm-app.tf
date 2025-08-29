@@ -10,7 +10,7 @@
 
 resource "azurerm_network_interface" "app" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment ? var.application_tier : 0
+  count                                = local.enable_deployment ? var.application_tier.application_server_count : 0
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.nic,
                                            local.prefix,
