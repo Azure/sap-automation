@@ -331,9 +331,9 @@ locals {
                                                       ),
                                                       var.naming.separator,
                                                       local.resource_suffixes.storage_subnet))): (
-                                           contains(keys(var.infrastructure.virtual_networks.sap), "storage_subnet") ?
-                                              can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.storage_subnet.id_in_workload)) ?
-                                                try(split("/", var.infrastructure.virtual_networks.sap.storage_subnet.id_in_workload)[10], "") :
+                                           contains(keys(var.infrastructure.virtual_networks.sap), "subnet_storage") ?
+                                              can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload)) ?
+                                                try(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload)[10], "") :
                                                 "":
                                               "")
 
