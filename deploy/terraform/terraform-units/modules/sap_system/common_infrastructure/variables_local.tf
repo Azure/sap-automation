@@ -331,8 +331,8 @@ locals {
                                                       var.naming.separator,
                                                       local.resource_suffixes.storage_subnet))): (
                                            contains(keys(var.infrastructure.virtual_networks.sap), "storage_subnet") ?
-                                              length(var.infrastructure.virtual_networks.sap.storage_subnet.id_in_workload) > 0 ?
-                                                split("/", var.infrastructure.virtual_networks.sap.storage_subnet.id_in_workload)[10] :
+                                                (length(split("/", var.infrastructure.virtual_networks.sap.storage_subnet.id_in_workload)) > 10 ?
+                                                  split("/", var.infrastructure.virtual_networks.sap.storage_subnet.id_in_workload)[10] : "") :
                                                 "":
                                               "")
 
