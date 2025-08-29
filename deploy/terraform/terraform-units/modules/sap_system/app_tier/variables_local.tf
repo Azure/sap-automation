@@ -518,9 +518,7 @@ locals {
                                                                                coalesce(
                                                                                 var.infrastructure.virtual_networks.sap.subnet_web.exists || var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ? data.azurerm_subnet.subnet_sap_web[0].id : "",
                                                                                 var.infrastructure.virtual_networks.sap.subnet_app.exists || var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? data.azurerm_subnet.subnet_sap_app[0].id : "",
-                                                                                var.infrastructure.virtual_networks.sap.subnet_web.defined ? azurerm_subnet.subnet_sap_web[0].id : "",
-                                                                                var.infrastructure.virtual_networks.sap.subnet_app.defined ? azurerm_subnet.subnet_sap_app[0].id : "",
-                                                                                " ")
+                                                                                "" )
                                                                                 ) : (
                                                                                ""
                                                                              )
