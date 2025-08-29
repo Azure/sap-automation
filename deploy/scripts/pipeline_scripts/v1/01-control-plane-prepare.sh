@@ -334,6 +334,8 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 	if [ -n "$DEPLOYER_KEYVAULT" ]; then
 		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"; then
+			echo "Saved DEPLOYER_KEYVAULT in variable group."
+		else
 			echo "##vso[task.logissue type=warning]Failed to save DEPLOYER_KEYVAULT in variable group."
 		fi
 	fi
