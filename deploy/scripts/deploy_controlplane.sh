@@ -227,7 +227,7 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 # Check that webapp exports are defined, if deploying webapp
-if [ -n "${TF_VAR_use_webapp}" ]; then
+if [ -n "${TF_VAR_use_webapp:-false}" ]; then
 	if [ "${TF_VAR_use_webapp}" == "true" ]; then
 		validate_webapp_exports
 		return_code=$?

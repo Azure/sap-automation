@@ -233,6 +233,7 @@ stages:
               TF_VAR_agent_ado_project:    $(System.TeamProject)
               TF_VAR_spn_id:               $(ARM_OBJECT_ID)
               TF_VAR_tf_version:           $(tf_version)
+              TF_VAR_use_webapp:           ${{ parameters.use_webapp_param }}
               USE_MSI:                     $(Use_MSI)
               WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
               keyvault:                    $(DEPLOYER_KEYVAULT)
