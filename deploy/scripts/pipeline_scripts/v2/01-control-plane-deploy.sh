@@ -384,6 +384,10 @@ fi
 
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 if [ 0 -eq "$return_code" ]; then
+	WEBAPP_ID=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_AppServiceId" "${CONTROL_PLANE_NAME}")
+	if [ -n "$WEBAPP_ID" ]; then
+		WEBAPP_URL_BASE=$(echo "$WEBAPP_ID" | cut -d '/' -f 9)
+	fi
 
 	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
 		echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
@@ -392,6 +396,22 @@ if [ 0 -eq "$return_code" ]; then
 		echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
 	fi
 
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "WEBAPP_ID" "$WEBAPP_ID"; then
+		echo "Variable WEBAPP_ID was added to the $VARIABLE_GROUP variable group."
+	else
+		echo "##vso[task.logissue type=error]Variable WEBAPP_ID was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable WEBAPP_ID was not added to the $VARIABLE_GROUP variable group."
+	fi
+
+	if [ -n "$WEBAPP_ID" ]; then
+		WEBAPP_URL_BASE=$(echo "$WEBAPP_ID" | cut -d '/' -f 9)
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "WEBAPP_URL_BASE" "$WEBAPP_URL_BASE"; then
+			echo "Variable WEBAPP_URL_BASE was added to the $VARIABLE_GROUP variable group."
+		else
+			echo "##vso[task.logissue type=error]Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
+			echo "Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
+		fi
+	fi
 fi
 print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 
