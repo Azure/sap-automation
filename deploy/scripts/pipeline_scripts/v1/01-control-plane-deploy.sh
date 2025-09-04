@@ -460,17 +460,17 @@ if [ -f "${deployer_environment_file_name}" ]; then
 
 	file_REMOTE_STATE_RG=$(grep "^REMOTE_STATE_RG=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${file_REMOTE_STATE_RG}" ]; then
-		echo "Terraform rgname:     ${file_REMOTE_STATE_RG}"
+		echo "Terraform rg name:    ${file_REMOTE_STATE_RG}"
 	fi
 
 	webapp_url_base=$(grep "^webapp_url_base=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${webapp_url_base}" ]; then
-		echo "Webapp URL Base:     ${webapp_url_base}"
+		echo "Webapp URL Base:      ${webapp_url_base}"
 	fi
 
 	webapp_id=$(grep "^webapp_id=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${webapp_id}" ]; then
-		echo "Webapp ID:     ${webapp_id}"
+		echo "Webapp ID:            ${webapp_id}"
 	fi
 
 fi
