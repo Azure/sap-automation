@@ -55,12 +55,20 @@ variable "spn_id"                                {
                                                    description = "SPN ID to be used for the deployment"
                                                    nullable    = true
                                                    default     = ""
+                                                   validation {
+                                                     condition     = length(var.spn_id) == 0 ? true : length(var.spn_id) == 36
+                                                     error_message = "If specified the 'spn_id' variable must be a correct service principal ID."
+                                                   }
                                                  }
 
 variable "subscription_id"                       {
                                                    description = "Defines the Azure subscription_id"
                                                    type        = string
                                                    default     = null
+                                                   validation {
+                                                     condition     = length(var.subscription_id) == 0 ? true : length(var.subscription_id) == 36
+                                                     error_message = "If specified the 'subscription_id' variable must be a correct subscription ID."
+                                                   }
                                                  }
 
 variable "deployer_prefix"                       {
@@ -413,4 +421,26 @@ variable "management_network_id"                {
 variable "tags"                                  {
                                                    description = "If provided, tags for all resources"
                                                    default     = {}
+                                                 }
+
+
+#########################################################################################
+#                                                                                       #
+#  Application configuration variables                                                  #
+#                                                                                       #
+#########################################################################################
+
+variable "control_plane_name"                   {
+                                                  description = "The name of the control plane"
+                                                  default     = ""
+                                                }
+variable "application_configuration_id"          {
+                                                    description = "Defines the Azure application configuration Resource id"
+                                                    type        = string
+                                                    default     = ""
+                                                    validation {
+                                                      condition     = length(var.application_configuration_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.application_configuration_id))
+                                                      error_message = "If specified the 'application_configuration_id' variable must be a correct Azure resource identifier."
+                                                    }
+
                                                  }

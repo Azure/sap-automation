@@ -61,12 +61,12 @@
     group:                             sapsys
   when:                                compat_sap_c12_version.stat.exists
 
-- name:                                "SAP Note 3119751 check if version 13 of compat-sap-c++ is installed"
+- name:                                "SAP Note 3449186 check if version 13 of compat-sap-c++ is installed"
   ansible.builtin.stat:
     path:                              /opt/rh/SAP/lib64/compat-sap-c++-13.so
   register:                            compat_sap_c13_version
 
-- name:                                "SAP Note 3119751 create symlink"
+- name:                                "SAP Note 3449186 create symlink"
   become:                              true
   ansible.builtin.file:
     src:                               /opt/rh/SAP/lib64/compat-sap-c++-13.so

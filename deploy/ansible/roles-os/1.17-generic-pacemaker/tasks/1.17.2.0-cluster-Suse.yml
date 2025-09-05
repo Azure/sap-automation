@@ -228,7 +228,7 @@
       failed_when:                     crm_configure_result.rc > 1
       when:
         - use_msi_for_clusters
-        - distribution_full_id in ["sles_sap12.5", "sles_sap15.1","sles_sap15.2", "sles_sap15.3", "sles_sap15.4", "sles_sap15.5", "sles_sap15.6"]
+        - distribution_full_id in ["sles_sap12.5", "sles_sap15.1","sles_sap15.2", "sles_sap15.3", "sles_sap15.4", "sles_sap15.5", "sles_sap15.6", "sles_sap15.7"]
 
 
     - name:                            "1.17 Generic Pacemaker - Stonith Timeout Property"
@@ -327,7 +327,7 @@
                                          op monitor interval="600" timeout="15"
 
     - name:                            "1.17 Generic Pacemaker - Set the Stonith SBD Timeout Property"
-      ansible.builtin.shell:           crm configure property stonith-timeout=144
+      ansible.builtin.shell:           crm configure property stonith-timeout=210
 
     - name:                            "1.17 Generic Pacemaker - Enable Stonith"
       ansible.builtin.shell:           crm configure property stonith-enabled=true

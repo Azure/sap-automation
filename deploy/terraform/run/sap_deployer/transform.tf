@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-
 locals {
   infrastructure = {
     environment                        = coalesce(
@@ -11,28 +10,9 @@ locals {
     region                             = coalesce(var.location, try(var.infrastructure.region, ""))
     codename                           = try(var.codename, try(var.infrastructure.codename, ""))
     resource_group                     = {
-                                            name = try(
-                                              coalesce(
-                                                var.resourcegroup_name,
-                                                try(var.infrastructure.resource_group.name, "")
-                                              ),
-                                              ""
-                                            )
-                                            id = try(
-                                              coalesce(
-                                                var.resourcegroup_arm_id,
-                                                try(var.infrastructure.resource_group.arm_id, "")
-                                              ),
-                                              ""
-                                            )
-                                            exists = length(try(
-                                              coalesce(
-                                                var.resourcegroup_arm_id,
-                                                try(var.infrastructure.resource_group.arm_id, "")
-                                              ),
-                                              ""
-                                            )) > 0 ? true : false
-
+                                            name   = var.resourcegroup_name,
+                                            id     = var.resourcegroup_arm_id
+                                            exists = length(var.resourcegroup_arm_id) > 0
                                           }
     tags                               = merge(
                                             var.tags, var.resourcegroup_tags
@@ -74,6 +54,12 @@ locals {
                                                                   id     = var.webapp_subnet_arm_id
                                                                   exists = length(var.webapp_subnet_arm_id) > 0 ? true : false
                                                                   prefix = var.webapp_subnet_address_prefix
+                                                                }
+                                              subnet_agent =    {
+                                                                  name   = var.agent_subnet_name,
+                                                                  id     = var.agent_subnet_arm_id
+                                                                  exists = length(var.agent_subnet_arm_id) > 0 ? true : false
+                                                                  prefix = var.agent_subnet_address_prefix
                                                                 }
                                             }
                                         }
@@ -175,8 +161,10 @@ locals {
                                         }
 
   options                              = {
-                                            enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
-                                            enable_deployer_public_ip = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
+                                            enable_deployer_public_ip       = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
+                                            use_spn                         = var.use_spn
+                                            assign_resource_permissions     = var.deployer_assign_resource_permissions
+                                            assign_subscription_permissions = var.deployer_assign_subscription_permissions
                                          }
 
   firewall                             = {
@@ -186,7 +174,7 @@ locals {
                                            ip_tags              = var.firewall_public_ip_tags
                                          }
 
-  assign_subscription_permissions      = try(var.deployer_assign_subscription_permissions, false)
+
 
   app_service                          = {
                                            use                 = var.app_service_deployment

@@ -28,7 +28,11 @@ variable "location"                              {
 variable "subscription_id"                       {
                                                    description = "Defines the Azure subscription_id"
                                                    type        = string
-                                                   default     = null
+                                                   validation {
+                                                     condition     = length(var.subscription_id) == 0 ? true : length(var.subscription_id) == 36
+                                                     error_message = "If specified the 'subscription_id' variable must be a correct subscription ID."
+                                                   }
+
                                                  }
 
 variable "prevent_deletion_if_contains_resources" {
@@ -455,6 +459,13 @@ variable "deployer_assign_subscription_permissions"   {
                                                         type        = bool
                                                       }
 
+
+variable "deployer_assign_resource_permissions"   {
+                                                        description = "Boolean flag indicating if the resource permissions should be assigned"
+                                                        default     = true
+                                                        type        = bool
+                                                      }
+
 variable "use_private_endpoint"                       {
                                                         description = "Boolean value indicating if private endpoint should be used for the deployment"
                                                         default     = false
@@ -497,6 +508,10 @@ variable "spn_id"                                     {
                                                         description = "SPN ID to be used for the deployment"
                                                         nullable    = true
                                                         default     = ""
+                                                        validation {
+                                                          condition     = length(var.spn_id) == 0 ? true : length(var.spn_id) == 36
+                                                          error_message = "If specified the 'spn_id' variable must be a correct service principal ID."
+                                                        }
 
                                                       }
 
@@ -539,6 +554,11 @@ variable "management_dns_subscription_id"             {
                                                         description = "String value giving the possibility to register custom dns a records in a separate subscription"
                                                         default     = ""
                                                         type        = string
+
+                                                        validation {
+                                                          condition     = length(var.management_dns_subscription_id) == 0 ? true : length(var.management_dns_subscription_id) == 36
+                                                          error_message = "If specified the 'management_dns_subscription_id' variable must be a correct subscription ID."
+                                                        }
                                                       }
 
 variable "management_dns_resourcegroup_name"          {
@@ -565,6 +585,10 @@ variable "privatelink_dns_subscription_id"            {
                                                         description = "String value giving the possibility to register custom PrivateLink DNS A records in a separate subscription"
                                                         default     = ""
                                                         type        = string
+                                                        validation {
+                                                          condition     = length(var.privatelink_dns_subscription_id) == 0 ? true : length(var.privatelink_dns_subscription_id) == 36
+                                                          error_message = "If specified the 'privatelink_dns_subscription_id' variable must be a correct subscription ID."
+                                                        }
                                                       }
 
 variable "privatelink_dns_resourcegroup_name"         {
@@ -598,7 +622,7 @@ variable "agent_pool"                                 {
                                                       }
 
 variable "agent_pat" {
-  description = "If provided, contains the Personal Access Token to be used"
+                                                        description = "If provided, contains the Personal Access Token to be used"
                                                         default     = ""
                                                       }
 
@@ -625,7 +649,37 @@ variable "dev_center_deployment"                      {
 variable "DevOpsInfrastructure_object_id"             {
                                                         description = "Service principal object id for the DevOps Infrastructure"
                                                         default     = ""
+                                                        validation {
+                                                          condition     = length(var.DevOpsInfrastructure_object_id) == 0 ? true : length(var.DevOpsInfrastructure_object_id) == 36
+                                                          error_message = "If specified the 'DevOpsInfrastructure_object_id' variable must be a correct object ID."
+                                                        }
                                                       }
+
+#######################################4#######################################8
+#                                                                              #
+#                              Agent Subnet variables                          #
+#                                                                              #
+#######################################4#######################################8
+
+variable "agent_subnet_name"                    {
+                                                  description = "The name of the subnet into which the managed agents will be deployed"
+                                                  default     = ""
+                                                }
+
+variable "agent_subnet_arm_id"                  {
+                                                  description = "Azure resource identifier for the existing subnet into which the managed agents will be deployed"
+                                                  default     = ""
+                                                  validation {
+                                                    condition     = length(var.agent_subnet_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.agent_subnet_arm_id))
+                                                    error_message = "If specified the 'agent_subnet_arm_id' variable must be a correct Azure resource identifier."
+                                                  }
+                                                }
+
+variable "agent_subnet_address_prefix"          {
+                                                  description = "The address prefix of the subnet into which the managed agents will be deployed"
+                                                  default     = ""
+                                                }
+
 
 #########################################################################################
 #                                                                                       #
@@ -647,6 +701,10 @@ variable "app_service_deployment"                     {
 variable "app_registration_app_id"                    {
                                                         description = "The app registration id to be used for the webapp"
                                                         default     = ""
+                                                        validation {
+                                                          condition     = length(var.app_registration_app_id) == 0 ? true : length(var.app_registration_app_id) == 36
+                                                          error_message = "If specified the 'app_registration_app_id' variable must be a correct Azure resource identifier."
+                                                        }
                                                       }
 
 variable "sa_connection_string"                       {
@@ -726,3 +784,4 @@ variable "deploy_defender_extension"            {
                                                   description = "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines"
                                                   default     = false
                                                 }
+

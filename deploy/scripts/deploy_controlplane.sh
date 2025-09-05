@@ -227,7 +227,7 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 # Check that webapp exports are defined, if deploying webapp
-if [ -n "${TF_VAR_use_webapp}" ]; then
+if [ -n "${TF_VAR_use_webapp:-false}" ]; then
 	if [ "${TF_VAR_use_webapp}" == "true" ]; then
 		validate_webapp_exports
 		return_code=$?
@@ -765,34 +765,33 @@ if [ 3 -eq "$step" ]; then
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
 			--type sap_deployer \
 			--parameterfile ${deployer_file_parametername} \
 			--storageaccountname "${REMOTE_STATE_SA}" \
 			$ado_flag \
 			--auto-approve; then
+			return_code=0
+		else
 			echo ""
 			echo -e "${bold_red}Migrating the Deployer state failed${reset_formatting}"
 			step=3
 			save_config_var "step" "${deployer_config_information}"
 			exit 30
-		else
-			return_code=0
-
 		fi
 	else
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
 			--type sap_deployer \
 			--parameterfile ${deployer_file_parametername} \
 			--storageaccountname "${REMOTE_STATE_SA}"; then
+			step=4
+			save_config_var "step" "${deployer_config_information}"
+			return_code=0
+		else
 			echo -e "${bold_red}Migrating the Deployer state failed${reset_formatting}"
 			step=3
 			save_config_var "step" "${deployer_config_information}"
 			exit 30
-		else
-			step=4
-			save_config_var "step" "${deployer_config_information}"
-			return_code=0
 		fi
 	fi
 
@@ -867,32 +866,32 @@ if [ 4 -eq $step ]; then
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
 			--type sap_library \
 			--parameterfile "${library_file_parametername}" \
 			--storageaccountname "${REMOTE_STATE_SA}" \
 			--deployer_tfstate_key "${deployer_tfstate_key}" \
 			$ado_flag \
 			--auto-approve; then
+			return_code=$?
+		else
 			echo "Migrating the SAP Library state failed"
 			step=4
 			save_config_var "step" "${deployer_config_information}"
 			exit 40
-		else
-			return_code=$?
 		fi
 	else
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
 			--type sap_library \
 			--parameterfile "${library_file_parametername}" \
 			--storageaccountname "${REMOTE_STATE_SA}" \
 			--deployer_tfstate_key "${deployer_tfstate_key}"; then
+			return_code=$?
+		else
 			echo "Migrating the SAP Library state failed"
 			step=4
 			save_config_var "step" "${deployer_config_information}"
 			exit 40
-		else
-			return_code=$?
 		fi
 	fi
 
@@ -999,4 +998,4 @@ echo "##vso[task.setprogress value=100;]Progress Indicator"
 
 unset TF_DATA_DIR
 
-exit 0
+exit $return_code

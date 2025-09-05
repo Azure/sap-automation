@@ -128,7 +128,7 @@
       when:
         - saphanaSR_angi_version == '0.0.0'
         - use_hanasr_angi
-        - distribution_full_id in ['sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6']
+        - distribution_full_id in ['sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6', 'sles_sap15.7']
       block:
         - name:                        "5.5 HANA Pacemaker - Uninstall the old-style SAPHanaSR package"
           community.general.zypper:

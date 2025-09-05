@@ -317,6 +317,9 @@ packages:
   redhat9.4:
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
+  redhat9.6:
+    - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
+    - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
 
   sles_sap12:
     - { tier: 'os',     package: 'chrony',                                       node_tier: 'all',            state: 'present' }
@@ -504,6 +507,16 @@ packages:
     - { tier: 'ha',     package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',            state: 'present' }
     # These package cause issues on SLES15 SP5 due to changes to the public cloud SDKs
     # https://www.suse.com/c/incompatible-changes-ahead-for-public-cloud-sdks/
+    - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'scs',            state: 'present' }
+    - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'ers',            state: 'present' }
+    - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'hana',           state: 'present' }
+  sles_sap15.7:
+    - { tier: 'os',     package: 'python3-xml',                                  node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'python3-rpm',                                  node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'azure-vm-utils',                               node_tier: 'all',            state: 'present' }
+    - { tier: 'db2',    package: 'system-user-bin',                              node_tier: 'db2',             state: 'present' }
+    - { tier: 'ha',     package: 'sapstartsrv-resource-agents',                  node_tier: 'scs',            state: 'present' }
+    - { tier: 'ha',     package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',            state: 'present' }
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'ers',            state: 'present' }
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'hana',           state: 'present' }

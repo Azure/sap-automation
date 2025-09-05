@@ -23,7 +23,7 @@ locals {
   region                                          = var.infrastructure.region
 
   // Firewall
-  firewall_exists                                 = var.use_deployer ? length(trimspace(coalesce(var.deployer_tfstate.firewall_id, ""))) > 0 : false
+  firewall_exists                                 = var.use_deployer ? length(contains(keys(var.deployer_tfstate),"firewall_id") ? var.deployer_tfstate.firewall_id : "") > 0 : false
   firewall_id                                     = local.firewall_exists ? try(var.deployer_tfstate.firewall_id, "") : ""
   firewall_ip                                     = local.firewall_exists ? try(var.deployer_tfstate.firewall_ip, "") : ""
   firewall_name                                   = local.firewall_exists ? try(split("/", local.firewall_id)[8], "") : ""
@@ -37,9 +37,9 @@ locals {
 
 
   // Resource group
-  resource_group_exists                           = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
+  resource_group_exists                           = length(try(var.infrastructure.resource_group.id, "")) > 0
   resourcegroup_name                              = local.resource_group_exists ? (
-                                                      try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
+                                                      try(split("/", var.infrastructure.resource_group.id)[4], "")) : (
                                                       length(try(var.infrastructure.resource_group.name, "")) > 0 ? (
                                                         var.infrastructure.resource_group.name) : (
                                                         format("%s%s%s",
@@ -93,14 +93,14 @@ locals {
 
 
   // By default, Ansible ssh key for SID uses generated public key.
-  // Provide sshkey.path_to_public_key and path_to_private_key overides it
+  // Provide sshkey.path_to_public_key and path_to_private_key overrides it
 
   sid_public_key                                  = var.key_vault.user.exists ? (
-                                                      data.azurerm_key_vault_secret.sid_pk[0].value) : (
+                                                      coalesce(try(data.azurerm_key_vault_secret.sid_pk[0].value,""), try(file(var.authentication.path_to_public_key), try(tls_private_key.sid[0].public_key_openssh, "")))) : (
                                                       try(file(var.authentication.path_to_public_key), try(tls_private_key.sid[0].public_key_openssh, ""))
                                                     )
   sid_private_key                                 = var.key_vault.user.exists ? (
-                                                      data.azurerm_key_vault_secret.sid_ppk[0].value) : (
+                                                      coalesce(try(data.azurerm_key_vault_secret.sid_ppk[0].value,""), try(file(var.authentication.path_to_private_key), try(tls_private_key.sid[0].private_key_pem, "")))) : (
                                                       try(file(var.authentication.path_to_private_key), try(tls_private_key.sid[0].private_key_pem, ""))
                                                     )
 
@@ -168,7 +168,7 @@ locals {
                                                     )
 
   user_keyvault_resourcegroup_name                = var.key_vault.user.exists ? (
-                                                      split("/", var.key_vault.id)[4]) : (
+                                                      split("/", var.key_vault.user.id)[4]) : (
                                                       ""
                                                     )
   # Store the Deployer KV in workload zone KV
@@ -187,7 +187,7 @@ locals {
   ##############################################################################################
 
   admin_subnet_name                               = var.infrastructure.virtual_networks.sap.subnet_admin.exists ? (
-                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_admin)[10], "")) : (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_admin.id)[10], "")) : (
                                                       length(try(var.infrastructure.virtual_networks.sap.subnet_admin.name, "")) > 0 ? (
                                                         var.infrastructure.virtual_networks.sap.subnet_admin.name) : (
                                                         format("%s%s%s%s",

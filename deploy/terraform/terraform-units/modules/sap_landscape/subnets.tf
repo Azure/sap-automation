@@ -129,9 +129,9 @@ resource "azurerm_subnet" "storage" {
 data "azurerm_subnet" "storage" {
   provider                             = azurerm.main
   count                                = var.infrastructure.virtual_networks.sap.subnet_storage.exists ? 1 : 0
-  name                                 = split("/", var.infrastructure.virtual_networks.sap.subnet_web.prefix.id)[10]
-  resource_group_name                  = split("/", var.infrastructure.virtual_networks.sap.subnet_web.prefix.id)[4]
-  virtual_network_name                 = split("/", var.infrastructure.virtual_networks.sap.subnet_web.prefix.id)[8]
+  name                                 = split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id)[10]
+  resource_group_name                  = split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id)[4]
+  virtual_network_name                 = split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id)[8]
 }
 
 

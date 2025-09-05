@@ -25,7 +25,7 @@ resource "azurerm_network_interface" "observer" {
 
   ip_configuration {
                     name      = "IPConfig1"
-                    subnet_id = try(var.admin_subnet.id, var.landscape_tfstate.admin_subnet_id)
+                    subnet_id = (var.infrastructure.virtual_networks.sap.subnet_admin.exists || var.infrastructure.virtual_networks.sap.subnet_admin.exists_in_workload) ? var.admin_subnet.id : var.db_subnet.id
                     private_ip_address = var.database.use_DHCP ? (
                       null) : (
                       try(var.database.observer_vm_ips[count.index],

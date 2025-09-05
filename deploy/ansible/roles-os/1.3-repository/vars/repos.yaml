@@ -32,6 +32,7 @@ repos:
   redhat9.0:
   redhat9.2:
   redhat9.4:
+  redhat9.6:
 
   # SLES
   sles12.3:
@@ -44,6 +45,7 @@ repos:
   sles_sap15.4:
   sles_sap15.5:
   sles_sap15.6:
+  sles_sap15.7:
   sles15.3:
   sles15.4:
   sles15.5:

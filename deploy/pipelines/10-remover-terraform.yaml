@@ -74,7 +74,10 @@ stages:
         steps:
           - template: templates\download.yaml
           - task:                      PostBuildCleanup@4
-
+          - task:                      TerraformInstaller@1
+            displayName:               Install Terraform
+            inputs:
+              terraformVersion:        latest
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -89,6 +92,7 @@ stages:
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              ARM_USE_MSI:             $(Use_MSI)
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
@@ -115,6 +119,10 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
+          - task:                      TerraformInstaller@1
+            displayName:               Install Terraform
+            inputs:
+              terraformVersion:        latest
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -128,6 +136,7 @@ stages:
               ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:           $(ARM_TENANT_ID)
+              ARM_USE_MSI:             $(Use_MSI)
               AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)

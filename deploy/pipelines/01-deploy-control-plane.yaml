@@ -116,7 +116,6 @@ stages:
               TF_VAR_agent_pool:              $(POOL)
               TF_VAR_agent_ado_project:       $(System.TeamProject)
               TF_VAR_ansible_core_version:    $(ansible_core_version)
-              TF_VAR_spn_id:                  $(ARM_OBJECT_ID)
               TF_VAR_tf_version:              $(tf_version)
               TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
               USE_MSI:                        $(Use_MSI)
@@ -143,6 +142,10 @@ stages:
           clean:                       all
         steps:
           - task:                      PostBuildCleanup@4
+          - task:                      TerraformInstaller@1
+            displayName:               Install Terraform
+            inputs:
+              terraformVersion:        latest
           - template:                  templates\download.yaml
             parameters:
               getLatestFromBranch: true
@@ -163,7 +166,6 @@ stages:
               ARM_TENANT_ID:                $(ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
               CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              DEPLOYER_KEYVAULT:            $(DEPLOYER_KEYVAULT)
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               USE_MSI:                      $(Use_MSI)
@@ -196,6 +198,10 @@ stages:
             parameters:
               getLatestFromBranch: true
 
+          - task:                      TerraformInstaller@1
+            displayName:               Install Terraform
+            inputs:
+              terraformVersion:        latest
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -227,6 +233,7 @@ stages:
               TF_VAR_agent_ado_project:    $(System.TeamProject)
               TF_VAR_spn_id:               $(ARM_OBJECT_ID)
               TF_VAR_tf_version:           $(tf_version)
+              TF_VAR_use_webapp:           ${{ parameters.use_webapp_param }}
               USE_MSI:                     $(Use_MSI)
               WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
               keyvault:                    $(DEPLOYER_KEYVAULT)
@@ -319,12 +326,12 @@ stages:
               printf "az ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\n" "$(APP_REGISTRATION_APP_ID)" "$(WEBAPP_URL_BASE)" "$(WEBAPP_URL_BASE)" "$(WEBAPP_URL_BASE)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
               printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "az role assignment create --assignee %s --role reader --subscription %s --scope /subscriptions/%s\n" "$(WEBAPP_IDENTITY)" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "az role assignment create --assignee %s --role reader --subscription %s --scope /subscriptions/%s\n" "$ARM_OBJECT_ID" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
               printf "Run the above command for all subscriptions you want to use in the Web Application\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
               printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "az role assignment create --assignee %s --role 'Storage Blob Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s\n" "$(WEBAPP_IDENTITY)" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" "$(Terraform_Remote_Storage_Resource_Group_Name)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "az role assignment create --assignee %s --role 'Storage Table Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s \n\n" "$(WEBAPP_IDENTITY)" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" "$(Terraform_Remote_Storage_Resource_Group_Name)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "az role assignment create --assignee %s --role 'Storage Blob Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s\n" "$ARM_OBJECT_ID" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" "$(Terraform_Remote_Storage_Resource_Group_Name)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
+              printf "az role assignment create --assignee %s --role 'Storage Table Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s \n\n" "$ARM_OBJECT_ID" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" "$(Terraform_Remote_Storage_Resource_Group_Name)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
               printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
 
@@ -346,4 +353,4 @@ stages:
               APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
               WEBAPP_URL_BASE:         $(WEBAPP_URL_BASE)
               WEBAPP_ID:               $(WEBAPP_ID)
-              WEBAPP_IDENTITY:         $(WEBAPP_IDENTITY)
+              WEBAPP_IDENTITY:         $(ARM_OBJECT_ID)

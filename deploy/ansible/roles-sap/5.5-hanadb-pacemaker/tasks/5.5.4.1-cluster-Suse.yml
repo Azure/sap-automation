@@ -39,7 +39,7 @@
                                        crm configure property \$id="cib-bootstrap-options"
                                          stonith-enabled="true"
                                          stonith-action="reboot"
-                                         stonith-timeout="144s"
+                                         stonith-timeout="210s"
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure CIB Bootstrap Options are set"
       when:                            database_cluster_type not in ["ISCSI", "ASD"]
@@ -141,13 +141,26 @@
       failed_when:                     sap_hana_g_ip.rc > 1
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure Co-Location constraint is configured"
-      ansible.builtin.shell: >
+      ansible.builtin.blockinfile:
+        path:                          "/var/tmp/{{ db_sid | upper }}/colocation.txt"
+        block: |
                                        crm configure colocation col_saphana_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
                                        4000:
                                        g_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Started
                                        msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Master
+        create:                        true
+        backup:                        true
+        mode:                          0640
+        marker:                        "# {mark} ANSIBLE MANAGED BLOCK - HANA Pacemaker colocation constraint"
+
+    - name:                            "5.6 SCSERS - SUSE - ENSA1 - Load the DB Colocation constraint"
+      ansible.builtin.shell:           crm configure load update /var/tmp/{{ db_sid | upper }}/colocation.txt
       register:                        sap_hana_g_col_ip
-      failed_when:                     sap_hana_g_col_ip.rc > 1
+
+    - name:                            "Remove temporary colocation file"
+      ansible.builtin.file:
+        path:                          "/var/tmp/{{ db_sid | upper }}/colocation.txt"
+        state:                         absent
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure Resource order is configured"
       ansible.builtin.shell: >

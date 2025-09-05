@@ -63,8 +63,10 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
-          - task:                      PostBuildCleanup@4
-
+          - task:                      TerraformInstaller@1
+            displayName:               Install Terraform
+            inputs:
+              terraformVersion:        latest
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -73,19 +75,19 @@ stages:
               workingDirectory:        "$(System.DefaultWorkingDirectory)"
             displayName:               Remove control plane
             env:
-              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
               ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID:            $(ARM_TENANT_ID)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              ARM_USE_MSI:              $(Use_MSI)
+              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              key_vault:                $(DEPLOYER_KEYVAULT)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
-              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
-
+              key_vault:                $(DEPLOYER_KEYVAULT)
   - stage:                              Remove_control_plane
     displayName:                        "Finalize control plane removal"
     variables:
@@ -96,7 +98,7 @@ stages:
           library:                      ${{ parameters.library }}
           use_deployer:                 ${{ parameters.use_deployer }}
     pool:
-      name:                             $(AGENT)
+      name:                             $(Agent)
     dependsOn:
       - Remove_control_plane_remote
     condition:                          in(dependencies.Remove_control_plane_remote.result, 'Succeeded', 'Skipped')
@@ -129,15 +131,15 @@ stages:
 
             displayName:               Remove control plane
             env:
-              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
               ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID:            $(ARM_TENANT_ID)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              key_vault:                $(DEPLOYER_KEYVAULT)
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               TF_IN_AUTOMATION:         true
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
-              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
+              key_vault:                $(DEPLOYER_KEYVAULT)

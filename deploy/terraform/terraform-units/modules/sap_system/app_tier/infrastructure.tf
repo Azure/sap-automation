@@ -66,7 +66,7 @@ resource "azurerm_subnet" "subnet_sap_web" {
 # Imports data of existing SAP web dispatcher subnet
 data "azurerm_subnet" "subnet_sap_web" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment ? (
+  count                                = local.enable_deployment && local.webdispatcher_count > 0? (
                                            var.infrastructure.virtual_networks.sap.subnet_web.exists ||
                                            var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ||
                                            var.infrastructure.virtual_networks.sap.subnet_app.exists ||

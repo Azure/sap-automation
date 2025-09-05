@@ -38,12 +38,17 @@ locals {
   sid                                  = upper(var.application_tier.sid)
   prefix                               = trimspace(var.naming.prefix.SDU)
   // Resource group
-  resource_group_exists                = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
+  resource_group_exists                = length(try(var.infrastructure.resource_group.id, "")) > 0
 
   sid_auth_type                        = upper(var.application_tier.app_os.os_type) == "LINUX" ? (
                                            try(var.application_tier.authentication.type, "key")) : (
                                            "password"
                                          )
+
+
+
+  enable_deployment                    = var.application_tier.enable_deployment
+
   enable_auth_password                 = local.enable_deployment && local.sid_auth_type == "password"
   enable_auth_key                      = local.enable_deployment && local.sid_auth_type == "key"
 
@@ -70,9 +75,9 @@ locals {
                                                       ),
                                                       var.naming.separator,
                                                       local.resource_suffixes.app_subnet))): (
-                                           coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_app.id)[10], ""),
-                                                    split("/", var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload)[10])
-                                                      )
+                                                    can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload)) ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload)[10],"")) : (
+                                                      "" ))
 
 
   ##############################################################################################
@@ -112,9 +117,12 @@ locals {
                                                       ),
                                                       var.naming.separator,
                                                       local.resource_suffixes.web_subnet))): (
-                                           coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_web.id)[10], ""),
-                                                    split("/", var.infrastructure.virtual_networks.sap.subnet_web.id_in_workload)[10])
+                                                    can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.subnet_web.id_in_workload)) ? (
+                                                      try(split("/", var.infrastructure.virtual_networks.sap.subnet_web.id_in_workload)[10],"")) : (
+                                                      "" )
                                                       )
+
+
 
   ##############################################################################################
   #
@@ -139,7 +147,6 @@ locals {
 #--------------------------------------+---------------------------------------8
   scs_server_count                     = var.application_tier.scs_server_count * (var.application_tier.scs_high_availability ? 2 : 1)
   firewall_exists                      = length(var.firewall_id) > 0
-  enable_deployment                    = var.application_tier.enable_deployment
   scs_instance_number                  = var.application_tier.scs_instance_number
   ers_instance_number                  = var.application_tier.ers_instance_number
   application_server_count             = var.application_tier.application_server_count
@@ -508,13 +515,11 @@ locals {
                                            {
                                              name                          = "IPConfig1"
                                              subnet_id                     = local.enable_deployment ? (
-                                                                               (var.infrastructure.virtual_networks.sap.subnet_web.exists ||
-                                                                                 var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ||
-                                                                                 var.infrastructure.virtual_networks.sap.subnet_app.exists ||
-                                                                                 var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ) ? (
-                                                                                   coalesce(data.azurerm_subnet.subnet_sap_web[0].id, data.azurerm_subnet.subnet_sap_app[0].id)) : (
-                                                                                   coalesce(azurerm_subnet.subnet_sap_web[0].id,azurerm_subnet.subnet_sap_app[0].id)
-                                                                               )) : (
+                                                                               coalesce(
+                                                                                var.infrastructure.virtual_networks.sap.subnet_web.exists || var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ? data.azurerm_subnet.subnet_sap_web[0].id : "",
+                                                                                var.infrastructure.virtual_networks.sap.subnet_app.exists || var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? data.azurerm_subnet.subnet_sap_app[0].id : "",
+                                                                                "" )
+                                                                                ) : (
                                                                                ""
                                                                              )
                                              nic_ips                       = local.web_nic_ips
@@ -528,10 +533,13 @@ locals {
                                            {
                                              name                          = "IPConfig2"
                                              subnet_id                     = local.enable_deployment ? (
-                                                                               var.infrastructure.virtual_networks.sap.subnet_web.exists || var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ? (
-                                                                                 coalesce(data.azurerm_subnet.subnet_sap_web[0].id, data.azurerm_subnet.subnet_sap_app[0].id)) : (
-                                                                                 coalesce(azurerm_subnet.subnet_sap_web[0].id,azurerm_subnet.subnet_sap_app[0].id)
-                                                                               )) : (
+                                                                               coalesce(
+                                                                                var.infrastructure.virtual_networks.sap.subnet_web.exists || var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ? data.azurerm_subnet.subnet_sap_web[0].id : "",
+                                                                                var.infrastructure.virtual_networks.sap.subnet_app.exists || var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? data.azurerm_subnet.subnet_sap_app[0].id : "",
+                                                                                var.infrastructure.virtual_networks.sap.subnet_web.defined ? azurerm_subnet.subnet_sap_web[0].id : "",
+                                                                                var.infrastructure.virtual_networks.sap.subnet_app.defined ? azurerm_subnet.subnet_sap_app[0].id : "",
+                                                                                "" )
+                                                                                ) : (
                                                                                ""
                                                                              )
                                              offset                        = local.webdispatcher_count

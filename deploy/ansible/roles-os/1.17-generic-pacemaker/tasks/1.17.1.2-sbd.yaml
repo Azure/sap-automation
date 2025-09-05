@@ -221,7 +221,6 @@
       loop:
         - { regexp: "^SBD_PACEMAKER=.*",    line: 'SBD_PACEMAKER=yes'     }
         - { regexp: "^SBD_STARTMODE=.*",    line: 'SBD_STARTMODE=always'  }
-        - { regexp: "^SBD_DELAY_START=.*",  line: 'SBD_DELAY_START=yes'   }
         # Format line as so:
         #   SBD_DEVICE="/dev/disk/by-id/scsi-3600224804208a67da8073b2a9728af19"
         #   SBD_DEVICE="/dev/disk/by-id/scsi-360022480ef971a6c5759f2dc3adf4c96;/dev/disk/by-id/scsi-360022480ea4064ac4952ea8452d66317"
@@ -231,6 +230,30 @@
                                                             {{    entry.diskById                 }}
                                                             {%- endfor                          -%}
                                                             "'}
+
+    - name:                                   "SBD config file"
+      block:
+        - name:                               "SBD config file - set SBD_DELAY_START"
+          when:                               ansible_os_family | upper == "SUSE"
+          ansible.builtin.lineinfile:
+            path:                             /etc/sysconfig/sbd
+            regexp:                           "^SBD_DELAY_START=.*"
+            line:                             'SBD_DELAY_START=216'
+            owner:                            root
+            group:                            root
+            mode:                             '0644'
+            backup:                           true
+
+        - name:                               "SBD config file - set SBD_DELAY_START"
+          when:                               ansible_os_family | upper == "REDHAT"
+          ansible.builtin.lineinfile:
+            path:                             /etc/sysconfig/sbd
+            regexp:                           "^SBD_DELAY_START=.*"
+            line:                             'SBD_DELAY_START=186'
+            owner:                            root
+            group:                            root
+            mode:                             '0644'
+            backup:                           true
 
     - name:                                  "set fact sbd_device as list of entries in sbdMap"
       ansible.builtin.set_fact:
@@ -276,20 +299,23 @@
             group:                            root
             mode:                             '0644'
 
-        - name:                               "SBD - Add Before=corosync.service in Unit section"
-          ansible.builtin.lineinfile:
-            path:                             /etc/systemd/system/sbd.service
-            insertafter:                      '^\[Unit\].*'
-            line:                             'Before=corosync.service'
-            state:                            present
+        - name:                               "SBD - Create service override directory (if not exists)"
+          ansible.builtin.file:
+            path:                             /etc/systemd/system/sbd.service.d
+            state:                            directory
+            owner:                            root
+            group:                            root
+            mode:                             '0755'
 
-        - name:                               "SBD - Set TimeoutSec in Service section"
-          ansible.builtin.lineinfile:
-            path:                             /etc/systemd/system/sbd.service
-            regexp:                           '^TimeoutSec='
-            line:                             'TimeoutSec=600'
-            insertafter:                      '^\[Service\].*'
-            state:                            present
+        - name:                               "SBD - Set increased timeout for delayed start and before corosync"
+          ansible.builtin.copy:
+            content: |
+                                              [Service]
+                                              TimeoutSec=259
+            dest:                             /etc/systemd/system/sbd.service.d/sbd_delay_start.conf
+            owner:                            root
+            group:                            root
+            mode:                             '0644'
 
     - name:                                   "SBD - Configure service file for RedHat"
       when:                                   ansible_os_family | upper == "REDHAT"
@@ -306,7 +332,7 @@
           ansible.builtin.copy:
             content: |
                                               [Service]
-                                              TimeoutSec=144
+                                              TimeoutSec=223
             dest:                             /etc/systemd/system/sbd.service.d/sbd_delay_start.conf
             owner:                            root
             group:                            root
