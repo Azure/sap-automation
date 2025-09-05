@@ -92,7 +92,7 @@ function Remove-SDAFADOProject {
 
       #region Initialize variables
       Write-Verbose "Initializing variables from parameters"
-      $VersionLabel = "v"
+      $VersionLabel = "v3.16.0.3"
       Write-Verbose "Version label set to: $VersionLabel"
       #endregion
 

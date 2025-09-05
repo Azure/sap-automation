@@ -8,7 +8,7 @@ function Get-IniContent {
     .SYNOPSIS
         Get-IniContent
 
-    
+
 .LINK
     https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
 
@@ -48,11 +48,11 @@ function Out-IniFile {
     <#
         .SYNOPSIS
             Out-IniContent
-    
-        
+
+
     .LINK
         https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
-    
+
         #>
     <#
     #>
