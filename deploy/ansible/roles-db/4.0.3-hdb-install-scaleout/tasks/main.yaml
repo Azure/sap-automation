@@ -93,6 +93,35 @@
                                        - "Client Subnet CIDR:  {{ subnet_client_cidr }}"
                                        - "Storage Subnet CIDR: {{ subnet_storage_cidr }}"
 
+- name:                                "SAP HANA: check sp version from manifest"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       grep sp-number manifest | cut -d ":" -f 2 | tr -d [:space:]
+  args:
+    chdir:                             "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE/server"
+  register:                            manifest_hana_sp
+
+- name:                                "SAP HANA: Show sps leve"
+  ansible.builtin.debug:
+    msg:                               "HANA SP Level: {{ manifest_hana_sp.stdout }}"
+
+- name:                                "SAP HANA: Set fact when sps is 08 or higher"
+  ansible.builtin.set_fact:
+    hana_sp08_or_higher:               "{{ manifest_hana_sp.stdout is version('080', '>=') }}"
+
+# all | client | es | ets | lcapps | server | smartda | streaming | rdsync | xs | studio | afl | sca | sop | eml | rme | rtl | trp
+- name:                                "SAP HANA: Set HANA components"
+  ansible.builtin.set_fact:
+    hana_components:                   "server, lcapps, afl, vch2021"
+  when:
+    - hana_sp08_or_higher
+    - hana_components == 'all'
+
+- name:                                "SAP HANA: Show HANA components"
+  ansible.builtin.debug:
+    msg:                               "HANA Components: {{ hana_components }}"
+
+
 # Scale out - ANF with shared storage
 # Scale out ANF must only run on the designated primary node from the DB server list.
 # /*---------------------------------------------------------------------------8
@@ -106,7 +135,7 @@
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
-    - name:                            "4.0.3 - SAP HANA SCALE OUT: SAP HANA Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: SAP HANA Template processing: Create ini file {{ sap_inifile }} from HANA_2_00_install_scaleout.rsp"
       ansible.builtin.template:
         src:                           "HANA_2_00_install_scaleout.rsp"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
@@ -122,6 +151,8 @@
         _rsp_number:                   "{{ db_instance_number }}"
         _rsp_system_usage:             "custom"
         # use_master_password:           "{{ hana_use_master_password }}"
+        _rsp_hana_data_basepath:       "{{ hana_data_basepath }}"
+        _rsp_hana_log_basepath:        "{{ hana_log_basepath }}"
         pwd_hdb_system:                "{{ hana_system_user_password | default(main_password) }}"
         pwd_os_sidadm:                 "{{ hana_os_sidadm_password | default(main_password) }}"
         pwd_os_sapadm:                 "{{ hana_os_sapadm_password | default(main_password) }}"
@@ -408,7 +439,7 @@
             path:                        "{{ dir_params }}/{{ sap_inifile }}"
             state:                       absent
 
-        - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
+        - name:                          "4.0.3 - SAP HANA SCALE OUT-HSR: Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install_scaleout.rsp }}"
           ansible.builtin.template:
             src:                         "HANA_2_00_install_scaleout.rsp"
             dest:                        "{{ dir_params }}/{{ sap_inifile }}"
@@ -682,7 +713,7 @@
             path:                          "{{ dir_params }}/{{ sap_inifile }}"
             state:                         absent
 
-        - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install.rsp }}"
+        - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install_scaleout.rsp }}"
           ansible.builtin.template:
             src:                           "HANA_2_00_install_scaleout.rsp"
             dest:                          "{{ dir_params }}/{{ sap_inifile }}"
