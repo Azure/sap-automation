@@ -130,9 +130,9 @@ NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
 CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ] && [ -f "${automation_config_directory}${ENVIRONMENT}${LOCATION}" ]; then
 	deployer_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}"
-elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+else
 	deployer_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}${NETWORK}"
 fi
 

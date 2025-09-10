@@ -256,9 +256,9 @@ fi
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 
-if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ] && [ -f "${automation_config_directory}${environment}${region_code}" ]; then
 	system_config_information="${automation_config_directory}${environment}${region_code}"
-elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+else
 	system_config_information="${automation_config_directory}${environment}${region_code}${network_logical_name}"
 fi
 

@@ -132,9 +132,9 @@ landscape_tfstate_key="${ENVIRONMENT_IN_FILENAME}-${LOCATION_CODE_IN_FILENAME}-$
 export landscape_tfstate_key
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ] && [ -f "${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}" ]; then
 	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
-elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+else
 	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
 fi
 
