@@ -514,7 +514,7 @@ locals {
   web_dispatcher_primary_ips           = [
                                            {
                                              name                          = "IPConfig1"
-                                             subnet_id                     = local.enable_deployment ? (
+                                             subnet_id                     = local.enable_deployment && local.webdispatcher_count > 0 ? (
                                                                                coalesce(
                                                                                 var.infrastructure.virtual_networks.sap.subnet_web.exists || var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ? data.azurerm_subnet.subnet_sap_web[0].id : "",
                                                                                 var.infrastructure.virtual_networks.sap.subnet_app.exists || var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? data.azurerm_subnet.subnet_sap_app[0].id : "",
@@ -532,7 +532,7 @@ locals {
   web_dispatcher_secondary_ips         = [
                                            {
                                              name                          = "IPConfig2"
-                                             subnet_id                     = local.enable_deployment ? (
+                                             subnet_id                     = local.enable_deployment && local.webdispatcher_count > 0 ? (
                                                                                coalesce(
                                                                                 var.infrastructure.virtual_networks.sap.subnet_web.exists || var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ? data.azurerm_subnet.subnet_sap_web[0].id : "",
                                                                                 var.infrastructure.virtual_networks.sap.subnet_app.exists || var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? data.azurerm_subnet.subnet_sap_app[0].id : "",
