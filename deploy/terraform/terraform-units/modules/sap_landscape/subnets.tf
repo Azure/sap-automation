@@ -157,6 +157,15 @@ resource "azurerm_subnet" "anf" {
              }
 }
 
+data "azurerm_subnet" "anf" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_anf.exists ? 1 : 0
+  name                                 = split("/", var.infrastructure.virtual_networks.sap.subnet_anf.id)[10]
+  resource_group_name                  = split("/", var.infrastructure.virtual_networks.sap.subnet_anf.id)[4]
+  virtual_network_name                 = split("/", var.infrastructure.virtual_networks.sap.subnet_anf.id)[8]
+}
+
+
 // Creates AMS subnet of SAP VNET
 resource "azurerm_subnet" "ams" {
   provider                             = azurerm.main

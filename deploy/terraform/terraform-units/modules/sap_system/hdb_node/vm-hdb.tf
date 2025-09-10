@@ -1,6 +1,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+data "azurerm_subnet" "storage" {
+  provider                             = azurerm.main
+  count                                = length(var.storage_subnet_id) > 0 ? 1 : 0
+  name                                 = split("/", var.storage_subnet_id)[10]
+  resource_group_name                  = split("/", var.storage_subnet_id)[4]
+  virtual_network_name                 = split("/", var.storage_subnet_id)[8]
+}
+
+
 /*-----------------------------------------------------------------------------8
 |                                                                              |
 |                                 HANA - VMs                                   |
@@ -144,14 +153,14 @@ resource "azurerm_network_interface" "nics_dbnodes_storage" {
   ip_configuration {
                      primary   = true
                      name      = "ipconfig1"
-                     subnet_id = var.storage_subnet.id
+                     subnet_id = var.storage_subnet_id
 
                       private_ip_address = var.database.use_DHCP ? (
                        null) : (
                        length(try(var.database_vm_storage_nic_ips[count.index], "")) > 0 ? (
                          var.database_vm_storage_nic_ips[count.index]) : (
                          cidrhost(
-                           var.storage_subnet[0].address_prefixes[0],
+                           data.azurerm_subnet.storage[0].address_prefixes[0],
                            tonumber(count.index) + local.hdb_ip_offsets.hdb_scaleout_vm
                          )
                        )

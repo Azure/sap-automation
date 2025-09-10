@@ -124,15 +124,15 @@ resource "azurerm_windows_web_app" "webapp" {
   }
 
   auth_settings_v2 {
-    auth_enabled                               = true
+    auth_enabled                               = length(var.app_service.app_registration_id) > 0
     unauthenticated_action                     = "RedirectToLoginPage"
     default_provider                           = "AzureActiveDirectory"
     active_directory_v2 {
-      client_id                                = var.app_service.app_registration_id
+      client_id                                = length(var.app_service.app_registration_id) > 0 ? var.app_service.app_registration_id : null
       tenant_auth_endpoint                     = "https://login.microsoftonline.com/${data.azurerm_client_config.deployer.tenant_id}/v2.0"
       www_authentication_disabled              = false
       client_secret_setting_name               = "OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"
-      allowed_applications                     = [var.app_service.app_registration_id]
+      allowed_applications                     = [length(var.app_service.app_registration_id) > 0 ? var.app_service.app_registration_id : null]
       allowed_audiences                        = []
       allowed_groups                           = []
       allowed_identities                       = []
