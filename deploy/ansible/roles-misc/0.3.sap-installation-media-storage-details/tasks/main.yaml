@@ -63,7 +63,7 @@
 
 - name:                                "0.4 Installation Media: - Get Control Plane Subscription"
   ansible.builtin.set_fact:
-    control_plane_subscription_id:     "{{ lookup('ansible.builtin.env', 'control_plane_subscription') | default('') }}"
+    control_plane_subscription_id:     "{{ lookup('ansible.builtin.env', 'CONTROL_PLANE_SUBSCRIPTION_ID') | default('') }}"
 
 - name:                                "0.4 Installation Media: - Extract SAP Binaries Storage Account SAS (temp)"
   ansible.builtin.set_fact:
