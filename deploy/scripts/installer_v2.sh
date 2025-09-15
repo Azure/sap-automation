@@ -221,7 +221,7 @@ function parse_arguments() {
 		if [ -z "${landscape_tfstate_key}" ]; then
 			if [ 1 != $called_from_ado ]; then
 				read -r -p "Workload terraform statefile name: " landscape_tfstate_key
-				save_config_var "landscape_tfstate_key" "${system_config_information}"
+				save_config_var "landscape_tfstate_key" "${system_environment_file_name}"
 			else
 				print_banner "Installer" "Workload terraform statefile name is required" "error"
 				unset TF_DATA_DIR
@@ -240,7 +240,7 @@ function parse_arguments() {
 		if [ -z "${deployer_tfstate_key}" ]; then
 			if [ 1 != $called_from_ado ]; then
 				read -r -p "Deployer terraform state file name: " deployer_tfstate_key
-				save_config_var "deployer_tfstate_key" "${system_config_information}"
+				save_config_var "deployer_tfstate_key" "${system_environment_file_name}"
 			else
 				print_banner "Installer" "Deployer terraform state file name is required" "error"
 				unset TF_DATA_DIR
@@ -259,7 +259,7 @@ function parse_arguments() {
 		return $?
 	fi
 
-	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
+	automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 	# Check that Terraform and Azure CLI is installed
 	if ! validate_dependencies; then
@@ -271,18 +271,18 @@ function parse_arguments() {
 		return $?
 	fi
 
-	if [ $deployment_system == sap_system ] || [ $deployment_system == sap_landscape ]; then
-		system_config_information="${CONFIG_DIR}/${WORKLOAD_ZONE_NAME}"
-		touch "${system_config_information}"
-		save_config_vars "${system_config_information}" landscape_tfstate_key_exists
-
-		# network_logical_name=$(echo $WORKLOAD_ZONE_NAME | cut -d'-' -f3)
+	if [ -n "$landscape_tfstate_key" ]; then
+		environment=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
+		region_code=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $2}' | xargs)
+		network_logical_name=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $3}' | xargs)
 	else
-		system_config_information="${CONFIG_DIR}/${CONTROL_PLANE_NAME}"
-		touch "${system_config_information}"
-		# management_network_logical_name=$(echo $CONTROL_PLANE_NAME | cut -d'-' -f3)
+		environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
+		region_code=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
+		network_logical_name=$(echo "$deployer_tfstate_	key" | awk -F'-' '{print $3}' | xargs)
 	fi
-	save_config_vars "${system_config_information}" deployer_tfstate_key APPLICATION_CONFIGURATION_ID CONTROL_PLANE_NAME
+
+	system_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${environment}" "${region_code}" "${network_logical_name}")
+	save_config_vars "${system_environment_file_name}" deployer_tfstate_key APPLICATION_CONFIGURATION_ID CONTROL_PLANE_NAME
 
 	region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 	if valid_region_name "${region}"; then
@@ -364,7 +364,7 @@ function retrieve_parameters() {
 
 			fi
 		else
-			load_config_vars "${system_config_information}" \
+			load_config_vars "${system_environment_file_name}" \
 				tfstate_resource_id DEPLOYER_KEYVAULT
 
 			TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
@@ -452,12 +452,12 @@ function persist_files() {
 	fi
 
 	if [ "${deployment_system}" == sap_landscape ]; then
-		az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${WORKLOAD_ZONE_NAME}" \
+		az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${WORKLOAD_ZONE_NAME}" \
 			--subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --auth-mode "$auth_flag" --no-progress --overwrite --only-show-errors --output none
 	fi
 	if [ "${deployment_system}" == sap_library ]; then
-		deployer_config_information="${CONFIG_DIR}/${CONTROL_PLANE_NAME}"
-		az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${CONTROL_PLANE_NAME}" \
+
+		az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${CONTROL_PLANE_NAME}" \
 			--subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --auth-mode "$auth_flag" --no-progress --overwrite --only-show-errors --output none
 	fi
 
@@ -559,7 +559,7 @@ function sdaf_installer() {
 	fi
 	key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
-	echo "Configuration file:                  $system_config_information"
+	echo "Configuration file:                  $system_environment_file_name"
 	echo "Deployment region:                   $region"
 	echo "Deployment region code:              $region_code"
 	echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
@@ -812,7 +812,7 @@ function sdaf_installer() {
 		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 			DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 			if [ -n "$DEPLOYER_KEYVAULT" ]; then
-				save_config_var "DEPLOYER_KEYVAULT" "${system_config_information}"
+				save_config_var "DEPLOYER_KEYVAULT" "${system_environment_file_name}"
 			fi
 		fi
 
@@ -821,7 +821,7 @@ function sdaf_installer() {
 	if [ "${deployment_system}" == sap_landscape ]; then
 		state_path="LANDSCAPE"
 		if [ $landscape_tfstate_key_exists == false ]; then
-			save_config_vars "${system_config_information}" \
+			save_config_vars "${system_environment_file_name}" \
 				landscape_tfstate_key
 		fi
 	fi
@@ -830,7 +830,7 @@ function sdaf_installer() {
 		state_path="LIBRARY"
 		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 			tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id | tr -d \")
-			save_config_vars "${system_config_information}" \
+			save_config_vars "${system_environment_file_name}" \
 				tfstate_resource_id
 		fi
 
@@ -1057,32 +1057,32 @@ function sdaf_installer() {
 
 			deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 			if [ -n "${deployer_random_id}" ]; then
-				save_config_var "deployer_random_id" "${system_config_information}"
+				save_config_var "deployer_random_id" "${system_environment_file_name}"
 				custom_random_id="${deployer_random_id:0:3}"
 				sed -i -e /"custom_random_id"/d "${parameterFilename}"
 				printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 			fi
 			DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 			if [ -n "${DEPLOYER_KEYVAULT}" ]; then
-				save_config_var "DEPLOYER_KEYVAULT" "${system_config_information}"
+				save_config_var "DEPLOYER_KEYVAULT" "${system_environment_file_name}"
 				export DEPLOYER_KEYVAULT
 			fi
 
 			APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
 			if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
-				save_config_var "APPLICATION_CONFIGURATION_ID" "${system_config_information}"
+				save_config_var "APPLICATION_CONFIGURATION_ID" "${system_environment_file_name}"
 				export APPLICATION_CONFIGURATION_ID
 			fi
 
 			APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 			if [ -n "${APP_SERVICE_NAME}" ]; then
-				save_config_var "APP_SERVICE_NAME" "${system_config_information}"
+				save_config_var "APP_SERVICE_NAME" "${system_environment_file_name}"
 				export APP_SERVICE_NAME
 			fi
 
 			HAS_WEBAPP=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
 			if [ -n "${HAS_WEBAPP}" ]; then
-				save_config_var "HAS_WEBAPP" "${system_config_information}"
+				save_config_var "HAS_WEBAPP" "${system_environment_file_name}"
 				export HAS_WEBAPP
 			fi
 
@@ -1141,7 +1141,7 @@ function sdaf_installer() {
 
 		library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 		if [ -n "${library_random_id}" ]; then
-			save_config_var "library_random_id" "${system_config_information}"
+			save_config_var "library_random_id" "${system_environment_file_name}"
 			custom_random_id="${library_random_id:0:3}"
 			sed -i -e /"custom_random_id"/d "${parameterFilename}"
 			printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"

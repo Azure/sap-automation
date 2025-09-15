@@ -75,10 +75,18 @@ else
 	fi
 fi
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ; then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
+variableGroupName="$VARIABLE_GROUP_WORKLOAD"
+
+if ! get_variable_group_id "$variableGroupName" "VARIABLE_GROUP_ID"; then
+	echo -e "$cyan--- Variable group $variableGroupName not found ---$reset"
+	variableGroupName="$VARIABLE_GROUP"
+
+	if ! get_variable_group_id "$variableGroupName" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $variableGroupName not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $variableGroupName not found."
+		exit 2
+	fi
+
 fi
 export VARIABLE_GROUP_ID
 
@@ -105,7 +113,6 @@ LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true
 NETWORK_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $3}')
 SID_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $4}')
 
-
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
 	echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	exit 2
@@ -126,32 +133,36 @@ if [ "$SID" != "$SID_IN_FILENAME" ]; then
 	exit 2
 fi
 
-
 WORKLOAD_ZONE_NAME=$(echo "$SAP_SYSTEM_FOLDERNAME" | cut -d'-' -f1-3)
 landscape_tfstate_key="${ENVIRONMENT_IN_FILENAME}-${LOCATION_CODE_IN_FILENAME}-${NETWORK_IN_FILENAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ] && [ -f "${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}" ]; then
-	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
-else
-	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
-fi
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT_IN_FILENAME}" "${LOCATION_CODE_IN_FILENAME}" "${NETWORK_IN_FILENAME}")
+SYSTEM_CONFIGURATION_FILE="$workload_environment_file_name"
+export SYSTEM_CONFIGURATION_FILE
 
 deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "${workload_environment_file_name}" "deployer_tfstate_key")
 export deployer_tfstate_key
 
-Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+if [ -z "$Terraform_Remote_Storage_Account_Name" ]; then
+	Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+	if [ -z "$Terraform_Remote_Storage_Account_Name" ]; then
+		Terraform_Remote_Storage_Account_Name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+	fi
+fi
+saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$Terraform_Remote_Storage_Account_Name"
+
 tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$Terraform_Remote_Storage_Account_Name' | project id, name, subscription" --query data[0].id --output tsv)
 
 if [ -v DEPLOYER_KEYVAULT ] && [ -n "$DEPLOYER_KEYVAULT" ]; then
 	# If the variable is already set, use it
 	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 else
-	DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${workload_environment_file_name}" "deployer_keyvault")
+	DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP}" "DEPLOYER_KEYVAULT" "${workload_environment_file_name}" "deployer_keyvault")
 	export DEPLOYER_KEYVAULT
 fi
-
 
 echo ""
 echo -e "${green}Deployment details:"
@@ -182,6 +193,8 @@ fi
 export TF_VAR_spn_keyvault_id=${key_vault_id}
 
 terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$terraform_storage_account_name"
+
 terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 
@@ -208,9 +221,9 @@ echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
 cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh" --parameterfile "$SAP_SYSTEM_TFVARS_FILENAME" --type sap_system \
-	--deployer_tfstate_key "${deployer_tfstate_key}" --storageaccountname "$terraform_storage_account_name"  \
+	--deployer_tfstate_key "${deployer_tfstate_key}" --storageaccountname "$terraform_storage_account_name" \
 	--landscape_tfstate_key "${landscape_tfstate_key}" --state_subscription "${terraform_storage_account_subscription_id}" \
-	--ado --auto-approve ; then
+	--ado --auto-approve; then
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME completed successfully" "success"
 else

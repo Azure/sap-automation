@@ -135,15 +135,22 @@ get_region_code "$region"
 key=$(echo "${parameterfile}" | cut -d. -f1)
 
 #Persisting the parameters across executions
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-generic_config_information="${automation_config_directory}"config
-deployer_config_information="${automation_config_directory}""${environment}""${region_code}"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+generic_environment_file_name="${automation_config_directory}config"
+
+
+ENVIRONMENT=$(echo "$key" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "$key" | awk -F'-' '{print $2}' | xargs)
+NETWORK=$(echo "$key" | awk -F'-' '{print $3}' | xargs)
+
+deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
+
 deployer_plan_directory="${automation_config_directory}/plan/"
 deployer_plan_name="${deployer_plan_directory}${param_filename}.tfplan"
 
 param_dirname=$(pwd)
 
-init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
+init "${automation_config_directory}" "${generic_environment_file_name}" "${deployer_environment_file_name}"
 
 # check if the deployer plan directory exists, if not create it
 if [ ! -d "${deployer_plan_directory}" ]; then
@@ -166,6 +173,7 @@ fi
 echo "Configuration file:                  $parameterfile"
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
+echo "Deployment configuration file:       $deployer_environment_file_name"
 
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}"/.terraform
@@ -389,7 +397,7 @@ if [ -n "${approve}" ]; then
 	fi
 else
 	# shellcheck disable=SC2086
-	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" ; then
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}"; then
 		install_deployer_return_value=$?
 	else
 		install_deployer_return_value=$?
@@ -483,9 +491,9 @@ if [ 0 != $install_deployer_return_value ]; then
 fi
 
 if DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \"); then
-	touch "${deployer_config_information}"
+	touch "${deployer_environment_file_name}"
 	printf -v val %-.20s "$DEPLOYER_KEYVAULT"
-	save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
+	save_config_var "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}"
 	export DEPLOYER_KEYVAULT
 
 	echo ""
@@ -501,17 +509,31 @@ fi
 
 APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")
 if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
-	save_config_var "APPLICATION_CONFIGURATION_NAME" "${deployer_config_information}"
+	save_config_var "APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}"
 	export APPLICATION_CONFIGURATION_NAME
 	echo "APPLICATION_CONFIGURATION_NAME:         $APPLICATION_CONFIGURATION_NAME"
 fi
 
 APPLICATION_CONFIGURATION_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_config_deployment | tr -d \")
 if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
-	save_config_var "APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_config_information}"
+	save_config_var "APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_environment_file_name}"
 	export APPLICATION_CONFIGURATION_DEPLOYMENT
 	echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  $APPLICATION_CONFIGURATION_DEPLOYMENT"
 fi
+
+APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+	if [ -n "${APP_SERVICE_NAME}" ]; then
+		printf -v val %-.20s "$APP_SERVICE_NAME"
+		print_banner "$banner_title" "Application Configuration: $val" "info"
+		save_config_var "APP_SERVICE_NAME" "${deployer_environment_file_name}"
+		export APP_SERVICE_NAME
+	fi
+
+	APP_SERVICE_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
+	if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
+		save_config_var "APP_SERVICE_DEPLOYMENT" "${deployer_environment_file_name}"
+		export APP_SERVICE_DEPLOYMENT
+	fi
 
 deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 if [ -n "${deployer_random_id}" ]; then
@@ -522,19 +544,19 @@ fi
 
 ARM_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_client_id | tr -d \")
 if [ -n "${ARM_CLIENT_ID}" ]; then
-	save_config_var "ARM_CLIENT_ID" "${deployer_config_information}"
+	save_config_var "ARM_CLIENT_ID" "${deployer_environment_file_name}"
 	export ARM_CLIENT_ID
 fi
 
 ARM_OBJECT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
 if [ -n "${ARM_OBJECT_ID}" ]; then
-	save_config_var "ARM_OBJECT_ID" "${deployer_config_information}"
+	save_config_var "ARM_OBJECT_ID" "${deployer_environment_file_name}"
 	export ARM_OBJECT_ID
 fi
 
 DevOpsInfrastructureObjectId=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw DevOpsInfrastructureObjectId | tr -d \")
 if [ -n "${DevOpsInfrastructureObjectId}" ]; then
-	save_config_var "DevOpsInfrastructureObjectId" "${deployer_config_information}"
+	save_config_var "DevOpsInfrastructureObjectId" "${deployer_environment_file_name}"
 	export DevOpsInfrastructureObjectId
 fi
 

@@ -225,34 +225,34 @@ this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 export TF_VAR_Agent_IP=$this_ip
 echo "Agent IP:                            $this_ip"
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
-generic_config_information="${automation_config_directory}"/config
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+generic_environment_file_name="${automation_config_directory}"/config
 
-system_config_information="${automation_config_directory}/${environment}${region_code}"
-
-if [ "${deployment_system}" == sap_landscape ]; then
-	load_config_vars "$parameterfile_name" "network_logical_name"
-	network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]" | tr -d ' \r\n')
-
-	system_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
+if [ -n "$landscape_tfstate_key" ]; then
+	environment=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
+	region_code=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $2}' | xargs)
+	network_logical_name=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $3}' | xargs)
+else
+	environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
+	region_code=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
+	network_logical_name=$(echo "$deployer_tfstate_	key" | awk -F'-' '{print $3}' | xargs)
 fi
 
-if [ "${deployment_system}" == sap_system ]; then
-	load_config_vars "$parameterfile_name" "network_logical_name"
-	network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]" | tr -d ' \r\n')
-
-	system_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
+if [ -v SYSTEM_CONFIGURATION_FILE ]; then
+	system_environment_file_name=$SYSTEM_CONFIGURATION_FILE
+else
+	system_environment_file_name=$(get_configuration_file "$automation_config_directory" "$environment" "$region_code" "$network_logical_name")
 fi
 
-load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
+load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
 
-load_config_vars "${system_config_information}" "keyvault"
+load_config_vars "${system_environment_file_name}" "keyvault"
 TF_VAR_deployer_kv_user_arm_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$keyvault' | project id, name, subscription" --query data[0].id --output tsv)
 export TF_VAR_deployer_kv_user_arm_id
 
 export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
 
-echo "Configuration file:                  $system_config_information"
+echo "Configuration file:                  $system_environment_file_name"
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
 echo "Working_directory:                   $working_directory"
@@ -289,24 +289,24 @@ else
 	export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 fi
 
-init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
+init "${automation_config_directory}" "${generic_environment_file_name}" "${system_environment_file_name}"
 var_file="${parameterfile_dirname}"/"${parameterfile}"
 if [ -z "$REMOTE_STATE_SA" ]; then
-	load_config_vars "${system_config_information}" "REMOTE_STATE_SA"
-	load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
-	load_config_vars "${system_config_information}" "tfstate_resource_id"
-	load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
+	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_SA"
+	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_RG"
+	load_config_vars "${system_environment_file_name}" "tfstate_resource_id"
+	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
 else
-	save_config_vars "${system_config_information}" REMOTE_STATE_SA
-	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
-	load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
-	load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
-	load_config_vars "${system_config_information}" "tfstate_resource_id"
+	save_config_vars "${system_environment_file_name}" REMOTE_STATE_SA
+	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
+	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
+	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_RG"
+	load_config_vars "${system_environment_file_name}" "tfstate_resource_id"
 fi
 
-load_config_vars "${system_config_information}" "deployer_tfstate_key"
-load_config_vars "${system_config_information}" "landscape_tfstate_key"
-load_config_vars "${system_config_information}" "ARM_SUBSCRIPTION_ID"
+load_config_vars "${system_environment_file_name}" "deployer_tfstate_key"
+load_config_vars "${system_environment_file_name}" "landscape_tfstate_key"
+load_config_vars "${system_environment_file_name}" "ARM_SUBSCRIPTION_ID"
 
 deployer_tfstate_key_parameter=''
 if [ "${deployment_system}" != sap_deployer ]; then
@@ -672,17 +672,17 @@ else
 fi
 
 if [ "${deployment_system}" == sap_deployer ]; then
-	sed -i /deployer_tfstate_key/d "${system_config_information}"
+	sed -i /deployer_tfstate_key/d "${system_environment_file_name}"
 fi
 
 if [ "${deployment_system}" == sap_landscape ]; then
-	rm "${system_config_information}"
+	rm "${system_environment_file_name}"
 fi
 
 if [ "${deployment_system}" == sap_library ]; then
-	sed -i /REMOTE_STATE_RG/d "${system_config_information}"
-	sed -i /REMOTE_STATE_SA/d "${system_config_information}"
-	sed -i /tfstate_resource_id/d "${system_config_information}"
+	sed -i /REMOTE_STATE_RG/d "${system_environment_file_name}"
+	sed -i /REMOTE_STATE_SA/d "${system_environment_file_name}"
+	sed -i /tfstate_resource_id/d "${system_environment_file_name}"
 fi
 
 # if [ "${deployment_system}" == sap_system ]; then

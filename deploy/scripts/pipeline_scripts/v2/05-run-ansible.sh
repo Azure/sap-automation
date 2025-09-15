@@ -197,6 +197,7 @@ if [ -f "${filename}" ]; then
 						-e 'download_directory=$AGENT_TEMPDIRECTORY'                                \
 						-e orchestration_ansible_user=$USER                                         \
   					-e ansible_user=$user_name                                                  \
+
 						-e '_workspace_directory=$PARAMETERS_FOLDER'                                \
 						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' '${filename}' $EXTRA_PARAMS       \
 						$EXTRA_PARAM_FILE"

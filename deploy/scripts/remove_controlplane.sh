@@ -189,11 +189,11 @@ else
 	exit 2
 fi
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
-generic_config_information="${automation_config_directory}"/config
-deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+generic_environment_file_name="${automation_config_directory}"/config
+deployer_environment_file_name="${automation_config_directory}"/"${environment}""${region_code}"
 
-load_config_vars "${deployer_config_information}" "step"
+load_config_vars "${deployer_environment_file_name}" "step"
 if [ 1 -eq $step ]; then
 	exit 0
 fi
@@ -202,13 +202,13 @@ if [ 0 -eq $step ]; then
 	exit 0
 fi
 
-if [ -z "$deployer_config_information" ]; then
-	rm "$deployer_config_information"
+if [ -z "$deployer_environment_file_name" ]; then
+	rm "$deployer_environment_file_name"
 fi
 
 root_dirname=$(pwd)
 
-init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
+init "${automation_config_directory}" "${generic_environment_file_name}" "${deployer_environment_file_name}"
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 
@@ -263,10 +263,10 @@ terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/sa
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
 if [ -z "${storage_account}" ]; then
-	load_config_vars "${deployer_config_information}" "STATE_SUBSCRIPTION"
-	load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
-	load_config_vars "${deployer_config_information}" "REMOTE_STATE_RG"
-	load_config_vars "${deployer_config_information}" "tfstate_resource_id"
+	load_config_vars "${deployer_environment_file_name}" "STATE_SUBSCRIPTION"
+	load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
+	load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_RG"
+	load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
 
 	if [ -n "${STATE_SUBSCRIPTION}" ]; then
 		subscription="${STATE_SUBSCRIPTION}"
@@ -457,7 +457,7 @@ echo ""
 STATE_SUBSCRIPTION=''
 REMOTE_STATE_SA=''
 REMOTE_STATE_RG=''
-save_config_vars "${deployer_config_information}" \
+save_config_vars "${deployer_environment_file_name}" \
 	tfstate_resource_id \
 	REMOTE_STATE_SA \
 	REMOTE_STATE_RG \
@@ -465,7 +465,7 @@ save_config_vars "${deployer_config_information}" \
 
 cd "${current_directory}" || exit
 step=1
-save_config_var "step" "${deployer_config_information}"
+save_config_var "step" "${deployer_environment_file_name}"
 
 if [ 1 -eq $keep_agent ]; then
 	echo "Keeping the Azure DevOps agent"
@@ -476,7 +476,7 @@ else
 	param_dirname=$(pwd)
 
 	if [ -z "$keyvault" ]; then
-		load_config_vars "${deployer_config_information}" "keyvault"
+		load_config_vars "${deployer_environment_file_name}" "keyvault"
 		if valid_kv_name "$keyvault"; then
 			az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$keyvault"
 		fi
@@ -524,14 +524,14 @@ else
 	fi
 
 	step=0
-	save_config_var "step" "${deployer_config_information}"
+	save_config_var "step" "${deployer_environment_file_name}"
 	if [ 0 != $return_value ]; then
 		keyvault=''
 		deployer_tfstate_key=''
-		save_config_var "$keyvault" "${deployer_config_information}"
-		save_config_var "$deployer_tfstate_key" "${deployer_config_information}"
-		if [ -f "${deployer_config_information}" ]; then
-			rm "${deployer_config_information}"
+		save_config_var "$keyvault" "${deployer_environment_file_name}"
+		save_config_var "$deployer_tfstate_key" "${deployer_environment_file_name}"
+		if [ -f "${deployer_environment_file_name}" ]; then
+			rm "${deployer_environment_file_name}"
 		fi
 	fi
 fi

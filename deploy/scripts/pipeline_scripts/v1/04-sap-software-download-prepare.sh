@@ -6,15 +6,15 @@ green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
 
-#External helper functions
+# External helper functions
+#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
-
-banner_title="Deploy SAP System"
+banner_title="Prepare software download"
 
 #call stack has full script name when using source
 # shellcheck disable=SC1091
@@ -22,6 +22,9 @@ source "${grand_parent_directory}/deploy_utils.sh"
 
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
+
+echo "##vso[build.updatebuildnumber]Deploying the Control Plane defined in $DEPLOYER_FOLDERNAME"
+print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 DEBUG=False
 
@@ -35,39 +38,65 @@ fi
 export DEBUG
 set -eu
 
-AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
-export AZURE_DEVOPS_EXT_PAT
-
-cd "$CONFIG_REPO_PATH" || exit
-
 # Print the execution environment details
 print_header
 
 # Configure DevOps
 configure_devops
 
-# Set logon variables
-if [ $USE_MSI == "true" ]; then
-	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-fi
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.12.2}"
 fi
 
-if az account show --query name; then
-	echo -e "$green--- Already logged in to Azure ---$reset"
-else
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure $USE_MSI
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
+echo -e "$green--- Validations ---$reset"
+if [ "$USE_MSI" != "true" ]; then
+
+	if ! printenv ARM_SUBSCRIPTION_ID; then
+		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group" "error"
+		exit 2
 	fi
+
+	if ! printenv ARM_CLIENT_SECRET; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group" "error"
+		exit 2
+	fi
+
+	if ! printenv ARM_CLIENT_ID; then
+		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group" "error"
+		exit 2
+	fi
+
+	if ! printenv ARM_TENANT_ID; then
+		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
+		print_banner "$banner_title" "Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group" "error"
+		exit 2
+	fi
+fi
+
+echo -e "$green--- az login ---$reset"
+# Set logon variables
+if [ "$USE_MSI" != "true" ]; then
+
+	ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+	export ARM_TENANT_ID
+	ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+	export ARM_SUBSCRIPTION_ID
+else
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
+fi
+
+LogonToAzure $USE_MSI
+return_code=$?
+if [ 0 != $return_code ]; then
+	echo -e "$bold_red--- Login failed ---$reset"
+	echo "##vso[task.logissue type=error]az login failed."
+	exit $return_code
 fi
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
@@ -101,7 +130,7 @@ fi
 echo -e "$green--- Get key_vault name ---$reset"
 VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
 export VARIABLE_GROUP_ID
-printf -v val '%-15s' "$(variable_group) id:"
+printf -v val '%-15s' "$VARIABLE_GROUP_ID id:"
 echo "$val                      $VARIABLE_GROUP_ID"
 if [ -z "${VARIABLE_GROUP_ID}" ]; then
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP could not be found."

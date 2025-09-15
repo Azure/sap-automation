@@ -87,12 +87,19 @@ if [ 0 != $return_code ]; then
 fi
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
+	if [ -v VARIABLE_GROUP_CONTROL_PLANE ]; then
+		if ! get_variable_group_id "$VARIABLE_GROUP_CONTROL_PLANE" "VARIABLE_GROUP_ID"; then
+			echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+			echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+			exit 2
+		fi
+		export VARIABLE_GROUP_ID
+	else
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
 fi
-export VARIABLE_GROUP_ID
-
 if [ -v PARENT_VARIABLE_GROUP ]; then
 	if get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
 		DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
