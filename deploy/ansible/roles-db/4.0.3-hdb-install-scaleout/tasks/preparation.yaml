@@ -232,7 +232,7 @@
     cmd:                               "ssh -o ConnectTimeout=10 -o BatchMode=yes {{ item }} 'echo SSH_OK'"
   register:                            ssh_test_results
   changed_when:                        false
-  failed_when:                         
+  failed_when:
                                        - ssh_test_results.rc != 0
                                        - "'SSH_OK' not in ssh_test_results.stdout"
   loop:                                "{{ all_hana_hosts }}"
