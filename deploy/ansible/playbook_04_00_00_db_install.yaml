@@ -288,11 +288,10 @@
 
     # This configures root account on HANA nodes for scale out configuration ( shared and shared nothing with HSR ) to use password based login.
     - name:                            "SAP HANA: Configure root credential for Scale-Out"
-      block:
       when:
-        - database_scale_out
-        - hostvars.localhost.root_password is defined
-
+                                       - database_scale_out
+                                       - hostvars.localhost.root_password is defined
+      block:
         - name:                            Reset root password
           become:                          true
           ansible.builtin.user:
@@ -424,8 +423,12 @@
 
           tags:
             - 4.0.0-hdb-install
+
     # This disables root account on HANA nodes for scale out configuration ( shared and shared nothing with HSR ) to use password based login.
     - name:                           "SAP HANA: disable root credential for Scale-Out"
+      when:
+        - database_scale_out
+        - hostvars.localhost.root_password is defined
       block:
         - name:                            Reset root password to random local value
           become:                          true
@@ -451,9 +454,7 @@
           ansible.builtin.service:
             name:                          sshd
             state:                         restarted
-      when:
-        - database_scale_out
-        - hostvars.localhost.root_password is defined
+
 
 
 # Configure HANA Scale out Pacemaker, run on DB nodes and majority maker node ( first node if multiple are provided, rest are ignored. )

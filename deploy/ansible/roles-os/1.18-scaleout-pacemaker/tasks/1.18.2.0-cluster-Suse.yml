@@ -149,7 +149,8 @@
 
     - name:                            "1.18.2.0 Generic Pacemaker - Enable Stonith"
       ansible.builtin.shell: |
-                                       crm configure property stonith-enabled=true; crm configure property concurrent-fencing=true
+                                       crm configure property stonith-enabled=true;
+                                       crm configure property concurrent-fencing=true;
 
 
     - name:                            "1.18.2.0 Generic Pacemaker - Stonith Timeout Property"
