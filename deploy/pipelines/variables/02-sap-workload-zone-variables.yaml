@@ -14,14 +14,19 @@ parameters:
     default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
   - name:                              workload_environment
-    displayName:                       Workload Environment (DEV, QUA, PRD, ...)
+    displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET"
     type:                              string
-    default:                           DEV
+    default:                           DEV-WEEU-SAP01
 
   - name:                              deployer_environment
     displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
     type:                              string
     default:                           MGMT
+
+  - name:                              control_plane_name
+    displayName:                       "Control Plane name, use the following syntax: ENV-LOCA-VNET"
+    type:                              string
+    default:                           MGMT-WEEU-DEP01
 
   - name:                              deployer_region
     displayName:                       Deployer region name code (MGMT, DEV, QA, PRD, ...)
@@ -92,19 +97,19 @@ parameters:
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ parameters.workload_environment }}
+  - group:                             SDAF-${{ replace(parameters.workload_environment, '-INFRASTRUCTURE', '') }}
 
   - name:                              parent_variable_group
     value:                             SDAF-${{ parameters.deployer_environment }}
 
   - name:                              variable_group
-    value:                             SDAF-${{ parameters.workload_environment }}
+    value:                             SDAF-${{ replace(parameters.workload_environment, '-INFRASTRUCTURE', '') }}
 
   - name:                              workload_zone_foldername
-    value:                             ${{ parameters.workload_zone }}
+    value:                             ${{ iif(contains(parameters.workload_zone, '-INFRASTRUCTURE'),parameters.workload_zone, format('{0}-{1}', parameters.workload_zone, 'INFRASTRUCTURE')) }}
 
   - name:                              workload_zone_tfvars_filename
-    value:                             ${{ parameters.workload_zone }}.tfvars
+    value:                             ${{ iif(contains(parameters.workload_zone, '-INFRASTRUCTURE'),format('{0}.tfvars', parameters.workload_zone), format('{0}-{1}.tfvars', parameters.workload_zone, 'INFRASTRUCTURE')) }}
 
   - name:                              deployer_environment
     value:                             ${{ parameters.deployer_environment }}
