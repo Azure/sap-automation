@@ -1,7 +1,8 @@
 {# Copyright (c) Microsoft Corporation.
- # Licensed under the MIT License.
+# Licensed under the MIT License.
 #}
 {#
+
 Outline:
   1) Loop over all the hosts in the playbook
   2) For each host, loop over all the network interfaces except 'lo' (localhost)
@@ -59,9 +60,22 @@ Notes:
 
 0.........1.........2.........3.........4.........5.........6.........7.........8
 
+
+
 #}
-# {{ sap_sid|upper }}
+
+{% set db_scale_out = database_scale_out | default(false) %}
+{% set db_ha = database_high_availability | default(false) %}
+{% set subnet_db_valid = subnet_cidr_db is defined  and (subnet_cidr_db | string | length > 0) %}
+{% set subnet_storage_valid = subnet_cidr_storage is defined and (subnet_cidr_storage | string | length > 0) %}
+
+#
+# SID: {{ sap_sid|upper }}
 # {{ ansible_play_hosts|length }} Hosts
+# Scale out: {{ db_scale_out }}
+# High availability: {{ db_ha }}
+#
+
 {#
 
 Loop through all the hosts that are referenced by the Playbook.
@@ -73,85 +87,92 @@ ansible_facts.
 
 #}
 
+
+
 {# This template generates host entries based on the provided data #}
 {% for host in ansible_play_hosts|sort %}
 {# Set variables for the current host #}
 {%   set supported_tiers = hostvars[host]['supported_tiers'] if 'supported_tiers' in hostvars[host] else [] %}
 {%   set virtual_host_names = [] %}
+{%   set default_virtual_host = hostvars[host]['virtual_host'] if 'virtual_host' in hostvars[host] else none %}
+{%   set scs_ha_enabled = scs_high_availability | default(false) %}
 {# Assign virtual host names based on supported tiers #}
 {%   for tier in supported_tiers %}
 {%     if tier == 'scs' %}
-{%       set scs_virtual_host = hostvars[host]['custom_scs_virtual_hostname'] if 'custom_scs_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
-{%       if scs_virtual_host not in virtual_host_names and not scs_high_availability %}
-{%         set _ = virtual_host_names.append(scs_virtual_host) %}
+{%       set scs_virtual_host = hostvars[host]['custom_scs_virtual_hostname'] if 'custom_scs_virtual_hostname' in hostvars[host] else default_virtual_host %}
+{%       if not scs_virtual_host == default_virtual_host %}
+{%         if scs_virtual_host not in virtual_host_names and not scs_ha_enabled %}
+{%           set _ = virtual_host_names.append(scs_virtual_host) %}
+{%         endif %}
 {%       endif %}
 {%     elif tier == 'ers' %}
-{%       set ers_virtual_host = hostvars[host]['custom_ers_virtual_hostname'] if 'custom_ers_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
-{%       if ers_virtual_host not in virtual_host_names and not scs_high_availability %}
-{%         set _ = virtual_host_names.append(ers_virtual_host) %}
+{%       set ers_virtual_host = hostvars[host]['custom_ers_virtual_hostname'] if 'custom_ers_virtual_hostname' in hostvars[host] else default_virtual_host %}
+{%       if not ers_virtual_host == default_virtual_host %}
+{%         if ers_virtual_host not in virtual_host_names and not scs_ha_enabled %}
+{%           set _ = virtual_host_names.append(ers_virtual_host) %}
+{%         endif %}
 {%       endif %}
 {%     elif tier == 'pas' %}
-{%       set pas_virtual_host = hostvars[host]['custom_pas_virtual_hostname'] if 'custom_pas_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
-{%       if pas_virtual_host not in virtual_host_names %}
-{%         set _ = virtual_host_names.append(pas_virtual_host) %}
+{%       set pas_virtual_host = hostvars[host]['custom_pas_virtual_hostname'] if 'custom_pas_virtual_hostname' in hostvars[host] else default_virtual_host %}
+{%       if not pas_virtual_host == default_virtual_host %}
+{%         if pas_virtual_host not in virtual_host_names %}
+{%           set _ = virtual_host_names.append(pas_virtual_host) %}
+{%         endif %}
 {%       endif %}
 {%     elif tier == 'app' %}
-{%       set app_virtual_host = hostvars[host]['custom_app_virtual_hostname'] if 'custom_app_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
-{%       if app_virtual_host not in virtual_host_names %}
-{%         set _ = virtual_host_names.append(app_virtual_host) %}
+{%       set app_virtual_host = hostvars[host]['custom_app_virtual_hostname'] if 'custom_app_virtual_hostname' in hostvars[host] else default_virtual_host %}
+{%       if not app_virtual_host == default_virtual_host %}
+{%         if app_virtual_host not in virtual_host_names %}
+{%           set _ = virtual_host_names.append(app_virtual_host) %}
+{%         endif %}
 {%       endif %}
 {%     elif tier == 'web' %}
-{%       set web_virtual_host = hostvars[host]['custom_web_virtual_hostname'] if 'custom_web_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
-{%       if web_virtual_host not in virtual_host_names %}
-{%         set _ = virtual_host_names.append(web_virtual_host) %}
+{%       set web_virtual_host = hostvars[host]['custom_web_virtual_hostname'] if 'custom_web_virtual_hostname' in hostvars[host] else default_virtual_host %}
+{%       if not web_virtual_host == default_virtual_host %}
+{%         if  web_virtual_host not in virtual_host_names %}
+{%           set _ = virtual_host_names.append(web_virtual_host) %}
+{%         endif %}
 {%       endif %}
 {%     elif tier in ['hana', 'oracle', 'oracle-asm', 'db2', 'sybase'] %}
-{%       set db_virtual_host = hostvars[host]['custom_db_virtual_hostname'] if 'custom_db_virtual_hostname' in hostvars[host] else hostvars[host]['virtual_host'] %}
-{%       if db_virtual_host not in virtual_host_names %}
-{%         set _ = virtual_host_names.append(db_virtual_host) %}
+{%       set db_virtual_host = hostvars[host]['custom_db_virtual_hostname'] if 'custom_db_virtual_hostname' in hostvars[host] else default_virtual_host %}
+{%       if not db_virtual_host == default_virtual_host %}
+{%         if db_virtual_host not in virtual_host_names %}
+{%           set _ = virtual_host_names.append(db_virtual_host) %}
+{%         endif %}
 {%       endif %}
 {%     endif %}
 {%   endfor %}
 {# Keep only unique values in the virtual_host_names #}
 {% set virtual_host_names = virtual_host_names | unique %}
-
-{# Determine the IPs for the current host from ipaddr variable. Do not sort it, the order is already correct. #}
-{%   set host_ips = hostvars[host]['ipadd'] %}
+{# Determine the IPs for the current host from ipadd variable. Do not sort it, the order is already correct. #}
+{%   set host_ips = hostvars[host]['ipadd'] if 'ipadd' in hostvars[host] else [] %}
 {# Check if there are IPs available for the current host #}
-{%   if host_ips %}
-
+{%   if host_ips and host_ips | length > 0 %}
 {{ '%-19s' | format(host_ips[0]) }}{{ '%-80s ' | format(host + '.' + sap_fqdn) }}{{ '%-21s' | format(host) }}
-
-{# If there's only one IP, replicate the entry with different virtual_host_names #}
-{%     if host_ips|length == 1 %}
-{%       for vh_name in virtual_host_names if virtual_host_names | length >= 1 %}
-
+{%     for vh_name in virtual_host_names %}
 {{ '%-19s' | format(host_ips[0]) }}{{ '%-80s ' | format(vh_name + '.' + sap_fqdn) }}{{ '%-21s' | format(vh_name) }}
-
-{%       endfor %}
-{%     else %}
+{%     endfor %}
 {# Loop through remaining IPs for the virtual host #}
-{%       for ip in host_ips[1:] %}
-{%         if (database_scale_out) %}
-{%            if (database_high_availability) %}
-{%              if (subnet_cidr_db | ansible.utils.network_in_usable(ip)) %}
+{%     for ip in host_ips[1:] %}
+{%       if db_scale_out %}
+{%          if db_ha %}
+{%            if (subnet_db_valid and subnet_cidr_db and (subnet_cidr_db | ansible.utils.network_in_usable(ip))) %}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-hsr.' + sap_fqdn) }}{{ '%-21s' | format(host + '-hsr') }}
-{%              elif (subnet_cidr_storage | ansible.utils.network_in_usable(ip)) %}
+{%            elif (subnet_storage_valid and subnet_cidr_storage and (subnet_cidr_storage | ansible.utils.network_in_usable(ip))) %}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-inter.' + sap_fqdn) }}{{ '%-21s' | format(host + '-inter') }}
-{%              endif %}
-{%            else %}
-{%              if (subnet_cidr_db | ansible.utils.network_in_usable(ip)) %}
-{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-storage.' + sap_fqdn) }}{{ '%-21s' | format(host + '-storage') }}
-{%              elif (subnet_cidr_storage | ansible.utils.network_in_usable(ip)) %}
-{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-hana.' + sap_fqdn) }}{{ '%-21s' | format(host + '-hana') }}
-{%              endif %}
 {%            endif %}
-{%         else %}
-{%           for vh_name in virtual_host_names if virtual_host_names | length >= 1 %}
+{%          else %}
+{%            if (subnet_db_valid and subnet_cidr_db and (subnet_cidr_db | ansible.utils.network_in_usable(ip))) %}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-hana.' + sap_fqdn) }}{{ '%-21s' | format(host + '-hana') }}
+{%            elif (subnet_storage_valid and subnet_cidr_storage and (subnet_cidr_storage | ansible.utils.network_in_usable(ip))) %}
+{{ '%-19s' | format(ip) }}{{ '%-80s ' | format(host + '-storage.' + sap_fqdn) }}{{ '%-21s' | format(host + '-storage') }}
+{%            endif %}
+{%          endif %}
+{%       else %}
+{%         for vh_name in virtual_host_names %}
 {{ '%-19s' | format(ip) }}{{ '%-80s ' | format(vh_name + '.' + sap_fqdn) }}{{ '%-21s' | format(vh_name) }}
-{%           endfor %}
-{%         endif %}
-{%       endfor %}
-{%     endif %}
+{%         endfor %}
+{%       endif %}
+{%     endfor %}
 {%   endif %}
 {% endfor %}
