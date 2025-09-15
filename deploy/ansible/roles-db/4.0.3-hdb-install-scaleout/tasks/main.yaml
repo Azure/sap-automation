@@ -300,7 +300,7 @@
       ansible.builtin.file:
         path:                          "{{ hana_shared_basepath }}"
         state:                         directory
-        mode:                          '0755'
+        mode:                          '0775'
       become:                          true
       become_user:                     root
 
@@ -891,7 +891,7 @@
           ansible.builtin.file:
             path:                          "{{ hana_shared_basepath }}"
             state:                         directory
-            mode:                          '0755'
+            mode:                          '0775'
           become:                          true
           become_user:                     root
 
