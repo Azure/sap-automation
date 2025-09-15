@@ -430,6 +430,7 @@
                                        - database_high_availability
                                        - hana_shared_mountpoint is defined
                                        - hana_shared_mountpoint | length == 2
+                                       - node_tier in ['hana']
   ansible.builtin.include_tasks:        2.6.0.1-afs-mount.yaml
   loop:
     - {

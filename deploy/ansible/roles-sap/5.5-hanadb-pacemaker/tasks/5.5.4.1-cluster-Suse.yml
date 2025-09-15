@@ -51,19 +51,18 @@
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure the Resource Defaults are configured"
       ansible.builtin.shell: >
-                                       crm configure rsc_defaults \$id="rsc-options"
-                                       resource-stickiness="1000"
-                                       migration-threshold="5000"
+                                       crm configure rsc_defaults \$id="rsc-options" \
+                                         resource-stickiness="1000" \
+                                         migration-threshold="5000"
     # Operation Default recommendation from section 5.3.1 in https://www.suse.com/media/white-paper/suse_linux_enterprise_server_for_sap_applications_12_sp1.pdf#page=26
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure SAP HANA Topology resource is configured"
       ansible.builtin.shell: >
-                                       crm configure primitive rsc_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}
-                                       ocf:suse:SAPHanaTopology
-                                       operations \$id="rsc_sap2_{{ db_sid | upper }}_HDB{{ db_instance_number }}-operations"
-                                       op monitor interval="10" timeout="600"
-                                       op start interval="0" timeout="600"
-                                       op stop interval="0" timeout="300"
+                                       crm configure primitive rsc_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} ocf:suse:SAPHanaTopology \
+                                         operations \$id="rsc_sap2_{{ db_sid | upper }}_HDB{{ db_instance_number }}-operations" \
+                                         op monitor interval="10" timeout="600" \
+                                         op start interval="0" timeout="600" \
+                                         op stop interval="0" timeout="300" \
                                        params SID="{{ db_sid | upper }}" InstanceNumber="{{ db_instance_number }}"
       register:                        sap_hana_topology
       failed_when:                     sap_hana_topology.rc > 1
@@ -71,38 +70,33 @@
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure SAP HANA Topology clone set resource is configured"
       ansible.builtin.shell: >
-                                       crm configure clone cln_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}
-                                       rsc_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}
-                                       meta clone-node-max="1" target-role="Started" interleave="true"
+                                       crm configure clone cln_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
+                                         rsc_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
+                                         meta clone-node-max="1" target-role="Started" interleave="true"
       register:                        sap_hana_topology_cln
       failed_when:                     sap_hana_topology_cln.rc > 1
 
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure SAP HANA primitive resource is configured"
       ansible.builtin.shell: >
-                                       crm configure primitive rsc_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}
-                                       ocf:suse:SAPHana
-                                       operations \$id="rsc_sap_{{ db_sid | upper }}_HDB{{ db_instance_number }}-operations"
-                                       op start interval="0" timeout="{{ cluster_sap_hana_timeouts.start }}"
-                                       op stop interval="0" timeout="{{ cluster_sap_hana_timeouts.stop }}"
-                                       op promote interval="0" timeout="{{ cluster_sap_hana_timeouts.promote }}"
-                                       op monitor interval="60" role="Master" timeout="{{ cluster_sap_hana_timeouts.monitor_master }}"
-                                       op monitor interval="61" role="Slave" timeout="{{ cluster_sap_hana_timeouts.monitor_slave }}"
-                                       params
-                                       SID="{{ db_sid | upper }}"
-                                       InstanceNumber="{{ db_instance_number }}"
-                                       PREFER_SITE_TAKEOVER="true"
-                                       DUPLICATE_PRIMARY_TIMEOUT="7200"
-                                       AUTOMATED_REGISTER="true"
+                                       crm configure primitive rsc_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} ocf:suse:SAPHana \
+                                         operations \$id="rsc_sap_{{ db_sid | upper }}_HDB{{ db_instance_number }}-operations" \
+                                         op start interval="0" timeout="{{ cluster_sap_hana_timeouts.start }}" \
+                                         op stop interval="0" timeout="{{ cluster_sap_hana_timeouts.stop }}" \
+                                         op promote interval="0" timeout="{{ cluster_sap_hana_timeouts.promote }}" \
+                                         op monitor interval="60" role="Master" timeout="{{ cluster_sap_hana_timeouts.monitor_master }}" \
+                                         op monitor interval="61" role="Slave" timeout="{{ cluster_sap_hana_timeouts.monitor_slave }}" \
+                                         params SID="{{ db_sid | upper }}" InstanceNumber="{{ db_instance_number }}" \
+                                         PREFER_SITE_TAKEOVER="true" DUPLICATE_PRIMARY_TIMEOUT="7200" AUTOMATED_REGISTER="true"
       register:                        sap_hana_topology_rsc
       failed_when:                     sap_hana_topology_rsc.rc > 1
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure SAP HANA master-slave resource is configured"
       ansible.builtin.shell: >
-                                       crm configure ms msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}
-                                       rsc_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}
-                                       meta notify="true" clone-max="2" clone-node-max="1"
-                                       target-role="Started" interleave="true"
+                                       crm configure ms msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
+                                         rsc_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
+                                         meta notify="true" clone-max="2" clone-node-max="1" \
+                                         target-role="Started" interleave="true"
       register:                        sap_hana_msl
       failed_when:                     sap_hana_msl.rc > 1
 
@@ -111,11 +105,12 @@
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure SAP HANA Virtual IP resource is configured"
       ansible.builtin.shell: >
-                                       crm configure primitive rsc_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }} ocf:heartbeat:IPaddr2
-                                       meta target-role="Started"
-                                       operations \$id="rsc_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}-operations"
-                                       op monitor interval="10s" timeout="20s"
-                                       params ip="{{ database_loadbalancer_ip }}"
+                                       crm configure primitive rsc_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }} ocf:heartbeat:IPaddr2 \
+                                         meta target-role="Started" \
+                                         operations \$id="rsc_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}-operations" \
+                                         op start timeout=60s on-fail=fence \
+                                         op monitor interval="10s" timeout="20s" \
+                                         params ip="{{ database_loadbalancer_ip }}"
       register:                        sap_hana_rsc_ip
       failed_when:                     sap_hana_rsc_ip.rc > 1
     # socat is recommended in place of netcat on Azure: https://www.suse.com/support/kb/doc/?id=000019536
@@ -127,16 +122,18 @@
     #    params binfile="/usr/bin/socat" cmdline_options="-U TCP-LISTEN:625{{ instance_number }},backlog=10,fork,reuseaddr /dev/null"
     #    op monitor timeout=20s interval=10 depth=0
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure SAP HANA azure-lb resource agent is configured"
-      ansible.builtin.shell:         >
-                                       crm configure primitive rsc_nc_{{ db_sid | upper }}_HDB{{ db_instance_number }} azure-lb port=625{{ db_instance_number }} meta resource-stickiness=0
+      ansible.builtin.shell: >
+                                       crm configure primitive rsc_nc_{{ db_sid | upper }}_HDB{{ db_instance_number }} azure-lb port=625{{ db_instance_number }} \
+                                         op monitor timeout=20s interval=10 \
+                                         meta resource-stickiness=0
       register:                        sap_hana_nc_ip
       failed_when:                     sap_hana_nc_ip.rc > 1
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure Group IP Address resource is configured"
       ansible.builtin.shell: >
-                                       crm configure group g_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
-                                       rsc_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
-                                       rsc_nc_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       crm configure group g_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
+                                         rsc_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
+                                         rsc_nc_{{ db_sid | upper }}_HDB{{ db_instance_number }}
       register:                        sap_hana_g_ip
       failed_when:                     sap_hana_g_ip.rc > 1
 
@@ -144,16 +141,15 @@
       ansible.builtin.blockinfile:
         path:                          "/var/tmp/{{ db_sid | upper }}/colocation.txt"
         block: |
-                                       crm configure colocation col_saphana_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
-                                       4000:
-                                       g_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Started
-                                       msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Master
+                                       colocation col_saphana_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }} 4000: \
+                                         g_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Started \
+                                         msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}:Master
         create:                        true
         backup:                        true
         mode:                          0640
         marker:                        "# {mark} ANSIBLE MANAGED BLOCK - HANA Pacemaker colocation constraint"
 
-    - name:                            "5.6 SCSERS - SUSE - ENSA1 - Load the DB Colocation constraint"
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Load the DB Colocation constraint"
       ansible.builtin.shell:           crm configure load update /var/tmp/{{ db_sid | upper }}/colocation.txt
       register:                        sap_hana_g_col_ip
 
@@ -164,10 +160,9 @@
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure Resource order is configured"
       ansible.builtin.shell: >
-                                       crm configure order ord_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}
-                                       Optional:
-                                       cln_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}
-                                       msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       crm configure order ord_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
+                                         Optional: cln_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
+                                         msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}
       register:                        sap_hana_ord_ip
       failed_when:                     sap_hana_ord_ip.rc > 1
 
@@ -257,13 +252,13 @@
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Configure the cluster to add the directory structure for monitoring"
       ansible.builtin.command: >
                                        crm configure primitive rsc_fs_check_{{ db_sid | upper }}_HDB{{ db_instance_number }} Filesystem params \
-                                       device="/hana/shared/{{ db_sid | upper }}/check/" \
-                                       directory="/hana/shared/check/" fstype=nfs4  \
-                                       options="bind,defaults,rw,hard,rsize=262144,wsize=262144,proto=tcp,noatime,_netdev,nfsvers=4.1,lock,sec=sys" \
-                                       op monitor interval=120 timeout=120 on-fail=fence \
-                                       op_params OCF_CHECK_LEVEL=20 \
-                                       op start interval=0 timeout=120 \
-                                       op stop interval=0 timeout=120
+                                        device="/hana/shared/{{ db_sid | upper }}/check/" \
+                                        directory="/hana/shared/check/" fstype=nfs4  \
+                                        options="bind,defaults,rw,hard,rsize=262144,wsize=262144,proto=tcp,noatime,_netdev,nfsvers=4.1,lock,sec=sys" \
+                                        op monitor interval=120 timeout=120 on-fail=fence \
+                                        op_params OCF_CHECK_LEVEL=20 \
+                                        op start interval=0 timeout=120 \
+                                        op stop interval=0 timeout=120
       register:                        sap_hana_fs_check
       failed_when:                     sap_hana_fs_check.rc != 0
 

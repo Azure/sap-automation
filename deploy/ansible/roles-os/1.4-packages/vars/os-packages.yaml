@@ -299,6 +299,7 @@ packages:
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'hana',           state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'db2',            state: 'present' }
+    - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'observer',       state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap-hana',                     node_tier: 'hana',           state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'ers',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'scs',            state: 'present' }
@@ -598,14 +599,17 @@ packages:
   oraclelinux8.6:
     - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
+    - { tier: 'os',     package: 'kmod-redhat-oracleasm',                        node_tier: 'oracle-asm',     state: 'present' }
     - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
   oraclelinux8.7:
     - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
+    - { tier: 'os',     package: 'kmod-redhat-oracleasm',                        node_tier: 'oracle-asm',     state: 'present' }
     - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
   oraclelinux8.8:
     - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
+    - { tier: 'os',     package: 'kmod-redhat-oracleasm',                        node_tier: 'oracle-asm',     state: 'present' }
     - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
   oraclelinux8.9:
     - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
@@ -615,3 +619,5 @@ packages:
   oraclelinux8.10:
     - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
+    - { tier: 'os',     package: 'kmod-redhat-oracleasm',                        node_tier: 'oracle-asm',     state: 'present' }

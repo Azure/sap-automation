@@ -8,30 +8,29 @@
   become:                              true
   block:
 
-    - name:                                "HANA HSR: - Ensure replication status is active"
+    - name:                            "HANA HSR: - Ensure replication status is active"
+      when:                            ansible_hostname == primary_instance_name
       # Note: ideally we should be using set -o pipefail here (see for example https://xanmanning.co.uk/2019/03/21/ansible-lint-rule-306.html).
       # However, the python script returns a status of 15 (!), which breaks the pipeline. Consequently,
       # no pipefail option and elect to skip Ansible linting of this task.
       ansible.builtin.shell: |
-        set -o pipefail
-        (python systemReplicationStatus.py; echo) | grep -q 'overall system replication status: ACTIVE'
-      register:                            grep_result
-      until:                               grep_result.rc == 0 or grep_result.rc == 1
-      failed_when:                         grep_result.rc != 0 and grep_result.rc != 1
-      changed_when:                        false
-      retries:                             10
-      delay:                               5
-      when:                                ansible_hostname == primary_instance_name
+                                       set -o pipefail
+                                       (cdpy && python systemReplicationStatus.py; echo) | /usr/bin/grep -q 'overall system replication status: ACTIVE'
+      register:                        grep_result
+      until:                           grep_result.rc == 0 or grep_result.rc == 1
+      failed_when:                     grep_result.rc != 0 and grep_result.rc != 1
+      changed_when:                    false
+      retries:                         10
+      delay:                           5
+      vars:
+        allow_world_readable_tmpfiles: true
+      environment:
+        PATH:                          /usr/bin/:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
-    - name:                                "HANA HSR: - Debug replication"
+    - name:                            "HANA HSR: - Debug replication"
       ansible.builtin.debug:
-        var:                               grep_result
-        verbosity:                         2
-
-  vars:
-    allow_world_readable_tmpfiles:         true
-  environment:
-    PATH:                                  /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-    DIR_LIBRARY:                           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-    LD_LIBRARY_PATH:                       /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-    SAPSYSTEMNAME:                         "{{ db_sid | upper }}"
+        var:                           grep_result
+        verbosity:                     2

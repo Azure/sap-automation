@@ -40,9 +40,10 @@
         - name:                        "Ensure passlib is installed on the controller"
           become:                      true
           become_user:                 root
-          ansible.builtin.pip:
-            name:                      passlib
+          ansible.builtin.package:
+            name:                      python3-passlib
             state:                     present
+          when:                        ansible_os_family | upper == "SUSE"
           tags:
             - always
 
