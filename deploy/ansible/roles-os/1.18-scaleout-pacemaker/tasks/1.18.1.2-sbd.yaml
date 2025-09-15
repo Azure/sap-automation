@@ -14,6 +14,7 @@
 # Softdog config file
 # Load Module
 
+# scs_high_availability = true is already assumed
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -23,31 +24,36 @@
 - name:                                       "Parameters to be used..."
   ansible.builtin.debug:
     msg:                                      # Best method for formatting output with Azure Devops Logs
+                                              - "scs_cluster_type:                {{ scs_cluster_type }}"
                                               - "database_cluster_type:           {{ database_cluster_type }}"
                                               - "sbdDevices:                      {{ sbdDevices }}"
     verbosity:                                2
   when:
-                                              - (database_cluster_type == "ASD")
+                                              - (database_cluster_type == "ASD")   or
+                                                (scs_cluster_type      == "ASD")
 
 - name:                                       "Parameters to be used..."
   ansible.builtin.debug:
     msg:                                      # Best method for formatting output with Azure Devops Logs
+                                              - "scs_cluster_type:                {{ scs_cluster_type }}"
                                               - "database_cluster_type:           {{ database_cluster_type }}"
                                               - "iscsi_servers:                   {{ iscsi_servers }}"
     verbosity:                                2
   when:
-                                              - (database_cluster_type == "ISCSI")
+                                              - (database_cluster_type == "ISCSI")   or
+                                                (scs_cluster_type      == "ISCSI")
 
 
 - name:                                       "Parameters testing..."
   ansible.builtin.debug:
     msg:                                      # Best method for formatting output with Azure Devops Logs
                                               - "item.host:                      {{ item.host }}"
-                                              - "item.lun:                       {{ item.lun }}"
+                                              - "item.lun:                       {{ item.LUN }}"
     verbosity:                                2
   loop:                                       "{{ sbdDevices }}"
   when:
-                                              - (database_cluster_type == "ASD")
+                                              - (database_cluster_type == "ASD")   or
+                                                (scs_cluster_type      == "ASD")
 
 
 # - name:                                       "Parameters testing..."
@@ -86,7 +92,8 @@
                                                   diskById:   ''                  }
       loop:                                   "{{ sbdDevices }}"
       when:
-                                              - (database_cluster_type == "ASD")
+                                              - (database_cluster_type == "ASD")   or
+                                                (scs_cluster_type      == "ASD")
                                               - item.host == ansible_hostname
 
     - name:                                   "ISCSI - Build SBD Dictionary"
@@ -101,7 +108,8 @@
                                                   diskById:   ''                  }
       loop:                                   "{{ iscsi_device_map }}"
       when:
-                                              - (database_cluster_type == "ISCSI")
+                                              - (database_cluster_type == "ISCSI")   or
+                                                (scs_cluster_type      == "ISCSI")
 
     - name:                                   "SBD Dictionary..."
       ansible.builtin.debug:
@@ -109,7 +117,9 @@
         verbosity:                            2
       when:
                                               - (database_cluster_type == "ASD")   or
-                                                (database_cluster_type == "ISCSI")
+                                                (database_cluster_type == "ISCSI") or
+                                                (scs_cluster_type      == "ASD")   or
+                                                (scs_cluster_type      == "ISCSI")
 
     - name:                                   "SBD Dictionary..."
       ansible.builtin.debug:
@@ -119,7 +129,8 @@
         verbosity:                            2
       loop:                                   "{{ sbdMap }}"
       when:
-                                              - (database_cluster_type == "ISCSI")
+                                              - (database_cluster_type == "ISCSI")   or
+                                                (scs_cluster_type      == "ISCSI")
 
     # +------------------------------------
     # -------------------------------------+---------------------------------------8
@@ -127,21 +138,21 @@
     # Description:  Dynamic Processing - Iterate over BOM dictionary to find Dynamic
     #               entries.
     #
-    - name:                                 "Update Block Device"
-      ansible.builtin.include_tasks:        "1.18.1.3-sbd-deviceUpdate.yaml"
-      loop:                                 "{{ sbdMap }}"
+    - name:                                   "Update Block Device"
+      ansible.builtin.include_tasks:          "1.18.1.3-sbd-deviceUpdate.yaml"
+      loop:                                   "{{ sbdMap }}"
       loop_control:
-        loop_var:                           sdbMap_entry
-        index_var:                          sdbMap_index
+        loop_var:                             sdbMap_entry
+        index_var:                            sdbMap_index
       # vars:
       #   _step:                              "deviceUpdate"
     # Step: 03 - END
     # -------------------------------------+---------------------------------------8
 
-    - name:                                       "Update Device Info: Show SBD Dictionary..."
+    - name:                                   "Update Device Info: Show SBD Dictionary..."
       ansible.builtin.debug:
-        var:                                      sbdMap
-        verbosity:                                2
+        var:                                  sbdMap
+        verbosity:                            2
 
 
     # /*------------------------------------
@@ -149,44 +160,40 @@
     # | create sbd devices
     # |
     # +------------------------------------4
-    - name:                                       "dump SBD Device(s)..."
-      ansible.builtin.command:                    "sbd
-                                                  {%- for entry in sbdMap             +%}
-                                                  -d {{ entry.diskById                }}
-                                                  {%- endfor                          +%}
-                                                  dump
-                                                  "
-      ignore_errors:                              true
-      register:                                   sbdDumpCommand_results
-      run_once:                                   true                                            # run on only one host in play
+    - name:                                   "dump SBD Device(s)..."
+      run_once:                               true                                            # run on only one host in play
+      ansible.builtin.command:                "sbd
+                                              {%- for entry in sbdMap             +%}
+                                              -d {{ entry.diskById                }}
+                                              {%- endfor                          +%}
+                                              dump
+                                              "
+      ignore_errors:                          true
+      register:                               sbdDumpCommand_results
 
-    - name:                                       "Show dump SBD device(s) results..."
+    - name:                                   "Show dump SBD device(s) results..."
+      run_once:                               true                                            # run on only one host in play
       ansible.builtin.debug:
-        var:                                      sbdDumpCommand_results
-        verbosity:                                2
-      run_once:                                   true                                            # run on only one host in play
+        var:                                  sbdDumpCommand_results
+        verbosity:                            2
 
-    - name:                                       "create SBD Device(s)..."
+    - name:                                   "Create SBD Device(s)..."
+      when:                                   sbdDumpCommand_results.rc == 1
+      run_once:                               true                                            # run on only one host in play
       block:
+        - name:                               "create SBD Device(s)..."
+          ansible.builtin.command:            "sbd
+                                              {%- for entry in sbdMap             +%}
+                                              -d {{ entry.diskById                }}
+                                              {%- endfor                          +%}
+                                              -1 60 -4 120 create
+                                              "
+          register:                           sbdCreateCommand_results
 
-        - name:                                   "create SBD Device(s)..."
-          ansible.builtin.command:                "sbd
-                                                  {%- for entry in sbdMap             +%}
-                                                  -d {{ entry.diskById                }}
-                                                  {%- endfor                          +%}
-                                                  -1 60 -4 120 create
-                                                  "
-          register:                               sbdCreateCommand_results
-
-
-        - name:                                   "Show block device results..."
+        - name:                               "Show block device results..."
           ansible.builtin.debug:
-            var:                                  sbdCreateCommand_results
-            verbosity:                            2
-
-      run_once:                                   true                                            # run on only one host in play
-      when:                                       sbdDumpCommand_results.rc == 1
-
+            var:                              sbdCreateCommand_results
+            verbosity:                        2
 
     # /*------------------------------------
     # |
@@ -212,18 +219,50 @@
         mode:                                 '0644'
         backup:                               true
       loop:
-        - { regexp: "^SBD_PACEMAKER=.*",  line: 'SBD_PACEMAKER=yes'     }
-        - { regexp: "^SBD_STARTMODE=.*",  line: 'SBD_STARTMODE=always'  }
+        - { regexp: "^SBD_PACEMAKER=.*",    line: 'SBD_PACEMAKER=yes'     }
+        - { regexp: "^SBD_STARTMODE=.*",    line: 'SBD_STARTMODE=always'  }
         # Format line as so:
         #   SBD_DEVICE="/dev/disk/by-id/scsi-3600224804208a67da8073b2a9728af19"
         #   SBD_DEVICE="/dev/disk/by-id/scsi-360022480ef971a6c5759f2dc3adf4c96;/dev/disk/by-id/scsi-360022480ea4064ac4952ea8452d66317"
-        - { regexp: "^SBD_DEVICE=.*",     line: 'SBD_DEVICE="
+        - { regexp: "^SBD_DEVICE=.*",       line: 'SBD_DEVICE="
                                                             {%- for entry in sbdMap              %}
                                                             {%-   if loop.index > 1 %};{% endif -%}
                                                             {{    entry.diskById                 }}
                                                             {%- endfor                          -%}
                                                             "'}
 
+    - name:                                   "SBD config file"
+      block:
+        - name:                               "SBD config file - set SBD_DELAY_START"
+          when:                               ansible_os_family | upper == "SUSE"
+          ansible.builtin.lineinfile:
+            path:                             /etc/sysconfig/sbd
+            regexp:                           "^SBD_DELAY_START=.*"
+            line:                             'SBD_DELAY_START=216'
+            owner:                            root
+            group:                            root
+            mode:                             '0644'
+            backup:                           true
+
+        - name:                               "SBD config file - set SBD_DELAY_START"
+          when:                               ansible_os_family | upper == "REDHAT"
+          ansible.builtin.lineinfile:
+            path:                             /etc/sysconfig/sbd
+            regexp:                           "^SBD_DELAY_START=.*"
+            line:                             'SBD_DELAY_START=186'
+            owner:                            root
+            group:                            root
+            mode:                             '0644'
+            backup:                           true
+
+    - name:                                  "set fact sbd_device as list of entries in sbdMap"
+      ansible.builtin.set_fact:
+        sbd_device:                          "{{ sbdMap | map(attribute='diskById') | join(';') }}"
+
+    - name:                                  "Show sbd_device..."
+      ansible.builtin.debug:
+        var:                                 sbd_device
+        verbosity:                           2
 
     # /*------------------------------------
     # |
@@ -238,7 +277,6 @@
         group:                                root
         mode:                                 '0644'
 
-
     # /*------------------------------------
     # |
     # | Load softdog kernel module
@@ -249,15 +287,69 @@
         name:                                 softdog
         state:                                present
 
+    - name:                                   "SBD - Configure service file for SUSE"
+      when:                                   ansible_os_family | upper == "SUSE"
+      block:
+        - name:                               "SBD - Copy original service file to /etc/systemd/system"
+          ansible.builtin.copy:
+            src:                              /usr/lib/systemd/system/sbd.service
+            dest:                             /etc/systemd/system/sbd.service
+            remote_src:                       true
+            owner:                            root
+            group:                            root
+            mode:                             '0644'
+
+        - name:                               "SBD - Create service override directory (if not exists)"
+          ansible.builtin.file:
+            path:                             /etc/systemd/system/sbd.service.d
+            state:                            directory
+            owner:                            root
+            group:                            root
+            mode:                             '0755'
+
+        - name:                               "SBD - Set increased timeout for delayed start and before corosync"
+          ansible.builtin.copy:
+            content: |
+                                              [Service]
+                                              TimeoutSec=259
+            dest:                             /etc/systemd/system/sbd.service.d/sbd_delay_start.conf
+            owner:                            root
+            group:                            root
+            mode:                             '0644'
+
+    - name:                                   "SBD - Configure service file for RedHat"
+      when:                                   ansible_os_family | upper == "REDHAT"
+      block:
+        - name:                               "SBD - Create service override directory"
+          ansible.builtin.file:
+            path:                             /etc/systemd/system/sbd.service.d
+            state:                            directory
+            owner:                            root
+            group:                            root
+            mode:                             '0755'
+
+        - name:                               "SBD - Set increased timeout for delayed start"
+          ansible.builtin.copy:
+            content: |
+                                              [Service]
+                                              TimeoutSec=223
+            dest:                             /etc/systemd/system/sbd.service.d/sbd_delay_start.conf
+            owner:                            root
+            group:                            root
+            mode:                             '0644'
 
 # /*------------------------------------
 # |
-# | systemctl enable sbd
+# | systemctl enable sbd, iscsi, iscsid
 # |
 # +------------------------------------4
 # - name:                                   "systemctl enable sbd"
 #   ansible.builtin.shell: |
 #                                           systemctl enable sbd
+- name:                                    "Ensure systemctl daemon is reloaded"
+  ansible.builtin.systemd:
+    daemon_reload:                         true
+
 - name:                                    "systemctl enable sbd"
   ansible.builtin.systemd:
     name:                                  sbd
@@ -265,7 +357,27 @@
     daemon_reload:                         true
   when:
                                             - (database_cluster_type == "ASD")   or
-                                              (database_cluster_type == "ISCSI")
+                                              (database_cluster_type == "ISCSI") or
+                                              (scs_cluster_type      == "ASD")   or
+                                              (scs_cluster_type      == "ISCSI")       # scs_high_availability = true is already assumed
+
+- name:                                    "systemctl enable iscsi"
+  ansible.builtin.systemd:
+    name:                                  iscsi
+    enabled:                               true
+    daemon_reload:                         true
+  when:
+                                           - (database_cluster_type == "ISCSI") or
+                                             (scs_cluster_type      == "ISCSI")
+
+- name:                                    "systemctl enable iscsid"
+  ansible.builtin.systemd:
+    name:                                  iscsid
+    enabled:                               true
+    daemon_reload:                         true
+  when:
+                                           - (database_cluster_type == "ISCSI") or
+                                             (scs_cluster_type      == "ISCSI")
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
