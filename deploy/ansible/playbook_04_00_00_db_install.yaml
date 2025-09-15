@@ -338,8 +338,6 @@
         - database_scale_out
         - hostvars.localhost.root_password is defined
 
-        
-
     - name:                            "Database Installation Playbook: - Install HANA Scale Out"
       become:                          true
       when:
