@@ -211,13 +211,13 @@
                                        provider = SAPHanaSR
                                        path = /usr/share/SAPHanaSR-ScaleOut
                                        execution_order = 1
-                                       
+
                                        [ha_dr_provider_chksrv]
                                        provider = ChkSrv
                                        path = /usr/share/SAPHanaSR-ScaleOut
                                        execution_order = 2
                                        action_on_lost = kill
-                                       
+
                                        [trace]
                                        ha_dr_saphanasr = info
                                        ha_dr_chksrv = info
