@@ -52,9 +52,9 @@
   become:                              true
   become_user:                         root
   block:
-
+    # Use the db subnet for configuring the cluster
     - name:                            "1.18.2.0 Generic Pacemaker - Ensure corosync is configured"
-      ansible.builtin.shell:           "crm cluster init -y -u corosync --interface eth0"
+      ansible.builtin.shell:           "crm cluster init -y -u corosync --interface eth1"
       register:                        crm_init_result
       failed_when:                     crm_init_result.rc > 1
 
