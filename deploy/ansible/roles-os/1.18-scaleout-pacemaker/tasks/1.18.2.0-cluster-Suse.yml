@@ -41,7 +41,7 @@
 # eth0 is the "db" NIC
 - name:                                "1.18.2.0 Generic Pacemaker - Ensure clustering can manage Virtual IPs on the Database Interface"
   ansible.builtin.lineinfile:
-    path:                              /etc/sysconfig/network/ifcfg-eth0
+    path:                              /etc/sysconfig/network/ifcfg-eth1
     state:                             present
     regexp:                            "^#?\\s*CLOUD_NETCONFIG_MANAGE="
     line:                              "CLOUD_NETCONFIG_MANAGE='no'"
@@ -59,7 +59,7 @@
       failed_when:                     crm_init_result.rc > 1
 
     - name:                            "1.18.2.0 Generic Pacemaker - Ensure cluster (hdb_{{ db_sid | upper }}) is configured"
-      ansible.builtin.shell:           "crm cluster init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
+      ansible.builtin.shell:           "crm cluster init -y --name 'hdb_{{ db_sid | upper }}' --interface eth1 --no-overwrite-sshkey"
       register:                        crm_init_result
       failed_when:                     crm_init_result.rc > 1
       when:
@@ -68,7 +68,7 @@
 
     - name:                            "1.18.2.0 Generic Pacemaker - Ensure cluster (hdb_{{ db_sid | upper }}) is configured - SBD"
       ansible.builtin.shell: |
-                                       crm cluster init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 \
+                                       crm cluster init -y --name 'hdb_{{ db_sid | upper }}' --interface eth1 \
                                        --no-overwrite-sshkey --sbd-device="{{ sbd_device }}"
       register:                        crm_init_result
       failed_when:                     crm_init_result.rc > 1
@@ -80,12 +80,18 @@
 - name:                                "1.18.2.0 Generic Pacemaker - Ensure additional nodes joins the Cluster"
   become:                              true
   become_user:                         root
+  when:
+                                       - ansible_hostname != primary_instance_name
   block:
     - name:                            "1.18.2.0 Generic Pacemaker - Ensure Secondary nodes joins the Cluster"
+      when:                            node_tier == 'hana'
       # ha-cluster-join is not supported in SLES 15 SP4 anymore, crm syntax required
-      ansible.builtin.shell:         "sudo crm cluster join -y -c {{ primary_instance_name }} --interface eth0"
-  when:
-    - ansible_hostname != primary_instance_name
+      ansible.builtin.shell:           "sudo crm cluster join -y -c {{ primary_instance_name }} --interface eth1"
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure majority-maker node joins the Cluster"
+      when:                            node_tier == 'observer'
+      # ha-cluster-join is not supported in SLES 15 SP4 anymore, crm syntax required
+      ansible.builtin.shell:           "sudo crm cluster join -y -c {{ primary_instance_name }} --interface eth0"
 
 - name:                                "1.18.2.0 Generic Pacemaker - Ensure HA Cluster password is set to something secure"
   ansible.builtin.user:
