@@ -192,6 +192,10 @@
       failed_when:                     false
       changed_when:                    false
 
+    - name:                            "1.18.2.0 Generic Pacemaker - Stop Stonith SBD if it is already configured in cluster"
+      when:                            stonith_sbd_configured.rc == 0
+      ansible.builtin.shell:           crm resource stop stonith-sbd
+
     - name:                            "1.18.2.0 Generic Pacemaker - Delete Stonith SBD if it is already configured in cluster"
       when:                            stonith_sbd_configured.rc == 0
       ansible.builtin.shell:           crm configure delete stonith-sbd
