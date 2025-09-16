@@ -125,3 +125,16 @@ resource "azurerm_linux_virtual_machine" "observer" {
                    }
 
 }
+
+resource "azurerm_virtual_machine_data_disk_attachment" "cluster_observer" {
+  provider                             = azurerm.main
+  count                                = var.use_observer && length(azurerm_managed_disk.cluster) > 0 ? 1 : 0
+  managed_disk_id                      = azurerm_managed_disk.cluster[0].id
+  virtual_machine_id                   = azurerm_linux_virtual_machine.observer[0].id
+  caching                              = "None"
+  lun                                  = var.database.database_cluster_disk_lun
+
+  lifecycle {
+    create_before_destroy = false
+  }
+}
