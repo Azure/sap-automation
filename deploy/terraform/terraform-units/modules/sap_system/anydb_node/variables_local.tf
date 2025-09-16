@@ -428,8 +428,11 @@ locals {
                                            local.database_primary_ips
                                          )
 
+  subnet_for_load_balancer             = var.database.scale_out && var.database.high_availability ? var.admin_subnet : (
+                                           var.db_subnet
+                                         )
 
-  standard_ips                              = [
+  standard_ips                          = [
                                            {
                                              name               = format("%s%s%s%s",
                                                                     var.naming.resource_prefixes.db_alb_feip,
@@ -437,13 +440,13 @@ locals {
                                                                     var.naming.separator,
                                                                     local.resource_suffixes.db_alb_feip
                                                                   )
-                                             subnet_id          = var.db_subnet.id
+                                             subnet_id          = local.subnet_for_load_balancer.id
                                              private_ip_address = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? (
                                                                     var.database.loadbalancer.frontend_ips[0]) : (
                                                                     var.database.use_DHCP ? (
                                                                       null) : (
                                                                       cidrhost(
-                                                                        var.db_subnet.address_prefixes[0],
+                                                                        local.subnet_for_load_balancer.address_prefixes[0],
                                                                         local.anydb_ip_offsets.anydb_lb
                                                                     ))
                                                                   )
@@ -457,13 +460,13 @@ locals {
                                                                     var.naming.separator,
                                                                     local.resource_suffixes.db_clst_feip
                                                                   )
-                                             subnet_id          = var.db_subnet.id
+                                             subnet_id          = local.subnet_for_load_balancer.id
                                              private_ip_address = length(try(var.database.loadbalancer.frontend_ips[1], "")) > 0 ? (
                                                                     var.database.loadbalancer.frontend_ips[1]) : (
                                                                     var.database.use_DHCP ? (
                                                                       null) : (
                                                                       cidrhost(
-                                                                        var.db_subnet.address_prefixes[0],
+                                                                        local.subnet_for_load_balancer.address_prefixes[0],
                                                                         local.anydb_ip_offsets.anydb_lb + 1
                                                                     ))
                                                                   )
