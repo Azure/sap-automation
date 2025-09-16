@@ -456,7 +456,6 @@
             state:                         restarted
 
 
-
 # Configure HANA Scale out Pacemaker, run on DB nodes and majority maker node ( first node if multiple are provided, rest are ignored. )
 - hosts:                               "{{ sap_sid | upper }}_DB:
                                         {{ sap_sid | upper }}_OBSERVER_DB"
