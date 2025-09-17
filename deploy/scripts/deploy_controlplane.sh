@@ -204,9 +204,15 @@ echo "Region code:                         ${region_code}"
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 generic_environment_file_name="${automation_config_directory}"/config
 
-ENVIRONMENT=$(echo "$deployer_tf_state" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$deployer_tf_state" | awk -F'-' '{print $2}' | xargs)
-NETWORK=$(echo "$deployer_tf_state" | awk -F'-' '{print $3}' | xargs)
+ENVIRONMENT=$(echo "$deployer_parameter_file" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "$deployer_parameter_file" | awk -F'-' '{print $2}' | xargs)
+NETWORK=$(echo "$deployer_parameter_file" | awk -F'-' '{print $3}' | xargs)
+
+if [ -z "$ENVIRONMENT" ] || [ -z "$LOCATION" ] || [ -z "$NETWORK" ]; then
+	echo "Could not extract environment, location or network from parameter file name"
+	echo "Expected format <environment>-<location>-<network>-INFRASTRUCTURE.tfvars"
+	exit 2
+fi
 
 deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
 
