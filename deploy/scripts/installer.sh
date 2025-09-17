@@ -286,8 +286,6 @@ else
 	system_environment_file_name=$(get_configuration_file "$automation_config_directory" "$environment" "$region_code" "$network_logical_name")
 fi
 
-
-
 echo "Configuration file:                  $system_environment_file_name"
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
@@ -324,6 +322,17 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 
 init "${automation_config_directory}" "${generic_environment_file_name}" "${system_environment_file_name}"
 
+if [[ -z $REMOTE_STATE_SA ]]; then
+	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_SA"
+	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_RG"
+	load_config_vars "${system_environment_file_name}" "tfstate_resource_id"
+	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
+	load_config_vars "${system_environment_file_name}" "ARM_SUBSCRIPTION_ID"
+else
+	save_config_vars "${system_environment_file_name}" REMOTE_STATE_SA
+fi
+
+
 tfstate_resource_id=$(az resource list --name "$REMOTE_STATE_SA" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 TF_VAR_tfstate_resource_id=$tfstate_resource_id
 export TF_VAR_tfstate_resource_id
@@ -354,15 +363,6 @@ if [[ -n $STATE_SUBSCRIPTION ]]; then
 	account_set=1
 fi
 
-if [[ -z $REMOTE_STATE_SA ]]; then
-	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_SA"
-	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_RG"
-	load_config_vars "${system_environment_file_name}" "tfstate_resource_id"
-	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
-	load_config_vars "${system_environment_file_name}" "ARM_SUBSCRIPTION_ID"
-else
-	save_config_vars "${system_environment_file_name}" REMOTE_STATE_SA
-fi
 
 deployer_tfstate_key_parameter=""
 
