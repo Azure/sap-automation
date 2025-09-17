@@ -47,7 +47,7 @@ force=0
 called_from_ado=0
 deploy_using_msi_only=0
 
-INPUT_ARGUMENTS=$(getopt -n install_workloadzone -o p:d:e:k:o:s:c:n:t:v:aifhm --longoptions parameterfile:,deployerTerraformStatefileName:,deployer_environment:,subscription:,spn_id:,spn_secret:,tenant_id:,state_subscription:,keyvault:,storageaccountname:,ado,auto-approve,force,help,msi -- "$@")
+INPUT_ARGUMENTS=$(getopt -n install_workloadzone -o p:d:e:k:o:s:c:n:t:v:aifhm --longoptions parameterfile:,deployer_tfstate_key:,deployer_environment:,subscription:,spn_id:,spn_secret:,tenant_id:,state_subscription:,keyvault:,storageaccountname:,ado,auto-approve,force,help,msi -- "$@")
 VALID_ARGUMENTS=$?
 if [ "$VALID_ARGUMENTS" != "0" ]; then
 	showhelp
