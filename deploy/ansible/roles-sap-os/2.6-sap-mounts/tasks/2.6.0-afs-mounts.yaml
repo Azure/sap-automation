@@ -485,8 +485,6 @@
                                          | map(attribute='key')
                                          | first
                                        }}
-      run_once:                        true
-      delegate_to:                     localhost
 
     - name:                            "AFS Mount: Create backup directory on SITE1 hana_shared"
       become:                          true
