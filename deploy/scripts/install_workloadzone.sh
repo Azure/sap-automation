@@ -47,7 +47,7 @@ force=0
 called_from_ado=0
 deploy_using_msi_only=0
 
-INPUT_ARGUMENTS=$(getopt -n install_workloadzone -o p:d:e:k:o:s:c:n:t:v:aifhm --longoptions parameterfile:,deployer_tfstate_key:,deployer_environment:,subscription:,spn_id:,spn_secret:,tenant_id:,state_subscription:,keyvault:,storageaccountname:,ado,auto-approve,force,help,msi -- "$@")
+INPUT_ARGUMENTS=$(getopt -n install_workloadzone -o p:d:e:k:o:s:c:n:t:v:aifhm --longoptions parameterfile:,deployerTerraformStatefileName:,deployer_environment:,subscription:,spn_id:,spn_secret:,tenant_id:,state_subscription:,keyvault:,storageaccountname:,ado,auto-approve,force,help,msi -- "$@")
 VALID_ARGUMENTS=$?
 if [ "$VALID_ARGUMENTS" != "0" ]; then
 	showhelp
@@ -65,7 +65,7 @@ while :; do
 		shift 2
 		;;
 	-d | --deployer_tfstate_key)
-		deployer_tfstate_key="$2"
+		deployerTerraformStatefileName="$2"
 		shift 2
 		;;
 	-e | --deployer_environment)
@@ -126,9 +126,8 @@ done
 tfstate_resource_id=""
 tfstate_parameter=""
 
-deployer_tfstate_key_parameter=""
+deployerTerraformStatefileName_parameter=""
 landscape_tfstate_key=""
-landscape_tfstate_key_parameter=""
 
 deployment_system="sap_landscape"
 
@@ -230,19 +229,21 @@ fi
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 generic_environment_file_name="${automation_config_directory}"/config
 
+ENVIRONMENT=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
+LOCATION_CODE=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $2}' | xargs)
+NETWORK=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $3}' | xargs)
+if [ -z "$ENVIRONMENT" ] || [ -z "$LOCATION_CODE" ] || [ -z "$NETWORK" ]; then
+	echo "Could not extract environment, location or network from parameter file name"
+	echo "Expected format <environment>-<location>-<network>-INFRASTRUCTURE.tfvars"
+	exit 2
+fi
 
-deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$DEPLOYER_ENVIRONMENT" "$DEPLOYER_LOCATION" "$DEPLOYER_NETWORK")
-
-
-environment=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
-region_code=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $2}' | xargs)
-network_logical_name=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $3}' | xargs)
-workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT_IN_FILENAME}" "${LOCATION_CODE_IN_FILENAME}" "${NETWORK_IN_FILENAME}")
+workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION_CODE}" "${NETWORK}")
 
 touch "${workload_environment_file_name}"
-DEPLOYER_ENVIRONMENT=$(echo "$deployer_tf_state" | awk -F'-' '{print $1}' | xargs)
-DEPLOYER_LOCATION=$(echo "$deployer_tf_state" | awk -F'-' '{print $2}' | xargs)
-DEPLOYER_NETWORK=$(echo "$deployer_tf_state" | awk -F'-' '{print $3}' | xargs)
+DEPLOYER_ENVIRONMENT=$(echo "$deployerTerraformStatefileName" | awk -F'-' '{print $1}' | xargs)
+DEPLOYER_LOCATION=$(echo "$deployerTerraformStatefileName" | awk -F'-' '{print $2}' | xargs)
+DEPLOYER_NETWORK=$(echo "$deployerTerraformStatefileName" | awk -F'-' '{print $3}' | xargs)
 
 if [ -z "$DEPLOYER_ENVIRONMENT" ] || [ -z "$DEPLOYER_LOCATION" ] || [ -z "$DEPLOYER_NETWORK" ]; then
 	echo "Could not extract environment, location or network from parameter file name"
@@ -263,6 +264,7 @@ fi
 
 echo ""
 echo "Configuration file:                  $workload_environment_file_name"
+echo "Control plane config file:           $deployer_environment_file_name"
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
 echo "Deployment environment:              $deployer_environment"
@@ -337,12 +339,12 @@ if [ ! -f "${workload_environment_file_name}" ]; then
 			load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
 		fi
 		load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
-		load_config_vars "${deployer_environment_file_name}" "deployer_tfstate_key"
+		load_config_vars "${deployer_environment_file_name}" "deployerTerraformStatefileName"
 
 		save_config_vars "${workload_environment_file_name}" \
 			keyvault \
 			subscription \
-			deployer_tfstate_key \
+			deployerTerraformStatefileName \
 			tfstate_resource_id \
 			REMOTE_STATE_SA \
 			REMOTE_STATE_RG
@@ -359,7 +361,7 @@ if [ -z "$tfstate_resource_id" ]; then
 			load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_RG"
 			load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
 			load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
-			load_config_vars "${deployer_environment_file_name}" "deployer_tfstate_key"
+			load_config_vars "${deployer_environment_file_name}" "deployerTerraformStatefileName"
 
 			save_config_vars "${workload_environment_file_name}" \
 				tfstate_resource_id
@@ -367,7 +369,7 @@ if [ -z "$tfstate_resource_id" ]; then
 			save_config_vars "${workload_environment_file_name}" \
 				keyvault \
 				subscription \
-				deployer_tfstate_key \
+				deployerTerraformStatefileName \
 				REMOTE_STATE_SA \
 				REMOTE_STATE_RG
 		fi
@@ -463,8 +465,8 @@ if [[ -z ${subscription} ]]; then
 	load_config_vars "${workload_environment_file_name}" "subscription"
 fi
 
-if [[ -z ${deployer_tfstate_key} ]]; then
-	load_config_vars "${workload_environment_file_name}" "deployer_tfstate_key"
+if [[ -z ${deployerTerraformStatefileName} ]]; then
+	load_config_vars "${workload_environment_file_name}" "deployerTerraformStatefileName"
 fi
 
 if [ -n "$tfstate_resource_id" ]; then
@@ -572,18 +574,18 @@ else
 	fi
 fi
 
-if [ -z "${deployer_tfstate_key}" ]; then
-	load_config_vars "${workload_environment_file_name}" "deployer_tfstate_key"
-	if [ -n "${deployer_tfstate_key}" ]; then
+if [ -z "${deployerTerraformStatefileName}" ]; then
+	load_config_vars "${workload_environment_file_name}" "deployerTerraformStatefileName"
+	if [ -n "${deployerTerraformStatefileName}" ]; then
 		# Deployer state was specified in $CONFIG_REPO_PATH/.sap_deployment_automation library config
-		deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
-		export TF_VAR_deployer_tfstate_key_parameter=${deployer_tfstate_key}
+		deployerTerraformStatefileName_parameter=" -var deployerTerraformStatefileName=${deployerTerraformStatefileName}"
+		export TF_VAR_deployerTerraformStatefileName_parameter=${deployerTerraformStatefileName}
 
 	fi
 else
-	deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
-	export TF_VAR_deployer_tfstate_key_parameter=${deployer_tfstate_key}
-	save_config_vars "${workload_environment_file_name}" deployer_tfstate_key
+	deployerTerraformStatefileName_parameter=" -var deployerTerraformStatefileName=${deployerTerraformStatefileName}"
+	export TF_VAR_deployerTerraformStatefileName_parameter=${deployerTerraformStatefileName}
+	save_config_vars "${workload_environment_file_name}" deployerTerraformStatefileName
 fi
 
 if [ -z "${REMOTE_STATE_SA}" ]; then
@@ -746,7 +748,7 @@ save_config_var "subscription" "${workload_environment_file_name}"
 save_config_var "STATE_SUBSCRIPTION" "${workload_environment_file_name}"
 save_config_var "tfstate_resource_id" "${workload_environment_file_name}"
 
-allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
+allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployerTerraformStatefileName_parameter}")
 
 if [ 1 == $check_output ]; then
 	if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
@@ -907,7 +909,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
+allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployerTerraformStatefileName_parameter}")
 
 # shellcheck disable=SC2086
 if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee plan_output.log; then
@@ -1034,8 +1036,8 @@ if [ 1 == $apply_needed ]; then
 		parallelism=$TF_PARALLELLISM
 	fi
 
-	allParameters=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
-	allImportParameters=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
+	allParameters=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployerTerraformStatefileName_parameter}")
+	allImportParameters=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployerTerraformStatefileName_parameter}")
 
 	# shellcheck disable=SC2086
 
