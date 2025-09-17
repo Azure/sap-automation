@@ -262,17 +262,6 @@ if [ "${force}" == 1 ]; then
 	rm -Rf .terraform terraform.tfstate*
 fi
 
-echo ""
-echo "Configuration file:                  $workload_environment_file_name"
-echo "Control plane config file:           $deployer_environment_file_name"
-echo "Deployment region:                   $region"
-echo "Deployment region code:              $region_code"
-echo "Deployment environment:              $deployer_environment"
-echo "Deployer Keyvault:                   $keyvault"
-echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
-echo "Remote state storage account:        $REMOTE_STATE_SA"
-echo "Target Subscription:                 $subscription"
-
 if [[ -n $STATE_SUBSCRIPTION ]]; then
 	if is_valid_guid "$STATE_SUBSCRIPTION"; then
 
@@ -300,10 +289,31 @@ if [[ -n $STATE_SUBSCRIPTION ]]; then
 	fi
 
 fi
+if [ -z "${keyvault}" ]; then
+	load_config_vars "${deployer_environment_file_name}" "keyvault"
+fi
+
+load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_RG"
+if [ -z "${REMOTE_STATE_SA}" ]; then
+	load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
+fi
+load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
+load_config_vars "${deployer_environment_file_name}" "deployer_tf_state"
 
 if [ -n "$REMOTE_STATE_SA" ]; then
 	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_environment_file_name}"
 fi
+
+echo ""
+echo "Configuration file:                  $workload_environment_file_name"
+echo "Control plane configuration file:    $deployer_environment_file_name"
+echo "Deployment region:                   $region"
+echo "Deployment region code:              $region_code"
+echo "Deployment environment:              $deployer_environment"
+echo "Deployer Keyvault:                   $keyvault"
+echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
+echo "Remote state storage account:        $REMOTE_STATE_SA"
+echo "Target Subscription:                 $subscription"
 
 if [ -n "$keyvault" ]; then
 	if valid_kv_name "$keyvault"; then
@@ -328,51 +338,33 @@ if [ ! -f "${workload_environment_file_name}" ]; then
 		read -r -p "Deployer environment name: " deployer_environment
 	fi
 
-	deployer_environment_file_name="${automation_config_directory}"/"${deployer_environment}""${region_code}"
-	if [ -f "$deployer_environment_file_name" ]; then
-		if [ -z "${keyvault}" ]; then
-			load_config_vars "${deployer_environment_file_name}" "keyvault"
-		fi
-
-		load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_RG"
-		if [ -z "${REMOTE_STATE_SA}" ]; then
-			load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
-		fi
-		load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
-		load_config_vars "${deployer_environment_file_name}" "deployerTerraformStatefileName"
-
-		save_config_vars "${workload_environment_file_name}" \
-			keyvault \
-			subscription \
-			deployerTerraformStatefileName \
-			tfstate_resource_id \
-			REMOTE_STATE_SA \
-			REMOTE_STATE_RG
-	fi
+	save_config_vars "${workload_environment_file_name}" \
+		keyvault \
+		subscription \
+		deployer_tf_state \
+		tfstate_resource_id \
+		REMOTE_STATE_SA \
+		REMOTE_STATE_RG
 fi
 
 if [ -z "$tfstate_resource_id" ]; then
 	echo "No tfstate_resource_id"
-	if [ -n "$deployer_environment" ]; then
-		deployer_environment_file_name="${automation_config_directory}"/"${deployer_environment}""${region_code}"
-		echo "Deployer config file:                $deployer_environment_file_name"
-		if [ -f "$deployer_environment_file_name" ]; then
-			load_config_vars "${deployer_environment_file_name}" "keyvault"
-			load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_RG"
-			load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
-			load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
-			load_config_vars "${deployer_environment_file_name}" "deployerTerraformStatefileName"
+	if [ -f "$deployer_environment_file_name" ]; then
+		load_config_vars "${deployer_environment_file_name}" "keyvault"
+		load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_RG"
+		load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
+		load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
+		load_config_vars "${deployer_environment_file_name}" "deployer_tf_state"
 
-			save_config_vars "${workload_environment_file_name}" \
-				tfstate_resource_id
+		save_config_vars "${workload_environment_file_name}" \
+			tfstate_resource_id
 
-			save_config_vars "${workload_environment_file_name}" \
-				keyvault \
-				subscription \
-				deployerTerraformStatefileName \
-				REMOTE_STATE_SA \
-				REMOTE_STATE_RG
-		fi
+		save_config_vars "${workload_environment_file_name}" \
+			keyvault \
+			subscription \
+			deployer_tf_state \
+			REMOTE_STATE_SA \
+			REMOTE_STATE_RG
 	fi
 else
 
