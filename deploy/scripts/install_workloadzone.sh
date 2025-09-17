@@ -579,12 +579,12 @@ if [ -z "${deployerTerraformStatefileName}" ]; then
 	if [ -n "${deployerTerraformStatefileName}" ]; then
 		# Deployer state was specified in $CONFIG_REPO_PATH/.sap_deployment_automation library config
 		deployerTerraformStatefileName_parameter=" -var deployerTerraformStatefileName=${deployerTerraformStatefileName}"
-		export TF_VAR_deployerTerraformStatefileName_parameter=${deployerTerraformStatefileName}
+		export TF_VAR_deployer_tfstate_key=${deployerTerraformStatefileName}
 
 	fi
 else
 	deployerTerraformStatefileName_parameter=" -var deployerTerraformStatefileName=${deployerTerraformStatefileName}"
-	export TF_VAR_deployerTerraformStatefileName_parameter=${deployerTerraformStatefileName}
+	export TF_VAR_deployer_tfstate_key=${deployerTerraformStatefileName}
 	save_config_vars "${workload_environment_file_name}" deployerTerraformStatefileName
 fi
 
