@@ -299,6 +299,7 @@ if [ -z "${REMOTE_STATE_SA}" ]; then
 fi
 load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
 load_config_vars "${deployer_environment_file_name}" "deployer_tf_state"
+save_config_var "deployer_tf_state_" "${workload_environment_file_name}"
 
 if [ -n "$REMOTE_STATE_SA" ]; then
 	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_environment_file_name}"
