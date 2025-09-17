@@ -566,19 +566,7 @@ else
 	fi
 fi
 
-if [ -z "${deployerTerraformStatefileName}" ]; then
-	load_config_vars "${workload_environment_file_name}" "deployerTerraformStatefileName"
-	if [ -n "${deployerTerraformStatefileName}" ]; then
-		# Deployer state was specified in $CONFIG_REPO_PATH/.sap_deployment_automation library config
-		deployerTerraformStatefileName_parameter=" -var deployerTerraformStatefileName=${deployerTerraformStatefileName}"
-		export TF_VAR_deployer_tfstate_key=${deployerTerraformStatefileName}
-
-	fi
-else
-	deployerTerraformStatefileName_parameter=" -var deployerTerraformStatefileName=${deployerTerraformStatefileName}"
-	export TF_VAR_deployer_tfstate_key=${deployerTerraformStatefileName}
-	save_config_vars "${workload_environment_file_name}" deployerTerraformStatefileName
-fi
+export TF_VAR_deployer_tfstate_key=${deployerTerraformStatefileName}
 
 if [ -z "${REMOTE_STATE_SA}" ]; then
 	read -r -p "Terraform state storage account name: " REMOTE_STATE_SA
@@ -740,7 +728,7 @@ save_config_var "subscription" "${workload_environment_file_name}"
 save_config_var "STATE_SUBSCRIPTION" "${workload_environment_file_name}"
 save_config_var "tfstate_resource_id" "${workload_environment_file_name}"
 
-allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployerTerraformStatefileName_parameter}")
+allParameters=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" )
 
 if [ 1 == $check_output ]; then
 	if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
@@ -771,7 +759,7 @@ if [ 1 == $check_output ]; then
 			echo ""
 			echo "#########################################################################################"
 			echo "#                                                                                       #"
-			echo -e "#   $bold_red The environment was deployed using an older version of the Terrafrom templates $reset_formatting    #"
+			echo -e "#   $bold_red The environment was deployed using an older version of the Terraform templates $reset_formatting    #"
 			echo "#                                                                                       #"
 			echo "#                               !!! Risk for Data loss !!!                              #"
 			echo "#                                                                                       #"
