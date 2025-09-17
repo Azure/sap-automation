@@ -125,8 +125,6 @@ while :; do
 done
 tfstate_resource_id=""
 tfstate_parameter=""
-
-deployerTerraformStatefileName_parameter=""
 landscape_tfstate_key=""
 
 deployment_system="sap_landscape"
@@ -890,7 +888,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployerTerraformStatefileName_parameter}")
+allParameters=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" )
 
 # shellcheck disable=SC2086
 if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee plan_output.log; then
@@ -1017,8 +1015,8 @@ if [ 1 == $apply_needed ]; then
 		parallelism=$TF_PARALLELLISM
 	fi
 
-	allParameters=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployerTerraformStatefileName_parameter}")
-	allImportParameters=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployerTerraformStatefileName_parameter}")
+	allParameters=$(printf " -var-file=%s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}")
+	allImportParameters=$(printf " -var-file=%s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}")
 
 	# shellcheck disable=SC2086
 
