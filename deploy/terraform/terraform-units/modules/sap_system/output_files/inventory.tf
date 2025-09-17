@@ -250,7 +250,7 @@ resource "local_file" "sap-parameters_yml" {
               sid                         = var.sap_sid,
               subnet_cidr_anf             = var.subnet_cidr_anf,
               subnet_cidr_app             = var.subnet_cidr_app,
-              subnet_cidr_client          = var.subnet_cidr_client
+              subnet_cidr_client          = try(var.subnet_cidr_client,"")
               subnet_cidr_db              = var.subnet_cidr_db
               subnet_cidr_storage         = var.subnet_cidr_storage,
               upgrade_packages            = var.upgrade_packages ? "true" : "false"
