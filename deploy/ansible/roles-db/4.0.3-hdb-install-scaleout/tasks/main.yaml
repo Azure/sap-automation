@@ -302,6 +302,14 @@
         owner:                         "{{ db_sid | lower }}adm"
         mode:                          0755
 
+    - name:                            "4.0.3 - SAP HANA SCALE OUT: Set permissions on /hana/shared for scale-out"
+      ansible.builtin.file:
+        path:                          "{{ hana_shared_basepath }}"
+        state:                         directory
+        mode:                          '0775'
+      become:                          true
+      become_user:                     root
+
     - name:                            "4.0.3 - SAP HANA SCALE OUT: Configure global.ini"
       block:
         - name:                        "4.0.3 - SAP HANA SCALE OUT: Prepare global.ini for domain name resolution."
@@ -888,6 +896,14 @@
             group:                         sapsys
             owner:                         "{{ db_sid | lower }}adm"
             mode:                          0755
+
+        - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Set permissions on /hana/shared for scale-out"
+          ansible.builtin.file:
+            path:                          "{{ hana_shared_basepath }}"
+            state:                         directory
+            mode:                          '0775'
+          become:                          true
+          become_user:                     root
 
         - name:                            "4.0.3 - SAP HANA SCALE OUT-HSR: Configure global.ini"
           block:

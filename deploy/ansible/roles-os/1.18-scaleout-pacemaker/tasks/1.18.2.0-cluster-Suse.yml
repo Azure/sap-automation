@@ -83,6 +83,7 @@
 - name:                                "1.18.2.0 Generic Pacemaker - Ensure additional nodes joins the Cluster"
   become:                              true
   become_user:                         root
+  throttle:                            1
   when:
                                        - ansible_hostname != primary_instance_name
   block:
