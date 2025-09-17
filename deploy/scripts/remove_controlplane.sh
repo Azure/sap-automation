@@ -191,7 +191,16 @@ fi
 
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 generic_environment_file_name="${automation_config_directory}"/config
-deployer_environment_file_name="${automation_config_directory}"/"${environment}""${region_code}"
+CONTROL_PLANE_NAME=$(echo "$deployer_parameter_file" | cut -d'-' -f1-3)
+deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+export deployer_tfstate_key
+environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
+region_code=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
+network_logical_name=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $3}' | xargs)
+
+deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$environment" "$region_code" "$network_logical_name")
+SYSTEM_CONFIGURATION_FILE="${deployer_environment_file_name}"
+export SYSTEM_CONFIGURATION_FILE
 
 load_config_vars "${deployer_environment_file_name}" "step"
 if [ 1 -eq $step ]; then

@@ -228,14 +228,20 @@ echo "Agent IP:                            $this_ip"
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 generic_environment_file_name="${automation_config_directory}"/config
 
-if [ -n "$landscape_tfstate_key" ]; then
+if [ "${deployment_system}" == "sap_system" ] || [ "${deployment_system}" == "sap_system" ]; then
+	WORKLOAD_ZONE_NAME=$(echo "$parameterfile" | cut -d'-' -f1-3)
+	landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+	export landscape_tfstate_key
 	environment=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
 	region_code=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $2}' | xargs)
 	network_logical_name=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $3}' | xargs)
-else
+elif [ "${deployment_system}" == "sap_deployer" ]; then
+	CONTROL_PLANE_NAME=$(echo "$parameterfile" | cut -d'-' -f1-3)
+	deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+	export deployer_tfstate_key
 	environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
 	region_code=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
-	network_logical_name=$(echo "$deployer_tfstate_	key" | awk -F'-' '{print $3}' | xargs)
+	network_logical_name=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $3}' | xargs)
 fi
 
 if [ -v SYSTEM_CONFIGURATION_FILE ]; then
