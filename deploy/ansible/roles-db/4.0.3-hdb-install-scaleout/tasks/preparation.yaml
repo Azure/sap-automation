@@ -28,7 +28,6 @@
     secondary_site_hosts:              "{{ hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE2') | map(attribute='key') }}"
     all_hana_hosts:                    "{{ (hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE1') | map(attribute='key') | list) + (hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE2') | map(attribute='key') | list) }}"
 
-
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Debug host groupings"
   ansible.builtin.debug:
     msg:
@@ -48,14 +47,12 @@
     group:                             root
     mode:                              '0700'
 
-
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Check if SSH key already exists"
   become:                              true
   become_user:                         root
   ansible.builtin.stat:
     path:                              /root/.ssh/id_rsa
   register:                            ssh_key_exists
-
 
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Generate SSH key pair on primary instance"
   when:
@@ -67,7 +64,6 @@
     cmd:                               ssh-keygen -t rsa -b 2048 -f /root/.ssh/id_rsa -N '' -C "{{ ansible_hostname }}-hana-so-cluster"
     creates:                           /root/.ssh/id_rsa
   register:                            ssh_key_generation
-
 
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Read public key from primary instance"
   when:                                ansible_hostname == primary_instance_name
@@ -124,7 +120,6 @@
     group:                             root
     mode:                              '0644'
 
-
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Add cluster public key to authorized_keys"
   become:                              true
   become_user:                         root
@@ -140,7 +135,6 @@
     mode:                              '0600'
     state:                             present
 
-
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Get SSH host keys from primary site hosts"
   become:                              true
   become_user:                         root
@@ -150,7 +144,6 @@
   changed_when:                        false
   failed_when:                         site1_host_keys.rc != 0 and site1_host_keys.stderr is not search("Connection refused")
   loop:                                "{{ primary_site_hosts }}"
-
 
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Get SSH host keys from secondary site hosts"
   become:                              true
@@ -164,7 +157,6 @@
   changed_when:                        false
   failed_when:                         site2_host_keys.rc != 0 and site2_host_keys.stderr is not search("Connection refused")
   loop:                                "{{ secondary_site_hosts }}"
-
 
 - name:                                "4.0.3 - SAP HANA SCALE OUT: Compile all host keys"
   when:                                ansible_hostname == primary_instance_name

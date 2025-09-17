@@ -155,7 +155,7 @@
     - name:                            "1.18.2.0 Generic Pacemaker - Enable Stonith"
       ansible.builtin.shell: |
                                        crm configure property stonith-enabled=true;
-                                       crm configure property concurrent-fencing=true;
+                                       crm configure property concurrent-fencing=true
 
 
     - name:                            "1.18.2.0 Generic Pacemaker - Stonith Timeout Property"
@@ -216,7 +216,7 @@
     - name:                            "1.18.2.0 Generic Pacemaker - SBD device configuration"
       when:                            inventory_hostname == primary_instance_name
       ansible.builtin.debug:
-        msg:                                      "SBD device configuration ends"
+        msg:                           "SBD device configuration ends"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
