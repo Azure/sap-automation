@@ -399,7 +399,10 @@ module "output_files" {
                                                     module.hdb_node.observer_vms) : (
                                                     module.anydb_node.observer_vms
                                                   )
-
+  observer_shared_disks                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.observer_shared_disks) : (
+                                                    module.anydb_node.observer_shared_disks
+                                                  )
   platform                                      = upper(try(local.database.platform, "HANA"))
   sap_sid                                       = local.sap_sid
   web_sid                                       = var.web_sid

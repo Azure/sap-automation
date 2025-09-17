@@ -460,7 +460,7 @@ resource "azurerm_managed_disk" "cluster" {
   storage_account_type                 = var.database.database_cluster_disk_type
   disk_size_gb                         = var.database.database_cluster_disk_size
   disk_encryption_set_id               = try(var.options.disk_encryption_set_id, null)
-  max_shares                           = var.database_server_count
+  max_shares                           = var.use_observer ? var.database_server_count + 1 : var.database_server_count
   tags                                 = var.tags
 
   zone                                 = var.database.database_cluster_disk_type == "Premium_LRS" && !local.use_avset ? (

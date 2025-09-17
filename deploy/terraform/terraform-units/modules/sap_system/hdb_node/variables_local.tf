@@ -170,6 +170,7 @@ locals {
                                           null
                                         )
 
+
   standard_ips                        = [
                                           {
                                             name = format("%s%s%s%s",
@@ -178,7 +179,7 @@ locals {
                                               var.naming.separator,
                                               local.resource_suffixes.db_alb_feip
                                             )
-                                            subnet_id = var.database.scale_out && var.database_dual_nics && var.NFS_provider == "ANF" ? (
+                                            subnet_id = var.database.scale_out && var.database_dual_nics && var.database.high_availability ? (
                                               try(
                                                 var.admin_subnet.id,
                                                 var.landscape_tfstate.admin_subnet_id
@@ -190,7 +191,7 @@ locals {
                                               var.database.use_DHCP ? (
                                                 null) : (
                                                 cidrhost(
-                                                  var.database.scale_out && var.database_dual_nics && var.NFS_provider == "ANF" ? var.admin_subnet.address_prefixes[0] : var.db_subnet.address_prefixes[0],
+                                                  var.database.scale_out && var.database_dual_nics && var.database.high_availability ? var.admin_subnet.address_prefixes[0] : var.db_subnet.address_prefixes[0],
                                                   local.hdb_ip_offsets.hdb_lb
                                               ))
                                             )
@@ -203,7 +204,7 @@ locals {
                                               var.naming.separator,
                                               try(local.resource_suffixes.db_rlb_feip, "dbRlb-feip")
                                             )
-                                            subnet_id = var.database.scale_out && var.database_dual_nics && var.NFS_provider == "ANF" ? (
+                                            subnet_id = var.database.scale_out && var.database_dual_nics  ? (
                                               try(
                                                 var.admin_subnet.id,
                                                 var.landscape_tfstate.admin_subnet_id
@@ -215,7 +216,7 @@ locals {
                                               var.database.use_DHCP ? (
                                                 null) : (
                                                 cidrhost(
-                                                  var.database.scale_out && var.database_dual_nics && var.NFS_provider == "ANF" ? var.admin_subnet.address_prefixes[0] :  var.db_subnet.address_prefixes[0],
+                                                  var.database.scale_out && var.database_dual_nics ? var.admin_subnet.address_prefixes[0] :  var.db_subnet.address_prefixes[0],
                                                   local.hdb_ip_offsets.hdb_lb + 1
                                               ))
                                             )

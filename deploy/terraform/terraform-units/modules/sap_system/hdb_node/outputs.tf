@@ -296,6 +296,19 @@ output "observer_vms"                  {
                                                        )
                                        }
 
+output "observer_shared_disks"         {
+                                         description = "List of Azure shared disks on the majority maker"
+                                         value       = distinct(
+                                                         flatten(
+                                                           [for vm in var.naming.virtualmachine_names.OBSERVER_COMPUTERNAME :
+                                                             [for idx, disk in azurerm_virtual_machine_data_disk_attachment.cluster :
+                                                               format("{ host: '%s', LUN: %d, type: 'ASD' }", vm, disk.lun)
+                                                             ]
+                                                           ]
+                                                         )
+                                                       )
+                                       }
+
 output "site_information"              {
                                          description = "Site information"
                                          value       = local.enable_deployment ? (
