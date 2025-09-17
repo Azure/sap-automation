@@ -230,14 +230,9 @@ fi
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 generic_environment_file_name="${automation_config_directory}"/config
 
-if [ "$deployer_environment" != "$environment" ]; then
-	if [ -f "${automation_config_directory}/${environment}${region_code}" ]; then
-		# Add support for having multiple vnets in the same environment and zone - rename exiting file to support seamless transition
-		if [ -f "${automation_config_directory}/${environment}${region_code}${network_logical_name}" ]; then
-			mv "${automation_config_directory}/${environment}${region_code}" "${automation_config_directory}/${environment}${region_code}${network_logical_name}"
-		fi
-	fi
-fi
+
+deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$DEPLOYER_ENVIRONMENT" "$DEPLOYER_LOCATION" "$DEPLOYER_NETWORK")
+
 
 environment=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
 region_code=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $2}' | xargs)
@@ -245,10 +240,16 @@ network_logical_name=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $3}' | 
 workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT_IN_FILENAME}" "${LOCATION_CODE_IN_FILENAME}" "${NETWORK_IN_FILENAME}")
 
 touch "${workload_environment_file_name}"
-deployer_environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
-deployer_location=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
-deployer_network=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $3}' | xargs)
-deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${deployer_environment}" "${deployer_location}" "${deployer_network}")
+DEPLOYER_ENVIRONMENT=$(echo "$deployer_tf_state" | awk -F'-' '{print $1}' | xargs)
+DEPLOYER_LOCATION=$(echo "$deployer_tf_state" | awk -F'-' '{print $2}' | xargs)
+DEPLOYER_NETWORK=$(echo "$deployer_tf_state" | awk -F'-' '{print $3}' | xargs)
+
+if [ -z "$DEPLOYER_ENVIRONMENT" ] || [ -z "$DEPLOYER_LOCATION" ] || [ -z "$DEPLOYER_NETWORK" ]; then
+	echo "Could not extract environment, location or network from parameter file name"
+	echo "Expected format <environment>-<location>-<network>-INFRASTRUCTURE.tfvars"
+	exit 2
+fi
+deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${DEPLOYER_ENVIRONMENT}" "${DEPLOYER_LOCATION}" "${DEPLOYER_NETWORK}")
 
 save_config_vars "${workload_environment_file_name}" \
 	STATE_SUBSCRIPTION REMOTE_STATE_SA subscription
