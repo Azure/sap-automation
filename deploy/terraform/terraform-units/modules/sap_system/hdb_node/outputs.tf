@@ -301,7 +301,7 @@ output "observer_shared_disks"         {
                                          value       = distinct(
                                                          flatten(
                                                            [for vm in var.naming.virtualmachine_names.OBSERVER_COMPUTERNAME :
-                                                             [for idx, disk in azurerm_virtual_machine_data_disk_attachment.cluster :
+                                                             [for idx, disk in azurerm_virtual_machine_data_disk_attachment.cluster_observer :
                                                                format("{ host: '%s', LUN: %d, type: 'ASD' }", vm, disk.lun)
                                                              ]
                                                            ]
