@@ -228,7 +228,7 @@ echo "Agent IP:                            $this_ip"
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 generic_environment_file_name="${automation_config_directory}"/config
 
-if [ "${deployment_system}" == "sap_system" ] || [ "${deployment_system}" == "sap_system" ]; then
+if [ "${deployment_system}" == "sap_system" ] || [ "${deployment_system}" == "sap_landscape" ]; then
 	WORKLOAD_ZONE_NAME=$(echo "$parameterfile" | cut -d'-' -f1-3)
 	landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 	export landscape_tfstate_key
@@ -251,6 +251,7 @@ else
 fi
 
 load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
+load_config_vars "${system_environment_file_name}" "deployer_tfstate_key"
 
 load_config_vars "${system_environment_file_name}" "keyvault"
 TF_VAR_deployer_kv_user_arm_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$keyvault' | project id, name, subscription" --query data[0].id --output tsv)
