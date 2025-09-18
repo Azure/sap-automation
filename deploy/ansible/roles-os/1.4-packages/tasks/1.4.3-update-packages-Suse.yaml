@@ -5,7 +5,7 @@
 # |                             Update packages                                 |
 # +------------------------------------4---------------------------------------*/
 
-- name:                                "1.4 Packages: - check if {{ sid_to_be_deployed.sid | upper }} is updated"
+- name:                                "1.4 Packages: - check if {{ sap_sid | upper }} is updated"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/packages_installed.txt"
   register:                            packages_installed

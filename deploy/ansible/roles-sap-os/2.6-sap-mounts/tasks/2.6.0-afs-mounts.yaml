@@ -486,6 +486,8 @@
                                          | first
                                        }}
 
+    # we will use the user id (SAP HANA admin) and group id  (sapsys)
+    # this is to ensure that the task works.
     - name:                            "AFS Mount: Create backup directory on SITE1 hana_shared"
       become:                          true
       become_user:                     root
@@ -496,7 +498,7 @@
         path:                          "/hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/backup/data/DB_{{ db_sid | upper }}{{ db_instance_number }}"
         state:                         directory
         owner:                         '{{ hdbadm_uid }}'
-        group:                         sapsys
+        group:                         '{{ sapsys_gid }}'
         mode:                          '0755'
         recurse:                       true
 
@@ -511,7 +513,7 @@
         path:                          "/hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/backup/data/DB_{{ db_sid | upper }}{{ db_instance_number }}"
         state:                         directory
         owner:                         '{{ hdbadm_uid }}'
-        group:                         sapsys
+        group:                         '{{ sapsys_gid }}'
         mode:                          '0755'
         recurse:                       true
 
