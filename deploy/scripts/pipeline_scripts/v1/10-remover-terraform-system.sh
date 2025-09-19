@@ -223,10 +223,10 @@ if ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh \
 	--deployer_tfstate_key "${deployer_tfstate_key}" \
 	--auto-approve; then
 	return_code=$?
-	print_banner "$banner_title" "The removal of $WORKLOAD_ZONE_TFVARS_FILENAME succeeded" "success" "Return code: ${return_code}"
+	print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME succeeded" "success" "Return code: ${return_code}"
 else
 	return_code=$?
-	print_banner "$banner_title" "The removal of $WORKLOAD_ZONE_TFVARS_FILENAME failed" "error" "Return code: ${return_code}"
+	print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME failed" "error" "Return code: ${return_code}"
 fi
 
 echo
