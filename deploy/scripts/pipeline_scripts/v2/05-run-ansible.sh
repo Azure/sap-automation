@@ -122,12 +122,6 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
-tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_STATE_STORAGE_ACCOUNT' | project id, name, subscription" --query data[0].id --output tsv)
-control_plane_subscription=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
-
-export control_plane_subscription
-
-
 ############################################################################################
 #                                                                                          #
 # Run Pre tasks if Ansible playbook with the correct naming exists                         #
