@@ -233,17 +233,17 @@ locals {
   //Disks for Ansible
   // host: xxx, LUN: #, type: sapusr, size: #
 
-  app_disks_ansible                    = distinct(flatten([for vm in var.naming.virtualmachine_names.APP_COMPUTERNAME : [
+  app_disks_ansible                    = distinct(flatten([for vm in coalesce(azurerm_linux_virtual_machine.app[*].computer_name, azurerm_windows_virtual_machine.app[*].computer_name) : [
                                            for idx, datadisk in local.app_data_disk_per_node :
                                            format("{ host: '%s', LUN: %d, type: '%s' }", vm, datadisk.lun, datadisk.type)
                                          ]]))
 
-  scs_disks_ansible                    = distinct(flatten([for vm in var.naming.virtualmachine_names.SCS_COMPUTERNAME : [
+  scs_disks_ansible                    = distinct(flatten([for vm in coalesce(azurerm_linux_virtual_machine.scs[*].computer_name, azurerm_windows_virtual_machine.scs[*].computer_name) : [
                                            for idx, datadisk in local.scs_data_disk_per_node :
                                            format("{ host: '%s', LUN: %d, type: '%s' }", vm, datadisk.lun, datadisk.type)
                                          ]]))
 
-  web_disks_ansible                    = distinct(flatten([for vm in var.naming.virtualmachine_names.WEB_COMPUTERNAME : [
+  web_disks_ansible                    = distinct(flatten([for vm in coalesce(azurerm_linux_virtual_machine.web[*].computer_name, azurerm_windows_virtual_machine.web[*].computer_name) : [
                                            for idx, datadisk in local.web_data_disk_per_node :
                                            format("{ host: '%s', LUN: %d, type: '%s' }", vm, datadisk.lun, datadisk.type)
                                          ]]))
