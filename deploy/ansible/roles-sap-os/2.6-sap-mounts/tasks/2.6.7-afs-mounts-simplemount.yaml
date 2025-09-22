@@ -337,7 +337,7 @@
       'type':              'shared',
       'temppath':          'shared',
       'mount':             "{% if ansible_hostname in query('inventory_hostnames', '{{ sap_sid | upper }}_DB')[0::2] %}{{ hana_shared_mountpoint[0] }}{% else %}{{ hana_shared_mountpoint[1] }}{% endif %}",
-      'opts':              'vers=4,minorversion=1,sec=syss',
+      'opts':              'vers=4,minorversion=1,sec=sys',
       'owner':              '{{ sidadm_uid }}',
       'path':              '/hana/shared',
       'permissions':       '0775',
@@ -352,6 +352,6 @@
     - db_high_availability
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length == 2
-
+    - node_tier in ['hana']
 
 ...

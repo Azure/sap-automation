@@ -28,26 +28,6 @@
       tags:
         - always
 
-    - name:                            "0.0 Validations - Ensure jmespath is installed on the controller"
-      ansible.builtin.pip:
-        name:                          jmespath
-        state:                         present
-      tags:
-                                       - always
-
-    - name:                            "0.0 Validations - Ensure netaddr is installed in the controller"
-      ansible.builtin.pip:
-        name:                          netaddr
-        state:                         present
-      tags:
-                                       - always
-
-    # - name:                            "0.0 Validations - ensure credssp is installed in the controller"
-    #   ansible.builtin.pip:
-    #     name:                          'pywinrm[credssp]'
-    #     state:                         present
-    #   failed_when:                     false
-
     - name:                            "0.0 Validations - Create Progress folder"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
@@ -81,7 +61,7 @@
       ansible.builtin.assert:
         that:
                                        - item_to_check.parameter is defined                  # Has the variable been defined
-                                       - item_to_check.parameter | type_debug != 'NoneType'  # Is the variable not empty
+                                       - item_to_check.parameter | type_debug != 'NoneType'  # Is the variable not empty"
                                        - item_to_check.parameter | trim | length > 1
         fail_msg:                      "{{ item_to_check.error }}"
       loop:
@@ -175,7 +155,7 @@
       ansible.builtin.assert:
         that:
           - item_to_check.parameter is defined # Has the variable been defined
-          - item_to_check.parameter | type_debug != 'NoneType' # Is the variable not empty
+          - item_to_check.parameter | type_debug != 'NoneType' # Is the variable not empty"
           - item_to_check.parameter | trim | length > 1
         fail_msg: "{{ item_to_check.error }}"
       loop:

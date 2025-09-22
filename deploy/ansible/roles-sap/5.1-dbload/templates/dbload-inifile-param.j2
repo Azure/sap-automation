@@ -36,6 +36,7 @@ SAPINST.CD.PACKAGE.CD4                                                = {{ targe
 
 HDB_Schema_Check_Dialogs.schemaName                                   = {{ hana_schema }}
 HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
+HDB_Recovery_Dialogs.backupDestinationType                            = File
 
 NW_HDB_DB.abapSchemaName                                              = {{ hana_schema }}
 NW_HDB_DB.abapSchemaPassword                                          = {{ main_password }}
@@ -47,8 +48,14 @@ NW_HDB_getDBInfo.systemDbPassword                                     = {{ main_
 NW_HDB_getDBInfo.systemPassword                                       = {{ main_password }}
 NW_HDB_getDBInfo.systemid                                             = {{ db_sid | upper }}
 NW_HDB_getDBInfo.usingSSL                                             = true
-
+{%   if database_scale_out | default(false) and database_high_availability | default(false) and
+         hana_shared_mountpoint is defined and hana_shared_mountpoint | length == 2 %}
+NW_Recovery_Install_HDB.extractLocation                               = /hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/backup/data/DB_{{ db_sid | upper }}{{ db_instance_number }}
+{%   elif database_scale_out | default(false) and hana_shared_mountpoint is defined %}
+NW_Recovery_Install_HDB.extractLocation                               = /hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/backup/data/DB_{{ db_sid | upper }}{{ db_instance_number }}
+{%   else %}
 NW_Recovery_Install_HDB.extractLocation                               = {{ hana_backup_path }}/{{ db_sid | upper }}/HDB{{ db_instance_number }}/backup/data/DB_{{ db_sid | upper }}{{ db_instance_number }}
+{%   endif %}
 NW_Recovery_Install_HDB.extractParallelJobs                           = 24
 NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid | lower }}adm
 NW_Recovery_Install_HDB.sidAdmPassword                                = {{ main_password }}

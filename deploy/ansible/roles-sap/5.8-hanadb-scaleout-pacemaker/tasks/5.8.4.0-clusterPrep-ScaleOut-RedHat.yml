@@ -194,29 +194,6 @@
           when:
            - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
 
-    # # Note: We need to manually start HANA on all participating nodes via HDB script.
-    # - name:                            Start HANA database on each participating node
-    #   become_user:                     "{{ db_sid | lower }}adm"
-    #   args:
-    #     chdir:                           "/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}"
-    #   become:                          true
-    #   ansible.builtin.shell: >
-    #                                    source /usr/sap/{{ db_sid | upper }}/home/.sapenv.sh &&
-    #                                    HDB start
-    #   failed_when:                     hdb_start.rc > 0
-    #   changed_when:                    false
-    #   register:                        hdb_start
-
-    # - name:                            Start HANA System on both sites
-    #   become_user:                     "{{ db_sid | lower }}adm"
-    #   become:                          true
-    #   ansible.builtin.command:         "{{ sapcontrol_command }} -function StartSystem"
-    #   failed_when:                     hana_system_started.rc > 0
-    #   changed_when:                    false
-    #   register:                        hana_system_started
-    #   when:
-    #     - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
-
     - name:                            "5.8 HANA Pacemaker Scaleout - Wait for SAP system to stabilize (debug)"
       ansible.builtin.debug:
         msg:                           "5.8 HANA Pacemaker Scaleout - Wait {{ hana_scaleout_wait_for_start_in_sec }} seconds for SAP system to stabilize"

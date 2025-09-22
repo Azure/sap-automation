@@ -34,7 +34,7 @@
       vars:
         allow_world_readable_tmpfiles:     true
       environment:
-        PATH:                          /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
@@ -72,8 +72,13 @@
       args:
         executable:                    /bin/sh
       environment:
-        TEMPDIR:                       "{{ tmp_directory }}/{{ db_sid | upper }}"
-        ANSIBLE_TEMP_DIR:              "{{ tmp_directory }}/{{ db_sid | upper }}"
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+        SAP_RETRIEVAL_PATH:            "/usr/sap/{{ DB }}/{{ virtual_host }}"
+        SECUDIR:                       "/usr/sap/{{ DB }}/{{ virtual_host }}/sec"
 
     - name:                            "HANA HSR: - Debug replication status"
       ansible.builtin.debug:
@@ -89,6 +94,15 @@
       # rc == 102 means nameserver is already active
       failed_when:                     hana_status.rc != 0 and hana_status.rc != 102
       changed_when:                    "'successfully enabled system as system replication source site' in hana_status.stdout"
+      environment:
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+        SAP_RETRIEVAL_PATH:            "/usr/sap/{{ DB }}/{{ virtual_host }}"
+        SECUDIR:                       "/usr/sap/{{ DB }}/{{ virtual_host }}/sec"
+
 
     - name:                            "HANA HSR: - Check replication state on primary"
       ansible.builtin.set_fact:
@@ -96,7 +110,7 @@
       vars:
         allow_world_readable_tmpfiles: true
       environment:
-        PATH:                          /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
@@ -115,6 +129,7 @@
 
     - name:                            "HANA HSR: - Start HANA on {{ virtual_host }}"
       ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+
 
 - name:                                "HANA HSR: - Ensure System Replication is configured command on secondary"
   ansible.builtin.debug:
@@ -142,6 +157,15 @@
       changed_when:                    "'adding site' in hsr_secondary_registration.stdout"
       args:
         executable: /bin/bash
+      environment:
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+        SAP_RETRIEVAL_PATH:            "/usr/sap/{{ DB }}/{{ virtual_host }}"
+        SECUDIR:                       "/usr/sap/{{ DB }}/{{ virtual_host }}/sec"
+
 
     - name:                            "HANA HSR: - Configure HANA active/read-enabled system replication"
       become_user:                     "{{ db_sid_admin_user }}"
@@ -155,13 +179,23 @@
       changed_when:                    "'adding site' in hsr_active_active_registration.stdout"
       args:
         executable: /bin/bash
+      environment:
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+        SAP_RETRIEVAL_PATH:            "/usr/sap/{{ DB }}/{{ virtual_host }}"
+        SECUDIR:                       "/usr/sap/{{ DB }}/{{ virtual_host }}/sec"
+
 
     - name:                            "HANA HSR: - Start HANA on {{ virtual_host }}"
       ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
       vars:
         allow_world_readable_tmpfiles: true
       environment:
-        PATH:                          /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
         DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"

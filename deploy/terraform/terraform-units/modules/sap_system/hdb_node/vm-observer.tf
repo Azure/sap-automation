@@ -80,14 +80,13 @@ resource "azurerm_linux_virtual_machine" "observer" {
 
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
 
-  tags                                 = try(var.observer_vm_tags, merge(local.tags, var.tags))
-
   encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
   patch_mode                                             = var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
 
+  tags                                = var.tags
   dynamic "admin_ssh_key" {
                             for_each = range(var.deployment == "new" ? 1 : (local.enable_auth_password ? 0 : 1))
                             content {
@@ -124,4 +123,17 @@ resource "azurerm_linux_virtual_machine" "observer" {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
 
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "cluster_observer" {
+  provider                             = azurerm.main
+  count                                = var.use_observer && length(azurerm_managed_disk.cluster) > 0 ? 1 : 0
+  managed_disk_id                      = azurerm_managed_disk.cluster[0].id
+  virtual_machine_id                   = azurerm_linux_virtual_machine.observer[0].id
+  caching                              = "None"
+  lun                                  = var.database.database_cluster_disk_lun
+
+  lifecycle {
+    create_before_destroy = false
+  }
 }

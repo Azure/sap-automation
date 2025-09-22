@@ -1,7 +1,7 @@
 {# Copyright (c) Microsoft Corporation.
  # Licensed under the MIT License.
 #}
-# SAPHanaSR-ScaleOut needs for srHook
+# SAPHanaSR-ScaleOut requirements for HA/DR hook scripts
 {{ db_sid | lower }}adm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_site_srHook_*
 {{ db_sid | lower }}adm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_{{ db_sid | lower }}_gsh *
 {{ db_sid | lower }}adm ALL=(ALL) NOPASSWD: /usr/sbin/SAPHanaSR-hookHelper --sid={{ db_sid | lower }} *
