@@ -1,14 +1,16 @@
 # Azure specific udev rules
-# Handles devices processed by LVM that modify ID_MODEL and ID_SERIAL property
+# Uses hardware attributes instead of environment variables for resiliency
 # Uses external azure-nvme-lun-calc script for namespace detection
 
 # Section 1: NVMe drives
+# Azure rules for NVMe drives
+# will create links in /dev/disk/azure/data/by-lun with LUN IDs for data disks
 ACTION!="add|change", GOTO="azure_nvme_end"
 SUBSYSTEM!="block", GOTO="azure_nvme_end"
 KERNEL!="nvme*", GOTO="azure_nvme_end"
 
-# Identify Azure NVMe devices using hardware attributes
-# vendor can be found using lspci -nn
+# Hardware-based device identification (LVM-immune)
+# Uses hardware attributes that cannot be modified by LVM processing
 ATTRS{model}=="MSFT NVMe Accelerator v1.0*", ATTRS{vendor}=="0x1414", GOTO="azure_nvme_remote_start"
 
 GOTO="azure_nvme_end"
@@ -19,14 +21,16 @@ KERNEL=="nvme*[0-9]n1", ENV{DEVTYPE}=="disk", SYMLINK+="disk/azure/root", GOTO="
 # create os disk symlink partitions
 KERNEL=="nvme*[0-9]n1p[0-9]", ENV{DEVTYPE}=="partition", SYMLINK+="disk/azure/root-part%n", GOTO="azure_udev_end"
 
-# create SYMLINKs for NVMe data disks using direct NSID from hardware
-KERNEL=="nvme*[0-9]n*[0-9]", ENV{DEVTYPE}=="disk", ATTR{nsid}=="?*", \
+# create SYMLINKs for NVMe data disks (namespace 2+)
+# Hardware-based approach using $attr{nsid} for LUN calculation
+KERNEL=="nvme*[0-9]n*[0-9]", ENV{DEVTYPE}=="disk", ATTR{nsid}=="?*", ATTR{nsid}!="1", \
     PROGRAM="/usr/local/bin/azure-nvme-lun-calc %k $attr{nsid}", \
     RESULT=="?*", \
     SYMLINK+="disk/azure/data/by-lun/%c", GOTO="azure_udev_end"
 
 # create SYMLINKs for NVMe data disk partitions
-KERNEL=="nvme*[0-9]n*[0-9]p[0-9]", ENV{DEVTYPE}=="partition", ATTR{nsid}=="?*", \
+# Hardware-based approach for partitions
+KERNEL=="nvme*[0-9]n*[0-9]p[0-9]", ENV{DEVTYPE}=="partition", ATTR{nsid}=="?*", ATTR{nsid}!="1", \
     PROGRAM="/usr/local/bin/azure-nvme-lun-calc %k $attr{nsid}", \
     RESULT=="?*", \
     SYMLINK+="disk/azure/data/by-lun/%c-part%n", GOTO="azure_udev_end"
@@ -39,11 +43,9 @@ LABEL="azure_nvme_end"
 ACTION!="add|change", GOTO="azure_udev_end"
 SUBSYSTEM!="block", GOTO="azure_udev_end"
 
-# Multi-method SCSI device identification
-# Method 1: Original attributes (for unprocessed devices)
+# Hardware-based SCSI device identification (LVM-immune)
+# Uses hardware attributes that remain constant regardless of LVM processing
 ATTRS{ID_VENDOR}=="Msft", ATTRS{ID_MODEL}=="Virtual_Disk", GOTO="azure_scsi_check"
-# Method 2: Serial pattern matching (for LVM-processed devices)
-ENV{ID_SERIAL}=="*Msft*Virtual_Disk*", GOTO="azure_scsi_check"
 
 GOTO="azure_udev_end"
 
