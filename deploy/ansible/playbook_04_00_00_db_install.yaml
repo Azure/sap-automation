@@ -60,25 +60,24 @@
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                                 "Database Installation Playbook: - Read/Create key vault secrets"
+    - name:                            "Database Installation Playbook: - Read/Create key vault secrets"
       ansible.builtin.include_role:
-        name:                               roles-misc/0.2-kv-secrets
-        public:                             true
+        name:                          roles-misc/0.2-kv-secrets
+        public:                        true
       vars:
-        # tier:                               fencing
-        operation:                          fencing
-      when:                                 (database_high_availability and database_cluster_type == "AFA")
+        # tier:                        fencing
+        operation:                     fencing
+      when:                            (database_high_availability and database_cluster_type == "AFA")
       tags:
                                             - 0.2-kv-secrets
 
     - name:                            "Database Installation Playbook: - Read storage account details"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
-        public:                        true
       vars:
         tier:                          bom_download
       tags:
-        - kv-sap-installation-media-storage-details
+        - always
 
     - name:                            "Database Installation Playbook: - Generate root password"
       ansible.builtin.set_fact:
@@ -288,12 +287,12 @@
 
     # This configures root account on HANA nodes for scale out configuration ( shared and shared nothing with HSR ) to use password based login.
     - name:                            "SAP HANA: Configure root credential for Scale-Out"
-      become:                          true
       when:
                                        - database_scale_out
                                        - hostvars.localhost.root_password is defined
       block:
         - name:                            Reset root password
+          become:                          true
           ansible.builtin.user:
             name:                          root
             update_password:               always
@@ -301,6 +300,7 @@
             password_lock:                 false
 
         - name:                            Enable {{ item.key }} in /etc/ssh/sshd_config
+          become:                          true
           ansible.builtin.lineinfile:
             path:                          "/etc/ssh/sshd_config"
             regex:                         "^(# *)?{{ item.key }}"
@@ -319,6 +319,7 @@
           ignore_errors:                   true
 
         - name:                            Append root user to AllowUsers if used
+          become:                          true
           ansible.builtin.lineinfile:
             path:                          "/etc/ssh/sshd_config"
             regexp:                        '^AllowUsers (?!.*root.*)(.*)'
@@ -327,6 +328,7 @@
             state:                         present
 
         - name:                            "Restart SSHD on {{ ansible_hostname }}"
+          become:                          true
           ansible.builtin.service:
             name:                          sshd
             state:                         restarted
@@ -669,7 +671,6 @@
             state:                     touch
             mode:                      0755
 
-
     - name:                            "Install Oracle for MSID"
       become:                          true
       become_user:                     root
@@ -714,53 +715,56 @@
         - node_tier == 'oracle-asm'
         - platform == 'ORACLE-ASM'
       block:
-        - name:                        Setting the DB facts for ASM
+        - name:                        "Oracle ASM: Setting the DB facts for ASM"
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           tags:
             - always
 
-        - name:                        Include 1.5.1.1-disk-setup-asm-sap
+        - name:                         "Oracle ASM: Register repositories"
+          ansible.builtin.import_tasks: roles-os/1.3-repository/tasks/1.3.3-repositories-Oracle-ASM.yaml
+
+        - name:                        "Oracle ASM: Install Oracle specific packages"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+
+        - name:                        "Oracle ASM: ASM Disk setup"
           ansible.builtin.include_role:
             name:                      roles-os/1.5.1.1-disk-setup-asm-sap
 
-        - name:                        "OS configuration playbook: - Ensure the kernel parameters are set"
+        - name:                        "Oracle ASM: Ensure the kernel parameters are set"
           ansible.builtin.include_role:
             name:                      roles-os/1.9-kernelparameters
           tags:
             - 1.9-kernelparameters
 
-        # - name:                        "SAP OS configuration playbook: - Configure accounts"
-        #   ansible.builtin.include_role:
-        #     name:                      roles-os/1.11-accounts
-        #   tags:
-        #     - 1.11-accounts
-
-        - name:                        "SAP OS configuration playbook: - Create SAP users/groups"
+        - name:                        "Oracle ASM: Create SAP users/groups"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.5-sap-users
           tags:
             - 2.5-sap-users
 
-        - name:                        Mount the file systems for ASM installation
+        - name:                        "Oracle ASM: Mount the file systems for ASM installation"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        Include 1.5.1-disk-setup-asm role
+        - name:                        "Oracle ASM: Include 1.5.1-disk-setup-asm role"
           ansible.builtin.include_role:
             name:                      roles-os/1.5.1-disk-setup-asm
 
-        - name:                        Check for file system mounts
+        - name:                        "Oracle ASM: Check for file system mounts"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        Installing Oracle ASM Grid
+        - name:                        "Oracle ASM: Installing Oracle ASM Grid"
           ansible.builtin.include_role:
             name:                      roles-db/4.1.1-ora-asm-grid
           tags:                        4.1.1-ora-asm-grid
 
-        - name:                        Installing Oracle on ASM
+        - name:                        "Oracle ASM: Installing Oracle on ASM"
           ansible.builtin.include_role:
             name:                      roles-db/4.1.2-ora-asm-db-install
 

@@ -28,6 +28,14 @@
   loop_control:
     loop_var: item_to_check
 
+- name:                                "Oracle ASM: - Set DB SID"
+  ansible.builtin.debug:
+    msg:
+                                       - "DB SID: {{ sap_sid | upper }}"
+                                       - "Oracle Version: {{ ora_version }}"
+                                       - "Oracle Release: {{ ora_release }}"
+                                       - "Oracle SBP Patch: {{ oracle_sbp_patch }}"
+
 - name:                                "Oracle ASM: Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config_asm.yml
 
@@ -38,6 +46,15 @@
     state:                             directory
     owner:                             oracle
     group:                             oinstall
+
+- name:                                "Oracle ASM: tmp folder"
+  ansible.builtin.file:
+    path:                              "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/"
+    mode:                              '0755'
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
 
 - name:                                "Oracle ASM: check if permissions are set"
   ansible.builtin.stat:
@@ -69,6 +86,7 @@
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/grid_sbp_installed.txt"
   register:                            oracle_installed
+
 
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
@@ -609,13 +627,13 @@
 
     - name:                            "Oracle ASM: Check if 'OPatch.bck' exists"
       ansible.builtin.stat:
-        path:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck
+        path:                          "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck"
       register:                        opatch_stat
 
     - name:                            "Oracle ASM: backup OPatch"
       ansible.builtin.copy:
-        src:                           /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch
-        dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck
+        src:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
+        dest:                          "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck"
         remote_src:                    true
         mode:                          '0755'
       when:
@@ -623,33 +641,28 @@
 
     - name:                            "Oracle ASM: remove old OPatch"
       ansible.builtin.file:
-        path:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch
+        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
         state:                         absent
       when:
         - not opatch_stat.stat.exists
 
-    - name:                            "Oracle ASM: copy OPatch"
-      # become:                              true
-      # become_user:                         "{{ oracle_user_name }}"
+    - name:                            "ORACLE ASM: copy OPatch from {{ target_media_location }}/SBP/OPATCH/OPatch to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
       ansible.builtin.copy:
         src:                           "{{ target_media_location }}/SBP/OPATCH/OPatch"
-        dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}
+        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
         remote_src:                    true
-        mode:                          '0755'
+        mode:                          0755
         owner:                         oracle
         group:                         oinstall
 
-    - name:                            "Oracle ASM: copy MOPatch"
-      # become:                              true
-      # become_user:                         "{{ oracle_user_name }}"
+    - name:                            "ORACLE ASM: copy MOPatch from {{ mopatch_path }} to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
       ansible.builtin.copy:
         src:                           "{{ mopatch_path }}"
         dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}
         remote_src:                    true
-        mode:                          '0777'
+        mode:                          0777
         owner:                         oracle
         group:                         oinstall
-
 
     - name:                            "Oracle ASM: Pre Processing set permissions"
       ansible.builtin.file:
@@ -666,7 +679,7 @@
     - name:                            "Oracle ASM: Post Processing - SBP Patching"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell:           $IHRDBMS/MOPatch/mopatch.sh -v -s {{ oracle_sbp_patch }}
+      ansible.builtin.shell:           "env ORACLE_HOME=$IHRDBMS $IHRDBMS/MOPatch/mopatch.sh -v -s {{ oracle_sbp_patch }}"
       environment:
         DB_SID:                        "{{ db_sid }}"
         CV_ASSUME_DISTID:              OL7
