@@ -196,7 +196,7 @@
     path:                              '{{ item }}'
     owner:                             oracle
     group:                             oinstall
-    mode:                              '755'
+    mode:                              '0755'
   loop:                                '{{ data_disk_list }}'
 
 - name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Archive Disks "
@@ -206,7 +206,7 @@
     path:                              '{{ item }}'
     owner:                             oracle
     group:                             oinstall
-    mode:                              '755'
+    mode:                              '0755'
   loop:                                '{{ arch_disk_list }}'
 
 - name:                                "ORACLE ASM: Make oracle:oinstall are the owners for ASM Recovery Disks "
@@ -216,7 +216,7 @@
     path:                              '{{ item }}'
     owner:                             oracle
     group:                             oinstall
-    mode:                              '755'
+    mode:                              '0755'
   loop:                                '{{ reco_disk_list }}'
 
 - name:                                "ORACLE ASM: Install Execute GRIDSETUP"

@@ -651,7 +651,7 @@
         src:                           "{{ target_media_location }}/SBP/OPATCH/OPatch"
         dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
         remote_src:                    true
-        mode:                          0755
+        mode:                          '0755'
         owner:                         oracle
         group:                         oinstall
 
@@ -660,7 +660,7 @@
         src:                           "{{ mopatch_path }}"
         dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}
         remote_src:                    true
-        mode:                          0777
+        mode:                          '0777'
         owner:                         oracle
         group:                         oinstall
 
