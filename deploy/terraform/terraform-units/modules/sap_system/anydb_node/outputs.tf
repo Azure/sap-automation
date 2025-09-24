@@ -164,7 +164,7 @@ output "database_shared_disks"         {
                                          description = "List of Azure shared disks"
                                          value       = distinct(
                                                          flatten(
-                                                           [for vm in var.naming.virtualmachine_names.ANYDB_VMNAME :
+                                                           [for vm in coalesce(azurerm_linux_virtual_machine.dbserver[*].computer_name, azurerm_windows_virtual_machine.dbserver[*].computer_name) :
                                                              [for idx, disk in azurerm_virtual_machine_data_disk_attachment.cluster :
                                                                format("{ host: '%s', LUN: %d, type: 'ASD' }", vm, disk.lun)
                                                              ]
@@ -176,7 +176,7 @@ output "database_kdump_disks"          {
                                          description = "List of Azure kdump disks"
                                          value       = distinct(
                                                          flatten(
-                                                           [for vm in var.naming.virtualmachine_names.ANYDB_VMNAME :
+                                                           [for vm in coalesce(azurerm_linux_virtual_machine.dbserver[*].computer_name, azurerm_windows_virtual_machine.dbserver[*].computer_name) :
                                                              [for idx, disk in azurerm_virtual_machine_data_disk_attachment.kdump :
                                                                format("{ host: '%s', LUN: %d, type: 'kdump' }", vm, disk.lun)
                                                              ]
