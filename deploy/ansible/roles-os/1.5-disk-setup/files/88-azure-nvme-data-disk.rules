@@ -9,49 +9,39 @@ ACTION!="add|change", GOTO="azure_nvme_end"
 SUBSYSTEM!="block", GOTO="azure_nvme_end"
 KERNEL!="nvme*", GOTO="azure_nvme_end"
 
-# Hardware-based identification (LVM-immune)
-# Uses ATTRS{model} only - combining with vendor causes matching failure
 ATTRS{model}=="MSFT NVMe Accelerator v1.0*", GOTO="azure_nvme_remote_start"
-
 GOTO="azure_nvme_end"
 
 LABEL="azure_nvme_remote_start"
-# OS disk symlinks (namespace 1)
-KERNEL=="nvme*[0-9]n1", ENV{DEVTYPE}=="disk", SYMLINK+="disk/azure/root", GOTO="azure_udev_end"
-KERNEL=="nvme*[0-9]n1p[0-9]", ENV{DEVTYPE}=="partition", SYMLINK+="disk/azure/root-part%n", GOTO="azure_udev_end"
+# OS disk - match by NSID=1, not device name
+KERNEL=="nvme*[0-9]n*[0-9]", ENV{DEVTYPE}=="disk", ATTR{nsid}=="1", \
+    SYMLINK+="disk/azure/root", GOTO="azure_udev_end"
+KERNEL=="nvme*[0-9]n*[0-9]p[0-9]", ENV{DEVTYPE}=="partition", ATTR{nsid}=="1", \
+    SYMLINK+="disk/azure/root-part%n", GOTO="azure_udev_end"
 
-# Data disk symlinks (namespace 2+)
-# Uses $attr{nsid} instead of $env{ID_NSID} - hardware attribute is LVM-immune
+# Data disks - NSID 2+
 KERNEL=="nvme*[0-9]n*[0-9]", ENV{DEVTYPE}=="disk", ATTR{nsid}=="?*", ATTR{nsid}!="1", \
     PROGRAM="/usr/local/bin/azure-nvme-lun-calc %k $attr{nsid}", \
     RESULT=="?*", \
     SYMLINK+="disk/azure/data/by-lun/%c", GOTO="azure_udev_end"
 
-# Data disk partition symlinks
 KERNEL=="nvme*[0-9]n*[0-9]p[0-9]", ENV{DEVTYPE}=="partition", ATTR{nsid}=="?*", ATTR{nsid}!="1", \
     PROGRAM="/usr/local/bin/azure-nvme-lun-calc %k $attr{nsid}", \
     RESULT=="?*", \
     SYMLINK+="disk/azure/data/by-lun/%c-part%n", GOTO="azure_udev_end"
 
 GOTO="azure_udev_end"
-
 LABEL="azure_nvme_end"
 
-# Section 2: SCSI drives
+# SCSI section unchanged...
 ACTION!="add|change", GOTO="azure_udev_end"
 SUBSYSTEM!="block", GOTO="azure_udev_end"
-
-# SCSI device identification
 ATTRS{ID_VENDOR}=="Msft", ATTRS{ID_MODEL}=="Virtual_Disk", GOTO="azure_scsi_check"
-
 GOTO="azure_udev_end"
 
 LABEL="azure_scsi_check"
-# Match root and resource disks
 ATTRS{device_id}=="?00000000-0000-*", ENV{fabric_name}="root", GOTO="azure_udev_end"
 ATTRS{device_id}=="?00000000-0001-*", ENV{fabric_name}="resource", GOTO="azure_udev_end"
-
-# Gen2 disk controllers
 ATTRS{device_id}=="{f8b3781a-1e82-4818-a1c3-63d806ec15bb}", ENV{fabric_scsi_controller}="scsi0", GOTO="azure_datadisk"
 ATTRS{device_id}=="{f8b3781b-1e82-4818-a1c3-63d806ec15bb}", ENV{fabric_scsi_controller}="scsi1", GOTO="azure_datadisk"
 ATTRS{device_id}=="{f8b3781c-1e82-4818-a1c3-63d806ec15bb}", ENV{fabric_scsi_controller}="scsi2", GOTO="azure_datadisk"
@@ -61,8 +51,6 @@ GOTO="azure_udev_end"
 LABEL="azure_datadisk"
 ENV{DEVTYPE}=="partition", PROGRAM="/bin/sh -c 'readlink /sys/class/block/%k/../device|cut -d: -f4'", ENV{fabric_name}="data/by-lun/$result"
 ENV{DEVTYPE}=="disk", PROGRAM="/bin/sh -c 'readlink /sys/class/block/%k/device|cut -d: -f4'", ENV{fabric_name}="data/by-lun/$result"
-
-# Exclude scsi0 devices (OS and resource disks)
 ENV{fabric_scsi_controller}=="scsi0", GOTO="azure_udev_end"
 
 LABEL="wa_azure_names"
