@@ -4,32 +4,30 @@
 
 # Section 1: NVMe drives
 # Azure rules for NVMe drives
-# will create links in /dev/disk/azure/data/by-lun with LUN IDs for data disks
+# Will create links in /dev/disk/azure/data/by-lun with LUN IDs for data disks
 ACTION!="add|change", GOTO="azure_nvme_end"
 SUBSYSTEM!="block", GOTO="azure_nvme_end"
 KERNEL!="nvme*", GOTO="azure_nvme_end"
 
-# Hardware-based device identification (LVM-immune)
-# Uses hardware attributes that cannot be modified by LVM processing
-ATTRS{model}=="MSFT NVMe Accelerator v1.0*", ATTRS{vendor}=="0x1414", GOTO="azure_nvme_remote_start"
+# Hardware-based identification (LVM-immune)
+# Uses ATTRS{model} only - combining with vendor causes matching failure
+ATTRS{model}=="MSFT NVMe Accelerator v1.0*", GOTO="azure_nvme_remote_start"
 
 GOTO="azure_nvme_end"
 
 LABEL="azure_nvme_remote_start"
-# create os disk symlink (namespace 1)
+# OS disk symlinks (namespace 1)
 KERNEL=="nvme*[0-9]n1", ENV{DEVTYPE}=="disk", SYMLINK+="disk/azure/root", GOTO="azure_udev_end"
-# create os disk symlink partitions
 KERNEL=="nvme*[0-9]n1p[0-9]", ENV{DEVTYPE}=="partition", SYMLINK+="disk/azure/root-part%n", GOTO="azure_udev_end"
 
-# create SYMLINKs for NVMe data disks (namespace 2+)
-# Hardware-based approach using $attr{nsid} for LUN calculation
+# Data disk symlinks (namespace 2+)
+# Uses $attr{nsid} instead of $env{ID_NSID} - hardware attribute is LVM-immune
 KERNEL=="nvme*[0-9]n*[0-9]", ENV{DEVTYPE}=="disk", ATTR{nsid}=="?*", ATTR{nsid}!="1", \
     PROGRAM="/usr/local/bin/azure-nvme-lun-calc %k $attr{nsid}", \
     RESULT=="?*", \
     SYMLINK+="disk/azure/data/by-lun/%c", GOTO="azure_udev_end"
 
-# create SYMLINKs for NVMe data disk partitions
-# Hardware-based approach for partitions
+# Data disk partition symlinks
 KERNEL=="nvme*[0-9]n*[0-9]p[0-9]", ENV{DEVTYPE}=="partition", ATTR{nsid}=="?*", ATTR{nsid}!="1", \
     PROGRAM="/usr/local/bin/azure-nvme-lun-calc %k $attr{nsid}", \
     RESULT=="?*", \
@@ -39,38 +37,34 @@ GOTO="azure_udev_end"
 
 LABEL="azure_nvme_end"
 
-# Section 2: SCSI drives - Enhanced for LVM compatibility
+# Section 2: SCSI drives
 ACTION!="add|change", GOTO="azure_udev_end"
 SUBSYSTEM!="block", GOTO="azure_udev_end"
 
-# Hardware-based SCSI device identification (LVM-immune)
-# Uses hardware attributes that remain constant regardless of LVM processing
+# SCSI device identification
 ATTRS{ID_VENDOR}=="Msft", ATTRS{ID_MODEL}=="Virtual_Disk", GOTO="azure_scsi_check"
 
 GOTO="azure_udev_end"
 
 LABEL="azure_scsi_check"
-# Match the known ID parts for root and resource disks.
+# Match root and resource disks
 ATTRS{device_id}=="?00000000-0000-*", ENV{fabric_name}="root", GOTO="azure_udev_end"
 ATTRS{device_id}=="?00000000-0001-*", ENV{fabric_name}="resource", GOTO="azure_udev_end"
 
-# Gen2 disk.
+# Gen2 disk controllers
 ATTRS{device_id}=="{f8b3781a-1e82-4818-a1c3-63d806ec15bb}", ENV{fabric_scsi_controller}="scsi0", GOTO="azure_datadisk"
-# Create symlinks for data disks attached.
 ATTRS{device_id}=="{f8b3781b-1e82-4818-a1c3-63d806ec15bb}", ENV{fabric_scsi_controller}="scsi1", GOTO="azure_datadisk"
 ATTRS{device_id}=="{f8b3781c-1e82-4818-a1c3-63d806ec15bb}", ENV{fabric_scsi_controller}="scsi2", GOTO="azure_datadisk"
 ATTRS{device_id}=="{f8b3781d-1e82-4818-a1c3-63d806ec15bb}", ENV{fabric_scsi_controller}="scsi3", GOTO="azure_datadisk"
 GOTO="azure_udev_end"
 
-# Parse out the fabric name based off of scsi indicators.
 LABEL="azure_datadisk"
 ENV{DEVTYPE}=="partition", PROGRAM="/bin/sh -c 'readlink /sys/class/block/%k/../device|cut -d: -f4'", ENV{fabric_name}="data/by-lun/$result"
 ENV{DEVTYPE}=="disk", PROGRAM="/bin/sh -c 'readlink /sys/class/block/%k/device|cut -d: -f4'", ENV{fabric_name}="data/by-lun/$result"
 
-# Do not create /dev/disk/azure/data for scsi0 devices which are osdisk and resource disk
+# Exclude scsi0 devices (OS and resource disks)
 ENV{fabric_scsi_controller}=="scsi0", GOTO="azure_udev_end"
 
-# Create the symlinks.
 LABEL="wa_azure_names"
 ENV{DEVTYPE}=="disk", SYMLINK+="disk/azure/$env{fabric_name}"
 ENV{DEVTYPE}=="partition", SYMLINK+="disk/azure/$env{fabric_name}-part%n"
