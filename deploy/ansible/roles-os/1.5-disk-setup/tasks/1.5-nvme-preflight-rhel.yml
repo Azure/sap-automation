@@ -68,7 +68,14 @@
                                        for MODULE in $REQUIRED_MODULES; do
                                          # Temporarily disable pipefail for this check since lsinitrd may have warnings
                                          set +o pipefail
-                                         if ! lsinitrd /boot/initramfs-$(uname -r).img 2>/dev/null | grep -q "${MODULE}\.ko"; then
+                                         INITRAMFS_FILE=""
+                                         if [ -f "/boot/initramfs-$(uname -r).img" ]; then
+                                           INITRAMFS_FILE="/boot/initramfs-$(uname -r).img"
+                                         elif [ -f "/boot/initrd-$(uname -r)" ]; then
+                                           INITRAMFS_FILE="/boot/initrd-$(uname -r)"
+                                         fi
+
+                                         if [ -n "$INITRAMFS_FILE" ] && ! lsinitrd "$INITRAMFS_FILE" 2>/dev/null | grep -q "${MODULE}\.ko"; then
                                            MISSING_MODULES="$MISSING_MODULES $MODULE"
                                            MISSING=1
                                          fi
