@@ -269,11 +269,18 @@
     - name:                            "1.5.4 NVMe Support (SUSE) - Trigger udev for specific NVMe devices"
       when:                            use_nvme_disks | default(false) | bool
       ansible.builtin.shell: |
-                                       # Trigger all NVMe devices except the OS disk (nvme0n1)
-                                       for device in /dev/nvme0n[2-9] /dev/nvme0n1[0-9] /dev/nvme0n2[0-9]; do
+                                       # Trigger all NVMe devices except the OS disk (identified by namespace ID 1)
+                                       for device in /dev/nvme*n*; do
                                          if [ -b "$device" ]; then
                                            DEVICE_NAME=$(basename "$device")
-                                           udevadm trigger --name-match="$DEVICE_NAME"
+                                           # Get namespace ID from sysfs
+                                           if [ -f "/sys/class/block/$DEVICE_NAME/nsid" ]; then
+                                             NSID=$(cat "/sys/class/block/$DEVICE_NAME/nsid")
+                                             # Skip namespace 1 (OS disk)
+                                             if [ "$NSID" != "1" ]; then
+                                               udevadm trigger --name-match="$DEVICE_NAME"
+                                             fi
+                                           fi
                                          fi
                                        done
       changed_when:                    true
