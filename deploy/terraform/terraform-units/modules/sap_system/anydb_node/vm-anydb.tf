@@ -317,7 +317,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  enable_automatic_updates                               = !(var.infrastructure.patch_mode == "ImageDefault")
+  automatic_updates_enabled                              = !(var.infrastructure.patch_mode == "ImageDefault")
 
   admin_username                       = var.sid_username
   admin_password                       = var.sid_password
@@ -392,6 +392,15 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
 #                                     Disks                                    #
 #                                                                              #
 #######################################4#######################################8
+
+# determine if we have any backup disks with ZRS
+locals {
+  is_anydb_backup_disk_with_zrs = [
+    for idx, disk in local.anydb_disks :
+      can(regex("-(backup)", disk.suffix)) && disk.storage_account_type == "Premium_ZRS"
+  ]
+}
+
 resource "azurerm_managed_disk" "disks" {
   provider                             = azurerm.main
   count                                = local.enable_deployment ? length(local.anydb_disks) : 0
@@ -411,21 +420,26 @@ resource "azurerm_managed_disk" "disks" {
   disk_size_gb                         = local.anydb_disks[count.index].disk_size_gb
   tier                                 = local.anydb_disks[count.index].tier
   disk_encryption_set_id               = try(var.options.disk_encryption_set_id, null)
-  disk_iops_read_write                 = "UltraSSD_LRS" == local.anydb_disks[count.index].storage_account_type ? (
+
+  # Only set disk_iops_read_write, disk_mbps_read_write for UltraSSD_LRS and
+  # PremiumV2_LRS disk types, as other types do not support these properties.
+  disk_iops_read_write                 = contains(["UltraSSD_LRS", "PremiumV2_LRS"], local.anydb_disks[count.index].storage_account_type) ? (
                                             local.anydb_disks[count.index].disk_iops_read_write) : (
                                             null
                                           )
-  disk_mbps_read_write                 = "UltraSSD_LRS" == local.anydb_disks[count.index].storage_account_type ? (
+  disk_mbps_read_write                 = contains(["UltraSSD_LRS", "PremiumV2_LRS"], local.anydb_disks[count.index].storage_account_type) ? (
                                             local.anydb_disks[count.index].disk_mbps_read_write) : (
                                             null
                                           )
 
-  zone                                 = local.zonal_deployment && !var.database.use_avset ? (
-                                           upper(local.anydb_ostype) == "LINUX" ? (
-                                             azurerm_linux_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone) : (
-                                             azurerm_windows_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone
-                                         )) : (
-                                           null
+  zone                                 = local.is_anydb_backup_disk_with_zrs[count.index] ? null : (
+                                           local.zonal_deployment && !var.database.use_avset ? (
+                                             upper(local.anydb_ostype) == "LINUX" ? (
+                                               azurerm_linux_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone
+                                             ) : (
+                                               azurerm_windows_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone
+                                             )
+                                           ) : null
                                          )
 
   tags                                 = var.tags
