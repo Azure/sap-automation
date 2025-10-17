@@ -28,7 +28,7 @@ parameters:
     type:                              boolean
     default:                           true
 
-  - name:                              sap_functional_test_type
+  - name:                              SAP_FUNCTIONAL_TEST_TYPE
     displayName:                       SAP Functional Tests Type
     type:                              string
     default:                           "DatabaseHighAvailability"
@@ -137,7 +137,7 @@ stages:
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
-                  sapFunctionalTestType:     ${{ parameters.sap_functional_test_type }}
+                  sapFunctionalTestType:     ${{ parameters.SAP_FUNCTIONAL_TEST_TYPE }}
                   ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   telemetryDataDestination:  ${{ parameters.telemetry_data_destination }}
           - ${{ if eq(parameters.sap_functional_tests, true) }}:
@@ -158,7 +158,7 @@ stages:
                   azureTenantId:             $(ARM_TENANT_ID)
                   azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
                   USE_MSI:                   $(USE_MSI)
-                  sapFunctionalTestType:     ${{ parameters.sap_functional_test_type }}
+                  sapFunctionalTestType:     ${{ parameters.SAP_FUNCTIONAL_TEST_TYPE }}
                   ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   telemetryDataDestination:  ${{ parameters.telemetry_data_destination }}
           - template:                        templates\collect-log-files.yaml

@@ -307,7 +307,7 @@ UIDs:
     uid:                               "{{ sidadm_uid }}"
 
 # ------------------- Begin - SAP Functional Tests variables --------------------8
-sap_functional_test_type:              ""
+SAP_FUNCTIONAL_TEST_TYPE:              ""
 sap_automation_qa_branch:              "main"
 sap_automation_qa_fork:                "Azure"
 
