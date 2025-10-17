@@ -126,7 +126,7 @@ steps:
 
     command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey   -e 'kv_name=$VAULT_NAME'   \
       -e @$SAP_PARAMS -e 'download_directory=$(Agent.TempDirectory)' -e '_workspace_directory=$PARAMETERS_FOLDER' \
-      -e 'sap_functional_test_type=$SAP_FUNCTIONAL_TEST_TYPE' -e 'telemetry_data_destination=$TELEMETRY_DATA_DESTINATION' \
+      -e 'SAP_FUNCTIONAL_TEST_TYPE=$SAP_FUNCTIONAL_TEST_TYPE' -e 'telemetry_data_destination=$TELEMETRY_DATA_DESTINATION' \
       -e ansible_ssh_pass='${password_secret}' "$EXTRA_PARAMS" $EXTRA_PARAM_FILE                                  \
        $ANSIBLE_FILE_PATH"
 

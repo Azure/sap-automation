@@ -28,12 +28,12 @@
 # noqa syntax-check[missing-file]
 - name:                                "SAP Functional DB: Tests run checks"
   ansible.builtin.import_playbook:     "/opt/microsoft/sap_functional_tests/src/playbook_00_ha_db_functional_tests.yml"
-  when:                                sap_functional_test_type == "DatabaseHighAvailability"
+  when:                                SAP_FUNCTIONAL_TEST_TYPE == "DatabaseHighAvailability"
 
 # noqa syntax-check[missing-file]
 - name:                                "SAP Functional Central Services: Tests run checks"
   ansible.builtin.import_playbook:     "/opt/microsoft/sap_functional_tests/src/playbook_00_ha_scs_functional_tests.yml"
-  when:                                sap_functional_test_type == "CentralServicesHighAvailability"
+  when:                                SAP_FUNCTIONAL_TEST_TYPE == "CentralServicesHighAvailability"
 
 - hosts:                               localhost
   name:                                "SAP Functional Tests: - Done"
