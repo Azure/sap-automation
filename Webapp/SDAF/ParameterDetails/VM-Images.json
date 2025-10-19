@@ -168,6 +168,54 @@
     }
   },
   {
+    "name": "Red Hat 9.4",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-APPS",
+      "sku": "94sapapps-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 9.4 HA",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-HA",
+      "sku": "94sapha-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 9.6",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-APPS",
+      "sku": "96sapapps-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 9.6 HA",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-HA",
+      "sku": "96sapha-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
     "name": "SUSE 12 SP5",
     "data": {
       "os_type": "LINUX",
@@ -222,6 +270,18 @@
       "source_image_id": "",
       "publisher": "SUSE",
       "offer": "sles-sap-15-sp6",
+      "sku": "gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "SUSE 15 SP7",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "SUSE",
+      "offer": "sles-sap-15-sp7",
       "sku": "gen2",
       "version": "latest",
       "type": "marketplace"
@@ -288,6 +348,42 @@
     }
   },
   {
+    "name": "OracleLinux 9.0",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "Oracle",
+      "offer": "Oracle-Linux",
+      "sku": "ol90-lvm-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "OracleLinux 9.2",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "Oracle",
+      "offer": "Oracle-Linux",
+      "sku": "ol92-lvm-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "OracleLinux 9.4",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "Oracle",
+      "offer": "Oracle-Linux",
+      "sku": "ol94-lvm-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
     "name": "Windows Server 2016",
     "data": {
       "os_type": "WINDOWS",
@@ -348,13 +444,25 @@
     }
   },
   {
-    "name": "Windows Server 2022-G2",
+    "name": "Windows Server 2025",
     "data": {
       "os_type": "WINDOWS",
       "source_image_id": "",
       "publisher": "MicrosoftWindowsServer",
       "offer": "windowsserver",
-      "sku": "2022-datacenter-g2",
+      "sku": "2025-datacenter",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Windows Server 2025-G2",
+    "data": {
+      "os_type": "WINDOWS",
+      "source_image_id": "",
+      "publisher": "MicrosoftWindowsServer",
+      "offer": "windowsserver",
+      "sku": "2025-datacenter-g2",
       "version": "latest",
       "type": "marketplace"
     }
