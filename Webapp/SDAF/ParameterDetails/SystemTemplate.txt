@@ -36,6 +36,8 @@ $$environment$$
 # The location value is a mandatory field, it is used to control where the resources are deployed
 $$location$$
 
+# The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name
+$$network_logical_name$$
 
 # The subscription ID is used to control where the resources are deployed
 $$subscription_id$$
@@ -714,9 +716,6 @@ $$enable_purge_control_for_keyvaults$$
 # be specified                                                                          #
 #                                                                                       #
 #########################################################################################
-
-# The network logical name is mandatory - it is used in the naming convention and should map to the workload virtual network logical name
-$$network_logical_name$$
 
 # use_loadbalancers_for_standalone_deployments is a boolean flag that can be used to control if standalone deployments (non HA) will have load balancers
 $$use_loadbalancers_for_standalone_deployments$$
