@@ -413,7 +413,8 @@ function New-SDAFADOWorkloadZone {
         foreach ($RoleName in $Roles) {
 
           Write-Host "Assigning role" $RoleName "to the Managed Identity" -ForegroundColor Green
-          $roleAssignment = az role assignment create --assignee-object-id $ManagedIdentityObjectId --assignee-principal-type ServicePrincipal --role $RoleName --scope /subscriptions/$WorkloadZoneSubscriptionId --query id --output tsv --only-show-errors
+          Write-Verbose "Assigning role" $RoleName "to the Managed Identity ($ManagedIdentityObjectId)" -ForegroundColor Green
+          $roleAssignment = az role assignment create --assignee-object-id $ManagedIdentityObjectId --role $RoleName --scope /subscriptions/$WorkloadZoneSubscriptionId --query id --output tsv --only-show-errors
           if ($roleAssignment) {
             Write-Host "Successfully assigned $RoleName role to identity" -ForegroundColor Green
             Write-Verbose "Role assignment ID: $roleAssignment"
