@@ -36,6 +36,14 @@
     owner:                             oracle
     group:                             oinstall
 
+- name:                                "ORACLE: Create temp directory"
+  ansible.builtin.file:
+    path:                              "{{ tmp_directory }}/{{ sap_sid | upper }}"
+    mode:                              0755
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+
 - name:                                "ORACLE: check if permissions are set"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/oracleowner.txt"
@@ -340,8 +348,8 @@
 
     - name:                            "ORACLE: Post Processing - SBP Patching"
       become:                          true
-      become_user:                     "oracle"
-      ansible.builtin.shell:           $IHRDBMS/MOPatch/mopatch.sh -v -s {{ oracle_sbp_patch }}
+      become_user:                     oracle
+      ansible.builtin.shell:           "env ORACLE_HOME=$IHRDBMS $IHRDBMS/MOPatch/mopatch.sh -v -s {{ oracle_sbp_patch }}"
       environment:
         DB_SID:                        "{{ db_sid | upper }}"
         IHRDBMS:                       /oracle/{{ db_sid | upper }}/{{ ora_version }}

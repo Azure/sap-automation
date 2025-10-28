@@ -113,7 +113,7 @@
       tags:
         - cloudnetmanage
 
-    - name:                            "1.18.2 Generic Pacemaker - Ensure the current Node trusts public key of particiating nodes"
+    - name:                            "1.18.2 Generic Pacemaker - Ensure the current Node trusts public key of participating nodes"
       ansible.posix.authorized_key:
         user:                          root
         key:                           "{{ hostvars[item].cluster_public_ssh_key }}"

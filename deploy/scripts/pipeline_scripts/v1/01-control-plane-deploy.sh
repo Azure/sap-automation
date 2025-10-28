@@ -460,8 +460,19 @@ if [ -f "${deployer_environment_file_name}" ]; then
 
 	file_REMOTE_STATE_RG=$(grep "^REMOTE_STATE_RG=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${file_REMOTE_STATE_RG}" ]; then
-		echo "Terraform rgname:     ${file_REMOTE_STATE_RG}"
+		echo "Terraform rg name:    ${file_REMOTE_STATE_RG}"
 	fi
+
+	webapp_url_base=$(grep "^webapp_url_base=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${webapp_url_base}" ]; then
+		echo "Webapp URL Base:      ${webapp_url_base}"
+	fi
+
+	webapp_id=$(grep "^webapp_id=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${webapp_id}" ]; then
+		echo "Webapp ID:            ${webapp_id}"
+	fi
+
 fi
 
 echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
@@ -495,6 +506,20 @@ if [ "$return_code" -eq 0 ]; then
 	else
 		echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_LOCATION was not added to the $VARIABLE_GROUP variable group."
 		echo "Variable CONTROL_PLANE_LOCATION was not added to the $VARIABLE_GROUP variable group."
+	fi
+
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "WEBAPP_URL_BASE" "$webapp_url_base"; then
+		echo "Variable WEBAPP_URL_BASE was added to the $VARIABLE_GROUP variable group."
+	else
+		echo "##vso[task.logissue type=error]Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
+	fi
+
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "WEBAPP_ID" "$webapp_id"; then
+		echo "Variable WEBAPP_ID was added to the $VARIABLE_GROUP variable group."
+	else
+		echo "##vso[task.logissue type=error]Variable WEBAPP_ID was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable WEBAPP_ID was not added to the $VARIABLE_GROUP variable group."
 	fi
 
 fi

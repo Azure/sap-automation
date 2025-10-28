@@ -60,25 +60,24 @@
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                                 "Database Installation Playbook: - Read/Create key vault secrets"
+    - name:                            "Database Installation Playbook: - Read/Create key vault secrets"
       ansible.builtin.include_role:
-        name:                               roles-misc/0.2-kv-secrets
-        public:                             true
+        name:                          roles-misc/0.2-kv-secrets
+        public:                        true
       vars:
-        # tier:                               fencing
-        operation:                          fencing
-      when:                                 (database_high_availability and database_cluster_type == "AFA")
+        # tier:                        fencing
+        operation:                     fencing
+      when:                            (database_high_availability and database_cluster_type == "AFA")
       tags:
                                             - 0.2-kv-secrets
 
     - name:                            "Database Installation Playbook: - Read storage account details"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
-        public:                        true
       vars:
         tier:                          bom_download
       tags:
-        - kv-sap-installation-media-storage-details
+        - always
 
     - name:                            "Database Installation Playbook: - Generate root password"
       ansible.builtin.set_fact:
@@ -285,8 +284,12 @@
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
+
     # This configures root account on HANA nodes for scale out configuration ( shared and shared nothing with HSR ) to use password based login.
     - name:                            "SAP HANA: Configure root credential for Scale-Out"
+      when:
+                                       - database_scale_out
+                                       - hostvars.localhost.root_password is defined
       block:
         - name:                            Reset root password
           become:                          true
@@ -308,7 +311,15 @@
             - { key: "PasswordAuthentication", value: "yes" }
             - { key: "ChallengeResponseAuthentication", value: "yes" }
 
+        - name:                            Debug sshdconfig file
+          ansible.builtin.shell:           "cat /etc/ssh/sshd_config | grep -v '^#' | grep -v '^$'"
+          register:                        sshdconfig
+          changed_when:                    false
+          failed_when:                     false
+          ignore_errors:                   true
+
         - name:                            Append root user to AllowUsers if used
+          become:                          true
           ansible.builtin.lineinfile:
             path:                          "/etc/ssh/sshd_config"
             regexp:                        '^AllowUsers (?!.*root.*)(.*)'
@@ -321,9 +332,13 @@
           ansible.builtin.service:
             name:                          sshd
             state:                         restarted
-      when:
-        - database_scale_out
-        - hostvars.localhost.root_password is defined
+
+        - name:                            Debug sshdconfig file after restart
+          ansible.builtin.shell:           "cat /etc/ssh/sshd_config | grep -v '^#' | grep -v '^$'"
+          register:                        sshdconfig
+          changed_when:                    false
+          failed_when:                     false
+          ignore_errors:                   true
 
     - name:                            "Database Installation Playbook: - Install HANA Scale Out"
       become:                          true
@@ -407,8 +422,12 @@
 
           tags:
             - 4.0.0-hdb-install
+
     # This disables root account on HANA nodes for scale out configuration ( shared and shared nothing with HSR ) to use password based login.
     - name:                           "SAP HANA: disable root credential for Scale-Out"
+      when:
+        - database_scale_out
+        - hostvars.localhost.root_password is defined
       block:
         - name:                            Reset root password to random local value
           become:                          true
@@ -434,9 +453,6 @@
           ansible.builtin.service:
             name:                          sshd
             state:                         restarted
-      when:
-        - database_scale_out
-        - hostvars.localhost.root_password is defined
 
 
 # Configure HANA Scale out Pacemaker, run on DB nodes and majority maker node ( first node if multiple are provided, rest are ignored. )
@@ -449,79 +465,98 @@
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
   tasks:
-    - name:                        "Database Installation Playbook: - Install Pacemaker (Scale Out)"
+
+    - name:                            "Backward Compatibility - Check required Database HA variables"
+      when:
+                                       - db_high_availability is defined
+                                       - database_high_availability is not defined
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+
+
+    - name:                            "Database Installation Playbook: - Install Pacemaker (Scale Out)"
       become:                          true
       when:
-        # - db_high_availability
-        - db_high_availability
-        - node_tier in ['hana','observer']
-        - database_scale_out
+                                       - database_high_availability
+                                       - node_tier in ['hana','observer']
+                                       - database_scale_out
       block:
         - name:                        "Database Installation Playbook: - Setting the facts"
           ansible.builtin.set_fact:
-            tier:                       ha
-            main_password:              "{{ hostvars.localhost.sap_password }}"
-            password_ha_db_cluster:     "{{ hostvars.localhost.db_cluster_password }}"
-            primary_instance_name:      "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-            secondary_instance_name:    "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-            # root_password:              "{{ hostvars.localhost.root_password }}"
-            # fencing_spn_client_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
-            # fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{%- endif %}"
-            # fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{%- endif %}"
+            tier:                      ha
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
+            primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+            secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
 
         - name:                        "Database Installation Playbook: - Setting the facts for fencing"
-          ansible.builtin.set_fact:
-            fencing_spn_client_id:      "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
-            fencing_spn_client_pwd:     "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
-            fencing_spn_tenant_id:      "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
           when:
-                                        - database_cluster_type == "AFA"
-                                        - not use_msi_for_clusters
+                                       - database_cluster_type == "AFA"
+                                       - not use_msi_for_clusters
+          ansible.builtin.set_fact:
+            fencing_spn_client_id:     "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
+            fencing_spn_client_pwd:    "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
+            fencing_spn_tenant_id:     "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
 
         - name:                        "Database Installation Playbook: - Ensure the correct repositories are set"
           ansible.builtin.include_role:
             name:                      roles-os/1.3-repository
           tags:
-            - 1.3-repository
+                                       - 1.3-repository
 
         - name:                        "Database Installation Playbook: - Ensure the correct packages are installed"
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
           tags:
-            - 1.4-packages
+                                       - 1.4-packages
 
         # Setup the kernel parameters required for pacemaker cluster VMs
         - name:                        "Database Installation Playbook: - Ensure the correct kernel parameters are set"
           ansible.builtin.include_role:
             name:                      roles-os/1.9-kernelparameters
           tags:
-            - 1.9-kernelparameters
+                                       - 1.9-kernelparameters
 
         - name:                        "Database Installation Playbook: - Ensure the needed services are enabled/disabled"
           ansible.builtin.include_role:
             name:                      roles-os/1.16-services
           tags:
-            - 1.16-services
+                                       - 1.16-services
 
         - name:                        "Database Installation Playbook: - Ensure the accounts are present"
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
           tags:
-            - 1.11-accounts
+                                       - 1.11-accounts
+
+        - name:                        "Database Installation Playbook: - Create NFS optimizations for NFS"
+          when:
+                                       - node_tier == 'hana' or node_tier == 'observer'
+          ansible.builtin.blockinfile:
+            path:                      /etc/sysctl.d/ms-az.conf
+            backup:                    true
+            create:                    true
+            mode:                      0644
+            marker:                    "# {mark} HANA AFS optimizations"
+            block: |-
+                                       net.ipv6.conf.all.disable_ipv6 = 1
+                                       net.ipv4.tcp_max_syn_backlog = 16348
+                                       net.ipv4.conf.all.rp_filter = 0
+                                       sunrpc.tcp_slot_table_entries = 128
+                                       vm.swappiness=10
 
         # Scale out based pacemaker task/s
         - name:                        "Database Installation Playbook: - Install Scale Out Pacemaker"
+          when:
+                                       - node_tier in ['hana','observer']
+                                       - database_scale_out
           ansible.builtin.include_role:
             name:                      roles-os/1.18-scaleout-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
             apply:
               tags:
-                - 1.18-scaleout-pacemaker
+                                       - 1.18-scaleout-pacemaker
               become:                  true
               become_user:             root
-          when:
-            - node_tier in ['hana','observer']
-            - database_scale_out
-
           tags:
             - 1.18-scaleout-pacemaker
 
@@ -636,7 +671,6 @@
             state:                     touch
             mode:                      0755
 
-
     - name:                            "Install Oracle for MSID"
       become:                          true
       become_user:                     root
@@ -681,53 +715,56 @@
         - node_tier == 'oracle-asm'
         - platform == 'ORACLE-ASM'
       block:
-        - name:                        Setting the DB facts for ASM
+        - name:                        "Oracle ASM: Setting the DB facts for ASM"
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           tags:
             - always
 
-        - name:                        Include 1.5.1.1-disk-setup-asm-sap
+        - name:                         "Oracle ASM: Register repositories"
+          ansible.builtin.import_tasks: roles-os/1.3-repository/tasks/1.3.3-repositories-Oracle-ASM.yaml
+
+        - name:                        "Oracle ASM: Install Oracle specific packages"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+
+        - name:                        "Oracle ASM: ASM Disk setup"
           ansible.builtin.include_role:
             name:                      roles-os/1.5.1.1-disk-setup-asm-sap
 
-        - name:                        "OS configuration playbook: - Ensure the kernel parameters are set"
+        - name:                        "Oracle ASM: Ensure the kernel parameters are set"
           ansible.builtin.include_role:
             name:                      roles-os/1.9-kernelparameters
           tags:
             - 1.9-kernelparameters
 
-        # - name:                        "SAP OS configuration playbook: - Configure accounts"
-        #   ansible.builtin.include_role:
-        #     name:                      roles-os/1.11-accounts
-        #   tags:
-        #     - 1.11-accounts
-
-        - name:                        "SAP OS configuration playbook: - Create SAP users/groups"
+        - name:                        "Oracle ASM: Create SAP users/groups"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.5-sap-users
           tags:
             - 2.5-sap-users
 
-        - name:                        Mount the file systems for ASM installation
+        - name:                        "Oracle ASM: Mount the file systems for ASM installation"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        Include 1.5.1-disk-setup-asm role
+        - name:                        "Oracle ASM: Include 1.5.1-disk-setup-asm role"
           ansible.builtin.include_role:
             name:                      roles-os/1.5.1-disk-setup-asm
 
-        - name:                        Check for file system mounts
+        - name:                        "Oracle ASM: Check for file system mounts"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        Installing Oracle ASM Grid
+        - name:                        "Oracle ASM: Installing Oracle ASM Grid"
           ansible.builtin.include_role:
             name:                      roles-db/4.1.1-ora-asm-grid
           tags:                        4.1.1-ora-asm-grid
 
-        - name:                        Installing Oracle on ASM
+        - name:                        "Oracle ASM: Installing Oracle on ASM"
           ansible.builtin.include_role:
             name:                      roles-db/4.1.2-ora-asm-db-install
 

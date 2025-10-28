@@ -94,6 +94,7 @@ fi
 
 if az account show --query name; then
 	echo -e "$green--- Already logged in to Azure ---$reset"
+	az account show --query user --output yaml
 else
 
 	LogonToAzure $USE_MSI
@@ -129,9 +130,9 @@ NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
 CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ] && [ -f "${automation_config_directory}${ENVIRONMENT}${LOCATION}" ]; then
 	deployer_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}"
-elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+else
 	deployer_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}${NETWORK}"
 fi
 
@@ -299,13 +300,12 @@ if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" --parameterf
 	echo "##vso[task.logissue type=warning]Return code from install_deployer.sh $return_code."
 	step=1
 	save_config_var "step" "${deployer_environment_file_name}"
-
 else
 	return_code=$?
 	echo "##vso[task.logissue type=error]Return code from install_deployer.sh $return_code."
 	step=0
 	save_config_var "step" "${deployer_environment_file_name}"
-	exit 10
+
 fi
 
 set -eu
@@ -333,7 +333,11 @@ if [ -f "${deployer_environment_file_name}" ]; then
 
 	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 	if [ -n "$DEPLOYER_KEYVAULT" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"; then
+			echo "Saved DEPLOYER_KEYVAULT in variable group."
+		else
+			echo "##vso[task.logissue type=warning]Failed to save DEPLOYER_KEYVAULT in variable group."
+		fi
 	fi
 
 fi

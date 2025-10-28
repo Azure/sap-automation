@@ -84,9 +84,9 @@ SID=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $4}' | xargs)
 cd "$CONFIG_REPO_PATH" || exit
 
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ] && [ -f "${automation_config_directory}${ENVIRONMENT}${LOCATION}" ]; then
 	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}"
-elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+else
 	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}${NETWORK}"
 fi
 
