@@ -171,6 +171,14 @@ output "db_vm_ips"                     {
                                                  ) #TODO Change to use Admin IP
                                        }
 
+output "db_vm_admin_ips"               {
+                                         description = "Database Virtual Machine Admin IPs"
+                                         value = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                   module.hdb_node.db_admin_ips) : (
+                                                   [])
+                                       }
+
+
 output "db_vm_secondary_ips"           {
                                          description = "Database Virtual Machine secondary IPs"
                                          value       = upper(try(local.database.platform, "HANA")) == "HANA" ? (

@@ -9,7 +9,7 @@
 
 resource "azurerm_subnet" "admin" {
   provider                             = azurerm.main
-  count                                = local.enable_admin_subnet ? var.infrastructure.virtual_networks.sap.subnet_db.defined  ? 1 : 0 : 0
+  count                                = local.enable_admin_subnet && var.infrastructure.virtual_networks.sap.subnet_admin.defined  ? 1 : 0
   name                                 = local.admin_subnet_name
   resource_group_name                  = data.azurerm_virtual_network.vnet_sap.resource_group_name
   virtual_network_name                 = data.azurerm_virtual_network.vnet_sap.name
@@ -19,10 +19,7 @@ resource "azurerm_subnet" "admin" {
 
 resource "azurerm_subnet_route_table_association" "admin" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.virtual_networks.sap.subnet_admin.defined && local.enable_admin_subnet && length(var.landscape_tfstate.route_table_id) > 0 ? (
-                                           1) : (
-                                           0
-                                         )
+  count                                = var.infrastructure.virtual_networks.sap.subnet_admin.defined && length(var.landscape_tfstate.route_table_id) > 0 ? 1 : 0
   subnet_id                            = azurerm_subnet.admin[0].id
   route_table_id                       = var.landscape_tfstate.route_table_id
 }
@@ -31,7 +28,7 @@ resource "azurerm_subnet_route_table_association" "admin" {
 // Imports data of existing SAP admin subnet
 data "azurerm_subnet" "admin" {
   provider                             = azurerm.main
-  count                                = local.enable_admin_subnet ? var.infrastructure.virtual_networks.sap.subnet_admin.exists || var.infrastructure.virtual_networks.sap.subnet_admin.exists_in_workload ? 1 : 0 ? 0 : 1 : 0
+  count                                = var.infrastructure.virtual_networks.sap.subnet_admin.exists || var.infrastructure.virtual_networks.sap.subnet_admin.exists_in_workload ? 1 : 0
   name                                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_admin.id, var.infrastructure.virtual_networks.sap.subnet_admin.id_in_workload))[10]
   resource_group_name                  = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_admin.id, var.infrastructure.virtual_networks.sap.subnet_admin.id_in_workload))[4]
   virtual_network_name                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_admin.id, var.infrastructure.virtual_networks.sap.subnet_admin.id_in_workload))[8]

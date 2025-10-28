@@ -15,14 +15,14 @@
   when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
 
 - name:                                "1.17 Generic Pacemaker: - Ensure passlib is installed"
-  ansible.builtin.pip:
-    name:                              passlib
+  ansible.builtin.package:
+    name:                              python3-passlib
     state:                             present
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
   tags:
     - always
-
+  when:                                ansible_os_family | upper == "SUSE"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |

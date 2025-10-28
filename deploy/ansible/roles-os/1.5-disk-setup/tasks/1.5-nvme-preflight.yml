@@ -62,11 +62,13 @@
         success_msg:                   "System validation completed successfully for NVMe preparation"
 
     # should we skip preparation if already configured?
-    - name:                            "1.5.4 NVMe Support - Skip preparation if already configured"
-      when:
-        - existing_nvme_config.stdout == "configured"
-        - not nvme_force_preparation | default(false)
-      ansible.builtin.meta:            end_play
+    # meta: end_role is available only from ansible-core 2.18 onwards.
+    # for now process the tasks.
+    # - name:                            "1.5.4 NVMe Support - Skip preparation if already configured"
+    #   when:
+    #                                    - existing_nvme_config.stdout == "configured"
+    #                                    - not nvme_force_preparation | default(false)
+    #   ansible.builtin.meta:            end_role
 
     - name:                            "1.5.4 NVMe Support - Display current system state"
       ansible.builtin.debug:

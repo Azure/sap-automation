@@ -100,21 +100,19 @@ output "network_resource_group" {
 
 output "admin_subnet" {
                                                    description = "Admin subnet object"
-                                                   value       = local.enable_admin_subnet ? (
-                                                                   var.infrastructure.virtual_networks.sap.subnet_admin.exists ? data.azurerm_subnet.admin[0] : azurerm_subnet.admin[0]) : (
-                                                                   null
-                                                                 )
+                                                   value       = var.infrastructure.virtual_networks.sap.subnet_admin.exists || var.infrastructure.virtual_networks.sap.subnet_admin.exists_in_workload ? (
+                                                                   data.azurerm_subnet.admin[0]) : (
+                                                                   var.infrastructure.virtual_networks.sap.subnet_admin.defined ? azurerm_subnet.admin[0] : null
+                                                                  )
                                                  }
 
 output "subnet_cidr_client"                    {
                                                    description = "Admin Storage subnet prefix"
-                                                   value       = local.enable_db_deployment && local.enable_admin_subnet ? (
-                                                                   var.infrastructure.virtual_networks.sap.subnet_admin.exists ? (
-                                                                     data.azurerm_subnet.admin[0].address_prefixes[0]) : (
-                                                                     azurerm_subnet.admin[0].address_prefixes[0]
-                                                                   )) : (
-                                                                   ""
-                                                                 )
+                                                   value       = var.infrastructure.virtual_networks.sap.subnet_admin.exists || var.infrastructure.virtual_networks.sap.subnet_admin.exists_in_workload ? (
+                                                                   data.azurerm_subnet.admin[0].address_prefixes[0]) : (
+                                                                   var.infrastructure.virtual_networks.sap.subnet_admin.defined ? azurerm_subnet.admin[0].address_prefixes[0] : null
+                                                                  )
+
                                                  }
 
 
@@ -132,7 +130,7 @@ output "subnet_cidr_db"                        {
 
 
 output "db_subnet"                               {
-                                                   description = "Admin subnet object"
+                                                   description = "Database subnet object"
                                                    value       = var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
                                                                    azurerm_subnet.db[0]) : (
                                                                    data.azurerm_subnet.db[0]
@@ -149,26 +147,27 @@ output "db_subnet_netmask"                       {
                                                                    null
                                                                  )
                                                  }
-output "storage_subnet"                          {
+output "storage_subnet_id"                       {
                                                    description = "Storage subnet"
-                                                   value       = local.enable_db_deployment && var.infrastructure.virtual_networks.sap.subnet_storage.defined ? (
-                                                                   var.infrastructure.virtual_networks.sap.subnet_storage.exists ? (
-                                                                     data.azurerm_subnet.storage[0]) : (
-                                                                     azurerm_subnet.storage[0]
-                                                                   )) : (
-                                                                   null
-                                                                 )
+                                                   value       = (var.infrastructure.virtual_networks.sap.subnet_storage.exists || var.infrastructure.virtual_networks.sap.subnet_storage.exists_in_workload) ?(
+                                                                     data.azurerm_subnet.storage[0].id) : (
+                                                                     var.infrastructure.virtual_networks.sap.subnet_storage.defined ? (
+                                                                       try(azurerm_subnet.storage[0].id, "")) : (
+                                                                       ""
+                                                                     )
+                                                                  )
+
                                                  }
 
 output "subnet_cidr_storage"                   {
                                                    description = "Storage subnet prefix"
-                                                   value       = local.enable_db_deployment && var.infrastructure.virtual_networks.sap.subnet_storage.defined ? (
-                                                                   var.infrastructure.virtual_networks.sap.subnet_storage.exists ? (
+                                                   value       = (var.infrastructure.virtual_networks.sap.subnet_storage.exists || var.infrastructure.virtual_networks.sap.subnet_storage.exists_in_workload) ?(
                                                                      data.azurerm_subnet.storage[0].address_prefixes[0]) : (
-                                                                     azurerm_subnet.storage[0].address_prefixes[0]
-                                                                   )) : (
-                                                                   ""
-                                                                 )
+                                                                     var.infrastructure.virtual_networks.sap.subnet_storage.defined ? (
+                                                                       try(azurerm_subnet.storage[0].address_prefixes[0], "")) : (
+                                                                       ""
+                                                                     )
+                                                                   )
                                                  }
 
 output "route_table_id"                          {

@@ -13,7 +13,8 @@
   register:                            cluster_cleanup
   failed_when:                         cluster_cleanup.rc > 0
   when:
-    ansible_os_family | upper == "REDHAT"
+    - ansible_os_family | upper == "REDHAT"
+    - node_tier == 'hana'
 
 - name:                                "1.18.3 Generic Pacemaker - Cleanup resource status ( SUSE )"
   ansible.builtin.shell: >
@@ -21,7 +22,8 @@
   register:                            cluster_cleanup
   failed_when:                         cluster_cleanup.rc > 0
   when:
-    ansible_os_family | upper == "SUSE"
+    - ansible_os_family | upper == "SUSE"
+    - node_tier == 'hana'
 
 - name:                                "1.18.3 Generic Pacemaker - Check the post-provisioning cluster status"
   ansible.builtin.command:             "{{ cluster_status_cmd[ansible_os_family] }}"

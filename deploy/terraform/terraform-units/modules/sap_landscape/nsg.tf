@@ -156,6 +156,36 @@ resource "azurerm_subnet_network_security_group_association" "storage" {
   network_security_group_id            = azurerm_network_security_group.storage[0].id
 }
 
+# Creates SAP web subnet nsg
+resource "azurerm_network_security_group" "anf" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_anf.defined && !var.infrastructure.virtual_networks.sap.subnet_anf.nsg.exists ? 1 : 0
+  depends_on                           = [
+                                          azurerm_subnet.anf
+                                        ]
+  name                                 = local.ANF_subnet_nsg_name
+  resource_group_name                  = var.infrastructure.virtual_networks.sap.exists ? (
+                                           data.azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                           ) : (
+                                           azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                         )
+  location                             = var.infrastructure.virtual_networks.sap.exists ? (
+                                           data.azurerm_virtual_network.vnet_sap[0].location) : (
+                                           azurerm_virtual_network.vnet_sap[0].location
+                                         )
+  tags                                 = var.tags
+}
+
+# Associates SAP web nsg to SAP web subnet
+resource "azurerm_subnet_network_security_group_association" "anf" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_anf.defined && !var.infrastructure.virtual_networks.sap.subnet_anf.nsg.exists ? 1 : 0
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_anf.exists ? var.infrastructure.virtual_networks.sap.subnet_anf.id : azurerm_subnet.anf[0].id
+  network_security_group_id            = azurerm_network_security_group.anf[0].id
+}
+
+
+
 
 // Add network security rule
 resource "azurerm_network_security_rule" "nsr_controlplane_app" {
@@ -306,4 +336,35 @@ resource "azurerm_network_security_rule" "nsr_controlplane_admin" {
                                              flatten(azurerm_virtual_network.vnet_sap[0].address_space)
                                            )))
   destination_address_prefixes         = var.infrastructure.virtual_networks.sap.subnet_admin.exists ? data.azurerm_subnet.admin[0].address_prefixes : azurerm_subnet.admin[0].address_prefixes
+}
+
+resource "azurerm_network_security_rule" "nsr_controlplane_anf" {
+  provider                             = azurerm.main
+
+  count                                = var.infrastructure.virtual_networks.sap.subnet_anf.defined ? var.infrastructure.virtual_networks.sap.subnet_anf.nsg.exists ? 0 : 1 : 0
+  depends_on                           = [
+                                           azurerm_network_security_group.anf
+                                         ]
+  name                                 = "ConnectivityToSAPApplicationSubnetFromControlPlane-ssh-rdp-winrm-ANF"
+  resource_group_name                  = var.infrastructure.virtual_networks.sap.exists ? (
+                                           data.azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                           ) : (
+                                           azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                         )
+  network_security_group_name          = try(azurerm_network_security_group.anf[0].name, azurerm_network_security_group.app[0].name)
+  priority                             = 100
+  direction                            = "Inbound"
+  access                               = "Allow"
+  protocol                             = "Tcp"
+  source_port_range                    = "*"
+  destination_port_ranges              = [22, 111, 443, 635, 2049, 3389, 4045, 4046, 4049, 5985, 5986]
+  source_address_prefixes              = compact(concat(
+                                           local.use_deployer ? var.deployer_tfstate.subnet_mgmt_address_prefixes : [""],
+                                           local.use_deployer ? var.deployer_tfstate.subnet_bastion_address_prefixes : [""],
+                                           var.infrastructure.virtual_networks.sap.exists ? (
+                                             flatten(data.azurerm_virtual_network.vnet_sap[0].address_space)) : (
+                                             flatten(azurerm_virtual_network.vnet_sap[0].address_space)
+                                           )))
+  destination_address_prefixes         = concat(var.infrastructure.virtual_networks.sap.subnet_storage.exists ? data.azurerm_subnet.storage[0].address_prefixes : azurerm_subnet.storage[0].address_prefixes,
+                                             var.infrastructure.virtual_networks.sap.subnet_anf.exists ? data.azurerm_subnet.anf[0].address_prefixes : azurerm_subnet.anf[0].address_prefixes)
 }

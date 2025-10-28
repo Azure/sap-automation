@@ -61,7 +61,8 @@
     - { group: 'racdba',    gid: '{{ racdba_gid }}'    }
     - { group: 'oinstall',  gid: '{{ oinstall_gid }}'  }
   when:
-    - node_tier == "oracle-asm"
+    - node_tier in ['oracle-asm', 'observer']
+    - platform == "ORACLE-ASM"
 
 - name:                                "2.5.1 SAP Users: - Create SAP Groups for Oracle ASM on observer"
   ansible.builtin.group:
@@ -138,5 +139,5 @@
   #   # TODO: add user for WebDisp Functionality
     # - { tier: 'WEB',         user: 'webadm',                   uid: '32002',            group: 'sapsys', home: '/home/webadm',                 comment: 'SAP WebDisp Admin' }
   when:
-    - node_tier == "oracle-asm" or node_tier == "observer"
+    - node_tier in ["oracle-asm", "observer"]
     - platform == "ORACLE-ASM"

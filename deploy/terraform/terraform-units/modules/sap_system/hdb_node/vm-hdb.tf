@@ -1,6 +1,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+data "azurerm_subnet" "storage" {
+  provider                             = azurerm.main
+  count                                = length(var.storage_subnet_id) > 0 ? 1 : 0
+  name                                 = split("/", var.storage_subnet_id)[10]
+  resource_group_name                  = split("/", var.storage_subnet_id)[4]
+  virtual_network_name                 = split("/", var.storage_subnet_id)[8]
+}
+
+
 /*-----------------------------------------------------------------------------8
 |                                                                              |
 |                                 HANA - VMs                                   |
@@ -144,14 +153,14 @@ resource "azurerm_network_interface" "nics_dbnodes_storage" {
   ip_configuration {
                      primary   = true
                      name      = "ipconfig1"
-                     subnet_id = var.storage_subnet.id
+                     subnet_id = var.storage_subnet_id
 
                       private_ip_address = var.database.use_DHCP ? (
                        null) : (
                        length(try(var.database_vm_storage_nic_ips[count.index], "")) > 0 ? (
                          var.database_vm_storage_nic_ips[count.index]) : (
                          cidrhost(
-                           var.storage_subnet[0].address_prefixes[0],
+                           data.azurerm_subnet.storage[0].address_prefixes[0],
                            tonumber(count.index) + local.hdb_ip_offsets.hdb_scaleout_vm
                          )
                        )
@@ -349,37 +358,50 @@ resource "azurerm_role_assignment" "role_assignment_msi_ha" {
   principal_id                         = azurerm_linux_virtual_machine.vm_dbnode[(count.index +1) % var.database_server_count].identity[0].principal_id
 }
 
+# determine if we have any backup disks with ZRS
+locals {
+  is_backup_disk_with_zrs = [
+    for idx, disk in local.data_disk_list :
+      can(regex("-(backup)", disk.suffix)) && disk.storage_account_type == "Premium_ZRS"
+  ]
+}
+
 # Creates managed data disk
 resource "azurerm_managed_disk" "data_disk" {
   provider                             = azurerm.main
   count                                = local.enable_deployment ? length(local.data_disk_list) : 0
   name                                 = format("%s%s%s%s%s",
-                                           var.naming.resource_prefixes.disk,
-                                           local.prefix,
-                                           var.naming.separator,
-                                           var.naming.virtualmachine_names.HANA_VMNAME[local.data_disk_list[count.index].vm_index],
-                                           local.data_disk_list[count.index].suffix
-                                         )
+                                            var.naming.resource_prefixes.disk,
+                                            local.prefix,
+                                            var.naming.separator,
+                                            var.naming.virtualmachine_names.HANA_VMNAME[local.data_disk_list[count.index].vm_index],
+                                            local.data_disk_list[count.index].suffix
+                                          )
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
   create_option                        = "Empty"
   storage_account_type                 = local.data_disk_list[count.index].storage_account_type
   disk_size_gb                         = local.data_disk_list[count.index].disk_size_gb
+  # Only set disk_iops_read_write, disk_mbps_read_write for UltraSSD_LRS and
+  # PremiumV2_LRS disk types, as other types do not support these properties.
   disk_iops_read_write                 = contains(["UltraSSD_LRS", "PremiumV2_LRS"], local.data_disk_list[count.index].storage_account_type) ? (
-                                           local.data_disk_list[count.index].disk_iops_read_write) : (
-                                           null
-                                         )
+                                            local.data_disk_list[count.index].disk_iops_read_write) : (
+                                            null
+                                          )
   disk_mbps_read_write                 = contains(["UltraSSD_LRS", "PremiumV2_LRS"], local.data_disk_list[count.index].storage_account_type) ? (
-                                           local.data_disk_list[count.index].disk_mbps_read_write) : (
-                                           null
-                                         )
+                                            local.data_disk_list[count.index].disk_mbps_read_write) : (
+                                            null
+                                          )
 
   disk_encryption_set_id               = try(var.options.disk_encryption_set_id, null)
 
-  zone                                 = !local.use_avset ? (
-                                           try(azurerm_linux_virtual_machine.vm_dbnode[local.data_disk_list[count.index].vm_index].zone, null)) : (
-                                           null
-                                         )
+  zone                                 = local.is_backup_disk_with_zrs[count.index] ? null : (
+                                            local.zonal_deployment && !local.use_avset ? (
+                                              try(azurerm_linux_virtual_machine.vm_dbnode[local.data_disk_list[count.index].vm_index].zone, null)) : (
+                                              null
+                                            )
+                                          )
+
   tags                                 = var.tags
   lifecycle {
     ignore_changes = [
@@ -451,7 +473,7 @@ resource "azurerm_managed_disk" "cluster" {
   storage_account_type                 = var.database.database_cluster_disk_type
   disk_size_gb                         = var.database.database_cluster_disk_size
   disk_encryption_set_id               = try(var.options.disk_encryption_set_id, null)
-  max_shares                           = var.database_server_count
+  max_shares                           = var.use_observer ? var.database_server_count + 1 : var.database_server_count
   tags                                 = var.tags
 
   zone                                 = var.database.database_cluster_disk_type == "Premium_LRS" && !local.use_avset ? (

@@ -179,325 +179,340 @@ stages:
             name:                      Preparation
             displayName:               Preparation for Ansible
             env:
-              ANSIBLE_COLLECTIONS_PATH:      /opt/ansible/collections
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              ARM_CLIENT_ID:                 $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:             $(ARM_CLIENT_SECRET)
-              ARM_TENANT_ID:                 $(ARM_TENANT_ID)
-              ARM_USE_MSI:                   $(USE_MSI)
-              AZURE_DEVOPS_EXT_PAT:          $(System.AccessToken)
-              BOM_BASE_NAME:                 ${{ parameters.bom_base_name }}
-              CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
-              EXTRA_PARAMETERS:              $(EXTRA_PARAMETERS)
-              KEYVAULT:                      $(KEYVAULT)
-              PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
-              SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
-              SCRIPT_PATH:                   $${{ parameters.sap_automation_repo_path }}/deploy/pipelines/templates/*.sh
-              SYSTEM_ACCESSTOKEN:            $(System.AccessToken)
-              USE_MSI:                       $(USE_MSI)
-          - template:                        templates\run-ansible.yaml
+              ANSIBLE_COLLECTIONS_PATH:       /opt/ansible/collections
+              ANSIBLE_HOST_KEY_CHECKING:      false
+              ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+              ARM_USE_MSI:                    $(USE_MSI)
+              AZURE_DEVOPS_EXT_PAT:           $(System.AccessToken)
+              BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
+              CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONTROL_PLANE_SUBSCRIPTION_ID:  $(Terraform_Remote_Storage_Subscription)
+              EXTRA_PARAMETERS:               $(EXTRA_PARAMETERS)
+              KEYVAULT:                       $(KEYVAULT)
+              PIPELINE_EXTRA_PARAMETERS:      ${{ parameters.extra_params }}
+              SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
+              SCRIPT_PATH:                    $${{ parameters.sap_automation_repo_path }}/deploy/pipelines/templates/*.sh
+              SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+              USE_MSI:                        $(USE_MSI)
+          - template:                         templates\run-ansible.yaml
             parameters:
-              displayName:                   "Parameter validation"
-              ansibleFilePath:               ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_00_validate_parameters.yaml
-              ansibleConfigPath:             ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-              secretName:                    "$(Preparation.SSH_KEY_NAME)"
-              passwordSecretName:            "$(Preparation.PASSWORD_KEY_NAME)"
-              userNameSecretName:            "$(Preparation.USERNAME_KEY_NAME)"
-              vaultName:                     $(KEYVAULT)
-              parametersFolder:              $(Preparation.FOLDER)
-              sapParams:                     "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-              sidHosts:                      $(Preparation.HOSTS)
-              extraParams:                   "$(Preparation.NEW_PARAMETERS)"
-              azureClientId:                 $(ARM_CLIENT_ID)
-              azureClientSecret:             $(ARM_CLIENT_SECRET)
-              azureTenantId:                 $(ARM_TENANT_ID)
-              azureSubscriptionId:           $(ARM_SUBSCRIPTION_ID)
-              USE_MSI:                       $(USE_MSI)
-              CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+              displayName:                    "Parameter validation"
+              ansibleFilePath:                ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_00_validate_parameters.yaml
+              ansibleConfigPath:              ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+              secretName:                     "$(Preparation.SSH_KEY_NAME)"
+              passwordSecretName:             "$(Preparation.PASSWORD_KEY_NAME)"
+              userNameSecretName:             "$(Preparation.USERNAME_KEY_NAME)"
+              vaultName:                      $(KEYVAULT)
+              parametersFolder:               $(Preparation.FOLDER)
+              sapParams:                      "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+              sidHosts:                       $(Preparation.HOSTS)
+              extraParams:                    "$(Preparation.NEW_PARAMETERS)"
+              azureClientId:                  $(ARM_CLIENT_ID)
+              azureClientSecret:              $(ARM_CLIENT_SECRET)
+              azureTenantId:                  $(ARM_TENANT_ID)
+              azureSubscriptionId:            $(ARM_SUBSCRIPTION_ID)
+              USE_MSI:                        $(USE_MSI)
+              remoteStateStorageAccount:      $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+              controlPlaneSubscriptionId:     $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.base_os_configuration, true) }}:
-              - template:                    templates\run-ansible.yaml
+              - template:                     templates\run-ansible.yaml
                 parameters:
-                  displayName:               "Operating System Configuration"
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_01_os_base_config.yaml
-                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(KEYVAULT)
-                  parametersFolder:          $(Preparation.FOLDER)
-                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
-                  USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  displayName:                "Operating System Configuration"
+                  ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_01_os_base_config.yaml
+                  ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                  $(KEYVAULT)
+                  parametersFolder:           $(Preparation.FOLDER)
+                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                   $(Preparation.HOSTS)
+                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:              $(ARM_CLIENT_ID)
+                  azureClientSecret:          $(ARM_CLIENT_SECRET)
+                  azureTenantId:              $(ARM_TENANT_ID)
+                  azureSubscriptionId:        $(Preparation.ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                    $(USE_MSI)
+                  remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.sap_os_configuration, true) }}:
-              - template:                    templates\run-ansible.yaml
+              - template:                     templates\run-ansible.yaml
                 parameters:
-                  displayName:               "SAP Specific Operating System Configuration"
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_02_os_sap_specific_config.yaml
-                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(KEYVAULT)
-                  parametersFolder:          $(Preparation.FOLDER)
-                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
-                  USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  displayName:                "SAP Specific Operating System Configuration"
+                  ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_02_os_sap_specific_config.yaml
+                  ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                  $(KEYVAULT)
+                  parametersFolder:           $(Preparation.FOLDER)
+                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                   $(Preparation.HOSTS)
+                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:              $(ARM_CLIENT_ID)
+                  azureClientSecret:          $(ARM_CLIENT_SECRET)
+                  azureTenantId:              $(ARM_TENANT_ID)
+                  azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                    $(USE_MSI)
+                  remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.bom_processing, true) }}:
-              - template:                    templates\run-ansible.yaml
+              - template:                     templates\run-ansible.yaml
                 parameters:
-                  displayName:               "Software download"
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_03_bom_processing.yaml
-                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(KEYVAULT)
-                  parametersFolder:          $(Preparation.FOLDER)
-                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
-                  USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  displayName:                "Software download"
+                  ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_03_bom_processing.yaml
+                  ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                  $(KEYVAULT)
+                  parametersFolder:           $(Preparation.FOLDER)
+                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                   $(Preparation.HOSTS)
+                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:              $(ARM_CLIENT_ID)
+                  azureClientSecret:          $(ARM_CLIENT_SECRET)
+                  azureTenantId:              $(ARM_TENANT_ID)
+                  azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                    $(USE_MSI)
+                  remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.scs_installation, true) }}:
-              - template:                    templates\run-ansible.yaml
+              - template:                     templates\run-ansible.yaml
                 parameters:
-                  displayName:               Central Services Installation
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml
-                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(KEYVAULT)
-                  parametersFolder:          $(Preparation.FOLDER)
-                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
-                  USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  displayName:                Central Services Installation
+                  ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml
+                  ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                  $(KEYVAULT)
+                  parametersFolder:           $(Preparation.FOLDER)
+                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                   $(Preparation.HOSTS)
+                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:              $(ARM_CLIENT_ID)
+                  azureClientSecret:          $(ARM_CLIENT_SECRET)
+                  azureTenantId:              $(ARM_TENANT_ID)
+                  azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                    $(USE_MSI)
+                  remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.database_install, true) }}:
-              - template:                    templates\run-ansible.yaml
+              - template:                     templates\run-ansible.yaml
                 parameters:
-                  displayName:               "Database installation"
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_04_00_00_db_install.yaml
-                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(KEYVAULT)
-                  parametersFolder:          $(Preparation.FOLDER)
-                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
-                  USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  displayName:                "Database installation"
+                  ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_04_00_00_db_install.yaml
+                  ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                  $(KEYVAULT)
+                  parametersFolder:           $(Preparation.FOLDER)
+                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                   $(Preparation.HOSTS)
+                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:              $(ARM_CLIENT_ID)
+                  azureClientSecret:          $(ARM_CLIENT_SECRET)
+                  azureTenantId:              $(ARM_TENANT_ID)
+                  azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                    $(USE_MSI)
+                  remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.db_load, true) }}:
-              - template:                    templates\run-ansible.yaml
+              - template:                     templates\run-ansible.yaml
                 parameters:
-                  displayName:               Database Load
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_01_sap_dbload.yaml
-                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(KEYVAULT)
-                  parametersFolder:          $(Preparation.FOLDER)
-                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(Preparation.ARM_SUBSCRIPTION_ID)
-                  USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  displayName:                Database Load
+                  ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_01_sap_dbload.yaml
+                  ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                  $(KEYVAULT)
+                  parametersFolder:           $(Preparation.FOLDER)
+                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                   $(Preparation.HOSTS)
+                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:              $(ARM_CLIENT_ID)
+                  azureClientSecret:          $(ARM_CLIENT_SECRET)
+                  azureTenantId:              $(ARM_TENANT_ID)
+                  azureSubscriptionId:        $(Preparation.ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                    $(USE_MSI)
+                  remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.high_availability_configuration, true) }}:
-              - template:                    templates\run-ansible.yaml
+              - template:                     templates\run-ansible.yaml
                 parameters:
-                  displayName:               Database High Availability configuration
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_04_00_01_db_ha.yaml
-                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(KEYVAULT)
-                  parametersFolder:          $(Preparation.FOLDER)
-                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
-                  USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  displayName:                Database High Availability configuration
+                  ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_04_00_01_db_ha.yaml
+                  ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                  $(KEYVAULT)
+                  parametersFolder:           $(Preparation.FOLDER)
+                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                   $(Preparation.HOSTS)
+                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:              $(ARM_CLIENT_ID)
+                  azureClientSecret:          $(ARM_CLIENT_SECRET)
+                  azureTenantId:              $(ARM_TENANT_ID)
+                  azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                    $(USE_MSI)
+                  remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.pas_installation, true) }}:
-              - template:                    templates\run-ansible.yaml
+              - template:                     templates\run-ansible.yaml
                 parameters:
-                  displayName:               Primary Application Server Installation
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_02_sap_pas_install.yaml
-                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(KEYVAULT)
-                  parametersFolder:          $(Preparation.FOLDER)
-                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
-                  USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  displayName:                Primary Application Server Installation
+                  ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_02_sap_pas_install.yaml
+                  ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                  $(KEYVAULT)
+                  parametersFolder:           $(Preparation.FOLDER)
+                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                   $(Preparation.HOSTS)
+                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:              $(ARM_CLIENT_ID)
+                  azureClientSecret:          $(ARM_CLIENT_SECRET)
+                  azureTenantId:              $(ARM_TENANT_ID)
+                  azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                    $(USE_MSI)
+                  remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.application_server_installation, true) }}:
-              - template:                    templates\run-ansible.yaml
+              - template:                     templates\run-ansible.yaml
                 parameters:
-                  displayName:               Application Installation
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_03_sap_app_install.yaml
-                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(KEYVAULT)
-                  parametersFolder:          $(Preparation.FOLDER)
-                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
-                  USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  displayName:                Application Installation
+                  ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_03_sap_app_install.yaml
+                  ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                  $(KEYVAULT)
+                  parametersFolder:           $(Preparation.FOLDER)
+                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                   $(Preparation.HOSTS)
+                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:              $(ARM_CLIENT_ID)
+                  azureClientSecret:          $(ARM_CLIENT_SECRET)
+                  azureTenantId:              $(ARM_TENANT_ID)
+                  azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                    $(USE_MSI)
+                  remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.webdispatcher_installation, true) }}:
-              - template:                    templates\run-ansible.yaml
+              - template:                     templates\run-ansible.yaml
                 parameters:
-                  displayName:               Web Dispatcher
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_04_sap_web_install.yaml
-                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(KEYVAULT)
-                  parametersFolder:          $(Preparation.FOLDER)
-                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
-                  USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  displayName:                Web Dispatcher
+                  ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_04_sap_web_install.yaml
+                  ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                  $(KEYVAULT)
+                  parametersFolder:           $(Preparation.FOLDER)
+                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                   $(Preparation.HOSTS)
+                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:              $(ARM_CLIENT_ID)
+                  azureClientSecret:          $(ARM_CLIENT_SECRET)
+                  azureTenantId:              $(ARM_TENANT_ID)
+                  azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                    $(USE_MSI)
+                  remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.post_configuration_actions, true) }}:
-              - template:                    templates\run-ansible.yaml
+              - template:                     templates\run-ansible.yaml
                 parameters:
-                  displayName:               Post Configuration Actions
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_08_00_00_post_configuration_actions.yaml
-                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(KEYVAULT)
-                  parametersFolder:          $(Preparation.FOLDER)
-                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
-                  USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  displayName:                Post Configuration Actions
+                  ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_08_00_00_post_configuration_actions.yaml
+                  ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                  $(KEYVAULT)
+                  parametersFolder:           $(Preparation.FOLDER)
+                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                   $(Preparation.HOSTS)
+                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:              $(ARM_CLIENT_ID)
+                  azureClientSecret:          $(ARM_CLIENT_SECRET)
+                  azureTenantId:              $(ARM_TENANT_ID)
+                  azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                    $(USE_MSI)
+                  remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.sap_on_azure_quality_checks, true) }}:
-              - template:                    templates\run-ansible.yaml
+              - template:                     templates\run-ansible.yaml
                 parameters:
-                  displayName:               SAP on Azure quality checks
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_02_sap_on_azure_quality_checks.yaml
-                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(KEYVAULT)
-                  parametersFolder:          $(Preparation.FOLDER)
-                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
-                  USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  displayName:                SAP on Azure quality checks
+                  ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_02_sap_on_azure_quality_checks.yaml
+                  ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                  $(KEYVAULT)
+                  parametersFolder:           $(Preparation.FOLDER)
+                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                   $(Preparation.HOSTS)
+                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:              $(ARM_CLIENT_ID)
+                  azureClientSecret:          $(ARM_CLIENT_SECRET)
+                  azureTenantId:              $(ARM_TENANT_ID)
+                  azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
+                  USE_MSI:                    $(USE_MSI)
+                  remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.acss_registration, true) }}:
-              - template:                    templates\acss-registration.yaml
+              - template:                     templates\acss-registration.yaml
                 parameters:
-                  displayName:               "ACSS Registration"
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_00_acss_registration.yaml
-                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(KEYVAULT)
-                  parametersFolder:          $(Preparation.FOLDER)
-                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
-                  acssEnvironment:           ${{ parameters.acss_environment }}
-                  acssSapProduct:            ${{ parameters.acss_sap_product }}
-                  USE_MSI:                   $(USE_MSI)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
+                  displayName:                "ACSS Registration"
+                  ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_00_acss_registration.yaml
+                  ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                  $(KEYVAULT)
+                  parametersFolder:           $(Preparation.FOLDER)
+                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                   $(Preparation.HOSTS)
+                  extraParams:                "$(Preparation.NEW_PARAMETERS)"
+                  azureClientId:              $(ARM_CLIENT_ID)
+                  azureClientSecret:          $(ARM_CLIENT_SECRET)
+                  azureTenantId:              $(ARM_TENANT_ID)
+                  azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
+                  acssEnvironment:            ${{ parameters.acss_environment }}
+                  acssSapProduct:             ${{ parameters.acss_sap_product }}
+                  USE_MSI:                    $(USE_MSI)
+                  remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
           - ${{ if eq(parameters.ams_provider, true) }}:
-              - template:                    templates\run-ansible.yaml
+              - template:                     templates\run-ansible.yaml
                 parameters:
-                  displayName:               "AMS Provider Creation"
-                  ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_01_ams_monitoring.yaml
-                  ansibleConfigPath:         ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                "$(Preparation.SSH_KEY_NAME)"
-                  passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
-                  userNameSecretName:        "$(Preparation.USERNAME_KEY_NAME)"
-                  vaultName:                 $(KEYVAULT)
-                  parametersFolder:          $(Preparation.FOLDER)
-                  sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-                  sidHosts:                  $(Preparation.HOSTS)
-                  extraParams:               ${{ parameters.extra_params }}
-                  azureClientId:             $(ARM_CLIENT_ID)
-                  azureClientSecret:         $(ARM_CLIENT_SECRET)
-                  azureTenantId:             $(ARM_TENANT_ID)
-                  azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
-                  CONTROL_PLANE_SUBSCRIPTION_ID: $(Terraform_Remote_Storage_Subscription)
-          - template:                        templates\collect-log-files.yaml
+                  displayName:                "AMS Provider Creation"
+                  ansibleFilePath:            ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_01_ams_monitoring.yaml
+                  ansibleConfigPath:          ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+                  secretName:                 "$(Preparation.SSH_KEY_NAME)"
+                  passwordSecretName:         "$(Preparation.PASSWORD_KEY_NAME)"
+                  userNameSecretName:         "$(Preparation.USERNAME_KEY_NAME)"
+                  vaultName:                  $(KEYVAULT)
+                  parametersFolder:           $(Preparation.FOLDER)
+                  sapParams:                  "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+                  sidHosts:                   $(Preparation.HOSTS)
+                  extraParams:                ${{ parameters.extra_params }}
+                  azureClientId:              $(ARM_CLIENT_ID)
+                  azureClientSecret:          $(ARM_CLIENT_SECRET)
+                  azureTenantId:              $(ARM_TENANT_ID)
+                  azureSubscriptionId:        $(ARM_SUBSCRIPTION_ID)
+                  remoteStateStorageAccount:  $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  controlPlaneSubscriptionId: $(Terraform_Remote_Storage_Subscription)
+          - template:                         templates\collect-log-files.yaml
             parameters:
-              logPath:                       ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
-              qualityAssuranceResultsPath:   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/quality_assurance
-              collectQualityChecks:          ${{ parameters.sap_on_azure_quality_checks }}
+              logPath:                        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
+              qualityAssuranceResultsPath:    ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/quality_assurance
+              collectQualityChecks:           ${{ parameters.sap_on_azure_quality_checks }}

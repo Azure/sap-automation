@@ -256,9 +256,9 @@ fi
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 
-if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ] && [ -f "${automation_config_directory}${environment}${region_code}" ]; then
 	system_config_information="${automation_config_directory}${environment}${region_code}"
-elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
+else
 	system_config_information="${automation_config_directory}${environment}${region_code}${network_logical_name}"
 fi
 
@@ -563,7 +563,7 @@ az account set --subscription "${terraform_storage_account_subscription_id}"
 if [ ! -f .terraform/terraform.tfstate ]; then
 	print_banner "$banner_title" "New deployment" "info"
 
-	if ! terraform -chdir="${terraform_module_directory}" init -upgrade  -input=false \
+	if ! terraform -chdir="${terraform_module_directory}" init -upgrade -input=false \
 		--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 		--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 		--backend-config "storage_account_name=${terraform_storage_account_name}" \
@@ -585,7 +585,7 @@ else
 
 			terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
 
-			if terraform -chdir="${terraform_module_directory}" init -migrate-state  -upgrade  --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			if terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "$banner_title" "Terraform local init succeeded" "success"
 			else
@@ -597,7 +597,7 @@ else
 
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 
-		if terraform -chdir="${terraform_module_directory}" init -force-copy -upgrade  -migrate-state \
+		if terraform -chdir="${terraform_module_directory}" init -force-copy -upgrade -migrate-state \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
@@ -616,7 +616,7 @@ else
 		echo "Terraform state:                     remote"
 		print_banner "$banner_title" "The system has already been deployed and the state file is in Azure" "info"
 
-		if terraform -chdir="${terraform_module_directory}" init  -upgrade -force-copy -migrate-state \
+		if terraform -chdir="${terraform_module_directory}" init -upgrade -force-copy -migrate-state \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
@@ -690,9 +690,10 @@ if terraform -chdir="$terraform_module_directory" plan $allParameters -input=fal
 	print_banner "$banner_title" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
 else
 	return_value=${PIPESTATUS[0]}
+
 	if [ 1 -eq $return_value ]; then
 		print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
-		exit $return_value
+		# exit $return_value
 	fi
 	apply_needed=1
 
@@ -713,42 +714,15 @@ if [ 1 != $return_value ]; then
 			if [ -n "$keyvault" ]; then
 				save_config_var "keyvault" "${system_config_information}"
 			fi
-			if [ 1 == $called_from_ado ]; then
 
-				if [[ "$TF_VAR_use_webapp" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
-					webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+			webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+			if [ -n "$webapp_url_base" ]; then
+				save_config_var "webapp_url_base" "${system_config_information}"
+			fi
 
-					if [ -n "$webapp_url_base" ]; then
-						az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_URL_BASE.value")
-						if [ -z "${az_var}" ]; then
-							az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
-						else
-							az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_URL_BASE --value "$webapp_url_base" --output none --only-show-errors
-						fi
-					fi
-
-					webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
-					if [ -n "$webapp_id" ]; then
-						az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_ID.value")
-						if [ -z "${az_var}" ]; then
-							az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
-						else
-							az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name WEBAPP_ID --value "$webapp_id" --output none --only-show-errors
-						fi
-					fi
-
-					msi_object_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
-
-					if [ -n "$msi_object_id" ]; then
-						az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "MSI_ID.value")
-						if [ -z "${az_var}" ]; then
-							az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name MSI_ID --value "$msi_object_id" --output none --only-show-errors
-						else
-							az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name MSI_ID --value "$msi_object_id" --output none --only-show-errors
-						fi
-					fi
-
-				fi
+			webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
+			if [ -n "$webapp_id" ]; then
+				save_config_var "webapp_id" "${system_config_information}"
 			fi
 
 		fi

@@ -122,7 +122,7 @@ output "database_loadbalancer_id"      {
                                                        ]
                                        }
 
-output "db_admin_ip"                   {
+output "db_admin_ips"                  {
                                          description = "Database Admin IP information"
                                          value       = local.enable_deployment && var.database_dual_nics ? (
                                                          azurerm_network_interface.nics_dbnodes_admin[*].private_ip_address) : (
@@ -187,9 +187,9 @@ output "hana_shared"                   {
                                          description = "HANA Shared volumes"
                                          value       = local.shared_volume_count == 0 ? (
                                                          []
-                                                         ) : ((
-                                                         var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? data.azurerm_netapp_volume.hanashared[0].zone : azurerm_netapp_volume.hanashared[0].zone)) == var.database.zones[0] ? (
-                                                         [
+                                                         ) : (
+                                                         var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? data.azurerm_netapp_volume.hanashared[0].zone : azurerm_netapp_volume.hanashared[0].zone) == var.database.zones[0] ? (
+                                                         compact([
                                                            format("%s:/%s",
                                                              var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
                                                                data.azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]) : (
@@ -200,7 +200,7 @@ output "hana_shared"                   {
                                                                azurerm_netapp_volume.hanashared[0].volume_path
                                                              )
                                                            ),
-                                                           format("%s:/%s",
+                                                           local.db_zone_count > 1 ? format("%s:/%s",
                                                              var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
                                                                data.azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]) : (
                                                                azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]
@@ -209,8 +209,8 @@ output "hana_shared"                   {
                                                                data.azurerm_netapp_volume.hanashared[1].volume_path) : (
                                                                azurerm_netapp_volume.hanashared[1].volume_path
                                                              )
-                                                           )
-                                                         ]
+                                                           ) : ""
+                                                         ])
                                                          ) : (
                                                          [
                                                            format("%s:/%s",
@@ -247,7 +247,7 @@ output "database_shared_disks"         {
                                          description = "List of Azure shared disks"
                                          value       = distinct(
                                                          flatten(
-                                                           [for vm in var.naming.virtualmachine_names.HANA_COMPUTERNAME :
+                                                           [for vm in azurerm_linux_virtual_machine.vm_dbnode[*].computer_name :
                                                              [for idx, disk in azurerm_virtual_machine_data_disk_attachment.cluster :
                                                                format("{ host: '%s', LUN: %d, type: 'ASD' }", vm, disk.lun)
                                                              ]
@@ -260,7 +260,7 @@ output "database_kdump_disks"          {
                                          description = "List of Azure disks for kdump"
                                          value       = distinct(
                                                          flatten(
-                                                           [for vm in var.naming.virtualmachine_names.HANA_COMPUTERNAME :
+                                                           [for vm in azurerm_linux_virtual_machine.vm_dbnode[*].computer_name :
                                                              [for idx, disk in azurerm_virtual_machine_data_disk_attachment.kdump :
                                                                format("{ host: '%s', LUN: %d, type: 'kdump' }", vm, disk.lun)
                                                              ]
@@ -293,6 +293,19 @@ output "observer_vms"                  {
                                          value       = local.enable_deployment && var.use_observer ? (
                                                          azurerm_linux_virtual_machine.observer[*].id) : (
                                                          [""]
+                                                       )
+                                       }
+
+output "observer_shared_disks"         {
+                                         description = "List of Azure shared disks on the majority maker"
+                                         value       = distinct(
+                                                         flatten(
+                                                           [for vm in azurerm_linux_virtual_machine.observer[*].computer_name :
+                                                             [for idx, disk in azurerm_virtual_machine_data_disk_attachment.cluster_observer :
+                                                               format("{ host: '%s', LUN: %d, type: 'ASD' }", vm, disk.lun)
+                                                             ]
+                                                           ]
+                                                         )
                                                        )
                                        }
 

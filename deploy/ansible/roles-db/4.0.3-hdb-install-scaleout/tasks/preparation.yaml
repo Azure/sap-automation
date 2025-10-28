@@ -1,0 +1,249 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Prepare for the SAP DB Instance installation for scale out  |
+# |                  SAP: Register BOM                                         |
+# |                  create .params directory                                  |
+# |                  deploy db install template                                |
+# |                  deploy hdblcm password file                               |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |    This code contains references to terms that Microsoft no longer uses.   |
+# |    When these terms are removed from the SAP software and documentation,   |
+# |    we’ll remove them from this codebase.                                   |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Create list of all db hosts"
+  ansible.builtin.set_fact:
+    db_hosts:                          "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
+    primary_site_hosts:                "{{ hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE1') | map(attribute='key') }}"
+    secondary_site_hosts:              "{{ hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE2') | map(attribute='key') }}"
+    all_hana_hosts:                    "{{ (hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE1') | map(attribute='key') | list) + (hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE2') | map(attribute='key') | list) }}"
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Debug host groupings"
+  ansible.builtin.debug:
+    msg:
+                                       - "db_hosts:                     {{ db_hosts }}"
+                                       - "primary_site_hosts:           {{ primary_site_hosts }}"
+                                       - "secondary_site_hosts:         {{ secondary_site_hosts }}"
+                                       - "all_hana_hosts:               {{ all_hana_hosts }}"
+
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Ensure SSH directory exists for root"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              /root/.ssh
+    state:                             directory
+    owner:                             root
+    group:                             root
+    mode:                              '0700'
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Check if SSH key already exists"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.stat:
+    path:                              /root/.ssh/id_rsa
+  register:                            ssh_key_exists
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Generate SSH key pair on primary instance"
+  when:
+                                       - ansible_hostname == primary_instance_name
+                                       - not ssh_key_exists.stat.exists
+  become:                              true
+  become_user:                         root
+  ansible.builtin.command:
+    cmd:                               ssh-keygen -t rsa -b 2048 -f /root/.ssh/id_rsa -N '' -C "{{ ansible_hostname }}-hana-so-cluster"
+    creates:                           /root/.ssh/id_rsa
+  register:                            ssh_key_generation
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Read public key from primary instance"
+  when:                                ansible_hostname == primary_instance_name
+  become:                              true
+  become_user:                         root
+  ansible.builtin.slurp:
+    src:                               /root/.ssh/id_rsa.pub
+  register:                            hana_public_key
+
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Read private key from primary instance"
+  when:                                ansible_hostname == primary_instance_name
+  become:                              true
+  become_user:                         root
+  ansible.builtin.slurp:
+    src:                               /root/.ssh/id_rsa
+  register:                            hana_private_key
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Set key facts for distribution"
+  when:
+                                       - primary_instance_name in hostvars
+                                       - hostvars[primary_instance_name]['hana_public_key'] is defined
+                                       - hostvars[primary_instance_name]['hana_private_key'] is defined
+  ansible.builtin.set_fact:
+    cluster_public_key:                "{{ hostvars[primary_instance_name]['hana_public_key']['content'] | b64decode }}"
+    cluster_private_key:               "{{ hostvars[primary_instance_name]['hana_private_key']['content'] | b64decode }}"
+
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Deploy private key to all HANA nodes"
+  become:                              true
+  become_user:                         root
+  when:
+                                       - cluster_private_key is defined
+                                       - inventory_hostname in all_hana_hosts
+  ansible.builtin.copy:
+    content:                           "{{ cluster_private_key }}"
+    dest:                              /root/.ssh/id_rsa
+    owner:                             root
+    group:                             root
+    mode:                              '0600'
+    backup:                            true
+
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Deploy public key to all HANA nodes"
+  become:                              true
+  become_user:                         root
+  when:
+                                       - cluster_public_key is defined
+                                       - inventory_hostname in all_hana_hosts
+  ansible.builtin.copy:
+    content:                           "{{ cluster_public_key }}"
+    dest:                              /root/.ssh/id_rsa.pub
+    owner:                             root
+    group:                             root
+    mode:                              '0644'
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Add cluster public key to authorized_keys"
+  become:                              true
+  become_user:                         root
+  when:
+                                       - cluster_public_key is defined
+                                       - inventory_hostname in all_hana_hosts
+  ansible.builtin.lineinfile:
+    path:                              /root/.ssh/authorized_keys
+    line:                              "{{ cluster_public_key.strip() }}"
+    create:                            true
+    owner:                             root
+    group:                             root
+    mode:                              '0600'
+    state:                             present
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Get SSH host keys from primary site hosts"
+  become:                              true
+  become_user:                         root
+  when:                                ansible_hostname == primary_instance_name
+  ansible.builtin.command:             "ssh-keyscan -t rsa {{ item }}"
+  register:                            site1_host_keys
+  changed_when:                        false
+  failed_when:                         site1_host_keys.rc != 0 and site1_host_keys.stderr is not search("Connection refused")
+  loop:                                "{{ primary_site_hosts }}"
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Get SSH host keys from secondary site hosts"
+  become:                              true
+  become_user:                         root
+  when:
+                                       - secondary_site_hosts is defined
+                                       - secondary_site_hosts | length > 0
+                                       - ansible_hostname == primary_instance_name
+  ansible.builtin.command:             "ssh-keyscan -t rsa {{ item }}"
+  register:                            site2_host_keys
+  changed_when:                        false
+  failed_when:                         site2_host_keys.rc != 0 and site2_host_keys.stderr is not search("Connection refused")
+  loop:                                "{{ secondary_site_hosts }}"
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Compile all host keys"
+  when:                                ansible_hostname == primary_instance_name
+  ansible.builtin.set_fact:
+    all_host_keys: >-
+                                       {{
+                                         (site1_host_keys.results | default([]) | selectattr('stdout', 'defined') | map(attribute='stdout') | list) +
+                                         (site2_host_keys.results | default([]) | selectattr('stdout', 'defined') | map(attribute='stdout') | list)
+                                       }}
+
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Create known_hosts content"
+  when:
+                                       - ansible_hostname == primary_instance_name
+                                       - all_host_keys is defined
+  ansible.builtin.set_fact:
+    known_hosts_content:               "{{ all_host_keys | join('\n') }}"
+
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Distribute host keys facts to all nodes"
+  when:
+                                       - primary_instance_name in hostvars
+                                       - hostvars[primary_instance_name]['known_hosts_content'] is defined
+  ansible.builtin.set_fact:
+    cluster_known_hosts:               "{{ hostvars[primary_instance_name]['known_hosts_content'] | default('') }}"
+
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Populate known_hosts file on all nodes"
+  become:                              true
+  become_user:                         root
+  when:
+                                       - cluster_known_hosts is defined
+                                       - cluster_known_hosts | length > 0
+                                       - inventory_hostname in all_hana_hosts
+  ansible.builtin.copy:
+    content:                           "{{ cluster_known_hosts }}"
+    dest:                              /root/.ssh/known_hosts
+    owner:                             root
+    group:                             root
+    mode:                              '0644'
+    force:                             true
+    backup:                            true
+
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Configure SSH client for cluster nodes"
+  become:                              true
+  become_user:                         root
+  when:                                inventory_hostname in all_hana_hosts
+  ansible.builtin.blockinfile:
+    path:                              /root/.ssh/config
+    create:                            true
+    owner:                             root
+    group:                             root
+    mode:                              '0600'
+    marker:                            "# {mark} HANA CLUSTER SSH CONFIG - {{ sap_sid | upper }}"
+    block: |
+                                       Host {{ all_hana_hosts | join(' ') }}
+                                           StrictHostKeyChecking no
+                                           UserKnownHostsFile /root/.ssh/known_hosts
+                                           LogLevel ERROR
+                                           ConnectTimeout 10
+                                           ServerAliveInterval 60
+                                           ServerAliveCountMax 3
+
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Test SSH connectivity from primary to all cluster nodes"
+  become:                              true
+  become_user:                         root
+  when:
+                                       - ansible_hostname == primary_instance_name
+                                       - cluster_private_key is defined
+  ansible.builtin.command:
+    cmd:                               "ssh -o ConnectTimeout=10 -o BatchMode=yes {{ item }} 'echo SSH_OK'"
+  register:                            ssh_test_results
+  changed_when:                        false
+  failed_when:
+                                       - ssh_test_results.rc != 0
+                                       - "'SSH_OK' not in ssh_test_results.stdout"
+  loop:                                "{{ all_hana_hosts }}"
+
+
+- name:                                "4.0.3 - SAP HANA SCALE OUT: Display SSH connectivity test results"
+  when:
+                                       - ansible_hostname == primary_instance_name
+                                       - ssh_test_results is defined
+  ansible.builtin.debug:
+    msg:
+                                       - "SSH connectivity test completed successfully"
+                                       - "Tested connections from {{ primary_instance_name }} to all cluster nodes"
+                                       - "Results: {{ ssh_test_results.results | map(attribute='stdout') | list }}"
