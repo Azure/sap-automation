@@ -2156,7 +2156,7 @@ function New-SDAFADOWorkloadZone {
         throw "Project not found"
       }
 
-      $ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
+      $ManagedIdentityClientId = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].id" --subscription $ControlPlaneSubscriptionId --output tsv)
 
       $ControlPlaneVariableGroupId = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
       $AgentPoolName = ""
@@ -2183,7 +2183,8 @@ function New-SDAFADOWorkloadZone {
         foreach ($RoleName in $Roles) {
 
           Write-Host "Assigning role" $RoleName "to the Managed Identity" -ForegroundColor Green
-          $roleAssignment = az role assignment create --assignee-object-id $identity.principalId --assignee-principal-type ServicePrincipal --role $RoleName --scope /subscriptions/$WorkloadZoneSubscriptionId --query id --output tsv --only-show-errors
+          Write-Verbose "Assigning role" $RoleName "to the Managed Identity ($ManagedIdentityObjectId)" -ForegroundColor Green
+          $roleAssignment = az role assignment create --assignee-object-id $ManagedIdentityObjectId --role $RoleName --scope /subscriptions/$WorkloadZoneSubscriptionId --query id --output tsv --only-show-errors
           if ($roleAssignment) {
             Write-Host "Successfully assigned $RoleName role to identity" -ForegroundColor Green
             Write-Verbose "Role assignment ID: $roleAssignment"
@@ -2321,7 +2322,7 @@ function New-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOWorkloadZone
-#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 554
+#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 555
 #Region '.\Public\New-SDAFUserAssignedIdentity.ps1' -1
 
 function New-SDAFUserAssignedIdentity {
