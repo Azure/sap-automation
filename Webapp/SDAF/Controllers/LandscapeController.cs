@@ -201,7 +201,7 @@ namespace SDAFWebApp.Controllers
                         landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
                     }
 
-                    if(landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                    if (landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
                     {
                         landscape.environment=landscape.workload_zone.Split('-')[0];
                     }
