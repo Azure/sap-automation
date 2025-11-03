@@ -272,7 +272,7 @@ fi
 if [ -n "$deployer_tfstate_key" ]; then
 	environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
 	region_code=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
-	network_logical_name=$(echo "$deployer_tfstate_	key" | awk -F'-' '{print $3}' | xargs)
+	network_logical_name=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $3}' | xargs)
 fi
 
 if [ -z "$environment" ]; then
