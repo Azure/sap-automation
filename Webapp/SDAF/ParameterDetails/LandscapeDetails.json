@@ -29,16 +29,16 @@
           }
         ],
         "Overrules": "",
-        "Display": 3
+        "Display": 1
       }
     ]
   },
   {
-    "Section": "Environment",
+    "Section": "Workload zone",
     "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#environment-parameters",
     "Parameters": [
       {
-        "Name": "environment",
+        "Name": "workload_zone",
         "Required": true,
         "Description": "Identifier for the workload zone, used for partitioning the environments. For example 'DEV', 'QA', 'PROD', 'TEST', etc.",
         "Type": "lookup",
@@ -72,6 +72,15 @@
         "Display": 1
       },
       {
+        "Name": "environment",
+        "Required": false,
+        "Description": "The name of the environment.",
+        "Type": "textbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
         "Name": "location",
         "Required": true,
         "Description": "The Azure region in which to deploy.",
@@ -82,6 +91,15 @@
             "Value": ""
           }
         ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "locationCode",
+        "Required": false,
+        "Description": "The SDAF short code for the location.",
+        "Type": "field",
+        "Options": [],
         "Overrules": "",
         "Display": 1
       },
@@ -271,7 +289,7 @@
     "Parameters": [
       {
         "Name": "network_logical_name",
-        "Required": true,
+        "Required": false,
         "Description": "Defines the workload virtual network logical name. Used in the naming convention.",
         "Type": "field",
         "Options": [],

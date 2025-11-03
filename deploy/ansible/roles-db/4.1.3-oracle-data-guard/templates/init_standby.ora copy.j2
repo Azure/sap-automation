@@ -1,0 +1,41 @@
+*.db_name='{{ db_sid | upper }}'
+*.db_unique_name='{{ db_sid | upper }}_STDBY'
+
+*.db_block_size=8192
+*.compatible='{{ ora_version }}'
+*.diagnostic_dest='/oracle/{{ db_sid | upper }}/saptrace'
+*.audit_file_dest='/oracle/{{ db_sid | upper }}/saptrace/audit'
+
+# Memory configuration
+*.sga_max_size={{ sga_max_size }}
+*.pga_aggregate_target={{ pga_aggregate_target }}
+
+{% if platform | upper == 'ORACLE-ASM' %}
+
+
+# Recovery settings
+*.db_recovery_file_dest='+RECO'
+*.db_recovery_file_dest_size='{{ db_recovery_file_dest_size }}'
+*.control_files='+DATA/{{ db_sid | upper }}_STDBY/cntrl{{ db_sid | upper }}.dbf','+RECO/{{ db_sid | upper }}_STDBY/cntrl{{ db_sid | upper }}.dbf','+ARCH/{{ db_sid | upper }}_STDBY/cntrl{{ db_sid | upper }}.dbf'
+
+{% endif %}
+
+{% if platform | upper == 'ORACLE' %}
+
+# Recovery settings
+# *.db_recovery_file_dest='/oracle/{{ db_sid | upper }}/oraarch/'
+# *.db_recovery_file_dest_size='{{ db_recovery_file_dest_size }}'
+# *.control_files='/oracle/{{ db_sid | upper }}/origlogA/cntrl/cntrl{{ db_sid | upper }}.dbf', '/oracle/{{ db_sid | upper }}/origlogB/cntrl/cntrl{{ db_sid | upper }}.dbf', '/oracle/{{ db_sid | upper }}/sapdata1/cntrl/cntrl{{ db_sid | upper }}.dbf'
+
+
+{% endif %}
+
+
+# Grid listener registration
+*.local_listener='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
+
+# Essential parameters
+*.processes=300
+*.open_cursors=300
+*.undo_tablespace='UNDOTBS1'
+*.remote_login_passwordfile='EXCLUSIVE'
