@@ -26,13 +26,13 @@
     The control plane code identifier (e.g., MGMT).
 
 .PARAMETER ControlPlaneName
-    The control plane name (e.g., "MGMT-WEEU-DEP01").
+    The control plane name (e.g., "MGMT-WEEU-DEP01  ").
 
 .PARAMETER WorkloadZoneCode
     The workload zone code identifier (e.g., QA).
 
 .PARAMETER WorkloadZoneName
-    The workload zone name (e.g., "QA-WEEU-SAP01").
+    The workload zone name (e.g., "QA-WEEU-SAP01  ").
 
 .PARAMETER WorkloadZoneSubscriptionId
     The subscription ID for the workload zone resources.
@@ -79,13 +79,13 @@ function New-SDAFADOWorkloadZone {
     [string]$ControlPlaneCode,
 
     [Parameter(Mandatory = $false, HelpMessage = "Control Plane name (e.g., MGMT-WEEU-DEP01)")]
-    [string]$ControlPlaneName = "",
+    [string]$ControlPlaneName="",
 
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone code (e.g., DEV)")]
     [string]$WorkloadZoneCode,
 
     [Parameter(Mandatory = $false, HelpMessage = "Workload zone name (e.g., DEV-WEEU-SAP01)")]
-    [string]$WorkloadZoneName = "",
+    [string]$WorkloadZoneName="",
 
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone subscription ID")]
     [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
@@ -386,7 +386,7 @@ function New-SDAFADOWorkloadZone {
         throw "Project not found"
       }
 
-      $ManagedIdentityClientId = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].id" --subscription $ControlPlaneSubscriptionId --output tsv)
+      $ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
 
       $ControlPlaneVariableGroupId = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
       $AgentPoolName = ""
@@ -413,8 +413,7 @@ function New-SDAFADOWorkloadZone {
         foreach ($RoleName in $Roles) {
 
           Write-Host "Assigning role" $RoleName "to the Managed Identity" -ForegroundColor Green
-          Write-Verbose "Assigning role" $RoleName "to the Managed Identity ($ManagedIdentityObjectId)" -ForegroundColor Green
-          $roleAssignment = az role assignment create --assignee-object-id $ManagedIdentityObjectId --role $RoleName --scope /subscriptions/$WorkloadZoneSubscriptionId --query id --output tsv --only-show-errors
+          $roleAssignment = az role assignment create --assignee-object-id $identity.principalId --assignee-principal-type ServicePrincipal --role $RoleName --scope /subscriptions/$WorkloadZoneSubscriptionId --query id --output tsv --only-show-errors
           if ($roleAssignment) {
             Write-Host "Successfully assigned $RoleName role to identity" -ForegroundColor Green
             Write-Verbose "Role assignment ID: $roleAssignment"

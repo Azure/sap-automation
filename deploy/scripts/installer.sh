@@ -213,7 +213,7 @@ fi
 validate_exports
 return_code=$?
 if [ 0 != $return_code ]; then
-	echo "Missing exports" >"${system_config_information}".err
+	echo "Missing exports" >"${system_environment_file_name}".err
 	exit $return_code
 fi
 
@@ -221,7 +221,7 @@ fi
 validate_dependencies
 return_code=$?
 if [ 0 != $return_code ]; then
-	echo "Missing software" >"${system_config_information}".err
+	echo "Missing software" >"${system_environment_file_name}".err
 	exit $return_code
 fi
 
@@ -229,7 +229,7 @@ fi
 validate_key_parameters "$parameterfile_name"
 return_code=$?
 if [ 0 != $return_code ]; then
-	echo "Missing parameters in $parameterfile_name" >"${system_config_information}".err
+	echo "Missing parameters in $parameterfile_name" >"${system_environment_file_name}".err
 	exit $return_code
 fi
 
@@ -243,6 +243,14 @@ else
 fi
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
+if [ "${deployment_system}" == sap_deployer ]; then
+	banner_title="Install Deployer"
+	deployer_tfstate_key=${key}.terraform.tfstate
+	ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
+	export ARM_SUBSCRIPTION_ID
+
+fi
+
 network_logical_name=""
 
 if [ "${deployment_system}" == sap_system ]; then
@@ -253,16 +261,33 @@ fi
 
 #Persisting the parameters across executions
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-generic_config_information="${automation_config_directory}"config
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+generic_environment_file_name="${automation_config_directory}"config
 
-if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ] && [ -f "${automation_config_directory}${environment}${region_code}" ]; then
-	system_config_information="${automation_config_directory}${environment}${region_code}"
-else
-	system_config_information="${automation_config_directory}${environment}${region_code}${network_logical_name}"
+if [ -n "$landscape_tfstate_key" ]; then
+	environment=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
+	region_code=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $2}' | xargs)
+	network_logical_name=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $3}' | xargs)
+fi
+if [ -n "$deployer_tfstate_key" ]; then
+	environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
+	region_code=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
+	network_logical_name=$(echo "$deployer_tfstate_	key" | awk -F'-' '{print $3}' | xargs)
 fi
 
-echo "Configuration file:                  $system_config_information"
+if [ -z "$environment" ]; then
+	environment=$(echo "$key" | awk -F'-' '{print $1}' | xargs)
+	region_code=$(echo "$key" | awk -F'-' '{print $2}' | xargs)
+	network_logical_name=$(echo "$key" | awk -F'-' '{print $3}' | xargs)
+fi
+
+if [ -v SYSTEM_CONFIGURATION_FILE ]; then
+	system_environment_file_name=$SYSTEM_CONFIGURATION_FILE
+else
+	system_environment_file_name=$(get_configuration_file "$automation_config_directory" "$environment" "$region_code" "$network_logical_name")
+fi
+
+echo "Configuration file:                  $system_environment_file_name"
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
 
@@ -296,7 +321,18 @@ echo "Parallelism count:                   $parallelism"
 param_dirname=$(pwd)
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
-init "${automation_config_directory}" "${generic_config_information}" "${system_config_information}"
+init "${automation_config_directory}" "${generic_environment_file_name}" "${system_environment_file_name}"
+
+if [[ -z $REMOTE_STATE_SA ]]; then
+	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_SA"
+	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_RG"
+	load_config_vars "${system_environment_file_name}" "tfstate_resource_id"
+	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
+	load_config_vars "${system_environment_file_name}" "ARM_SUBSCRIPTION_ID"
+else
+	save_config_vars "${system_environment_file_name}" REMOTE_STATE_SA
+fi
+
 
 tfstate_resource_id=$(az resource list --name "$REMOTE_STATE_SA" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
 TF_VAR_tfstate_resource_id=$tfstate_resource_id
@@ -310,12 +346,6 @@ else
 	unset extra_vars
 fi
 
-if [ "${deployment_system}" == sap_deployer ]; then
-	banner_title="Install Deployer"
-	deployer_tfstate_key=${key}.terraform.tfstate
-	ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
-	export ARM_SUBSCRIPTION_ID
-fi
 if [[ -z $STATE_SUBSCRIPTION ]]; then
 	STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
 fi
@@ -334,26 +364,17 @@ if [[ -n $STATE_SUBSCRIPTION ]]; then
 	account_set=1
 fi
 
-if [[ -z $REMOTE_STATE_SA ]]; then
-	load_config_vars "${system_config_information}" "REMOTE_STATE_SA"
-	load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
-	load_config_vars "${system_config_information}" "tfstate_resource_id"
-	load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
-	load_config_vars "${system_config_information}" "ARM_SUBSCRIPTION_ID"
-else
-	save_config_vars "${system_config_information}" REMOTE_STATE_SA
-fi
 
 deployer_tfstate_key_parameter=""
 
 if [[ -z $deployer_tfstate_key ]]; then
-	load_config_vars "${system_config_information}" "deployer_tfstate_key"
+	load_config_vars "${system_environment_file_name}" "deployer_tfstate_key"
 else
 	echo "Deployer state file name:            ${deployer_tfstate_key}"
 	echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 	TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
 	export TF_VAR_deployer_tfstate_key
-	save_config_var "deployer_tfstate_key" "${system_config_information}"
+	save_config_var "deployer_tfstate_key" "${system_environment_file_name}"
 fi
 
 export TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
@@ -363,7 +384,7 @@ if [ "${deployment_system}" != sap_deployer ]; then
 		if [ 1 != $called_from_ado ]; then
 			read -r -p "Deployer terraform statefile name: " deployer_tfstate_key
 
-			save_config_var "deployer_tfstate_key" "${system_config_information}"
+			save_config_var "deployer_tfstate_key" "${system_environment_file_name}"
 		else
 			print_banner "Installer" "Deployer terraform statefile name is missing" "error"
 			unset TF_DATA_DIR
@@ -373,7 +394,7 @@ if [ "${deployment_system}" != sap_deployer ]; then
 		echo "Deployer state file name:            ${deployer_tfstate_key}"
 	fi
 else
-	load_config_vars "${system_config_information}" "keyvault"
+	load_config_vars "${system_environment_file_name}" "keyvault"
 	TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 	export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
 
@@ -397,10 +418,10 @@ fi
 landscape_tfstate_key_parameter=''
 
 if [[ -z $landscape_tfstate_key ]]; then
-	load_config_vars "${system_config_information}" "landscape_tfstate_key"
+	load_config_vars "${system_environment_file_name}" "landscape_tfstate_key"
 else
 	echo "Workload zone state file:            ${landscape_tfstate_key}"
-	save_config_vars "${system_config_information}" landscape_tfstate_key
+	save_config_vars "${system_environment_file_name}" landscape_tfstate_key
 fi
 
 if [ "${deployment_system}" == sap_system ]; then
@@ -408,7 +429,7 @@ if [ "${deployment_system}" == sap_system ]; then
 		if [ 1 != $called_from_ado ]; then
 			read -r -p "Workload terraform statefile name: " landscape_tfstate_key
 
-			save_config_var "landscape_tfstate_key" "${system_config_information}"
+			save_config_var "landscape_tfstate_key" "${system_environment_file_name}"
 
 		else
 			print_banner "Installer" "Workload zone terraform statefile name is missing" "error"
@@ -418,12 +439,42 @@ if [ "${deployment_system}" == sap_system ]; then
 	fi
 fi
 
+if [[ -n $landscape_tfstate_key ]]; then
+	workloadZone_State_file_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$landscape_tfstate_key'].properties.contentLength" --output tsv)
+
+	workloadZone_State_file_Size=$(expr "$workloadZone_State_file_Size_String")
+
+	if [ "$workloadZone_State_file_Size" -lt 50000 ]; then
+			print_banner "Installer" "Workload zone terraform state file ('$landscape_tfstate_key') is empty" "error"
+			unset TF_DATA_DIR
+
+			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+			exit 2
+	fi
+fi
+
+if [[ -n $deployer_tfstate_key ]]; then
+
+  deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+
+	deployer_Statefile_Size=$(expr "$deployer_Statefile_Size_String")
+
+	if [ "$deployer_Statefile_Size" -lt 50000 ]; then
+			print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "error"
+			unset TF_DATA_DIR
+
+			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+			exit 2
+	fi
+fi
+
+
 if [[ -z $STATE_SUBSCRIPTION ]]; then
-	load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
+	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
 else
 
 	if is_valid_guid "$STATE_SUBSCRIPTION"; then
-		save_config_var "STATE_SUBSCRIPTION" "${system_config_information}"
+		save_config_var "STATE_SUBSCRIPTION" "${system_environment_file_name}"
 	else
 		printf -v val %-40.40s "$STATE_SUBSCRIPTION"
 		print_banner "Installer" "The provided state_subscription is not valid: ${val}" "error"
@@ -447,18 +498,18 @@ if [[ -n ${subscription} ]]; then
 	export ARM_SUBSCRIPTION_ID="${subscription}"
 fi
 
-load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
-load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
-load_config_vars "${system_config_information}" "tfstate_resource_id"
+load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
+load_config_vars "${system_environment_file_name}" "REMOTE_STATE_RG"
+load_config_vars "${system_environment_file_name}" "tfstate_resource_id"
 
 if [[ -z ${REMOTE_STATE_SA} ]]; then
 	if [ 1 != $called_from_ado ]; then
 		read -r -p "Terraform state storage account name: " REMOTE_STATE_SA
 
-		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
-		load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
-		load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
-		load_config_vars "${system_config_information}" "tfstate_resource_id"
+		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
+		load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
+		load_config_vars "${system_environment_file_name}" "REMOTE_STATE_RG"
+		load_config_vars "${system_environment_file_name}" "tfstate_resource_id"
 	fi
 fi
 
@@ -468,17 +519,17 @@ if [ -z "${REMOTE_STATE_SA}" ]; then
 fi
 
 if [[ -z ${REMOTE_STATE_RG} ]]; then
-	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
-	load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
-	load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
-	load_config_vars "${system_config_information}" "tfstate_resource_id"
+	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
+	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
+	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_RG"
+	load_config_vars "${system_environment_file_name}" "tfstate_resource_id"
 fi
 
 if [[ -z ${tfstate_resource_id} ]]; then
-	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
-	load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
-	load_config_vars "${system_config_information}" "REMOTE_STATE_RG"
-	load_config_vars "${system_config_information}" "tfstate_resource_id"
+	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
+	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
+	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_RG"
+	load_config_vars "${system_environment_file_name}" "tfstate_resource_id"
 
 fi
 
@@ -702,37 +753,10 @@ fi
 state_path="SYSTEM"
 if [ 1 != $return_value ]; then
 
-	if [ "${deployment_system}" == sap_deployer ]; then
-		state_path="DEPLOYER"
-
-		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-
-			deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
-			save_config_var "deployer_public_ip_address" "${system_config_information}"
-
-			keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
-			if [ -n "$keyvault" ]; then
-				save_config_var "keyvault" "${system_config_information}"
-			fi
-
-			webapp_url_base=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
-			if [ -n "$webapp_url_base" ]; then
-				save_config_var "webapp_url_base" "${system_config_information}"
-			fi
-
-			webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
-			if [ -n "$webapp_id" ]; then
-				save_config_var "webapp_id" "${system_config_information}"
-			fi
-
-		fi
-
-	fi
-
 	if [ "${deployment_system}" == sap_landscape ]; then
 		state_path="LANDSCAPE"
 		if [ $landscape_tfstate_key_exists == false ]; then
-			save_config_vars "${system_config_information}" \
+			save_config_vars "${system_environment_file_name}" \
 				landscape_tfstate_key
 		fi
 	fi
@@ -752,7 +776,7 @@ if [ 1 != $return_value ]; then
 
 			REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 
-			getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
+			getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
 
 			if [ 1 == "$called_from_ado" ]; then
 				SAPBITS=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
@@ -905,7 +929,7 @@ if [ $fatal_errors == 1 ]; then
 	print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
 	if [ 1 == "$called_from_ado" ]; then
 		unset TF_DATA_DIR
-		echo "Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer" >"${system_config_information}".err
+		echo "Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer" >"${system_environment_file_name}".err
 		echo ##vso[task.logissue type=error]Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer
 		exit 1
 	fi
@@ -1060,45 +1084,45 @@ fi
 
 if [ "${deployment_system}" == sap_deployer ]; then
 
-	# terraform -chdir="${terraform_module_directory}"  output
-	if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+	webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
+	if [ -n "$webapp_id" ]; then
+		save_config_var "webapp_id" "${system_environment_file_name}"
+	fi
 
-		deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-		if [ -n "${deployer_random_id}" ]; then
-			save_config_var "deployer_random_id" "${system_config_information}"
-			custom_random_id="${deployer_random_id:0:3}"
-			sed -i -e /"custom_random_id"/d "${parameterfile}"
-			printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
-		fi
+	APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+	if [ -n "${APP_SERVICE_NAME}" ]; then
+		printf -v val %-.30s "$APP_SERVICE_NAME"
+		print_banner "$banner_title" "Application Service: $val" "info"
+		save_config_var "APP_SERVICE_NAME" "${system_environment_file_name}"
+		export APP_SERVICE_NAME
+	fi
+
+	APP_SERVICE_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
+	if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
+		save_config_var "APP_SERVICE_DEPLOYMENT" "${system_environment_file_name}"
+		export APP_SERVICE_DEPLOYMENT
 	fi
 
 	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 	if [ -n "${deployer_random_id}" ]; then
-		save_config_var "deployer_random_id" "${system_config_information}"
+		save_config_var "deployer_random_id" "${system_environment_file_name}"
 		custom_random_id="${deployer_random_id}"
 		sed -i -e "" -e /"custom_random_id"/d "${parameterfile}"
 		printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
-
 	fi
 
 	# shellcheck disable=SC2034
 	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
-	save_config_var "deployer_public_ip_address" "${system_config_information}"
-
-	if (terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \"); then
-		keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
-		if valid_kv_name "$keyvault"; then
-			save_config_var "keyvault" "${system_config_information}"
-		else
-			printf -v val %-40.40s "$keyvault"
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#       The provided keyvault is not valid:$bold_red ${val} $reset_formatting  #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo "The provided keyvault is not valid " "${val}" >secret.err
-		fi
+	save_config_var "deployer_public_ip_address" "${system_environment_file_name}"
+	keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+	if valid_kv_name "$keyvault"; then
+		save_config_var "keyvault" "${system_environment_file_name}"
+		print_banner "Installer" "The Control plane keyvault: ${val}" "info"
+	else
+		printf -v val %-40.40s "$keyvault"
+		print_banner "Installer" "The provided keyvault is not valid: ${val}" "error"
 	fi
+
 fi
 
 if [ "${deployment_system}" == sap_landscape ]; then
@@ -1106,11 +1130,11 @@ if [ "${deployment_system}" == sap_landscape ]; then
 	if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 		workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
 		if [ -n "${workloadkeyvault}" ]; then
-			save_config_var "workloadkeyvault" "${system_config_information}"
+			save_config_var "workloadkeyvault" "${system_environment_file_name}"
 		fi
 		workload_zone_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 		if [ -n "${workload_zone_random_id}" ]; then
-			save_config_var "workload_zone_random_id" "${system_config_information}"
+			save_config_var "workload_zone_random_id" "${system_environment_file_name}"
 			custom_random_id="${workload_zone_random_id:0:3}"
 			sed -i -e /"custom_random_id"/d "${parameterfile}"
 			printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
@@ -1126,20 +1150,20 @@ if [ "${deployment_system}" == sap_library ]; then
 
 	library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 	if [ -n "${library_random_id}" ]; then
-		save_config_var "library_random_id" "${system_config_information}"
+		save_config_var "library_random_id" "${system_environment_file_name}"
 		custom_random_id="${library_random_id:0:3}"
 		sed -i -e /"custom_random_id"/d "${parameterfile}"
 		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
 	fi
 
-	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
+	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
 
 fi
 
-if [ -f "${system_config_information}".err ]; then
-	cat "${system_config_information}".err
-	rm "${system_config_information}".err
+if [ -f "${system_environment_file_name}".err ]; then
+	cat "${system_environment_file_name}".err
+	rm "${system_environment_file_name}".err
 fi
 
 unset TF_DATA_DIR
@@ -1186,20 +1210,20 @@ fi
 
 if [ "${deployment_system}" == sap_landscape ]; then
 	if [ "$useSAS" = "true" ]; then
-		az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
+		az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 	else
-		az storage blob upload --file "${system_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
+		az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 	fi
 fi
 if [ "${deployment_system}" == sap_library ]; then
-	deployer_config_information="${automation_config_directory}"/"${environment}""${region_code}"
+	deployer_environment_file_name="${automation_config_directory}"/"${environment}""${region_code}"
 	if [ "$useSAS" = "true" ]; then
-		az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" \
+		az storage blob upload --file "${deployer_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 	else
-		az storage blob upload --file "${deployer_config_information}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" \
+		az storage blob upload --file "${deployer_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 	fi
 fi

@@ -14,8 +14,14 @@ if ! az extension list --query "[?contains(name, 'azure-devops')]" --output tabl
 fi
 
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-deployer_environment_file_name="${automation_config_directory}/$CONTROL_PLANE_NAME"
+
+ENVIRONMENT=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $2}' | xargs)
+NETWORK=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $3}' | xargs)
+
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION}" "${NETWORK}")
+
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 	application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)

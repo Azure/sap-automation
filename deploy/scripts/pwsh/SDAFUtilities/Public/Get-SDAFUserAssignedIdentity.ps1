@@ -77,6 +77,7 @@ function Get-SDAFUserAssignedIdentity {
           IdentityId       = $identity.id
           PrincipalId      = $identity.principalId
           ClientId         = $identity.clientId
+          RoleAssignmentId = $roleAssignment
         }
       }
       else {

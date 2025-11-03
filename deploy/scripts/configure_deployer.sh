@@ -353,7 +353,7 @@ required_pkgs=(
 	ca-certificates
 	curl
 	gnupg
-	dos2unix
+
 )
 
 cli_pkgs=(

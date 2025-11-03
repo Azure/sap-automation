@@ -26,7 +26,7 @@
     The control plane code identifier (e.g., MGMT).
 
 .PARAMETER ControlPlaneName
-    The control plane name (e.g., MGMT-WEEU-DEP01).
+    The control plane name (e.g., MGMT-WEUE-DEP01).
 
 .PARAMETER ControlPlaneSubscriptionId
     The subscription ID for the control plane resources.
