@@ -2,7 +2,7 @@
     "db": {
         "512": {
             "compute": {
-                "vm_size"               : "Standard_E8ds_v5",
+                "vm_size"                      : "Standard_E8ds_v5",
                 "accelerated_networking"       : true
 
             },
@@ -129,7 +129,7 @@
         },
         "1024": {
             "compute": {
-                "vm_size"               : "Standard_E16ds_v5",
+                "vm_size"                      : "Standard_E16ds_v5",
                 "accelerated_networking"       : true
             },
             "storage": [
@@ -255,7 +255,7 @@
         },
         "2048": {
             "compute": {
-                "vm_size"               : "Standard_E32ds_v5",
+                "vm_size"                      : "Standard_E32ds_v5",
                 "accelerated_networking"       : true
             },
             "storage": [
@@ -381,7 +381,7 @@
         },
         "4096": {
             "compute": {
-                "vm_size"              : "Standard_E32ds_v5",
+                "vm_size"                      : "Standard_E32ds_v5",
                 "accelerated_networking"       : true
             },
             "storage": [
