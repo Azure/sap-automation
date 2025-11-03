@@ -21,10 +21,10 @@
 
 # -------------------------------------+---------------------------------------8
 #
-- name:                                "Oracle (sharedHome) - Load the disk configuration settings"
+- name:                                "1.5.2 Disk Setup - Oracle (sharedHome) - Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config_ora_msid.yml
 
-- name:                                "Oracle (sharedHome) - Print unique disks and volume group details"
+- name:                                "1.5.2 Disk Setup - Oracle (sharedHome) - Print unique disks and volume group details"
   ansible.builtin.debug:
     msg: ' "{{ volume_groups }}" and "{{ logical_volume_groups }}"'
     verbosity:                         2
@@ -32,23 +32,23 @@
 # CREATE VOLUME GROUPS BASED ON sap-parameters.yaml
 # -------------------------------------+---------------------------------------8
 #
-- name:                                "Oracle (sharedHome) - Volume Group creation"
+- name:                                "1.5.2 Disk Setup - Oracle (sharedHome) - Volume Group creation"
   community.general.lvg:
     vg:                                "{{ item.vg }}"
     pvs:                               "{{ item.pvs }}"
     pesize:                            4M
     state:                             present
   loop:                                "{{ volume_groups }}"
-  register:                            vg_created
+  register:                            volume_groups_created
 
-- name:                                "Oracle (sharedHome) - Filter the vg name from vg_created results"
+- name:                                "1.5.2 Disk Setup - Oracle (sharedHome) - Filter the volume group name from results"
   ansible.builtin.set_fact:
-    vg_created_list:                   "{{ vg_created | json_query('results[*].item.vg') }}"
+    volume_groups_created_list:        "{{ volume_groups_created | json_query('results[*].item.vg') }}"
 
 # CREATE LOGICAL VOLUMES BASED ON VGCREATEDLIST
 # -------------------------------------+---------------------------------------8
 #
-- name:                                "Oracle (sharedHome) - Logical Volume creation"
+- name:                                "1.5.2 Disk Setup - Oracle (sharedHome) - Logical Volume creation"
   community.general.lvol:
     lv:                                "{{ item.lv }}"
     vg:                                "{{ item.vg }}"
@@ -59,21 +59,21 @@
     shrink:                            false
     resizefs:                          false
   loop:                                "{{ logical_volume_groups }}"
-  register:                            lv_created
+  register:                            logical_volumes_created
   when:
     - item.tier == "sapos"
     - item.node_tier == "oracle-multi-sid"
-    - item.vg in vg_created_list
+    - item.vg in volume_groups_created_list
 
-- name:                                "Oracle (sharedHome) - Filter the logical volumes created results"
+- name:                                "1.5.2 Disk Setup - Oracle (sharedHome) - Filter the logical volumes created results"
   ansible.builtin.set_fact:
-    lv_created_list_tmp:               "{{ lv_created.results | rejectattr('skipped', 'defined') | list }}"
+    logical_volumes_created_list_tmp:  "{{ logical_volumes_created.results | rejectattr('skipped', 'defined') | list }}"
 
-- name:                                "Oracle (sharedHome) - Filter the logical volumes created results1"
+- name:                                "1.5.2 Disk Setup - Oracle (sharedHome) - Filter the logical volumes created results 2"
   ansible.builtin.set_fact:
-    lv_created_list:                   "{{ lv_created_list_tmp | map(attribute='item.lv') | list }}"
+    logical_volumes_created_list:      "{{ logical_volumes_created_list_tmp | map(attribute='item.lv') | list }}"
 
-- name:                                "Oracle (sharedHome) - File system creation"
+- name:                                "1.5.2 Disk Setup - Oracle (sharedHome) - File system creation"
   community.general.filesystem:
     dev:                               "{{ dev_path_from_lv_item }}"
     fstype:                            "{{ item.fstype }}"
@@ -84,15 +84,15 @@
     - item.tier in ["all", tier ]
     - item.node_tier in ["all", node_tier]
     - item.fstype is defined
-    - item.lv in lv_created_list
+    - item.lv in logical_volumes_created_list
 
 # Debug for testing
-- name:                                "Oracle (sharedHome) - Debug Print details"
+- name:                                "1.5.2 Disk Setup - Oracle (sharedHome) - Debug Print details"
   ansible.builtin.debug:
     msg:
-      - "vg_created_list: {{ vg_created_list }}"
-      - "lv_created_list : {{ lv_created_list }}"
-      - "file_systems_created : {{ file_systems_created }}"
+      - "Created Volume Groups:       {{ volume_groups_created_list }}"
+      - "Created Logical Volumes:     {{ logical_volumes_created_list }}"
+      - "Created File systems:        {{ file_systems_created }}"
     verbosity:                         2
 # Debug testing end of line
 

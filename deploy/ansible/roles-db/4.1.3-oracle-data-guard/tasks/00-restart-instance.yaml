@@ -1,0 +1,193 @@
+---
+- name:                                "4.1.3 Oracle Data Guard - Shutdown instance"
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ current_sid }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       /oracle/{{ db_path }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       SHUTDOWN IMMEDIATE;
+                                       EXIT;
+                                       EOF
+  register:                            shutdown_result
+  args:
+    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
+    executable:                        /bin/csh
+
+- name:                                "4.1.3 Oracle Data Guard - Shutdown instance - Check for zombie standby processes"
+  become_user:                         "root"
+  become:                              true
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       ps -ef | grep ora_pmon_{{ current_sid }} | grep -v grep || true
+  register:                            standby_pmon
+  changed_when:                        false
+
+- name:                                "4.1.3 Oracle Data Guard - Shutdown instance - Kill zombie standby processes"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell:               kill -9 {{ item.split()[1] }}
+  loop:                                "{{ standby_pmon.stdout_lines }}"
+  when:                                standby_pmon.stdout | length > 0
+  failed_when:                         false
+
+- name:                                "4.1.3 Oracle Data Guard - Shutdown instance - Clean orphaned shared memory segments"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       for seg in $(ipcs -m | grep {{ oracle_user_name }} | awk '$6==0 {print $2}'); do
+                                         ipcrm -m $seg
+                                       done
+  failed_when:                         false
+  when:                                standby_pmon.stdout | length > 0
+
+- name:                                "4.1.3 Oracle Data Guard - Shutdown instance - Start instance with NOMOUNT"
+  block:
+    - name:                            "4.1.3 Oracle Data Guard - Start Instance - Start instance with NOMOUNT using PFile"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ current_sid }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba <<EOF
+                                       STARTUP NOMOUNT PFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ current_sid }}.ora';
+                                       EXIT;
+                                       EOF
+      register:                        startup_result
+      failed_when:                     startup_result.rc != 0
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/standby_started.txt
+  rescue:
+    - name:                            "4.1.3 Oracle Data Guard - Start Instance - Shutdown instance after failed startup attempt"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ current_sid }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       /oracle/{{ db_path }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       SHUTDOWN ABORT;
+                                       EXIT;
+                                       EOF
+      register:                        shutdown_result
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
+
+    - name:                            "4.1.3 Oracle Data Guard - Start Instance - Show Shutdown Result"
+      ansible.builtin.debug:
+        msg:                           shutdown_result.stdout
+        verbosity:                     2
+
+    - name:                            "4.1.3 Oracle Data Guard - Shutdown instance - Check for zombie standby processes"
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       ps -ef | grep ora_pmon_{{ current_sid }} | grep -v grep || true
+      become_user:                     "root"
+      become:                          true
+      register:                        standby_pmon
+      changed_when:                    false
+
+    - name:                            "4.1.3 Oracle Data Guard - Shutdown instance - Kill zombie standby processes"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.shell:           kill -9 {{ item.split()[1] }}
+      loop:                            "{{ standby_pmon.stdout_lines }}"
+      when:                            standby_pmon.stdout | length > 0
+      failed_when:                     false
+
+    - name:                            "4.1.3 Oracle Data Guard - Shutdown instance - Clean orphaned shared memory segments"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       for seg in $(ipcs -m | grep {{ oracle_user_name }} | awk '$6==0 {print $2}'); do
+                                         ipcrm -m $seg
+                                       done
+      failed_when:                     false
+      when:                            standby_pmon.stdout | length > 0
+
+    - name:                            "4.1.3 Oracle Data Guard - Start Instance - Start instance with NOMOUNT using PFile"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ current_sid }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba <<EOF
+                                       STARTUP NOMOUNT PFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ current_sid }}.ora';
+                                       EXIT;
+                                       EOF
+      register:                        startup_result
+      failed_when:                     startup_result.rc != 0
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
+
+- name:                                "4.1.3 Oracle Data Guard - Start Instance - Register with listener"
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ current_sid }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       ALTER SYSTEM REGISTER;
+                                       EXIT;
+                                       EOF
+  register:                            startup_result
+  args:
+    chdir:                            "/etc/sap_deployment_automation/dataguard_scripts/"
+    executable:                        /bin/csh
+
+- name:                                "4.1.3 Oracle Data Guard - Start Instance - Verify standby instance running"
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       ps -ef | grep ora_pmon_{{ current_sid }} | grep -v grep || true
+  register:                            verify_pmon
+  changed_when:                        false
+  failed_when:                         verify_pmon.stdout | length == 0
+
+- name:                                "4.1.3 Oracle Data Guard - Start Instance - Reload listener"
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ current_sid }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl reload
+  environment:
+    ORACLE_HOME:                       "/oracle/{{ db_path }}/{{ ora_version }}"
+    ORACLE_SID:                        "{{ current_sid }}"
+  args:
+    chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
+    executable:                        /bin/csh
+  register:                            listener_reload_results
+  failed_when:
+                                      - listener_reload_results.rc not in [0, 1]
+
+- name:                                "4.1.3 Oracle Data Guard - Start Instance - Ensure listener is started"
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ current_sid }}
+                                       setenv ORACLE_HOME /oracle/{{ db_path }}/{{ ora_version }}
+
+                                       /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl start
+  environment:
+    ORACLE_HOME:                       "/oracle/{{ db_path }}/{{ ora_version }}"
+    ORACLE_SID:                        "{{ db_sid | upper }}_STDBY"
+  args:
+    chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
+    executable:                        /bin/csh
+  register:                            listener_start_results
+  failed_when:
+                                      - listener_start_results.rc not in [0, 1]
+                                      - "'TNS-01106' not in listener_start_results.stdout"
+
+- name:                                "4.1.3 Oracle Data Guard - Start Instance - Ensure listener is started"
+  ansible.builtin.pause:
+    seconds:                           30
+
+...
