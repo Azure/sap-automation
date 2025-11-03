@@ -94,7 +94,7 @@ resource "azurerm_lb_rule" "anydb" {
                                          )
   probe_id                             = azurerm_lb_probe.anydb[0].id
   backend_address_pool_ids             = [azurerm_lb_backend_address_pool.anydb[0].id]
-  enable_floating_ip                   = true
+  floating_ip_enabled                  = true
   idle_timeout_in_minutes              = 30
 
 }

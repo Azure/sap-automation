@@ -38,7 +38,7 @@ locals {
   availabilitysets_exist               = length(local.availabilityset_arm_ids) > 0 ? true : false
 
   // Dual network cards
-  anydb_dual_nics                      = try(var.database.dual_nics, false) && length(try(var.admin_subnet.id, "")) > 0
+  anydb_dual_network_interfaces        = try(var.database.dual_network_interfaces, false) && length(try(var.admin_subnet.id, "")) > 0
 
   enable_deployment                    = contains(["ORACLE", "ORACLE-ASM", "DB2", "SQLSERVER", "SYBASE"], var.database.platform)
 

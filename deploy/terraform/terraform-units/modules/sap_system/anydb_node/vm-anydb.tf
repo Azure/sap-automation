@@ -56,7 +56,7 @@ resource "azurerm_network_interface_application_security_group_association" "db"
                                            0
                                          )
 
-  network_interface_id                 = var.use_admin_nic_for_asg && local.anydb_dual_nics ? azurerm_network_interface.anydb_admin[count.index].id : azurerm_network_interface.anydb_db[count.index].id
+  network_interface_id                 = var.use_admin_nic_for_asg && local.anydb_dual_network_interfaces ? azurerm_network_interface.anydb_admin[count.index].id : azurerm_network_interface.anydb_db[count.index].id
   application_security_group_id        = var.db_asg_id
 }
 
@@ -67,7 +67,7 @@ resource "azurerm_network_interface_application_security_group_association" "db"
 #######################################4#######################################8
 resource "azurerm_network_interface" "anydb_admin" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment && local.anydb_dual_nics ? (
+  count                                = local.enable_deployment && local.anydb_dual_network_interfaces ? (
                                           var.database_server_count) : (
                                           0
                                         )
@@ -147,7 +147,7 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
 
   zone                                 = local.zonal_deployment && !var.database.use_avset ? try(local.zones[count.index % max(local.db_zone_count, 1)], local.zones[0]) : null
 
-  network_interface_ids                = local.anydb_dual_nics ? (
+  network_interface_ids                = local.anydb_dual_network_interfaces ? (
                                           var.options.legacy_nic_order ? (
                                             [
                                               azurerm_network_interface.anydb_admin[count.index].id,
@@ -294,7 +294,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
 
   zone                                 = local.zonal_deployment && !var.database.use_avset ? try(local.zones[count.index % max(local.db_zone_count, 1)], local.zones[0]) : null
 
-  network_interface_ids                = local.anydb_dual_nics ? (
+  network_interface_ids                = local.anydb_dual_network_interfaces ? (
                                           var.options.legacy_nic_order ? (
                                             [
                                               azurerm_network_interface.anydb_admin[count.index].id,
@@ -317,7 +317,7 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
-  enable_automatic_updates                               = !(var.infrastructure.patch_mode == "ImageDefault")
+  automatic_updates_enabled                              = !(var.infrastructure.patch_mode == "ImageDefault")
 
   admin_username                       = var.sid_username
   admin_password                       = var.sid_password

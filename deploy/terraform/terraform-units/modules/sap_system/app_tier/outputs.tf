@@ -211,7 +211,7 @@ output "webdispatcher_server_vm_names" {
 output "dns_info_vms"                  {
                                          description = "DNS information for the application tier"
                                          value       = local.enable_deployment ? (
-                                                         var.application_tier.dual_nics ? (
+                                                         var.application_tier.dual_network_interfaces ? (
                                                            zipmap(
                                                              compact(concat(
                                                                slice(local.full_appserver_names, 0, length(azurerm_linux_virtual_machine.app) + length(azurerm_windows_virtual_machine.app)),

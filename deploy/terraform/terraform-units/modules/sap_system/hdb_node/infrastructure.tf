@@ -135,7 +135,7 @@ resource "azurerm_lb_rule" "hdb" {
                                          )
   probe_id                             = azurerm_lb_probe.hdb[0].id
   backend_address_pool_ids             = [azurerm_lb_backend_address_pool.hdb[0].id]
-  enable_floating_ip                   = true
+  floating_ip_enabled                  = true
   idle_timeout_in_minutes              = 30
 }
 
@@ -190,7 +190,7 @@ resource "azurerm_lb_rule" "hdb_active_active" {
                                          )
   probe_id                             = azurerm_lb_probe.hdb_active_active[0].id
   backend_address_pool_ids             = [azurerm_lb_backend_address_pool.hdb[0].id]
-  enable_floating_ip                   = true
+  floating_ip_enabled                  = true
   idle_timeout_in_minutes              = 30
 }
 

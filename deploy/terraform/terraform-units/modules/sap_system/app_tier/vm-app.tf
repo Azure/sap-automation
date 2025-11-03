@@ -54,7 +54,7 @@ resource "azurerm_network_interface_application_security_group_association" "app
                                            var.deploy_application_security_groups ? var.application_tier.application_server_count : 0) : (
                                            0
                                          )
-  network_interface_id                 = var.use_admin_nic_for_asg && var.application_tier.dual_nics ? azurerm_network_interface.app_admin[count.index].id : azurerm_network_interface.app[count.index].id
+  network_interface_id                 = var.use_admin_nic_for_asg && var.application_tier.dual_network_interfaces ? azurerm_network_interface.app_admin[count.index].id : azurerm_network_interface.app[count.index].id
   application_security_group_id        = azurerm_application_security_group.app[0].id
 }
 
@@ -66,7 +66,7 @@ resource "azurerm_network_interface_application_security_group_association" "app
 
 resource "azurerm_network_interface" "app_admin" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment && var.application_tier.dual_nics && length(try(var.admin_subnet.id, "")) > 0 ? (
+  count                                = local.enable_deployment && var.application_tier.dual_network_interfaces && length(try(var.admin_subnet.id, "")) > 0 ? (
                                            var.application_tier.application_server_count) : (
                                            0
                                          )
@@ -155,7 +155,7 @@ resource "azurerm_linux_virtual_machine" "app" {
   //If length of zones > 1 distribute servers evenly across zones
   zone                                 = var.application_tier.app_use_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
 
-  network_interface_ids                = var.application_tier.dual_nics ? (
+  network_interface_ids                = var.application_tier.dual_network_interfaces ? (
                                            var.options.legacy_nic_order ? (
                                              [
                                                azurerm_network_interface.app_admin[count.index].id,
@@ -292,7 +292,7 @@ resource "azurerm_windows_virtual_machine" "app" {
 
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
-  availability_set_id                  = var.application_tier.app_use_avset ? (
+  availability_set_id                  = var.application_tier.app_use_avset || length(var.scale_set_id) == 0 ? (
                                            try(length(var.application_tier.avset_arm_ids) > 0 ? (
                                              var.application_tier.avset_arm_ids[count.index % max(length(var.application_tier.avset_arm_ids), 1)]) : (
                                              azurerm_availability_set.app[count.index % max(length(var.ppg), 1)].id
@@ -306,14 +306,14 @@ resource "azurerm_windows_virtual_machine" "app" {
   // ImageDefault = Manual on Windows
   // https://learn.microsoft.com/en-us/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes
   patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
-  enable_automatic_updates                               = !(var.infrastructure.patch_mode == "ImageDefault")
+  automatic_updates_enabled                              = !(var.infrastructure.patch_mode == "ImageDefault")
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
 
   //If length of zones > 1 distribute servers evenly across zones
   zone                                 = var.application_tier.app_use_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
 
-  network_interface_ids                = var.application_tier.dual_nics ? (
+  network_interface_ids                = var.application_tier.dual_network_interfaces ? (
                                            var.options.legacy_nic_order ? (
                                              [azurerm_network_interface.app_admin[count.index].id, azurerm_network_interface.app[count.index].id]) : (
                                              [azurerm_network_interface.app[count.index].id, azurerm_network_interface.app_admin[count.index].id]
