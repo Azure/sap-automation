@@ -178,7 +178,14 @@ namespace SDAFWebApp.Controllers
             else
             {
                 if (value == null) return "#" + property.Name + " = \"\"";
-                str.Append(property.Name + " = " + $"\"{value}\"");
+                if (property.Name == "network_address_space")
+                {
+                    str.Append(property.Name + " = " + $"[\"{value}\"]");
+                }
+                else
+                {
+                    str.Append(property.Name + " = " + $"\"{value}\"");
+                }
             }
 
             return str.ToString();

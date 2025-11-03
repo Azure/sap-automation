@@ -25,8 +25,14 @@
 .PARAMETER ControlPlaneCode
     The control plane code identifier (e.g., MGMT).
 
+.PARAMETER ControlPlaneName
+    The control plane name (e.g., "MGMT-WEEU-DEP01").
+
 .PARAMETER WorkloadZoneCode
-    The workload zone code identifier (e.g., MGMT).
+    The workload zone code identifier (e.g., QA).
+
+.PARAMETER WorkloadZoneName
+    The workload zone name (e.g., "QA-WEEU-SAP01").
 
 .PARAMETER WorkloadZoneSubscriptionId
     The subscription ID for the workload zone resources.
@@ -70,14 +76,16 @@ function New-SDAFADOWorkloadZone {
     [string]$TenantId,
 
     [Parameter(Mandatory = $true, HelpMessage = "Control Plane code (e.g., MGMT)")]
-    [ValidateLength(2, 8)]
-    [ValidatePattern('^[A-Z0-9]+$')]
     [string]$ControlPlaneCode,
 
+    [Parameter(Mandatory = $false, HelpMessage = "Control Plane name (e.g., MGMT-WEEU-DEP01)")]
+    [string]$ControlPlaneName = "",
+
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone code (e.g., DEV)")]
-    [ValidateLength(2, 8)]
-    [ValidatePattern('^[A-Z0-9]+$')]
     [string]$WorkloadZoneCode,
+
+    [Parameter(Mandatory = $false, HelpMessage = "Workload zone name (e.g., DEV-WEEU-SAP01)")]
+    [string]$WorkloadZoneName = "",
 
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone subscription ID")]
     [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
@@ -196,6 +204,9 @@ function New-SDAFADOWorkloadZone {
         }
 
       }
+
+      Write-Verbose "Creating JSON input file for service connection"
+      Write-Verbose $PostBody | ConvertTo-Json -Depth 6
       Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
 
       Write-Verbose "Creating service connection: $ConnectionName"
@@ -348,9 +359,22 @@ function New-SDAFADOWorkloadZone {
       #endregion
 
       #region Set up prefixes
-      $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
+
+      if ($WorkloadZoneName.Length -ne 0) {
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneName
+      }
+      else {
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
+      }
       Write-Verbose "Workload zone prefix: $WorkloadZonePrefix"
-      $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+      }
+      else {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      }
+
       Write-Verbose "Control plane prefix: $ControlPlanePrefix"
 
       #endregion
@@ -362,7 +386,7 @@ function New-SDAFADOWorkloadZone {
         throw "Project not found"
       }
 
-      $ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
+      $ManagedIdentityClientId = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].id" --subscription $ControlPlaneSubscriptionId --output tsv)
 
       $ControlPlaneVariableGroupId = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
       $AgentPoolName = ""
@@ -378,40 +402,30 @@ function New-SDAFADOWorkloadZone {
       }
 
       if ($AuthenticationMethod -eq "Managed Identity") {
+        $Roles = @(
+          "Contributor",
+          "Role Based Access Control Administrator",
+          "Storage Blob Data Owner",
+          "Key Vault Administrator",
+          "App Configuration Data Owner"
+        )
 
-        if ($ManagedIdentityObjectId.Length -eQ 0) {
+        foreach ($RoleName in $Roles) {
 
-          $Title = "Choose the subscription that contains the Managed Identity"
-          $subscriptions = $(az account list --query "[].{Name:name}" -o table | Sort-Object)
-          Show-Menu($subscriptions[2..($subscriptions.Length - 1)])
-          $selection = Read-Host $Title
-
-          $selectionOffset = [convert]::ToInt32($selection, 10) + 1
-
-          $subscription = $subscriptions[$selectionOffset]
-          Write-Host "Using subscription:" $subscription
-
-          $Title = "Choose the Managed Identity"
-          $identities = $(az identity list --query "[].{Name:name}" --subscription $subscription --output table | Sort-Object)
-          Show-Menu($identities[2..($identities.Length - 1)])
-          $selection = Read-Host $Title
-          $selectionOffset = [convert]::ToInt32($selection, 10) + 1
-
-          $identity = $identities[$selectionOffset]
-          Write-Host "Using Managed Identity:" $identity
-
-          $id = $(az identity list --query "[?name=='$identity'].id" --subscription $subscription --output tsv)
-          $ManagedIdentityClientId = $(az identity show --ids $id --query "principalId" --output tsv)
+          Write-Host "Assigning role" $RoleName "to the Managed Identity" -ForegroundColor Green
+          Write-Verbose "Assigning role" $RoleName "to the Managed Identity ($ManagedIdentityObjectId)" -ForegroundColor Green
+          $roleAssignment = az role assignment create --assignee-object-id $ManagedIdentityObjectId --role $RoleName --scope /subscriptions/$WorkloadZoneSubscriptionId --query id --output tsv --only-show-errors
+          if ($roleAssignment) {
+            Write-Host "Successfully assigned $RoleName role to identity" -ForegroundColor Green
+            Write-Verbose "Role assignment ID: $roleAssignment"
+          }
+          else {
+            Write-Warning "Identity created but role assignment may have failed"
+          }
         }
-        else {
-          $ManagedIdentityClientId = $(az identity show --ids $ManagedIdentityObjectId --query "principalId" --output tsv)
-        }
-        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
-        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
-        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_USE_MSI" -VariableValue "true"
-        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
 
-        $ServiceEndpointExists = (az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].name | [0]" )
+
+        $ServiceEndpointExists = (az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].name | [0]"  --out tsv)
         if ($ServiceEndpointExists.Length -eq 0) {
           CreateServiceConnection -ConnectionName $ServiceConnectionName `
             -ServiceConnectionDescription "$WorkloadZoneCode Service Connection" `
@@ -424,6 +438,10 @@ function New-SDAFADOWorkloadZone {
           if ($ServiceEndpointId.Length -ne 0) {
             az devops service-endpoint update --id $ServiceEndpointId --enable-for-all true --output none --only-show-errors
           }
+          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
+          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
+          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
+          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_USE_MSI" -VariableValue "true"
 
 
         }

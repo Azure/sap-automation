@@ -55,9 +55,13 @@ function Remove-SDAFADOProject {
     [ValidateNotNullOrEmpty()]
     [string]$AdoProject,
 
-    [Parameter(Mandatory = $false, HelpMessage = "Azure DevOps project name")]
+    [Parameter(Mandatory = $false, HelpMessage = "Control Plane Code (e.g., MGMT)")]
     [ValidateNotNullOrEmpty()]
     [string]$ControlPlaneCode,
+
+    [Parameter(Mandatory = $false, HelpMessage = "Control Plane Name (e.g., MGMT-WEEU-DEP01)")]
+    [ValidateNotNullOrEmpty()]
+    [string]$ControlPlaneName = "",
 
     [Parameter(Mandatory = $true, HelpMessage = "Authentication method to use")]
     [ValidateSet("Service Principal", "Managed Identity")]
@@ -96,8 +100,13 @@ function Remove-SDAFADOProject {
       Write-Verbose "Version label set to: $VersionLabel"
       #endregion
 
-      $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
-      Write-Verbose "Control plane prefix: $ControlPlanePrefix"
+      #region Set up prefixes and pool names
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+      }
+      else {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      }
 
       $ApplicationName = ""
       if ($EnableWebApp) {
@@ -110,6 +119,7 @@ function Remove-SDAFADOProject {
       if ($EnableWebApp) {
         Write-Verbose "  Application name: $ApplicationName"
       }
+      #endregion
 
       #region Install DevOps extensions
       Write-Host "Installing the DevOps extensions" -ForegroundColor Green
