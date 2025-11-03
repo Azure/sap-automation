@@ -412,7 +412,7 @@
           "size_gb"                    : 256,
           "caching"                    : "None",
           "write_accelerator"          : false,
-          "lun_start"                  : 11
+          "lun_start"                  : 17
         },
         {
           "name"                       : "sybbackup",
@@ -422,7 +422,7 @@
           "size_gb"                    : 128,
           "caching"                    : "None",
           "write_accelerator"          : false,
-          "lun_start"                  : 14
+          "lun_start"                  : 19
         },
         {
           "name"                       : "sap",
@@ -432,7 +432,7 @@
           "size_gb"                    : 64,
           "caching"                    : "ReadOnly",
           "write_accelerator"          : false,
-          "lun_start"                  : 16
+          "lun_start"                  : 21
         }
       ]
     }
