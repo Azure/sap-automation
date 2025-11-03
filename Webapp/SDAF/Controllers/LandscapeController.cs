@@ -418,16 +418,7 @@ namespace SDAFWebApp.Controllers
                             landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
                         }
 
-                        if (landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
-                        {
-                            landscape.environment = landscape.workload_zone.Split('-')[0];
-                        }
-                        if (landscape.network_logical_name.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
-                        {
-                            landscape.network_logical_name = landscape.workload_zone.Split('-')[2];
-                        }
-
-                        await _landscapeService.UpdateAsync(new LandscapeEntity(landscape));
+                       await _landscapeService.UpdateAsync(new LandscapeEntity(landscape));
                         TempData["success"] = "Successfully updated workload zone " + landscape.Id;
 
                         string id = landscape.Id;
