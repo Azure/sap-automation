@@ -203,7 +203,7 @@ namespace SDAFWebApp.Controllers
 
                     if (landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
                     {
-                        landscape.environment=landscape.workload_zone.Split('-')[0];
+                        landscape.environment = landscape.workload_zone.Split('-')[0];
                     }
                     if (landscape.network_logical_name.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
                     {
@@ -413,19 +413,19 @@ namespace SDAFWebApp.Controllers
                         {
                             landscape.network_logical_name = landscape.workload_zone.Split('-')[2];
                         }
-                                            if (!landscape.subscription.IsNullOrEmpty())
-                    {
-                        landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
-                    }
+                        if (!landscape.subscription.IsNullOrEmpty())
+                        {
+                            landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                        }
 
-                    if(landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
-                    {
-                        landscape.environment=landscape.workload_zone.Split('-')[0];
-                    }
-                    if (landscape.network_logical_name.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
-                    {
-                        landscape.network_logical_name = landscape.workload_zone.Split('-')[2];
-                    }
+                        if (landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                        {
+                            landscape.environment = landscape.workload_zone.Split('-')[0];
+                        }
+                        if (landscape.network_logical_name.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                        {
+                            landscape.network_logical_name = landscape.workload_zone.Split('-')[2];
+                        }
 
                         await _landscapeService.UpdateAsync(new LandscapeEntity(landscape));
                         TempData["success"] = "Successfully updated workload zone " + landscape.Id;
