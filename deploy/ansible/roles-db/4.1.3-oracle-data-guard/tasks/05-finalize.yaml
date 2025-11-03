@@ -14,7 +14,8 @@
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
                                        dgmgrl / as sysdba << EOF
-                                       SHOW CONFIGURATION
+                                       SHOW CONFIGURATION;
+                                       EXIT
                                        EOF
       failed_when:                     false
       changed_when:                    false
