@@ -155,9 +155,10 @@ stages:
             name:                      AnsibleInstallation
             displayName:               Install Ansible
 
-            displayName:               Install Terraform
-            inputs:
-              terraformVersion:        latest
+            - task:                    TerraformInstaller@1
+              displayName:             Install Terraform
+              inputs:
+                terraformVersion:      latest
 
           - task:                      Bash@3
             inputs:
