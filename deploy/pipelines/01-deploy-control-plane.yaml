@@ -358,7 +358,7 @@ stages:
               APP_REGISTRATION_OBJECTID: $(APP_REGISTRATION_OBJECTID)
               APP_SERVICE_NAME:          $(APP_SERVICE_NAME)
               ARM_SUBSCRIPTION_ID:       $(ARM_SUBSCRIPTION_ID)
-              BUILDPATH:                 $(Build.Repository.LocalPath)
+              BUILD_REPOSITORY_LOCALPATH: $(Build.Repository.LocalPath)
               SYSTEM_PIPELINE_ID:        $(SYSTEM_PIPELINE_ID)
               WEBAPP_ID:                 $(WEBAPP_ID)
               WEBAPP_IDENTITY:           $(WEBAPP_IDENTITY)
