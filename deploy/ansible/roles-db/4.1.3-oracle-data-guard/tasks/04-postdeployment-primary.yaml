@@ -60,6 +60,9 @@
 
                                        ALTER SYSTEM SET DG_BROKER_CONFIG_FILE1 = '+DATA/{{ db_sid | upper }}/DG_CONFIG/dg_broker1.dat' SCOPE=BOTH;
                                        ALTER SYSTEM SET DG_BROKER_CONFIG_FILE2 = '+DATA/{{ db_sid | upper }}/DG_CONFIG/dg_broker2.dat' SCOPE=BOTH;
+                                       WHENEVER SQLERROR CONTINUE
+
+                                       ALTER SYSTEM SET DG_BROKER_START = true
 
                                        EXIT;
                                        EOF
