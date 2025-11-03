@@ -150,7 +150,7 @@
     - supported_tiers == "scs"
 
 # Block to check if a reboot has been performed already after updating SGA & PGS
-- name:                                "5.1. Database Load - ORACLE: DBLoad: - check if DBLoad is performed for {{ sid_to_be_deployed.sid | upper }}"
+- name:                                "5.1. Database Load - ORACLE: DBLoad - check if DBLoad is performed for {{ sid_to_be_deployed.sid | upper }}"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/ora_sga_updated.txt"
   register:                            sga_update_status
@@ -173,6 +173,35 @@
   args:
     creates:                           "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/ora_sga_updated.txt"
     executable:                        /bin/csh
+
+
+- name:                                "5.1. Database Load - ORACLE - Check for zombie standby processes"
+  become_user:                         "root"
+  become:                              true
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       ps -ef | grep ora_pmon_{{ db_sid | upper }} | grep -v grep || true
+  register:                            standby_pmon
+  changed_when:                        false
+
+- name:                                "5.1. Database Load - ORACLE - Kill zombie standby processes"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell:               kill -9 {{ item.split()[1] }}
+  loop:                                "{{ standby_pmon.stdout_lines }}"
+  when:                                standby_pmon.stdout | length > 0
+  failed_when:                         false
+
+- name:                                "5.1. Database Load - ORACLE - Clean orphaned shared memory segments"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       for seg in $(ipcs -m | grep {{ oracle_user_name }} | awk '$6==0 {print $2}'); do
+                                         ipcrm -m $seg
+                                       done
+  failed_when:                         false
+  when:                                standby_pmon.stdout | length > 0
 
 - name:                               "5.1. Database Load - ORACLE - Debug: SGA Change Output"
   ansible.builtin.copy:
