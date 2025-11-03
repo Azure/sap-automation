@@ -15,17 +15,19 @@ parameters:
   sap_system: ''
 
 variables:
+
   - group:                             "SDAF-General"
-  - group:                             SDAF-${{ parameters.workload_environment }}
+
+  - group:                             SDAF-${{ replace(parameters.workload_environment, '-INFRASTRUCTURE', '') }}
 
   - name:                              parent_variable_group
     value:                             SDAF-${{ parameters.deployer_environment }}
 
+  - name:                              variable_group
+    value:                             SDAF-${{ replace(parameters.workload_environment, '-INFRASTRUCTURE', '') }}
+
   - name:                              run_on
     value:                             $[lower(coalesce(variables['POOL'], variables['AGENT']))]
-
-  - name:                              variable_group
-    value:                             SDAF-${{ parameters.workload_environment }}
 
   - name:                              workload_zone_foldername
     value:                             ${{ parameters.workload_zone }}
