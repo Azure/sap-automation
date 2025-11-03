@@ -26,13 +26,13 @@
     The control plane code identifier (e.g., MGMT).
 
 .PARAMETER ControlPlaneName
-    The control plane name (e.g., "MGMT-WEEU-DEP01  ").
+    The control plane name (e.g., "MGMT-WEEU-DEP01").
 
 .PARAMETER WorkloadZoneCode
     The workload zone code identifier (e.g., QA).
 
 .PARAMETER WorkloadZoneName
-    The workload zone name (e.g., "QA-WEEU-SAP01  ").
+    The workload zone name (e.g., "QA-WEEU-SAP01").
 
 .PARAMETER WorkloadZoneSubscriptionId
     The subscription ID for the workload zone resources.
@@ -79,13 +79,13 @@ function New-SDAFADOWorkloadZone {
     [string]$ControlPlaneCode,
 
     [Parameter(Mandatory = $false, HelpMessage = "Control Plane name (e.g., MGMT-WEEU-DEP01)")]
-    [string]$ControlPlaneName="",
+    [string]$ControlPlaneName = "",
 
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone code (e.g., DEV)")]
     [string]$WorkloadZoneCode,
 
     [Parameter(Mandatory = $false, HelpMessage = "Workload zone name (e.g., DEV-WEEU-SAP01)")]
-    [string]$WorkloadZoneName="",
+    [string]$WorkloadZoneName = "",
 
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone subscription ID")]
     [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]

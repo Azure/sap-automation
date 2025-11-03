@@ -41,7 +41,7 @@ namespace SDAFWebApp.Models
         [DisplayName("Workload zone")]
         public string workload_zone { get; set; }
 
-        public string? workload_zone_id { get; set; }
+        public string workload_zone_id { get; set; } = "";
 
 
         [DisplayName("Environment")]
