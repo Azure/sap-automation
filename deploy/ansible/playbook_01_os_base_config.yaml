@@ -91,7 +91,7 @@
           tags:
             - always
 
-        - name:                        "SAP OS configuration playbook: - : Extract Subscription ID, Resource Group Name and Virtual Machine name"
+        - name:                        "SAP OS configuration playbook: - Extract Subscription ID, Resource Group Name and Virtual Machine name"
           ansible.builtin.set_fact:
             subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
             resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"

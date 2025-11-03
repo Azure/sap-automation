@@ -9,7 +9,7 @@
 # +------------------------------------4--------------------------------------*/
 
 - hosts:                               localhost
-  name:                                "0.0 Validations"
+  name:                                "Validation Playbook"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
@@ -21,14 +21,14 @@
 # -------------------------------------+---------------------------------------8
 
   tasks:
-    - name:                            "0.0 Validations - Show SDAF Version"
+    - name:                            "Validation Playbook - Show SDAF Version"
       ansible.builtin.debug:
         msg:
           - "SDAF Version: {{ SDAF_Version }}"
       tags:
         - always
 
-    - name:                            "0.0 Validations - Create Progress folder"
+    - name:                            "Validation Playbook - Create Progress folder"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
         state:                         directory
@@ -36,7 +36,7 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Remove os-install-done flag"
+    - name:                            "Validation Playbook - Remove os-install-done flag"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/validation-done"
         state:                         absent
@@ -48,7 +48,7 @@
 # Ensure cluster determining parameters are present
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "Backward Compatibility - Check required Database HA variables "
+    - name:                            "Validation Playbook - Backward Compatibility - Check required Database HA variables "
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
       when:
@@ -57,7 +57,7 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Check required variables are present and not empty"
+    - name:                            "Validation Playbook - Check required variables are present and not empty"
       ansible.builtin.assert:
         that:
                                        - item_to_check.parameter is defined                  # Has the variable been defined
@@ -81,7 +81,7 @@
 # Show parameters used for cluster aware coding
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "Cluster aware code..."
+    - name:                            "Validation Playbook - Show cluster related parameters"
       ansible.builtin.debug:
         msg:                           # Best method for formatting output with Azure Devops Logs
                                        - "database_high_availability:     {{ database_high_availability }}"
@@ -90,34 +90,10 @@
                                        - "scs_cluster_type:               {{ scs_cluster_type }}"
                                        - "use_msi_for_clusters:           {{ use_msi_for_clusters }}"
                                        - "platform:                       {{ platform | upper }}"
-        verbosity:                     2
       tags:
                                        - always
 
-# -------------------------------------+
-# Fencing support is only needed when:
-#   database_high_availability is true AND database_cluster_type is AFA (Azure Fencing Agent)
-#     OR
-#   scs_high_availability is true      AND      scs_cluster_type is AFA (Azure Fencing Agent)
-#
-    # - name:                                 fencing
-    #   block:
-
-    #     # - name:                             "0.0 Validations - Initialize tier"
-    #     #   ansible.builtin.set_fact:
-    #     #     tier:                           fencing
-
-    #     - name:                             "0.0 Validations - Retrieve the Fencing SPN details"
-    #       ansible.builtin.include_role:
-    #         name:                           roles-misc/0.2-kv-secrets
-    #       when:                             platform != "ORACLE"
-    #       tags:
-    #                                         - kv-secrets
-
-    #   when:                                 (database_high_availability and database_cluster_type == "AFA") or
-    #                                         (scs_high_availability      and      scs_cluster_type == "AFA")
-
-    - name:                            "0.0 Validations - Retrieve the Fencing SPN details"
+    - name:                            "Validation Playbook - Retrieve the Fencing SPN details"
       ansible.builtin.include_role:
         name:                          roles-misc/0.2-kv-secrets
       vars:
@@ -125,14 +101,16 @@
       when:
                                        - (database_high_availability and database_cluster_type == "AFA") or
                                          (scs_high_availability      and      scs_cluster_type == "AFA")
-                                       - platform != "ORACLE"
+                                       - platform not in ["ORACLE", "ORACLE-ASM"]
       tags:
                                        - always
                                        - kv-secrets
 
 # -------------------------------------+
 
-    - name:                            "0.0 Validations - Retrieve the domain passwords"
+    - name:                            "Validation Playbook - Retrieve the domain passwords"
+      when:
+        - platform == "SQLSERVER"
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         tasks_from:                    windows.yaml
@@ -140,10 +118,8 @@
       tags:
                                        - always
                                        - 0.1-win-passwords
-      when:
-        - platform == "SQLSERVER"
 
-    - name:                            "0.0 Validations - Retrieve the storage account details"
+    - name:                            "Validation Playbook - Retrieve the storage account details"
       ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
@@ -151,7 +127,7 @@
                                        - always
                                        - kv-sap-installation-media-storage-details
 
-    - name:                            "0.0 Validations - Check required variables are present and not empty"
+    - name:                            "Validation Playbook - Check required variables are present and not empty"
       ansible.builtin.assert:
         that:
           - item_to_check.parameter is defined # Has the variable been defined
@@ -188,7 +164,7 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Check required SCS HA variables are present and not empty"
+    - name:                            "Validation Playbook - Check required SCS HA variables are present and not empty"
       ansible.builtin.assert:
         that:
           - item_to_check.parameter is defined # Has the variable been defined
@@ -220,7 +196,7 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Check required SCS HA fencing variables are present and not empty"
+    - name:                            "Validation Playbook - Check required SCS HA fencing variables are present and not empty"
       ansible.builtin.assert:
         that:
           - item_to_check.parameter is defined # Has the variable been defined
@@ -253,7 +229,7 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Check required Database HA variables are present and not empty"
+    - name:                            "Validation Playbook - Check required Database HA variables are present and not empty"
       ansible.builtin.assert:
         that:
           - item_to_check.parameter is defined # Has the variable been defined
@@ -290,7 +266,7 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - sharedHome variables"
+    - name:                            "Validation Playbook - sharedHome variables"
       ansible.builtin.debug:
         var:                           sid_to_be_deployed
       when:                            MULTI_SIDS is defined
@@ -300,7 +276,7 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Validate ORACLE parameters (ora_release and ora_version)"
+    - name:                            "Validation Playbook - Validate ORACLE parameters (ora_release and ora_version)"
       when:
         - platform in ['ORACLE', 'ORACLE-ASM']
       ansible.builtin.assert:
@@ -311,7 +287,7 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Validate ORACLE parameters (oracle_sbp_patch)"
+    - name:                            "Validation Playbook - Validate ORACLE parameters (oracle_sbp_patch)"
       when:
         - platform in ['ORACLE', 'ORACLE-ASM']
       ansible.builtin.assert:
@@ -322,7 +298,7 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Show ORACLE parameters"
+    - name:                            "Validation Playbook - Show ORACLE parameters"
       when:
         - platform in ['ORACLE', 'ORACLE-ASM']
       ansible.builtin.debug:
@@ -333,7 +309,7 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Validate SQL Server parameters"
+    - name:                            "Validation Playbook - Validate SQL Server parameters"
       when:
         - platform == 'SQLSERVER'
       ansible.builtin.assert:
@@ -345,7 +321,7 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Get Access Token"
+    - name:                            "Validation Playbook - Get Access Token"
       ansible.builtin.command: >-
         az account get-access-token --query accessToken -o tsv
       changed_when:                    false
@@ -354,14 +330,14 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Save the access token"
+    - name:                            "Validation Playbook - Save the access token"
       ansible.builtin.set_fact:
         access_token:                  "{{ access_token_data.stdout }}"
       no_log: true
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Retrieve Subscription ID and Resource Group Name"
+    - name:                            "Validation Playbook - Retrieve Subscription ID and Resource Group Name"
       ansible.builtin.uri:
         url:                           http://169.254.169.254/metadata/instance?api-version=2021-02-01
         use_proxy:                     false
@@ -371,12 +347,12 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Show IMDS results (JSON)"
+    - name:                            "Validation Playbook - Show Azure Instance Metadata results (JSON)"
       ansible.builtin.debug:
         var:                           azure_metadata.json
         verbosity:                     2
 
-    - name:                            "0.0 Validations - Extract details"
+    - name:                            "Validation Playbook - Extract details"
       ansible.builtin.set_fact:
         subscription_id:               "{{ azure_metadata.json.compute.subscriptionId }}"
         resource_group_name:           "{{ azure_metadata.json.compute.resourceGroupName }}"
@@ -384,13 +360,13 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Show IMDS results"
+    - name:                            "Validation Playbook - Show Free diskspace on /mnt"
       ansible.builtin.debug:
-        var:                           mnt_free_diskspace
+        msg:                           "mnt_free_diskspace: {{ mnt_free_diskspace }}"
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Deployer disk space requirements"
+    - name:                            "Validation Playbook - Deployer disk space requirements"
       ansible.builtin.set_fact:
         deployer_free_temp_disk_space: 40
       when:
@@ -398,7 +374,7 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Check for free disk space on deployer"
+    - name:                            "Validation Playbook - Check for free disk space on deployer"
       ansible.builtin.assert:
         that:                          (mnt_free_diskspace | first | int / (1024 * 1024 * 1024) | int) > ( deployer_free_temp_disk_space )
         fail_msg:                      "The deployer needs at least {{ deployer_free_temp_disk_space }} GB of free disk space in /mnt"
@@ -407,7 +383,7 @@
       tags:
                                        - 0.0-agent-diskspace
 
-    - name:                            "0.0 Validations - Check SAP CAL variables are present and not empty"
+    - name:                            "Validation Playbook - Check SAP CAL variables are present and not empty"
       when:                            enable_sap_cal is defined and enable_sap_cal
       ansible.builtin.assert:
         that:
@@ -432,25 +408,25 @@
     {{ sap_sid | upper }}_WEB :
     {{ sap_sid | upper }}_OBSERVER_DB"
 
-  name:                                "0.0 Validations - Validate SAP-Parameters"
+  name:                                "Validation Playbook - Validate SAP-Parameters"
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
 
-    - name:                            "0.0 Validations: - Wait for system to become reachable"
+    - name:                            "Validation Playbook: - Wait for system to become reachable"
       ansible.builtin.wait_for_connection:
         timeout:                       120
       register:                        wait_for_connection_results
       tags:
                                        - always
 
-    - name:                            "0.0 Validations: - Gather facts for first time"
+    - name:                            "Validation Playbook: - Gather facts for first time"
       ansible.builtin.setup:
       tags:
                                        - always
 
-    - name:                            "0.0 Validations: - Set distro"
+    - name:                            "Validation Playbook: - Set distribution facts"
       ansible.builtin.set_fact:
         distro_family:                 "{{ ansible_os_family | upper }}"
         distribution_id:               "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
@@ -458,48 +434,48 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations: - Show distro"
+    - name:                            "Validation Playbook: - Show distribution facts"
       ansible.builtin.debug:
         msg:
-          - "Distro family:        {{ distro_family }}"
+          - "Distribution family:  {{ distro_family }}"
           - "Distribution id:      {{ distribution_id }}"
           - "Distribution full id: {{ distribution_full_id }}"
       tags:
                                        - always
 
-    - name:                            "0.0 Validations: - Set Python version {{ distribution_id }}"
+    - name:                            "Validation Playbook: - Set Python version {{ distribution_id }}"
       when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
       ansible.builtin.set_fact:
         python_version: "python2"
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Get details from local host"
+    - name:                            "Validation Playbook - Get details from local host"
       ansible.builtin.set_fact:
-        subscription_id: "{{ hostvars.localhost.subscription_id }}"
-        resource_group_name: "{{ hostvars.localhost.resource_group_name }}"
-        access_token: "{{ hostvars.localhost.access_token }}"
+        subscription_id:               "{{ hostvars.localhost.subscription_id }}"
+        resource_group_name:           "{{ hostvars.localhost.resource_group_name }}"
+        access_token:                  "{{ hostvars.localhost.access_token }}"
       no_log: true
       tags:
-                                       - always
+                                       Show - always
 
-    - name:                            "0.0 Validations - Variables"
+    - name:                            "Validation Playbook - Show Variables"
       ansible.builtin.debug:
-        var: hostvars
-        verbosity: 4
+        var:                           hostvars
+        verbosity:                     4
 
-    - name:                            "0.0 Validations - groupsnames"
+    - name:                            "Validation Playbook - group names"
       ansible.builtin.debug:
-        var: group_names
-        verbosity: 4
+        var:                           group_names
+        verbosity:                     4
 
-    - name:                            "0.0 Validations - Variables"
+    - name:                            "Validation Playbook - Variables"
       ansible.builtin.debug:
         msg:
           - "Virtual Host Name: {{ virtual_host }}"
           - "DNS:               {{ ansible_domain }}"
 
-    - name:                            "0.0 Validations - Validate SCS and HDB instance numbers"
+    - name:                            "Validation Playbook - Validate SCS and HDB instance numbers"
       ansible.builtin.assert:
         that:
           - "scs_instance_number != db_instance_number"
@@ -511,7 +487,7 @@
                                        - always
                                        - 0.0-scs-db-instance-single
 
-    - name:                            "0.0 Validations - Validate SCS and HDB SIDs"
+    - name:                            "Validation Playbook - Validate SCS and HDB SIDs"
       when:
         - single_server
         - platform != "ORACLE"
@@ -532,7 +508,7 @@
                                        - always
                                        - 0.0-scs-pas
 
-    - name:                            "0.0 Validations - Validate SCS and PAS instance numbers"
+    - name:                            "Validation Playbook - Validate SCS and PAS instance numbers"
       ansible.builtin.assert:
         that:
           - scs_instance_number != pas_instance_number
@@ -542,7 +518,7 @@
                                        - always
                                        - 0.0-scs-pas-single
 
-    - name:                            "0.0 Validations - Validate DB and PAS instance numbers"
+    - name:                            "Validation Playbook - Validate DB and PAS instance numbers"
       ansible.builtin.assert:
         that:
           - db_instance_number != pas_instance_number
@@ -552,19 +528,13 @@
                                        - always
                                        - 0.0-scs-pas-db-single
 
-    # url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01"
-    # url: "https://azure.status.microsoft/en-us/status"
-    - name:                            "0.0 Validations - Check internet connectivity"
+    - name:                            "Validation Playbook - Check internet connectivity"
       ansible.builtin.uri:
         url:                           "{{ url_internet }}"
-        # headers:
-        #   Authorization: "Bearer {{ access_token }}"
-        #   Content-Type: application/json
-        #   Accept: application/json
         status_code:
           - 200
           - 403
-      register: internet_check
+      register:                        internet_check
       vars:
         ansible_python_interpreter: "{{ python_version }}"
       when:
@@ -575,13 +545,13 @@
                                        - always
                                        - 0.0-internet
 
-    - name:                            "0.0 Validations - Check internet connectivity"
+    - name:                            "Validation Playbook - Check internet connectivity"
       ansible.builtin.uri:
-        url: "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01"
+        url:                           "https://management.azure.com/subscriptions/{{ subscription_id }}/providers/Microsoft.Web/sites?api-version=2022-03-01"
         headers:
-          Authorization: "Bearer {{ access_token }}"
-          Content-Type: application/json
-          Accept: application/json
+          Authorization:                "Bearer {{ access_token }}"
+          Content-Type:                 application/json
+          Accept:                       application/json
         status_code:
           - 200
           - 403
@@ -593,7 +563,7 @@
                                        - always
                                        - 0.0-internet
 
-    - name:                            "0.0 Validations - Show Mounts"
+    - name:                            "Validation Playbook - Show Mounts"
       ansible.builtin.debug:
         msg:
                                        - "Mount:      {{ item.mount }}"
@@ -604,7 +574,7 @@
       when:
         - ansible_os_family != "Windows"
 
-    - name:                            "0.0 Validations - Create directories"
+    - name:                            "Validation Playbook - Create directories"
       become:                          true
       ansible.builtin.file:
         path:                          '/etc/sap_deployment_automation/{{ sap_sid | upper }}'
@@ -615,7 +585,7 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Show Hosts"
+    - name:                            "Validation Playbook - Show Hosts"
       when:
         - ansible_os_family != "Windows"
       ansible.builtin.shell:           set -o pipefail && cat /etc/hosts | grep -v -e "^#" | grep -v -e '^[[:space:]]*$'
@@ -624,14 +594,14 @@
                                        - always
                                        - 0.0-hosts
 
-    - name:                            "0.0 Validations - Show Hosts"
+    - name:                            "Validation Playbook - Show Hosts"
       ansible.builtin.debug:
         var: hosts.stdout_lines
       when:
         - hosts is defined
         - ansible_os_family != "Windows"
 
-    - name:                            "0.0 Validations - Create validation-done flag"
+    - name:                            "Validation Playbook - Create validation-done flag"
       delegate_to:                     localhost
       become: false
       ansible.builtin.file:
@@ -641,7 +611,7 @@
       tags:
                                        - always
 
-    - name:                            "0.0 Validations - Netmask"
+    - name:                            "Validation Playbook - Netmask"
       when:
         - ansible_os_family != "Windows"
       ansible.builtin.debug:
@@ -658,26 +628,26 @@
         - name:                        Check if /usr/sap is already mounted
           ansible.builtin.set_fact:
             usr_sap_mounted:           true
-          with_items: "{{ ansible_mounts }}"
+          with_items:                  "{{ ansible_mounts }}"
           when:
             - item.mount == "/usr/sap"
             - "'scs' in supported_tiers"
           tags:
                                        - always
 
-        - name:                        "0.0 Validations - Disk space details"
+        - name:                        "Validation Playbook - Disk space details"
           when:
             - "'scs' in supported_tiers"
             - usr_sap_mounted is defined
             - ansible_os_family != "Windows"
           block:
-            - name:                    "0.0 Validations - Disk space details"
+            - name:                    "Validation Playbook - Disk space details"
               ansible.builtin.set_fact:
                 free_diskspace:        "{{ ansible_mounts | json_query('[?mount == `/usr/sap`].size_available') }}"
               tags:
                                        - always
 
-            - name:                    "0.0 Validations - SCS /usr/sap disk space requirements"
+            - name:                    "Validation Playbook - SCS /usr/sap disk space requirements"
               ansible.builtin.set_fact:
                 scs_free_diskspace:    10
               when:
@@ -685,19 +655,19 @@
               tags:
                                        - always
 
-            - name:                    "0.0 Validations - Show SCS disk space"
+            - name:                    "Validation Playbook - Show SCS disk space"
               ansible.builtin.debug:
                 msg:
                   - "Free disk space: {{ free_diskspace | first | int / (1024 * 1024 * 1024) | int }}"
                 verbosity:             2
 
-            - name:                    "0.0 Validations - Show SCS disk space required"
+            - name:                    "Validation Playbook - Show SCS disk space required"
               ansible.builtin.debug:
                 msg:
                   - "Free disk space required: {{ scs_free_diskspace }}"
                 verbosity:             2
 
-            - name:                    "0.0 Validations - Check for free disk space on SCS"
+            - name:                    "Validation Playbook - Check for free disk space on SCS"
               ansible.builtin.assert:
                 that:
                   - (free_diskspace | first | int / (1024 * 1024 * 1024) | int) > (scs_free_diskspace | int)
@@ -718,27 +688,27 @@
     {{ sap_sid | upper }}_PAS :
     {{ sap_sid | upper }}_APP"
 
-  name:                                "0.0 Validations - Validate SAP-Parameters for Oracle"
+  name:                                "Validation Playbook - Validate SAP-Parameters for Oracle"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
-    - name:                            "0.0 Validations - Validate that the correct distribution is used"
+    - name:                            "Validation Playbook - Validate that the correct distribution is used"
       ansible.builtin.assert:
         that:
-          - "distribution_id ==  'oraclelinux8'"
+          - "distribution_id in ['oraclelinux8', 'oraclelinux9']"
         fail_msg: "For Oracle deployments DB, PAS and APP needs to run on OracleLinux"
       when:
         - platform in ['ORACLE', 'ORACLE-ASM']
 
 - hosts:                               "{{ sap_sid | upper }}_DB"
 
-  name:                                "0.0 Validations - Validate SAP-Parameters for Oracle"
+  name:                                "Validation Playbook - Validate SAP-Parameters for Oracle"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
-    - name:                            "0.0 Validations - Validate that MULTISID is provided"
+    - name:                            "Validation Playbook - Validate that MULTISID is provided"
       ansible.builtin.assert:
         that:
           - MULTI_SIDS is defined # Has the variable been defined
@@ -748,12 +718,12 @@
 
 - hosts:                               "{{ sap_sid | upper }}_WEB"
 
-  name:                                "0.0 Validations - Validate SAP-Parameters for Web Dispatchers"
+  name:                                "Validation Playbook - Validate SAP-Parameters for Web Dispatchers"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
-    - name:                            "0.0 Validations - VAlidate web_sid presence of Web Dispatchers are deployed"
+    - name:                            "Validation Playbook - VAlidate web_sid presence of Web Dispatchers are deployed"
       ansible.builtin.assert:
         that:
           - web_sid is defined # Has the variable been defined

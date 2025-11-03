@@ -10,19 +10,19 @@
 # +------------------------------------4--------------------------------------*/
 
 ---
-- name:                                "SCS HA Install: Set Python version {{ distribution_id }}"
+- name:                                "5.0.1. CS Install High availability installation: - SCS - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version: "python2"
   when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
 
-- name:                                 "SCS HA Install: Set BOM facts"
+- name:                                 "5.0.1. CS Install High availability installation: - SCS - Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                        "{{ bom_base_name }}-scsha-{{ ansible_hostname }}.params"
     sap_inifile_template:               "scsha-inifile-param.j2"
     dir_params:                         "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
 
 #   0x) Create hidden directory for parameter files
-- name:                                "SCS HA Install: Create directories"
+- name:                                "5.0.1. CS Install High availability installation: - SCS - Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -32,43 +32,42 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}' }
 
-- name:                                "SCS HA Install: reset"
+- name:                                "5.0.1. CS Install High availability installation: - SCS - Reset the installation flag file if reinstall is requested"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
     state:                             absent
   when:                                reinstall
 
-- name:                                "SCS HA Install: check if installed"
+- name:                                "5.0.1. CS Install High availability installation: - SCS - Check if already installed"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
   register:                            scs_installed
   when:                                node_tier == 'scs'
 
     # Returns bom object
-- name:                                "SCS HA Install: Register BoM"
+- name:                                "5.0.1. CS Install High availability installation: - SCS - Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    task_prefix:                       "SCS HA Install: "
+    task_prefix:                       "5.0.1. CS Install High availability installation: - SCS - "
     sa_enabled:                        true
 
 
-- name:                                "SCS HA Install: register variables"
+- name:                                "5.0.1. CS Install High availability installation: - SCS - Register installation variables"
   ansible.builtin.set_fact:
     scs_bom_id:                        "{{ bom.product_ids.scs_ha }}"
     scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
-    public:                            true
 
-- name:                                "SCS Install: register additional variables"
+- name:                                "5.0.1. CS Install High availability installation: - SCS - Register installation variables"
   ansible.builtin.set_fact:
     installGateway:                    "{% if scs_bom_instance_type == 'ABAP' %}true{% else %}false{% endif %}"
 
-- name:                                "SCS HA Install"
+- name:                                "5.0.1. CS Install High availability installation:"
   block:
 
-    - name:                            "SCS Install: check media exists"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Check if installation media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"
       register:                        sapinst_found
@@ -78,7 +77,7 @@
         msg:                           "INSTALL:0003:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
-    - name:                            "SCS HA Install: Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Template processing - Create ini file '{{ sap_inifile }}'' from '{{ sap_inifile_template }}''"
       ansible.builtin.template:
         src:                           "{{ sap_inifile_template }}"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
@@ -90,12 +89,12 @@
         set_ascsInstallGateway:        "{{ installGateway | bool | lower }}"
         set_ascsInstallWebDispatcher:  "{{ ascsInstallWebDispatcher | default(false) | bool | lower }}"
 
-    - name:                            "SCS HA Install: check if installed"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Check if already installed"
       ansible.builtin.debug:
-        msg:                           "SCS HA Install flag: {{ scs_installed }}"
+        msg:                           "5.0.1. CS Install High availability installation: Show installation flag: {{ scs_installed }}"
         verbosity:                     2
 
-    - name:                            "SCS HA Install: install variables"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Show installation variables"
       ansible.builtin.debug:
         msg:
           - "INIFILE:    {{ sap_inifile }}"
@@ -103,7 +102,7 @@
           - "HOST:       {{ scs_virtual_hostname }}"
         verbosity:                     2
 
-    - name:                            "SCS HA Install: SCS - Assign ownership"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - SCS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
         owner:                         "{{ sid_to_be_deployed.sid | lower }}adm"
@@ -115,14 +114,14 @@
         - { path: '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS' }
         - { path: '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/{{ instance_type }}{{ scs_instance_number }}' }
 
-    - name:                            "SCS HA Install: SCS - comment out required message server ports in /etc/services"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Comment out required message server ports in /etc/services"
       ansible.builtin.replace:
         path:                          /etc/services
         regexp:                        '^([a-z\-]+\s+36{{ scs_instance_number }}/.*)$'
         replace:                       '# \1'
         backup:                        true
 
-    - name:                            "SCS HA Install: SCS - comment out required message server ports in /etc/services for JAVA"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Comment out required message server ports in /etc/services for JAVA"
       ansible.builtin.replace:
         path:                          /etc/services
         regexp:                        '^([a-z\-]+\s+39{{ scs_instance_number }}/.*)$'
@@ -130,15 +129,15 @@
         backup:                        true
       when:                            instance_type=='SCS'
 
-    - name:                            "SCS HA Install: SCS Second port for JAVA"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - SCS Second port for JAVA"
       ansible.builtin.set_fact:
         second_port:                   "{{ scs_instance_number | int }}"
 
-    - name:                            "SCS HA Install: SCS Second port for JAVA"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - SCS Second port for JAVA"
       ansible.builtin.set_fact:
         second_port_str:               '{{ "%02d" | format(((second_port | int) + 1)) }}'
 
-    - name:                            "SCS HA Install: SCS - comment out required message server ports in /etc/services for JAVA"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - SCS - comment out required message server ports in /etc/services for JAVA"
       ansible.builtin.replace:
         path:                          /etc/services
         regexp:                        '^([a-z\-]+\s+39{{ second_port_str }}/.*)$'
@@ -151,25 +150,25 @@
     # | 2230669 - System Provisioning Using a Parameter Input File                 |
     # *====================================4=======================================8
 
-    - name:                            "SCS HA Install: Create temp directory for sid"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         state:                         directory
         mode:                          0755
 
-    - name:                            "SCS HA Installation"
+    - name:                            "5.0.1. CS Install High availability installation:ation"
       block:
 
-        - name:                        "SCS HA Install: Create Symlink"
+        - name:                        "5.0.1. CS Install High availability installation: - SCS - Create Symlink as stated in SAP Note 3119751"
           ansible.builtin.import_tasks:  ../../../roles-sap-os/2.10-sap-notes/tasks/2.10.3119751.yaml
           when:
             - ansible_os_family == 'RedHat'
 
-        - name:                        "SCS HA Install: Start"
+        - name:                        "5.0.1. CS Install High availability installation: - SCS - Show start installation message"
           ansible.builtin.debug:
             msg:                       "Starting sapinst for {{ sid_to_be_deployed.sid | upper }}. Please wait"
 
-        - name:                        "SCS HA Install: SAPInst"
+        - name:                        "5.0.1. CS Install High availability installation: - SCS - Run 'sapinst'"
           ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
@@ -192,13 +191,13 @@
         # ToDO: cleanup file systems on failed install.
         # until then we validate if certain files and folders exist and take
         # actions based on them
-        - name:                        "RESCUE - SCS HA Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' exists"
+        - name:                        "RESCUE - 5.0.1. CS Install High availability installation: - SCS - Check if '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' exists"
           ansible.builtin.stat:
             path:                      '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'
           register:                    stat_sys_exe_uc
           when:                        node_tier == 'scs'
 
-        - name:                        "RESCUE - SCS HA Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' is empty"
+        - name:                        "RESCUE - 5.0.1. CS Install High availability installation: - SCS - Check if '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' is empty"
           ansible.builtin.find:
             path:                      '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'
             patterns:                  "*"
@@ -211,12 +210,12 @@
         # At this stage the DIR_CT_RUN,'/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64'
         # is expected to be empty so we delete it.
         # nw.directoryIsNotEmptyUnattended
-        - name:                        "RESCUE - SCS HA Install: Show installation result"
+        - name:                        "RESCUE - 5.0.1. CS Install High availability installation: - SCS - Show installation result"
           ansible.builtin.debug:
             var:                       scs_installation
           when:                        scs_installation is defined
 
-        - name:                        "RESCUE - SCS HA Install: Cleanup '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'"
+        - name:                        "RESCUE - 5.0.1. CS Install High availability installation: - SCS - Cleanup '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'"
           ansible.builtin.file:
             path:                      "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64"
             state:                     absent
@@ -225,7 +224,7 @@
             - find_sys_exe_uc_result is defined
             - find_sys_exe_uc_result | length > 0
 
-        - name:                        "RESCUE - SCS HA Install: SCS - Assign ownership"
+        - name:                        "RESCUE - 5.0.1. CS Install High availability installation: - SCS - SCS - Assign ownership"
           ansible.builtin.file:
             path:                      "{{ item.path }}"
             owner:                     "{{ sid_to_be_deployed.sid | lower }}adm"
@@ -242,7 +241,7 @@
         # name <host> is not a valid virtual host on the local host
         # SAP Note# 2279110
 
-        - name:                        "RESCUE - SCS HA Install: SAPINST"
+        - name:                        "RESCUE - 5.0.1. CS Install High availability installation: - SCS - Run 'sapinst' again"
           ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
@@ -262,39 +261,39 @@
           failed_when:                 scs_installation.rc > 0
           when:                        node_tier == 'scs'
 
-    - name:                            "SCS HA Install: Installation failure results"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Installation failure results"
       block:
-        - name:                        "SCS HA Install: Installation results (debug)"
+        - name:                        "5.0.1. CS Install High availability installation: - SCS - Installation results (debug)"
           ansible.builtin.debug:
             var:                       scs_installation
             verbosity:                 2
 
-        - name:                        "SCS HA Install: Save installation results"
+        - name:                        "5.0.1. CS Install High availability installation: - SCS - Save installation results"
           ansible.builtin.set_fact:
             scs_installation_succeeded: false
 
-        - name:                        "SCS HA Install: Installation results"
+        - name:                        "5.0.1. CS Install High availability installation: - SCS - Installation results"
           ansible.builtin.fail:
             msg:                       SCS HA installation failed"
 
       when:                            scs_installation.rc > 0
 
-    - name:                            "SCS HA Install: Installation results"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Installation results"
       block:
-        - name:                        "SCS HA Install: Installation results"
+        - name:                        "5.0.1. CS Install High availability installation: - SCS - Show installation results"
           ansible.builtin.debug:
-            msg:                       "SCS HA Installation succeeded"
+            msg:                       "5.0.1. CS Install High availability installation succeeded"
 
-        - name:                        "SCS HA Install: Save installation results"
+        - name:                        "5.0.1. CS Install High availability installation: - SCS - Save installation results"
           ansible.builtin.set_fact:
             scs_installation_succeeded: true
 
-        - name:                        "SCS HA Install: Cleanup ini file {{ ansible_hostname }}"
+        - name:                        "5.0.1. CS Install High availability installation: - SCS - Cleanup ini file {{ ansible_hostname }}"
           ansible.builtin.file:
             path:                      "{{ dir_params }}/{{ sap_inifile }}"
             state:                     absent
 
-        - name:                        "SCS HA Install: flag"
+        - name:                        "5.0.1. CS Install High availability installation: - SCS - Create the installation flag file"
           ansible.builtin.file:
             path:                      "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
             state:                     touch
@@ -309,28 +308,28 @@
 - name:                                "SCS Install status"
   block:
 
-    - name:                            "SCS HA Install: Status"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Show installation status"
       ansible.builtin.debug:
         msg:                           "SCS is already installed"
 
-    - name:                            "SCS HA Install: return value"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Set the return value flag"
       ansible.builtin.set_fact:
         scs_already_installed:         true
   when:
     - node_tier == 'scs'
     - scs_installed.stat.exists
 
-- name:                                "SCS HA Install: ENSA1 set defaults"
+- name:                                "5.0.1. CS Install High availability installation: - SCS - ENSA1 set defaults"
   ansible.builtin.set_fact:
     ensa1:                             false
   when: ensa1 is not defined
 
-- name:                                "SCS HA Install: ENSA2 set defaults"
+- name:                                "5.0.1. CS Install High availability installation: - SCS - ENSA2 set defaults"
   ansible.builtin.set_fact:
     ensa2:                             false
   when: ensa2 is not defined
 
-- name:                                "SCS HA Install: Enqueue Server Setup"
+- name:                                "5.0.1. CS Install High availability installation: - SCS - Enqueue Server Setup"
   block:
     - name:                            "SCSERS - Get the variable to determine ENSA version"
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
@@ -349,34 +348,34 @@
       changed_when:                    false
 
     # enserver, EnqueueServer
-    - name:                            "SCS HA Install: Is ENSA1"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Check if ENSA1"
       ansible.builtin.set_fact:
         ensa1:                         "{{ enq_server.stdout_lines | select('search', 'enserver') | length > 0 }}"
 
     # logic added to identify java based installations
-    - name:                            "SCS HA Install: Is ENSA1 - JAVA"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Check if ENSA1 - JAVA"
       ansible.builtin.set_fact:
         ensa1:                         "{{ enq_server.stdout_lines | select('search', 'enrepserver') | length > 0 }}"
       when:
         - not ensa1
 
     # enq_server, Enqueue Server 2
-    - name:                            "SCS HA Install: Is ENSA2"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Check if ENSA2"
       ansible.builtin.set_fact:
         ensa2:                         "{{ enq_server.stdout_lines | select('search', 'enq_server') | length > 0 }}"
 
-    - name:                            "SCS HA Install: Print the value of ENSA1/ENSA2"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Print the value of ENSA1/ENSA2"
       ansible.builtin.debug:
         msg:
           - "ENSA1: {{ ensa1 }}"
           - "ENSA2: {{ ensa2 }}"
   rescue:
-    - name:                            "SCS HA Install: Set default to ENSA2 for HANA if message server is down"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Set default to ENSA2 for HANA if message server is down"
       ansible.builtin.set_fact:
         ensa2:                         true
       when:                            platform == 'HANA'
 
-    - name:                            "SCS HA Install: Set default to ENSA1 for AnyDB if message server is down"
+    - name:                            "5.0.1. CS Install High availability installation: - SCS - Set default to ENSA1 for AnyDB if message server is down"
       ansible.builtin.set_fact:
         ensa1:                         true
       when:                            platform != 'HANA'
@@ -384,7 +383,7 @@
   when:
     - inventory_hostname == primary_instance_name
 
-- name:                                "SCS HA Install: Set default to ENSA2 for HANA if message server is down"
+- name:                                "5.0.1. CS Install High availability installation: - SCS - Set default to ENSA2 for HANA if message server is down"
   ansible.builtin.set_fact:
     ensa2:                             true
   when:
@@ -394,7 +393,7 @@
     - not ensa2
     - inventory_hostname == primary_instance_name
 
-- name:                                "SCS HA Install: Set default to ENSA for HANA (JAVA) if message server is down"
+- name:                                "5.0.1. CS Install High availability installation: - SCS - Set default to ENSA for HANA (JAVA) if message server is down"
   ansible.builtin.set_fact:
     ensa1:                             true
   when:
@@ -404,7 +403,7 @@
     - not ensa2
     - inventory_hostname == primary_instance_name
 
-- name:                                "SCS HA Install: Set default to ENSA1 for AnyDB if message server is down"
+- name:                                "5.0.1. CS Install High availability installation: - SCS - Set default to ENSA1 for AnyDB if message server is down"
   ansible.builtin.set_fact:
     ensa1:                             true
   when:
@@ -413,7 +412,7 @@
     - not ensa2
     - inventory_hostname == primary_instance_name
 
-- name:                                "SCS HA Install: Print the value of ENSA1/ENSA2"
+- name:                                "5.0.1. CS Install High availability installation: - SCS - Print the value of ENSA1/ENSA2"
   ansible.builtin.debug:
     msg:
       - "ENSA1: {{ ensa1 }}"

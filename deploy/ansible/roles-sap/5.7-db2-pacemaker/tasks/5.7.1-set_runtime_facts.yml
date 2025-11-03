@@ -23,7 +23,7 @@
   register: db2vmmetadata
 
 
-- name:                                Show IMDS results
+- name:                                Show Azure Instance Metadata results
   ansible.builtin.debug:
     var:                               db2vmmetadata.json
     verbosity:                         2

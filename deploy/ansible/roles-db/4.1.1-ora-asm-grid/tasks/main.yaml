@@ -516,6 +516,34 @@
       ansible.builtin.set_fact:
         oracle_grid_already_installed:      true
 
+# - name:                               "SAP Oracle DB ASM: Update ASM Disk groups ARCH and RECO for DBLOAD"
+#   become:                             true
+#   become_user:                        oracle
+#   ansible.builtin.shell: |
+#                                       set -o errexit
+#                                       ./asmca -silent -editDiskGroupAttributes -diskGroupName DATA -attribute compatible.advm={{ ora_version }}
+#                                       ./asmca -silent -editDiskGroupAttributes -diskGroupName DATA -attribute compatible.rdbms={{ ora_version }}
+#                                       ./asmca -silent -editDiskGroupAttributes -diskGroupName DATA -attribute compatible.asm={{ ora_version }}
+#   register:                           diskgroupupdate_results
+#   failed_when:                        diskgroupupdate_results.rc >= 1
+#   environment:
+#     DB_SID:                           "{{ db_sid }}"
+#     CV_ASSUME_DISTID:                 "{{ CV_ASSUME_DISTID }}"
+#   args:
+#     executable:                       /bin/csh
+#     chdir:                            /oracle/GRID/{{ ora_version }}/bin
+#     creates:                          /etc/sap_deployment_automation/grid/diskgroupupdated.txt
+
+# - name:                               "SAP Oracle DB ASM: Create flag after a sucessfull change"
+#   ansible.builtin.file:
+#     path:                             /etc/sap_deployment_automation/grid/diskgroupupdated.txt
+#     state:                            touch
+#     mode:                             '0755'
+
+
+# - name:                               "SAP Oracle Fail before DB Install"
+#   ansible.builtin.fail:
+#     msg:   "check before DB install"
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

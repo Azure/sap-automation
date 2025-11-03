@@ -26,7 +26,7 @@
       Metadata:                                   true
   register:                                       azure_metadata
 
-- name:                                           "1.18.0 Generic Pacemaker - Show IMDS results"
+- name:                                           "1.18.0 Generic Pacemaker - Show Azure Instance Metadata results"
   ansible.builtin.debug:
     var:                                          azure_metadata.json
     verbosity:                                    2
