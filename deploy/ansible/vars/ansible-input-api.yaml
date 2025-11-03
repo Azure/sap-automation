@@ -158,8 +158,6 @@ grid_uid:                              3300
 oracle_grid_home_zip:                  LINUX.X64_193000_grid_home.zip
 oracle_client_zip:                     LINUX.X64_193000_client.zip
 
-oracle_asm_sector_size:               4K
-
 
 ## SAP Instance Numbers
 
