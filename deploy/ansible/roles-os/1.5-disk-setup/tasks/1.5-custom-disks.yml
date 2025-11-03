@@ -31,10 +31,10 @@
 #
 
 
-- name:                                "1.5.1 Custom Disk setup: - Load the disk configuration settings"
+- name:                                "1.5.1 Custom Disk setup - Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config.yml
 
-- name:                                "1.5.1 Custom Disk setup: - Show disk info"
+- name:                                "1.5.1 Custom Disk setup - Show disk info"
   ansible.builtin.debug:
     msg:
       - "Unique disks:                 {{ disktypes }} "
@@ -45,7 +45,7 @@
 # CREATE LOGICAL VOLUMES BASED ON VGCREATEDLIST
 # -------------------------------------+---------------------------------------8
 #
-- name:                                "1.5.1 Custom Disk setup: - Logical Volume creation"
+- name:                                "1.5.1 Custom Disk setup - Logical Volume creation"
   community.general.lvol:
     lv:                                "{{ item.lv }}"
     vg:                                "{{ item.vg }}"
@@ -63,19 +63,19 @@
       item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
     - item.vg in vgcreatedlist
 
-- name:                                "1.5.1 Custom Disk setup: - Filter the logical volumes created results"
+- name:                                "1.5.1 Custom Disk setup - Filter the logical volumes created results"
   ansible.builtin.set_fact:
     custom_lvcreatedlist_tmp:          "{{ custom_lvscreated.results | rejectattr('skipped', 'defined') | list }}"
   when:
     - tier == "sapos"
 
-- name:                                "1.5.1 Custom Disk setup: - Get the logical volumes from the list"
+- name:                                "1.5.1 Custom Disk setup - Get the logical volumes from the list"
   ansible.builtin.set_fact:
     custom_lvcreatedlist:              "{{ custom_lvcreatedlist_tmp | map(attribute='item.lv') | list }}"
   when:
     - tier == "sapos"
 
-- name:                                "1.5.1 Custom Disk setup: - Filesystem creation"
+- name:                                "1.5.1 Custom Disk setup - Filesystem creation"
   community.general.filesystem:
     dev:                               "{{ dev_path_from_lv_item }}"
     fstype:                            "{{ item.fstype }}"
@@ -89,13 +89,13 @@
     - item.fstype is defined
     - item.lv in custom_lvcreatedlist
 
-- name:                                "1.5.1 Custom Disk setup: - Filter the filesystem created results"
+- name:                                "1.5.1 Custom Disk setup - Filter the filesystem created results"
   ansible.builtin.set_fact:
     custom_fscreatedlist_tmp:          "{{ custom_filesystemscreated.results | rejectattr('skipped', 'defined') | list }}"
   when:
     - tier == "sapos"
 
-- name:                                "1.5.1 Custom Disk setup: - Debug disk information"
+- name:                                "1.5.1 Custom Disk setup - Debug disk information"
   ansible.builtin.debug:
     msg:
       - "Created Volume Groups:    {{ vgcreatedlist }} "
