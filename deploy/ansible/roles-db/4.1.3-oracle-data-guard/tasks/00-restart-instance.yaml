@@ -172,7 +172,7 @@
   become:                              true
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ current_sid }}
-                                       setenv ORACLE_HOME /oracle/{{ db_path | upper }}/{{ ora_version }}
+                                       setenv ORACLE_HOME /oracle/{{ db_path }}/{{ ora_version }}
 
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl start
   environment:
