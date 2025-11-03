@@ -1,0 +1,10 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+
+is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
+CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OEL{{ ansible_distribution_version }}1 {% endif %}"
+
+# Network
+listener_port:                     1521
+oracle_group:                      oinstall

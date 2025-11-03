@@ -92,7 +92,7 @@
     mode:                              "{{ '0777' | int - (custom_umask | default('022') | int) }}"
   # when: current_host == ora_primary
 
-- name:                                "Oracle Data Guard - Preparation (Secondary): Copy orapwSID to templocation"
+- name:                                "Oracle Data Guard - Preparation (Secondary): Copy orapwSID to temp location"
   become:                              true
   become_user:                         "root"
   ansible.builtin.copy:

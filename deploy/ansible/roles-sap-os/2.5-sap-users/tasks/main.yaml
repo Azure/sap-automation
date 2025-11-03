@@ -61,7 +61,8 @@
     - { group: 'racdba',    gid: '{{ racdba_gid }}'    }
     - { group: 'oinstall',  gid: '{{ oinstall_gid }}'  }
   when:
-    - node_tier == "oracle-asm"
+    - node_tier in ['oracle-asm', 'observer']
+    - platform == "ORACLE-ASM"
 
 - name:                                "2.5.1 SAP Users: - Create SAP Groups for Oracle ASM on observer"
   ansible.builtin.group:
@@ -78,12 +79,27 @@
     - node_tier == "observer"
     - platform == "ORACLE"
 
-- name:                                "2.5.1 SAP Users: - Create SAP User for Oracle ASM"
+- name:                                "2.5.1 SAP Users: - Create {{ oracle_user_name }} User for Oracle ASM"
   ansible.builtin.user:
-    name:                              oracle
+    name:                              "{{ oracle_user_name }}"
     uid:                               "{{ oracle_uid }}"
     group:                             oinstall
+    home:                              "/home/{{ oracle_user_name }}"
+    shell:                             /bin/csh
     groups:                            dba,racdba,oper,backupdba,dgdba,kmdba
+    append:                            true
+  when:
+    - node_tier == "oracle-asm"
+
+- name:                                "2.5.1 SAP Users: - Create {{ grid_user_name }} User for Oracle ASM"
+  ansible.builtin.user:
+    name:                              "{{ grid_user_name }}"
+    uid:                               "{{ grid_uid }}"
+    group:                             oinstall
+    home:                              "/home/{{ grid_user_name }}"
+    shell:                             /bin/csh
+    groups:                            dba,racdba,oper,asmadmin,asmdba,asmoper
+    append:                            true
   when:
     - node_tier == "oracle-asm"
 
@@ -138,5 +154,5 @@
   #   # TODO: add user for WebDisp Functionality
     # - { tier: 'WEB',         user: 'webadm',                   uid: '32002',            group: 'sapsys', home: '/home/webadm',                 comment: 'SAP WebDisp Admin' }
   when:
-    - node_tier == "oracle-asm" or node_tier == "observer"
+    - node_tier in ["oracle-asm", "observer"]
     - platform == "ORACLE-ASM"

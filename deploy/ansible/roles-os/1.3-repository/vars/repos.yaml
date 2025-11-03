@@ -63,3 +63,7 @@ repos:
   oraclelinux8.8:
   oraclelinux8.9:
   oraclelinux8.10:
+  oraclelinux9.0:
+  oraclelinux9.2:
+  oraclelinux9.4:
+  oraclelinux9.6:

@@ -133,7 +133,7 @@
     # Get all the hostnames in <SID>_SCS group and return only the first hostname
     nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
   loop:
-    - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}', path: '{{ target_media_location }}' }
+    - { type: 'nfs4', src: '{{ usr_sap_install_mountpoint }}/{{ bom_base_name }}', path: '{{ target_media_location }}' }
   when:
     - node_tier == 'observer'
     - platform == 'ORACLE'
