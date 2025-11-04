@@ -1906,6 +1906,7 @@ function New-SDAFADOWorkloadZone {
     Write-Verbose "  TenantId: $TenantId"
     Write-Verbose "  AuthenticationMethod: $AuthenticationMethod"
     Write-Verbose "  ManagedIdentityObjectId: $ManagedIdentityObjectId"
+    Write-Verbose "  ManagedIdentityId: $ManagedIdentityId"
     Write-Verbose "  WorkloadZoneCode: $WorkloadZoneCode"
     Write-Verbose "  WorkloadZoneSubscriptionId: $WorkloadZoneSubscriptionId"
     Write-Verbose "  CreateConnections: $CreateConnections"
@@ -2344,7 +2345,7 @@ function New-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOWorkloadZone
-#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 578
+#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 579
 #Region '.\Public\New-SDAFUserAssignedIdentity.ps1' -1
 
 function New-SDAFUserAssignedIdentity {

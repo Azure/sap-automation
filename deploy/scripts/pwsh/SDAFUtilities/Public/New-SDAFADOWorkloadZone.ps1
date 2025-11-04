@@ -137,6 +137,7 @@ function New-SDAFADOWorkloadZone {
     Write-Verbose "  TenantId: $TenantId"
     Write-Verbose "  AuthenticationMethod: $AuthenticationMethod"
     Write-Verbose "  ManagedIdentityObjectId: $ManagedIdentityObjectId"
+    Write-Verbose "  ManagedIdentityId: $ManagedIdentityId"
     Write-Verbose "  WorkloadZoneCode: $WorkloadZoneCode"
     Write-Verbose "  WorkloadZoneSubscriptionId: $WorkloadZoneSubscriptionId"
     Write-Verbose "  CreateConnections: $CreateConnections"
