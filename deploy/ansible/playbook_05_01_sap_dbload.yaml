@@ -238,7 +238,7 @@
             - name:                    "Oracle : Updating Oracle database after DB Load"
               ansible.builtin.import_tasks: roles-db/4.1.2-ora-asm-db-install/tasks/final.yaml
               when:
-                - platform == 'ORACLE'
+                - platform == 'ORACLE-ASM'
 
             - name:                    "Database Load Playbook: - Create db-load-done flag"
               delegate_to:             localhost

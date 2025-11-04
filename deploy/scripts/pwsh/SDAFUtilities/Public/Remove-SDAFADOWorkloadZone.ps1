@@ -120,7 +120,7 @@ function Remove-SDAFADOWorkloadZone {
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $WorkloadZoneSubscriptionIdInternal = $WorkloadZoneSubscriptionId
-      $VersionLabel = "v3.16.0.3"
+      $VersionLabel = "v3.17.0.0"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS

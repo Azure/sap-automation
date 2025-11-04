@@ -9,7 +9,7 @@ oracle_user_name:                       oracle
 grid_user_name:                         grid
 orchestration_ansible_user:             azureadm
 # ------------------- Begin - SDAF Ansible Version ---------------------------8
-SDAF_Version:                           "3.16.0.3"
+SDAF_Version:                           "3.17.0.0"
 
 # ------------------- End - SDAF Ansible Version ---------------------------8
 

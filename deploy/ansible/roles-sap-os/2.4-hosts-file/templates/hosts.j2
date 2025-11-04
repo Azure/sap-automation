@@ -96,9 +96,6 @@ ansible_facts.
 {%   set virtual_host_names = [] %}
 {%   set default_virtual_host = hostvars[host]['virtual_host'] if 'virtual_host' in hostvars[host] else none %}
 {%   set scs_ha_enabled = scs_high_availability | default(false) %}
-{%   if default_virtual_host and default_virtual_host != host %}
-{%     set _ = virtual_host_names.append(default_virtual_host) %}
-{%   endif %}
 {# Assign virtual host names based on supported tiers #}
 {%   for tier in supported_tiers %}
 {%     if tier == 'scs' %}
