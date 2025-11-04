@@ -45,6 +45,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
                                        ALTER DATABASE OPEN;
                                        EXIT;
