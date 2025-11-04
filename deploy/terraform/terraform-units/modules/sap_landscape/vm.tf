@@ -76,7 +76,7 @@ resource "azurerm_windows_virtual_machine" "utility_vm" {
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
 
-  enable_automatic_updates                               = !(var.infrastructure.patch_mode == "ImageDefault")
+  automatic_updates_enabled                              = !(var.infrastructure.patch_mode == "ImageDefault")
 
   encryption_at_host_enabled                             = var.infrastructure.encryption_at_host_enabled
 

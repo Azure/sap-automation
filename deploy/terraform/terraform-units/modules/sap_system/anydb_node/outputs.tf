@@ -36,7 +36,7 @@ output "database_loadbalancer_ip"      {
 output "database_server_admin_ips"     {
                                          description = "AnyDB Virtual machine Admin interface IPs"
                                          value       = local.enable_deployment ? (
-                                                         local.anydb_dual_nics ? (
+                                                         local.anydb_dual_network_interfaces ? (
                                                            azurerm_network_interface.anydb_admin[*].private_ip_address) : (
                                                          azurerm_network_interface.anydb_db[*].private_ip_address)
                                                        ) : []
@@ -88,7 +88,7 @@ output "database_disks"                {
 output "dns_info_vms"                  {
                                          description = "DNS Information for the virtual machines"
                                          value       = local.enable_deployment ? (
-                                                         local.anydb_dual_nics ? (
+                                                         local.anydb_dual_network_interfaces ? (
                                                            zipmap(
                                                              compact(
                                                                concat(

@@ -189,13 +189,13 @@ resource "azurerm_role_assignment" "role_assignment_additional_users" {
   principal_id                         = var.additional_users_to_add_to_keyvault_policies[count.index]
 }
 
-resource "azurerm_role_assignment" "role_assignment_webapp" {
-  provider                             = azurerm.main
-  count                                = var.options.assign_resource_permissions && var.key_vault.enable_rbac_authorization && !var.key_vault.exists  && var.app_service.use ? 1 : 0
-  scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
-  role_definition_name                 = "Key Vault Secrets User"
-  principal_id                         = azurerm_windows_web_app.webapp[0].identity[0].principal_id
-}
+# resource "azurerm_role_assignment" "role_assignment_webapp" {
+#   provider                             = azurerm.main
+#   count                                = var.options.assign_resource_permissions && var.key_vault.enable_rbac_authorization && !var.key_vault.exists  && var.app_service.use ? 1 : 0
+#   scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+#   role_definition_name                 = "Key Vault Secrets User"
+#   principal_id                         = azurerm_windows_web_app.webapp[0].identity[0].principal_id
+# }
 
 #######################################4#######################################8
 #                                                                              #

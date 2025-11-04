@@ -14,7 +14,7 @@ variable "custom_disk_sizes_filename"                   {
                                                         }
 variable "database"                                     {}
 
-variable "database_dual_nics"                           {
+variable "database_dual_network_interfaces"             {
                                                           description = "Defines if the HANA DB uses dual network interfaces"
                                                           type        = bool
                                                         }

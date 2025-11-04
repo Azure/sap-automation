@@ -11,7 +11,10 @@
 variable "environment"                           {
                                                    description = "This is the environment name for the deployment"
                                                    type        = string
-                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.environment) != 0
+                                                                  error_message = "The 'environment' variable must not be empty."
+                                                                }
                                                  }
 
 variable "codename"                              {
@@ -29,7 +32,10 @@ variable "Description"                           {
 variable "location"                              {
                                                   description = "The Azure region for the resources"
                                                   type        = string
-                                                  default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.location) != 0
+                                                                  error_message = "The 'location' variable must not be empty."
+                                                                }
                                                 }
 
 variable "name_override_file"                   {
@@ -179,7 +185,10 @@ variable "custom_random_id"                     {
 
 variable "network_logical_name"                 {
                                                   description = "The logical name of the virtual network, used for resource naming"
-                                                  default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.network_logical_name) != 0
+                                                                  error_message = "The 'network_logical_name' variable must not be empty."
+                                                                }
                                                 }
 
 variable "use_secondary_ips"                    {
@@ -529,11 +538,15 @@ variable "database_cluster_disk_type"           {
 variable "database_platform"                    {
                                                   description = "Database platform, supported values are HANA, DB2, ORACLE, ORACLE-ASM, ASE, SQLSERVER or NONE (in this case no database tier is deployed)"
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.database_platform) != 0
+                                                                  error_message = "The 'database_platform' variable must not be empty."
+                                                                }
                                                 }
 
 variable "database_sid"                         {
                                                   description = "The database SID"
-                                                  default     = "HDB"
+                                                  default     = ""
                                                 }
 
 variable "database_server_count"                {
@@ -746,7 +759,10 @@ variable "app_tier_authentication_type"         {
 
 variable "sid"                                  {
                                                   description = "Application SID"
-                                                  default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.sid) == 3
+                                                                  error_message = "The 'sid' variable must be exactly 3 characters long."
+                                                                }
                                                 }
 
 variable "app_tier_use_DHCP"                    {

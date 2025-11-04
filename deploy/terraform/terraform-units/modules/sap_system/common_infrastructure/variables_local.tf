@@ -101,7 +101,8 @@ locals {
   sizes                                = jsondecode(file(local.file_name))
 
   db_sizing                            = local.enable_sid_deployment ? (
-                                           lookup(local.sizes.db, var.database.db_sizing_key).storage) : (
+                                           try(lookup(local.sizes.db, var.database.db_sizing_key, {}).storage, [])
+                                         ) : (
                                            []
                                          )
 
@@ -190,8 +191,8 @@ locals {
 
   enable_admin_subnet                  = (var.infrastructure.virtual_networks.sap.subnet_admin.defined &&
                                           (
-                                            var.application_tier.dual_nics ||
-                                            var.database.dual_nics
+                                            var.application_tier.dual_network_interfaces ||
+                                            var.database.dual_network_interfaces
                                           )
                                         )
 
