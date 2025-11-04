@@ -362,3 +362,4 @@ stages:
               SYSTEM_PIPELINE_ID:        $(SYSTEM_PIPELINE_ID)
               WEBAPP_ID:                 $(WEBAPP_ID)
               WEBAPP_IDENTITY:           $(WEBAPP_IDENTITY)
+              CONTROL_PLANE_NAME:        $(CONTROL_PLANE_NAME)
