@@ -1887,7 +1887,7 @@ function New-SDAFADOWorkloadZone {
     [string]$ManagedIdentityObjectId,
 
     # Managed Identity specific parameters
-    [Parameter(ParameterSetName = "ManagedIdentity", Mandatory = $true)]
+    [Parameter(ParameterSetName = "ManagedIdentity", Mandatory = $false)]
     [string]$ManagedIdentityId,
 
     # Switch parameters
