@@ -74,7 +74,7 @@ function load_config_vars() {
 
 function init() {
 	local automation_config_directory="${1}"
-	local generic_config_information="${2}"
+	local generic_environment_file_name="${2}"
 	local app_config_information="${3}"
 
 	if [ ! -d "${automation_config_directory}" ]; then
@@ -205,18 +205,18 @@ function getEnvVarValue() {
 }
 
 function checkforEnvVar() {
-    # Add parameter validation
-    if [ -z "$1" ]; then
-        return 1
-    fi
+	# Add parameter validation
+	if [ -z "$1" ]; then
+		return 1
+	fi
 
-    local env_var=
-    env_var=$(declare -p "$1" 2>/dev/null)
-    if ! [[ -v $1 && $env_var =~ ^declare\ -x ]]; then
-        return 1
-    else
-        return 0
-    fi
+	local env_var=
+	env_var=$(declare -p "$1" 2>/dev/null)
+	if ! [[ -v $1 && $env_var =~ ^declare\ -x ]]; then
+		return 1
+	else
+		return 0
+	fi
 }
 
 ###############################################################################
@@ -605,3 +605,37 @@ function valid_kv_name() {
 #printf "%s\n" "${FUNCNAME[@]}"
 #check the AZURE_HTTP_USER_AGENT=cloud-shell/1.0 to identify the cloud shell
 #update template to user the following user http://localhost:50342/oauth2/token
+
+################################################################################
+#                                                                              #
+# Function to return the configuration file                                    #
+# Arguments:                                                                   #
+#   $1 - The directory for the file                                            #
+#   $2 - The environment name (e.g., DEV, PROD)                                #
+#   $3 - The region code (e.g., WEEU, NEU)					    											 #
+#   $4 - The logical network name (e.g., SAP01, SAP02                          #
+# Returns:                                                                     #
+#   The configuration file path or an empty string if not found                #
+#                                                                              #
+################################################################################
+
+function get_configuration_file {
+	local directory=$1
+	local environment=$2
+	local region_code=$3
+	local logical_network_name=$4
+
+	local configurationFile="${directory}${environment}${region_code}${logical_network_name}"
+
+	if [ ! -f "${configurationFile}" ]; then
+		configurationFile="${directory}${environment}${region_code}"
+		if [ ! -f "${configurationFile}" ]; then
+			configurationFile="${directory}${environment}${region_code}${logical_network_name}"
+		else
+			sudo mv "${configurationFile}" "${directory}${environment}${region_code}${logical_network_name}" 2>/dev/null || true
+			configurationFile="${directory}${environment}${region_code}${logical_network_name}"
+		fi
+	fi
+
+	echo "${configurationFile}"
+}

@@ -219,26 +219,30 @@ function install_deployer() {
 		return $?
 	fi
 	param_dirname=$(dirname "${parameter_file_name}")
+	dir_name=$(basename "${param_dirname}")
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
 	print_banner "$banner_title" "Deploying the deployer" "info"
 
 	#Persisting the parameters across executions
-	automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-	generic_config_information="${automation_config_directory}"config
-	deployer_config_information="${automation_config_directory}/$CONTROL_PLANE_NAME"
-	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
+	automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+	generic_environment_file_name="${automation_config_directory}"config
+	ENVIRONMENT=$(echo "$parameter_file_name" | awk -F'-' '{print $1}' | xargs)
+	LOCATION=$(echo "$parameter_file_name" | awk -F'-' '{print $2}' | xargs)
+	NETWORK=$(echo "$parameter_file_name" | awk -F'-' '{print $3}' | xargs)
 
-	if [ ! -f "$deployer_config_information" ]; then
-		if [ -f "${CONFIG_DIR}/${environment}${region_code}" ]; then
+	deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
+
+	if [ ! -f "$deployer_environment_file_name" ]; then
+		if [ -f "${automation_config_directory}/${ENVIRONMENT}${LOCATION}" ]; then
 			echo "Move existing configuration file"
-			sudo mv "${CONFIG_DIR}/${environment}${region_code}" "${deployer_config_information}"
+			sudo mv "${automation_config_directory}/${ENVIRONMENT}${LOCATION}" "${deployer_environment_file_name}"
 		fi
 	fi
 
 	param_dirname=$(pwd)
 
-	init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
+	init "${automation_config_directory}" "${generic_environment_file_name}" "${deployer_environment_file_name}"
 
 	var_file="${param_dirname}/${parameter_file_name}"
 
@@ -443,19 +447,19 @@ function install_deployer() {
 		printf -v val %-.20s "$DEPLOYER_KEYVAULT"
 		print_banner "$banner_title" "Keyvault to use for deployment credentials: $val" "info"
 
-		save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
+		save_config_var "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}"
 		export DEPLOYER_KEYVAULT
 	fi
 
 	APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
 	if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
-		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_config_information}"
+		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}"
 		export APPLICATION_CONFIGURATION_ID
 	fi
 
 	APPLICATION_CONFIGURATION_NAME=$(echo "${APPLICATION_CONFIGURATION_ID}" | cut -d '/' -f 9)
 	if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
-		save_config_var "APPLICATION_CONFIGURATION_NAME" "${deployer_config_information}"
+		save_config_var "APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}"
 		export APPLICATION_CONFIGURATION_NAME
 	fi
 
@@ -463,13 +467,13 @@ function install_deployer() {
 	if [ -n "${APP_SERVICE_NAME}" ]; then
 		printf -v val %-.20s "$DEPLOYER_KEYVAULT"
 		print_banner "$banner_title" "Application Configuration: $val" "info"
-		save_config_var "APP_SERVICE_NAME" "${deployer_config_information}"
+		save_config_var "APP_SERVICE_NAME" "${deployer_environment_file_name}"
 		export APP_SERVICE_NAME
 	fi
 
 	HAS_WEBAPP=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
 	if [ -n "${HAS_WEBAPP}" ]; then
-		save_config_var "HAS_WEBAPP" "${deployer_config_information}"
+		save_config_var "HAS_WEBAPP" "${deployer_environment_file_name}"
 		export HAS_WEBAPP
 	fi
 

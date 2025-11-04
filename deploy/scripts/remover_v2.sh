@@ -208,7 +208,7 @@ function parse_arguments() {
 		if [ -z "${landscape_tfstate_key}" ]; then
 			if [ 1 != $called_from_ado ]; then
 				read -r -p "Workload terraform statefile name: " landscape_tfstate_key
-				save_config_var "landscape_tfstate_key" "${system_config_information}"
+				save_config_var "landscape_tfstate_key" "${system_environment_file_name}"
 			else
 				print_banner "$banner_title - $deployment_system" "Workload terraform statefile name is required" "error"
 				unset TF_DATA_DIR
@@ -227,7 +227,7 @@ function parse_arguments() {
 		if [ -z "${deployer_tfstate_key}" ]; then
 			if [ 1 != $called_from_ado ]; then
 				read -r -p "Deployer terraform state file name: " deployer_tfstate_key
-				save_config_var "deployer_tfstate_key" "${system_config_information}"
+				save_config_var "deployer_tfstate_key" "${system_environment_file_name}"
 			else
 				print_banner "$banner_title - $deployment_system" "Deployer terraform state file name is required" "error"
 				unset TF_DATA_DIR
@@ -256,14 +256,17 @@ function parse_arguments() {
 		return $?
 	fi
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
-
-	if [ $deployment_system == sap_system ] || [ $deployment_system == sap_landscape ]; then
-		system_config_information="${CONFIG_DIR}/${WORKLOAD_ZONE_NAME}"
-		network_logical_name=$(echo $WORKLOAD_ZONE_NAME | cut -d'-' -f3)
+	if [ -n "$landscape_tfstate_key" ]; then
+		environment=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
+		region_code=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $2}' | xargs)
+		network_logical_name=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $3}' | xargs)
 	else
-		system_config_information="${CONFIG_DIR}/${CONTROL_PLANE_NAME}"
-		management_network_logical_name=$(echo $CONTROL_PLANE_NAME | cut -d'-' -f3)
+		environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
+		region_code=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
+		network_logical_name=$(echo "$deployer_tfstate_	key" | awk -F'-' '{print $3}' | xargs)
 	fi
+
+	system_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${environment}" "${region_code}" "${network_logical_name}")
 	region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 	if valid_region_name "${region}"; then
 		# Convert the region to the correct code
@@ -342,7 +345,7 @@ function retrieve_parameters() {
 
 			fi
 		else
-			load_config_vars "${system_config_information}" \
+			load_config_vars "${system_environment_file_name}" \
 				tfstate_resource_id DEPLOYER_KEYVAULT
 
 			TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
@@ -409,7 +412,7 @@ function sdaf_remover() {
 
 	print_banner "$banner_title" "Removal starter." "info" "Entering $SCRIPT_NAME"
 
-	if ! retrieve_parameters	; then
+	if ! retrieve_parameters; then
 		print_banner "$banner_title" "Retrieving parameters failed" "error"
 		return $?
 	fi
@@ -431,7 +434,7 @@ function sdaf_remover() {
 		echo "Workload zone name:                  ${WORKLOAD_ZONE_NAME}"
 	fi
 
-	echo "Configuration file:                  $system_config_information"
+	echo "Configuration file:                  $system_environment_file_name"
 	echo "Deployment region:                   $region"
 	echo "Deployment region code:              $region_code"
 	echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
@@ -466,7 +469,7 @@ function sdaf_remover() {
 	TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 	export TF_VAR_subscription_id
 
-	#§init "${CONFIG_DIR}" "${generic_config_information}" "${system_config_information}"
+	#§init "${CONFIG_DIR}" "${generic_environment_file_name}" "${system_environment_file_name}"
 
 	var_file="${param_dirname}"/"${parameterFilename}"
 
@@ -747,20 +750,20 @@ function sdaf_remover() {
 
 	fi
 
-	if [ -f "${system_config_information}" ]; then
+	if [ -f "${system_environment_file_name}" ]; then
 		if [ "${deployment_system}" == sap_deployer ]; then
-			sed -i /deployer_tfstate_key/d "${system_config_information}"
+			sed -i /deployer_tfstate_key/d "${system_environment_file_name}"
 		fi
 
 		if [ "${deployment_system}" == sap_landscape ]; then
-			rm "${system_config_information}"
+			rm "${system_environment_file_name}"
 
 		fi
 
 		if [ "${deployment_system}" == sap_library ]; then
-			sed -i /REMOTE_STATE_RG/d "${system_config_information}"
-			sed -i /REMOTE_STATE_SA/d "${system_config_information}"
-			sed -i /tfstate_resource_id/d "${system_config_information}"
+			sed -i /REMOTE_STATE_RG/d "${system_environment_file_name}"
+			sed -i /REMOTE_STATE_SA/d "${system_environment_file_name}"
+			sed -i /tfstate_resource_id/d "${system_environment_file_name}"
 		fi
 	fi
 

@@ -58,7 +58,7 @@ if [ $USE_MSI == "true" ]; then
 fi
 
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.12.2}"
+	configureNonDeployer "${tf_version:-1.13.3}"
 fi
 
 if az account show --query name; then
