@@ -15,14 +15,18 @@ parameters:
     default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
 
   - name:                              workload_environment
-    displayName:                       Workload Environment (DEV, QA, PRD, ...)
+    displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET"
     type:                              string
-    default:                           DEV
+    default:                           DEV-WEEU-SAP01
 
   - name:                              deployer_environment
     displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
     type:                              string
     default:                           MGMT
+
+  - name:                              control_plane_name
+    displayName:                       "Control Plane name, use the following syntax: ENV-LOCA-VNET"
+    type:                              string
 
   - name:                              deployer_region
     displayName:                       Deployer region name code (MGMT, DEV, QA, PRD, ...)
@@ -154,9 +158,10 @@ stages:
     variables:
       - template:                      variables/02-sap-workload-zone-variables.yaml
         parameters:
-          workload_zone:               ${{ parameters.workload_zone }}
-          workload_environment:        ${{ parameters.workload_environment }}
-          deployer_environment:        ${{ parameters.deployer_environment }}
+          workload_zone:          ${{ parameters.workload_zone }}
+          workload_environment:        ${{ parameters.workload_zone }}
+          control_plane_name:          ${{ parameters.control_plane_name }}
+          deployer_environment:        ${{ parameters.control_plane_name }}
           deployer_region:             ${{ parameters.deployer_region }}
           inherit_settings:            ${{ parameters.inherit_settings }}
     jobs:
