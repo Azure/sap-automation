@@ -1800,7 +1800,7 @@ Export-ModuleMember -Function New-SDAFADOProject
 .PARAMETER ControlPlaneSubscriptionId
     The subscription ID for the control plane resources.
 
-    .PARAMETER WorkloadZoneCode
+.PARAMETER WorkloadZoneCode
     The workload zone code identifier (e.g., QA).
 
 .PARAMETER WorkloadZoneName
@@ -1814,6 +1814,9 @@ Export-ModuleMember -Function New-SDAFADOProject
 
 .PARAMETER ManagedIdentityObjectId
     The object ID of the managed identity (required for Managed Identity authentication).
+
+.PARAMETER ManagedIdentityId
+    The ID of the managed identity (required for Managed Identity authentication).
 
 .PARAMETER CreateConnections
     Switch to create service connections automatically.
@@ -1884,7 +1887,7 @@ function New-SDAFADOWorkloadZone {
     [string]$ManagedIdentityObjectId,
 
     # Managed Identity specific parameters
-    [Parameter(ParameterSetName = "ManagedIdentityId", Mandatory = $false)]
+    [Parameter(ParameterSetName = "ManagedIdentity", Mandatory = $false)]
     [string]$ManagedIdentityId = "",
 
 
@@ -2200,7 +2203,6 @@ function New-SDAFADOWorkloadZone {
 
         }
 
-
         foreach ($RoleName in $Roles) {
 
           Write-Host "Assigning role" $RoleName "to the Managed Identity" -ForegroundColor Green
@@ -2343,7 +2345,7 @@ function New-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOWorkloadZone
-#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 577
+#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 579
 #Region '.\Public\New-SDAFUserAssignedIdentity.ps1' -1
 
 function New-SDAFUserAssignedIdentity {

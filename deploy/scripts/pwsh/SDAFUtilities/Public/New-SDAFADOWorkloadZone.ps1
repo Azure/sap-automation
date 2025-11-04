@@ -31,7 +31,7 @@
 .PARAMETER ControlPlaneSubscriptionId
     The subscription ID for the control plane resources.
 
-    .PARAMETER WorkloadZoneCode
+.PARAMETER WorkloadZoneCode
     The workload zone code identifier (e.g., QA).
 
 .PARAMETER WorkloadZoneName
@@ -45,6 +45,9 @@
 
 .PARAMETER ManagedIdentityObjectId
     The object ID of the managed identity (required for Managed Identity authentication).
+
+.PARAMETER ManagedIdentityId
+    The ID of the managed identity (required for Managed Identity authentication).
 
 .PARAMETER CreateConnections
     Switch to create service connections automatically.
@@ -115,7 +118,7 @@ function New-SDAFADOWorkloadZone {
     [string]$ManagedIdentityObjectId,
 
     # Managed Identity specific parameters
-    [Parameter(ParameterSetName = "ManagedIdentityId", Mandatory = $false)]
+    [Parameter(ParameterSetName = "ManagedIdentity", Mandatory = $false)]
     [string]$ManagedIdentityId = "",
 
 
@@ -430,7 +433,6 @@ function New-SDAFADOWorkloadZone {
           }
 
         }
-
 
         foreach ($RoleName in $Roles) {
 
