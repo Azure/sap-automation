@@ -150,8 +150,6 @@
         set path = ($path $ORACLE_HOME/bin)
     mode:                              0755
 
-
-
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
 # | Before running Installer set DB_SID and CV_ASSUME_DISTID according to      |
