@@ -2399,7 +2399,7 @@ function New-SDAFUserAssignedIdentity {
 
     # Verify resource group exists
     try {
-      $rgExists = az group exists --name $ResourceGroupName
+      $rgExists = az group exists --name $ResourceGroupName --subscription $SubscriptionId
       if ($rgExists -eq "false") {
         Write-Error "Resource group '$ResourceGroupName' does not exist in subscription '$SubscriptionId'"
         return
