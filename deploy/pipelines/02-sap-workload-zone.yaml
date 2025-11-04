@@ -160,7 +160,6 @@ stages:
         parameters:
           workload_zone:          ${{ parameters.workload_zone }}
           workload_environment:        ${{ parameters.workload_zone }}
-          control_plane_name:          ${{ parameters.control_plane_name }}
           deployer_environment:        ${{ parameters.control_plane_name }}
           deployer_region:             ${{ parameters.deployer_region }}
           inherit_settings:            ${{ parameters.inherit_settings }}
