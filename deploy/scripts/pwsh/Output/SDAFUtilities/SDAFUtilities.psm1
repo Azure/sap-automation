@@ -1887,9 +1887,8 @@ function New-SDAFADOWorkloadZone {
     [string]$ManagedIdentityObjectId,
 
     # Managed Identity specific parameters
-    [Parameter(ParameterSetName = "ManagedIdentity", Mandatory = $false)]
-    [string]$ManagedIdentityId = "",
-
+    [Parameter(ParameterSetName = "ManagedIdentity", Mandatory = $true)]
+    [string]$ManagedIdentityId,
 
     # Switch parameters
     [Parameter(HelpMessage = "Create service connections automatically")]
@@ -2345,7 +2344,7 @@ function New-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOWorkloadZone
-#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 579
+#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 578
 #Region '.\Public\New-SDAFUserAssignedIdentity.ps1' -1
 
 function New-SDAFUserAssignedIdentity {
