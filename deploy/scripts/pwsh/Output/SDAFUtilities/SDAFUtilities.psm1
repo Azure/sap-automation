@@ -8,7 +8,7 @@ function Get-IniContent {
     .SYNOPSIS
         Get-IniContent
 
-
+    
 .LINK
     https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
 
@@ -48,11 +48,11 @@ function Out-IniFile {
     <#
         .SYNOPSIS
             Out-IniContent
-
-
+    
+        
     .LINK
         https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
-
+    
         #>
     <#
     #>
@@ -356,7 +356,6 @@ function Get-SDAFUserAssignedIdentity {
           IdentityId       = $identity.id
           PrincipalId      = $identity.principalId
           ClientId         = $identity.clientId
-          RoleAssignmentId = $roleAssignment
         }
       }
       else {
@@ -378,7 +377,7 @@ function Get-SDAFUserAssignedIdentity {
 
 # Export the function
 Export-ModuleMember -Function Get-SDAFUserAssignedIdentity
-#EndRegion '.\Public\Get-SDAFUserAssignedIdentity.ps1' 102
+#EndRegion '.\Public\Get-SDAFUserAssignedIdentity.ps1' 101
 #Region '.\Public\New-SDAFADOProject.ps1' -1
 
 #Requires -Version 5.1
@@ -409,7 +408,7 @@ Export-ModuleMember -Function Get-SDAFUserAssignedIdentity
     The control plane code identifier (e.g., MGMT).
 
 .PARAMETER ControlPlaneName
-    The control plane name (e.g., MGMT-WEUE-DEP01).
+    The control plane name (e.g., MGMT-WEEU-DEP01).
 
 .PARAMETER ControlPlaneSubscriptionId
     The subscription ID for the control plane resources.
@@ -1796,13 +1795,16 @@ Export-ModuleMember -Function New-SDAFADOProject
     The control plane code identifier (e.g., MGMT).
 
 .PARAMETER ControlPlaneName
-    The control plane name (e.g., "MGMT-WEEU-DEP01  ").
+    The control plane name (e.g., "MGMT-WEEU-DEP01").
 
-.PARAMETER WorkloadZoneCode
+.PARAMETER ControlPlaneSubscriptionId
+    The subscription ID for the control plane resources.
+
+    .PARAMETER WorkloadZoneCode
     The workload zone code identifier (e.g., QA).
 
 .PARAMETER WorkloadZoneName
-    The workload zone name (e.g., "QA-WEEU-SAP01  ").
+    The workload zone name (e.g., "QA-WEEU-SAP01").
 
 .PARAMETER WorkloadZoneSubscriptionId
     The subscription ID for the workload zone resources.
@@ -1849,13 +1851,17 @@ function New-SDAFADOWorkloadZone {
     [string]$ControlPlaneCode,
 
     [Parameter(Mandatory = $false, HelpMessage = "Control Plane name (e.g., MGMT-WEEU-DEP01)")]
-    [string]$ControlPlaneName="",
+    [string]$ControlPlaneName = "",
+
+    [Parameter(Mandatory = $true, HelpMessage = "Control Plane subscription ID")]
+    [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
+    [string]$ControlPlaneSubscriptionId,
 
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone code (e.g., DEV)")]
     [string]$WorkloadZoneCode,
 
     [Parameter(Mandatory = $false, HelpMessage = "Workload zone name (e.g., DEV-WEEU-SAP01)")]
-    [string]$WorkloadZoneName="",
+    [string]$WorkloadZoneName = "",
 
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone subscription ID")]
     [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
@@ -2322,7 +2328,7 @@ function New-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOWorkloadZone
-#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 555
+#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 562
 #Region '.\Public\New-SDAFUserAssignedIdentity.ps1' -1
 
 function New-SDAFUserAssignedIdentity {
