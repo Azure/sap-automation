@@ -2163,7 +2163,7 @@ function New-SDAFADOWorkloadZone {
       }
 
       $ManagedIdentityClientId = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].id" --subscription $ControlPlaneSubscriptionId --output tsv)
-      Write-Verbose
+      Write-Verbose "Client ID of the Managed Identity: $ManagedIdentityClientId"
 
       $ControlPlaneVariableGroupId = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
       $AgentPoolName = ""
