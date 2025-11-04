@@ -19,5 +19,12 @@ if [ ! -f "/etc/profile.d/deploy_server.sh" ]; then
 	ansible --version
 else
 	echo "Running on SDAF deployed agent"
-	sudo apt install python3-jmespath -y
+
+	isJmespathInstalled=$(which python3-jmespath || true)
+	if [ -z "$isJmespathInstalled" ]; then
+		echo -e "$green--- Install python3-jmespath ---$reset"
+		sudo apt-get -qq -y install python3-jmespath
+	fi
+
+
 fi
