@@ -114,6 +114,11 @@ function New-SDAFADOWorkloadZone {
     [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
     [string]$ManagedIdentityObjectId,
 
+    # Managed Identity specific parameters
+    [Parameter(ParameterSetName = "ManagedIdentityId", Mandatory = $false)]
+    [string]$ManagedIdentityId = "",
+
+
     # Switch parameters
     [Parameter(HelpMessage = "Create service connections automatically")]
     [switch]$CreateConnections,
@@ -393,9 +398,6 @@ function New-SDAFADOWorkloadZone {
         throw "Project not found"
       }
 
-      $ManagedIdentityClientId = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].id" --subscription $ControlPlaneSubscriptionId --output tsv)
-      Write-Verbose "Client ID of the Managed Identity: $ManagedIdentityClientId"
-
       $ControlPlaneVariableGroupId = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
       $AgentPoolName = ""
       if ($ControlPlaneVariableGroupId.Length -ne 0) {
@@ -417,6 +419,18 @@ function New-SDAFADOWorkloadZone {
           "Key Vault Administrator",
           "App Configuration Data Owner"
         )
+
+        if ($ManagedIdentityId.Length -ne 0) {
+          $ResourceGroupName = $ManagedIdentityId.Split("/")[4]
+          $ManagedIdentityClientId = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].id" --subscription $ControlPlaneSubscriptionId --resource-group $ResourceGroupName --output tsv)
+          Write-Verbose "Client ID of the Managed Identity: $ManagedIdentityClientId"
+          if ($ManagedIdentityClientId.Length -eq 0) {
+            Write-Error "Managed Identity with Object ID $ManagedIdentityObjectId was not found in subscription $ControlPlaneSubscriptionId"
+            throw "Managed Identity not found"
+          }
+
+        }
+
 
         foreach ($RoleName in $Roles) {
 
