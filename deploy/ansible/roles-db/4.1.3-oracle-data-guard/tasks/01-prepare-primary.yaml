@@ -87,6 +87,8 @@
                                        $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
+                                       ALTER DATABASE FORCE LOGGING;
+                                       ALTER DATABASE FLASHBACK ON;
 
                                        EXIT;
                                        EOF
