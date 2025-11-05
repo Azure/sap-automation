@@ -177,11 +177,8 @@
                                        -silent -ignorePrereqWarnings
       register:                        oracle_installer_results
       failed_when:                     oracle_installer_results.rc >=  2
-      environment:
-        DB_SID:                        "{{ db_sid | upper }}"
-        CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
+      environment:                     "{{ oracle_env }}"
       args:
-        executable:                    /bin/csh
         chdir:                         "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
         creates:                       /etc/sap_deployment_automation/{{ db_sid | upper }}/oracle_installed.txt
 
@@ -267,15 +264,13 @@
 - name:                                "4.1.0. Oracle Installation - Post Processing - SBP Patching"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell:               "env ORACLE_HOME=$IHRDBMS $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ bom.patch_information.oracle_sbp_patch }} -F mopatch_patchgen"
-  environment:
-    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
-    IHRDBMS :                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-  register:                            sbpscriptdb_results
-  failed_when:                         sbpscriptdb_results.rc >= 2
+  ansible.builtin.shell:               "$IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ bom.patch_information.oracle_sbp_patch }} -F mopatch_patchgen"
+  environment:                         "{{ oracle_env }}"
   args:
     chdir:                             "{{ target_media_location }}/SBP"
-    executable:                        /bin/csh
+    creates:                           /etc/sap_deployment_automation/{{ db_sid | upper }}/oracle_installed.txt
+  register:                            sbpscriptdb_results
+  failed_when:                         sbpscriptdb_results.rc >= 2
 
 - name:                                "4.1.0. Oracle Installation - Post processing installer output"
   ansible.builtin.debug:
