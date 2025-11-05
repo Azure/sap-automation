@@ -110,6 +110,7 @@
       when:                            standby_pmon.stdout | length > 0
 
     - name:                            "4.1.3 Oracle Data Guard - Start Instance - Start instance with NOMOUNT using PFile"
+      when:                            use_pfile_on_startup
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
@@ -117,6 +118,23 @@
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba <<EOF
                                        STARTUP NOMOUNT PFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ current_sid }}.ora';
+                                       EXIT;
+                                       EOF
+      register:                        startup_result
+      failed_when:                     startup_result.rc != 0
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
+
+    - name:                            "4.1.3 Oracle Data Guard - Start Instance - Start instance with NOMOUNT using PFile"
+      when:                            not use_pfile_on_startup
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ current_sid }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba <<EOF
+                                       STARTUP MOUNT;
                                        EXIT;
                                        EOF
       register:                        startup_result
