@@ -1,0 +1,196 @@
+---
+
+- name:                                "4.1.3 Oracle Data Guard - Setup Primary: - Test network connectivity to peer"
+  ansible.builtin.wait_for:
+    host:                              "{{ hostvars[item]['ansible_host'] }}"
+    port:                              "{{ listener_port }}"
+    timeout:                           10
+  loop:                                 "{{ ansible_play_hosts_all }}"
+  when:                                item != inventory_hostname
+  delegate_to:                         localhost
+
+- name:                                "4.1.3 Oracle Data Guard - Check ASM status"
+  become_user:                         "{{ grid_user_name }}"
+  when:                                node_tier == "oracle-asm"
+  become:                              true
+  ansible.builtin.shell: |
+                                       sqlplus / as sysasm <<EOF
+                                       SET PAGESIZE 0 FEEDBACK OFF
+                                       SELECT name || ':' || state FROM v\$asm_diskgroup;
+                                       EXIT;
+                                       EOF
+
+  register:                            asm_status
+  environment:                         "{{ grid_env }}"
+  changed_when:                        false
+  args:
+    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
+
+- name:                                "4.1.3 Oracle Data Guard - Show ASM mounted disk groups"
+  ansible.builtin.debug:
+    msg:                               "ASM Disk group Status: {{ asm_status.stdout }}"
+  when:
+    - node_tier == "oracle-asm"
+    - asm_status is defined
+
+- name:                                "4.1.3 Oracle Data Guard - Setup Primary: -Validate ASM mounted disk groups"
+  ansible.builtin.assert:
+    that:                              "'MOUNTED' in asm_status.stdout"
+    fail_msg:                          "ASM disk groups not mounted"
+  when:
+    - node_tier == "oracle-asm"
+    - asm_status is defined
+
+- name:                                "4.1.3 Oracle Data Guard - Verify Status on Primary"
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       sqlplus -S / as sysdba <<EOF
+                                       SET PAGESIZE 0 FEEDBACK OFF HEADING OFF;
+                                       SELECT database_role || ':' || open_mode FROM v\$database;
+                                       EXIT;
+                                       EOF
+
+  register:                            dg_status
+  changed_when:                        false
+  failed_when:                         false
+  args:
+    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
+  environment:                         "{{ oracle_env }}"
+
+- name:                                "4.1.3 Oracle Data Guard - Set status on Primary"
+  ansible.builtin.set_fact:
+    primary_open:                      "{{ ((dg_status.stdout | default('UNKNOWN')) is search('PRIMARY:READ WRITE')) | bool }}"
+    primary_mounted:                   "{{ ((dg_status.stdout | default('UNKNOWN')) is search('PRIMARY:MOUNTED')) | bool }}"
+
+- name:                                "4.1.3 Oracle Data Guard - Show status on Primary"
+  ansible.builtin.debug:
+    msg:
+      - "Database instance:            {{ ansible_hostname }}"
+      - "Primary instance open:        {{ primary_open }}"
+      - "Primary instance mounted:     {{ primary_mounted }}"
+      - "Database role and open mode:  {{ dg_status.stdout }}"
+
+- name:                                "4.1.3 Oracle Data Guard - Open Primary"
+  when:
+    - not primary_open
+    - primary_mounted
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       sqlplus -S / as sysdba <<EOF
+                                       ALTER DATABASE OPEN;
+                                       EXIT;
+                                       EOF
+
+  register:                            db_opened
+  changed_when:                        false
+  failed_when:                         false
+  environment:                         "{{ oracle_env }}"
+  args:
+    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
+
+- name:                                "4.1.3 Oracle Data Guard - Restart Primary instance"
+  when:                                not primary_mounted
+  block:
+    - name:                            "4.1.3 Oracle Data Guard - Restart Primary instance"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       sqlplus -S / as sysdba <<EOF
+                                       SHUTDOWN IMMEDIATE;
+                                       EXIT;
+                                       EOF
+
+      register:                        db_shut_down
+      changed_when:                    false
+      failed_when:                     false
+      environment:                     "{{ oracle_env }}"
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+
+    - name:                            "4.1.3 Oracle Data Guard - Shutdown instance - Check for zombie standby processes"
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       ps -ef | grep ora_pmon_{{ db_sid | upper }} | grep -v grep || true
+      become_user:                     "root"
+      become:                          true
+      register:                        standby_pmon
+      changed_when:                    false
+
+    - name:                            "4.1.3 Oracle Data Guard - Shutdown instance - Kill zombie standby processes"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.shell:           kill -9 {{ item.split()[1] }}
+      loop:                            "{{ standby_pmon.stdout_lines }}"
+      when:                            standby_pmon.stdout | length > 0
+      failed_when:                     false
+
+    - name:                            "4.1.3 Oracle Data Guard - Shutdown instance - Clean orphaned shared memory segments"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       for seg in $(ipcs -m | grep {{ oracle_user_name }} | awk '$6==0 {print $2}'); do
+                                         ipcrm -m $seg
+                                       done
+      failed_when:                     false
+      when:                            standby_pmon.stdout | length > 0
+
+    - name:                            "4.1.3 Oracle Data Guard - Shutdown instance - Remove lock file"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.file:
+        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/ls{{ db_sid | upper }}"
+        state:                         absent
+      failed_when:                     false
+
+    - name:                            "4.1.3 Oracle Data Guard - Restart Primary instance"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       sqlplus -S / as sysdba <<EOF
+                                       STARTUP MOUNT;
+                                       ALTER DATABASE OPEN;
+                                       EXIT;
+                                       EOF
+
+      register:                        db_started_down
+      changed_when:                    false
+      failed_when:                     false
+      environment:                     "{{ oracle_env }}"
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+
+
+- name:                            "4.1.3 Oracle Data Guard - Verify Data Guard configuration on Primary"
+  when:                            not primary_open
+  become_user:                     "{{ oracle_user_name }}"
+  become:                          true
+  ansible.builtin.shell: |
+
+                                    printenv
+                                    sqlplus / as sysdba <<EOF
+                                    SET PAGESIZE 0 FEEDBACK OFF HEADING OFF;
+                                    SELECT database_role || ':' || open_mode FROM v\$database;
+                                    EXIT;
+                                    EOF
+
+  register:                        dg_status
+  changed_when:                    false
+  failed_when:                     false
+  environment:                     "{{ oracle_env }}"
+  args:
+    chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+
+- name:                            "4.1.3 Oracle Data Guard - Set Data Guard configuration status on Primary"
+  when:                            not primary_open
+  ansible.builtin.set_fact:
+    primary_open:                  "{{ ((dg_status.stdout | default('UNKNOWN')) is search('PRIMARY:READ WRITE')) | bool }}"
+
+- name:                            "4.1.3 Oracle Data Guard - Display Data Guard status on Primary"
+  ansible.builtin.debug:
+    msg:
+      - "Database instance:        {{ ansible_hostname }}"
+      - "Primary instance open:    {{ primary_open }}"
+
