@@ -95,3 +95,15 @@
   loop:                                "{{ ssfs_controller_check.results | selectattr('item.folder', 'search', 'xsa') | list }}"
   loop_control:
     label:                             "{{ item.item.file }}"
+
+# ----------------------------------------
+# Cleanup: Remove temporary files from Controller
+# ----------------------------------------
+
+- name:                                "HANA HSR: - Cleanup SSFS files from Controller"
+  delegate_to:                         localhost
+  become:                              false
+  ansible.builtin.file:
+    path:                              /tmp/hana_ssfs
+    state:                             absent
+  run_once:                            true
