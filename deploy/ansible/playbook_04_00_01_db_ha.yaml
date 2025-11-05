@@ -232,11 +232,11 @@
     ansible_executable:                /bin/bash
 
     oracle_base:                       /oracle
-    oracle_home:                       /oracle/{{ db_sid | upper }}/{{ ora_version }}
-    oracle_sid:                        {{ db_sid | upper }}
-    oracle_user:                       {{ oracle_user_name }}
+    oracle_home:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    oracle_sid:                        "{{ db_sid | upper }}"
+    oracle_user:                       "{{ oracle_user_name }}"
     grid_sid:                          GRID
-    grid_user:                         {{ grid_user_name | default(oracle_user_name) }}
+    grid_user:                         "{{ grid_user_name | default(oracle_user_name) }}"
     grid_home:                         /oracle/GRID/{{ ora_version }}
     asm_sid:                           +ASM
 
