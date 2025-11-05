@@ -244,7 +244,7 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
@@ -264,7 +264,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        srvctl config database -d {{ db_sid | upper }}_STDBY
       environment:
@@ -285,7 +285,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ item.sid }}
+                                       setenv ORACLE_SID {{ item.sid }}_STDBY
                                        srvctl disable database -d {{ db_sid | upper }}_STDBY
       environment:
         ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
@@ -304,7 +304,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -s / as sysdba << EOF
                                        SET HEADING OFF
@@ -374,6 +374,7 @@
                                        sqlplus -s / as sysdba << EOF
                                        SHUTDOWN IMMEDIATE;
                                        STARTUP MOUNT;
+                                       ALTER DATABASE OPEN;
                                        EOF
       environment:
         ORACLE_SID:                    "{{ db_sid | upper }}"
