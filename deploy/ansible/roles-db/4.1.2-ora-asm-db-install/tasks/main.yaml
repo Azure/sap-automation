@@ -132,9 +132,9 @@
     insertafter:                       'fi '
     block: |
         # User Specific environment
-        export ORACLE_HOME=/oracle/{{ db_sid | upper }}/{{ ora_release }}
+        export ORACLE_HOME=/oracle/{{ db_sid | upper }}/{{ ora_version }}
         export ORACLE_SID={{ db_sid | upper }}
-        export ORACLE_BASE=/oracle/{{ db_sid | upper }}
+        export ORACLE_BASE=/oracle
         export LD_LIBRARY_PATH=$ORACLE_HOME/lib
         export TNS_ADMIN=$ORACLE_HOME/network/admin
         export DB_SID={{ db_sid | upper }}
@@ -151,9 +151,9 @@
     marker_end:                        "-- END"
     block: |
         # User Specific environment
-        setenv  ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_release }}
+        setenv  ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
         setenv  ORACLE_SID  {{ db_sid | upper }}
-        setenv  ORACLE_BASE /oracle/{{ db_sid | upper }}
+        setenv  ORACLE_BASE /oracle
         setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
         setenv  TNS_ADMIN $ORACLE_HOME/network/admin
         setenv  DB_SID {{ db_sid | upper }}
@@ -169,9 +169,9 @@
     insertafter:                       'fi '
     block: |
         # User Specific environment
-        export ORACLE_HOME=/oracle/GRID/{{ ora_release }}
+        export ORACLE_HOME=/oracle/GRID/{{ ora_version }}
         export ORACLE_SID=+ASM
-        export ORACLE_BASE=/oracle/GRID
+        export ORACLE_BASE=/oracle
         export LD_LIBRARY_PATH=$ORACLE_HOME/lib
         export TNS_ADMIN=$ORACLE_HOME/network/admin
         export DB_SID=+ASM
@@ -189,9 +189,9 @@
     marker_end:                        "-- END"
     block: |
         # User Specific environment
-        setenv  ORACLE_HOME /oracle/GRID/{{ ora_release }}
+        setenv  ORACLE_HOME /oracle/GRID/{{ ora_version }}
         setenv  ORACLE_SID  +ASM
-        setenv  ORACLE_BASE /oracle/GRID
+        setenv  ORACLE_BASE /oracle
         setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
         setenv  TNS_ADMIN $ORACLE_HOME/network/admin
         setenv  DB_SID +ASM

@@ -175,7 +175,7 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba << EOF
+                                       sqlplus / as sysdba << EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT COUNT(*) FROM v\$standby_log;
                                        EXIT;
@@ -213,7 +213,7 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba << EOF
+                                       sqlplus / as sysdba << EOF
                                        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl1.dbf' size {{ standby_redo_log_size }} reuse;
                                        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl2.dbf' size {{ standby_redo_log_size }} reuse;
                                        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl3.dbf' size {{ standby_redo_log_size }} reuse;
@@ -240,7 +240,7 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       sqlplus -s / as sysdba << EOF
+                                       sqlplus / as sysdba << EOF
                                        ALTER DATABASE ADD STANDBY LOGFILE THREAD 1 GROUP 10 ('+DATA','+RECO') SIZE {{ standby_redo_log_size }} reuse;
                                        ALTER DATABASE ADD STANDBY LOGFILE THREAD 1 GROUP 11 ('+DATA','+RECO') SIZE {{ standby_redo_log_size }} reuse;
                                        ALTER DATABASE ADD STANDBY LOGFILE THREAD 1 GROUP 12 ('+DATA','+RECO') SIZE {{ standby_redo_log_size }} reuse;
@@ -335,7 +335,7 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       sqlplus -s / as sysdba <<EOF
+                                       sqlplus / as sysdba <<EOF
                                        ALTER SYSTEM REGISTER;
                                        EXIT;
                                        EOF
