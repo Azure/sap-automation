@@ -3,16 +3,15 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ current_sid }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       /oracle/{{ db_path }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       export ORACLE_SID={{ current_sid }}
+                                       sqlplus -S / as sysdba <<EOF
                                        SHUTDOWN IMMEDIATE;
                                        EXIT;
                                        EOF
   register:                            shutdown_result
+  environment:                         "{{ oracle_env }}"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
-    executable:                        /bin/csh
 
 - name:                                "4.1.3 Oracle Data Guard - Shutdown instance - Check for zombie standby processes"
   become_user:                         "root"
@@ -48,33 +47,32 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ current_sid }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba <<EOF
+                                       export ORACLE_SID={{ current_sid }}
+                                       sqlplus -s / as sysdba <<EOF
                                        STARTUP NOMOUNT PFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ current_sid }}.ora';
                                        EXIT;
                                        EOF
       register:                        startup_result
       failed_when:                     startup_result.rc != 0
+      environment:                     "{{ oracle_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-        executable:                    /bin/csh
         creates:                       /etc/sap_deployment_automation/dataguard_scripts/standby_started.txt
   rescue:
     - name:                            "4.1.3 Oracle Data Guard - Start Instance - Shutdown instance after failed startup attempt"
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ current_sid }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       /oracle/{{ db_path }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       export ORACLE_SID={{ current_sid }}
+                                       sqlplus -S / as sysdba <<EOF
                                        SHUTDOWN ABORT;
                                        EXIT;
                                        EOF
       register:                        shutdown_result
+      environment:                     "{{ oracle_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-        executable:                    /bin/csh
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/standby_started.txt
 
     - name:                            "4.1.3 Oracle Data Guard - Start Instance - Show Shutdown Result"
       ansible.builtin.debug:
@@ -114,49 +112,47 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ current_sid }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba <<EOF
+                                       export ORACLE_SID={{ current_sid }}
+                                       sqlplus -s / as sysdba <<EOF
                                        STARTUP NOMOUNT PFILE='/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ current_sid }}.ora';
                                        EXIT;
                                        EOF
       register:                        startup_result
       failed_when:                     startup_result.rc != 0
+      environment:                     "{{ oracle_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-        executable:                    /bin/csh
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/standby_started.txt
 
     - name:                            "4.1.3 Oracle Data Guard - Start Instance - Start instance with NOMOUNT using PFile"
       when:                            not use_pfile_on_startup
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ current_sid }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -s / as sysdba <<EOF
+                                       export ORACLE_SID={{ current_sid }}
+                                       sqlplus -s / as sysdba <<EOF
                                        STARTUP MOUNT;
                                        EXIT;
                                        EOF
       register:                        startup_result
       failed_when:                     startup_result.rc != 0
+      environment:                     "{{ oracle_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-        executable:                    /bin/csh
 
 - name:                                "4.1.3 Oracle Data Guard - Start Instance - Register with listener"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ current_sid }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       export ORACLE_SID={{ current_sid }}
+                                       sqlplus -S / as sysdba <<EOF
                                        ALTER SYSTEM REGISTER;
                                        EXIT;
                                        EOF
   register:                            startup_result
+  environment:                         "{{ oracle_env }}"
   args:
     chdir:                            "/etc/sap_deployment_automation/dataguard_scripts/"
-    executable:                        /bin/csh
 
 - name:                                "4.1.3 Oracle Data Guard - Start Instance - Verify standby instance running"
   become_user:                         "{{ oracle_user_name }}"
@@ -172,15 +168,9 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ current_sid }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       export ORACLE_SID={{ current_sid }}
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl reload
-  environment:
-    ORACLE_HOME:                       "/oracle/{{ db_path }}/{{ ora_version }}"
-    ORACLE_SID:                        "{{ current_sid }}"
-  args:
-    chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
-    executable:                        /bin/csh
+  environment:                         "{{ oracle_env }}"
   register:                            listener_reload_results
   failed_when:
                                       - listener_reload_results.rc not in [0, 1]
@@ -189,16 +179,11 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ current_sid }}
-                                       setenv ORACLE_HOME /oracle/{{ db_path | upper }}/{{ ora_version }}
-
+                                       export ORACLE_SID={{ current_sid }}
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl start
-  environment:
-    ORACLE_HOME:                       "/oracle/{{ db_path }}/{{ ora_version }}"
-    ORACLE_SID:                        "{{ db_sid | upper }}_STDBY"
+  environment:                         "{{ oracle_env }}"
   args:
     chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
-    executable:                        /bin/csh
   register:                            listener_start_results
   failed_when:
                                       - listener_start_results.rc not in [0, 1]

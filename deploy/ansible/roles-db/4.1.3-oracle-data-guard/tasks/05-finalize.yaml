@@ -13,16 +13,15 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        dgmgrl / as sysdba << EOF
                                        SHOW CONFIGURATION;
                                        EOF
       failed_when:                     false
       changed_when:                    false
       register:                        dgconfig_check
+      environment:                     "{{ oracle_env }}"
       args:
-        executable:                    /bin/csh
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
 
     - name:                            "4.1.3 Oracle Data Guard - Finalize - Create Data Guard Configuration on Primary"
       when:                            dgconfig_check.rc!=0 or 'ORA-16525' in dgconfig_check.stdout or 'ORA-16532' in dgconfig_check.stdout or 'Configuration details cannot be determined by DGMGRL' in dgconfig_check.stdout
@@ -30,8 +29,6 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        dgmgrl / as sysdba << EOF
                                        CREATE CONFIGURATION {{ db_sid | upper }}_dg_config AS PRIMARY DATABASE IS {{ db_sid | upper }} CONNECT IDENTIFIER IS {{ db_sid | upper }};
                                        ENABLE CONFIGURATION;
@@ -39,15 +36,14 @@
                                        EOF
       register:                        dgconfig_results
       failed_when:                     dgconfig_results.rc > 0
+      environment:                     "{{ oracle_env }}"
       args:
-        executable:                    /bin/csh
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
 
     - name:                            "4.1.3 Oracle Data Guard - Finalize - Add secondary Database to Data Guard Configuration on Primary"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        dgmgrl / as sysdba << EOF
                                        ADD DATABASE {{ db_sid | upper }}_STDBY AS CONNECT IDENTIFIER IS {{ db_sid | upper }}_STDBY MAINTAINED AS PHYSICAL;
                                        ENABLE CONFIGURATION;
@@ -55,15 +51,14 @@
                                        EOF
       register:                        dgconfig_add_results
       failed_when:                     dgconfig_add_results.rc > 0
+      environment:                     "{{ oracle_env }}"
       args:
-        executable:                    /bin/csh
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
 
     - name:                            "4.1.3 Oracle Data Guard - Finalize - Enable Fast-Start Failover"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        dgmgrl / as sysdba << EOF
 
                                        EDIT DATABASE {{ db_sid | upper }}_STDBY set state='LOG-APPLY-OFF';
@@ -73,16 +68,15 @@
                                        EDIT DATABASE {{ db_sid | upper }}_STDBY SET PROPERTY FastStartFailoverTarget ='{{ db_sid | upper }}';
 
                                        EDIT CONFIGURATION SET PROTECTION MODE AS MAXAVAILABILITY;
-
                                        ENABLE FAST_START FAILOVER;
 
                                        exit;
                                        EOF
       register:                        dgconfig_fast_start_results
       failed_when:                     dgconfig_fast_start_results.rc > 0
+      environment:                     "{{ oracle_env }}"
       args:
-        executable:                    /bin/csh
-
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
 
     # Disable the automatic restart for database on Primary.
     - name:                            "4.1.3 Oracle Data Guard - Primary - Check if database registered with restart on Primary"
@@ -91,13 +85,10 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
                                        srvctl config database -d {{ db_sid | upper }}
-      environment:
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      environment:                     "{{ grid_env }}"
       args:
-        executable:                    /bin/csh
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        srvctl_check
       failed_when:                     false
       changed_when:                    false
@@ -112,11 +103,9 @@
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
                                        srvctl disable database -d {{ db_sid | upper }}
-      environment:
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      environment:                     "{{ grid_env }}"
       args:
-        executable:                    /bin/csh
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        disable_restart_primary
       failed_when:
                                        - disable_restart_primary.rc not in [0, 2]
@@ -131,19 +120,15 @@
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
 
-                                       setenv ORACLE_SID {{ db_sid | upper }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -s / as sysdba << EOF
                                        SET HEADING OFF
                                        SET FEEDBACK OFF
                                        SELECT open_mode FROM v\$database;
                                        EXIT;
                                        EOF
-      environment:
-        ORACLE_SID:                    "{{ db_sid | upper }}"
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      environment:                     "{{ oracle_env }}"
       args:
-        executable:                    /bin/csh
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        primary_open_mode
       failed_when:                     "'READ WRITE' not in primary_open_mode.stdout"
       changed_when:                    false
@@ -152,17 +137,13 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -s / as sysdba << EOF
                                        ALTER DATABASE OPEN;
                                        EXIT;
                                        EOF
-      environment:
-        ORACLE_SID:                    "{{ db_sid | upper }}"
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      environment:                     "{{ oracle_env }}"
       args:
-        executable:                    /bin/csh
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       when:                            "'READ WRITE' not in primary_open_mode.stdout"
       register:                        open_primary
       failed_when:                     open_primary.rc != 0 and 'ORA-01531' not in open_primary.stderr
@@ -176,8 +157,6 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        dgmgrl / as sysdba << EOF
                                        SHOW CONFIGURATION VERBOSE;
                                        SHOW DATABASE {{ db_sid | upper }};
@@ -187,8 +166,9 @@
                                        EOF
       register:                        dgconfig_show_results
       failed_when:                     dgconfig_show_results.rc > 0
+      environment:                     "{{ oracle_env }}"
       args:
-        executable:                    /bin/csh
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
 
     - name:                            "4.1.3 Oracle Data Guard - Finalize - Display Data Guard configuration"
       ansible.builtin.debug:
@@ -199,8 +179,6 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -s / as sysdba << EOF
                                        EXEC DBMS_SERVICE.CREATE_SERVICE(service_name=>'{{ db_sid | upper }}_HA',network_name=>'{{ db_sid | upper }}_HA');
                                        EXEC DBMS_SERVICE.START_SERVICE('{{ db_sid | upper }}_HA');
@@ -208,15 +186,14 @@
                                        EOF
       register:                        create_service_results
       failed_when:                     create_service_results.rc > 0
+      environment:                     "{{ oracle_env }}"
       args:
-        executable:                    /bin/csh
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
 
     - name:                            "4.1.3 Oracle Data Guard - Finalize - Create Database Trigger"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -s / as sysdba << EOF
 
                                        CREATE OR REPLACE TRIGGER {{ db_sid | lower }}_HA_SERVICE
@@ -234,8 +211,9 @@
                                        EOF
       register:                        create_trigger_results
       failed_when:                     create_trigger_results.rc > 0
+      environment:                     "{{ oracle_env }}"
       args:
-        executable:                    /bin/csh
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
 
 - name:                                "4.1.3 Oracle Data Guard Finalize -  Verify Data Guard configuration"
   when:                                ansible_hostname == ora_secondary
@@ -244,8 +222,6 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
                                        SELECT database_role || ',' || open_mode || ',' || db_unique_name FROM v\$database;
@@ -253,9 +229,9 @@
                                        EOF
       register:                        dg_status
       changed_when:                    false
+      environment:                     "{{ oracle_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-        executable:                    /bin/csh
 
     # Disable the automatic restart for database on Secondary.
     - name:                            "4.1.3 Oracle Data Guard - Finalize - Check if database registered with restart on Secondary"
@@ -264,14 +240,10 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        srvctl config database -d {{ db_sid | upper }}_STDBY
-      environment:
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      environment:                     "{{ grid_env }}"
       args:
-        executable:                    /bin/csh
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        srvctl_check
       failed_when:                     false
       changed_when:                    false
@@ -287,11 +259,10 @@
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ item.sid }}_STDBY
                                        srvctl disable database -d {{ db_sid | upper }}_STDBY
-      environment:
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      environment:                     "{{ grid_env }}"
       args:
-        executable:                    /bin/csh
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+      register:                        srvctl_check
       register:                        disable_restart_secondary
       failed_when:
                                        - disable_restart_primary.rc not in [0, 2]
@@ -304,19 +275,15 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -s / as sysdba << EOF
                                        SET HEADING OFF
                                        SET FEEDBACK OFF
                                        SELECT open_mode FROM v\$database;
                                        EXIT;
                                        EOF
-      environment:
-        ORACLE_SID:                    "{{ db_sid | upper }}_STDBY"
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      environment:                     "{{ oracle_standby_env }}"
       args:
-        executable:                    /bin/csh
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        secondary_open_mode
       failed_when:                     false
       changed_when:                    false
@@ -326,17 +293,15 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -s / as sysdba << EOF
                                        ALTER DATABASE OPEN;
                                        ALTER DATABASE RECOVER MANAGED STANDBY DATABASE USING CURRENT LOGFILE DISCONNECT FROM SESSION;
                                        EOF
-      environment:
-        ORACLE_SID:                    "{{ db_sid | upper }}"
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      environment:                     "{{ oracle_standby_env }}"
       args:
-        executable:                    /bin/csh
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+      failed_when:                     false
+      changed_when:                    false
       register:                        mount_standby
 
     - name:                            "4.1.3 Oracle Data Guard - Finalize - Sleep 30 seconds before checking open mode on Secondary"
@@ -347,20 +312,16 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -s / as sysdba << EOF
                                        SET HEADING OFF
                                        SET FEEDBACK OFF
                                        SELECT open_mode FROM v\$database;
                                        EXIT;
                                        EOF
-      environment:
-        ORACLE_SID:                    "{{ db_sid | upper }}"
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      environment:                     "{{ oracle_standby_env }}"
       args:
-        executable:                    /bin/csh
-      register:                        standby_open_mode
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+      register:                        secondary_open_mode
       failed_when:                     false
       changed_when:                    false
 
@@ -369,18 +330,14 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -s / as sysdba << EOF
                                        SHUTDOWN IMMEDIATE;
                                        STARTUP MOUNT;
                                        ALTER DATABASE OPEN;
                                        EOF
-      environment:
-        ORACLE_SID:                    "{{ db_sid | upper }}"
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      environment:                     "{{ oracle_standby_env }}"
       args:
-        executable:                    /bin/csh
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        mount_standby
 
 

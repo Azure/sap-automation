@@ -7,16 +7,16 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
+                                       export ORACLE_SID={{ db_sid | upper }}_STDBY
+                                       sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT COUNT(*) FROM v\$datafile WHERE name LIKE '+DATA/{{ db_sid | upper }}_STDBY%';
                                        EXIT;
                                        EOF
   register:                            datafile_count
+  environment:                         "{{ oracle_env }}"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
-    executable:                        /bin/csh
   changed_when:                        false
   failed_when:                         false
 
@@ -26,16 +26,16 @@
 
   become:                              true
   ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
+                                       export ORACLE_SID={{ db_sid | upper }}_STDBY
+                                       sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT COUNT(*) FROM v\$datafile;
                                        EXIT;
                                        EOF
   register:                            datafile_count
+  environment:                         "{{ oracle_env }}"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
-    executable:                        /bin/csh
   changed_when:                        false
   failed_when:                         false
 
@@ -86,9 +86,9 @@
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
+      environment:                     "{{ oracle_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-        executable:                    /bin/csh
       register:                        rman_duplicate
       failed_when:                     rman_duplicate.rc != 0
 
@@ -113,9 +113,9 @@
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
+      environment:                     "{{ oracle_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-        executable:                    /bin/csh
       register:                        rman_duplicate
       failed_when:                     rman_duplicate.rc != 0
 
@@ -144,10 +144,9 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       export ORACLE_SID={{ db_sid | upper }}_STDBY
 
-                                       $ORACLE_HOME/bin/sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
+                                       sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT database_role || ':' || open_mode FROM v\$database;
                                        EXIT;
@@ -156,9 +155,9 @@
   register:                            db_status
   changed_when:                        false
   failed_when:                         "'PHYSICAL STANDBY:MOUNTED' not in db_status.stdout"
+  environment:                         "{{ oracle_env }}"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
-    executable:                        /bin/csh
 
 - name:                                "4.1.3 Oracle Data Guard - Duplicate - Set duplication status"
   ansible.builtin.set_fact:
@@ -174,16 +173,15 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY;
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/sqlplus -S / as sysdba <<EOF
+                                       export ORACLE_SID={{ db_sid | upper }}_STDBY;
+                                       sqlplus -S / as sysdba <<EOF
                                        SHOW PARAMETER spfile;
                                        EXIT;
                                        EOF
   register:                            pfile_location
+  environment:                         "{{ oracle_env }}"
   args:
-    chdir:                            "/etc/sap_deployment_automation/dataguard_scripts/"
-    executable:                        /bin/csh
+    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
 
 - name:                                "4.1.3 Oracle Data Guard - Duplicate - Show SPFile location"
   ansible.builtin.debug:
@@ -211,17 +209,14 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       export ORACLE_SID={{ db_sid | upper }}_STDBY
                                        sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba << EOF
                                        ALTER DATABASE ARCHIVELOG;
                                        exit
                                        EOF
-  environment:
-    ORACLE_SID:                        "{{ db_sid | upper }}_STDBY"
-    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  environment:                         "{{ oracle_env }}"
   args:
-    executable:                        /bin/csh
+    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
   register:                            archive_log_secondary
   failed_when:                         archive_log_secondary.rc != 0
   changed_when:                        archive_log_secondary.rc == 0

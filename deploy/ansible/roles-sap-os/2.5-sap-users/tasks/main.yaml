@@ -90,6 +90,7 @@
     append:                            true
   when:
     - node_tier == "oracle-asm"
+    - grid_user_name != oracle_user_name
 
 - name:                                "2.5.1 SAP Users: - Create {{ grid_user_name }} User for Oracle ASM"
   ansible.builtin.user:
@@ -102,6 +103,21 @@
     append:                            true
   when:
     - node_tier == "oracle-asm"
+    - grid_user_name != oracle_user_name
+
+- name:                                "2.5.1 SAP Users: - Create {{ oracle_user_name }} User for Oracle ASM"
+  ansible.builtin.user:
+    name:                              "{{ oracle_user_name }}"
+    uid:                               "{{ oracle_uid }}"
+    group:                             oinstall
+    home:                              "/home/{{ oracle_user_name }}"
+    shell:                             /bin/csh
+    groups:                            dba,racdba,oper,backupdba,dgdba,kmdba,asmadmin,asmdba,asmoper
+    append:                            true
+  when:
+    - node_tier == "oracle-asm"
+    - grid_user_name == oracle_user_name
+
 
 
 # *=====================================4=======================================8
