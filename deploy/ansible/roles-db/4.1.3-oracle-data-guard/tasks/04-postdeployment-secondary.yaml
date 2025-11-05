@@ -52,7 +52,7 @@
   register:                            flashback_standby
   failed_when:
     - flashback_standby.rc != 0
-    - not flashback_standby.stderr is search('38713')
+    - not flashback_standby.stdout is search('ORA-38706')
 
   changed_when:                        flashback_standby.rc == 0
 
