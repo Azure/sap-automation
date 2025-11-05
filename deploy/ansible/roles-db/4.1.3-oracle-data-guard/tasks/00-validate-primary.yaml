@@ -14,7 +14,7 @@
   when:                                node_tier == "oracle-asm"
   become:                              true
   ansible.builtin.shell: |
-                                       sqlplus / as sysasm <<EOF
+                                       sqlplus -S / as sysasm <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT name || ':' || state FROM v\$asm_diskgroup;
                                        EXIT;
@@ -172,7 +172,7 @@
   ansible.builtin.shell: |
 
                                     printenv
-                                    sqlplus / as sysdba <<EOF
+                                    sqlplus -S / as sysdba <<EOF
                                     SET PAGESIZE 0 FEEDBACK OFF HEADING OFF;
                                     SELECT database_role || ':' || open_mode FROM v\$database;
                                     EXIT;

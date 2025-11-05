@@ -43,7 +43,7 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       sqlplus / as sysdba <<EOF
+                                       sqlplus -S / as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF HEADING OFF;
                                        SELECT database_role || ':' || open_mode FROM v\$database;
                                        EXIT;
@@ -139,7 +139,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       sqlplus / as sysdba << EOF
+                                       sqlplus -S / as sysdba << EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT COUNT(*) FROM v\$standby_log;
                                        EXIT;
@@ -172,7 +172,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       sqlplus / as sysdba << EOF
+                                       sqlplus -S / as sysdba << EOF
                                        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl1.dbf' size {{ standby_redo_log_size }} reuse;
                                        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl2.dbf' size {{ standby_redo_log_size }} reuse;
                                        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl3.dbf' size {{ standby_redo_log_size }} reuse;
@@ -194,7 +194,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       sqlplus / as sysdba << EOF
+                                       sqlplus -S / as sysdba << EOF
                                        ALTER DATABASE ADD STANDBY LOGFILE THREAD 1 GROUP 10 ('+DATA','+RECO') SIZE {{ standby_redo_log_size }} reuse;
                                        ALTER DATABASE ADD STANDBY LOGFILE THREAD 1 GROUP 11 ('+DATA','+RECO') SIZE {{ standby_redo_log_size }} reuse;
                                        ALTER DATABASE ADD STANDBY LOGFILE THREAD 1 GROUP 12 ('+DATA','+RECO') SIZE {{ standby_redo_log_size }} reuse;
