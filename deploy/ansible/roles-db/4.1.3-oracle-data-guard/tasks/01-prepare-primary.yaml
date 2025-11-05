@@ -91,7 +91,7 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       sqlplus -S / as sysdba <<EOF
+                                       $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
                                        ALTER SYSTEM SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)' SCOPE=BOTH;
                                        ALTER SYSTEM SET FAL_SERVER='{{ db_sid | upper }}' SCOPE=BOTH;
                                        ALTER SYSTEM SET FAL_CLIENT='{{ db_sid | upper }}_STDBY' SCOPE=BOTH;
@@ -113,8 +113,7 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       sqlplus -S / as sysdba <<EOF
-                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
+                                       $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
                                        ALTER DATABASE FORCE LOGGING;
                                        ALTER DATABASE FLASHBACK ON;
 
@@ -163,7 +162,8 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
-                                       sqlplus -s / as sysdba << EOF
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba << EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT COUNT(*) FROM v\$standby_log;
                                        EXIT;
@@ -198,7 +198,7 @@
   ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       sqlplus -s / as sysdba << EOF
+                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba << EOF
                                        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl1.dbf' size {{ standby_redo_log_size }} reuse;
                                        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl2.dbf' size {{ standby_redo_log_size }} reuse;
                                        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl3.dbf' size {{ standby_redo_log_size }} reuse;
