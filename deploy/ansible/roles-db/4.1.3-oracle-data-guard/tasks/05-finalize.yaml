@@ -13,6 +13,8 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        dgmgrl / as sysdba << EOF
                                        SHOW CONFIGURATION;
                                        EOF
@@ -28,6 +30,8 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        dgmgrl / as sysdba << EOF
                                        CREATE CONFIGURATION {{ db_sid | upper }}_dg_config AS PRIMARY DATABASE IS {{ db_sid | upper }} CONNECT IDENTIFIER IS {{ db_sid | upper }};
                                        ENABLE CONFIGURATION;
@@ -42,6 +46,8 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        dgmgrl / as sysdba << EOF
                                        ADD DATABASE {{ db_sid | upper }}_STDBY AS CONNECT IDENTIFIER IS {{ db_sid | upper }}_STDBY MAINTAINED AS PHYSICAL;
                                        ENABLE CONFIGURATION;
@@ -56,6 +62,8 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        dgmgrl / as sysdba << EOF
 
                                        EDIT DATABASE {{ db_sid | upper }}_STDBY set state='LOG-APPLY-OFF';
@@ -163,6 +171,8 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        dgmgrl / as sysdba << EOF
                                        SHOW CONFIGURATION VERBOSE;
                                        SHOW DATABASE {{ db_sid | upper }};
@@ -185,6 +195,7 @@
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -s / as sysdba << EOF
                                        EXEC DBMS_SERVICE.CREATE_SERVICE(service_name=>'{{ db_sid | upper }}_HA',network_name=>'{{ db_sid | upper }}_HA');
                                        EXEC DBMS_SERVICE.START_SERVICE('{{ db_sid | upper }}_HA');
@@ -227,14 +238,15 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                      setenv ORACLE_SID {{ db_sid | upper }}_STDBY
-                                      $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
-                                      SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
-                                      SELECT database_role || ',' || open_mode || ',' || db_unique_name FROM v\$database;
-                                      EXIT;
-                                      EOF
-      register:                       dg_status
-      changed_when:                   false
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
+                                       SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
+                                       SELECT database_role || ',' || open_mode || ',' || db_unique_name FROM v\$database;
+                                       EXIT;
+                                       EOF
+      register:                        dg_status
+      changed_when:                    false
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         executable:                    /bin/csh
