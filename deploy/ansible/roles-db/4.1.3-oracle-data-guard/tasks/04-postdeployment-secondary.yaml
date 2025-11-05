@@ -40,6 +40,7 @@
                                        sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba << EOF
                                        WHENEVER SQLERROR CONTINUE
                                        ALTER DATABASE FLASHBACK ON;
+                                       ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL;
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER DATABASE RECOVER MANAGED STANDBY DATABASE USING CURRENT LOGFILE DISCONNECT FROM SESSION;
                                        exit
@@ -53,6 +54,7 @@
   failed_when:
     - flashback_standby.rc != 0
     - not flashback_standby.stdout is search('ORA-38706')
+    - not flashback_standby.stdout is search('ORA-01153')
 
   changed_when:                        flashback_standby.rc == 0
 
