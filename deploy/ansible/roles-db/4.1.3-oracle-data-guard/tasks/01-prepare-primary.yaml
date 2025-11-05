@@ -76,14 +76,14 @@
 
 - name:                                "4.1.3 Oracle Data Guard - Set status on Primary"
   ansible.builtin.set_fact:
-    primary_open:                      "{{ (dg_status.stdout | default('UNKNOWN')) is search('PRIMARY:READ WRITE') | bool }}"
+    primary_open:                      "{{ ((dg_status.stdout | default('UNKNOWN')) is search('PRIMARY:READ WRITE')) | bool }}"
 
 - name:                                "4.1.3 Oracle Data Guard - Display Data Guard status on Primary"
   ansible.builtin.debug:
     msg:
       - "Database instance:        {{ ansible_hostname }}"
       - "Primary instance open:    {{ primary_open }}"
-
+      - "Database role and open mode: {{ dg_status.stdout }}"
 
 - name:                                "4.1.3 Oracle Data Guard - Setup Primary - Configure Data Guard parameters on primary"
   become_user:                         "{{ oracle_user_name }}"
@@ -92,7 +92,6 @@
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -S / as sysdba <<EOF
-                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER SYSTEM SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)' SCOPE=BOTH;
                                        ALTER SYSTEM SET FAL_SERVER='{{ db_sid | upper }}' SCOPE=BOTH;
                                        ALTER SYSTEM SET FAL_CLIENT='{{ db_sid | upper }}_STDBY' SCOPE=BOTH;
