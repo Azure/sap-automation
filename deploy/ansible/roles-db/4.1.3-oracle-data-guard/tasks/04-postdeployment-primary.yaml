@@ -43,89 +43,24 @@
 
 - name:                                "4.1.3 Oracle Data Guard - Post deployment on Primary - Ensure database is open on Primary"
   when:                                "'READ WRITE' not in primary_open_mode.stdout"
-  block:
-
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Shutdown Primary"
-      become:                          true
-      become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell: |
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell: |
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -s / as sysdba << EOF
-                                       SHUTDOWN IMMEDIATE;
-                                       EXIT;
-                                       EOF
-      environment:
-        ORACLE_SID:                    "{{ db_sid | upper }}"
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-      args:
-        executable:                    /bin/csh
-      register:                        open_primary
-      failed_when:                     false
-
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Check for zombie standby processes"
-      become_user:                     "root"
-      become:                          true
-      ansible.builtin.shell: |
-                                       set -o pipefail
-                                       ps -ef | grep ora_pmon_{{ db_sid | upper }} | grep -v grep || true
-      register:                        standby_pmon
-      changed_when:                    false
-
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary -  Kill zombie standby processes"
-      become:                          true
-      become_user:                     root
-      ansible.builtin.shell:           kill -9 {{ item.split()[1] }}
-      loop:                            "{{ standby_pmon.stdout_lines }}"
-      when:                            standby_pmon.stdout | length > 0
-      failed_when:                     false
-
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary -  Clean orphaned shared memory segments"
-      become:                          true
-      become_user:                     root
-      ansible.builtin.shell: |
-                                       set -o pipefail
-                                       for seg in $(ipcs -m | grep {{ oracle_user_name }} | awk '$6==0 {print $2}'); do
-                                         ipcrm -m $seg
-                                       done
-      failed_when:                     false
-      when:                            standby_pmon.stdout | length > 0
-
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Start Oracle"
-      become:                          true
-      become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
-                                       STARTUP MOUNT;
-                                       EXIT;
-                                       EOF
-      register:                        dbstarted_results
-      failed_when:                     false
-      args:
-        executable:                    /bin/csh
-
-    - name:                            "4.1.3 Oracle Data Guard - Post deployment on Primary - Ensure database is open on Primary"
-      become:                          true
-      become_user:                     "{{ oracle_user_name }}"
-      ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-                                       sqlplus -s / as sysdba << EOF
-                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER DATABASE OPEN;
                                        EXIT;
                                        EOF
-      environment:
-        ORACLE_SID:                    "{{ db_sid | upper }}"
-        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-      args:
-        executable:                    /bin/csh
-      register:                        open_primary
-      failed_when:
-        - open_primary.rc != 0
-        - "'ORA-01531' not in open_primary.stdout"
+  environment:
+    ORACLE_SID:                        "{{ db_sid | upper }}"
+    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  args:
+    executable:                        /bin/csh
+  register:                            open_primary
+  failed_when:
+    - open_primary.rc != 0
+    - "'ORA-01531' not in open_primary.stdout"
 
 - name:                                "4.1.3 Oracle Data Guard - Post deployment on Primary - Configure Data Guard parameters on primary for Oracle ASM"
   when:                                node_tier == "oracle-asm"
@@ -135,8 +70,8 @@
                                        setenv ORACLE_SID {{ db_sid | upper }}
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
-                                       ALTER SYSTEM SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}';
                                        ALTER SYSTEM SET LOG_ARCHIVE_DEST_STATE_2='ENABLE' SCOPE=BOTH;
+
                                        ALTER SYSTEM SWITCH LOGFILE;
                                        WHENEVER SQLERROR CONTINUE
                                        ALTER SYSTEM SET DG_BROKER_START = false
@@ -145,9 +80,6 @@
 
                                        ALTER SYSTEM SET DG_BROKER_CONFIG_FILE1 = '+DATA/{{ db_sid | upper }}/DG_CONFIG/dg_broker1.dat' SCOPE=BOTH;
                                        ALTER SYSTEM SET DG_BROKER_CONFIG_FILE2 = '+DATA/{{ db_sid | upper }}/DG_CONFIG/dg_broker2.dat' SCOPE=BOTH;
-                                       WHENEVER SQLERROR CONTINUE
-
-                                       ALTER SYSTEM SET DG_BROKER_START = true;
 
                                        EXIT;
                                        EOF
