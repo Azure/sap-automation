@@ -78,10 +78,6 @@
     - not secondary_duplicated
   ansible.builtin.include_tasks:       "02-prepare-secondary.yaml"
 
-- name:                            "4.1.3 Oracle Data Guard - Test connectivity primary -> standby - Assert"
-  ansible.builtin.fail:
-    msg:                           "Could not connect from primary to standby database. Please check tnsnames.ora and listener configuration."
-
 - name:                                "4.1.3 Oracle Data Guard - Test connectivity primary -> standby"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
@@ -141,13 +137,18 @@
       ansible.builtin.assert:
         that:
           - "'connected' in conn_test_reverse.stdout"
-        fail_msg:                   "Could not connect from standby to primary database. Please check tnsnames.ora and listener configuration."
+        fail_msg:                      "Could not connect from standby to primary database. Please check tnsnames.ora and listener configuration."
 
 - name:                                "4.1.3 Oracle Data Guard: - Duplicate the database"
   when:
     - ora_secondary == ansible_hostname
     - not secondary_duplicated
   ansible.builtin.include_tasks:       "03-duplicate-database.yaml"
+
+- name:                            "4.1.3 Oracle Data Guard - Test connectivity primary -> standby - Assert"
+  ansible.builtin.fail:
+    msg:                           "Could not connect from primary to standby database. Please check tnsnames.ora and listener configuration."
+
 
 - name:                                "4.1.3 Oracle Data Guard: - Configure Data Guard on Primary"
   when:
