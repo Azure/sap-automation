@@ -39,9 +39,7 @@
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -s sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba << EOF
                                        WHENEVER SQLERROR CONTINUE
-                                       ALTER DATABASE FLASHBACK ON;
                                        ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL;
-                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
                                        ALTER DATABASE RECOVER MANAGED STANDBY DATABASE USING CURRENT LOGFILE DISCONNECT FROM SESSION;
                                        exit
                                        EOF
@@ -69,12 +67,8 @@
                                        $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
                                        WHENEVER SQLERROR CONTINUE
                                        ALTER SYSTEM SET DG_BROKER_START = false;
-                                       ALTER SYSTEM SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}';
                                        ALTER SYSTEM SET DG_BROKER_CONFIG_FILE1 = '+DATA/{{ db_sid | upper }}_STDBY/DG_CONFIG/dg_broker1.dat' SCOPE=BOTH;
                                        ALTER SYSTEM SET DG_BROKER_CONFIG_FILE2 = '+DATA/{{ db_sid | upper }}_STDBY/DG_CONFIG/dg_broker2.dat' SCOPE=BOTH;
-
-                                       WHENEVER SQLERROR CONTINUE
-                                       ALTER SYSTEM SET DG_BROKER_START = true;
                                        EXIT;
                                        EOF
   register:                            dg_standby_config_asm
@@ -149,6 +143,7 @@
   changed_when:                        false
 
 - name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Secondary - database is mounted (not open) on Secondary"
+  when:                                "'READ ONLY WITH APPLY' not in standby_open_mode.stdout"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
@@ -164,6 +159,5 @@
     ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
   args:
     executable:                        /bin/csh
-  when:                                "'MOUNTED' not in standby_open_mode.stdout"
   register:                            mount_standby
 ...

@@ -1,4 +1,24 @@
 ---
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Primary - Ensure database is open on Primary"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       sqlplus -s / as sysdba << EOF
+                                       WHENEVER SQLERROR EXIT SQL.SQLCODE
+                                       ALTER DATABASE OPEN;
+                                       EXIT;
+                                       EOF
+  environment:
+    ORACLE_SID:                        "{{ db_sid | upper }}"
+    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  args:
+    executable:                        /bin/csh
+  register:                            open_primary
+  failed_when:
+    - open_primary.rc != 0
+    - "'ORA-01531' not in open_primary.tdout"
 
 - name:                                "4.1.3 Oracle Data Guard - Post deployment on Primary - Check if database is open on Primary"
   become:                              true
