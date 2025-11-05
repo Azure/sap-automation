@@ -75,7 +75,6 @@
                                        ALTER SYSTEM SWITCH LOGFILE;
                                        WHENEVER SQLERROR CONTINUE
                                        ALTER SYSTEM SET DG_BROKER_START = false
-                                       ALTER DATABASE FORCE LOGGING;
                                        WHENEVER SQLERROR EXIT SQL.SQLCODE
 
                                        ALTER SYSTEM SET DG_BROKER_CONFIG_FILE1 = '+DATA/{{ db_sid | upper }}/DG_CONFIG/dg_broker1.dat' SCOPE=BOTH;
