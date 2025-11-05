@@ -14,8 +14,7 @@
   when:                                node_tier == "oracle-asm"
   become:                              true
   ansible.builtin.shell: |
-                                       printenv
-                                       sqlplus -S / as sysasm <<EOF
+                                       sqlplus / as sysasm <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT name || ':' || state FROM v\$asm_diskgroup;
                                        EXIT;
@@ -51,7 +50,7 @@
       become:                          true
       ansible.builtin.shell: |
                                        sqlplus -S / as sysdba <<EOF
-                                       SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
+                                       SET PAGESIZE 0 FEEDBACK OFF HEADING OFF;
                                        SELECT database_role || ':' || open_mode FROM v\$database;
                                        EXIT;
                                        EOF
@@ -97,7 +96,7 @@
       become:                          true
       ansible.builtin.shell: |
                                        sqlplus -S / as sysdba <<EOF
-                                       SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
+                                       SET PAGESIZE 0 FEEDBACK OFF HEADING OFF;
                                        SELECT database_role || ':' || open_mode FROM v\$database;
                                        EXIT;
                                        EOF
@@ -129,7 +128,7 @@
       become:                          true
       ansible.builtin.shell: |
                                        sqlplus -S / as sysdba <<EOF
-                                       SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
+                                       SET PAGESIZE 0 FEEDBACK OFF HEADING OFF;
                                        SELECT database_role || ',' || open_mode || ',' || db_unique_name FROM v\$database;
                                        EXIT;
                                        EOF

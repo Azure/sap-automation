@@ -43,8 +43,8 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       sqlplus -S / as sysdba <<EOF
-                                       SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
+                                       sqlplus / as sysdba <<EOF
+                                       SET PAGESIZE 0 FEEDBACK OFF HEADING OFF;
                                        SELECT database_role || ':' || open_mode FROM v\$database;
                                        EXIT;
                                        EOF
@@ -271,7 +271,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       sqlplus /S / as sysdba <<EOF
+                                       sqlplus /s / as sysdba <<EOF
                                        ALTER SYSTEM REGISTER;
                                        EXIT;
                                        EOF
