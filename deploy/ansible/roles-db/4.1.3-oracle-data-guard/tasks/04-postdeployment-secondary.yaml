@@ -143,6 +143,46 @@
   changed_when:                        false
 
 - name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Secondary - database is mounted (not open) on Secondary"
+  when:                                "'MOUNTED' in standby_open_mode.stdout"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       sqlplus -s / as sysdba << EOF
+                                       ALTER DATABASE OPEN;
+                                       ALTER DATABASE RECOVER MANAGED STANDBY DATABASE USING CURRENT LOGFILE DISCONNECT FROM SESSION;
+                                       EOF
+  environment:
+    ORACLE_SID:                        "{{ db_sid | upper }}"
+    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  args:
+    executable:                        /bin/csh
+  register:                            mount_standby
+
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Verify Data Guard configuration"
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
+                                       sqlplus -s / as sysdba << EOF
+                                       SET HEADING OFF
+                                       SET FEEDBACK OFF
+                                       SELECT open_mode FROM v\$database;
+                                       EXIT;
+                                       EOF
+  environment:
+    ORACLE_SID:                       "{{ db_sid | upper }}"
+    ORACLE_HOME:                      "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  args:
+    executable:                        /bin/csh
+  register:                            standby_open_mode
+  failed_when:                         false
+  changed_when:                        false
+
+
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Secondary - database is mounted (not open) on Secondary"
   when:                                "'READ ONLY WITH APPLY' not in standby_open_mode.stdout"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
