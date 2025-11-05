@@ -7,7 +7,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.stat:
-    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/spfile{{ db_sid | upper }}_STDBYX.ora"
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/spfile{{ db_sid | upper }}_STDBY.ora"
   register:                            spfile_stat
 
 - name:                                "4.1.3 Oracle Data Guard - Preparation - If SPFile does not exists"
