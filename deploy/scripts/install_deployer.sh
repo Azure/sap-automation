@@ -532,7 +532,7 @@ deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no
 if [ -n "${deployer_random_id}" ]; then
 	custom_random_id="${deployer_random_id:0:3}"
 	sed -i -e /"custom_random_id"/d "${parameterfile}"
-	printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+	printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
 fi
 
 ARM_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_client_id | tr -d \")

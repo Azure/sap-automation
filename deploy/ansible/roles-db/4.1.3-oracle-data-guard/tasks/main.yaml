@@ -46,7 +46,8 @@
                                        - tier != "observer"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell:               "orapwd file=/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/orapw{{ this_sid }} password='{{ main_password }}' entries=5 format=12 force=y"
+
+  ansible.builtin.shell:               "orapwd file=+DATA/ORA/orapw{{ this_sid }} dbuniquename=\"{{ db_sid | upper }}_STDBY\" password='{{ main_password }}' entries=5 format=12 force=y"
   environment:
     ORACLE_SID:                        "{{ this_sid }}"
     ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
@@ -54,21 +55,6 @@
     creates:                           /oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/orapw{{ this_sid }}
     executable:                        /bin/csh
     chdir:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin"
-
-- name:                                "4.1.3 Oracle Data Guard: - Preparation Create password file"
-  when:
-                                       - tier != "observer"
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell:               "orapwd file=/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/orapw{{ db_sid | upper }} password='{{ main_password }}' entries=5 format=12 force=y"
-  environment:
-    ORACLE_SID:                        "{{ this_sid }}"
-    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-  args:
-    creates:                           /oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/orapw{{ this_sid }}
-    executable:                        /bin/csh
-    chdir:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin"
-
 
 - name:                                "4.1.3 Oracle Data Guard: - Validate"
   ansible.builtin.include_tasks:       "00-validate.yaml"
