@@ -31,6 +31,47 @@
   args:
     executable:                        /bin/csh
 
+    # Disable the automatic restart for database on Primary.
+- name:                                "5.1. Database Load - ORACLE - Check if database registered with restart on Primary"
+  when :
+                                       - node_tier == 'oracle-asm'
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       srvctl config database -d {{ db_sid | upper }}
+  environment:
+    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    PATH:                              "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+  args:
+    executable:                        /bin/csh
+  register:                            srvctl_check
+  failed_when:                         false
+  changed_when:                        false
+
+- name:                                "5.1. Database Load - ORACLE - Disable automatic restart for database on Primary"
+  when :
+                                       - node_tier == 'oracle-asm'
+                                       - srvctl_check.rc == 0
+                                       - "'PRCC-1120' not in srvctl_check.stdout"
+                                       - "'PRCC-1001' not in srvctl_check.stdout"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell: |
+                                       srvctl disable database -d {{ db_sid | upper }}
+  environment:
+    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    PATH:                              "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+  args:
+    executable:                        /bin/csh
+  register:                            disable_restart_primary
+  failed_when:
+                                       - disable_restart_primary.rc not in [0, 2]
+                                       - "'PRCC-1012' not in disable_restart_primary.stdout"
+                                       - "'PRCR-1003' not in disable_restart_primary.stdout"
+                                       - "'PRCR-1001' not in disable_restart_primary.stdout"
+  changed_when:
+                                       - disable_restart_primary.rc == 0
 
 # Step 17
 - name:                                "5.1. Database Load - ORACLE: Show Status message"
