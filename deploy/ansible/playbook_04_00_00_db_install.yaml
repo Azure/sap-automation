@@ -628,8 +628,6 @@
       ORACLE_BASE:                     "{{ oracle_base }}"
       ORACLE_HOME:                     "{{ oracle_home }}"
       ORACLE_SID:                      "{{ oracle_sid }}"
-      GRID_HOME:                       "{{ grid_home }}"
-      GRID_SID:                        "{{ grid_sid }}"
       PATH:                            "{{ oracle_home }}/bin:{{ ansible_env.PATH }}"
       LD_LIBRARY_PATH:                 "{{ oracle_home }}/lib"
       CV_ASSUME_DISTID:                "{{ CV_ASSUME_DISTID }}"
@@ -640,8 +638,6 @@
       ORACLE_BASE:                     "{{ oracle_base }}"
       ORACLE_HOME:                     "{{ oracle_home }}"
       ORACLE_SID:                      "{{ oracle_sid }}_STDBY"
-      GRID_HOME:                       "{{ grid_home }}"
-      GRID_SID:                        "{{ grid_sid }}"
       PATH:                            "{{ oracle_home }}/bin:{{ ansible_env.PATH }}"
       LD_LIBRARY_PATH:                 "{{ oracle_home }}/lib"
 
