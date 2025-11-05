@@ -47,7 +47,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
 
-  ansible.builtin.shell:               "orapwd file=+DATA/ORA/orapw{{ this_sid }} dbuniquename=\"{{ db_sid | upper }}_STDBY\" password='{{ main_password }}' entries=5 format=12 force=y"
+  ansible.builtin.shell:               "orapwd file=$ORACLE_HOME/dbs/orapw{{ db_sid | upper }}_STDBY password='{{ main_password }}' entries=5 format=12 force=y"
   environment:
     ORACLE_SID:                        "{{ this_sid }}"
     ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
