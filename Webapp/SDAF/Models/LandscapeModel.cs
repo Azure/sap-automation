@@ -19,8 +19,7 @@ namespace SDAFWebApp.Models
                 network_logical_name != null
                 ;
         }
-        #pragma warning disable IDE1006 // Naming Styles
-
+        
         [DisplayName("Workload zone ID")]
         public string Id { get; set; }
 

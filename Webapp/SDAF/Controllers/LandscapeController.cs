@@ -25,14 +25,13 @@ namespace SDAFWebApp.Controllers
         private readonly ITableStorageService<AppFile> _appFileService;
         private FormViewModel<LandscapeModel> landscapeView;
         private readonly IConfiguration _configuration;
-        private RestHelper restHelper;
+        private readonly RestHelper restHelper;
         private readonly ImageDropdown[] imagesOffered;
         private List<SelectListItem> imageOptions;
         private Dictionary<string, Image> imageMapping;
         private readonly string sdafControlPlaneEnvironment;
         private readonly string sdafControlPlaneLocation;
         private readonly string sdafControlPlaneName;
-
 
         public LandscapeController(ITableStorageService<LandscapeEntity> landscapeService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
         {
@@ -46,6 +45,7 @@ namespace SDAFWebApp.Controllers
             sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
             sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
             sdafControlPlaneName = configuration["CONTROL_PLANE_NAME"];
+            
         }
         private FormViewModel<LandscapeModel> SetViewData()
         {
@@ -264,7 +264,13 @@ namespace SDAFWebApp.Controllers
                 LandscapeModel landscape = await GetById(id, partitionKey);
 
                 string path = $"/LANDSCAPE/{id}/{id}.tfvars";
-                landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+
+                
+                if (!landscape.subscription.IsNullOrEmpty() )
+                {
+                    landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                }
+
                 if (landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
                 {
                     landscape.environment = landscape.workload_zone.Split('-')[0];
@@ -374,7 +380,7 @@ namespace SDAFWebApp.Controllers
                 try
                 {
                     string newId = Helper.GenerateId(landscape);
-                    if (landscape.Id == null) landscape.Id = newId;
+                    landscape.Id ??= newId;
                     if (newId != landscape.Id)
                     {
                         landscape.Id = newId;
