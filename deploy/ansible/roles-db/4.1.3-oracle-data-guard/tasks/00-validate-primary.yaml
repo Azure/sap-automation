@@ -91,7 +91,9 @@
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
 
 - name:                                "4.1.3 Oracle Data Guard - Restart Primary instance"
-  when:                                not primary_mounted
+  when:
+    - not primary_mounted
+    - not primary_open
   block:
     - name:                            "4.1.3 Oracle Data Guard - Restart Primary instance"
       become_user:                     "{{ oracle_user_name }}"
