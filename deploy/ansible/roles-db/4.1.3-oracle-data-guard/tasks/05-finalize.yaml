@@ -25,7 +25,7 @@
         executable:                    /bin/csh
 
     - name:                            "4.1.3 Oracle Data Guard - Finalize - Create Data Guard Configuration on Primary"
-      when:                            dgconfig_check.rc!=0 or 'ORA-16525' in dgconfig_check.stdout
+      when:                            dgconfig_check.rc!=0 or 'ORA-16525' in dgconfig_check.stdout or 'ORA-16532' in dgconfig_check.stdout or 'Configuration details cannot be determined by DGMGRL' in dgconfig_check.stdout
 
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
