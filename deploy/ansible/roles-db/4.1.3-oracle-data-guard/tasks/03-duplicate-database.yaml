@@ -135,7 +135,7 @@
 
     - name:                            "4.1.3 Oracle Data Guard - Duplicate - Verify DUPLICATE completion"
       ansible.builtin.fail:
-        msg:                           "rman DUPLICATE did not complete successfully"
+        msg:                           "rman DUPLICATE did not complete successfully. Please remove the standby spfile (/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/spfile{{ db_sid | upper }}_STDBY.ora) and retry."
       when:
         - rman_duplicate.stdout is defined
         - not rman_duplicate.stdout is search("Finished Duplicate Db")
