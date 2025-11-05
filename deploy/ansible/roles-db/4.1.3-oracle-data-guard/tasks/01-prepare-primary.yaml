@@ -69,7 +69,6 @@
                                        ALTER SYSTEM SET STANDBY_FILE_MANAGEMENT=AUTO SCOPE=BOTH;
                                        ALTER SYSTEM SET LOG_ARCHIVE_DEST_2='' SCOPE=BOTH;
                                        ALTER SYSTEM SET LOG_ARCHIVE_DEST_STATE_2='DEFER' SCOPE=BOTH;
-
                                        EXIT;
                                        EOF
   register:                            dg_config
