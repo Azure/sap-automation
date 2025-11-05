@@ -30,7 +30,7 @@
 - name:                                "4.1.2. ORACLE ASM Database Update - Set DB SID"
   ansible.builtin.debug:
     msg:
-                                       - "DB SID: {{ sap_sid | upper }}"
+                                       - "DB SID: {{ db_sid | upper }}"
                                        - "Oracle Version: {{ ora_version }}"
                                        - "Oracle Release: {{ ora_release }}"
                                        - "Oracle SBP Patch: {{ oracle_sbp_patch }}"
@@ -44,7 +44,7 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_SID {{ current_sid | upper }}
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        $ORACLE_HOME/bin/sqlplus -S / as sysdba <<EOF
                                        ALTER DATABASE OPEN;
@@ -55,6 +55,10 @@
   args:
     executable:                        /bin/csh
 
+- name:                                "5.1. Database Load - ORACLE: Check if catsbp exists"
+  ansible.builtin.stat:
+    path:                               "/oracle/{{ db_sid | upper }}/{{ ora_version }}/sapbundle/catsbp"
+  register:                            catsbp_stat
 
 # Step 17
 - name:                                "4.1.2. ORACLE ASM Database Update - Run the post-installation script catsbp"
@@ -65,7 +69,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       setenv ORACLE_SID {{ current_sid | upper }}
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_release }}
                                        $ORACLE_HOME/sapbundle/catsbp
 
