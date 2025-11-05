@@ -261,7 +261,7 @@
 
     grid_env:
       ORACLE_HOME:                     "{{ grid_home }}"
-      ORACLE_SID:                      "{{ grid_sid }}"
+      ORACLE_SID:                      "{{ asm_sid }}"
       PATH:                            "{{ grid_home }}/bin:{{ ansible_env.PATH }}"
       LD_LIBRARY_PATH:                 "{{ grid_home }}/lib"
 
