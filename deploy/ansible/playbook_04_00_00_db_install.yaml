@@ -617,10 +617,14 @@
   vars:
     ansible_executable:                /bin/bash
 
-    oracle_base:                       /oracle
+    oracle_base:                       "/oracle"
     oracle_home:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
     oracle_sid:                        "{{ db_sid | upper }}"
     oracle_user:                       "{{ oracle_user_name }}"
+    grid_sid:                          "GRID"
+    grid_user:                         "{{ grid_user_name | default(oracle_user_name) }}"
+    grid_home:                         "/oracle/GRID/{{ ora_version }}"
+    asm_sid:                           +ASM
     CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OL8 {% endif %}"
 
     # Define once, use everywhere
