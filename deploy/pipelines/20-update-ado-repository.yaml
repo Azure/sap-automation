@@ -33,18 +33,18 @@ parameters:
     default:                           false
 
   #--------------------------------------------------------------------
-  # Change:                                                        
+  # Change:
   #   20230516 MKD
   #
   # Notes:
   #   Establish debug framework.
   #--------------------------------------------------------------------
-  #>>>> START OF INSERTION <<<<
+  #>> START OF INSERTION <<
   - name:                              p_debug
     displayName:                       Debug Mode
     type:                              boolean
     default:                           false
-  #>>>> END   OF INSERTION <<<<
+  #>> END   OF INSERTION <<
   #--------------------------------------------------------------------
 
 pool:
@@ -62,16 +62,16 @@ variables:
   - name:                              log
     value:                             logfile_$(Build.BuildId)
   #--------------------------------------------------------------------
-  # Change:                                                        
+  # Change:
   #   20230516 MKD
   #
   # Notes:
   #   Establish debug framework.
   #--------------------------------------------------------------------
-  #>>>> START OF INSERTION <<<<
+  #>> START OF INSERTION <<
   - name:                              v_debug
     value:                             ${{ parameters.p_debug }}
-  #>>>> END   OF INSERTION <<<<
+  #>> END   OF INSERTION <<
   #--------------------------------------------------------------------
 
 stages:
@@ -87,16 +87,16 @@ stages:
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               #--------------------------------------------------------------------
-              # Change:                                                        
+              # Change:
               #   20230516 MKD
               #
               # Notes:
               #   Establish debug framework.
               #--------------------------------------------------------------------
-              #>>>> START OF INSERTION <<<<
+              #>> START OF INSERTION <<
               debug=$(v_debug)
               [ "$debug" = True ] && set -x                                                   # Debugging On
-              #>>>> END   OF INSERTION <<<<
+              #>> END   OF INSERTION <<
               #--------------------------------------------------------------------
 
               git config --global user.email "$(Build.RequestedForEmail)"
@@ -105,22 +105,22 @@ stages:
               git config --global pull.rebase false
 
               #--------------------------------------------------------------------
-              # Change:                                                        
+              # Change:
               #   20230516 MKD
               #
               # Notes:
-              #   
+              #
               #--------------------------------------------------------------------
-              #>>>> START OF INSERTION <<<<
+              #>> START OF INSERTION <<
               git checkout $(branch)
-              #>>>> END   OF INSERTION <<<<
+              #>> END   OF INSERTION <<
               #--------------------------------------------------------------------
 
               git pull -q
 
               git remote add remote-repo $(repository) >> /tmp/$(log) 2>&1
 
-              git fetch --all --tags 
+              git fetch --all --tags
 
               git pull -q --commit remote-repo $(branch)  >> /tmp/$(log) 2>&1
               return_code=$?
@@ -157,17 +157,17 @@ stages:
             env:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
             #--------------------------------------------------------------------
-            # Change:                                                        
+            # Change:
             #   20230516 MKD
             #
             # Notes:
-            #   
+            #
             #--------------------------------------------------------------------
-            #>>>> START OF DELETION <<<<
+            #>> START OF DELETION <<
             # failOnStderr:              true
-            #>>>> END   OF DELETION <<<<
-            #>>>> START OF INSERTION <<<<
+            #>> END   OF DELETION <<
+            #>> START OF INSERTION <<
             failOnStderr:              false
-            #>>>> END   OF INSERTION <<<<
+            #>> END   OF INSERTION <<
             #--------------------------------------------------------------------
 ...
