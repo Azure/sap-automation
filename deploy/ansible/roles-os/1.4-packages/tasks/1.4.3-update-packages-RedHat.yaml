@@ -6,19 +6,19 @@
 # +------------------------------------4---------------------------------------*/
 
 # Note: in some rare cases, RHEL update task will fail because it expects the directory to exist before it can even check for presence of file.
-- name:                                "1.4 Packages: - check if path /etc/sap_deployment_automation{{ sap_sid | upper }} exists"
+- name:                                "1.4 Packages - check if path /etc/sap_deployment_automation{{ sap_sid | upper }} exists"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}"
     state:                             directory
     mode:                              '0755'
 
 
-- name:                                "1.4 Packages: - check if {{ sap_sid }} is updated"
+- name:                                "1.4 Packages - check if {{ sap_sid }} is updated"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/packages_installed.txt"
   register:                            packages_installed
 
-- name:                                "1.4 Packages: - Update packages on {{ distribution_full_id }}"
+- name:                                "1.4 Packages - Update packages on {{ distribution_full_id }}"
   when:
                                        - tier == 'os'
                                        - ansible_distribution_version is version('8.6', '<=')
@@ -31,7 +31,7 @@
     update_only:                       true
   register:                            reboot_output
 
-- name:                                "1.4 Packages: - Update packages on {{ distribution_full_id }}"
+- name:                                "1.4 Packages - Update packages on {{ distribution_full_id }}"
   when:
                                        - tier == 'os'
                                        - ansible_distribution_version is version('8.8', '>=')
@@ -48,13 +48,13 @@
 
 # Analyse the package list for this distribution selecting only those
 # packages assigned to the active tier or 'all'.
-# - name:                                "1.4 Packages: - Upgrade all: {{ distribution_full_id }} output"
+# - name:                                "1.4 Packages - Upgrade all: {{ distribution_full_id }} output"
 #   ansible.builtin.debug:
 #     var:                               reboot_output
 #     verbosity:                         2
 # ToDo Implement reboot logic if needed
 
-- name:                                "1.4 Packages: - Create packages installed flag"
+- name:                                "1.4 Packages - Create packages installed flag"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/packages_installed.txt"
     state:                             touch

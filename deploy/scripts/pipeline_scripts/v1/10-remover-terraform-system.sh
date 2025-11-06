@@ -86,7 +86,7 @@ fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.12.2}"
+	configureNonDeployer "${tf_version:-1.13.3}"
 	echo -e "$green--- az login ---$reset"
 	LogonToAzure $USE_MSI
 	return_code=$?
@@ -126,19 +126,37 @@ WORKLOAD_ZONE_NAME=$(echo "$SAP_SYSTEM_FOLDERNAME" | cut -d'-' -f1-3)
 landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export landscape_tfstate_key
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
-elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+
+workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT_IN_FILENAME}" "${LOCATION_CODE_IN_FILENAME}" "${NETWORK_IN_FILENAME}")
+SYSTEM_CONFIGURATION_FILE="$workload_environment_file_name"
+export SYSTEM_CONFIGURATION_FILE
+
+deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "${workload_environment_file_name}" "deployer_tfstate_key")
+if [ -z "$deployer_tfstate_key" ]; then
+	deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
+	if [ -z "$deployer_tfstate_key" ]; then
+
+		echo -e "$bold_red--- DEPLOYER_STATE_FILENAME not found in variable group $PARENT_VARIABLE_GROUP ---$reset"
+		echo "##vso[task.logissue type=error]DEPLOYER_STATE_FILENAME not found in variable group $PARENT_VARIABLE_GROUP."
+		exit 2
+	else
+		# Delete the old variable
+
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" ""
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"
+	fi
 fi
-
-
-deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
 export deployer_tfstate_key
 CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d'-' -f1-3)
 
-terraform_storage_account_name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+terraform_storage_account_name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+if [ -z "$terraform_storage_account_name" ]; then
+	terraform_storage_account_name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+	if [ -z "$terraform_storage_account_name" ]; then
+		terraform_storage_account_name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+	fi
+fi
 tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$terraform_storage_account_name' | project id, name, subscription" --query data[0].id --output tsv)
 
 echo ""
@@ -223,10 +241,10 @@ if ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/remover.sh \
 	--deployer_tfstate_key "${deployer_tfstate_key}" \
 	--auto-approve; then
 	return_code=$?
-	print_banner "$banner_title" "The removal of $WORKLOAD_ZONE_TFVARS_FILENAME succeeded" "success" "Return code: ${return_code}"
+	print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME succeeded" "success" "Return code: ${return_code}"
 else
 	return_code=$?
-	print_banner "$banner_title" "The removal of $WORKLOAD_ZONE_TFVARS_FILENAME failed" "error" "Return code: ${return_code}"
+	print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME failed" "error" "Return code: ${return_code}"
 fi
 
 echo

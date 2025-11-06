@@ -241,7 +241,7 @@ function parse_arguments() {
 
 function retrieve_parameters() {
 	if ! is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
+		load_config_vars "${deployer_environment_file_name}" "APPLICATION_CONFIGURATION_ID"
 	fi
 
 	if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
@@ -286,7 +286,7 @@ function retrieve_parameters() {
 				tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
 			fi
 		else
-			load_config_vars "${deployer_config_information}" \
+			load_config_vars "${deployer_environment_file_name}" \
 				tfstate_resource_id DEPLOYER_KEYVAULT
 
 			TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
@@ -336,7 +336,7 @@ function remove_control_plane() {
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 
-	deployer_config_information="${CONFIG_DIR}/$CONTROL_PLANE_NAME"
+	deployer_environment_file_name="${CONFIG_DIR}/$CONTROL_PLANE_NAME"
 
 	# Check that Terraform and Azure CLI is installed
 	validate_dependencies
@@ -347,10 +347,10 @@ function remove_control_plane() {
 	fi
 
 	if ! checkforEnvVar APPLICATION_CONFIGURATION_ID; then
-		load_config_vars "${deployer_config_information}" "APPLICATION_CONFIGURATION_ID"
+		load_config_vars "${deployer_environment_file_name}" "APPLICATION_CONFIGURATION_ID"
 		export APPLICATION_CONFIGURATION_ID
 	else
-		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_config_information}"
+		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}"
 	fi
 
 	retrieve_parameters
@@ -382,14 +382,14 @@ function remove_control_plane() {
 	echo "Resource Group:                      ${terraform_storage_account_resource_group_name}"
 	echo "State file:                          ${key}.terraform.tfstate"
 
-	if [ ! -f "$deployer_config_information" ]; then
+	if [ ! -f "$deployer_environment_file_name" ]; then
 		if [ -f "${CONFIG_DIR}/${environment}${region_code}" ]; then
 			echo "Copying existing configuration file"
-			sudo mv "${CONFIG_DIR}/${environment}${region_code}" "${deployer_config_information}"
+			sudo mv "${CONFIG_DIR}/${environment}${region_code}" "${deployer_environment_file_name}"
 		fi
 	fi
 
-	load_config_vars "${deployer_config_information}" "step"
+	load_config_vars "${deployer_environment_file_name}" "step"
 	if [ 1 -eq $step ]; then
 		exit 0
 	fi
@@ -576,7 +576,7 @@ function remove_control_plane() {
 	else
 		print_banner "Remove Control Plane " "Reset Local File" "success"
 
-		save_config_vars "${deployer_config_information}" \
+		save_config_vars "${deployer_environment_file_name}" \
 			tfstate_resource_id
 
 	fi
@@ -586,7 +586,7 @@ function remove_control_plane() {
 	if [ 1 -eq $keep_agent ]; then
 		print_banner "Remove Control Plane " "Keeping the Azure DevOps agent" "info"
 		step=1
-		save_config_var "step" "${deployer_config_information}"
+		save_config_var "step" "${deployer_environment_file_name}"
 	else
 		cd "${deployer_dirname}" || exit
 
@@ -617,14 +617,14 @@ function remove_control_plane() {
 			return 20
 		fi
 		step=0
-		save_config_var "step" "${deployer_config_information}"
+		save_config_var "step" "${deployer_environment_file_name}"
 		if [ 0 != $return_value ]; then
 			keyvault=''
 			deployer_tfstate_key=''
-			save_config_var "$keyvault" "${deployer_config_information}"
-			save_config_var "$deployer_tfstate_key" "${deployer_config_information}"
-			if [ -f "${deployer_config_information}" ]; then
-				rm "${deployer_config_information}"
+			save_config_var "$keyvault" "${deployer_environment_file_name}"
+			save_config_var "$deployer_tfstate_key" "${deployer_environment_file_name}"
+			if [ -f "${deployer_environment_file_name}" ]; then
+				rm "${deployer_environment_file_name}"
 			fi
 		fi
 	fi

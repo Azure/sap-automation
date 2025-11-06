@@ -46,7 +46,7 @@ configure_devops
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.12.2}"
+	configureNonDeployer "${tf_version:-1.13.3}"
 fi
 
 echo -e "$green--- Validations ---$reset"
@@ -99,11 +99,22 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
+variableGroupName="$VARIABLE_GROUP_CONTROL_PLANE"
+
+if ! get_variable_group_id "$variableGroupName" "VARIABLE_GROUP_ID"; then
+	echo -e "$cyan--- Variable group $variableGroupName not found ---$reset"
+	variableGroupName="$VARIABLE_GROUP"
+
+	if ! get_variable_group_id "$variableGroupName" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $variableGroupName not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $variableGroupName not found."
+		exit 2
+	fi
+else
+	VARIABLE_GROUP="${VARIABLE_GROUP_CONTROL_PLANE}"
+	export VARIABLE_GROUP
 fi
+
 export VARIABLE_GROUP_ID
 
 if [ -v SYSTEM_ACCESSTOKEN ]; then
@@ -116,11 +127,21 @@ export TF_VAR_subscription_id
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
+export ENVIRONMENT
 LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
+export LOCATION
+NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
+export NETWORK
 
-deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/${ENVIRONMENT}$LOCATION"
-deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-library_configuration_file="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+
+deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
+
+SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
+export SYSTEM_CONFIGURATION_FILE
+
+deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
+library_configuration_file="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 
 if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"; then
@@ -150,30 +171,30 @@ fi
 
 echo -e "$green--- File Validations ---$reset"
 
-if [ ! -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
-	print_banner "$banner_title" "File ${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found" "error"
-	echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
+if [ ! -f "${deployer_configuration_file}" ]; then
+	print_banner "$banner_title" "File ${deployer_configuration_file} was not found" "error"
+	echo "##vso[task.logissue type=error]File ${deployer_configuration_file} was not found."
 	exit 2
 fi
 
-if [ ! -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" ]; then
-	print_banner "$banner_title" "File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found" "error"
-	echo "##vso[task.logissue type=error]File ${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
+if [ ! -f "${library_configuration_file}" ]; then
+	print_banner "$banner_title" "File ${library_configuration_file} was not found" "error"
+	echo "##vso[task.logissue type=error]File ${library_configuration_file} was not found."
 	exit 2
 fi
 
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
-echo -e "$green--- Convert config files to UX format ---$reset"
-dos2unix -q "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-dos2unix -q "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+# echo -e "$green--- Convert config files to UX format ---$reset"
+# dos2unix -q "${deployer_configuration_file}"
+# dos2unix -q "${library_configuration_file}"
 
 echo -e "$green--- Read Variables from Variable group ---$reset"
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "keyvault")
 if [ "$sourced_from_file" == 1 ]; then
 	az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --value "${key_vault}" --output none --only-show-errors
 fi
-echo "Deployer TFvars:                      $DEPLOYER_TFVARS_FILENAME"
+echo "Deployer TFvars:                      $deployer_configuration_file"
 
 if [ -n "${key_vault}" ]; then
 	echo "Deployer Key Vault:                   ${key_vault}"
@@ -324,9 +345,15 @@ cd "${CONFIG_REPO_PATH}" || exit
 git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 echo -e "$green--- Update repo ---$reset"
-if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}" ]; then
-	git add .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}"
+
+if [ -f "${deployer_environment_file_name}" ]; then
+	git add "${deployer_environment_file_name}"
 	added=1
+	if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}" ]; then
+		rm -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}"
+		git rm --ignore-unmatch -q -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}"
+
+	fi
 fi
 
 if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".md ]; then
@@ -334,8 +361,8 @@ if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".md ]; then
 	added=1
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
-	git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+if [ -f "${deployer_configuration_file}" ]; then
+	git add -f "${deployer_configuration_file}"
 	added=1
 fi
 
@@ -377,13 +404,8 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	fi
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" ]; then
-	git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
-	added=1
-fi
-
-if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" ]; then
-	git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+if [ -f "${library_configuration_file}" ]; then
+	git add -f "${library_configuration_file}"
 	added=1
 fi
 
@@ -460,42 +482,95 @@ if [ -f "${deployer_environment_file_name}" ]; then
 
 	file_REMOTE_STATE_RG=$(grep "^REMOTE_STATE_RG=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	if [ -n "${file_REMOTE_STATE_RG}" ]; then
-		echo "Terraform rgname:     ${file_REMOTE_STATE_RG}"
+		echo "Terraform rg name:    ${file_REMOTE_STATE_RG}"
 	fi
-fi
 
-echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-if [ "$return_code" -eq 0 ]; then
-	if [ -n "${file_REMOTE_STATE_SA}" ]; then
-		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${file_REMOTE_STATE_SA}"; then
-			echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was added to the $VARIABLE_GROUP variable group."
+	APP_SERVICE_NAME=$(grep "^APP_SERVICE_NAME=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${APP_SERVICE_NAME}" ]; then
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_NAME" "$APP_SERVICE_NAME"; then
+			echo "Variable APP_SERVICE_NAME was added to the $VARIABLE_GROUP variable group."
 		else
-			echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
-			echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
+			echo "##vso[task.logissue type=error]Variable APP_SERVICE_NAME was not added to the $VARIABLE_GROUP variable group."
+			echo "Variable APP_SERVICE_NAME was not added to the $VARIABLE_GROUP variable group."
+		fi
+
+		echo "Webapp URL Base:      ${APP_SERVICE_NAME}"
+
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "true"; then
+			echo "Variable APP_SERVICE_DEPLOYMENT was added to the $VARIABLE_GROUP variable group."
+		else
+			echo "##vso[task.logissue type=error]Variable APP_SERVICE_DEPLOYMENT was not added to the $VARIABLE_GROUP variable group."
+			echo "Variable APP_SERVICE_DEPLOYMENT was not added to the $VARIABLE_GROUP variable group."
+		fi
+	else
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "false"; then
+			echo "Variable APP_SERVICE_DEPLOYMENT was added to the $VARIABLE_GROUP variable group."
+		else
+			echo "##vso[task.logissue type=error]Variable APP_SERVICE_DEPLOYMENT was not added to the $VARIABLE_GROUP variable group."
+			echo "Variable APP_SERVICE_DEPLOYMENT was not added to the $VARIABLE_GROUP variable group."
 		fi
 	fi
 
-
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$file_key_vault"; then
-		echo "Variable DEPLOYER_KEYVAULT was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable DEPLOYER_KEYVAULT was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable DEPLOYER_KEYVAULT was not added to the $VARIABLE_GROUP variable group."
+	webapp_id=$(grep "^webapp_id=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${webapp_id}" ]; then
+		echo "Webapp ID:            ${webapp_id}"
 	fi
 
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_ENVIRONMENT" "$ENVIRONMENT"; then
-		echo "Variable CONTROL_PLANE_ENVIRONMENT was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_ENVIRONMENT was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable CONTROL_PLANE_ENVIRONMENT was not added to the $VARIABLE_GROUP variable group."
+fi
+
+echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+if [ -n "${file_REMOTE_STATE_SA}" ]; then
+	tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$file_REMOTE_STATE_SA' | project id, name, subscription" --query data[0].id --output tsv)
+	control_plane_subscription=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+	if [ -n "$control_plane_subscription" ]; then
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" "$control_plane_subscription"; then
+			echo "Variable TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION was added to the $VARIABLE_GROUP variable group."
+		else
+			echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION was not added to the $VARIABLE_GROUP variable group."
+			echo "Variable TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION was not added to the $VARIABLE_GROUP variable group."
+		fi
 	fi
 
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"; then
-		echo "Variable CONTROL_PLANE_LOCATION was added to the $VARIABLE_GROUP variable group."
+	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${file_REMOTE_STATE_SA}"; then
+		echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was added to the $VARIABLE_GROUP variable group."
 	else
-		echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_LOCATION was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable CONTROL_PLANE_LOCATION was not added to the $VARIABLE_GROUP variable group."
+		echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
+		echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
 	fi
+fi
 
+if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$file_key_vault"; then
+	echo "Variable DEPLOYER_KEYVAULT was added to the $VARIABLE_GROUP variable group."
+else
+	echo "##vso[task.logissue type=error]Variable DEPLOYER_KEYVAULT was not added to the $VARIABLE_GROUP variable group."
+	echo "Variable DEPLOYER_KEYVAULT was not added to the $VARIABLE_GROUP variable group."
+fi
+
+if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_ENVIRONMENT" "$ENVIRONMENT"; then
+	echo "Variable CONTROL_PLANE_ENVIRONMENT was added to the $VARIABLE_GROUP variable group."
+else
+	echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_ENVIRONMENT was not added to the $VARIABLE_GROUP variable group."
+	echo "Variable CONTROL_PLANE_ENVIRONMENT was not added to the $VARIABLE_GROUP variable group."
+fi
+
+if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"; then
+	echo "Variable CONTROL_PLANE_LOCATION was added to the $VARIABLE_GROUP variable group."
+else
+	echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_LOCATION was not added to the $VARIABLE_GROUP variable group."
+	echo "Variable CONTROL_PLANE_LOCATION was not added to the $VARIABLE_GROUP variable group."
+fi
+
+if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_NAME" "$APP_SERVICE_NAME"; then
+	echo "Variable APP_SERVICE_NAME was added to the $VARIABLE_GROUP variable group."
+else
+	echo "##vso[task.logissue type=error]Variable APP_SERVICE_NAME was not added to the $VARIABLE_GROUP variable group."
+	echo "Variable WEBAPP_URL_BASE was not added to the $VARIABLE_GROUP variable group."
+fi
+
+if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "WEBAPP_ID" "$webapp_id"; then
+	echo "Variable WEBAPP_ID was added to the $VARIABLE_GROUP variable group."
+else
+	echo "##vso[task.logissue type=error]Variable WEBAPP_ID was not added to the $VARIABLE_GROUP variable group."
+	echo "Variable WEBAPP_ID was not added to the $VARIABLE_GROUP variable group."
 fi
 exit $return_code

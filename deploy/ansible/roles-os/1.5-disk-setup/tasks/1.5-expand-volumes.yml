@@ -73,15 +73,15 @@
         verbosity:                     2
     # ------------------</DEBUGGING>------------------
 
-    - name:                        "1.5 Expand Volumes - Extend the logical volumes and resize the FS"
+    - name:                            "1.5 Expand Volumes - Extend the logical volumes and resize the FS"
       community.general.lvol:
-        vg:                        "{{ item.vg }}"
-        lv:                        "{{ item.lv }}"
-        size:                      "{{ item.size }}"
-        active:                    true
-        state:                     present
-        shrink:                    false
-        resizefs:                  true
+        vg:                            "{{ item.vg }}"
+        lv:                            "{{ item.lv }}"
+        size:                          "{{ item.size }}"
+        active:                        true
+        state:                         present
+        shrink:                        false
+        resizefs:                      true
       loop:
         - { vg: '{{ vg_root }}',    lv: 'rootlv',    size: '{{ lv_root_size }}' }
         - { vg: '{{ vg_root }}',    lv: 'tmplv',     size: '{{ lv_tmp_size }}'  }
@@ -89,15 +89,15 @@
         - sufficient_vg_space | default(false)
         - node_tier not in ['oracle', 'oracle-asm', 'hana', 'db2']
 
-    - name:                        "1.5 Expand Volumes - Extend the logical volumes and resize the FS (DB)"
+    - name:                            "1.5 Expand Volumes - Extend the logical volumes and resize the FS (DB)"
       community.general.lvol:
-        vg:                        "{{ item.vg }}"
-        lv:                        "{{ item.lv }}"
-        size:                      "{{ item.size }}"
-        active:                    true
-        state:                     present
-        shrink:                    false
-        resizefs:                  true
+        vg:                            "{{ item.vg }}"
+        lv:                            "{{ item.lv }}"
+        size:                          "{{ item.size }}"
+        active:                        true
+        state:                         present
+        shrink:                        false
+        resizefs:                      true
       loop:
         - { vg: '{{ vg_root }}',    lv: 'rootlv',    size: '{{ lv_root_size_db }}' }
         - { vg: '{{ vg_root }}',    lv: 'tmplv',     size: '{{ lv_tmp_size }}'  }

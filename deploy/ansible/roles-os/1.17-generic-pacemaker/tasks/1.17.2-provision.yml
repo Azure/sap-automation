@@ -24,7 +24,7 @@
     - name:                            "1.17 Generic Pacemaker - Ensure that network interface is not managed by cloud network plugin"
       when:
                                        - ansible_facts.packages['cloud-netconfig-azure']
-                                       - (ansible_facts.packages['cloud-netconfig-azure'][0].version | float) < 1.3
+                                       - ansible_facts.packages['cloud-netconfig-azure'][0].version is version('1.3', '<')
       become:                          true
       ansible.builtin.lineinfile:
         path:                          /etc/sysconfig/network/ifcfg-eth0

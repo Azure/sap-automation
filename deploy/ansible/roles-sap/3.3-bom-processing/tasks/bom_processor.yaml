@@ -44,7 +44,7 @@
 #                                                                              |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "3.3 BoM Processing: - Register BoM"
+- name:                                "3.3 BoM Processing - Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
@@ -53,7 +53,7 @@
     task_prefix:                       "BOM Processing: "
 
 #   02) Create static download directories
-- name:                                "3.3 BoM Processing: - Create SAP download directories"
+- name:                                "3.3 BoM Processing - Create SAP download directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -62,10 +62,11 @@
     - path: "{{ target_media_location }}/tmp"
     - path: "{{ target_media_location }}/downloads"
     - path: "{{ target_media_location }}/download_basket"
+    - path: "{{ target_media_location }}/RPM"
 
 
 #   03) Create dynamic extract directories
-- name:                                "3.3 BoM Processing: - Create BOM directories"
+- name:                                "3.3 BoM Processing - Create BOM directories"
   ansible.builtin.file:
     path:                              "{{ target_media_location }}/{{ item.extractDir }}"
     state:                             directory
@@ -76,11 +77,11 @@
 
 # Download Files
 # ------------------<DEBUGGING>-------------------
-- name:                                "3.3 BoM Processing: - Check if dynamic BOM download was performed successfully."
+- name:                                "3.3 BoM Processing - Check if dynamic BOM download was performed successfully."
   block:
-    - name:                             "3.3 BoM Processing: - Check if the item has dynamic property"
+    - name:                            "3.3 BoM Processing - Check if the item has dynamic property"
       ansible.builtin.fail:
-        msg:                            "INSTALL:0023:Error while downloading BOM contents. Invalid BOM structure detected."
+        msg:                           "INSTALL:0023:Error while downloading BOM contents. Invalid BOM structure detected."
       when:
         - item.download is undefined or item.download
         - item.dynamic is defined or item.archive is undefined
@@ -88,7 +89,7 @@
   when:
     - is_executed_by_acss
 
-- name:                             "3.3 BoM Processing: - List files"
+- name:                                "3.3 BoM Processing - List files"
   ansible.builtin.debug:
     msg:
       - "URL : {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive }}\
@@ -101,7 +102,7 @@
     - item.download is undefined or item.download
 # ------------------</DEBUGGING>------------------
 
-- name:                                "3.3 BoM Processing: - Set Python version {{ distribution_id }}"
+- name:                                "3.3 BoM Processing - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                    'python2'
   when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
@@ -114,14 +115,14 @@
 # also, when we pass checksum if the file exists in destination it will be
 # deleted if the checksum does not match and will be downloaded from URL
 
-- name:                               "3.3 BoM Processing: - Creates temporary download directory"
-  become:                             true
+- name:                                "3.3 BoM Processing - Creates temporary download directory"
+  become:                              true
   ansible.builtin.file:
-    path:                             "{{ tmp_directory }}/tmp"
-    state:                            directory
-    mode:                             0775
+    path:                              "{{ tmp_directory }}/tmp"
+    state:                             directory
+    mode:                              0775
 
-- name:                                "3.3 BoM Processing: - Download Files on {{ distribution_id }}"
+- name:                                "3.3 BoM Processing - Download Files on {{ distribution_id }}"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
                                        {% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
@@ -145,7 +146,7 @@
     ansible_python_interpreter:        "{{ python_version }}"
 
 
-- name:                                "3.3 BoM Processing: - Download Files on {{ distribution_id }}"
+- name:                                "3.3 BoM Processing - Download Files on {{ distribution_id }}"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
                                        {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
@@ -168,13 +169,13 @@
     - distribution_id != 'redhat9'
 
 
-- name:                               "3.3 BoM Processing: - Download result"
+- name:                               "3.3 BoM Processing - Download result"
   ansible.builtin.debug:
     var:                              result
     verbosity:                        2
 
 #   05) Extract files - SAPCAR
-- name:                                "3.3 BoM Processing: - Extract File, SAPCAR"
+- name:                                "3.3 BoM Processing - Extract File, SAPCAR"
   ansible.builtin.command:             "{{ target_media_location }}/downloads/SAPCAR -manifest SIGNATURE.SMF \
                                          -xf {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                          {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
@@ -199,7 +200,7 @@
 # This also presents another problem as the archive files will get unpacked into /usr/sap/install/CD_EXPORT/<package_ID>/<files> and will cause setup to fail.
 # This issue is now being handled by process_exe_archives.yaml
 
-# - name:                                "3.3 BoM Processing: - Extract File, UNRAR"
+# - name:                                "3.3 BoM Processing - Extract File, UNRAR"
 #   ansible.builtin.command:             "{% if (ansible_os_family | upper) == 'REDHAT' %}unar -s -D{% else %}unrar x{% endif %} {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
 #   args:
 #     chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
@@ -216,11 +217,11 @@
 
 
 #   07) Extract files - UNZIP
-- name:                                "3.3 BoM Processing: - Extract File, UNZIP"
+- name:                                "3.3 BoM Processing - Extract File, UNZIP"
   ansible.builtin.unarchive:
     src:                               "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                         {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
-    dest:                              "{{ target_media_location }}/{{ item.extractDir }}"
+    dest:                              "{% if item.extractDir is defined %}{{ target_media_location }}/{{ item.extractDir }}{% else %}{{ target_media_location }}{% endif %}"
     remote_src:                        true
     creates:                           "{{ target_media_location }}/{{ item.extractDir }}/{% if item.creates is defined %}\
                                         {{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
@@ -234,7 +235,7 @@
       ( item.filename is defined   and (item.filename|regex_search('[^.]+(?=\\.*$)')|upper=="TGZ") )
 
 #   07) Extract files - EXE
-# - name:                                "3.3 BoM Processing: - Extract File, UNRAR"
+# - name:                                "3.3 BoM Processing - Extract File, UNRAR"
 #   ansible.builtin.command:             unrar x "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
 #                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
 #   args:
@@ -250,7 +251,7 @@
 
 #   08) Extract files - EXE
 
-- name:                                "3.3 BoM Processing: - Extract File, EXE"
+- name:                                "3.3 BoM Processing - Extract File, EXE"
   ansible.builtin.include_tasks:       "process_exe_archives.yaml"
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
@@ -267,12 +268,12 @@
 #
 # bom_processor.yaml
 # Gather Dependencies
-- name:                                "3.3 BoM Processing: - Gather all dependencies"
+- name:                                "3.3 BoM Processing - Gather all dependencies"
   ansible.builtin.set_fact:
     current_dependencies:              "{{ bom.materials.dependencies | default([]) }}"
 
 # Process Dependencies
-- name:                                "3.3 BoM Processing: - Process each dependency"
+- name:                                "3.3 BoM Processing - Process each dependency"
   ansible.builtin.include_tasks:       "bom_processor.yaml"
   vars:
     bom_name:                          "{{ current_dep.name }}"

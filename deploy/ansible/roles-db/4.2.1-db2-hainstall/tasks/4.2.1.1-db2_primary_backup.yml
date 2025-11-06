@@ -9,7 +9,7 @@
 # +------------------------------------4------------------------------------------------------------------------------------*/
 
 # TODO: set proper logic for failing on this.
-- name:                                "DB2 Primary DB - Set Offline log Dir path "
+- name:                                "4.2.1. DB2 High availability Installation - Primary - Set Offline log Dir path "
   ansible.builtin.shell:               db2 update db cfg for {{ db_sid }} using LOGARCHMETH1 "DISK:/db2/{{ db_sid | upper }}/offline_logdir"
   become:                              true
   become_user:                         db2{{ db_sid | lower }}
@@ -28,7 +28,7 @@
 
 # hdamecharla: is this the right place to create a shared backup?
 
-- name:                                " DB2 Backup -  Create backup Directory in shared location"
+- name:                                "4.2.1. DB2 High availability Installation - Primary - Create backup Directory in shared location"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -36,7 +36,7 @@
   loop:
     - path:                            "{{ target_media_location }}/db2backup"
 
-- name:                                "DB2 HA: - Ensure backup directory exists for DB2 database with System Identifier {{ db_sid }}"
+- name:                                "4.2.1. DB2 High availability Installation - Primary - Ensure backup directory exists for DB2 database with System Identifier {{ db_sid }}"
   ansible.builtin.file:
     path:                              "{{ db_sid_backup_dir }}"
     state:                             directory
@@ -49,11 +49,11 @@
 # |                                                                            |
 # /*---------------------------------------------------------------------------8
 # TODO: take online backup on primary node
-- name:                                "DB2 Backup:- Ensure backup is taken on primary node"
+- name:                                "4.2.1. DB2 High availability Installation - Primary - Ensure backup is taken on primary node"
   become:                              true
   become_user:                         "db2{{ db_sid | lower }}"
   block:
-    - name:                            "DB2 Backup - Prepare for offline backup"
+    - name:                            "4.2.1. DB2 High availability Installation - Primary - Prepare for offline backup"
       ansible.builtin.shell: |
                               db2 terminate
                               db2 deactivate database {{ db_sid }}
@@ -62,32 +62,21 @@
       environment:
         PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
 
-    - name:                            "SAP DB2: check media exists"
-      ansible.builtin.stat:
-        path:                          "{{ target_media_location }}/SWPM/sapinst"
-      register:                        sapinst_found
-
-    - name:                            "ErrorHandling"
-      ansible.builtin.fail:
-        msg:                           "INSTALL:0010:Unable to find sapinst, please check that the installation media is mounted"
-      when: not sapinst_found.stat.exists
-
-    - name:                            "SAP DB2: progress"
+    - name:                            "4.2.1. DB2 High availability Installation - Primary - progress"
       ansible.builtin.debug:
         msg:                           "Starting SAP DB2 Backup. Please wait"
 
 # TBC - need a check here for any existing backups- If backup do not exists then take a backup - this will help to run this playbook multiple times with desired outcome
 # ToDO: make this async after we fix issues.
 # db2 backup database {{ db_sid }} online to {{ db_sid_backup_dir }}
-    - name:                            "DB2 HA: - Backup DB2 database for System Identifier {{ db_sid }}"
+    - name:                            "4.2.1. DB2 High availability Installation - Primary - Backup DB2 database for System Identifier {{ db_sid }}"
       ansible.builtin.shell: >
                              db2 backup database {{ db_sid }} to {{ db_sid_backup_dir }}
       args:
         executable: /bin/csh
       register:                       db2_backup_result
       environment:
-        PATH: "/db2/db2{{ db_sid | lower }}/bin:/usr/local/bin:/bin:/usr/bin:/usr/games:/usr/lib/mit/bin:/usr/sap/{{ sap_sid }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid }}/SYS/exe/run:/db2/db2{{ db_sid | lower }}:/db2/db2{{ db_sid | lower }}/sqllib/bin:/db2/db2{{ db_sid | lower }}/sqllib
-/adm:/db2/db2{{ db_sid | lower }}/sqllib/misc:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin:/db2/db2{{ db_sid | lower }}/sqllib/db2tss/bin"
+        PATH: "/db2/db2{{ db_sid | lower }}/bin:/usr/local/bin:/bin:/usr/bin:/usr/games:/usr/lib/mit/bin:/usr/sap/{{ sap_sid }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sap_sid }}/SYS/exe/run:/db2/db2{{ db_sid | lower }}:/db2/db2{{ db_sid | lower }}/sqllib/bin:/db2/db2{{ db_sid | lower }}/sqllib/adm:/db2/db2{{ db_sid | lower }}/sqllib/misc:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin:/db2/db2{{ db_sid | lower }}/sqllib/db2tss/bin"
         HOME: "/db2/db2{{ db_sid | lower }}"
         PYTHONSTARTUP: "/etc/pythonstart"
         SAPSYSTEMNAME: "{{ sap_sid }}"
@@ -108,25 +97,25 @@
         DB2_HOME: "/db2/db2{{ db_sid | lower }}/sqllib"
         DB2LIB: "/db2/db2{{ db_sid | lower }}/sqllib/lib"
 
-    - name:                            "DB2 Backup  - Waiting for backup to finish"
+    - name:                            "4.2.1. DB2 High availability Installation - Primary - Backup - Waiting for backup to finish"
       ansible.builtin.pause:
         seconds:                       60
 
-    - name:                            "DB2 Backup - Check backup status"
+    - name:                            "4.2.1. DB2 High availability Installation - Primary - Backup - Check backup status"
       ansible.builtin.debug:
         msg:                           "{{ db2_backup_result.stdout_lines }}"
       when:                            '"Backup successful." in db2_backup_result.stdout'
 
-    - name:                            "DB2 Backup - Get backup timestamp"
+    - name:                            "4.2.1. DB2 High availability Installation - Primary - Backup - Get backup timestamp"
       ansible.builtin.set_fact:
         db2_backup_timestamp:           "{{ db2_backup_result.stdout | trim | regex_replace('Backup successful. The timestamp for this backup image is : ', '') }}"
       when:                            '"Backup successful." in db2_backup_result.stdout'
 
-    - name:                            "DB2 Backup - Get backup timestamp"
+    - name:                            "4.2.1. DB2 High availability Installation - Primary - Backup - Get backup timestamp"
       ansible.builtin.debug:
         var:                           db2_backup_timestamp
 
-    - name:                            "DB2 Backup:- Ensure the DB is activated after the backup"
+    - name:                            "4.2.1. DB2 High availability Installation - Primary - Backup - Ensure the DB is activated after the backup"
       become:                          true
       become_user:                     "db2{{ db_sid | lower }}"
       ansible.builtin.shell: >
@@ -141,6 +130,6 @@
 #      ansible.builtin.shell: >
 #                              db2start
 
-# TBC - Need a check here for the successfull backup
+# TBC - Need a check here for the successful backup
   when:
     - ansible_hostname == primary_instance_name

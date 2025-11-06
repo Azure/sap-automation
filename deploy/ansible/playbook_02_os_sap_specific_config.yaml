@@ -16,12 +16,6 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                            "OS configuration playbook: - Ensure jmespath is installed in the playbook python"
-      ansible.builtin.pip:
-        name:                          jmespath
-        state:                         present
-      tags:
-        - always
 
     - name:                            "SAP OS configuration playbook: - Create Progress folder"
       ansible.builtin.file:
@@ -47,7 +41,14 @@
       tags:
         - always
 
-    - name:                            "SAP OS configuration playbook: - Read password"
+    - name:                            "SCS Installation Playbook: - Read/Create passwords"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.1-passwords
+        public:                        true
+      tags:
+        - 0.1-passwords
+
+    - name:                            "SAP OS configuration playbook: - Read Windows password"
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         tasks_from:                    windows.yaml
@@ -104,7 +105,7 @@
           tags:
             - always
 
-        - name:                        "SAP OS configuration playbook: - : Extract Subscription ID, Resource Group Name and Virtual Machine name"
+        - name:                        "SAP OS configuration playbook: - Extract Subscription ID, Resource Group Name and Virtual Machine name"
           ansible.builtin.set_fact:
             subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
             resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
@@ -115,6 +116,7 @@
         - name:                        "SAP OS configuration playbook: - Set sapos storage account facts"
           ansible.builtin.set_fact:
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            main_password:             "{{ hostvars.localhost.sap_password }}"
             sa_enabled:                 true
           when:
             - not is_run_with_infraCreate_only
@@ -125,7 +127,7 @@
 
         - name:                        "SAP OS configuration playbook: - Set sapos storage account facts"
           ansible.builtin.set_fact:
-            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           when:
             - not is_run_with_infraCreate_only
             - hostvars.localhost.sapbits_sas_token is defined
@@ -135,7 +137,7 @@
 
         - name:                        "SAP OS configuration playbook: - Set sapos storage account facts"
           ansible.builtin.set_fact:
-            sapbits_sas_token:          "{{ hostvars.localhost.sapbits_sas_token }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           when:
             - not is_run_with_infraCreate_only
             - hostvars.localhost.sapbits_sas_token is defined
@@ -152,10 +154,6 @@
           register: azure_network_metadata
           tags:
             - always
-
-        # - name:                        "SAP OS configuration playbook: - Filter out the values for IPAddresses in json format"
-        #   ansible.builtin.set_fact:
-        #     private_ips_info:          "{{ azure_network_metadata.json.ipv4.ipAddress }}"
 
         - name:                        "SAP OS configuration playbook: - Convert ips to list"
           ansible.builtin.set_fact:
@@ -293,7 +291,7 @@
           tags:
             - 2.10-sap-notes
 
-        - name:                        "SAP OS configuration playbook: - configure exports"
+        - name:                        "SAP OS configuration playbook: - Configure exports"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.3-sap-exports
           tags:
@@ -305,7 +303,7 @@
           tags:
             - 2.6-sap-mounts
 
-        - name:                        "SAP OS configuration playbook: - directory permissions"
+        - name:                        "SAP OS configuration playbook: - Set directory permissions"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.2-sapPermissions
           tags:

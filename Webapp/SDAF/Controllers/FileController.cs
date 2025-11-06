@@ -23,21 +23,13 @@ using System.Collections.Concurrent;
 
 namespace SDAFWebApp.Controllers
 {
-    public class FileController : Controller
+    public class FileController(ITableStorageService<AppFile> appFileService, ITableStorageService<LandscapeEntity> landscapeService,
+        ITableStorageService<SystemEntity> systemService, IConfiguration configuration) : Controller
     {
-        private readonly ITableStorageService<AppFile> _appFileService;
-        private readonly ITableStorageService<LandscapeEntity> _landscapeService;
-        private readonly ITableStorageService<SystemEntity> _systemService;
-        private readonly RestHelper restHelper;
-
-        public FileController(ITableStorageService<AppFile> appFileService, ITableStorageService<LandscapeEntity> landscapeService,
-            ITableStorageService<SystemEntity> systemService, IConfiguration configuration)
-        {
-            _appFileService = appFileService;
-            _landscapeService = landscapeService;
-            _systemService = systemService;
-            restHelper = new RestHelper(configuration, "GIT");
-        }
+        private readonly ITableStorageService<AppFile> _appFileService = appFileService;
+        private readonly ITableStorageService<LandscapeEntity> _landscapeService = landscapeService;
+        private readonly ITableStorageService<SystemEntity> _systemService = systemService;
+        private readonly RestHelper restHelper = new RestHelper(configuration, "GIT");
 
         [ActionName("Index")]
         public async Task<IActionResult> Index()
@@ -419,7 +411,7 @@ namespace SDAFWebApp.Controllers
             }
         }
 
-        private string GetPartitionKey(string id)
+        private static string GetPartitionKey(string id)
         {
             return id[..id.IndexOf('-')];
         }
@@ -446,7 +438,7 @@ namespace SDAFWebApp.Controllers
                     type = 2;
                 }
 
-                if (newName.Contains("..") || newName.Contains("/") || newName.Contains("\\"))
+                if (newName.Contains("..") || newName.Contains('/') || newName.Contains('\\'))
                 {
                     throw new Exception("Invalid filename");
                 }

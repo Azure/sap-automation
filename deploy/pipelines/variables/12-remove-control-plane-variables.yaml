@@ -18,7 +18,7 @@ variables:
   - group:                             "SDAF-General"
   - group:                             SDAF-${{ parameters.deployer_environment }}
 
-  - name:                              parent_variable_group
+  - name:                              variable_group
     value:                             SDAF-${{ parameters.deployer_environment }}
 
   - name:                              run_on
@@ -47,3 +47,6 @@ variables:
 
   - name:                              connection_name
     value:                             ${{ parameters.connection_name }}
+
+  - name:                              deployer_environment
+    value:                             ${{ parameters.deployer_environment }}

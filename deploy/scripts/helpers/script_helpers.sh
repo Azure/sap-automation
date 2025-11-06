@@ -1080,19 +1080,6 @@ function ImportAndReRunApply {
 	# echo "Apply parameters: ${applyParameters[*]}"
 
 	if [ -f "$fileName" ]; then
-		retry_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("A retryable error occurred."))' "$fileName")
-		if [[ -n "${retry_errors_temp}" ]]; then
-		  rm "$fileName"
-			sleep 30
-			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
-				import_return_value=${PIPESTATUS[0]}
-			else
-				import_return_value=${PIPESTATUS[0]}
-			fi
-		fi
-	fi
-	if [ -f "$fileName" ]; then
 
 		errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
 
@@ -1116,6 +1103,9 @@ function ImportAndReRunApply {
 			fi
 			# Check for resource that can be imported
 			existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
+			if [[ -z $existing ]]; then
+				existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("a resource with the ID"))' "$fileName")
+			fi
 
 			if [[ -n $existing ]]; then
 				readarray -t errors < <(echo "${existing}" | jq -c '.')
@@ -1246,6 +1236,23 @@ function ImportAndReRunApply {
 			import_return_value=0
 		fi
 	fi
+
+	if [ -f "$fileName" ]; then
+		retry_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("A retryable error occurred."))' "$fileName")
+		if [[ -z "${retry_errors_temp}" ]]; then
+			retry_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("a retryable error occurred."))' "$fileName")
+		fi
+		if [[ -n "${retry_errors_temp}" ]]; then
+			sleep 30
+			# shellcheck disable=SC2086
+			if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
+				import_return_value=${PIPESTATUS[0]}
+			else
+				import_return_value=${PIPESTATUS[0]}
+			fi
+		fi
+	fi
+
 	print_banner "ImportAndReRunApply" "Exiting function ImportAndReRunApply" "info" "return code: $import_return_value"
 
 	#shellcheck disable=SC2086

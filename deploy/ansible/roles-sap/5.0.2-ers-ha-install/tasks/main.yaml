@@ -10,14 +10,14 @@
 # +------------------------------------4--------------------------------------*/
 
 ---
-- name:                                "ERS Install: Set BOM facts"
+- name:                                "5.0.2. CS Install High availability installation - ERS - Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-ers-{{ ansible_hostname }}.params"
     sap_inifile_template:              "ers-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
 
 #   0x) Create hidden directory for parameter files
-- name:                                "ERS Install: Create directories"
+- name:                                "5.0.2. CS Install High availability installation - ERS - Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -28,31 +28,31 @@
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}' }
 
 # Returns bom object
-- name:                                "ERS Install: Register BoM"
+- name:                                "5.0.2. CS Install High availability installation - ERS - Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    task_prefix:                       "ERS Install: "
+    task_prefix:                       "5.0.2. CS Install High availability installation - ERS - "
     sa_enabled:                        true
 
-- name:                                "ERS Install: register variables"
+- name:                                "5.0.2. CS Install High availability installation - ERS - Register installation variables"
   ansible.builtin.set_fact:
     ers_bom_id:                        "{{ bom.product_ids.ers_ha }}"
     ers_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
 
-- name:                                "SCS Install: register additional variables"
+- name:                                "5.0.2. CS Install High availability installation - ERS - Register installation variables"
   ansible.builtin.set_fact:
     installGateway:                    "{% if ers_bom_instance_type == 'ABAP' %}true{% else %}false{% endif %}"
 
-- name:                                "ERS Install: reset"
+- name:                                "5.0.2. CS Install High availability installation - ERS - Reset the installation flag file"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_ers.txt"
     state:                             absent
   when:                                reinstall
 
-- name:                                "ERS Install: check if installed"
+- name:                                "5.0.2. CS Install High availability installation - ERS - Check if already installed"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_ers.txt"
   register:                            ers_installed
@@ -62,7 +62,7 @@
 - name:                                "ERS Install"
   block:
 
-    - name:                            "ERS Install: check media exists"
+    - name:                            "5.0.2. CS Install High availability installation - ERS - Check if installation media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"
       register:                        sapinst_found
@@ -72,7 +72,7 @@
         msg:                           "INSTALL:0004:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
-    - name:                            "ERS Install: Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
+    - name:                            "5.0.2. CS Install High availability installation - ERS - Template processing - Create ini file '{{ sap_inifile }}' from '{{ sap_inifile_template }}'"
       ansible.builtin.template:
         src:                           "{{ sap_inifile_template }}"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
@@ -85,19 +85,19 @@
         set_ascsInstallGateway:        "{{ installGateway | bool | lower }}"
         set_ascsInstallWebDispatcher:  "{{ ascsInstallWebDispatcher | default(false) | bool | lower }}"
 
-    - name:                            "ERS Install: check if installed"
+    - name:                            "5.0.2. CS Install High availability installation - ERS - Check if already installed"
       ansible.builtin.debug:
         msg:                           "ERS Install flag: {{ ers_installed }}"
         verbosity:                     2
 
-    - name:                            "ERS Install: install variables"
+    - name:                            "5.0.2. CS Install High availability installation - ERS - Show installation variables"
       ansible.builtin.debug:
         msg:
           - "INIFILE:    {{ sap_inifile }}"
           - "PRODUCT ID: {{ bom.product_ids.ers_ha }}"
         verbosity:                     2
 
-    - name:                            "ERS Install: Assign ownership"
+    - name:                            "5.0.2. CS Install High availability installation - ERS - Assign directory ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
         owner:                         "{{ sid_to_be_deployed.sid | lower }}adm"
@@ -105,6 +105,7 @@
         recurse:                       true
         state:                         directory
       loop:
+        - { path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
         - { path: '/sapmnt/{{ sid_to_be_deployed.sid | upper }}' }
         - { path: '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS' }
         - { path: '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/ERS{{ ers_instance_number }}' }
@@ -115,24 +116,18 @@
 #
 # *====================================4=======================================8
 
-    - name:                            "ERS Install: Create temp directory for sid"
-      ansible.builtin.file:
-        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
-        state:                         directory
-        mode:                          0755
-
-    - name:                            "ERS Installation Block"
+    - name:                            "5.0.2. CS Install High availability installation - ERS - ERS Installation Block"
       block:
-        - name:                        "ERS Install: Create Symlink"
+        - name:                        "5.0.2. CS Install High availability installation - ERS - Create Symlink as per SAP Note 3119751"
           ansible.builtin.import_tasks:  ../../../roles-sap-os/2.10-sap-notes/tasks/2.10.3119751.yaml
           when:
             - ansible_os_family == 'RedHat'
 
-        - name:                        "ERS Install: Status"
+        - name:                        "5.0.2. CS Install High availability installation - ERS - Show start installation message"
           ansible.builtin.debug:
             msg:                       "Starting sapinst for {{ sid_to_be_deployed.sid | upper }}. Please wait"
 
-        - name:                        "ERS Install: SAPInst"
+        - name:                        "5.0.2. CS Install High availability installation - ERS - Run 'sapinst'"
           ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
@@ -151,13 +146,13 @@
           register:                    ers_installation
           failed_when:                 ers_installation.rc > 0
       rescue:
-        - name:                        "RESCUE - ERS Install: Check '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' exists"
+        - name:                        "RESCUE - 5.0.2. CS Install High availability installation - ERS - Check if '/usr/sap/<SAPSID>/SYS/exe/uc/linuxx86_64' exists"
           ansible.builtin.stat:
             path:                      '/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64'
           register:                    stat_sys_exe_uc
           when:                        node_tier == 'ers'
 
-        - name:                        "RESCUE - ERS Install: Assign ownership"
+        - name:                        "RESCUE - 5.0.2. CS Install High availability installation - ERS - Assign ownership"
           ansible.builtin.file:
             path:                      "{{ item.path }}"
             owner:                     "{{ sid_to_be_deployed.sid | lower }}adm"
@@ -173,7 +168,7 @@
         # name <host> is not a valid virtual host on the local host
         # SAP Note# 2279110
 
-        - name:                        "RESCUE - ERS Install: SAPInst"
+        - name:                        "RESCUE - 5.0.2. CS Install High availability installation - ERS - Run 'sapinst' again"
           ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
@@ -192,43 +187,38 @@
           register:                    ers_installation
           failed_when:                 ers_installation.rc > 0
 
-    - name:                            "ERS Install: Installation results"
+    - name:                            "5.0.2. CS Install High availability installation - ERS - Installation results"
       block:
-        - name:                        "ERS Install: Installation results (debug)"
+        - name:                        "5.0.2. CS Install High availability installation - ERS - Show installation results (debug)"
           ansible.builtin.debug:
             var:                       ers_installation
             verbosity:                 2
 
-        - name:                        "ERS Install: Save installation results"
+        - name:                        "5.0.2. CS Install High availability installation - ERS - Save installation results"
           ansible.builtin.set_fact:
             ers_installation_succeeded: false
 
-        - name:                        "ERS Install: Installation results"
+        - name:                        "5.0.2. CS Install High availability installation - ERS - Installation results"
           ansible.builtin.fail:
-            msg:                       ERS installation failed"
+            msg:                       "ERS installation failed"
       when:                            ers_installation.rc > 0
 
-    - name:                            "ERS Install: Cleanup ini file {{ ansible_hostname }}"
+    - name:                            "5.0.2. CS Install High availability installation - ERS - Cleanup ini file {{ ansible_hostname }}"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
-    - name:                            "ERS Install: Installation results"
-      ansible.builtin.debug:
-        var:                           ers_installation
-      when:                            ers_installation.rc > 0
-
-    - name:                            "ERS Install: Installation results"
+    - name:                            "5.0.2. CS Install High availability installation - ERS - Installation results"
       ansible.builtin.debug:
         msg:                           "ERS Installation succeeded"
       when:                            ers_installation.rc == 0
 
-    - name:                            "ERS Install: Save installation results"
+    - name:                            "5.0.2. CS Install High availability installation - ERS - Save installation results"
       ansible.builtin.set_fact:
         ers_installation_succeeded:    true
       when:                            ers_installation.rc == 0
 
-    - name:                            "ERS Install: flag"
+    - name:                            "5.0.2. CS Install High availability installation - ERS - Create the installation flag file"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_ers.txt"
         state:                         touch
@@ -238,14 +228,14 @@
     - node_tier == 'ers'
     - not ers_installed.stat.exists
 
-- name:                                "ERS Install status"
+- name:                                "5.0.2. CS Install High availability installation - ERS - Install status"
   block:
 
-    - name:                            "ERS Install status"
+    - name:                            "5.0.2. CS Install High availability installation - ERS - Show installation status"
       ansible.builtin.debug:
         msg:                           "ERS is already installed"
 
-    - name:                            "ERS: - return value"
+    - name:                            "5.0.2. CS Install High availability installation - ERS - Set return value"
       ansible.builtin.set_fact:
         ers_already_installed:         true
   when:

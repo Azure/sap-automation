@@ -8,37 +8,37 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "1.4 Packages: - Import package list"
+- name:                                "1.4 Packages - Import package list"
   ansible.builtin.include_vars:        os-packages.yaml
 
-- name:                                "1.4 Packages: - Prepare the package managers etc."
+- name:                                "1.4 Packages - Prepare the package managers etc."
   ansible.builtin.include_tasks:       "1.4.0-packages-{{ ansible_os_family }}-prep.yaml"
 
-- name:                                "1.4 Packages: - SDAF defined packages"
+- name:                                "1.4 Packages - SDAF defined packages"
   ansible.builtin.include_tasks:       "1.4.1-packages.yaml"
 
-- name:                                "1.4 Packages: - Custom packages"
+- name:                                "1.4 Packages - Custom packages"
   ansible.builtin.include_tasks:       "1.4.2-custom-packages.yaml"
   when:
     - custom_packages is defined
 
-- name:                                "1.4 Packages: - Update packages"
+- name:                                "1.4 Packages - Update packages"
   ansible.builtin.include_tasks:       "1.4.3-update-packages-{{ ansible_os_family }}.yaml"
   when:
     - upgrade_packages is defined
     - upgrade_packages
 
-- name:                                "1.4 Packages: - Check for (waagent_conf)"
+- name:                                "1.4 Packages - Check for (waagent_conf)"
   ansible.builtin.stat:
     path:                              /etc/waagent.conf
   register:                            waagent_conf
 
-- name:                                "1.4 Packages: - Check for (waagent.conf.rpmsave)"
+- name:                                "1.4 Packages - Check for (waagent.conf.rpmsave)"
   ansible.builtin.stat:
     path:                              /etc/waagent.conf.rpmsave
   register:                            waagent_conf_save
 
-- name:                                "1.4 Packages: - Copy the conf file"
+- name:                                "1.4 Packages - Copy the conf file"
   become:                              true
   become_user:                         root
   ansible.builtin.copy:
@@ -52,11 +52,11 @@
   register:                            waagent_conf_copy
 
 
-- name:                                "1.4 Packages: - Force systemd to reread configs {{ distro_name }}"
+- name:                                "1.4 Packages - Force systemd to reread configs {{ distro_name }}"
   ansible.builtin.systemd:
     daemon_reload:                     true
 
-- name:                                "1.4 Packages: - Restart WAAgent on {{ distro_name }}"
+- name:                                "1.4 Packages - Restart WAAgent on {{ distro_name }}"
   ansible.builtin.service:
     name:                              waagent
     state:                             restarted
@@ -64,18 +64,18 @@
     - waagent_conf_copy is defined
     - waagent_conf_copy.changed
 
-- name:                                "1.4 Packages: - Check if /etc/init.d.bckp exists"
+- name:                                "1.4 Packages - Check if /etc/init.d.bckp exists"
   ansible.builtin.stat:
     path:                              /etc/init.d.bckp
   register:                            initd_dir_bckp
 
-- name:                                "1.4 Packages: - check if the OS version is RHEL 9.0 or newer"
+- name:                                "1.4 Packages - check if the OS version is RHEL 9.0 or newer"
   ansible.builtin.set_fact:
     is_rhel_90_or_newer:               "{{ ansible_distribution_version is version('9.0', '>=') | default(false) }}"
     init_d_bckp_exists:                "{{ initd_dir_bckp.stat.exists }}"
   when:                                ansible_os_family | upper == 'REDHAT'
 
-- name:                                "1.4 Packages: - Restore /etc/init.d.bckp"
+- name:                                "1.4 Packages - Restore /etc/init.d.bckp"
   ansible.builtin.copy:
     remote_src:                        true
     src:                               /etc/init.d.bckp

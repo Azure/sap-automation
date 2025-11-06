@@ -12,17 +12,14 @@ parameters:
   - name:                              deployer
     displayName:                       "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
     type:                              string
-    default:                           MGMT-WEEU-DEP01-INFRASTRUCTURE
 
   - name:                              library
     displayName:                       "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
     type:                              string
-    default:                           MGMT-WEEU-SAP_LIBRARY
 
   - name:                              environment
     displayName:                       "Environment name, MGMT, DEV, QA, etc"
     type:                              string
-    default:                           MGMT
 
   - name:                              use_webapp_param
     displayName:                       "Deploy the configuration web application infrastructure"
@@ -55,6 +52,10 @@ parameters:
     displayName:                       Force a re-install - may require multiple re-runs
     type:                              boolean
 
+  - name:                              test
+    displayName:                       Test the deployment
+    type:                              boolean
+
 stages:
   - stage:                             Prepare_Deployer
     condition:                         and(not(failed()), not(canceled()))
@@ -62,11 +63,12 @@ stages:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
           deployer:                    ${{ parameters.deployer }}
-          library:                     ${{ parameters.library }}
           environment:                 ${{ parameters.environment }}
-          use_webapp_param:            ${{ parameters.use_webapp_param }}
-          use_deployer:                ${{ parameters.use_deployer }}
           force_reset:                 ${{ parameters.force_reset }}
+          library:                     ${{ parameters.library }}
+          test:                        ${{ parameters.test }}
+          use_deployer:                ${{ parameters.use_deployer }}
+          use_webapp_param:            ${{ parameters.use_webapp_param }}
     displayName:                       Prepare the self hosted agent(s)
 
     jobs:
@@ -116,7 +118,6 @@ stages:
               TF_VAR_agent_pool:              $(POOL)
               TF_VAR_agent_ado_project:       $(System.TeamProject)
               TF_VAR_ansible_core_version:    $(ansible_core_version)
-              TF_VAR_spn_id:                  $(ARM_OBJECT_ID)
               TF_VAR_tf_version:              $(tf_version)
               TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
               USE_MSI:                        $(Use_MSI)
@@ -131,11 +132,12 @@ stages:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
           deployer:                    ${{ parameters.deployer }}
-          library:                     ${{ parameters.library }}
           environment:                 ${{ parameters.environment }}
-          use_webapp_param:            ${{ parameters.use_webapp_param }}
-          use_deployer:                ${{ parameters.use_deployer }}
           force_reset:                 ${{ parameters.force_reset }}
+          library:                     ${{ parameters.library }}
+          test:                        ${{ parameters.test }}
+          use_deployer:                ${{ parameters.use_deployer }}
+          use_webapp_param:            ${{ parameters.use_webapp_param }}
     jobs:
       - job:                           SaveDeploymentCredentials
         displayName:                   Save the Deployment Credentials
@@ -150,7 +152,6 @@ stages:
           - template:                  templates\download.yaml
             parameters:
               getLatestFromBranch: true
-
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -170,7 +171,8 @@ stages:
               SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
               USE_MSI:                      $(Use_MSI)
-              ZONE:                         ${{ upper(parameters.environment) }}
+
+              ZONE:                         ${{ upper(replace(parameters.deployer, '-INFRASTRUCTURE', '')) }}
 
   - stage:                             Deploy_controlplane
     dependsOn:
@@ -181,11 +183,12 @@ stages:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
           deployer:                    ${{ parameters.deployer }}
-          library:                     ${{ parameters.library }}
           environment:                 ${{ parameters.environment }}
-          use_webapp_param:            ${{ parameters.use_webapp_param }}
-          use_deployer:                ${{ parameters.use_deployer }}
           force_reset:                 ${{ parameters.force_reset }}
+          library:                     ${{ parameters.library }}
+          test:                        ${{ parameters.test }}
+          use_deployer:                ${{ parameters.use_deployer }}
+          use_webapp_param:            ${{ parameters.use_webapp_param }}
     displayName:                       Deploy the control plane
 
     jobs:
@@ -234,22 +237,44 @@ stages:
               TF_VAR_agent_ado_project:    $(System.TeamProject)
               TF_VAR_spn_id:               $(ARM_OBJECT_ID)
               TF_VAR_tf_version:           $(tf_version)
+              TF_VAR_use_webapp:           ${{ parameters.use_webapp_param }}
               USE_MSI:                     $(Use_MSI)
               WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
               keyvault:                    $(DEPLOYER_KEYVAULT)
               DEPLOYER_KEYVAULT:           $(DEPLOYER_KEYVAULT)
+          - bash: |
+              #!/bin/bash
+
+              if [ "${{ parameters.use_webapp_param }}" = "True" ] ; then
+                  echo "App Service deployed"
+                  APP_SERVICE_DEPLOYMENT=true
+              else
+                echo "Not deploying App Service"
+                APP_SERVICE_DEPLOYMENT=false
+              fi
+
+              echo "##vso[task.setvariable variable=appServiceDeployment;isOutput=true]$APP_SERVICE_DEPLOYMENT"
+              exit 0
+
+            displayName:               "HasAppService"
+            name:                      "HasAppService"
+            env:
+              APP_SERVICE_DEPLOYMENT:  $(APP_SERVICE_DEPLOYMENT)
+              WEB_APP:                 ${{ parameters.use_webapp_param }}
 
   - stage:                             Web_App_Deployment
     pool:                              $(this_agent)
     variables:
       - template:                      variables/01-deploy-control-plane-variables.yaml
         parameters:
-          deployer: ${{ parameters.deployer }}
-          library: ${{ parameters.library }}
-          environment: ${{ parameters.environment }}
-          use_webapp_param: ${{ parameters.use_webapp_param }}
-          use_deployer: ${{ parameters.use_deployer }}
-    displayName: Deploy SAP configuration Web App
+          deployer:                    ${{ parameters.deployer }}
+          environment:                 ${{ parameters.environment }}
+          force_reset:                 ${{ parameters.force_reset }}
+          library:                     ${{ parameters.library }}
+          test:                        ${{ parameters.test }}
+          use_deployer:                ${{ parameters.use_deployer }}
+          use_webapp_param:            ${{ parameters.use_webapp_param }}
+    displayName:                       Deploy SAP configuration Web App
 
     dependsOn:
       - Deploy_controlplane
@@ -257,8 +282,7 @@ stages:
     condition: |
       and
       (
-        eq(${{ parameters.use_webapp_param }}, true),
-        eq(${{ parameters.deploy_webapp_software }}, true),
+        eq(dependencies.Deploy_controlplane.outputs['Deploy_controlplane.HasAppService.appServiceDeployment'], 'true'),
         eq(dependencies.Deploy_controlplane.result, 'Succeeded'),
         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
       )
@@ -290,7 +314,7 @@ stages:
             inputs:
               azureSubscription:       ${{parameters.connection_name}}
               appType:                 "webApp"
-              appName:                 $(WEBAPP_URL_BASE)
+              appName:                 $(APP_SERVICE_NAME)
               package:                 "$(Build.ArtifactStagingDirectory)/WebApp/*.zip"
               deploymentMethod:        "auto"
               appSettings: '-CollectionUri $(System.CollectionUri)
@@ -310,47 +334,33 @@ stages:
               WORKLOADZONE_PIPELINE_ID: $(WORKLOADZONE_PIPELINE_ID)
               SAP_INSTALL_PIPELINE_ID: $(SAP_INSTALL_PIPELINE_ID)
               SDAF_GENERAL_GROUP_ID:   $(SDAF_GENERAL_GROUP_ID)
-              WEBAPP_URL_BASE:         $(WEBAPP_URL_BASE)
-              WEBAPP_RESOURCE_GROUP:   $(WEBAPP_RESOURCE_GROUP)
-              WEBAPP_ID:               $(WEBAPP_ID)
-              APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
+              APP_SERVICE_NAME:         $(APP_SERVICE_NAME)
+              WEBAPP_RESOURCE_GROUP:     $(WEBAPP_RESOURCE_GROUP)
+              WEBAPP_ID:                 $(WEBAPP_ID)
+              APP_REGISTRATION_APP_ID:   $(APP_REGISTRATION_APP_ID)
               APP_REGISTRATION_OBJECTID: $(APP_REGISTRATION_OBJECTID)
-              APP_TENANT_ID:           $(APP_TENANT_ID)
-              AZURE_CONNECTION_NAME:   ${{variables.connection_name}}
+              ARM_TENANT_ID:             $(ARM_TENANT_ID)
+              AZURE_CONNECTION_NAME:     ${{variables.connection_name}}
 
-          - bash: |
-              #!/bin/bash
-              printf "Configure the Web Application authentication using the following script.\n" >"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "\n\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-              printf "az ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\n" "$(APP_REGISTRATION_APP_ID)" "$(WEBAPP_URL_BASE)" "$(WEBAPP_URL_BASE)" "$(WEBAPP_URL_BASE)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-              printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "az role assignment create --assignee %s --role reader --subscription %s --scope /subscriptions/%s\n" "$(WEBAPP_IDENTITY)" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "Run the above command for all subscriptions you want to use in the Web Application\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-              printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "az role assignment create --assignee %s --role 'Storage Blob Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s\n" "$(WEBAPP_IDENTITY)" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" "$(Terraform_Remote_Storage_Resource_Group_Name)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "az role assignment create --assignee %s --role 'Storage Table Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s \n\n" "$(WEBAPP_IDENTITY)" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" "$(Terraform_Remote_Storage_Resource_Group_Name)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-              printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-              printf "az rest --method POST --uri \"https://graph.microsoft.com/beta/applications/%s/federatedIdentityCredentials\" --body \"{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/%s/v2.0', 'subject': '%s', 'audiences': [ 'api://AzureADTokenExchange' ]}\"" $(APP_REGISTRATION_OBJECTID) $(APP_TENANT_ID) $(MSI_ID) >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-              printf "az webapp restart --ids %s\n\n $(WEBAPP_ID)" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              printf "\n\n" >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-              printf "[Access the Web App](https://%s.azurewebsites.net) \n\n" $(WEBAPP_URL_BASE) >>"$(Build.Repository.LocalPath)/Web Application Configuration.md"
-
-              echo "##vso[task.uploadsummary]$(Build.Repository.LocalPath)/Web Application Configuration.md"
-              exit 0
-
+          - task:                      AzureCLI@2
+            continueOnError:           false
+            inputs:
+              azureSubscription:       ${{parameters.connection_name}}
+              scriptType:              bash
+              scriptLocation:          'scriptPath'
+              scriptPath:              $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-webapp-configuration.sh
+              addSpnToEnvironment:     true
+              visibleAzLogin:          false
+              failOnStandardError:     false
             displayName: "Documentation"
             env:
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              SYSTEM_PIPELINE_ID:      $(SYSTEM_PIPELINE_ID)
-              APP_REGISTRATION_APP_ID: $(APP_REGISTRATION_APP_ID)
-              WEBAPP_URL_BASE:         $(WEBAPP_URL_BASE)
-              WEBAPP_ID:               $(WEBAPP_ID)
-              WEBAPP_IDENTITY:         $(WEBAPP_IDENTITY)
+              APP_REGISTRATION_APP_ID:   $(APP_REGISTRATION_APP_ID)
+              APP_REGISTRATION_OBJECTID: $(APP_REGISTRATION_OBJECTID)
+              APP_SERVICE_NAME:          $(APP_SERVICE_NAME)
+              ARM_SUBSCRIPTION_ID:       $(ARM_SUBSCRIPTION_ID)
+              BUILD_REPOSITORY_LOCALPATH: $(Build.Repository.LocalPath)
+              SYSTEM_PIPELINE_ID:        $(SYSTEM_PIPELINE_ID)
+              WEBAPP_ID:                 $(WEBAPP_ID)
+              WEBAPP_IDENTITY:           $(WEBAPP_IDENTITY)
+              APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
+              CONTROL_PLANE_NAME:        $(CONTROL_PLANE_NAME)

@@ -193,7 +193,7 @@ fi
 #    exit 65	#/* data format error */
 # fi
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 environment_config_information="${automation_config_directory}/${environment}${region_code}"
 return_code=0
 

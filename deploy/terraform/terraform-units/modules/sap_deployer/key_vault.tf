@@ -13,6 +13,17 @@ resource "time_offset" "secret_expiry_date" {
 
 resource "time_sleep" "wait_for_keyvault" {
   create_duration                      = "120s"
+  triggers                             = {
+                                          policy_spn = try(azurerm_key_vault_access_policy.kv_user_pre_deployer[0].id, "")
+                                          policy_msi = try(azurerm_key_vault_access_policy.kv_user_msi[0].id, "")
+                                          role_assignment_msi_administrator = try(azurerm_role_assignment.role_assignment_msi[0].id, "")
+                                          role_assignment_msi_officer = try(azurerm_role_assignment.role_assignment_msi_officer[0].id, "")
+                                          role_assignment_ssi_officer = try(azurerm_role_assignment.role_assignment_system_identity[0].id, "")
+                                          role_assignment_spn = try(azurerm_role_assignment.role_assignment_spn[0].id, "")
+
+                                          endpoint_kv_user = try(azurerm_private_endpoint.kv_user[0].id, "")
+                                        }
+
 }
 // Create user KV with access policy
 resource "azurerm_key_vault" "kv_user" {
@@ -31,7 +42,7 @@ resource "azurerm_key_vault" "kv_user" {
   purge_protection_enabled             = var.enable_purge_control_for_keyvaults
   sku_name                             = "standard"
   public_network_access_enabled        = var.bootstrap ? true : var.public_network_access_enabled
-  enable_rbac_authorization            = var.key_vault.enable_rbac_authorization
+  rbac_authorization_enabled           = var.key_vault.enable_rbac_authorization
 
   network_acls {
             bypass                     = "AzureServices"
@@ -203,221 +214,6 @@ resource "azurerm_management_lock" "keyvault" {
             }
 }
 
-resource "azurerm_key_vault_secret" "subscription" {
-  count                                = !var.key_vault.exists ? (1) : (0)
-
-  depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_virtual_network_peering.peering_management_agent,
-                                           azurerm_private_endpoint.kv_user,
-                                           azurerm_role_assignment.role_assignment_msi_officer,
-                                           azurerm_role_assignment.role_assignment_system_identity
-                                         ]
-
-  name                                 = format("%s-subscription-id", upper(var.naming.prefix.DEPLOYER))
-  value                                = data.azurerm_client_config.deployer.subscription_id
-  key_vault_id                         = var.key_vault.exists ? (
-                                           var.key_vault.id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-
-  expiration_date                      = var.set_secret_expiry ? (
-                                           time_offset.secret_expiry_date.rfc3339) : (
-                                           null
-                                         )
-  tags                                 = var.infrastructure.tags
-  lifecycle {
-    ignore_changes = [ expiration_date]
-  }
-}
-resource "azurerm_key_vault_secret" "ppk" {
-  count                                = (local.enable_key && length(var.key_vault.private_key_secret_name) == 0 && !var.key_vault.exists ) ? 1 : 0
-  depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_virtual_network_peering.peering_management_agent,
-                                           azurerm_private_endpoint.kv_user,
-                                           azurerm_role_assignment.role_assignment_msi_officer,
-                                           azurerm_role_assignment.role_assignment_system_identity
-                                         ]
-  name                                 = local.private_key_secret_name
-  value                                = local.private_key
-  key_vault_id                         = var.key_vault.exists ? (
-                                           var.key_vault.id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-
-  expiration_date                      = var.set_secret_expiry ? (
-                                           time_offset.secret_expiry_date.rfc3339) : (
-                                           null
-                                         )
-  content_type                         = "secret"
-  tags                                 = var.infrastructure.tags
-  lifecycle {
-    ignore_changes = [ expiration_date]
-  }
-}
-
-resource "azurerm_key_vault_secret" "pk" {
-  count                                = local.enable_key && (length(var.key_vault.public_key_secret_name)  == 0 ) && !var.key_vault.exists ? 1 : 0
-  depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_virtual_network_peering.peering_management_agent,
-                                           azurerm_private_endpoint.kv_user,
-                                           azurerm_role_assignment.role_assignment_msi_officer,
-                                           azurerm_role_assignment.role_assignment_system_identity
-                                         ]
-  name                                 = local.public_key_secret_name
-  value                                = local.public_key
-  key_vault_id                         = var.key_vault.exists ? (
-                                           var.key_vault.id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-
-  expiration_date                      = var.set_secret_expiry ? (
-                                           time_offset.secret_expiry_date.rfc3339) : (
-                                           null
-                                         )
-  content_type                         = "secret"
-  tags                                 = var.infrastructure.tags
-
-  lifecycle {
-    ignore_changes = [ expiration_date]
-  }
-}
-resource "azurerm_key_vault_secret" "username" {
-  count                                = local.enable_key && (length(var.key_vault.username_secret_name) == 0 ) && !var.key_vault.exists ? 1 : 0
-  depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_virtual_network_peering.peering_management_agent,
-                                           azurerm_private_endpoint.kv_user,
-                                           azurerm_role_assignment.role_assignment_msi_officer,
-                                           azurerm_role_assignment.role_assignment_system_identity
-                                         ]
-
-  name                                 = local.username_secret_name
-  value                                = try(var.authentication.username, "azureadm")
-  key_vault_id                         = var.key_vault.exists ? (
-                                           var.key_vault.id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-
-  expiration_date                      = var.set_secret_expiry ? (
-                                           time_offset.secret_expiry_date.rfc3339) : (
-                                           null
-                                         )
-  content_type                         = "configuration"
-  tags                                 = var.infrastructure.tags
-  lifecycle {
-    ignore_changes = [ expiration_date]
-  }
-}
-
-resource "azurerm_key_vault_secret" "pat" {
-  count                                = local.enable_key && (length(var.infrastructure.devops.agent_pat)> 0 ) && !var.key_vault.exists  ? 0 : 0
-
-  depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_virtual_network_peering.peering_management_agent,
-                                           azurerm_private_endpoint.kv_user,
-                                           azurerm_role_assignment.role_assignment_msi_officer,
-                                           azurerm_role_assignment.role_assignment_system_identity
-                                         ]
-  name                                 = "PAT"
-  value                                = var.infrastructure.devops.agent_pat
-  key_vault_id                         = var.key_vault.exists ? (
-                                           var.key_vault.id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-
-  expiration_date                      = var.set_secret_expiry ? (
-                                           time_offset.secret_expiry_date.rfc3339) : (
-                                           null
-                                         )
-  content_type                         = "secret"
-  tags                                 = var.infrastructure.tags
-  lifecycle {
-    ignore_changes = [ expiration_date]
-  }
-}
-
-# resource "azurerm_key_vault_secret" "web_pwd" {
-#   count                                = (local.enable_key && !local.key_exist) ? (
-#                                           (
-#                                             !var.bootstrap || !var.key_vault.exists) ? (
-#                                             1) : (
-#                                             0
-#                                           )) : (
-#                                           0
-#                                         )
-#   depends_on                           = [
-#                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-#                                            azurerm_key_vault_access_policy.kv_user_msi,
-#                                            azurerm_key_vault_access_policy.kv_user_systemidentity,
-#                                          ]
-
-#   name                                 = "WEB-PWD"
-#   value                                = var.webapp_client_secret
-#   key_vault_id                         = var.key_vault.exists ? (
-#                                            var.key_vault.id) : (
-#                                            azurerm_key_vault.kv_user[0].id
-#                                          )
-
-#   expiration_date                      = var.set_secret_expiry ? (
-#                                            time_offset.secret_expiry_date.rfc3339) : (
-#                                            null
-#                                          )
-# }
-
-resource "azurerm_key_vault_secret" "pwd" {
-  count                                = local.enable_password && (length(var.key_vault.username_secret_name) == 0 ) && !var.key_vault.exists  ? 1 : 0
-  depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_additional_users,
-                                           azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_virtual_network_peering.peering_management_agent,
-                                           azurerm_private_endpoint.kv_user,
-                                           azurerm_role_assignment.role_assignment_msi_officer,
-                                           azurerm_role_assignment.role_assignment_system_identity
-                                         ]
-  name                                 = local.pwd_secret_name
-  value                                = local.password
-  key_vault_id                         = var.key_vault.exists ? (
-                                           var.key_vault.id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-
-  expiration_date                      = var.set_secret_expiry ? (
-                                           time_offset.secret_expiry_date.rfc3339) : (
-                                           null
-                                         )
-  content_type                         = "secret"
-  tags                                 = var.infrastructure.tags
-  lifecycle {
-    ignore_changes = [ expiration_date]
-  }
-}
 
 
 #######################################4#######################################8

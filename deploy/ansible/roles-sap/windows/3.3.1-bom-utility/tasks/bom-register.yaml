@@ -16,7 +16,7 @@
 #               If not, download from storage account location.
 #
 
-- name:                                "3.3.1 BoM Processing: - Create BOM download directories"
+- name:                                "3.3.1 BoM Processing - Create BOM download directories"
   ansible.builtin.file:
     path:                              "{{ item }}"
     state:                             directory
@@ -31,17 +31,17 @@
     - "{{ download_directory }}/bom"
     - "{{ download_directory }}/files"
 
-- name:                                "3.3.1 BoM Processing: - Set the new name"
+- name:                                "3.3.1 BoM Processing:- Set the new name"
   ansible.builtin.set_fact:
     new_bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
 
-- name:                                "3.3.1 BoM Processing: - Show new name"
+- name:                                "3.3.1 BoM Processing:- Show new name"
   ansible.builtin.debug:
     msg:
       - "BoM Name:   {{ new_bom_name }}"
 
 
-- name:                                "3.3.1 BoM Processing: {{ bom_name }} Download: {{ new_bom_name }} from the storage account"
+- name:                                "3.3.1 BoM Processing - Download: {{ new_bom_name }} from the storage account"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}/{{ new_bom_name }}.yaml\
                                        {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
@@ -61,7 +61,7 @@
       - "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ bom_name }}/{{ bom_name }}.yaml{{ sapbits_sas_token }}"
     verbosity:                         2
 
-- name:                                "3.3.1 BoM Processing: Register BOM ({{ bom_name }}) from Storage Account"
+- name:                                "3.3.1 BoM Processing - Register BOM ({{ bom_name }}) from Storage Account"
   block:
 
     - name:                            "{{ task_prefix }} Register downloaded BOM ({{ bom_name }})"

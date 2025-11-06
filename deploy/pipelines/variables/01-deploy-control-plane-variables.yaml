@@ -1,22 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#--------------------------------------+---------------------------------------8
+# -------------------------------------+---------------------------------------8
 #                                                                              |
 # Defines the parameters and variables for the Control Plane                   |
 #                                                                              |
-#--------------------------------------+---------------------------------------8
+# -------------------------------------+---------------------------------------8
 
 parameters:
   - name:                              deployer
     displayName:                       "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
     type:                              string
-    default:                           MGMT-WEEU-DEP00-INFRASTRUCTURE
 
   - name:                              library
     displayName:                       "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
     type:                              string
-    default:                           MGMT-WEEU-SAP_LIBRARY
 
   - name:                              environment
     displayName:                       "Environment name, MGMT, DEV, QA, etc"
@@ -43,10 +41,16 @@ parameters:
     type:                              boolean
     default:                           false
 
+  - name:                              test
+    displayName:                       Perform a test deployment
+    type:                              boolean
+    default:                           false
+
+
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ parameters.environment }}
+  - group:                             SDAF-${{ replace(parameters.deployer, '-INFRASTRUCTURE', '') }}
 
   - name:                              run_on
     value:                             $[replace(replace('True',eq(${{ parameters.use_deployer }}, 'True'), variables['POOL']),'True',variables['AGENT'])]
@@ -54,20 +58,17 @@ variables:
   - name:                              variable_group
     value:                             SDAF-${{ parameters.environment }}
 
+  - name:                              variable_group_control_plane
+    value:                             SDAF-${{ replace(parameters.deployer, '-INFRASTRUCTURE', '') }}
+
   - name:                              use_webapp
     value:                             ${{ lower(parameters.use_webapp_param) }}
 
   - name:                              deployer_foldername
     value:                             ${{ parameters.deployer }}
 
-  - name:                              deployer_tfvars_filename
-    value:                             ${{ parameters.deployer }}.tfvars
-
   - name:                              library_foldername
     value:                             ${{ parameters.library }}
-
-  - name:                              library_tfvars_filename
-    value:                             ${{ parameters.library }}.tfvars
 
   - name:                              log
     value:                             logfile_$(Build.BuildId)

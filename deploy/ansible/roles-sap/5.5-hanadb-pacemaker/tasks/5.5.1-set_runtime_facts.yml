@@ -22,7 +22,7 @@
       Metadata:                        true
   register:                            hanavmmetadata
 
-- name:                                "5.5 HANA Pacemaker - Show IMDS results"
+- name:                                "5.5 HANA Pacemaker - Show Azure Instance Metadata results"
   ansible.builtin.debug:
     var:                               hanavmmetadata.json
     verbosity:                         2

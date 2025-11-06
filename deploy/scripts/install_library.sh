@@ -191,9 +191,14 @@ if [ true == "$use_deployer" ]; then
 fi
 
 #Persisting the parameters across executions
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-generic_config_information="${automation_config_directory}"config
-library_config_information="${automation_config_directory}${environment}${region_code}"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+generic_environment_file_name="${automation_config_directory}"config
+
+ENVIRONMENT=$(echo "$deployer_tf_state" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "$deployer_tf_state" | awk -F'-' '{print $2}' | xargs)
+NETWORK=$(echo "$deployer_tf_state" | awk -F'-' '{print $3}' | xargs)
+
+library_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
 
 # Terraform Plugins
 if checkIfCloudShell; then
@@ -209,7 +214,7 @@ fi
 
 param_dirname=$(pwd)
 
-init "${automation_config_directory}" "${generic_config_information}" "${library_config_information}"
+init "${automation_config_directory}" "${generic_environment_file_name}" "${library_environment_file_name}"
 
 export TF_DATA_DIR="${param_dirname}"/.terraform
 var_file="${param_dirname}"/"${parameterfile_name}"
@@ -267,9 +272,9 @@ if [ -f ./backend-config.tfvars ]; then
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 else
-	sed -i /REMOTE_STATE_RG/d "${library_config_information}"
-	sed -i /REMOTE_STATE_SA/d "${library_config_information}"
-	sed -i /tfstate_resource_id/d "${library_config_information}"
+	sed -i /REMOTE_STATE_RG/d "${library_environment_file_name}"
+	sed -i /REMOTE_STATE_SA/d "${library_environment_file_name}"
+	sed -i /tfstate_resource_id/d "${library_environment_file_name}"
 fi
 
 TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
@@ -287,9 +292,9 @@ if [ ! -d ./.terraform/ ]; then
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 	terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
-	sed -i /REMOTE_STATE_RG/d "${library_config_information}"
-	sed -i /REMOTE_STATE_SA/d "${library_config_information}"
-	sed -i /tfstate_resource_id/d "${library_config_information}"
+	sed -i /REMOTE_STATE_RG/d "${library_environment_file_name}"
+	sed -i /REMOTE_STATE_SA/d "${library_environment_file_name}"
+	sed -i /tfstate_resource_id/d "${library_environment_file_name}"
 
 else
 	if [ -f ./.terraform/terraform.tfstate ]; then
@@ -409,7 +414,7 @@ else
 	fi
 fi
 
-      allParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
+allParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
 allImportParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
 
 parallelism=10
@@ -530,14 +535,14 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 	REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 	export REMOTE_STATE_SA
 
-	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${library_config_information}"
+	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${library_environment_file_name}"
 
 	library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 	if [ -n "${library_random_id}" ]; then
-		save_config_var "library_random_id" "${library_config_information}"
+		save_config_var "library_random_id" "${library_environment_file_name}"
 		custom_random_id="${library_random_id:0:3}"
 		sed -i -e /"custom_random_id"/d "${var_file}"
-		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+		printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
 	fi
 else

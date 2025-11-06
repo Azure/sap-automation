@@ -19,6 +19,8 @@ module "sap_deployer" {
                                                      local.custom_names) : (
                                                      module.sap_namegenerator.naming
                                                    )
+  naming_new                                    = module.sap_namegenerator.naming_new
+
 
   Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
   additional_network_id                         = var.additional_network_id

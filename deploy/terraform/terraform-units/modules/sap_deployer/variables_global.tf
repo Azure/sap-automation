@@ -15,6 +15,7 @@ variable "bootstrap"                       { description = "Defines the phase of
 variable "configure"                       { description = "Value indicating if deployer should be configured" }
 variable "infrastructure"                  { description = "Dictionary of information about the common infrastructure" }
 variable "naming"                          { description = "Defines the names for the resources" }
+variable "naming_new"                      { description = "Defines the additional names for the resources" }
 variable "options"                         { description = "Dictionary of miscallaneous parameters" }
 variable "place_delete_lock_on_resources"  { description = "If defined, a delete lock will be placed on the key resources" }
 variable "ssh-timeout"                     { description = "SSH timeout" }

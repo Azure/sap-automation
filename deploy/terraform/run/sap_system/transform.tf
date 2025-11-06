@@ -89,18 +89,39 @@ locals {
   db_tags                               = var.database_tags
 
   databases_temp                       = {
-                                           database_cluster_type           = var.database_cluster_type
-                                           database_server_count           = var.database_high_availability ? 2 * var.database_server_count : var.database_server_count
-                                           database_vm_sku                 = var.database_vm_sku
-                                           db_sizing_key                   = coalesce(var.db_sizing_dictionary_key, var.database_size, "Optimized")
-                                           deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
-                                           dual_nics                       = var.database_dual_nics
-                                           high_availability               = var.database_high_availability
                                            database_cluster_disk_lun       = var.database_cluster_disk_lun
                                            database_cluster_disk_size      = var.database_cluster_disk_size
                                            database_cluster_disk_type      = var.database_cluster_disk_type
-                                           observer_vm_ips                 = var.observer_nic_ips
+                                           database_cluster_type           = var.database_cluster_type
+                                           database_server_count           = var.database_high_availability ? 2 * var.database_server_count : var.database_server_count
+                                           database_hana_use_saphanasr_angi =  upper(var.database_platform) == "HANA" ? (
+                                                                                 var.database_high_availability ? (
+                                                                                     var.use_sles_saphanasr_angi
+                                                                                     ) : (
+                                                                                       false
+                                                                                     )
+                                                                                 ) : (
+                                                                                   false
+                                                                                 )
 
+                                           database_vm_sku                 = var.database_vm_sku
+                                           db_sizing_key                   = coalesce(var.db_sizing_dictionary_key, var.database_size, "Optimized")
+                                           deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
+                                           disk_controller_type_database_tier   = var.disk_controller_type_database_tier
+                                           dual_network_interfaces         = var.database_dual_nics
+                                           high_availability               = var.database_high_availability
+                                           instance                        = {
+                                                                                sid = upper(coalesce(
+                                                                                  var.database_sid,
+                                                                                  upper(var.database_platform) == "HANA" ? (
+                                                                                    "HDB"
+                                                                                    ) : (
+                                                                                  substr(var.database_platform, 0, 3))
+                                                                                ))
+                                                                                number = coalesce(var.database_instance_number,"00")
+                                                                              }
+
+                                           observer_vm_ips                 = var.observer_nic_ips
                                            platform                        = var.database_platform
                                            use_ANF                         = var.database_HANA_use_scaleout_scenario || try(var.databases[0].use_ANF, false)
                                            use_avset                       = var.database_server_count == 0 || var.use_scalesets_for_deployment || length(var.database_vm_zones) > 0 || var.database_platform == "NONE" ? (
@@ -116,17 +137,6 @@ locals {
                                            scale_out                       = var.database_HANA_use_scaleout_scenario
                                            stand_by_node_count             = var.stand_by_node_count
                                            zones                           = var.database_vm_zones
-                                           database_hana_use_saphanasr_angi =  upper(var.database_platform) == "HANA" ? (
-                                                                                 var.database_high_availability ? (
-                                                                                     var.use_sles_saphanasr_angi
-                                                                                     ) : (
-                                                                                       false
-                                                                                     )
-                                                                                 ) : (
-                                                                                   false
-                                                                                 )
-
-                                           disk_controller_type_database_tier   = var.disk_controller_type_database_tier
                                          }
 
   db_os                             = {
@@ -166,21 +176,6 @@ locals {
   db_os_specified                   = (length(local.db_os.source_image_id) + length(local.db_os.publisher)) > 0
   db_sid_specified                  = (length(var.database_sid) + length(try(var.databases[0].sid, ""))) > 0
 
-  instance                          = {
-                                        sid = upper(try(coalesce(
-                                           var.database_sid,
-                                           try(var.databases[0].sid, "")),
-                                           upper(var.database_platform) == "HANA" ? (
-                                             "HDB"
-                                             ) : (
-                                           substr(var.database_platform, 0, 3))
-                                        ))
-                                        number = upper(local.databases_temp.platform) == "HANA" ? (
-                                           var.database_instance_number
-                                           ) : (
-                                           "00"
-                                          )
-                                       }
 
   app_authentication                = {
                                         type     = var.app_tier_authentication_type
@@ -197,7 +192,7 @@ locals {
                                         sid                             = var.sid
                                         enable_deployment               = local.enable_app_tier_deployment
                                         use_DHCP                        = var.app_tier_use_DHCP
-                                        dual_nics                       = var.app_tier_dual_nics
+                                        dual_network_interfaces         = var.app_tier_dual_nics
                                         vm_sizing_dictionary_key        = coalesce(var.app_tier_sizing_dictionary_key, var.application_size, "Optimized")
                                         app_instance_number             = coalesce(var.app_instance_number, "00")
                                         application_server_count        = local.enable_app_tier_deployment ? (
@@ -349,7 +344,7 @@ locals {
                                          }
 
   app_nic_ips                          = distinct(var.application_server_app_nic_ips)
-  app_nic_secondary_ips                = distinct(var.application_server_app_nic_ips)
+  app_nic_secondary_ips                = distinct(var.application_server_nic_secondary_ips)
   app_admin_nic_ips                    = distinct(var.application_server_admin_nic_ips)
 
   scs_nic_ips                          = distinct(var.scs_server_app_nic_ips)
@@ -524,13 +519,12 @@ locals {
                                            (local.db_avset_arm_ids_defined                        ? { avset_arm_ids  = local.avset_arm_ids }                   : null),
                                            (length(local.frontend_ips)      > 0                   ? { loadbalancer   = { frontend_ips = local.frontend_ips } } : { loadbalancer = { frontend_ips = [] } }),
                                            (length(local.db_tags)           > 0                   ? { tags           = local.db_tags }                         : null),
-                                           (local.db_sid_specified                                ? { instance       = local.instance }                        : null), (
                                            ( var.use_fence_kdump &&
-                                             var.database_high_availability )                     ? { fence_kdump_disk_size = var.use_fence_kdump_size_gb_db } : { fence_kdump_disk_size = 0 } ), (
-                                           ( var.use_fence_kdump &&
+                                             var.database_high_availability )                     ? { fence_kdump_disk_size = var.use_fence_kdump_size_gb_db } : { fence_kdump_disk_size = 0 } ,
+                                             ( var.use_fence_kdump &&
                                              var.database_high_availability )                     ? { fence_kdump_lun_number = var.use_fence_kdump_lun_db } : { fence_kdump_lun_number = -1 }
                                            )
-                                         )
+
 
 
   authentication                       = merge(local.authentication_temp, (

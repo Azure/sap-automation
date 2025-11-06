@@ -89,16 +89,21 @@ print_header
 # Configure DevOps
 configure_devops
 
-ENVIRONMENT_IN_FILENAME=$(echo $DEPLOYER_FOLDERNAME | awk -F'-' '{print $1}')
-LOCATION_CODE_IN_FILENAME=$(echo $DEPLOYER_FOLDERNAME | awk -F'-' '{print $2}')
+ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
+NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
 
-CONTROL_PLANE_NAME="${ENVIRONMENT_IN_FILENAME}${LOCATION_CODE_IN_FILENAME}"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+
+deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
+SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
+export SYSTEM_CONFIGURATION_FILE
+
+CONTROL_PLANE_NAME="${ENVIRONMENT}-${LOCATION}-${NETWORK}"
 export CONTROL_PLANE_NAME
 
-VARIABLE_GROUP="SDAF-${ENVIRONMENT_IN_FILENAME}"
 deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
-deployer_environment_file_name="${CONFIG_REPO_PATH}/.sap_deployment_automation/$CONTROL_PLANE_NAME"
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
@@ -129,12 +134,20 @@ export TF_VAR_deployer_tfstate_key
 CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
 export "CONTROL_PLANE_NAME"
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	deployer_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}"
-elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	deployer_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}${NETWORK}"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+
+separator="-"
+if [[ "$CONTROL_PLANE_NAME" == *"$separator"* ]]; then
+	DEPLOYER_ENVIRONMENT_IN_FILENAME=$(echo $CONTROL_PLANE_NAME | awk -F'-' '{print $1}')
+	DEPLOYER_LOCATION_CODE_IN_FILENAME=$(echo $CONTROL_PLANE_NAME | awk -F'-' '{print $2}')
+	DEPLOYER_NETWORK_IN_FILENAME=$(echo $CONTROL_PLANE_NAME | awk -F'-' '{print $3}')
+	deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${DEPLOYER_ENVIRONMENT_IN_FILENAME}" "${DEPLOYER_LOCATION_CODE_IN_FILENAME}" "${DEPLOYER_NETWORK_IN_FILENAME}")
+else
+	deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${DEPLOYER_ENVIRONMENT_IN_FILENAME}" "${DEPLOYER_LOCATION_CODE_IN_FILENAME}" "")
 fi
+
 
 echo -e "$green--- Information ---$reset"
 
@@ -258,6 +271,7 @@ if [ 0 == $return_code ]; then
 		remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
 		remove_variable "$VARIABLE_GROUP_ID" "LIBRARY_RANDOM_ID"
 		remove_variable "$VARIABLE_GROUP_ID" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME"
+		remove_variable "$VARIABLE_GROUP_ID" "TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"

@@ -39,7 +39,7 @@ resource "azurerm_netapp_volume" "hanadata" {
 
   export_policy_rule {
                        allowed_clients     = ["0.0.0.0/0"]
-                       protocols_enabled   = ["NFSv4.1"]
+                       protocol            = ["NFSv4.1"]
                        rule_index          = 1
                        unix_read_only      = false
                        unix_read_write     = true
@@ -81,14 +81,7 @@ resource "azurerm_netapp_volume" "hanalog" {
   provider                             = azurerm.main
   depends_on                           = [azurerm_netapp_volume_group_sap_hana.avg_HANA_full]
 
-  count                                = length(local.ANF_pool_settings.pool_name) > 0 ? var.hana_ANF_volumes.use_for_log && !local.use_avg ? (
-                                           var.hana_ANF_volumes.use_existing_log_volume ? (
-                                             0
-                                             ) : (
-                                             var.database_server_count
-                                           )) : (
-                                           0
-                                         ) : 0
+  count                                = local.create_log_volumes ? (var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.log_volume_count : 0
   name                                 = format("%s%s%s%s%d",
                                            var.naming.resource_prefixes.hanalog,
                                            local.prefix,
@@ -115,7 +108,7 @@ resource "azurerm_netapp_volume" "hanalog" {
 
   export_policy_rule {
                        allowed_clients     = ["0.0.0.0/0"]
-                       protocols_enabled   = ["NFSv4.1"]
+                       protocol            = ["NFSv4.1"]
                        rule_index          = 1
                        unix_read_only      = false
                        unix_read_write     = true
@@ -192,7 +185,7 @@ resource "azurerm_netapp_volume" "hanashared" {
 
   export_policy_rule {
                        allowed_clients     = ["0.0.0.0/0"]
-                       protocols_enabled   = ["NFSv4.1"]
+                       protocol            = ["NFSv4.1"]
                        rule_index          = 1
                        unix_read_only      = false
                        unix_read_write     = true

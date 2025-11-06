@@ -231,8 +231,8 @@ else
 	exit 2
 fi
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-system_config_information="${automation_config_directory}""${environment}""${region_code}"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+system_environment_file_name="${automation_config_directory}""${environment}""${region_code}"
 
 #Plugins
 
@@ -284,7 +284,7 @@ else
 
 		tfstate_resource_id=$(jq --raw-output '.backend.config.tfstate_resource_id' .terraform/terraform.tfstate)
 	else
-		load_config_vars "${system_config_information}" "tfstate_resource_id"
+		load_config_vars "${system_environment_file_name}" "tfstate_resource_id"
 		storage_account_name=$(echo "$tfstate_resource_id" | cut -d / -f9)
 		STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d / -f3)
 		subscription_id="${STATE_SUBSCRIPTION}"
@@ -292,12 +292,12 @@ else
 fi
 if [ -z "${storage_account_name}" ]; then
 	if [ -n "${control_plane_name}" ]; then
-		deployer_config_information="${automation_config_directory}/${control_plane_name}"
-		if [ -f "$deployer_config_information" ]; then
-			load_config_vars "${deployer_config_information}" "REMOTE_STATE_RG"
-			load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
-			load_config_vars "${deployer_config_information}" "tfstate_resource_id"
-			load_config_vars "${deployer_config_information}" "STATE_SUBSCRIPTION"
+		deployer_environment_file_name="${automation_config_directory}/${control_plane_name}"
+		if [ -f "$deployer_environment_file_name" ]; then
+			load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_RG"
+			load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
+			load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
+			load_config_vars "${deployer_environment_file_name}" "STATE_SUBSCRIPTION"
 			subscription_id="${STATE_SUBSCRIPTION}"
 			storage_account_name="${REMOTE_STATE_SA}"
 
@@ -354,9 +354,9 @@ if [ 0 != $return_value ]; then
 fi
 
 if [ -z "$workload_zone_name" ]; then
-	load_config_vars "${system_config_information}" "workload_zone_name"
+	load_config_vars "${system_environment_file_name}" "workload_zone_name"
 else
-	save_config_vars "${system_config_information}" workload_zone_name
+	save_config_vars "${system_environment_file_name}" workload_zone_name
 fi
 
 if [ "${type}" == sap_system ] && [ "${operation}" == "import" ]; then
@@ -365,7 +365,7 @@ if [ "${type}" == sap_system ] && [ "${operation}" == "import" ]; then
 	else
 		read -r -p "Workload zone name (ENV_REGIONCODE-VNET):" workload_zone_name
 		workload_zone_name_parameter=" -var landscape_tfstate_key=${workload_zone_name}-INFRASTRUCTURE.terraform.tfstate"
-		save_config_var "workload_zone_name" "${system_config_information}"
+		save_config_var "workload_zone_name" "${system_environment_file_name}"
 	fi
 else
 	workload_zone_name_parameter=""

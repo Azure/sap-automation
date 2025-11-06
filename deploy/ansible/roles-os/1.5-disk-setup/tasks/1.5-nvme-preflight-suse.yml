@@ -26,9 +26,9 @@
 - name:                                "1.5.4 NVMe Support (SUSE) - Set SUSE-specific facts"
   ansible.builtin.set_fact:
     suse_major_version:                "{{ ansible_distribution_major_version }}"
-    azure_nvme_utils_supported:        "{{
-                                          (ansible_distribution | upper == 'SLES' and ansible_distribution_version is version('15.5', '>=')) or
-                                          (ansible_distribution | upper == 'SLES_SAP' and ansible_distribution_version is version('15.5', '>='))
+    azure_nvme_utils_supported:       "{{
+                                         (ansible_distribution | upper == 'SLES' and ansible_distribution_version is version('15.5', '>=')) or
+                                         (ansible_distribution | upper == 'SLES_SAP' and ansible_distribution_version is version('15.5', '>='))
                                        }}"
     grub_config_file:                  "/boot/grub2/grub.cfg"
     grub_cmdline_param:                "GRUB_CMDLINE_LINUX_DEFAULT"
@@ -256,16 +256,76 @@
     force:                             true
     mode:                              '0644'
   register:                            udev_rules_added
+  changed_when:                        true
 
-- name:                                "1.5.4 NVMe Support (SUSE) - Reload udev rules"
-  when:                                udev_rules_added.changed
-  ansible.builtin.command:             udevadm control --reload-rules
-  register:                            udev_rules_reloaded
+- name:                                "1.5.4 NVMe Support (SUSE) - Reload and apply udev configuration"
+  when:                                helper_script_created.changed or udev_rules_added.changed
+  block:
+    - name:                            "1.5.4 NVMe Support (SUSE) - Reload udev rules"
+      ansible.builtin.command:         udevadm control --reload-rules
+      changed_when:                    true
+      register:                        udev_rules_reloaded
 
-- name:                                "1.5.4 NVMe Support (SUSE) - Trigger udev rules for existing devices"
-  when:                                udev_rules_added.changed
-  ansible.builtin.command:             udevadm trigger
-  register:                            udev_triggered
+    - name:                            "1.5.4 NVMe Support (SUSE) - Trigger udev for specific NVMe devices"
+      when:                            use_nvme_disks | default(false) | bool
+      ansible.builtin.shell: |
+                                       # Trigger all NVMe devices except the OS disk (identified by namespace ID 1)
+                                       for device in /dev/nvme*n*; do
+                                         if [ -b "$device" ]; then
+                                           DEVICE_NAME=$(basename "$device")
+                                           # Get namespace ID from sysfs
+                                           if [ -f "/sys/class/block/$DEVICE_NAME/nsid" ]; then
+                                             NSID=$(cat "/sys/class/block/$DEVICE_NAME/nsid")
+                                             # Skip namespace 1 (OS disk)
+                                             if [ "$NSID" != "1" ]; then
+                                               udevadm trigger --name-match="$DEVICE_NAME"
+                                             fi
+                                           fi
+                                         fi
+                                       done
+      changed_when:                    true
+
+    - name:                            "1.5.4 NVMe Support (SUSE) - Wait for udev processing"
+      ansible.builtin.wait_for:
+        timeout:                       15
+
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Wait for Azure symlink creation"
+  when:                                helper_script_created.changed or udev_rules_added.changed
+  ansible.builtin.wait_for:
+    path:                              /dev/disk/azure/data/by-lun
+    timeout:                           30
+  failed_when:                         false
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Verify Azure NVMe symlinks exist"
+  when:                                use_nvme_disks | default(false) | bool
+  ansible.builtin.stat:
+    path:                              "/dev/disk/azure/data/by-lun/{{ item.LUN }}"
+  register:                            azure_symlink_verification
+  loop: "{{ disks | selectattr('host', 'equalto', inventory_hostname) | list }}"
+  loop_control:
+    label:                             "LUN {{ item.LUN }}"
+
+- name:                                "1.5.4 NVMe Support (SUSE) - Display Azure symlink verification results"
+  when:                                azure_symlink_verification is defined
+  ansible.builtin.debug:
+    msg: |
+                                       Azure NVMe Symlink Status:
+                                       {% if azure_symlink_verification.results is defined %}
+                                       {% set successful = azure_symlink_verification.results | selectattr('stat.exists', 'equalto', true) | list %}
+                                       {% set missing = azure_symlink_verification.results | selectattr('stat.exists', 'equalto', false) | list %}
+                                       - Expected symlinks: {{ azure_symlink_verification.results | length }}
+                                       - Successfully created: {{ successful | length }}
+                                       - Missing: {{ missing | length }}
+                                       {% if missing | length > 0 %}
+                                       - Missing LUNs: {{ missing | map(attribute='item.LUN') | list | join(', ') }}
+                                       Note: Missing symlinks indicate udev rule processing issues.
+                                       Volume group creation will use direct device paths as fallback.
+                                       {% endif %}
+                                       {% else %}
+                                       - No symlink verification performed (use_nvme_disks may be false)
+                                       {% endif %}
+    verbosity:                         1
 
 - name:                                "1.5.4 NVMe Support (SUSE) - Verify udev rules are applied"
   when:                                udev_rules_added.changed

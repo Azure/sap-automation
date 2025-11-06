@@ -130,14 +130,14 @@ get_region_code $region
 
 #Persisting the parameters across executions
 automation_config_directory=~/.sap_deployment_automation/
-generic_config_information="${automation_config_directory}"config
-deployer_config_information="${automation_config_directory}""${environment}""${region_code}"
+generic_environment_file_name="${automation_config_directory}"config
+deployer_environment_file_name="${automation_config_directory}""${environment}""${region_code}"
 
-load_config_vars "${deployer_config_information}" "step"
+load_config_vars "${deployer_environment_file_name}" "step"
 
 param_dirname=$(pwd)
 
-init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
+init "${automation_config_directory}" "${generic_environment_file_name}" "${deployer_environment_file_name}"
 
 var_file="${param_dirname}"/"${parameterfile}"
 # Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
@@ -238,7 +238,7 @@ if [ 0 == $return_value ]; then
 	echo "#########################################################################################"
 	echo ""
 	step=0
-	save_config_var "step" "${deployer_config_information}"
+	save_config_var "step" "${deployer_environment_file_name}"
 fi
 
 unset TF_DATA_DIR
