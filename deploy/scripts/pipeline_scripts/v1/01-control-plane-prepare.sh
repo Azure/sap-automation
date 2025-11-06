@@ -46,7 +46,7 @@ configure_devops
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.12.2}"
+	configureNonDeployer "${tf_version:-1.13.3}"
 else
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$PATH:$path
@@ -94,6 +94,7 @@ fi
 
 if az account show --query name; then
 	echo -e "$green--- Already logged in to Azure ---$reset"
+	az account show --query user --output yaml
 else
 
 	LogonToAzure $USE_MSI
@@ -105,10 +106,17 @@ else
 	fi
 fi
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
+variableGroupName="$VARIABLE_GROUP_CONTROL_PLANE"
+
+if ! get_variable_group_id "$variableGroupName" "VARIABLE_GROUP_ID"; then
+	echo -e "$cyan--- Variable group $variableGroupName not found ---$reset"
+	variableGroupName="$VARIABLE_GROUP"
+
+	if ! get_variable_group_id "$variableGroupName" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $variableGroupName not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $variableGroupName not found."
+		exit 2
+	fi
 fi
 export VARIABLE_GROUP_ID
 
@@ -128,25 +136,23 @@ LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
 NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
 CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	deployer_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}"
-elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	deployer_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}${NETWORK}"
-fi
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION}" "${NETWORK}")
+SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
+export SYSTEM_CONFIGURATION_FILE
 
-deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
+library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
 
 if [ ! -f "$deployer_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
-	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
+	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars was not found."
 	exit 2
 fi
 
 if [ ! -f "$library_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
-	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
+	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars was not found."
 	exit 2
 fi
 
@@ -198,11 +204,14 @@ fi
 if printenv ARM_SUBSCRIPTION_ID; then
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
 	echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
+	TF_subscription_id="$ARM_SUBSCRIPTION_ID"
+	export TF_subscription_id
+
 fi
 
-echo -e "$green--- Convert config files to UX format ---$reset"
-dos2unix -q "$deployer_tfvars_file_name"
-dos2unix -q "$library_tfvars_file_name"
+# echo -e "$green--- Convert config files to UX format ---$reset"
+# dos2unix -q "$deployer_tfvars_file_name"
+# dos2unix -q "$library_tfvars_file_name"
 
 DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT")
 if [ -n "$DEPLOYER_KEYVAULT" ]; then
@@ -299,13 +308,12 @@ if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" --parameterf
 	echo "##vso[task.logissue type=warning]Return code from install_deployer.sh $return_code."
 	step=1
 	save_config_var "step" "${deployer_environment_file_name}"
-
 else
 	return_code=$?
 	echo "##vso[task.logissue type=error]Return code from install_deployer.sh $return_code."
 	step=0
 	save_config_var "step" "${deployer_environment_file_name}"
-	exit 10
+
 fi
 
 set -eu
@@ -333,7 +341,11 @@ if [ -f "${deployer_environment_file_name}" ]; then
 
 	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 	if [ -n "$DEPLOYER_KEYVAULT" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"; then
+			echo "Saved DEPLOYER_KEYVAULT in variable group."
+		else
+			echo "##vso[task.logissue type=warning]Failed to save DEPLOYER_KEYVAULT in variable group."
+		fi
 	fi
 
 fi
@@ -346,19 +358,13 @@ git pull -q origin "$BUILD_SOURCEBRANCHNAME"
 
 echo -e "$green--- Update repo ---$reset"
 
-if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
-	git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
+if [ -f "${deployer_environment_file_name}" ]; then
+	git add "${deployer_environment_file_name}"
 	added=1
 fi
 
-if [ ! -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
-	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
-		cp ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
-	fi
-fi
-
-if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}" ]; then
-	git add ".sap_deployment_automation/${CONTROL_PLANE_NAME}"
+if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
+	git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
 	added=1
 fi
 

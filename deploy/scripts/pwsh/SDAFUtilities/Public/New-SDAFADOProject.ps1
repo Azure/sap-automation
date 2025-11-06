@@ -25,6 +25,9 @@
 .PARAMETER ControlPlaneCode
     The control plane code identifier (e.g., MGMT).
 
+.PARAMETER ControlPlaneName
+    The control plane name (e.g., MGMT-WEEU-DEP01).
+
 .PARAMETER ControlPlaneSubscriptionId
     The subscription ID for the control plane resources.
 
@@ -88,8 +91,6 @@ function New-SDAFADOProject {
     [string]$TenantId,
 
     [Parameter(Mandatory = $true, HelpMessage = "Control plane code (e.g., MGMT)")]
-    [ValidateLength(2, 8)]
-    [ValidatePattern('^[A-Z0-9]+$')]
     [string]$ControlPlaneCode,
 
     [Parameter(Mandatory = $true, HelpMessage = "Control plane subscription ID")]
@@ -113,6 +114,11 @@ function New-SDAFADOProject {
     [string]$ManagedIdentityObjectId,
 
     # Optional parameters
+
+    [Parameter(Mandatory = $false, HelpMessage = "Control plane name (e.g., MGMT-WEEU-DEP01)")]
+    [string]$ControlPlaneName = "",
+
+
     [Parameter(HelpMessage = "Agent Pool Name")]
     [ValidateLength(1, 100)]
     [string]$AgentPoolName,
@@ -151,6 +157,7 @@ function New-SDAFADOProject {
     Write-Verbose "  AuthenticationMethod: $AuthenticationMethod"
     Write-Verbose "  ManagedIdentityObjectId: $ManagedIdentityObjectId"
     Write-Verbose "  ControlPlaneCode: $ControlPlaneCode"
+    Write-Verbose "  ControlPlaneName: $ControlPlaneName"
     Write-Verbose "  ControlPlaneSubscriptionId: $ControlPlaneSubscriptionId"
     Write-Verbose "  AgentPoolName: $AgentPoolName"
     Write-Verbose "  CreateConnections: $CreateConnections"
@@ -627,7 +634,7 @@ resources:
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $ControlPlaneSubscriptionIdInternal = $ControlPlaneSubscriptionId
-      $VersionLabel = "v3.16.0.2"
+      $VersionLabel = "v3.17.0.0"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS
@@ -738,11 +745,18 @@ resources:
       Write-Verbose "ADO Organization validated: $AdoOrganization"
 
       Write-Host "Using Control plane code: $ControlPlaneCode" -foregroundColor Yellow
-      Write-Verbose "Control plane code validated: $ControlPlaneCode"
+      Write-Host "Using Control plane name: $ControlPlaneName" -foregroundColor Yellow
       #endregion
 
       #region Set up prefixes and pool names
-      $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+      }
+      else {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      }
+
+      Write-Host "Control plane prefix: $ControlPlanePrefix"
       Write-Verbose "Control plane prefix: $ControlPlanePrefix"
 
       $AgentPoolNameFinal = $AgentPoolName
@@ -906,7 +920,7 @@ resources:
 
       $GeneralGroupId = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
       if ($GeneralGroupId.Length -eq 0) {
-        az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.12.2" ansible_core_version="2.16" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
+        az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.13.3" ansible_core_version="2.16.15" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
         $GeneralGroupId = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
         az pipelines variable-group variable update --group-id $GeneralGroupId --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
       }
@@ -1042,9 +1056,13 @@ resources:
           $id = $(az identity list --query "[?name=='$identity'].id" --subscription $subscription --output tsv)
           $ManagedIdentityObjectId = $(az identity show --ids $id --query "principalId" --output tsv)
         }
+        else {
+          $id = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].id" --subscription $ControlPlaneSubscriptionId --output tsv)
+        }
 
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
+        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "MSI_ID" -VariableValue $id
 
         $ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId

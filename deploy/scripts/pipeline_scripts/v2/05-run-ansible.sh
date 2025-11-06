@@ -58,7 +58,7 @@ if [ $USE_MSI == "true" ]; then
 fi
 
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.12.2}"
+	configureNonDeployer "${tf_version:-1.13.3}"
 fi
 
 if az account show --query name; then
@@ -121,12 +121,6 @@ if [ -f "$PARAMETERS_FOLDER/extra-params.yaml" ]; then
 fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
-
-tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_STATE_STORAGE_ACCOUNT' | project id, name, subscription" --query data[0].id --output tsv)
-control_plane_subscription=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
-
-export control_plane_subscription
-
 
 ############################################################################################
 #                                                                                          #
@@ -197,7 +191,6 @@ if [ -f "${filename}" ]; then
 						-e 'download_directory=$AGENT_TEMPDIRECTORY'                                \
 						-e orchestration_ansible_user=$USER                                         \
   					-e ansible_user=$user_name                                                  \
-
 						-e '_workspace_directory=$PARAMETERS_FOLDER'                                \
 						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' '${filename}' $EXTRA_PARAMS       \
 						$EXTRA_PARAM_FILE"

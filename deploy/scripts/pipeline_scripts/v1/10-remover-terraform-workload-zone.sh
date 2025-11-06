@@ -83,7 +83,7 @@ fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.12.2}"
+	configureNonDeployer "${tf_version:-1.13.3}"
 	echo -e "$green--- az login ---$reset"
 	LogonToAzure $USE_MSI
 	return_code=$?
@@ -98,6 +98,14 @@ fi
 
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
 export TF_VAR_subscription_id
+
+if ! get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
+	echo -e "$bold_red--- Variable group $PARENT_VARIABLE_GROUP not found ---$reset"
+	echo "##vso[task.logissue type=error]Variable group $PARENT_VARIABLE_GROUP not found."
+	exit 2
+fi
+export PARENT_VARIABLE_GROUP_ID
+
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 ENVIRONMENT=$(grep -m1 "^environment" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
@@ -109,26 +117,60 @@ LOCATION_CODE_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
 NETWORK_IN_FILENAME=$(echo $WORKLOAD_ZONE_FOLDERNAME | awk -F'-' '{print $3}')
 
-deployer_environment_file_name="$CONFIG_REPO_PATH/.sap_deployment_automation/$DEPLOYER_ENVIRONMENT$LOCATION_CODE_IN_FILENAME"
-echo "Deployer Environment File:           $deployer_environment_file_name"
-if [ ! -f "${deployer_environment_file_name}" ]; then
-	echo -e "$bold_red--- $DEPLOYER_ENVIRONMENT$ENVIRONMENT was not found ---$reset"
-	echo "##vso[task.logissue type=error]Control plane configuration file $DEPLOYER_ENVIRONMENT$LOCATION_CODE_IN_FILENAME was not found."
-	exit 2
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT_IN_FILENAME}" "${LOCATION_CODE_IN_FILENAME}" "${NETWORK_IN_FILENAME}")
+SYSTEM_CONFIGURATION_FILE="$workload_environment_file_name"
+export SYSTEM_CONFIGURATION_FILE
+
+separator="-"
+if [[ "$DEPLOYER_ENVIRONMENT" == *"$separator"* ]]; then
+	DEPLOYER_ENVIRONMENT_IN_FILENAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $1}')
+	DEPLOYER_LOCATION_CODE_IN_FILENAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $2}')
+	DEPLOYER_NETWORK_IN_FILENAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $3}')
+	deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${DEPLOYER_ENVIRONMENT_IN_FILENAME}" "${DEPLOYER_LOCATION_CODE_IN_FILENAME}" "${DEPLOYER_NETWORK_IN_FILENAME}")
+else
+	deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${DEPLOYER_ENVIRONMENT}" "${LOCATION_CODE_IN_FILENAME}" "")
 fi
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}"
-elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION_CODE_IN_FILENAME}${NETWORK}"
+if [ ! -f "${deployer_environment_file_name}" ]; then
+	echo -e "$bold_red--- $deployer_environment_file_name was not found ---$reset"
+	echo "##vso[task.logissue type=error]Control plane configuration file $deployer_environment_file_name was not found."
+	exit 2
+else
+	echo "Deployer Environment File:           $deployer_environment_file_name"
 fi
 
 echo "Workload Zone Environment File:      $workload_environment_file_name"
 touch "$workload_environment_file_name"
 
-deployer_tfstate_key=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${deployer_environment_file_name}" "deployer_tfstate_key")
+deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "${workload_environment_file_name}" "deployer_tfstate_key")
+if [ -z "$deployer_tfstate_key" ]; then
+	deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${workload_environment_file_name}" "deployer_tfstate_key")
+	if [ -z "$deployer_tfstate_key" ]; then
+
+		echo -e "$bold_red--- DEPLOYER_STATE_FILENAME not found in variable group $PARENT_VARIABLE_GROUP ---$reset"
+		echo "##vso[task.logissue type=error]DEPLOYER_STATE_FILENAME not found in variable group $PARENT_VARIABLE_GROUP."
+		exit 2
+	else
+		# Delete the old variable
+
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "Deployer_State_FileName" ""
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"
+	fi
+fi
 export deployer_tfstate_key
+CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d'-' -f1-3)
+
+terraform_storage_account_name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+if [ -z "$terraform_storage_account_name" ]; then
+	terraform_storage_account_name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+	if [ -z "$terraform_storage_account_name" ]; then
+		terraform_storage_account_name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${workload_environment_file_name}" "REMOTE_STATE_SA")
+	fi
+fi
+tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$terraform_storage_account_name' | project id, name, subscription" --query data[0].id --output tsv)
 
 DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "deployer_keyvault")
 export DEPLOYER_KEYVAULT
@@ -169,10 +211,7 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
 	exit 2
 fi
 
-dos2unix -q "${workload_environment_file_name}"
-
-load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id" "subscription"
-tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_STATE_STORAGE_ACCOUNT' | project id, name, subscription" --query data[0].id --output tsv)
+# dos2unix -q "${workload_environment_file_name}"
 
 TF_VAR_spn_keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 
@@ -184,7 +223,7 @@ TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 export TF_VAR_tfstate_resource_id
 
 if [ -z "$tfstate_resource_id" ]; then
-	echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${deployer_environment_file_name})."
+	echo "##vso[task.logissue type=error]Terraform account was not found in the variable group nor was it defined in ${deployer_environment_file_name})."
 	exit 2
 fi
 
@@ -230,7 +269,7 @@ else
 		git clean -d -f -X
 
 		if [ -f ".terraform/terraform.tfstate" ]; then
-			git rm --ignore-unmatch -q --ignore-unmatch ".terraform/terraform.tfstate"
+			git rm --ignore-unmatch -q  ".terraform/terraform.tfstate"
 			changed=1
 		fi
 
@@ -245,6 +284,16 @@ else
 
 		if [ -f "$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
 			git add "$WORKLOAD_ZONE_TFVARS_FILENAME"
+			changed=1
+		fi
+
+		if [ -f "$workload_environment_file_name" ]; then
+			git rm --ignore-unmatch -q "$workload_environment_file_name"
+			changed=1
+		fi
+
+		if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT_IN_FILENAME}/${LOCATION_CODE_IN_FILENAME}" ]; then
+			git rm --ignore-unmatch -q "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT_IN_FILENAME}/${LOCATION_CODE_IN_FILENAME}"
 			changed=1
 		fi
 
@@ -274,6 +323,7 @@ else
 		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_STATE_FILENAME"
 		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
 		remove_variable "$VARIABLE_GROUP_ID" "TERRAFORM_STATE_STORAGE_ACCOUNT"
+		remove_variable "$VARIABLE_GROUP_ID" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME"
 		remove_variable "$VARIABLE_GROUP_ID" "KEYVAULT"
 	fi
 fi

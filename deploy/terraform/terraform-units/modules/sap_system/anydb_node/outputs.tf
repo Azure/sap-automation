@@ -36,7 +36,7 @@ output "database_loadbalancer_ip"      {
 output "database_server_admin_ips"     {
                                          description = "AnyDB Virtual machine Admin interface IPs"
                                          value       = local.enable_deployment ? (
-                                                         local.anydb_dual_nics ? (
+                                                         local.anydb_dual_network_interfaces ? (
                                                            azurerm_network_interface.anydb_admin[*].private_ip_address) : (
                                                          azurerm_network_interface.anydb_db[*].private_ip_address)
                                                        ) : []
@@ -88,7 +88,7 @@ output "database_disks"                {
 output "dns_info_vms"                  {
                                          description = "DNS Information for the virtual machines"
                                          value       = local.enable_deployment ? (
-                                                         local.anydb_dual_nics ? (
+                                                         local.anydb_dual_network_interfaces ? (
                                                            zipmap(
                                                              compact(
                                                                concat(
@@ -164,7 +164,7 @@ output "database_shared_disks"         {
                                          description = "List of Azure shared disks"
                                          value       = distinct(
                                                          flatten(
-                                                           [for vm in var.naming.virtualmachine_names.ANYDB_VMNAME :
+                                                           [for vm in coalesce(azurerm_linux_virtual_machine.dbserver[*].computer_name, azurerm_windows_virtual_machine.dbserver[*].computer_name) :
                                                              [for idx, disk in azurerm_virtual_machine_data_disk_attachment.cluster :
                                                                format("{ host: '%s', LUN: %d, type: 'ASD' }", vm, disk.lun)
                                                              ]
@@ -176,7 +176,7 @@ output "database_kdump_disks"          {
                                          description = "List of Azure kdump disks"
                                          value       = distinct(
                                                          flatten(
-                                                           [for vm in var.naming.virtualmachine_names.ANYDB_VMNAME :
+                                                           [for vm in coalesce(azurerm_linux_virtual_machine.dbserver[*].computer_name, azurerm_windows_virtual_machine.dbserver[*].computer_name) :
                                                              [for idx, disk in azurerm_virtual_machine_data_disk_attachment.kdump :
                                                                format("{ host: '%s', LUN: %d, type: 'kdump' }", vm, disk.lun)
                                                              ]

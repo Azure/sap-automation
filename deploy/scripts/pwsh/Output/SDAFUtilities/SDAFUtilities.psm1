@@ -1,4 +1,5 @@
-﻿#Region './Private/helper_functions.ps1' 0
+﻿#Region '.\Private\helper_functions.ps1' -1
+
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
@@ -88,8 +89,298 @@ function Out-IniFile {
     }
 }
 
-#EndRegion './Private/helper_functions.ps1' 90
-#Region './Public/New-SDAFADOProject.ps1' 0
+#EndRegion '.\Private\helper_functions.ps1' 90
+#Region '.\Public\Copy-AzDevOpsVariableGroupValues.ps1' -1
+
+function Copy-AzDevOpsVariableGroupVariable {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$ProjectName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$VariableGroupNameSource,
+
+        [Parameter(Mandatory = $true)]
+        [string]$VariableGroupNameTarget,
+
+        [Parameter(Mandatory = $false)]
+        [string]$VariableName = "ARM_CLIENT_ID",
+
+        [Parameter(Mandatory = $false)]
+        [string]$TargetVariableName = "ARM_CLIENT_ID",
+
+        [Parameter(Mandatory = $false)]
+        [string]$Organization
+    )
+
+    begin {
+        Write-Verbose "Starting copy of variable '$VariableName' from '$VariableGroupNameSource' to '$VariableGroupNameTarget'"
+
+        # Ensure Azure CLI and DevOps extension are available
+        try {
+            $cliVersion = az --version 2>$null
+            if (-not $cliVersion) {
+                throw "Azure CLI not found"
+            }
+            Write-Verbose "Azure CLI is available"
+        }
+        catch {
+            Write-Error "Azure CLI is required but not found. Please install Azure CLI first."
+            return
+        }
+
+        # Check if DevOps extension is installed
+        try {
+            $devopsExtension = az extension list --query "[?name=='azure-devops'].name | [0]" -o tsv 2>$null
+            if (-not $devopsExtension) {
+                Write-Host "Installing Azure DevOps CLI extension..." -ForegroundColor Yellow
+                az extension add --name azure-devops --output none
+            }
+            Write-Verbose "Azure DevOps CLI extension is available"
+        }
+        catch {
+            Write-Error "Failed to install Azure DevOps CLI extension: $_"
+            return
+        }
+
+        # Set organization context if provided
+        if ($Organization) {
+            try {
+                az devops configure --defaults organization=$Organization project=$ProjectName
+                Write-Verbose "Set Azure DevOps context to organization: $Organization, project: $ProjectName"
+            }
+            catch {
+                Write-Error "Failed to set Azure DevOps context: $_"
+                return
+            }
+        }
+        else {
+            # Just set the project
+            try {
+                az devops configure --defaults project=$ProjectName
+                Write-Verbose "Set Azure DevOps project context to: $ProjectName"
+            }
+            catch {
+                Write-Error "Failed to set Azure DevOps project context: $_"
+                return
+            }
+        }
+    }
+
+    process {
+        try {
+            # Get source variable group ID
+            Write-Host "Looking up source variable group '$VariableGroupNameSource'..." -ForegroundColor Yellow
+            $sourceGroupId = az pipelines variable-group list --query "[?name=='$VariableGroupNameSource'].id | [0]" --only-show-errors -o tsv
+
+            if (-not $sourceGroupId -or $sourceGroupId -eq "null") {
+                Write-Error "Source variable group '$VariableGroupNameSource' not found in project '$ProjectName'"
+                return
+            }
+            Write-Verbose "Source variable group ID: $sourceGroupId"
+
+            # Get target variable group ID
+            Write-Host "Looking up target variable group '$VariableGroupNameTarget'..." -ForegroundColor Yellow
+            $targetGroupId = az pipelines variable-group list --query "[?name=='$VariableGroupNameTarget'].id | [0]" --only-show-errors -o tsv
+
+            if (-not $targetGroupId -or $targetGroupId -eq "null") {
+                Write-Error "Target variable group '$VariableGroupNameTarget' not found in project '$ProjectName'"
+                return
+            }
+            Write-Verbose "Target variable group ID: $targetGroupId"
+
+            # Get the variable value from source group
+            Write-Host "Retrieving variable '$VariableName' from source group..." -ForegroundColor Yellow
+            $sourceVariableValue = az pipelines variable-group variable list --group-id $sourceGroupId --query "$VariableName.value" --only-show-errors -o tsv
+
+            if (-not $sourceVariableValue -or $sourceVariableValue -eq "null") {
+                Write-Error "Variable '$VariableName' not found in source variable group '$VariableGroupNameSource'"
+                return
+            }
+            Write-Verbose "Retrieved variable value from source group"
+
+            if ($targetGroupId -eq $sourceGroupId) {
+
+                if( $VariableName.ToUpper() -eq $TargetVariableName.ToUpper() ) {
+                  Write-Warning "Source and target variable groups are the same. Removing source variable"
+                  az pipelines variable-group variable delete --group-id $targetGroupId --name $VariableName --output none --only-show-errors
+                }
+            }
+
+            # Check if variable exists in target group
+            $targetVariableExists = az pipelines variable-group variable list --group-id $targetGroupId --query "$TargetVariableName.value" --only-show-errors -o tsv 2>$null
+
+            if ($targetVariableExists -and $targetVariableExists -ne "null") {
+                Write-Host "Variable '$TargetVariableName' already exists in target group. Updating..." -ForegroundColor Yellow
+
+                # Update existing variable
+                az pipelines variable-group variable update --group-id $targetGroupId --name $TargetVariableName --value $sourceVariableValue --output none --only-show-errors
+
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Host "Successfully updated variable '$TargetVariableName' in target variable group '$VariableGroupNameTarget'" -ForegroundColor Green
+                }
+                else {
+                    Write-Error "Failed to update variable '$TargetVariableName' in target variable group"
+                    return
+                }
+            }
+            else {
+                Write-Host "Variable '$TargetVariableName' does not exist in target group. Creating..." -ForegroundColor Yellow
+
+                # Create new variable
+                az pipelines variable-group variable create --group-id $targetGroupId --name $TargetVariableName --value $sourceVariableValue --output none --only-show-errors
+
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Host "Successfully created variable '$TargetVariableName' in target variable group '$VariableGroupNameTarget'" -ForegroundColor Green
+                }
+                else {
+                    Write-Error "Failed to create variable '$TargetVariableName' in target variable group"
+                    return
+                }
+            }
+
+            # Return summary information
+            return [PSCustomObject]@{
+                ProjectName = $ProjectName
+                SourceVariableGroup = $VariableGroupNameSource
+                TargetVariableGroup = $VariableGroupNameTarget
+                VariableName = $VariableName
+                TargetVariableName = $TargetVariableName
+                SourceGroupId = $sourceGroupId
+                TargetGroupId = $targetGroupId
+                Operation = if ($targetVariableExists -and $targetVariableExists -ne "null") { "Updated" } else { "Created" }
+                Success = $true
+            }
+        }
+        catch {
+            Write-Error "An error occurred while copying the variable: $_"
+            return [PSCustomObject]@{
+                ProjectName = $ProjectName
+                SourceVariableGroup = $VariableGroupNameSource
+                TargetVariableGroup = $VariableGroupNameTarget
+                VariableName = $VariableName
+                Operation = "Failed"
+                Success = $false
+                Error = $_.Exception.Message
+            }
+        }
+    }
+
+    end {
+        Write-Verbose "Completed variable copy operation"
+    }
+}
+
+# Export the function if this script is being imported as a module
+Export-ModuleMember -Function Copy-AzDevOpsVariableGroupVariable
+#EndRegion '.\Public\Copy-AzDevOpsVariableGroupValues.ps1' 183
+#Region '.\Public\Get-SDAFUserAssignedIdentity.ps1' -1
+
+function Get-SDAFUserAssignedIdentity {
+  [CmdletBinding()]
+  param (
+    [Parameter(Mandatory = $true)]
+    [string]$ManagedIdentityName,
+
+    [Parameter(Mandatory = $true)]
+    [string]$ResourceGroupName,
+
+    [Parameter(Mandatory = $true)]
+    [string]$SubscriptionId
+
+  )
+
+  begin {
+
+    Write-Verbose "Starting retrieval of user-assigned identity: $ManagedIdentityName"
+
+    # Ensure Azure CLI is logged in
+    try {
+      $account = az account show --query name -o tsv
+      if (-not $account) {
+        throw "Not logged in to Azure CLI"
+      }
+      Write-Verbose "Currently logged in to Azure account: $account"
+    }
+    catch {
+      Write-Error "Please login to Azure CLI first using 'az login'"
+      return
+    }
+    # Set the subscription context
+    try {
+      az account set --subscription $SubscriptionId
+      Write-Verbose "Set subscription context to: $SubscriptionId"
+    }
+    catch {
+      Write-Error "Failed to set subscription context to $SubscriptionId. Please verify the subscription ID is correct."
+      return
+    }
+
+    # Verify resource group exists
+    try {
+      $rgExists = az group exists --name $ResourceGroupName
+      if ($rgExists -eq "false") {
+        Write-Error "Resource group '$ResourceGroupName' does not exist in subscription '$SubscriptionId'"
+        return
+      }
+      Write-Verbose "Resource group '$ResourceGroupName' exists"
+    }
+    catch {
+      Write-Error "Failed to verify resource group existence: $_"
+      return
+    }
+  }
+
+  process {
+    try {
+      Write-Host "Retrieving user-assigned identity '$ManagedIdentityName' in resource group '$ResourceGroupName'..." -ForegroundColor Yellow
+
+      # Get the user-assigned identity
+      $identity = az identity list `
+        --resource-group $ResourceGroupName `
+        --query "[?name=='$ManagedIdentityName'].{id:id, principalId:principalId, clientId:clientId}" `
+        -o json | ConvertFrom-Json
+
+      if ($identity) {
+        Write-Host "Successfully retrieved user-assigned identity '$ManagedIdentityName'" -ForegroundColor Green
+        Write-Verbose "Identity ID: $($identity.id)"
+        Write-Verbose "Principal ID: $($identity.principalId)"
+        Write-Verbose "Client ID: $($identity.clientId)"
+
+        # Return the identity object
+        return [PSCustomObject]@{
+          Name             = $ManagedIdentityName
+          ResourceGroup    = $ResourceGroupName
+          SubscriptionId   = $SubscriptionId
+          IdentityId       = $identity.id
+          PrincipalId      = $identity.principalId
+          ClientId         = $identity.clientId
+          RoleAssignmentId = $roleAssignment
+        }
+      }
+      else {
+        Write-Error "Failed to retrieve user-assigned identity"
+        return
+      }
+    }
+    catch {
+      Write-Error "An error occurred while retrieving the identity: $_"
+      return
+    }
+  }
+
+  end {
+    Write-Verbose "Completed retrieval of user-assigned identity: $ManagedIdentityName"
+  }
+}
+
+
+# Export the function
+Export-ModuleMember -Function Get-SDAFUserAssignedIdentity
+#EndRegion '.\Public\Get-SDAFUserAssignedIdentity.ps1' 102
+#Region '.\Public\New-SDAFADOProject.ps1' -1
+
 #Requires -Version 5.1
 
 <#
@@ -116,6 +407,9 @@ function Out-IniFile {
 
 .PARAMETER ControlPlaneCode
     The control plane code identifier (e.g., MGMT).
+
+.PARAMETER ControlPlaneName
+    The control plane name (e.g., MGMT-WEUE-DEP01).
 
 .PARAMETER ControlPlaneSubscriptionId
     The subscription ID for the control plane resources.
@@ -180,8 +474,6 @@ function New-SDAFADOProject {
     [string]$TenantId,
 
     [Parameter(Mandatory = $true, HelpMessage = "Control plane code (e.g., MGMT)")]
-    [ValidateLength(2, 8)]
-    [ValidatePattern('^[A-Z0-9]+$')]
     [string]$ControlPlaneCode,
 
     [Parameter(Mandatory = $true, HelpMessage = "Control plane subscription ID")]
@@ -205,6 +497,11 @@ function New-SDAFADOProject {
     [string]$ManagedIdentityObjectId,
 
     # Optional parameters
+
+    [Parameter(Mandatory = $false, HelpMessage = "Control plane name (e.g., MGMT-WEEU-DEP01)")]
+    [string]$ControlPlaneName = "",
+
+
     [Parameter(HelpMessage = "Agent Pool Name")]
     [ValidateLength(1, 100)]
     [string]$AgentPoolName,
@@ -243,6 +540,7 @@ function New-SDAFADOProject {
     Write-Verbose "  AuthenticationMethod: $AuthenticationMethod"
     Write-Verbose "  ManagedIdentityObjectId: $ManagedIdentityObjectId"
     Write-Verbose "  ControlPlaneCode: $ControlPlaneCode"
+    Write-Verbose "  ControlPlaneName: $ControlPlaneName"
     Write-Verbose "  ControlPlaneSubscriptionId: $ControlPlaneSubscriptionId"
     Write-Verbose "  AgentPoolName: $AgentPoolName"
     Write-Verbose "  CreateConnections: $CreateConnections"
@@ -719,7 +1017,7 @@ resources:
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $ControlPlaneSubscriptionIdInternal = $ControlPlaneSubscriptionId
-      $VersionLabel = "v3.16.0.2"
+      $VersionLabel = "v3.17.0.0"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS
@@ -830,11 +1128,18 @@ resources:
       Write-Verbose "ADO Organization validated: $AdoOrganization"
 
       Write-Host "Using Control plane code: $ControlPlaneCode" -foregroundColor Yellow
-      Write-Verbose "Control plane code validated: $ControlPlaneCode"
+      Write-Host "Using Control plane name: $ControlPlaneName" -foregroundColor Yellow
       #endregion
 
       #region Set up prefixes and pool names
-      $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+      }
+      else {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      }
+
+      Write-Host "Control plane prefix: $ControlPlanePrefix"
       Write-Verbose "Control plane prefix: $ControlPlanePrefix"
 
       $AgentPoolNameFinal = $AgentPoolName
@@ -998,7 +1303,7 @@ resources:
 
       $GeneralGroupId = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
       if ($GeneralGroupId.Length -eq 0) {
-        az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.12.2" ansible_core_version="2.16" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
+        az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.13.3" ansible_core_version="2.16.15" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
         $GeneralGroupId = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
         az pipelines variable-group variable update --group-id $GeneralGroupId --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
       }
@@ -1134,9 +1439,13 @@ resources:
           $id = $(az identity list --query "[?name=='$identity'].id" --subscription $subscription --output tsv)
           $ManagedIdentityObjectId = $(az identity show --ids $id --query "principalId" --output tsv)
         }
+        else {
+          $id = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].id" --subscription $ControlPlaneSubscriptionId --output tsv)
+        }
 
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
+        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "MSI_ID" -VariableValue $id
 
         $ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
@@ -1456,8 +1765,9 @@ resources:
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOProject
-#EndRegion './Public/New-SDAFADOProject.ps1' 1367
-#Region './Public/New-SDAFADOWorkloadZone.ps1' 0
+#EndRegion '.\Public\New-SDAFADOProject.ps1' 1385
+#Region '.\Public\New-SDAFADOWorkloadZone.ps1' -1
+
 #Requires -Version 5.1
 
 <#
@@ -1485,8 +1795,14 @@ Export-ModuleMember -Function New-SDAFADOProject
 .PARAMETER ControlPlaneCode
     The control plane code identifier (e.g., MGMT).
 
+.PARAMETER ControlPlaneName
+    The control plane name (e.g., "MGMT-WEEU-DEP01  ").
+
 .PARAMETER WorkloadZoneCode
-    The workload zone code identifier (e.g., MGMT).
+    The workload zone code identifier (e.g., QA).
+
+.PARAMETER WorkloadZoneName
+    The workload zone name (e.g., "QA-WEEU-SAP01  ").
 
 .PARAMETER WorkloadZoneSubscriptionId
     The subscription ID for the workload zone resources.
@@ -1530,14 +1846,16 @@ function New-SDAFADOWorkloadZone {
     [string]$TenantId,
 
     [Parameter(Mandatory = $true, HelpMessage = "Control Plane code (e.g., MGMT)")]
-    [ValidateLength(2, 8)]
-    [ValidatePattern('^[A-Z0-9]+$')]
     [string]$ControlPlaneCode,
 
+    [Parameter(Mandatory = $false, HelpMessage = "Control Plane name (e.g., MGMT-WEEU-DEP01)")]
+    [string]$ControlPlaneName="",
+
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone code (e.g., DEV)")]
-    [ValidateLength(2, 8)]
-    [ValidatePattern('^[A-Z0-9]+$')]
     [string]$WorkloadZoneCode,
+
+    [Parameter(Mandatory = $false, HelpMessage = "Workload zone name (e.g., DEV-WEEU-SAP01)")]
+    [string]$WorkloadZoneName="",
 
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone subscription ID")]
     [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
@@ -1656,6 +1974,9 @@ function New-SDAFADOWorkloadZone {
         }
 
       }
+
+      Write-Verbose "Creating JSON input file for service connection"
+      Write-Verbose $PostBody | ConvertTo-Json -Depth 6
       Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
 
       Write-Verbose "Creating service connection: $ConnectionName"
@@ -1701,7 +2022,7 @@ function New-SDAFADOWorkloadZone {
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $WorkloadZoneSubscriptionIdInternal = $WorkloadZoneSubscriptionId
-      $VersionLabel = "v3.16.0.2"
+      $VersionLabel = "v3.17.0.0"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS
@@ -1808,9 +2129,22 @@ function New-SDAFADOWorkloadZone {
       #endregion
 
       #region Set up prefixes
-      $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
+
+      if ($WorkloadZoneName.Length -ne 0) {
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneName
+      }
+      else {
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
+      }
       Write-Verbose "Workload zone prefix: $WorkloadZonePrefix"
-      $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+      }
+      else {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      }
+
       Write-Verbose "Control plane prefix: $ControlPlanePrefix"
 
       #endregion
@@ -1822,7 +2156,7 @@ function New-SDAFADOWorkloadZone {
         throw "Project not found"
       }
 
-      $ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
+      $ManagedIdentityClientId = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].id" --subscription $ControlPlaneSubscriptionId --output tsv)
 
       $ControlPlaneVariableGroupId = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
       $AgentPoolName = ""
@@ -1838,40 +2172,30 @@ function New-SDAFADOWorkloadZone {
       }
 
       if ($AuthenticationMethod -eq "Managed Identity") {
+        $Roles = @(
+          "Contributor",
+          "Role Based Access Control Administrator",
+          "Storage Blob Data Owner",
+          "Key Vault Administrator",
+          "App Configuration Data Owner"
+        )
 
-        if ($ManagedIdentityObjectId.Length -eQ 0) {
+        foreach ($RoleName in $Roles) {
 
-          $Title = "Choose the subscription that contains the Managed Identity"
-          $subscriptions = $(az account list --query "[].{Name:name}" -o table | Sort-Object)
-          Show-Menu($subscriptions[2..($subscriptions.Length - 1)])
-          $selection = Read-Host $Title
-
-          $selectionOffset = [convert]::ToInt32($selection, 10) + 1
-
-          $subscription = $subscriptions[$selectionOffset]
-          Write-Host "Using subscription:" $subscription
-
-          $Title = "Choose the Managed Identity"
-          $identities = $(az identity list --query "[].{Name:name}" --subscription $subscription --output table | Sort-Object)
-          Show-Menu($identities[2..($identities.Length - 1)])
-          $selection = Read-Host $Title
-          $selectionOffset = [convert]::ToInt32($selection, 10) + 1
-
-          $identity = $identities[$selectionOffset]
-          Write-Host "Using Managed Identity:" $identity
-
-          $id = $(az identity list --query "[?name=='$identity'].id" --subscription $subscription --output tsv)
-          $ManagedIdentityClientId = $(az identity show --ids $id --query "principalId" --output tsv)
+          Write-Host "Assigning role" $RoleName "to the Managed Identity" -ForegroundColor Green
+          Write-Verbose "Assigning role" $RoleName "to the Managed Identity ($ManagedIdentityObjectId)" -ForegroundColor Green
+          $roleAssignment = az role assignment create --assignee-object-id $ManagedIdentityObjectId --role $RoleName --scope /subscriptions/$WorkloadZoneSubscriptionId --query id --output tsv --only-show-errors
+          if ($roleAssignment) {
+            Write-Host "Successfully assigned $RoleName role to identity" -ForegroundColor Green
+            Write-Verbose "Role assignment ID: $roleAssignment"
+          }
+          else {
+            Write-Warning "Identity created but role assignment may have failed"
+          }
         }
-        else {
-          $ManagedIdentityClientId = $(az identity show --ids $ManagedIdentityObjectId --query "principalId" --output tsv)
-        }
-        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
-        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
-        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_USE_MSI" -VariableValue "true"
-        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
 
-        $ServiceEndpointExists = (az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].name | [0]" )
+
+        $ServiceEndpointExists = (az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].name | [0]"  --out tsv)
         if ($ServiceEndpointExists.Length -eq 0) {
           CreateServiceConnection -ConnectionName $ServiceConnectionName `
             -ServiceConnectionDescription "$WorkloadZoneCode Service Connection" `
@@ -1884,6 +2208,10 @@ function New-SDAFADOWorkloadZone {
           if ($ServiceEndpointId.Length -ne 0) {
             az devops service-endpoint update --id $ServiceEndpointId --enable-for-all true --output none --only-show-errors
           }
+          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
+          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
+          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
+          SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_USE_MSI" -VariableValue "true"
 
 
         }
@@ -1994,8 +2322,9 @@ function New-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOWorkloadZone
-#EndRegion './Public/New-SDAFADOWorkloadZone.ps1' 537
-#Region './Public/New-SDAFUserAssignedIdentity.ps1' 0
+#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 555
+#Region '.\Public\New-SDAFUserAssignedIdentity.ps1' -1
+
 function New-SDAFUserAssignedIdentity {
   [CmdletBinding()]
   param (
@@ -2121,8 +2450,9 @@ function New-SDAFUserAssignedIdentity {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFUserAssignedIdentity
-#EndRegion './Public/New-SDAFUserAssignedIdentity.ps1' 126
-#Region './Public/Remove-SDAFADOProject.ps1' 0
+#EndRegion '.\Public\New-SDAFUserAssignedIdentity.ps1' 126
+#Region '.\Public\Remove-SDAFADOProject.ps1' -1
+
 #Requires -Version 5.1
 
 <#
@@ -2180,9 +2510,13 @@ function Remove-SDAFADOProject {
     [ValidateNotNullOrEmpty()]
     [string]$AdoProject,
 
-    [Parameter(Mandatory = $false, HelpMessage = "Azure DevOps project name")]
+    [Parameter(Mandatory = $false, HelpMessage = "Control Plane Code (e.g., MGMT)")]
     [ValidateNotNullOrEmpty()]
     [string]$ControlPlaneCode,
+
+    [Parameter(Mandatory = $false, HelpMessage = "Control Plane Name (e.g., MGMT-WEEU-DEP01)")]
+    [ValidateNotNullOrEmpty()]
+    [string]$ControlPlaneName = "",
 
     [Parameter(Mandatory = $true, HelpMessage = "Authentication method to use")]
     [ValidateSet("Service Principal", "Managed Identity")]
@@ -2217,12 +2551,17 @@ function Remove-SDAFADOProject {
 
       #region Initialize variables
       Write-Verbose "Initializing variables from parameters"
-      $VersionLabel = "v3.16.0.2"
+      $VersionLabel = "v3.17.0.0"
       Write-Verbose "Version label set to: $VersionLabel"
       #endregion
 
-      $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
-      Write-Verbose "Control plane prefix: $ControlPlanePrefix"
+      #region Set up prefixes and pool names
+      if ($ControlPlaneName.Length -eq 0) {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneCode
+      }
+      else {
+        $ControlPlanePrefix = "SDAF-" + $ControlPlaneName
+      }
 
       $ApplicationName = ""
       if ($EnableWebApp) {
@@ -2235,6 +2574,7 @@ function Remove-SDAFADOProject {
       if ($EnableWebApp) {
         Write-Verbose "  Application name: $ApplicationName"
       }
+      #endregion
 
       #region Install DevOps extensions
       Write-Host "Installing the DevOps extensions" -ForegroundColor Green
@@ -2385,8 +2725,9 @@ function Remove-SDAFADOProject {
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFADOProject
-#EndRegion './Public/Remove-SDAFADOProject.ps1' 263
-#Region './Public/Remove-SDAFADOWorkloadZone.ps1' 0
+#EndRegion '.\Public\Remove-SDAFADOProject.ps1' 273
+#Region '.\Public\Remove-SDAFADOWorkloadZone.ps1' -1
+
 #Requires -Version 5.1
 
 <#
@@ -2410,6 +2751,9 @@ Export-ModuleMember -Function Remove-SDAFADOProject
 
 .PARAMETER WorkloadZoneCode
     The workload zone code identifier (e.g., MGMT).
+
+.PARAMETER WorkloadZoneName
+    The workload zone name (e.g., QA-WEEU-SAP01).
 
 .PARAMETER AuthenticationMethod
     The authentication method to use (Service Principal or Managed Identity).
@@ -2437,9 +2781,10 @@ function Remove-SDAFADOWorkloadZone {
     [string]$AdoProject,
 
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone code (e.g., DEV)")]
-    [ValidateLength(2, 8)]
-    [ValidatePattern('^[A-Z0-9]+$')]
     [string]$WorkloadZoneCode,
+
+    [Parameter(Mandatory = $false, HelpMessage = "Workload zone name (e.g., DEV-WEEU-SAP01)")]
+    [string]$WorkloadZoneName = "",
 
     [Parameter(Mandatory = $true, HelpMessage = "Authentication method to use")]
     [ValidateSet("Service Principal", "Managed Identity")]
@@ -2505,7 +2850,7 @@ function Remove-SDAFADOWorkloadZone {
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $WorkloadZoneSubscriptionIdInternal = $WorkloadZoneSubscriptionId
-      $VersionLabel = "v3.16.0.2"
+      $VersionLabel = "v3.17.0.0"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS
@@ -2584,7 +2929,13 @@ function Remove-SDAFADOWorkloadZone {
       #endregion
 
       #region Set up prefixes
-      $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
+      if ($WorkloadZoneName.Length -ne 0) {
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneName
+      }
+      else {
+        $WorkloadZonePrefix = "SDAF-" + $WorkloadZoneCode
+      }
+      Write-Host "Workload zone prefix: $WorkloadZonePrefix"
       Write-Verbose "Workload zone prefix: $WorkloadZonePrefix"
 
       #endregion
@@ -2659,8 +3010,9 @@ function Remove-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFADOWorkloadZone
-#EndRegion './Public/Remove-SDAFADOWorkloadZone.ps1' 273
-#Region './Public/Remove-SDAFUserAssignedIdentity.ps1' 0
+#EndRegion '.\Public\Remove-SDAFADOWorkloadZone.ps1' 283
+#Region '.\Public\Remove-SDAFUserAssignedIdentity.ps1' -1
+
 function Remove-SDAFUserAssignedIdentity {
   [CmdletBinding()]
   param (
@@ -2739,4 +3091,400 @@ function Remove-SDAFUserAssignedIdentity {
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFUserAssignedIdentity
-#EndRegion './Public/Remove-SDAFUserAssignedIdentity.ps1' 79
+#EndRegion '.\Public\Remove-SDAFUserAssignedIdentity.ps1' 79
+#Region '.\Public\Set-AdoManagedIdentityCredentials.ps1' -1
+
+function Set-AdoManagedIdentityCredentials {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$ProjectName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ManagedIdentity,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ResourceGroupName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$VariableGroupName,
+
+        [Parameter(Mandatory = $false)]
+        [string]$Organization,
+
+        [Parameter(Mandatory = $false)]
+        [string]$SubscriptionId
+
+    )
+
+    begin {
+        Write-Verbose "Starting setting of managed identity '$ManagedIdentity' for variable group '$VariableGroupName' in subscription '$SubscriptionId'"
+
+        # Ensure Azure CLI and DevOps extension are available
+        try {
+            $cliVersion = az --version 2>$null
+            if (-not $cliVersion) {
+                throw "Azure CLI not found"
+            }
+            Write-Verbose "Azure CLI is available"
+        }
+        catch {
+            Write-Error "Azure CLI is required but not found. Please install Azure CLI first."
+            return
+        }
+
+        # Check if DevOps extension is installed
+        try {
+            $devopsExtension = az extension list --query "[?name=='azure-devops'].name | [0]" -o tsv 2>$null
+            if (-not $devopsExtension) {
+                Write-Host "Installing Azure DevOps CLI extension..." -ForegroundColor Yellow
+                az extension add --name azure-devops --output none
+            }
+            Write-Verbose "Azure DevOps CLI extension is available"
+        }
+        catch {
+            Write-Error "Failed to install Azure DevOps CLI extension: $_"
+            return
+        }
+
+        # Set organization context if provided
+        if ($Organization) {
+            try {
+                az devops configure --defaults organization=$Organization project=$ProjectName
+                Write-Verbose "Set Azure DevOps context to organization: $Organization, project: $ProjectName"
+            }
+            catch {
+                Write-Error "Failed to set Azure DevOps context: $_"
+                return
+            }
+        }
+        else {
+            # Just set the project
+            try {
+                az devops configure --defaults project=$ProjectName
+                Write-Verbose "Set Azure DevOps project context to: $ProjectName"
+            }
+            catch {
+                Write-Error "Failed to set Azure DevOps project context: $_"
+                return
+            }
+        }
+    }
+
+    process {
+        try {
+            # Get source variable group ID
+            Write-Host "Looking up source variable group '$VariableGroupName'..." -ForegroundColor Yellow
+            $sourceGroupId = az pipelines variable-group list --query "[?name=='$VariableGroupName'].id | [0]" --only-show-errors -o tsv
+
+            if (-not $sourceGroupId -or $sourceGroupId -eq "null") {
+                Write-Error "Source variable group '$VariableGroupName' not found in project '$ProjectName'"
+                return
+            }
+            Write-Verbose "Source variable group ID: $sourceGroupId"
+
+            try {
+                $identity = az identity show --name $ManagedIdentity --resource-group $ResourceGroupName --subscription $SubscriptionId --output json  | ConvertFrom-Json
+                if (-not $identity -or $identity -eq "null") {
+                    Write-Error "Managed identity '$ManagedIdentity' not found in resource group '$ResourceGroupName'"
+                    return
+                }
+
+                Write-Output $identity
+
+                # Set the managed identity for the target variable group
+                Write-Host "Setting managed identity '$ManagedIdentity' for target variable group..." -ForegroundColor Yellow
+
+                # Get the variable value from source group
+                $VariableName = "ARM_CLIENT_ID"
+                Write-Host "Retrieving variable '$VariableName' from source group..." -ForegroundColor Yellow
+                $sourceVariableValue = az pipelines variable-group variable list --group-id $sourceGroupId --query "$VariableName.value" --only-show-errors -o tsv
+
+                if (-not $sourceVariableValue -or $sourceVariableValue -eq "null") {
+                    Write-Verbose "Variable '$VariableName' not found in source variable group '$VariableGroupName'"
+                    az pipelines variable-group variable create --group-id $sourceGroupId --name $VariableName --value $identity.clientId --output none --only-show-errors
+                }
+                else {
+                    az pipelines variable-group variable update --group-id $sourceGroupId --name $VariableName --value $identity.clientId --output none --only-show-errors
+                }
+                Write-Verbose "Updated variable $VariableName in variable group"
+
+                # Get the variable value from source group
+                $VariableName = "ARM_OBJECT_ID"
+                Write-Host "Retrieving variable '$VariableName' from source group..." -ForegroundColor Yellow
+                $sourceVariableValue = az pipelines variable-group variable list --group-id $sourceGroupId --query "$VariableName.value" --only-show-errors -o tsv
+
+                if (-not $sourceVariableValue -or $sourceVariableValue -eq "null") {
+                    Write-Verbose "Variable '$VariableName' not found in source variable group '$VariableGroupName'"
+                    az pipelines variable-group variable create --group-id $sourceGroupId --name $VariableName --value $identity.principalId --output none --only-show-errors
+                }
+                else {
+                    az pipelines variable-group variable update --group-id $sourceGroupId --name $VariableName --value $identity.principalId --output none --only-show-errors
+                }
+                Write-Verbose "Updated variable $VariableName in variable group"
+
+                # Get the variable value from source group
+                $VariableName = "ARM_TENANT_ID"
+                Write-Host "Retrieving variable '$VariableName' from source group..." -ForegroundColor Yellow
+                $sourceVariableValue = az pipelines variable-group variable list --group-id $sourceGroupId --query "$VariableName.value" --only-show-errors -o tsv
+
+                if (-not $sourceVariableValue -or $sourceVariableValue -eq "null") {
+                    Write-Verbose "Variable '$VariableName' not found in source variable group '$VariableGroupName'"
+                    az pipelines variable-group variable create --group-id $sourceGroupId --name $VariableName --value $identity.tenantId --output none --only-show-errors
+                }
+                else {
+                    az pipelines variable-group variable update --group-id $sourceGroupId --name $VariableName --value $identity.tenantId --output none --only-show-errors
+                }
+
+                $VariableName = "ARM_USE_MSI"
+                Write-Host "Retrieving variable '$VariableName' from source group..." -ForegroundColor Yellow
+                $sourceVariableValue = az pipelines variable-group variable list --group-id $sourceGroupId --query "$VariableName.value" --only-show-errors -o tsv
+
+                if (-not $sourceVariableValue -or $sourceVariableValue -eq "null") {
+                    Write-Verbose "Variable '$VariableName' not found in source variable group '$VariableGroupName'"
+                    az pipelines variable-group variable create --group-id $sourceGroupId --name $VariableName --value "true" --output none --only-show-errors
+                }
+                else {
+                    az pipelines variable-group variable update --group-id $sourceGroupId --name $VariableName --value "true" --output none --only-show-errors
+                }
+
+                Write-Verbose "Updated variable $VariableName in variable group"
+
+
+            }
+            catch {
+                Write-Error "Failed to set Azure DevOps project context: $_"
+                return
+            }
+
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "Successfully set managed identity for target variable group '$VariableGroupNameTarget'" -ForegroundColor Green
+            }
+            else {
+                Write-Error "Failed to set managed identity for target variable group"
+                return
+            }
+
+            # Return summary information
+            return [PSCustomObject]@{
+                ProjectName         = $ProjectName
+                SourceVariableGroup = $VariableGroupName
+                Success             = $true
+            }
+        }
+        catch {
+            Write-Error "An error occurred while copying the variable: $_"
+            return [PSCustomObject]@{
+                ProjectName         = $ProjectName
+                SourceVariableGroup = $VariableGroupName
+                Success             = $false
+                Error               = $_.Exception.Message
+            }
+        }
+    }
+
+    end {
+        Write-Verbose "Completed variable copy operation"
+    }
+}
+
+# Export the function if this script is being imported as a module
+#
+Export-ModuleMember -Function Set-AdoManagedIdentityCredentials
+#EndRegion '.\Public\Set-AdoManagedIdentityCredentials.ps1' 198
+#Region '.\Public\Set-AdoSPNCredentials.ps1' -1
+
+function Set-AdoSPNCredentials {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$ProjectName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ServicePrincipalName,
+
+        [Parameter(Mandatory = $true)]
+        [string]$VariableGroupName,
+
+        [Parameter(Mandatory = $false)]
+        [string]$Organization
+    )
+
+    begin {
+        Write-Verbose "Starting setting of Service Principal '$ServicePrincipalName' for variable group '$VariableGroupName'"
+
+        # Ensure Azure CLI and DevOps extension are available
+        try {
+            $cliVersion = az --version 2>$null
+            if (-not $cliVersion) {
+                throw "Azure CLI not found"
+            }
+            Write-Verbose "Azure CLI is available"
+        }
+        catch {
+            Write-Error "Azure CLI is required but not found. Please install Azure CLI first."
+            return
+        }
+
+        # Check if DevOps extension is installed
+        try {
+            $devopsExtension = az extension list --query "[?name=='azure-devops'].name | [0]" -o tsv 2>$null
+            if (-not $devopsExtension) {
+                Write-Host "Installing Azure DevOps CLI extension..." -ForegroundColor Yellow
+                az extension add --name azure-devops --output none
+            }
+            Write-Verbose "Azure DevOps CLI extension is available"
+        }
+        catch {
+            Write-Error "Failed to install Azure DevOps CLI extension: $_"
+            return
+        }
+
+        # Set organization context if provided
+        if ($Organization) {
+            try {
+                az devops configure --defaults organization=$Organization project=$ProjectName
+                Write-Verbose "Set Azure DevOps context to organization: $Organization, project: $ProjectName"
+            }
+            catch {
+                Write-Error "Failed to set Azure DevOps context: $_"
+                return
+            }
+        }
+        else {
+            # Just set the project
+            try {
+                az devops configure --defaults project=$ProjectName
+                Write-Verbose "Set Azure DevOps project context to: $ProjectName"
+            }
+            catch {
+                Write-Error "Failed to set Azure DevOps project context: $_"
+                return
+            }
+        }
+    }
+
+    process {
+        try {
+            # Get source variable group ID
+            Write-Host "Looking up source variable group '$VariableGroupName'..." -ForegroundColor Yellow
+            $sourceGroupId = az pipelines variable-group list --query "[?name=='$VariableGroupName'].id | [0]" --only-show-errors -o tsv
+
+            if (-not $sourceGroupId -or $sourceGroupId -eq "null") {
+                Write-Error "Source variable group '$VariableGroupName' not found in project '$ProjectName'"
+                return
+            }
+            Write-Verbose "Source variable group ID: $sourceGroupId"
+
+            try {
+
+                $found_appName = (az ad sp list --all --filter "startswith(displayName, '$ServicePrincipalName')" --query "[?displayName=='$ServicePrincipalName'].displayName | [0]" --only-show-errors)
+                if ($found_appName.Length -gt 0) {
+                    Write-Host "Found an existing Service Principal:" $ServicePrincipalName
+                    $identity = (az ad sp list --all --filter "startswith(displayName, '$ServicePrincipalName')" --query  "[?displayName=='$ServicePrincipalName']| [0]" --only-show-errors) | ConvertFrom-Json
+                    if (-not $identity -or $identity -eq "null") {
+                        Write-Error "Service Principal '$ServicePrincipalName' not found"
+                        return
+                    }
+                }
+
+                # Set the Service Principal for the target variable group
+                Write-Host "Setting Service Principal identity '$ServicePrincipalName' for target variable group..." -ForegroundColor Yellow
+
+                # Get the variable value from source group
+                $VariableName = "ARM_CLIENT_ID"
+                Write-Host "Retrieving variable '$VariableName' from source group..." -ForegroundColor Yellow
+                $sourceVariableValue = az pipelines variable-group variable list --group-id $sourceGroupId --query "$VariableName.value" --only-show-errors -o tsv
+
+                if (-not $sourceVariableValue -or $sourceVariableValue -eq "null") {
+                    Write-Verbose "Variable '$VariableName' not found in source variable group '$VariableGroupName'"
+                    az pipelines variable-group variable create --group-id $sourceGroupId --name $VariableName --value $identity.appId --output none --only-show-errors
+                }
+                else {
+                    az pipelines variable-group variable update --group-id $sourceGroupId --name $VariableName --value $identity.appId --output none --only-show-errors
+                }
+                Write-Verbose "Updated variable $VariableName in variable group"
+
+                # Get the variable value from source group
+                $VariableName = "ARM_OBJECT_ID"
+                Write-Host "Retrieving variable '$VariableName' from source group..." -ForegroundColor Yellow
+                $sourceVariableValue = az pipelines variable-group variable list --group-id $sourceGroupId --query "$VariableName.value" --only-show-errors -o tsv
+
+                if (-not $sourceVariableValue -or $sourceVariableValue -eq "null") {
+                    Write-Verbose "Variable '$VariableName' not found in source variable group '$VariableGroupName'"
+                    az pipelines variable-group variable create --group-id $sourceGroupId --name $VariableName --value $identity.Id --output none --only-show-errors
+                }
+                else {
+                    az pipelines variable-group variable update --group-id $sourceGroupId --name $VariableName --value $identity.Id --output none --only-show-errors
+                }
+                Write-Verbose "Updated variable $VariableName in variable group"
+
+                # Get the variable value from source group
+                $VariableName = "ARM_TENANT_ID"
+                Write-Host "Retrieving variable '$VariableName' from source group..." -ForegroundColor Yellow
+                $sourceVariableValue = az pipelines variable-group variable list --group-id $sourceGroupId --query "$VariableName.value" --only-show-errors -o tsv
+
+                if (-not $sourceVariableValue -or $sourceVariableValue -eq "null") {
+                    Write-Verbose "Variable '$VariableName' not found in source variable group '$VariableGroupName'"
+                    az pipelines variable-group variable create --group-id $sourceGroupId --name $VariableName --value $identity.appOwnerOrganizationId --output none --only-show-errors
+                }
+                else {
+                    az pipelines variable-group variable update --group-id $sourceGroupId --name $VariableName --value $identity.appOwnerOrganizationId --output none --only-show-errors
+                }
+
+                $VariableName = "ARM_USE_MSI"
+                Write-Host "Retrieving variable '$VariableName' from source group..." -ForegroundColor Yellow
+                $sourceVariableValue = az pipelines variable-group variable list --group-id $sourceGroupId --query "$VariableName.value" --only-show-errors -o tsv
+
+                if (-not $sourceVariableValue -or $sourceVariableValue -eq "null") {
+                    Write-Verbose "Variable '$VariableName' not found in source variable group '$VariableGroupName'"
+                    az pipelines variable-group variable create --group-id $sourceGroupId --name $VariableName --value "false" --output none --only-show-errors
+                }
+                else {
+                    az pipelines variable-group variable update --group-id $sourceGroupId --name $VariableName --value "false" --output none --only-show-errors
+                }
+
+                Write-Verbose "Updated variable $VariableName in variable group"
+
+
+            }
+            catch {
+                Write-Error "Failed to set Azure DevOps project context: $_"
+                return
+            }
+
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "Successfully set Service Principal for target variable group '$VariableGroupNameTarget'" -ForegroundColor Green
+            }
+            else {
+                Write-Error "Failed to set Service Principal for target variable group"
+                return
+            }
+
+            # Return summary information
+            return [PSCustomObject]@{
+                ProjectName         = $ProjectName
+                SourceVariableGroup = $VariableGroupName
+                Success             = $true
+            }
+        }
+        catch {
+            Write-Error "An error occurred while copying the variable: $_"
+            return [PSCustomObject]@{
+                ProjectName         = $ProjectName
+                SourceVariableGroup = $VariableGroupName
+                Success             = $false
+                Error               = $_.Exception.Message
+            }
+        }
+    }
+
+    end {
+        Write-Verbose "Completed variable copy operation"
+    }
+}
+
+# Export the function if this script is being imported as a module
+#
+Export-ModuleMember -Function Set-AdoSPNCredentials
+#EndRegion '.\Public\Set-AdoSPNCredentials.ps1' 194

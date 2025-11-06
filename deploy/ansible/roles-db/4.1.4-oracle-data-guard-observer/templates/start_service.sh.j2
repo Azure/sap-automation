@@ -1,0 +1,26 @@
+#!/bin/bash
+# FSFO Observer Startup Script
+# Logs to: /opt/oracle/admin/observer/logs/observer.log
+
+dat_file="/opt/oracle/admin/observer/logs/observer.dat"
+log_file="/opt/oracle/admin/observer/logs/observer.log"
+service="{{ db_sid | upper }}"
+
+# Log startup attempt
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting FSFO Observer for ${service}" >> "${log_file}"
+
+# Start observer using background mode (19c supports this)
+"${ORACLE_HOME}/bin/dgmgrl" /@"${service}" << DGMGRL_EOF
+start observer {{ ansible_hostname }} in background FILE IS "${dat_file}" logfile IS "${log_file}" CONNECT IDENTIFIER IS {{ db_sid | upper }};
+exit;
+DGMGRL_EOF
+
+exit_code=$?
+
+if [ ${exit_code} -ne 0 ]; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: Observer startup failed with exit code ${exit_code}" >> "${log_file}"
+    exit ${exit_code}
+fi
+
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Observer startup command completed" >> "${log_file}"
+exit 0

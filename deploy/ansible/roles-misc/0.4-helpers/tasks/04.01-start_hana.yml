@@ -18,14 +18,23 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 - name:                                "Start HANA on {{ ansible_hostname }}"
-  become_user:                         "{{ db_sid | lower }}adm"
-  become:                              true
   block:
+
     - name:                            "Determine if HANA is running on {{ ansible_hostname }}"
-      ansible.builtin.command:         "{{ sapcontrol_command }} -function GetProcessList"
+      become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
+      ansible.builtin.shell:           "{{ sapcontrol_command }} -function GetProcessList"
       changed_when:                    false
       failed_when:                     false
       register:                        is_hana_running
+      vars:
+        allow_world_readable_tmpfiles: true
+      environment:
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
     - name:                            "Determine if HANA is running on {{ ansible_hostname }}"
       ansible.builtin.debug:
@@ -33,40 +42,84 @@
         verbosity:                     2
 
     - name:                            "Ensure HANA is running on {{ ansible_hostname }}"
-      ansible.builtin.command:         "{{ sapcontrol_command }} -function StartWait {{ hana_stop_start_timeout_in_seconds }} {{ hana_stop_start_delay_in_seconds }}"
+      become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
+      ansible.builtin.shell:           "{{ sapcontrol_command }} -function StartWait {{ hana_stop_start_timeout_in_seconds }} {{ hana_stop_start_delay_in_seconds }}"
+      when:                            is_hana_running.rc != 3
       changed_when:                    false
+      vars:
+        allow_world_readable_tmpfiles: true
+      environment:
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
     - name:                            "Validate HANA is running  on {{ ansible_hostname }}"
-      ansible.builtin.command:         "{{ sapcontrol_command }} -function GetProcessList"
+      become_user:                     "{{ db_sid | lower }}adm"
+      become:                              true
+      ansible.builtin.shell:           "{{ sapcontrol_command }} -function GetProcessList"
       changed_when:                    false
       register:                        hana_running
       failed_when:                     hana_running.rc != 3
+      vars:
+        allow_world_readable_tmpfiles: true
+      environment:
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+
   rescue:
     - name:                            "Rescue: Ensure HANA is running on {{ ansible_hostname }}"
-      ansible.builtin.command:         "HDB start"
+      become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
+      ansible.builtin.shell:           "HDB start"
       changed_when:                    false
+      vars:
+        allow_world_readable_tmpfiles: true
+      environment:
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
     - name:                            "Rescue: Validate HANA is running  on {{ ansible_hostname }}"
-      ansible.builtin.command:         "{{ sapcontrol_command }} -function GetProcessList"
+      become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
+      ansible.builtin.shell:           "{{ sapcontrol_command }} -function GetProcessList"
       changed_when:                    false
       register:                        hana_running
       failed_when:                     hana_running.rc != 3
+      vars:
+        allow_world_readable_tmpfiles: true
+      environment:
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
-  vars:
-    ansible_python_interpreter:        python3
-  environment:
-    HOME:                              "/usr/sap/{{ db_sid | upper }}/home"
-    PYTHONHOME:                        "/usr/sap/{{ DB }}/exe/Python3"
-    DIR_EXECUTABLE:                    "/usr/sap/{{ DB }}/exe"
-    SAP_RETRIEVAL_PATH:                "/usr/sap/{{ DB }}/{{ virtual_host }}"
-    DIR_SYSEXE:                        "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
-    SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
-    SECUDIR:                           "/usr/sap/{{ DB }}/{{ virtual_host }}/sec"
-    DAT_BIN_DIR:                       "/usr/sap/{{ DB }}/exe/dat_bin_dir"
-    DIR_INSTANCE:                      "/usr/sap/{{ DB }}"
-    PYTHONPATH:                        "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ virtual_host }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts:/usr/sap/{{ DB }}/exe/Python3/lib/python3.7"
-    PATH:                              "/usr/sap/{{ DB }}/exe/krb5/bin:/usr/sap/{{ DB }}/exe/krb5/sbin:/usr/sap/{{ DB }}/{{ virtual_host }}:/usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/mdc:/usr/sap/{{ DB }}/exe/Python3/bin:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/HDB/home:/usr/sap/HDB/home/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/usr/lib/mit/bin"
-    LD_LIBRARY_PATH:                   "/usr/sap/{{ DB }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ DB }}/exe/krb5/lib:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/filter:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/{{ DB }}/exe/plugins/afl:/usr/sap/{{ DB }}/exe/plugins/lcapps:/usr/sap/{{ DB }}/exe/plugins/repository:/usr/sap/{{ DB }}/exe/plugins/epmmds:/usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:/usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
+  # environment:
+  #   HOME:                              "/usr/sap/{{ db_sid | upper }}/home"
+  #   #PYTHONHOME:                        "/usr/sap/{{ DB }}/exe/Python3"
+  #   #DIR_EXECUTABLE:                    "/usr/sap/{{ DB }}/exe"
+  #   #SAP_RETRIEVAL_PATH:                "/usr/sap/{{ DB }}/{{ virtual_host }}"
+  #   #DIR_SYSEXE:                        "/usr/sap/{{ db_sid | upper }}/SYS/exe/hdb"
+  #   #SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
+  #   #SECUDIR:                           "/usr/sap/{{ DB }}/{{ virtual_host }}/sec"
+  #   #DAT_BIN_DIR:                       "/usr/sap/{{ DB }}/exe/dat_bin_dir"
+  #   #DIR_INSTANCE:                      "/usr/sap/{{ DB }}"
+  #   #PYTHONPATH:                        "/usr/sap/{{ DB }}/exe/Py3:/usr/sap/HDB/SYS/global/hdb/custom/python_support:/usr/sap/{{ DB }}/exe/python_support:/usr/sap/{{ DB }}/{{ virtual_host }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/testscripts:/usr/sap/{{ DB }}/exe/Python3/lib/python3.7"
+  #   #PATH:                              "/usr/sap/{{ DB }}/exe/krb5/bin:/usr/sap/{{ DB }}/exe/krb5/sbin:/usr/sap/{{ DB }}/{{ virtual_host }}:/usr/sap/{{ DB }}:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/mdc:/usr/sap/{{ DB }}/exe/Python3/bin:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/HDB/home:/usr/sap/HDB/home/bin:/usr/local/bin:/usr/bin:/bin:/usr/games:/usr/lib/mit/bin"
+  #   #LD_LIBRARY_PATH:                   "/usr/sap/{{ DB }}/exe/krb5/lib/krb5/plugins/preauth:/usr/sap/{{ DB }}/exe/krb5/lib:/usr/sap/{{ DB }}/exe:/usr/sap/{{ DB }}/exe/Python3/lib:/usr/sap/{{ DB }}/exe/Py3:/usr/sap/{{ DB }}/exe/filter:/usr/sap/{{ DB }}/exe/dat_bin_dir:/usr/sap/{{ DB }}/exe/plugins/afl:/usr/sap/{{ DB }}/exe/plugins/lcapps:/usr/sap/{{ DB }}/exe/plugins/repository:/usr/sap/{{ DB }}/exe/plugins/epmmds:/usr/sap/HDB/SYS/global/hdb/federation:/usr/sap/HDB/SYS/global/hdb/plugins/3rd_party_libs:/usr/sap/HDB/SYS/global/hdb/plugins/1st_party_libs"
+  #   PATH:                              /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+  #   DIR_LIBRARY:                       /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+  #   LD_LIBRARY_PATH:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+  #   SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
 
 
 ...

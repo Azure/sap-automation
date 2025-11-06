@@ -11,54 +11,30 @@ locals {
     region                             = coalesce(var.location, try(var.infrastructure.region, ""))
     codename                           = try(var.codename, try(var.infrastructure.codename, ""))
     resource_group                     = {
-                                            name = try(
-                                              coalesce(
-                                                var.resourcegroup_name,
-                                                try(var.infrastructure.resource_group.name, "")
-                                              ),
-                                              ""
-                                            )
-                                            id = try(
-                                              coalesce(
-                                                var.resourcegroup_arm_id,
-                                                try(var.infrastructure.resource_group.arm_id, "")
-                                              ),
-                                              ""
-                                            )
-                                            exists = length(try(
-                                              coalesce(
-                                                var.resourcegroup_arm_id,
-                                                try(var.infrastructure.resource_group.arm_id, "")
-                                              ),
-                                              ""
-                                            )) > 0 ? true : false
-                                            exists = length(try(
-                                              coalesce(
-                                                var.resourcegroup_arm_id,
-                                                try(var.infrastructure.resource_group.arm_id, "")
-                                              ),
-                                              ""
-                                            )) > 0 ? true : false
+                                            name = var.resourcegroup_name,
+                                            id = var.resourcegroup_arm_id
+                                            exists = length(var.resourcegroup_arm_id) > 0
                                           }
     tags                               = merge(
                                             var.tags, var.resourcegroup_tags
                                         )
 
-    virtual_network                   = {
+    virtual_network                   = {  
+                                            logical_name            = var.management_network_logical_name
                                             management = {
                                               name                    = var.management_network_name,
                                               id                      = var.management_network_arm_id,
-                                              exists                  = length(var.management_network_arm_id) > 0 ? true : false
+                                              exists                  = length(var.management_network_arm_id) > 0
                                               address_space           = var.management_network_address_space
                                               flow_timeout_in_minutes = var.management_network_flow_timeout_in_minutes
                                               subnet_mgmt = {
                                                 name   = var.management_subnet_name,
-                                                exists = length(var.management_subnet_arm_id) > 0 ? true : false
+                                                exists = length(var.management_subnet_arm_id) > 0
                                                 id     = var.management_subnet_arm_id
                                                 prefix = var.management_subnet_address_prefix
                                                 nsg = {
                                                   name        = var.management_subnet_nsg_name
-                                                  exists      = length(var.management_subnet_nsg_arm_id) > 0 ? true : false
+                                                  exists      = length(var.management_subnet_nsg_arm_id) > 0
                                                   id          = var.management_subnet_nsg_arm_id
                                                   allowed_ips = var.management_subnet_nsg_allowed_ips
                                                 }
@@ -66,7 +42,7 @@ locals {
 
                                               subnet_firewall = {
                                                                   id     = var.management_firewall_subnet_arm_id
-                                                                  exists = length(var.management_firewall_subnet_arm_id) > 0 ? true : false
+                                                                  exists = length(var.management_firewall_subnet_arm_id) > 0
                                                                   prefix = var.management_firewall_subnet_address_prefix
                                                                 }
                                               subnet_firewall = {
@@ -76,18 +52,18 @@ locals {
                                                                 }
                                               subnet_bastion =  {
                                                                   id     = var.management_bastion_subnet_arm_id
-                                                                  exists = length(var.management_bastion_subnet_arm_id) > 0 ? true : false
+                                                                  exists = length(var.management_bastion_subnet_arm_id) > 0
                                                                   prefix = var.management_bastion_subnet_address_prefix
                                                                 }
                                               subnet_webapp =   {
                                                                   id     = var.webapp_subnet_arm_id
-                                                                  exists = length(var.webapp_subnet_arm_id) > 0 ? true : false
+                                                                  exists = length(var.webapp_subnet_arm_id) > 0
                                                                   prefix = var.webapp_subnet_address_prefix
                                                                 }
                                               subnet_agent =    {
                                                                   name   = var.agent_subnet_name,
                                                                   id     = var.agent_subnet_arm_id
-                                                                  exists = length(var.agent_subnet_arm_id) > 0 ? true : false
+                                                                  exists = length(var.agent_subnet_arm_id) > 0
                                                                   prefix = var.agent_subnet_address_prefix
                                                                 }
                                             }
@@ -109,6 +85,9 @@ locals {
                                            tf_version                     = var.tf_version
                                            DevOpsInfrastructure_object_id = var.DevOpsInfrastructure_object_id
                                          }
+    tfstate_resource_id                = ""
+    tfstate_storage_account_name       = ""
+
   }
   deployer                             = {
                                            size = try(
@@ -181,7 +160,7 @@ locals {
                                           }
   key_vault                            = {
                                            id                        = var.user_keyvault_id
-                                           exists                    = length(var.user_keyvault_id) > 0 ? true : false
+                                           exists                    = length(var.user_keyvault_id) > 0
                                            private_key_secret_name   = var.deployer_private_key_secret_name
                                            public_key_secret_name    = var.deployer_public_key_secret_name
                                            username_secret_name      = var.deployer_username_secret_name

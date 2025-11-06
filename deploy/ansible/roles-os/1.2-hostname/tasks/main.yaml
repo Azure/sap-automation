@@ -1,0 +1,24 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |            Role for ensuring the hostname is configured correctly           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+# -------------------------------------+---------------------------------------8
+#
+# Task: 1.2     - hostname setup
+#
+# -------------------------------------+---------------------------------------8
+
+# SUSE bug 1167134
+- name:                                "1.2 HostName: - Ensure DHCLIENT_SET_HOSTNAME is set to no for SLES"
+  ansible.builtin.lineinfile:
+    path:                              /etc/sysconfig/network/dhcp
+    regexp:                            '^DHCLIENT_SET_HOSTNAME='
+    line:                              DHCLIENT_SET_HOSTNAME="no"
+  when:                                ansible_os_family | upper == "SUSE"
+
+...

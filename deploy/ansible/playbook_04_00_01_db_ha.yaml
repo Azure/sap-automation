@@ -9,40 +9,41 @@
 # +------------------------------------4--------------------------------------*/
 
 - hosts:                               localhost
-  name:                                "Get SAP Password from KeyVault"
+  name:                                "Database High Availability Configuration Playbook: Preparations"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
   tasks:
 
-    - name:                            "Backward Compatibility - Check required Database HA variables"
+    - name:                            "Database High Availability Configuration Playbook: Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                            "Initialization"
+    - name:                            "Database High Availability Configuration Playbook: Initialization"
       when:                            database_high_availability
       block:
 
-        - name:                        "Create Progress folder"
+        - name:                        "Database High Availability Configuration Playbook: local - Create Progress folder"
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress"
             state:                     directory
             mode:                      0755
 
-        - name:                        "Remove db-ha-done flag"
+        - name:                        "Database High Availability Configuration Playbook: local - Remove db-ha-done flag"
           ansible.builtin.file:
             path:                      "{{ _workspace_directory }}/.progress/db-ha-done"
             state:                     absent
 
-        - name:                        "Ensure passlib is installed on the controller"
+        - name:                        "Database High Availability Configuration Playbook: local - Ensure passlib is installed on the controller"
           become:                      true
           become_user:                 root
-          ansible.builtin.pip:
-            name:                      passlib
+          ansible.builtin.package:
+            name:                      python3-passlib
             state:                     present
+          when:                        ansible_os_family | upper == "SUSE"
           tags:
             - always
 
@@ -58,14 +59,14 @@
         #   ansible.builtin.set_fact:
         #     tier:                         fencing
 
-        - name:                        "Run the misc/password role"
+        - name:                        "Database High Availability Configuration Playbook: local - Get/Create the passwords"
           ansible.builtin.include_role:
             name:                      roles-misc/0.1-passwords
             public:                    true
           tags:
                                        - 0.1-passwords
 
-        - name:                        "OS configuration playbook: - Read password"
+        - name:                        "Database High Availability Configuration Playbook: local - Read Windows passwords"
           ansible.builtin.include_role:
             name:                      roles-misc/0.1-passwords
             tasks_from:                windows.yaml
@@ -74,7 +75,7 @@
           tags:
                                        - 0.1-win-passwords
 
-        - name:                        "WinCluster-Create: Get witness account details"
+        - name:                        "Database High Availability Configuration Playbook: local -  Get witness account details"
           ansible.builtin.include_role:
             name:                      roles-misc/0.2-kv-secrets
             tasks_from:                wincluster-witness.yaml
@@ -86,14 +87,19 @@
           tags:
                                        - 0.2-wincluster-witness
 
-        - name:                        "Run the keyvault role"
+        - name:                        "Database High Availability Configuration Playbook: local - Run the keyvault role"
           ansible.builtin.include_role:
             name:                      roles-misc/0.2-kv-secrets
           vars:
             operation:                 fencing
           tags:
                                        - kv-secrets
-
+        - name:                        "Database High Availability Configuration Playbook: local - Read storage account details"
+          ansible.builtin.include_role:
+            name:                      roles-misc/0.3.sap-installation-media-storage-details
+            public:                    true
+          tags:
+            - kv-sap-installation-media-storage-details
 
 # +------------------------------------4--------------------------------------*/
 
@@ -105,12 +111,12 @@
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
-  # -------------------------------------+---------------------------------------8
+  # -----------------------------------+-----------------------------------------8
   #
   # Build the list of tasks to be executed in order here.
   #
-  # -------------------------------------+---------------------------------------8
-    - name:                            "Backward Compatibility - Check required Database HA variables"
+  # -----------------------------------+-----------------------------------------8
+    - name:                            "Database High Availability Configuration Playbook - HANA : Check required Database HA variables"
       when:
                                        - db_high_availability is defined
                                        - database_high_availability is not defined
@@ -118,20 +124,20 @@
         database_high_availability:    "{{ db_high_availability | default(false) }}"
 
 
-    - name:                            "0.0 Validations: - Gather facts for first time"
+    - name:                            "Database High Availability Configuration Playbook - HANA : Gather facts for first time"
       ansible.builtin.setup:
       tags:
                                        - always
 
-    - name:                            "HANA HA Setup"
+    - name:                            "Database High Availability Configuration Playbook - HANA : HANA Setup"
       become:                          true
       when:
                                        - database_high_availability
                                        - platform == 'HANA'
       block:
-        - name:                        "Install HANA System Replication"
+        - name:                        "Database High Availability Configuration Playbook - HANA : Install HANA System Replication"
           block:
-            - name:                    "Retrieve Azure Instance Metadata results"
+            - name:                    "Database High Availability Configuration Playbook - HANA : Retrieve Azure Instance Metadata results"
               ansible.builtin.uri:
                 url:                   http://169.254.169.254/metadata/instance?api-version=2021-02-01
                 use_proxy:             false
@@ -139,26 +145,26 @@
                   Metadata:            true
               register:                azmetadata
 
-            - name:                    "Show IMDS results"
+            - name:                    "Database High Availability Configuration Playbook - HANA : Show Azure Instance Metadata results"
               ansible.builtin.debug:
                 var:                   azmetadata.json
                 verbosity:             2
 
-            - name:                    "Set the primary intance nic and secondary instance nic IP"
+            - name:                    "Database High Availability Configuration Playbook - HANA : Set the primary instance nic and secondary instance nic IP"
               ansible.builtin.set_fact:
                 primary_ip:            "{{ azmetadata.json.network.interface[0].ipv4.ipAddress[0].privateIpAddress }}"
                 subnet_prefix:         "{{ azmetadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
 
-            - name:                    "Initialize facts for hdb-hsr role"
+            - name:                    "Database High Availability Configuration Playbook - HANA : Initialize facts for HANA System Replication"
               ansible.builtin.set_fact:
                 tier:                      hdb                                      # Actions for HANA DB Servers
-                primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
+                primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
                 primary_instance_ip_db:    "{{ hostvars[ansible_play_hosts_all[0]]['primary_ip'] | string }}"
                 secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
                 secondary_instance_ip_db:  "{{ hostvars[ansible_play_hosts_all[1]]['primary_ip'] | string }}"
                 main_password:             "{{ hostvars.localhost.sap_password }}"
 
-            - name:                    "Run the db/hdb-hsr role"
+            - name:                    "Database High Availability Configuration Playbook - HANA : Configure HANA System"
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.1-hdb-hsr
               when:
@@ -166,9 +172,9 @@
               tags:
                                        - 4.0.1-hdb-hsr
 
-        - name:                        "Install HANA Pacemaker resources"
+        - name:                        "Database High Availability Configuration Playbook - HANA : Install HANA Pacemaker resources"
           block:
-            - name:                    "Initialize facts for HANA pacemaker resources"
+            - name:                    "Database High Availability Configuration Playbook - HANA : Initialize facts for HANA pacemaker resources"
               ansible.builtin.set_fact:
                 tier:                      ha
                 password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
@@ -183,13 +189,13 @@
               tags:
                                        - always
 
-            - name:                    "HANA HA Setup: - Ensure the needed services are started"
+            - name:                    "Database High Availability Configuration Playbook - HANA : Ensure the needed services are started"
               ansible.builtin.include_role:
                 name:                  roles-os/1.16-services
               tags:
                                        - 1.16-services
 
-            - name:                    "HANA HA Setup: - run the Pacemaker role"
+            - name:                    "Database High Availability Configuration Playbook - HANA : Configure Pacemaker"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.5-hanadb-pacemaker
               when:
@@ -198,7 +204,7 @@
               tags:
                                        - 5.5-hanadb-pacemaker
 
-            - name:                    "HANA HA Setup: - run the Pacemaker role for scale out"
+            - name:                    "Database High Availability Configuration Playbook - HANA : Configure Pacemaker for scale out"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.8-hanadb-scaleout-pacemaker
               when:
@@ -206,7 +212,6 @@
                                        - database_scale_out
               tags:
                                        - 5.8-hanadb-scaleout-pacemaker
-
 
 # -------------------------------------+---------------------------------------8
 #
@@ -224,155 +229,57 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-    - name:                            "Backward Compatibility - Check required Database HA variables"
+    - name:                            "Database High Availability Configuration Playbook - ORACLE : Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                            "Initialize facts for HA resources"
-      ansible.builtin.set_fact:
-        tier:                          ha
-        primary_instance_name:         "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-        secondary_instance_name:       "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-      when:
-        - database_high_availability
-        - ansible_play_hosts_all | length >= 2
-
-    - name:                            "Oracle Data Guard Setup"
+    - name:                            "Database High Availability Configuration Playbook - ORACLE : ORACLE Data Guard Setup Step 1"
       when:
         - database_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
-        - inventory_hostname == primary_instance_name
-      become:                          true
       block:
-        - name:                        Setting the DB facts
+        - name:                        "Database High Availability Configuration Playbook - ORACLE : Oracle Data Guard Set variables"
           ansible.builtin.set_fact:
-            tier:                      ora                                    # Actions for Oracle DB Servers
             action:                    'Prepare_Secondary'
-            main_password:             "{{ hostvars.localhost.sap_password }}"
-          tags:
-            - always
-
-        - name:                        Oracle Data guard
-          ansible.builtin.include_role:
-            name:                      roles-db/4.1.3-ora-dg
-          tags:
-            - 4.1.3-ora-dg
-
-    - name:                            "Oracle Data Guard Setup"
-      when:
-        - database_high_availability
-        - platform in ['ORACLE', 'ORACLE-ASM']
-      become:                          true
-      block:
-        - name:                        Setting the DB facts
-          ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
-            action:                    'Prepare_and_Restore'
             main_password:             "{{ hostvars.localhost.sap_password }}"
-          tags:
-            - always
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
+            secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
+            ora_primary:               "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
+            ora_secondary:             "{{ ansible_play_hosts_all[1] | default ('(N/A)')}}"         # Oracle Secondary Host
+            product_id:                 "NW_ABAP_DB:NW750.ORA.ABAP"
+          when:
+            - ansible_play_hosts_all | length >= 2
 
-        - name:                        Oracle Data guard
-          ansible.builtin.include_role:
-            name:                      roles-db/4.1.3-ora-dg
-          tags:
-            - 4.1.3-ora-dg
-
-        - name:                       "Observer Playbook: - Run post installation routines"
-          ansible.builtin.include_role:
-            name:                     roles-sap/7.0.0-post-install
-          vars:
-            suffix:                   "_DC_ACTION_1"
-            tier:                     'oracle'
-
-    - name:                            "Oracle Data Guard Setup"
-      when:
-        - database_high_availability
-        - platform in ['ORACLE', 'ORACLE-ASM']
-        - inventory_hostname == primary_instance_name
-      become:                          true
-      block:
-        - name:                        Setting the DB facts
-          ansible.builtin.set_fact:
-            tier:                      ora                                    # Actions for Oracle DB Servers
-            action:                    'Post_Processing_Primary'
-            main_password:             "{{ hostvars.localhost.sap_password }}"
-          tags:
-            - always
-
-        - name:                        Oracle Data guard
-          ansible.builtin.include_role:
-            name:                      roles-db/4.1.3-ora-dg
-          tags:
-            - 4.1.3-ora-dg
-
-        - name:                       "Observer Playbook: - Run post installation routines"
-          ansible.builtin.include_role:
-            name:                     roles-sap/7.0.0-post-install
-          vars:
-            suffix:                   "_DC_ACTION_2"
-            tier:                     'oracle'
+        - name:                        "Database High Availability Configuration Playbook - ORACLE : Oracle Data Guard Setup"
+          become:                      true
+          block:
+            - name:                    "Database High Availability Configuration Playbook - ORACLE - Create SAP users/groups"
+              ansible.builtin.include_role:
+                name:                  roles-sap-os/2.5-sap-users
+              vars:
+                tier:                  ora
 
 
-    - name:                            "Oracle Data Guard Setup on Secondary"
-      when:
-        - db_high_availability
-        - platform in ['ORACLE', 'ORACLE-ASM']
-        - inventory_hostname == secondary_instance_name
-      become:                          true
-      block:
-        - name:                        Setting the DB facts
-          ansible.builtin.set_fact:
-            tier:                      ora                                    # Actions for Oracle DB Servers
-            action:                    'Post_Processing_Secondary'
-            main_password:             "{{ hostvars.localhost.sap_password }}"
-          tags:
-            - always
+            - name:                    "Database High Availability Configuration Playbook - ORACLE : Oracle Data guard Setup"
+              ansible.builtin.include_role:
+                name:                  roles-db/4.1.3-oracle-data-guard
+              tags:
+                - 4.1.3-oracle-data-guard
 
-        - name:                        Oracle Data guard
-          ansible.builtin.include_role:
-            name:                      roles-db/4.1.3-ora-dg
-          tags:
-            - 4.1.3-ora-dg
+            - name:                    "Database High Availability Configuration Playbook - ORACLE : Run post installation routines"
+              ansible.builtin.include_role:
+                name:                  roles-sap/7.0.0-post-install
+              vars:
+                prefix:                "{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+                suffix:                "_DC_ACTION"
+                path:                  "/etc/sap_deployment_automation/dataguard_scripts/"
 
-        - name:                       "Observer Playbook: - Run post installation routines"
-          ansible.builtin.include_role:
-            name:                     roles-sap/7.0.0-post-install
-          vars:
-            suffix:                   "_DC_ACTION_2"
-            tier:                     'oracle'
-
-
-    - name:                            "Oracle Data Guard Setup on Secondary"
-      when:
-        - db_high_availability
-        - platform in ['ORACLE', 'ORACLE-ASM']
-        - inventory_hostname == secondary_instance_name
-      become:                          true
-      block:
-        - name:                        Setting the DB facts
-          ansible.builtin.set_fact:
-            tier:                      ora                                    # Actions for Oracle DB Servers
-            action:                    'Post_Processing_Secondary'
-            main_password:             "{{ hostvars.localhost.sap_password }}"
-          tags:
-            - always
-
-        - name:                        Oracle Data guard
-          ansible.builtin.include_role:
-            name:                      roles-db/4.1.3-ora-dg
-          tags:
-            - 4.1.3-ora-dg
-
-        - name:                       "Observer Playbook: - Run post installation routines"
-          ansible.builtin.include_role:
-            name:                     roles-sap/7.0.0-post-install
-          vars:
-            suffix:                   "_DC_ACTION_2"
-            tier:                     'oracle'
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -382,70 +289,63 @@
 
 - hosts:                               "{{ sap_sid | upper }}_OBSERVER_DB"
 
-  name:                                Observer Playbook
+  name:                                "Database High Availability Configuration Playbook - ORACLE : Observer Playbook"
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
-    - name:                            "Backward Compatibility - Check required Database HA variables"
+    - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                            "Get Instance names"
+    - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Get Instance names"
       ansible.builtin.set_fact:
         primary_observer_name :        "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
         secondary_observer_name:       "{{ ansible_play_hosts_all[1] | default('N/A') }}"         # Setting up Secondary Instance Name
+        tertiary_observer_name:        "{{ ansible_play_hosts_all[2] | default('N/A') }}"         # Setting up Tertiary Instance Name
 
-    - name:                            "Oracle: Observer setup"
+    - name:                            "Database High Availability Configuration Playbook - ORACLE Observer :  Observer setup"
       become:                          true
       when:
         - database_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
       block:
-        - name:                            "Observer Playbook: Setting the DB facts"
+        - name:                          "Database High Availability Configuration Playbook - ORACLE Observer : Setting the DB facts"
           ansible.builtin.set_fact:
-            node_tier:                     observer
-            action:                        'Setup_Observer'
-            main_password:                 "{{ hostvars.localhost.sap_password }}"
+            node_tier:                   observer
+            action:                      'Setup_Observer'
+            main_password:               "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path:  "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:           "{{ hostvars.localhost.sapbits_sas_token }}"
+
           tags:
             - always
 
         # Specify the active tier for this playbook run
-        - name:                            "Observer Playbook: Setting the os tier facts"
-          ansible.builtin.set_fact:
-            tier:                          os
-          tags:
-            - always
 
-        - name:                            "Observer Play"
-          become:                          true
-          block:
-            - name:                        "Observer Playbook: Check if the mounts place"
-              ansible.builtin.include_role:
-                name:                      roles-sap-os/2.6-sap-mounts
+        - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Check if the mounts are made"
+          ansible.builtin.include_role:
+            name:                          roles-sap-os/2.6-sap-mounts
+          vars:
+            tier:                          sapos
 
-        - name:                            "Observer Play"
-          become:                          true
-          block:
-            - name:                        "Observer Playbook: Check if the mounts place"
-              ansible.builtin.include_role:
-                name:                      roles-sap-os/2.6-sap-mounts
+        - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Oracle Observer setup"
+          ansible.builtin.include_role:
+            name:                          roles-db/4.1.4-oracle-data-guard-observer
+          vars:
+            tier:                          observer
 
-            - name:                        "Observer Playbook: Oracle Observer setup"
-              ansible.builtin.include_role:
-                name:                      roles-db/4.1.3-ora-dg
-
-            - name:                        "Observer Playbook: - Run post installation routines"
-              ansible.builtin.include_role:
-                name:                      roles-sap/7.0.0-post-install
-              vars:
-                suffix:                    "_OBSERVER"
-                tier:                      'oracle'
+        - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Run post installation routines"
+          ansible.builtin.include_role:
+            name:                          roles-sap/7.0.0-post-install
+          vars:
+            suffix:                        "_OBSERVER"
+            tier:                          'oracle'
 
 # # /*-------------------------------------------------------------------------8
 # # |                                                                          |
@@ -453,12 +353,12 @@
 # # |                                                                          |
 # # +------------------------------------4------------------------------------*/
 # -------------------------------------+---------------------------------------8
-#   DB2 - High Availabiliy Setup                                               |
+#   DB2 - High Availability Setup                                              |
 #     a. Install DB2 on Primary Server                                         |
 #     b. Take offline backup of Primary DB                                     |
 #     c. Install DB2 on Secondary Server using backup restore option           |
-#     d. Rrestore Secondary/Standby from backup of primary system              |
-#     e. HADR  parameters on primary and secodary                              |
+#     d. Restore Secondary/Standby from backup of primary system               |
+#     e. HADR  parameters on primary and secondary                             |
 #     f. HADR definition on primary & Secondary                                |
 #     g. HADR setup Checks                                                     |
 #    Split the following section into the pacemaker roles-sap/5.7db2-pacemaker |
@@ -467,7 +367,7 @@
 #     e. Changes to SAP profile                                                |
 # -------------------------------------+--------------------------------------*/
 - hosts:                               "{{ sap_sid| upper }}_DB"
-  name:                                "DB HA Installation - SAP DB2"
+  name:                                "Database High Availability Configuration Playbook - DB HA Installation - SAP DB2"
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        false
   vars_files:
@@ -479,18 +379,18 @@
   #
   # -----------------------------------+---------------------------------------8
   tasks:
-    - name:                            "Backward Compatibility - Check required Database HA variables"
+    - name:                            "Database High Availability Configuration Playbook - DB2 : Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                            "DB2 HA - Install SAP DB2 on both nodes"
+    - name:                            "Database High Availability Configuration Playbook - DB2 : Install SAP DB2 on both nodes"
       become:                          true
       become_user:                     root
       block:
-        - name:                        "DB2 HA - Setting the DB facts"
+        - name:                        "Database High Availability Configuration Playbook - DB2 : - Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      db2             # Actions for DB2 Servers
             primary_instance_name :    "{{ ansible_play_hosts_all[0] }}"
@@ -501,13 +401,13 @@
           tags:
             - always
 
-        - name:                        "DB2 HA - Install Pacemaker (base)"
+        - name:                        "Database High Availability Configuration Playbook - DB2 : Install Pacemaker (base)"
           when:
             - db_high_availability
             - node_tier == 'db2'
           block:
 
-            - name:                    "DB2 HA - Setting the facts"
+            - name:                    "Database High Availability Configuration Playbook - DB2 : - Setting the facts"
               ansible.builtin.set_fact:
                 tier:                  ha
                 main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -518,48 +418,48 @@
                 fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{% endif %}"
                 fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{% endif %}"
 
-            - name:                    "DB2 HA - repository check"
+            - name:                    "Database High Availability Configuration Playbook - DB2 : - repository check"
               block:
-                - name:                "DB2 HA - Ensure the correct repositories are set"
+                - name:                "Database High Availability Configuration Playbook - DB2 : - Ensure the correct repositories are set"
                   ansible.builtin.include_role:
                     name:              roles-os/1.3-repository
               tags:
                 - 1.3-repository
 
-            - name:                    "DB2 HA - package check"
+            - name:                    "Database High Availability Configuration Playbook - DB2 : - package check"
               block:
-                - name:                "DB2 HA - Ensure the correct packages are installed"
+                - name:                "Database High Availability Configuration Playbook - DB2 : - Ensure the correct packages are installed"
                   ansible.builtin.include_role:
                     name:              roles-os/1.4-packages
               tags:
                 - 1.4-packages
 
-            - name:                    "DB2 HA - set kernel parameters"
+            - name:                    "Database High Availability Configuration Playbook - DB2 : - set kernel parameters"
               block:
               # Setup the kernel parameters required for pacemaker cluster VMs
-                - name:                "DB2 HA - Ensure the correct kernel parameters are set"
+                - name:                "Database High Availability Configuration Playbook - DB2 : - Ensure the correct kernel parameters are set"
                   ansible.builtin.include_role:
                     name:              roles-os/1.9-kernelparameters
               tags:
                 - 1.9-kernelparameters
 
-            - name:                    "DB2 HA - services check"
+            - name:                    "Database High Availability Configuration Playbook - DB2 : - services check"
               block:
-                - name:                "DB2 HA - Ensure the needed services are enabled/disabled"
+                - name:                "Database High Availability Configuration Playbook - DB2 : - Ensure the needed services are enabled/disabled"
                   ansible.builtin.include_role:
                     name:              roles-os/1.16-services
               tags:
                 - 1.16-services
 
-            - name:                    "DB2 HA - accounts check"
+            - name:                    "Database High Availability Configuration Playbook - DB2 : - accounts check"
               block:
-                - name:                "DB2 HA - Ensure the accounts are present"
+                - name:                "Database High Availability Configuration Playbook - DB2 : - Ensure the accounts are present"
                   ansible.builtin.include_role:
                     name:                roles-os/1.11-accounts
               tags:
                 - 1.11-accounts
 
-            - name:                    "DB2 HA - Generic pacemaker Configuration"
+            - name:                    "Database High Availability Configuration Playbook - DB2 : - Generic Pacemaker configuration"
               ansible.builtin.include_role:
                 name:                  roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
                 apply:
@@ -570,7 +470,7 @@
               tags:
                 - 1.17-generic-pacemaker
 
-            - name:                    "DB2 HA - Create pacemaker-install-done flag"
+            - name:                    "Database High Availability Configuration Playbook - DB2 : - Create pacemaker-install-done flag"
               delegate_to:             localhost
               become:                  false
               ansible.builtin.file:
@@ -578,9 +478,9 @@
                 state:                 touch
                 mode:                  0755
 
-        - name:                        "DB2 HA - Install DB2 Pacemaker resources"
+        - name:                        "Database High Availability Configuration Playbook - DB2 : - Install DB2 Pacemaker resources"
           block:
-            - name:                    "DB2 HA - Pacemaker - Initialize facts"
+            - name:                    "Database High Availability Configuration Playbook - DB2 : - Pacemaker - Initialize facts"
               ansible.builtin.set_fact:
                 tier:                            ha
                 password_ha_db_cluster:          "{{ hostvars.localhost.db_cluster_password }}"
@@ -595,7 +495,7 @@
               tags:
                 - always
 
-            - name:                    "DB2 HA - Pacemaker - Run the Pacemaker setup"
+            - name:                    "Database High Availability Configuration Playbook - DB2 : - Pacemaker - Run the Pacemaker setup"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.7-db2-pacemaker
               tags:
@@ -612,7 +512,7 @@
 # # +------------------------------------4------------------------------------*/
 
 - hosts:                               "{{ sap_sid| upper }}_DB"
-  name:                                "DB HA Installation - SAP SQLServer"
+  name:                                "Database High Availability Configuration Playbook - SAP SQL Server"
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true
   vars_files:
@@ -624,14 +524,14 @@
   #
   # -----------------------------------+---------------------------------------8
   tasks:
-    - name:                            "Backward Compatibility - Check required Database HA variables"
+    - name:                            "Database High Availability Configuration Playbook - SQL Server - Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                            "SQLServer HA - Install SQL4SAP on both nodes"
+    - name:                            "Database High Availability Configuration Playbook - SQL Server - Install SQL4SAP on both nodes"
       when:
         - database_high_availability
         - platform | upper == 'SQLSERVER'
@@ -639,7 +539,7 @@
       become:                          true
       become_user:                     "{{ orchestration_ansible_user }}"
       block:
-        - name:                        "SQLServer HA - Setting the DB facts"
+        - name:                        "Database High Availability Configuration Playbook - SQL Server - Setting the DB facts"
           ansible.builtin.set_fact:
             primary_node:              "{{ ansible_play_hosts_all[0] }}"
             secondary_node:            "{{ ansible_play_hosts_all[1] }}"
@@ -647,39 +547,39 @@
           tags:
             - always
 
-        - name:                                "SQLServer HA - Create run flag directory"
+        - name:                                "Database High Availability Configuration Playbook - SQL Server - Create run flag directory"
           ansible.windows.win_file:
             path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}'
             state:                             directory
 
-        - name:                                "SQLServer HA - check if SQL Server service is started"
+        - name:                                "Database High Availability Configuration Playbook - SQL Server - check if SQL Server service is started"
           ansible.windows.win_service_info:
             name:                              MSSQLServer
           register:                            sql_service
 
-        - name:                                "WIN-SQL: Print SQL Server service status"
+        - name:                                "Database High Availability Configuration Playbook - SQL Server - Print SQL Server service status"
           ansible.builtin.debug:
             msg:
               - "SQL Server Service status: {{ sql_service }}"
 
-        - name:                        "SQLServer HA - Install cluster (base)"
+        - name:                        "Database High Availability Configuration Playbook - SQL Server - Install cluster (base)"
           when:
             - sql_service.exists
             - db_high_availability
             - node_tier == 'sqlserver'
           block:
-            - name:                    "SQLServer HA - Set the SCS Server name list"
+            - name:                    "Database High Availability Configuration Playbook - SQL Server - Set the SCS Server name list"
               ansible.builtin.set_fact:
                 scs_server_temp:       "{{ scs_server_temp | default([]) + [item] }}"
               with_items:
                 - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
                 - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
-            - name:                    "SQLServer HA -  Set the server facts"
+            - name:                    "Database High Availability Configuration Playbook - SQL Server - Set the server facts"
               ansible.builtin.set_fact:
                 scs_server:            "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
 
-            - name:                    "SQLServer HA - Setting the facts"
+            - name:                    "Database High Availability Configuration Playbook - SQL Server - Setting the facts"
               ansible.builtin.set_fact:
                 tier:                   ha
                 primary_node:           "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
@@ -691,7 +591,7 @@
                 sql_agent_account:      "{% if hostvars.localhost.sqlagent_account is defined %}{{ hostvars.localhost.sqlagent_account }}{% else %}{{ win_sqlagent_svc_account }}{% endif %}"
                 sql_agent_password:     "{% if hostvars.localhost.sqlagent_account_password is defined %}{{ hostvars.localhost.sqlagent_account_password }}{% else %}{{ sql_agent_password | default('') }}{% endif %}"
 
-            - name:                           "SQL Server HA config: Base cluster tasks"
+            - name:                           "Database High Availability Configuration Playbook - SQL Server - Base cluster tasks"
               ansible.builtin.include_role:
                 name:                         roles-os/windows/1.17-generic-wincluster
               register:                       cluster_output
@@ -710,7 +610,7 @@
                 win_sqlagent_svc_account:     '{{ sql_agent_account }}'
                 win_sqlagent_svc_password:    '{{ sql_agent_password }}'
 
-            - name:                           "SQL Server HA config: Always On tasks"
+            - name:                           "Database High Availability Configuration Playbook - SQL Server - Always On tasks"
               ansible.builtin.include_role:
                 name:                         roles-db/windows/4.4.0-mssql-install
               register:                       alwayson_output
@@ -735,7 +635,7 @@
               tags:
                 - 4.4.1.0-mssql-alwayson
 
-            - name:                           "SQLServer HA - Create alwayson-config-done flag"
+            - name:                           "Database High Availability Configuration Playbook - SQL Server - Create alwayson-config-done flag"
               ansible.windows.win_file:
                 path:                         '{{ sap_deployment_automation }}\{{ sap_sid | upper }}\alwayson-config-done.txt'
                 state:                        touch
@@ -753,14 +653,14 @@
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
   tasks:
-    - name:                            "Backward Compatibility - Check required Database HA variables"
+    - name:                            "Database High Availability Configuration Playbook - SQL Server - Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                            Ensure db-ha-done file exists
+    - name:                            "Database High Availability Configuration Playbook - SQL Server - Ensure db-ha-done file exists"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/db-ha-done"
         state:                         touch

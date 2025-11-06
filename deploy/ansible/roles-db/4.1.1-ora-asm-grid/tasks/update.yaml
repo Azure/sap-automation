@@ -1,0 +1,518 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                Perform the Oracle Instance ASM installation                    |
+# |                  SAP: Register BOM                                         |
+# |                  create .params directory                                  |
+# |                  Export environment variables for Oracle Installation      |
+# |                  Run the Oracle universal installer in silent mode.        |
+# |                   SAP Note : 2660017 Oracle Software Installation on Unix  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+---
+
+- name:                                "4.1.1. ORACLE Grid Update - Register BoM"
+  ansible.builtin.include_role:
+    name:                              roles-sap/3.3.1-bom-utility
+    tasks_from:                        bom-register
+  vars:
+    bom_name:                          "{{ bom_base_name }}"
+    task_prefix:                       "ORACLE GRID: "
+    sa_enabled:                        true
+  when:
+                                       - bom is undefined
+
+- name:                                "4.1.1. ORACLE Grid Update - Show BoM"
+  ansible.builtin.debug:
+    var:                               bom
+    verbosity:                         2
+
+- name:                                "4.1.1. ORACLE Grid Update - Validate ORACLE parameters"
+  ansible.builtin.assert:
+    that:
+      - item_to_check.parameter is defined                    # Has the variable been defined
+      - item_to_check.parameter | type_debug != 'NoneType'    # and given a value
+      - item_to_check.parameter | trim | length > 1
+    fail_msg:                      item_to_check.error
+  loop:
+    - { parameter: 'bom.patch_information.ora_release', error: 'Oracle deployments requires that ora_release is provided' }
+    - { parameter: 'bom.patch_information.ora_version', error: 'Oracle deployments requires that ora_version is provided' }
+    - { parameter: 'bom.patch_information.oracle_sbp_patch', error: 'Oracle deployments requires that oracle_sbp_patch is provided' }
+    - { parameter: 'bom.patch_information.oracle_grid_sbp_patch', error: 'Oracle deployments requires that oracle_grid_sbp_patch is provided' }
+  loop_control:
+    loop_var: item_to_check
+
+- name:                                "4.1.1. ORACLE Grid Update - Set variables from BoM"
+  ansible.builtin.set_fact:
+    ora_release:                       "{{ bom.patch_information.ora_release }}"
+    ora_version:                       "{{ bom.patch_information.ora_version }}"
+    oracle_sbp_patch:                  "{{ bom.patch_information.oracle_sbp_patch }}"
+
+# +------------------------------------4--------------------------------------*/
+# |                                                                            |
+# |           Oracle Grid: Patch GRID                                          |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "4.1.1. ORACLE Grid Update - Remove old OPatch"
+  ansible.builtin.file:
+    path:                              "/oracle/GRID/{{ ora_version }}/OPatch"
+    state:                             absent
+
+- name:                                "4.1.1. ORACLE Grid Update - Remove old MOPatch"
+  ansible.builtin.file:
+    path:                              "/oracle/GRID/{{ ora_version }}/MOPatch"
+    state:                             absent
+
+- name:                                "4.1.1. ORACLE Grid Update - Copy OPatch for GRID from downloads"
+  ansible.builtin.copy:
+    src:                               "{{ target_media_location }}/SBP/OPATCH/OPatch"
+    dest:                              "/oracle/GRID/{{ ora_version }}"
+    remote_src:                        true
+    mode:                              '0755'
+    owner:                             "{{ grid_user_name }}"
+    group:                             oinstall
+
+- name:                                "4.1.1. ORACLE Grid Update - Find MOPatch"
+  ansible.builtin.find:
+    paths:                             "{{ target_media_location }}/SBP/SAPSBP"
+    patterns:                          ["MOPatch"]
+    file_type:                         directory
+    recurse:                           true
+  register:                            mopatch_directory
+
+- name:                                "4.1.1. ORACLE Grid Update - Too many MOPatch found"
+  ansible.builtin.fail:
+    msg:                               "Too many MOPatches found"
+  when:                                mopatch_directory.matched != 1
+
+- name:                                "4.1.1. ORACLE Grid Update -  Set MOPatch path"
+  ansible.builtin.set_fact:
+    mopatch_path:                      "{{ mopatch_directory.files[0].path }}"
+  when:                                mopatch_directory.matched == 1
+
+- name:                                "4.1.1. ORACLE Grid Update - Patch ID for Database Release Update"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.find:
+    paths:                             "{{ target_media_location }}/SBP/GIRU19P"
+    patterns:                          ["bundle.xml"]
+    file_type:                         file
+    recurse:                           true
+  register:                            patch_grid_id_directory
+
+- name:                                "4.1.1. ORACLE Grid Update - Find Patch ID for Database Release Update"
+  ansible.builtin.fail:
+    msg:                               "No Database Release Update found"
+  when:                                patch_grid_id_directory.matched != 1
+
+- name:                                "4.1.1. ORACLE Grid Update - SaveOPatch ID"
+  ansible.builtin.set_fact:
+    patch_grid_path:                   "{{ patch_grid_id_directory.files[0].path | dirname }}"
+  when:                                patch_grid_id_directory.matched == 1
+
+- name:                                "4.1.1. ORACLE Grid Update - Show OPatch ID"
+  ansible.builtin.debug:
+    msg:                               "Patch GRID path {{ patch_grid_path }}"
+
+- name:                                "4.1.1. ORACLE Grid Update - set STAGE_SBP_OCWRU"
+  ansible.builtin.set_fact:
+    STAGE_SBP_OCWRU:                   "{{ patch_grid_path }}/{{ bom.patch_information.SBP_OCWRU }}"
+  when:                                patch_grid_path is defined and bom.patch_information.SBP_OCWRU is defined
+
+- name:                                "4.1.1. ORACLE Grid Update - Set Runtime Variables"
+  ansible.builtin.set_fact:
+    is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
+    CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OL8 {% endif %}"
+
+- name:                                "4.1.1. ORACLE Grid Update - copy MOPatch from {{ mopatch_path }} to /oracle/GRID/{{ ora_version }}"
+  ansible.builtin.copy:
+    src:                               "{{ mopatch_path }}"
+    dest:                              "/oracle/GRID/{{ ora_version }}"
+    remote_src:                        true
+    mode:                              '0777'
+    owner:                             "{{ grid_user_name }}"
+    group:                             oinstall
+
+- name:                                "4.1.1. ORACLE Grid Update - Copy MOPatch from {{ mopatch_path }} to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  ansible.builtin.copy:
+    src:                               "{{ mopatch_path }}"
+    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    remote_src:                        true
+    mode:                              '0775'
+    owner:                             "{{ grid_user_name }}"
+    group:                             oinstall
+
+
+- name:                                "4.1.1. ORACLE Grid Update - Check if backup exists for GRID"
+  ansible.builtin.stat:
+    path:                              "/oracle/GRID/{{ ora_version }}/bin/oradism"
+  register:                            oradism_stat
+
+- name:                                "ORACLE GRID UPDATE: Pre Processing set permissions"
+  when:                                oradism_stat.stat.exists
+  ansible.builtin.file:
+    path:                              "/oracle/GRID/{{ ora_version }}/bin/oradism"
+    state:                             file
+    mode:                              '0770'
+    owner:                             "{{ grid_user_name }}"
+    group:                             oinstall
+
+- name:                                "4.1.1. ORACLE Grid Update - Pre Processing set permissions"
+  when:                                oradism_stat.stat.exists
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
+    state:                             directory
+    mode:                              '0770'
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+
+# Step 2
+# since we deal with oracle home we need to run as oracle user
+- name:                                "4.1.1. ORACLE Grid Update - Stop all CRS-managed resources associated with the RDBMS home"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell: |
+                                       env ORACLE_HOME=$OHRDBMS ORACLE_BASE=$OHRDBMS.dummybase $OHRDBMS/bin/srvctl stop home -o $OHRDBMS -s $OHRDBMS.srvctlstatus
+  register:                            srvctlstatus_results
+  environment:
+    OHRDBMS:                           "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
+  args:
+    executable:                        /bin/csh
+    chdir:                             "/oracle/{{ db_sid | upper }}"
+    creates:                           /oracle/{{ db_sid | upper }}/{{ ora_release }}.srvctlstatus
+
+- name:                                "4.1.1. ORACLE Grid Update - Pre Processing set permissions"
+  when:                                oradism_stat.stat.exists
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid/srvctlstatus.txt"
+    state:                             touch
+    mode:                              '0755'
+
+# Step 5
+- name:                                "4.1.1. ORACLE Grid Update - Shut down the grid stack and unlock the grid home for patching"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell: |
+                                       $OHGRID/crs/install/roothas.sh -prepatch
+  register:                            grid_roothas_results
+  environment:
+    OHGRID:                            "/oracle/GRID/{{ ora_version }}"
+  args:
+    executable:                        /bin/csh
+    creates:                           "/etc/sap_deployment_automation/grid/gridupdate_roothas.txt"
+
+- name:                                "4.1.1. ORACLE Grid Update - Save roothas.sh output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/grid/grid_roothas.log"
+    content:                           "{{ grid_roothas_results.stdout }}"
+    mode:                              0777
+  when:                                grid_roothas_results.stdout is defined
+
+- name:                                "4.1.1. ORACLE Grid Update - Create gridupdate_roothas.txt after a successful post processing script execution"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid/gridupdate_roothas.txt"
+    state:                             touch
+    mode:                              '0755'
+
+# Step 6
+- name:                                "4.1.1. ORACLE Grid Update - Reset permissions before patching"
+  when:                                oradism_stat.stat.exists
+  ansible.builtin.file:
+    path:                              "/oracle/GRID/{{ ora_version }}/bin/oradism"
+    state:                             file
+    mode:                              'u+rw'
+    owner:                             "{{ grid_user_name }}"
+    group:                             oinstall
+
+# Step 7
+- name:                                "4.1.1. ORACLE Grid Update - Post Processing - SBP Patching - progress"
+  ansible.builtin.debug:
+    msg:                               "Running SBP Patching, env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ bom.patch_information.oracle_grid_sbp_patch }}, please wait"
+
+- name:                                "4.1.1. ORACLE Grid Update - Post Processing - SBP Patching"
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.shell:               "env ORACLE_HOME=$OHGRID $OHGRID/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ bom.patch_information.oracle_grid_sbp_patch }} -F mopatch_patchgen"
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    OHGRID:                            "/oracle/GRID/{{ ora_version }}"
+  register:                            sbpscript_results
+  failed_when:                         sbpscript_results.rc >= 2
+  args:
+    creates:                           "/etc/sap_deployment_automation/grid/grid_mopatch_installed.txt"
+    chdir:                             "{{ target_media_location }}/SBP"
+    executable:                        /bin/csh
+
+- name:                                "4.1.1. ORACLE Grid Update - MOPatch installer output"
+  ansible.builtin.debug:
+    var:                               sbpscript_results.stdout_lines
+    verbosity:                         2
+
+- name:                                "4.1.1. ORACLE Grid Update - Save MOPatch output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/grid/grid_mopatch.log"
+    content:                           "{{ sbpscript_results.stdout }}"
+    mode:                              '0777'
+  when:                                sbpscript_results.stdout is defined
+
+- name:                                "4.1.1. ORACLE Grid Update - Create grid_mopatch_installed.txt"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid/grid_mopatch_installed.txt"
+    state:                             touch
+    mode:                              '0755'
+    owner:                             "{{ grid_user_name }}"
+    group:                             oinstall
+
+# Step 8
+- name:                                "4.1.1. ORACLE Grid Update - Reset permissions before patching"
+  when:                                oradism_stat.stat.exists
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
+    state:                             file
+    mode:                              '4750'
+    owner:                             root
+    group:                             oinstall
+
+# Step 9.1
+- name:                                "4.1.1. ORACLE Grid Update - Complete installation in the grid home"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell: |
+                                       $OHGRID/rdbms/install/rootadd_rdbms.sh
+  register:                            rootadd_rdbms_results
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    OHGRID:                            "/oracle/GRID/{{ ora_version }}"
+  args:
+    executable:                        /bin/csh
+    creates:                           "/etc/sap_deployment_automation/grid/gridupdate_rootadd_rdbms.txt"
+
+- name:                                "4.1.1. ORACLE Grid Update - Debug: GRID rootadd_rdbms.sh output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/grid/grid_roothas.log"
+    content:                           "{{ grid_roothas_results.stdout }}"
+    mode:                              0777
+  when:                                grid_roothas_results.stdout is defined
+
+- name:                                "4.1.1. ORACLE Grid Update - Create gridupdate_rootadd_rdbms.txt after a successful post processing script execution"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid/gridupdate_rootadd_rdbms.txt"
+    state:                             touch
+    mode:                              '0755'
+
+# Step 9.2
+- name:                                "4.1.1. ORACLE Grid Update - Run roothas.sh -postpatch"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell: |
+                                       $OHGRID/crs/install/roothas.sh -postpatch
+  register:                            roothas_postpatch_results
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    OHGRID:                            "/oracle/GRID/{{ ora_version }}"
+  args:
+    executable:                        /bin/csh
+    creates:                           "/etc/sap_deployment_automation/grid/gridupdate_roothas_postpatch.txt"
+
+- name:                                "4.1.1. ORACLE Grid Update - Debug: GRID roothas.sh postpatch output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/grid/grid_roothas_postpatch.log"
+    content:                           "{{ roothas_postpatch_results.stdout }}"
+    mode:                              0777
+  when:                                roothas_postpatch_results.stdout is defined
+
+- name:                                "4.1.1. ORACLE Grid Update - Create gridupdate_roothas_postpatch.txt after a successful post processing script execution"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid/gridupdate_roothas_postpatch.txt"
+    state:                             touch
+    mode:                              '0755'
+
+# Step 9.3
+- name:                                "4.1.1. ORACLE Grid Update - Work-around for Oracle bug 28352017"
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.shell: |
+                                       $OHGRID/bin/cluutil \
+                                       -ckpt -oraclebase `env ORACLE_HOME=$OHGRID $OHGRID/bin/orabase` \
+                                       -writeckpt -name ROOTCRS_PREPATCH -state START
+  register:                            cluutil_results
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    OHGRID:                            "/oracle/GRID/{{ ora_version }}"
+  args:
+    executable:                        /bin/csh
+    creates:                           "/etc/sap_deployment_automation/grid/gridupdate_cluutil.txt"
+
+- name:                                "4.1.1. ORACLE Grid Update - Debug: GRID cluutil output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/grid/grid_cluutil.log"
+    content:                           "{{ cluutil_results.stdout }}"
+    mode:                              0777
+  when:                                cluutil_results.stdout is defined
+
+- name:                                "4.1.1. ORACLE Grid Update - Create gridupdate_cluutil.txt after a successful post processing script execution"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid/gridupdate_cluutil.txt"
+    state:                             touch
+    mode:                              '0755'
+
+# Step 10
+- name:                                "4.1.1. ORACLE Grid Update - Run the pre-installation script for the database component of Grid Infrastructure Release Update 19.28.0.0.250715"
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.shell: |
+                                       {{ STAGE_SBP_OCWRU }}/custom/scripts/prepatch.sh -dbhome $IHRDBMS
+
+  register:                            prepatch_results
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    IHRDBMS:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  args:
+    executable:                        /bin/csh
+    creates:                           "/etc/sap_deployment_automation/grid/gridupdate_prepatch.txt"
+
+- name:                                "4.1.1. ORACLE Grid Update - Debug: GRID prepatch output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/grid/grid_update_prepatch.log"
+    content:                           "{{ prepatch_results.stdout }}"
+    mode:                              0777
+  when:                                prepatch_results.stdout is defined
+
+- name:                                "4.1.1. ORACLE Grid Update - Create gridupdate_prepatch.txt after a successful post processing script execution"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid/gridupdate_prepatch.txt"
+    state:                             touch
+    mode:                              '0755'
+
+# Step 11
+- name:                                "4.1.1. ORACLE Grid DB Update: - Reset permissions before patching"
+  when:                                oradism_stat.stat.exists
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
+    state:                             file
+    mode:                              'u+rw'
+    owner:                             "{{ grid_user_name }}"
+    group:                             oinstall
+
+# Step 12
+- name:                                "4.1.1. ORACLE Grid DB Update: - Post Processing - DB SBP Patching - progress"
+  ansible.builtin.debug:
+    msg:                               "Running SBP Patching, env ORACLE_HOME=$IHRDBMS  $IHRDBMS /MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ bom.patch_information.oracle_grid_sbp_patch }}, please wait"
+
+- name:                                "4.1.1. ORACLE Grid DB Update: - Post Processing - SBP Patching"
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.shell:               "env ORACLE_HOME=$IHRDBMS $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ bom.patch_information.oracle_grid_sbp_patch }} -F mopatch_patchgen"
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    IHRDBMS :                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  register:                            sbpscriptdb_results
+  failed_when:                         sbpscriptdb_results.rc >= 2
+  args:
+    creates:                           "/etc/sap_deployment_automation/grid/grid_mopatch_db_installed.txt"
+    chdir:                             "{{ target_media_location }}/SBP"
+    executable:                        /bin/csh
+
+- name:                                "4.1.1. ORACLE Grid DB Update: - Show MOPAtch output"
+  ansible.builtin.debug:
+    var:                               sbpscriptdb_results.stdout_lines
+    verbosity:                         2
+
+- name:                                "4.1.1. ORACLE Grid DB Update: - Save MOPatch  output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/grid/grid_mopatch_db.log"
+    content:                           "{{ sbpscriptdb_results.stdout }}"
+    mode:                              '0777'
+  when:                                sbpscriptdb_results.stdout is defined
+
+- name:                                "4.1.1. ORACLE Grid DB Update: - Create grid_mopatch_db_installed.txt"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid/grid_mopatch_db_installed.txt"
+    state:                             touch
+    mode:                              '0755'
+    owner:                             "{{ grid_user_name }}"
+    group:                             oinstall
+
+# Step 13
+- name:                                "4.1.1. ORACLE Grid DB Update: - Reset permissions before patching"
+  when:                                oradism_stat.stat.exists
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
+    state:                             file
+    mode:                              '4750'
+    owner:                             "{{ grid_user_name }}"
+    group:                             oinstall
+
+
+# Step 14
+- name:                                "4.1.1. ORACLE Grid Update - Run the post-installation script for the database component of Grid Infrastructure Release Update 19.28.0.0.250715"
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.shell: |
+                                       {{ STAGE_SBP_OCWRU }}/custom/scripts/postpatch.sh -dbhome $IHRDBMS
+  register:                            postpatch_results
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    IHRDBMS:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  args:
+    executable:                        /bin/csh
+    creates:                           "/etc/sap_deployment_automation/grid/gridupdate_postpatch.txt"
+
+- name:                                "4.1.1. ORACLE Grid Update - Debug: GRID postpatch output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/grid/grid_update_postpatch.log"
+    content:                           "{{ postpatch_results.stdout }}"
+    mode:                              0777
+  when:                                postpatch_results.stdout is defined
+
+- name:                                "4.1.1. ORACLE Grid Update - Create gridupdate_postpatch.txt after a successful post processing script execution"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid/gridupdate_postpatch.txt"
+    state:                             touch
+    mode:                              '0755'
+
+# Step 16
+- name:                                "4.1.1. ORACLE Grid Update - Start all CRS-managed resources associated with the RDBMS home"
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.shell: |
+                                       env ORACLE_HOME=$OHRDBMS ORACLE_BASE=$OHRDBMS.dummybase $OHRDBMS/bin/srvctl start home -o $OHRDBMS \
+                                       -s $OHRDBMS.srvctlstatus
+
+  register:                            srvctl_start_results
+  environment:
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+    OHRDBMS:                           "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
+  args:
+    executable:                        /bin/csh
+    creates:                           "/etc/sap_deployment_automation/grid/gridupdate_srvctl_start.txt"
+
+- name:                                "4.1.1. ORACLE Grid Update - Debug: GRID prepatch output"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/grid/grid_update_prepatch.log"
+    content:                           "{{ srvctl_start_results.stdout }}"
+    mode:                              0777
+  when:                                srvctl_start_results.stdout is defined
+
+- name:                                "4.1.1. ORACLE Grid Update - Create gridupdate_srvctl_start.txt after a successful post processing script execution"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/grid/gridupdate_srvctl_start.txt"
+    state:                             touch
+    mode:                              '0755'
+
+- name:                                "4.1.1. ORACLE Grid Update - Remove {{ ora_release }}.srvctlstatus"
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_release }}.srvctlstatus"
+    state:                             absent
+
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

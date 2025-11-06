@@ -12,13 +12,24 @@
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
   ansible.builtin.shell: >
-                                       set -o pipefail && grep '^alias cdglo=' ~/.sapenv.sh | sed -e 's/^.* //' -e 's/$SAPSYSTEMNAME/{{ db_sid | upper }}/' -e "s/'//"
-  register:                            global_path_status
+                                       /usr/bin/cat /usr/sap/{{ db_sid | upper }}/home/.sapenv.sh
+  args:
+    executable:                        /bin/bash
+  register:                            global_path_status_text
   changed_when:                        false
+
+- name:                                "HANA HSR: - Set SAP global directory default"
+  ansible.builtin.set_fact:
+    hana_global_dir_default:           "/usr/sap/{{ db_sid | upper }}/SYS/global"
 
 - name:                                "HANA HSR: - Ensure SAP global directory fact is set"
   ansible.builtin.set_fact:
-    hana_global_dir: "                 {{ global_path_status.stdout_lines[0] }}"
+    hana_global_dir:                   "{{ global_path_status_text.stdout_lines | select('search', 'alias cdglo=') | first |split('=') | last | split(' ') | last | default(hana_global_dir_default) }}"
+
+- name:                                "[DEBUG]: show hana_global_dir value"
+  ansible.builtin.debug:
+    var:                               hana_global_dir
+    verbosity:                         0
 
 - name:                                "HANA HSR: - Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config.yml
@@ -69,9 +80,19 @@
     - name:                            "HANA HSR: - Check HANA DB Version and register"
       become_user:                     "{{ db_sid_admin_user }}"
       become:                          true
-      ansible.builtin.command:         /hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/HDB version
+      ansible.builtin.shell:           /hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/HDB version
       register:                        hdbversion
       changed_when:                    false
+      args:
+        chdir:                         /usr/sap/HDB/HDB00
+      vars:
+        allow_world_readable_tmpfiles: true
+      environment:
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
     - name:                            "HANA HSR: - capture the Hana DB version"
       ansible.builtin.set_fact:

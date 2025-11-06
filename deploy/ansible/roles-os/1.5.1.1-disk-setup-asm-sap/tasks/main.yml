@@ -30,11 +30,11 @@
 # -------------------------------------+---------------------------------------8
 #
 
-- name:                                "1.5 Disk setup - Load the disk configuration settings"
+- name:                                "1.5.1.1 Disk Setup - ORACLE ASM - Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config_asm.yml
 
 
-- name:                                "1.5 Disk setup - Check if the shared disk exists"
+- name:                                "1.5.1.1 Disk Setup - ORACLE ASM - Check if the shared disk exists"
   ansible.builtin.set_fact:
     shareddisk:                        "{{ disks | selectattr('host', 'defined') |
       selectattr('host', 'equalto', inventory_hostname) |
@@ -42,17 +42,17 @@
       map(attribute='type') | sort | unique |
       list | length }}"
 
-- name:                                "1.5 Disk setup - Append 'sapmnt' if neeeded"
+- name:                                "1.5.1.1 Disk Setup - ORACLE ASM - Append 'sapmnt' if needed"
   ansible.builtin.set_fact:
     logical_volumes:                   "{{ logical_volumes + logical_volumes_sapmnt }}"
   when: sap_mnt is not defined
 
-- name:                                "1.5 Disk setup - Append 'install' if needed"
+- name:                                "1.5.1.1 Disk Setup - ORACLE ASM - Append 'install' if needed"
   ansible.builtin.set_fact:
     logical_volumes:                   "{{ logical_volumes + logical_volumes_install }}"
   when: usr_sap_install_mountpoint is not defined
 
-- name:                                "1.5 Disk setup - Show disk info"
+- name:                                "1.5.1.1 Disk Setup - ORACLE ASM - Show disk info"
   ansible.builtin.debug:
     msg:
       - "Unique disks:    {{ disktypes }} "
@@ -63,37 +63,37 @@
 # CREATE VOLUME GROUPS BASED ON sap-parameters.yaml
 # -------------------------------------+---------------------------------------8
 #
-- name:                                "1.5 Disk setup - Volume Group creation"
+- name:                                "1.5.1.1 Disk Setup - ORACLE ASM - Volume Group creation"
   community.general.lvg:
     vg:                                "{{ item.vg }}"
     pvs:                               "{{ item.pvs }}"
     pesize:                            4M
     state:                             present
   loop:                                "{{ volume_groups }}"
-  register:                            vgscreated
+  register:                            volume_groups_created
   when:
     - tier == "sapos"
     - node_tier == "oracle-asm"
 
-- name:                                "1.5 Disk setup - Print vgcreated details"
+- name:                                "1.5.1.1 Disk Setup - ORACLE ASM - Print vgcreated details"
   ansible.builtin.debug:
-    msg:                               "VOLUME GROUPS: {{ vgscreated | json_query('results[*].item') }}"
+    msg:                               "VOLUME GROUPS: {{ volume_groups_created | json_query('results[*].item') }}"
     verbosity:                         2
   when:
     - tier == "sapos"
-    - vgscreated is defined
+    - volume_groups_created is defined
 
-- name:                                "1.5 Disk setup - Filter the volume group names from vgscreated results"
+- name:                                "1.5.1.1 Disk Setup - ORACLE ASM - Filter the volume group names from volume_groups_created results"
   ansible.builtin.set_fact:
-    vgcreatedlist:                     "{{ vgscreated | json_query('results[*].item.vg') }}"
+    volume_group_list:                 "{{ volume_groups_created | json_query('results[*].item.vg') }}"
   when:
     - tier == "sapos"
 
 
-# CREATE LOGICAL VOLUMES BASED ON VGCREATEDLIST
+# CREATE LOGICAL VOLUMES BASED ON volume_group_list
 # -------------------------------------+---------------------------------------8
 #
-- name:                                "1.5 Disk setup - Logical Volume creation"
+- name:                                "1.5.1.1 Disk Setup - ORACLE ASM - Logical Volume creation"
   community.general.lvol:
     lv:                                "{{ item.lv }}"
     vg:                                "{{ item.vg }}"
@@ -104,51 +104,51 @@
     shrink:                            false
     resizefs:                          false
   loop:                                "{{ logical_volumes }}"
-  register:                            lvscreated
+  register:                            logical_volumes_created
   when:
     - tier == "sapos"
     - item.node_tier | intersect([ 'all', supported_tiers ] | flatten(levels=1)) or
       item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
-    - item.vg in vgcreatedlist
+    - item.vg in volume_group_list
 
-- name:                                "1.5 Disk setup - Filter the logical volumes created results"
+- name:                                "1.5.1.1 Disk Setup - ORACLE ASM - Filter the logical volumes created results"
   ansible.builtin.set_fact:
-    lvcreatedlist_tmp:                 "{{ lvscreated.results | rejectattr('skipped', 'defined') | list }}"
+    logical_volume_list_tmp:           "{{ logical_volumes_created.results | rejectattr('skipped', 'defined') | list }}"
   when:
     - tier == "sapos"
 
-- name:                                "1.5 Disk setup - Get the logical volumes from the list"
+- name:                                "1.5.1.1 Disk Setup - ORACLE ASM - Get the logical volumes from the list"
   ansible.builtin.set_fact:
-    lvcreatedlist:                     "{{ lvcreatedlist_tmp | map(attribute='item.lv') | list }}"
+    logical_volume_list:               "{{ logical_volume_list_tmp | map(attribute='item.lv') | list }}"
   when:
     - tier == "sapos"
 
-- name:                                "1.5 Disk setup - Filesystem creation"
+- name:                                "1.5.1.1 Disk Setup - ORACLE ASM - Filesystem creation"
   community.general.filesystem:
     dev:                               "{{ dev_path_from_lv_item }}"
     fstype:                            "{{ item.fstype }}"
     opts:                              "{{ item.fsopts | default('') }}"
   loop:                                "{{ logical_volumes }}"
-  register :                           filesystemscreated
+  register :                           filesystems_created
   when:
     - item.tier in ["all", tier ]
     - item.node_tier | intersect([ 'all', supported_tiers ] | flatten(levels=1)) or
       item.node_tier in [ 'all', supported_tiers ] | flatten(levels=1)
     - item.fstype is defined
-    - item.lv in lvcreatedlist
+    - item.lv in logical_volume_list
 
-- name:                                "1.5 Disk setup - Filter the filesystem created results"
+- name:                                "1.5.1.1 Disk Setup - ORACLE ASM - Filter the filesystem created results"
   ansible.builtin.set_fact:
-    fscreatedlist_tmp:                 "{{ filesystemscreated.results | rejectattr('skipped', 'defined') | list }}"
+    filesystems_created_list:          "{{ filesystems_created.results | rejectattr('skipped', 'defined') | list }}"
   when:
     - tier == "sapos"
 
-- name:                                "1.5 Disk setup - Debug disk information"
+- name:                                "1.5.1.1 Disk Setup - ORACLE ASM - Debug disk information"
   ansible.builtin.debug:
     msg:
-      - "Created Volume Groups:    {{ vgcreatedlist }} "
-      - "Created Logical Volumes:  {{ lvcreatedlist }} "
-      - "Created Filesystems:      {{ fscreatedlist_tmp }} "
+      - "Created Volume Groups:    {{ volume_group_list }} "
+      - "Created Logical Volumes:  {{ logical_volume_list }} "
+      - "Created Filesystems:      {{ filesystems_created_list }} "
     verbosity:                         2
   when:
     - tier == "sapos"

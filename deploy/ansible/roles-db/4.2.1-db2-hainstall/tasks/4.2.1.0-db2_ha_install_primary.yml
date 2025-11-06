@@ -12,7 +12,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 # *====================================4=======================================8
-#   SAP DB2: Install
+#   4.2.1. DB2 High availability Installation - Install
 #   2230669 - System Provisioning Using a Parameter Input File
 #
 # TODO: Considerations
@@ -27,7 +27,7 @@
         dir_params:                    "{{ tmp_directory }}/.{{ sap_sid | upper }}-params"
         mem_size:                      "{{ ansible_facts.memory_mb.real.total | int * 0.8 }}"
 
-    - name:                            "SAP DB2: Create directories"
+    - name:                            "4.2.1. DB2 High availability Installation - Create directories"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
         state:                         directory
@@ -38,13 +38,13 @@
         - { mode: '1777', path: '{{ tmp_directory }}/{{ db_sid | upper }}' }
         - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
-    - name:                            "SAP DB2: Install reset"
+    - name:                            "4.2.1. DB2 High availability Installation - Install reset"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
         state:                         absent
       when:                            reinstall
 
-    - name:                            "SAP DB2: check media exists"
+    - name:                            "4.2.1. DB2 High availability Installation - check media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"
       register:                        sapinst_found
@@ -54,7 +54,7 @@
         msg:                           "INSTALL:0009:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
-    - name:                            "SAP DB2: check if installed"
+    - name:                            "4.2.1. DB2 High availability Installation - check if installed"
       ansible.builtin.stat:
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
       register:                        db2_installed
@@ -63,7 +63,7 @@
   when:
     - ansible_hostname == primary_instance_name
 
-- name:                                "DB2 Install: Include 3.3.1-bom-utility role"
+- name:                                "4.2.1. DB2 High availability Installation - Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
@@ -72,16 +72,16 @@
     task_prefix:                       "DB2 Install: "
     sa_enabled:                        true
 
-- name:                                "SAP DB2 Install: Install DB2"
+- name:                                "4.2.1. DB2 High availability Installation - Install DB2"
   block:
 
-    - name:                            "SAP DB2 Install:  variables"
+    - name:                            "4.2.1. DB2 High availability Installation - Set variables"
       ansible.builtin.debug:
         msg:
           - "INIFILE:    {{ sap_inifile }}"
           - "mem_size:   {{ mem_size | int }}"
 
-    - name:                            "DB2 Install: Template processing: Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
+    - name:                            "4.2.1. DB2 High availability Installation - Template processing: Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
       ansible.builtin.template:
         src:                           "{{ sap_inifile_template }}"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
@@ -104,28 +104,22 @@
         db2_memory:                    "{{ mem_size | int }}"
         always_upload_jinja_templates: false
 
-    - name:                            "SAP DB2 install: variables"
+    - name:                            "4.2.1. DB2 High availability Installation - Show variables"
       ansible.builtin.debug:
         msg:
           - "{{ sap_inifile }}"
           - "{{ bom.product_ids.dblha }}"
         verbosity:                     2
 
-    - name:                            "SAP DB2 - register InstanceType"
+    - name:                            "4.2.1. DB2 High availability Installation - Register InstanceType"
       ansible.builtin.set_fact:
         db2_instance_type:             "{{ bom.InstanceType | default('ABAP') }}"
 
-    - name:                            "Create temp directory for sid"
-      ansible.builtin.file:
-        path:                          "{{ tmp_directory }}/{{ sap_sid | upper }}"
-        state:                         directory
-        mode:                          0777
-
-    - name:                            "SAP DB2 Install: progress"
+    - name:                            "4.2.1. DB2 High availability Installation - Show progress"
       ansible.builtin.debug:
         msg:                           "Starting SAP DB2 Install. Please wait"
 
-    - name:                            "SAP DB2 Install"
+    - name:                            "4.2.1. DB2 High availability Installation - Install DB2"
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}      \
@@ -143,19 +137,19 @@
       register:                        db2_installation
       failed_when:                     db2_installation.rc > 0
 
-    - name:                            "SAP DB2 Install: progress"
+    - name:                            "4.2.1. DB2 High availability Installation - Show progress"
       ansible.builtin.debug:
         msg:                           "SAP DB2 Installation succeeded."
 
   # TBC - Add another check to remove the contents of /sapmnt/<SID> if installation fails
-    - name:                            "DB2 Install: flag"
+    - name:                            "4.2.1. DB2 High availability Installation - Set installation flag"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
         state:                         touch
         mode:                          0755
 
     # 2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912
-    - name:                            "DB2 Install - Set LOCK variable for PAS"
+    - name:                            "4.2.1. DB2 High availability Installation - Set LOCK variable for PAS"
       become:                          true
       become_user:                     db2{{ db_sid | lower }}
       ansible.builtin.shell:           db2set DB2_AVOID_LOCK_ESCALATION=FALSE
@@ -166,42 +160,42 @@
       environment:
         PATH:                          "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
 
-    - name:                            "DB2 Install - Create lock escalation run flag"
+    - name:                            "4.2.1. DB2 High availability Installation - Create lock escalation run flag"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/lock_escalation_false.txt"
         state:                         touch
         mode:                          0755
       when:                            db2_lock_escalation.rc == 0
 
-    - name:                            "DB2: Stat if the encryption keystore exists"
+    - name:                            "4.2.1. DB2 High availability Installation - Check if the encryption keystore exists"
       ansible.builtin.stat:
         path:                          /db2/db2{{ db_sid | lower }}/keystore/sapdb2{{ db_sid | lower }}_db_encr.p12
       register:                        db2_encryption_keystore_file_stat
 
-    - name:                            "DB2: Stat if the SSL keystore exists"
+    - name:                            "4.2.1. DB2 High availability Installation - Check if the SSL keystore exists"
       ansible.builtin.stat:
         path:                          /db2/db2{{ db_sid | lower }}/keystore/sapdb2{{ db_sid | lower }}_ssl_comm.kdb
       register:                        db2_ssl_keystore_file_stat
 
-    - name:                            "DB2: create db_encrypted and ssl_communication variables"
+    - name:                            "4.2.1. DB2 High availability Installation - Create db_encrypted and ssl_communication variables"
       ansible.builtin.set_fact:
         db_encrypted:                  "{{ db2_encryption_keystore_file_stat.stat.exists }}"
         ssl_communication:             "{{ db2_ssl_keystore_file_stat.stat.exists }}"
 
-    - name:                            "DB2: Debug encrypted database and SSL communication"
+    - name:                            "4.2.1. DB2 High availability Installation - Debug encrypted database and SSL communication"
       ansible.builtin.debug:
         msg:
           - "Database encrypted: {{ db_encrypted }}"
           - "SSL communication: {{ ssl_communication }}"
 
-    - name:                            "DB2 Install: check if ARM Deployment done"
+    - name:                            "4.2.1. DB2 High availability Installation - Check if ARM Deployment done"
       ansible.builtin.stat:
         path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_db_arm.txt"
       register:                        db_arm_deployment_done
 
-    - name:                            "DB2 Install: Successful installation"
+    - name:                            "4.2.1. DB2 High availability Installation - Successful installation"
       block:
-        - name:                        "Retrieve Subscription ID and Resource Group Name"
+        - name:                        "4.2.1. DB2 High availability Installation - Retrieve Subscription ID and Resource Group Name"
           ansible.builtin.uri:
             url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
             use_proxy:                 false
@@ -209,18 +203,18 @@
               Metadata:                true
           register: azure_metadata
 
-        - name:                        "Extract details"
+        - name:                        "4.2.1. DB2 High availability Installation - Extract details"
           ansible.builtin.set_fact:
             subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
             resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
 
-        - name:                        "Show the subscription and resource group"
+        - name:                        "4.2.1. DB2 High availability Installation - Show the subscription and resource group"
           ansible.builtin.debug:
             msg:
               - "Subscription ID: {{ subscription_id }}"
               - "Resource Group Name: {{ resource_group_name }}"
 
-        - name:                        "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
+        - name:                        "4.2.1. DB2 High availability Installation - Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
           ansible.builtin.include_role:
             name:                      roles-misc/0.6-ARM-Deployment
           vars:
@@ -230,14 +224,14 @@
       when:
         - not db_arm_deployment_done.stat.exists
 
-    - name:                            "DB2 Install: check if ARM Deployment done"
+    - name:                            "4.2.1. DB2 High availability Installation - Check if ARM Deployment done"
       ansible.builtin.stat:
         path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_db_arm.txt"
       register:                        db_arm_deployment_done
 
-    - name:                            "DB2 Install: Successful installation"
+    - name:                            "4.2.1. DB2 High availability Installation - Successful installation"
       block:
-        - name:                        "Retrieve Subscription ID and Resource Group Name"
+        - name:                        "4.2.1. DB2 High availability Installation - Retrieve Subscription ID and Resource Group Name"
           ansible.builtin.uri:
             url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
             use_proxy:                 false
@@ -256,7 +250,7 @@
               - "Subscription ID: {{ subscription_id }}"
               - "Resource Group Name: {{ resource_group_name }}"
 
-        - name:                        "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
+        - name:                        "4.2.1. DB2 High availability Installation - Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
           ansible.builtin.include_role:
             name:                      roles-misc/0.6-ARM-Deployment
           vars:
@@ -271,12 +265,12 @@
     - not db2_installed.stat.exists
     - ansible_hostname == primary_instance_name
 
-- name:                                "SAP DB2 Install: Install DB2"
+- name:                                "4.2.1. DB2 High availability Installation - Install DB2"
   block:
 
-    - name:                            "SAP DB2 Install: progress"
+    - name:                            "4.2.1. DB2 High availability Installation - progress"
       ansible.builtin.debug:
-        msg:                           "SAP DB2 Already installed."
+        msg:                           "DB2 High availability Installation - Already installed."
 
 
   when:

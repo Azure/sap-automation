@@ -48,7 +48,7 @@
 
 # NVMe CHECK
 # -------------------------------------+---------------------------------------8
-- name:                                "1.5 Disk setup: - NVMe Preflight Check - Debug hostvars"
+- name:                                "1.5 Disk setup - NVMe Preflight Check - Debug hostvars"
   when:
                                        - hostvars[ansible_hostname]['use_nvme_disks'] is defined
                                        - hostvars[ansible_hostname]['use_nvme_disks'] | default(false) | bool
@@ -58,7 +58,7 @@
   tags:
                                        - sapos-nvme-debug
 
-- name:                                "1.5 Disk setup: - NVMe Preflight Check"
+- name:                                "1.5 Disk setup - NVMe Preflight Check"
   when:
                                        - hostvars[ansible_hostname]['use_nvme_disks'] is defined
                                        - hostvars[ansible_hostname]['use_nvme_disks'] | default(false) | bool
@@ -213,12 +213,12 @@
     - custom_logical_volumes is defined
 
 
-- name:                                "1.5 Disk setup: - Custom Disks"
+- name:                                "1.5 Disk setup - Custom Disks"
   ansible.builtin.include_tasks:       "1.5-custom-disks.yml"
   when:
     - custom_logical_volumes is defined
 
-- name:                                "1.5 Disk setup: - Expand Volumes"
+- name:                                "1.5 Disk setup - Expand Volumes"
   ansible.builtin.include_tasks:       "1.5-expand-volumes.yml"
   when:
     - ansible_os_family | upper == 'REDHAT'

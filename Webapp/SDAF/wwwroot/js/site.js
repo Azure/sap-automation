@@ -275,7 +275,7 @@ function updateAndSetDropdowns(dropdown) {
 
 // populate environment dropdown with values from ADO if pipeline deployment
 function getEnvironmentsFromAdo(isPipelineDeployment) {
-    var id = "environment";
+    var id = "workload";
     if (isPipelineDeployment) {
         $.ajax({
             type: "GET",
@@ -451,7 +451,7 @@ function populateLocations(id, value) {
 // EVENT LISTENERS
 // ===============
 
-$("#subscription_id").on("change", function () {
+$("#subscription").on("change", function () {
     var subscriptionid = $(this).val();
     var dropdownsAffected = [
         {
@@ -597,30 +597,22 @@ $("#network_arm_id").on("change", function () {
 });
 
 $("#workload_zone").on("change", function () {
-    var workloadzoneid = $(this).val();
-    if (workloadzoneid) {
-        var confirmMessage = "Are you sure? Selecting this value will populate certain inputs with values from the workload zone: " + workloadzoneid;
-        if (confirm(confirmMessage)) {
-            $.ajax({
-                type: "GET",
-                url: "/Landscape/GetByIdJson",
-                data: {
-                    id: workloadzoneid,
-                },
-                success: function (data) {
-                    entireLandscape = JSON.parse(data);
-                    partialLandscape = {};
-                    partialLandscape["location"] = entireLandscape["location"];
-                    partialLandscape["environment"] = entireLandscape["environment"];
-                    partialLandscape["network_logical_name"] = entireLandscape["network_logical_name"];
-                    updateModel(partialLandscape);
-                },
-                error: function () { alert("Error populating data for given workload zone"); }
-            });
-        } else {
-            $("#workload_zone").val(null);
-        }
+  var workloadzoneid = $(this).val();
+  if (workloadzoneid) {
+    var environmentVal = workloadzoneid.split("-")[0];
+    var networkLogicalNameVal = workloadzoneid.split("-")[2];
+    var locationVal = workloadzoneid.split("-")[1];
+    var confirmMessage = "Are you sure? Selecting this value will populate certain inputs with values from the workload zone: " + workloadzoneid;
+    if (confirm(confirmMessage)) {
+      $("#environment").val(environmentVal);
+      $("#network_logical_name").val(networkLogicalNameVal);
+      $("#locationCode").val(locationVal);
+
     }
+    else {
+      $("#workload_zone").val(null);
+    }
+  }
 });
 
 $("#database_platform").on("change", function () {

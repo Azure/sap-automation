@@ -28,23 +28,23 @@
 # ----------------------------------------
 # BEGIN
 # ----------------------------------------
-- name:                                "1.7 chrony: - Set Python version {{ distribution_id }}"
+- name:                                "1.7 chrony - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                    "python2"
   when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
 
-- name:                                "1.7 chrony: - Set default Python version"
+- name:                                "1.7 chrony - Set default Python version"
   ansible.builtin.set_fact:
     python_version:                    "{{ ansible_python_interpreter | default('python') }}"
   when:                                 python_version is not defined
 
 # TODO: This should probably be moved into the 1.4-packages role
-- name:                                "1.7 chrony: - Collect facts about installed packages"
+- name:                                "1.7 chrony - Collect facts about installed packages"
   ansible.builtin.package_facts:
   vars:
     ansible_python_interpreter:        "{{ python_version }}"
 
-- name:                                "1.7 chrony: - Show package facts"
+- name:                                "1.7 chrony - Show package facts"
   ansible.builtin.debug:
     var:                               ansible_facts.packages
     verbosity:                         2
@@ -53,7 +53,7 @@
 
 # The ntp package should have been uninstalled during the execution
 # of the 1.4-packages role.
-- name:                                "1.7 chrony: - Fail if ntp still installed"
+- name:                                "1.7 chrony - Fail if ntp still installed"
   ansible.builtin.fail:
     msg: >
           The 'ntp' package is still installed. Please ensure that the
@@ -63,7 +63,7 @@
     # parentheses wrapped to keep ansible parser happy
     - ('ntp' in ansible_facts.packages)
 
-- name:                                "1.7 chrony: - Ensure that required packages are installed"
+- name:                                "1.7 chrony - Ensure that required packages are installed"
   ansible.builtin.package:
     name:                              "{{ item }}"
     state:                             present
@@ -79,7 +79,7 @@
 # using the distribution provided defaults.
 #
 # -------------------------------------+---------------------------------------8
-- name:                                "1.7 chrony: - Initialise facts used to manage chrony settings"  # noqa jinja[spacing]
+- name:                                "1.7 chrony - Initialise facts used to manage chrony settings"  # noqa jinja[spacing]
   ansible.builtin.set_fact:
     chronyd_restart_required:          "{{ chrony_package_installed is changed }}"
     # Generate list of chrony config entries that may need to be added
@@ -94,7 +94,7 @@
       {%- endif -%}
       {{- _conf_entries -}}
 
-- name:                                "1.7 chrony: - Show generated list of chrony conf entries"
+- name:                                "1.7 chrony - Show generated list of chrony conf entries"
   ansible.builtin.debug:
     var:                               chrony_conf_entries
     verbosity:                         2
@@ -111,16 +111,16 @@
 # well as remove the ansible managed block entru
 #
 # -------------------------------------+---------------------------------------8
-- name:                                "1.7 chrony: - Setup chrony with distribution defaults"
+- name:                                "1.7 chrony - Setup chrony with distribution defaults"
   block:
-    - name:                            "1.7 chrony: - Remove any ansible managed block"
+    - name:                            "1.7 chrony - Remove any ansible managed block"
       ansible.builtin.blockinfile:
         path:                          /etc/chrony.conf
         marker:                        "# {mark} ANSIBLE MANAGED BLOCK"
         state:                         absent
       register:                        chrony_remove_custom_settings
 
-    - name:                            "1.7 chrony: - Uncomment any default entries"
+    - name:                            "1.7 chrony - Uncomment any default entries"
       ansible.builtin.lineinfile:
         path:                          /etc/chrony.conf
         regexp:                        '^! ((pool|server) .*)$'
@@ -132,7 +132,7 @@
       when:
         - ansible_os_family | upper == "SUSE"
 
-    - name:                            "1.7 chrony: - Set chrony facts"
+    - name:                            "1.7 chrony - Set chrony facts"
       ansible.builtin.set_fact:
         chronyd_restart_required: >-
           {{ ((chronyd_restart_required | bool) or
@@ -151,9 +151,9 @@
 # any of the settings are removed.
 #
 # -------------------------------------+---------------------------------------8
-- name:                                "1.7 chrony: - Setup chrony with override settings"
+- name:                                "1.7 chrony - Setup chrony with override settings"
   block:
-    - name:                            "1.7 chrony: - Remove existing pool or server entries if
+    - name:                            "1.7 chrony - Remove existing pool or server entries if
                                        custom settings not yet applied"
       ansible.builtin.shell: |
         set -o pipefail
@@ -173,7 +173,7 @@
       register:                        chrony_remove_existing_settings
       tags:                            ansible_skip_lint
 
-    - name:                            "1.7 chrony: - Add/Update custom settings block"
+    - name:                            "1.7 chrony - Add/Update custom settings block"
       ansible.builtin.blockinfile:
         path:                          /etc/chrony.conf
         marker:                        "# {mark} ANSIBLE MANAGED BLOCK"
@@ -184,7 +184,7 @@
                                        {% endfor -%}
       register:                        chrony_conf_updated
 
-    - name:                            "1.7 chrony: - Set chrony facts"
+    - name:                            "1.7 chrony - Set chrony facts"
       ansible.builtin.set_fact:
         chronyd_restart_required: >-
           {{ ((chronyd_restart_required | bool) or
@@ -195,7 +195,7 @@
     - (chrony_conf_entries | count) > 0
   tags: ansible_skip_lint
 
-- name:                                "1.7 chrony: - Do we need to restart chronyd?"
+- name:                                "1.7 chrony - Do we need to restart chronyd?"
   ansible.builtin.debug:
     var:                               chronyd_restart_required
     verbosity:                         2
@@ -209,14 +209,14 @@
 # -------------------------------------+---------------------------------------8
 
 # On SLES systems the service is installed in a disabled state
-- name:                                "1.7 chrony: - Ensure chronyd service is enabled"
+- name:                                "1.7 chrony - Ensure chronyd service is enabled"
   ansible.builtin.service:
     name:                              chronyd
     enabled:                           true
 
 # Restart chronyd either if the package was installed or
 # configuration changes were made.
-- name:                                "1.7 chrony: - Restart chronyd service if needed"
+- name:                                "1.7 chrony - Restart chronyd service if needed"
   ansible.builtin.service:
     name:                              chronyd
     state:                             restarted

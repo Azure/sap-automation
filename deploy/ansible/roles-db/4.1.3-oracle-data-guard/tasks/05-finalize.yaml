@@ -1,0 +1,338 @@
+---
+
+
+- name:                                "4.1.3 Oracle Data Guard Finalize - Wait 60 seconds for Data Guard configuration to stabilize"
+  ansible.builtin.pause:
+    seconds:                           60
+
+- name:                                "4.1.3 Oracle Data Guard - Verify Data Guard configuration"
+  when:                                ansible_hostname == ora_primary
+  block:
+
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Check if Data Guard Broker configuration exists on Primary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       dgmgrl / as sysdba << EOF
+                                       SHOW CONFIGURATION
+                                       EOF
+      failed_when:                     false
+      changed_when:                    false
+      register:                        dgconfig_check
+      args:
+        executable:                    /bin/csh
+
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Create Data Guard Configuration on Primary"
+      when:                            dgconfig_check.rc!=0
+
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       dgmgrl / as sysdba << EOF
+                                       CREATE CONFIGURATION {{ db_sid | upper }}_dg_config AS PRIMARY DATABASE IS {{ db_sid | upper }} CONNECT IDENTIFIER IS {{ db_sid | upper }};
+                                       ENABLE CONFIGURATION;
+                                       exit;
+                                       EOF
+      register:                        dgconfig_results
+      failed_when:                     dgconfig_results.rc > 0
+      args:
+        executable:                    /bin/csh
+
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Add secondary Database to Data Guard Configuration on Primary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       dgmgrl / as sysdba << EOF
+                                       ADD DATABASE {{ db_sid | upper }}_STDBY AS CONNECT IDENTIFIER IS {{ db_sid | upper }}_STDBY MAINTAINED AS PHYSICAL;
+                                       ENABLE CONFIGURATION;
+                                       exit;
+                                       EOF
+      register:                        dgconfig_add_results
+      failed_when:                     dgconfig_add_results.rc > 0
+      args:
+        executable:                    /bin/csh
+
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Enable Fast-Start Failover"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       dgmgrl / as sysdba << EOF
+
+                                       EDIT DATABASE {{ db_sid | upper }}_STDBY set state='LOG-APPLY-OFF';
+                                       EDIT DATABASE {{ db_sid | upper }} SET PROPERTY FastStartFailoverTarget ='{{ db_sid | upper }}_STDBY';
+                                       EDIT DATABASE {{ db_sid | upper }} SET PROPERTY LogXptMode='SYNC';
+                                       EDIT DATABASE {{ db_sid | upper }}_STDBY SET PROPERTY LogXptMode='SYNC';
+                                       EDIT DATABASE {{ db_sid | upper }}_STDBY SET PROPERTY FastStartFailoverTarget ='{{ db_sid | upper }}';
+
+                                       EDIT CONFIGURATION SET PROTECTION MODE AS MAXAVAILABILITY;
+
+                                       ENABLE FAST_START FAILOVER;
+
+                                       exit;
+                                       EOF
+      register:                        dgconfig_fast_start_results
+      failed_when:                     dgconfig_fast_start_results.rc > 0
+      args:
+        executable:                    /bin/csh
+
+
+    # Disable the automatic restart for database on Primary.
+    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Check if database registered with restart on Primary"
+      when :
+                                      - node_tier == 'oracle-asm'
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       srvctl config database -d {{ db_sid | upper }}
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      args:
+        executable:                    /bin/csh
+      register:                        srvctl_check
+      failed_when:                     false
+      changed_when:                    false
+
+    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Disable automatic restart for database on Primary"
+      when :
+                                      - node_tier == 'oracle-asm'
+                                      - srvctl_check.rc == 0
+                                      - "'PRCC-1120' not in srvctl_check.stdout"
+                                      - "'PRCC-1001' not in srvctl_check.stdout"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       srvctl disable database -d {{ db_sid | upper }}
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      args:
+        executable:                    /bin/csh
+      register:                        disable_restart_primary
+      failed_when:
+                                       - disable_restart_primary.rc not in [0, 2]
+                                       - "'PRCC-1012' not in disable_restart_primary.stdout"
+                                       - "'PRCR-1003' not in disable_restart_primary.stdout"
+                                       - "'PRCR-1001' not in disable_restart_primary.stdout"
+      changed_when:
+                                       - disable_restart_primary.rc == 0
+
+    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Verify database is open on Primary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       sqlplus -s / as sysdba << EOF
+                                       SET HEADING OFF
+                                       SET FEEDBACK OFF
+                                       SELECT open_mode FROM v\$database;
+                                       EXIT;
+                                       EOF
+      environment:
+        ORACLE_SID:                    "{{ db_sid | upper }}"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      args:
+        executable:                    /bin/csh
+      register:                        primary_open_mode
+      failed_when:                     "'READ WRITE' not in primary_open_mode.stdout"
+      changed_when:                    false
+
+    - name:                            "4.1.3 Oracle Data Guard - Primary - Post Processing: Ensure database is open on Primary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       sqlplus -s / as sysdba << EOF
+                                       ALTER DATABASE OPEN;
+                                       EXIT;
+                                       EOF
+      environment:
+        ORACLE_SID:                    "{{ db_sid | upper }}"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      args:
+        executable:                    /bin/csh
+      when:                            "'READ WRITE' not in primary_open_mode.stdout"
+      register:                        open_primary
+      failed_when:                     open_primary.rc != 0 and 'ORA-01531' not in open_primary.stderr
+
+
+- name:                                "4.1.3 Oracle Data Guard - Show Data Guard configuration"
+  when:                                ansible_hostname == ora_primary
+  block:
+
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Show Data Guard Configuration"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       dgmgrl / as sysdba << EOF
+                                       SHOW CONFIGURATION VERBOSE;
+                                       SHOW DATABASE {{ db_sid | upper }};
+
+                                       SHOW DATABASE {{ db_sid | upper }}_STDBY;
+                                       exit;
+                                       EOF
+      register:                        dgconfig_show_results
+      failed_when:                     dgconfig_show_results.rc > 0
+      args:
+        executable:                    /bin/csh
+
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Display Data Guard configuration"
+      ansible.builtin.debug:
+        msg:                           "Data Guard Configuration: {{ dgconfig_show_results.stdout }}"
+
+
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Create HA Service on Primary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       sqlplus -s / as sysdba << EOF
+                                       EXEC DBMS_SERVICE.CREATE_SERVICE(service_name=>'{{ db_sid | upper }}_HA',network_name=>'{{ db_sid | upper }}_HA');
+                                       EXEC DBMS_SERVICE.START_SERVICE('{{ db_sid | upper }}_HA');
+                                       EXIT;
+                                       EOF
+      register:                        create_service_results
+      failed_when:                     create_service_results.rc > 0
+      args:
+        executable:                    /bin/csh
+
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Create Database Trigger"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}
+                                       sqlplus -s / as sysdba << EOF
+
+                                       CREATE OR REPLACE TRIGGER {{ db_sid | lower }}_HA_SERVICE
+                                         after startup on database
+                                         DECLARE
+                                           role VARCHAR(30);
+                                           BEGIN
+                                             SELECT DATABASE_ROLE INTO role FROM V\$DATABASE;
+                                             IF role = 'PRIMARY' THEN
+                                                DBMS_SERVICE.START_SERVICE('{{ db_sid | upper }}_HA');
+                                             END IF;
+                                           END;
+                                          /
+                                       EXIT;
+                                       EOF
+      register:                        create_trigger_results
+      failed_when:                     create_trigger_results.rc > 0
+      args:
+        executable:                    /bin/csh
+
+- name:                                "4.1.3 Oracle Data Guard Finalize -  Verify Data Guard configuration"
+  when:                                ansible_hostname == ora_secondary
+  block:
+
+
+    - name:                            "4.1.3 Oracle Data Guard Finalize -  Verify Data Guard configuration"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                      setenv ORACLE_SID {{ item.sid }}
+                                      $ORACLE_HOME/bin/sqlplus -s / as sysdba <<EOF
+                                      SET PAGESIZE 0 FEEDBACK OFF HEADING OFF
+                                      SELECT database_role || ',' || open_mode || ',' || db_unique_name FROM v\$database;
+                                      EXIT;
+                                      EOF
+      loop:
+        - { sid: "{{ db_sid | upper }}_STDBY", host: "standby" }
+      register:                        dg_status
+      changed_when:                    false
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        executable:                    /bin/csh
+
+    # Disable the automatic restart for database on Secondary.
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Check if database registered with restart on Secondary"
+      when :
+                                      - node_tier == 'oracle-asm'
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       srvctl config database -d {{ db_sid | upper }}_STDBY
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      args:
+        executable:                    /bin/csh
+      register:                        srvctl_check
+      failed_when:                     false
+      changed_when:                    false
+
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Disable automatic restart for database on Secondary"
+      when :
+                                      - node_tier == 'oracle-asm'
+                                      - srvctl_check.rc == 0
+                                      - "'PRCC-1120' not in srvctl_check.stdout"
+                                      - "'PRCC-1001' not in srvctl_check.stdout"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ item.sid }}
+                                       srvctl disable database -d {{ db_sid | upper }}_STDBY
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        PATH:                          "/oracle/GRID/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
+      args:
+        executable:                    /bin/csh
+      register:                        disable_restart_secondary
+      failed_when:
+                                       - disable_restart_primary.rc not in [0, 2]
+                                       - "'PRCC-1012' not in disable_restart_secondary.stdout"
+                                       - "'PRCR-1003' not in disable_restart_secondary.stdout"
+                                       - "'PRCR-1001' not in disable_restart_secondary.stdout"
+      changed_when:                    disable_restart_secondary.rc == 0
+
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Post Processing: Verify database is mounted on Secondary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       sqlplus -s / as sysdba << EOF
+                                       SET HEADING OFF
+                                       SET FEEDBACK OFF
+                                       SELECT open_mode FROM v\$database;
+                                       EXIT;
+                                       EOF
+      environment:
+        ORACLE_SID:                    "{{ db_sid | upper }}_STDBY"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      args:
+        executable:                    /bin/csh
+      register:                        secondary_open_mode
+      failed_when:                     false
+      changed_when:                    false
+
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Ensure database is mounted on Secondary"
+      become:                          true
+      become_user:                     "{{ oracle_user_name }}"
+      ansible.builtin.shell: |
+                                       setenv ORACLE_SID {{ db_sid | upper }}_STDBY
+                                       sqlplus -s / as sysdba << EOF
+                                       SHUTDOWN IMMEDIATE;
+                                       STARTUP MOUNT;
+                                       EXIT;
+                                       EOF
+      environment:
+        ORACLE_SID:                    "{{ db_sid | upper }}_STDBY"
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+      args:
+        executable:                    /bin/csh
+      when:                            "'MOUNTED' not in secondary_open_mode.stdout"
+      register:                        mount_secondary
+
+    # Update the tnsnames.ora for SAP application servers
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Update tnsnames.ora for SAP application servers"
+      become:                          true
+      become_user:                     "root"
+      ansible.builtin.copy:
+        src:                           "{{ target_media_location }}/downloads/{{ sap_sid | upper }}/saptnsnames.ora"
+        dest:                          /sapmnt/{{ sap_sid |upper }}/profile/oracle/tnsnames.ora
+        remote_src:                    true
+        owner:                         '{{ sidadm_uid }}'
+        group:                         sapsys
+        mode:                          "{{ '0777' | int - (custom_umask | default('022') | int) }}"
+
+...

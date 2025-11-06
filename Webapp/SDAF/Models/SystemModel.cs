@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using SDAFWebApp.Controllers;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using static SDAFWebApp.Models.CustomValidators;
@@ -46,6 +48,8 @@ namespace SDAFWebApp.Models
         [LocationValidator(ErrorMessage = "Location is not a valid Azure region")]
         public string location { get; set; }
 
+        public string locationCode { get; set; } = "";
+
         public string Description { get; set; }
 
 
@@ -56,6 +60,7 @@ namespace SDAFWebApp.Models
 
         [RequiredIfNotDefault]
         [DisplayName("System ID")]
+        [RegularExpression(@"^\w{0,3}$", ErrorMessage = "SID name cannot exceed three characters")]
         public string sid { get; set; }
 
 
@@ -78,7 +83,7 @@ namespace SDAFWebApp.Models
 
         public bool? deploy_application_security_groups { get; set; } = true;
 
-        public bool? deploy_v1_monitoring_extension { get; set; } = true;
+        public bool? deploy_v1_monitoring_extension { get; set; } = false;
 
         public bool? deploy_monitoring_extension { get; set; } = false;
 
@@ -220,7 +225,7 @@ namespace SDAFWebApp.Models
 
         public bool? shared_access_key_enabled { get; set; } = false;
 
-        public bool? shared_access_key_enabled_nfs { get; set; } = true;
+        public bool? shared_access_key_enabled_nfs { get; set; } = false;
 
 
 

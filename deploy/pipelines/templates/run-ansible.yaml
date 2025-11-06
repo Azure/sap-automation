@@ -19,6 +19,7 @@ parameters:
   passwordSecretName: ''
   userNameSecretName: ''
   terraformStateStorageAccount: ''
+  controlPlaneSubscriptionId: ''
 
 steps:
 - task:                             Bash@3
@@ -50,3 +51,4 @@ steps:
     PASSWORD_KEY_NAME:              ${{ parameters.passwordSecretName }}
     USERNAME_KEY_NAME:              ${{ parameters.userNameSecretName }}
     TERRAFORM_STATE_STORAGE_ACCOUNT: ${{ parameters.terraformStateStorageAccount }}
+    CONTROL_PLANE_SUBSCRIPTION_ID:   ${{ parameters.controlPlaneSubscriptionId }}
