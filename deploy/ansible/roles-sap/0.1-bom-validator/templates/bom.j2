@@ -1,7 +1,8 @@
-{# Copyright (c) Microsoft Corporation.
- # Licensed under the MIT License.
-#}
-name:      {{ root_bom.name }}
+# BOM Template File
+#
+# Downloaded on {{ ansible_date_time.date }} at {{ ansible_date_time.time }}
+
+name:          {{ root_bom.name }}
 filename:      {% if root_bom.filename is defined %}{{ root_bom.filename }}{% endif %}
 
 target:        {{ root_bom.target }}
@@ -18,6 +19,15 @@ product_ids:
 {% if root_bom.product_ids is defined %}
 {%   for pKey,pValue in root_bom.product_ids.items() %}
 {{'  %-10s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim) }}
+{%   endfor %}
+{% endif %}
+
+
+patch_information:
+
+{% if root_bom.patch_information is defined %}
+{%   for pKey,pValue in root_bom.patch_information.items() %}
+{{'  %-20s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim) }}
 {%   endfor %}
 {% endif %}
 

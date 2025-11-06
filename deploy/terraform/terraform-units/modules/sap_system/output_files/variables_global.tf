@@ -135,6 +135,7 @@ variable "NFS_provider"                         {
                                                 }
 variable "observer_ips"                         { description = "List of NICs for the Observer VMs" }
 variable "observer_vms"                         { description = "List of Observer VMs" }
+variable "observer_shared_disks"                { description = "Observer Azure Shared Disk" }
 variable "pas_instance_number"                  {
                                                   description = "Instance number for Primary Application Server"
                                                   default     = "00"

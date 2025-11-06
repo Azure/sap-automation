@@ -294,9 +294,16 @@ function install_library() {
 	fi
 
 	#Persisting the parameters across executions
-	automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-	generic_config_information="${automation_config_directory}"config
-	library_config_information="${automation_config_directory}$CONTROL_PLANE_NAME"
+	automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+	generic_environment_file_name="${automation_config_directory}"config
+
+	ENVIRONMENT=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $1}' | xargs)
+	LOCATION=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $2}' | xargs)
+	NETWORK=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $3}' | xargs)
+
+	automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+
+	library_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
 
 	TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
 	export TF_VAR_control_plane_name
@@ -315,7 +322,7 @@ function install_library() {
 
 	param_dirname=$(pwd)
 
-	init "${automation_config_directory}" "${generic_config_information}" "${library_config_information}"
+	init "${automation_config_directory}" "${generic_environment_file_name}" "${library_environment_file_name}"
 
 	export TF_DATA_DIR="${param_dirname}"/.terraform
 	var_file="${param_dirname}"/"${parameter_file_name}"
@@ -359,9 +366,9 @@ function install_library() {
 	if [ ! -d ./.terraform/ ]; then
 		print_banner "$banner_title" "New Deployment" "info"
 		terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
-		sed -i /REMOTE_STATE_RG/d "${library_config_information}"
-		sed -i /REMOTE_STATE_SA/d "${library_config_information}"
-		sed -i /tfstate_resource_id/d "${library_config_information}"
+		sed -i /REMOTE_STATE_RG/d "${library_environment_file_name}"
+		sed -i /REMOTE_STATE_SA/d "${library_environment_file_name}"
+		sed -i /tfstate_resource_id/d "${library_environment_file_name}"
 
 	else
 		if [ -f ./.terraform/terraform.tfstate ]; then
@@ -557,14 +564,14 @@ function install_library() {
 
 	tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
 	export tfstate_resource_id
-	save_config_var "tfstate_resource_id" "${library_config_information}"
+	save_config_var "tfstate_resource_id" "${library_environment_file_name}"
 
 	library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 	if [ -n "${library_random_id}" ]; then
-		save_config_var "library_random_id" "${library_config_information}"
+		save_config_var "library_random_id" "${library_environment_file_name}"
 		custom_random_id="${library_random_id:0:3}"
 		sed -i -e /"custom_random_id"/d "${var_file}"
-		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+		printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
 	fi
 

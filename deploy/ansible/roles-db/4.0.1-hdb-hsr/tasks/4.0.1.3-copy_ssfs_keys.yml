@@ -9,65 +9,101 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "HANA HSR: - variable for SSFS files"
+- name:                                "HANA HSR: - Define SSFS file locations"
   ansible.builtin.set_fact:
     ssfs_files:
       - { file: "SSFS_{{ hana_tenant_database_name }}.DAT", folder: "/usr/sap/{{ hana_tenant_database_name }}/SYS/global/security/rsecssfs/data/", mode: '640' }
       - { file: "SSFS_{{ hana_tenant_database_name }}.KEY", folder: "/usr/sap/{{ hana_tenant_database_name }}/SYS/global/security/rsecssfs/key/", mode: '600' }
+    xsa_ssfs_files:
+      - { file: "SSFS_{{ hana_tenant_database_name }}.DAT", folder: "/usr/sap/{{ hana_tenant_database_name }}/SYS/global/xsa/security/ssfs/data/", mode: '640' }
+      - { file: "SSFS_{{ hana_tenant_database_name }}.KEY", folder: "/usr/sap/{{ hana_tenant_database_name }}/SYS/global/xsa/security/ssfs/key/", mode: '600' }
 
-- name:                                "HANA HSR: - Fetch SSFS files from Primary node to Controller"
+# ----------------------------------------
+# Primary: Fetch all SSFS files to Controller
+# ----------------------------------------
+
+- name:                                "HANA HSR: - Fetch required SSFS files from Primary to Controller"
+  when:                                ansible_hostname == primary_instance_name
   ansible.builtin.fetch:
     src:                               "{{ item.folder }}{{ item.file }}"
-    dest:                              /tmp/rsecssfs/
+    dest:                              /tmp/hana_ssfs/
     flat:                              true
   loop:                                "{{ ssfs_files }}"
-  when:                                ansible_hostname == primary_instance_name
 
-- name:                                "HANA HSR: - Copy SSFS files from Controller to Secondary node"
+- name:                                "HANA HSR: - Fetch optional XSA SSFS files from Primary to Controller (if present)"
+  when:                                ansible_hostname == primary_instance_name
+  ansible.builtin.fetch:
+    src:                               "{{ item.folder }}{{ item.file }}"
+    dest:                              /tmp/hana_ssfs/
+    flat:                              true
+    fail_on_missing:                   false
+  loop:                                "{{ xsa_ssfs_files }}"
+
+# ----------------------------------------
+# Controller: Check which files were fetched
+# ----------------------------------------
+
+- name:                                "HANA HSR: - Check which SSFS files exist on Controller"
+  delegate_to:                         localhost
+  become:                              false
+  ansible.builtin.stat:
+    path:                              "/tmp/hana_ssfs/{{ item.file }}"
+  register:                            ssfs_controller_check
+  loop:                                "{{ ssfs_files + xsa_ssfs_files }}"
+
+- name:                                "HANA HSR: - Display SSFS files available on Controller"
+  ansible.builtin.debug:
+    msg:                               "File {{ item.item.file }}: {{ 'available' if item.stat.exists else 'not available' }}"
+    verbosity:                         2
+  loop:                                "{{ ssfs_controller_check.results }}"
+  loop_control:
+    label:                             "{{ item.item.file }}"
+
+# ----------------------------------------
+# Secondary: Wait for and copy files from Controller
+# ----------------------------------------
+
+- name:                                "HANA HSR: - Wait for required SSFS files to be available on Controller"
+  when:                                ansible_hostname == secondary_instance_name
+  delegate_to:                         localhost
+  become:                              false
+  ansible.builtin.wait_for:
+    path:                              "/tmp/hana_ssfs/{{ item.file }}"
+    timeout:                           300
+  loop:                                "{{ ssfs_files }}"
+
+- name:                                "HANA HSR: - Copy required SSFS files from Controller to Secondary"
+  when:                                ansible_hostname == secondary_instance_name
   ansible.builtin.copy:
-    src:                               /tmp/rsecssfs/{{ item.file }}
+    src:                               /tmp/hana_ssfs/{{ item.file }}
     dest:                              "{{ item.folder }}"
     mode:                              "{{ item.mode }}"
     owner:                             "{{ db_sid_admin_user }}"
     group:                             "{{ hana_group }}"
   loop:                                "{{ ssfs_files }}"
-  when:                                ansible_hostname == secondary_instance_name
 
-- name:                                "HANA HSR: - Ensure the Primary node XSA SSFS_{{ hana_tenant_database_name }}.DAT file exists"
-  ansible.builtin.stat:
-    path:                              /usr/sap/{{ hana_tenant_database_name }}/SYS/global/xsa/security/ssfs/data/SSFS_{{ hana_tenant_database_name }}.DAT
-  register:                            primary_xsa_file_result
-  when:                                ansible_hostname == primary_instance_name
+- name:                                "HANA HSR: - Copy optional XSA SSFS files from Controller to Secondary (if available)"
+  when:
+                                       - ansible_hostname == secondary_instance_name
+                                       - item.stat.exists
+  ansible.builtin.copy:
+    src:                               /tmp/hana_ssfs/{{ item.item.file }}
+    dest:                              "{{ item.item.folder }}"
+    mode:                              "{{ item.item.mode }}"
+    owner:                             "{{ db_sid_admin_user }}"
+    group:                             "{{ hana_group }}"
+  loop:                                "{{ ssfs_controller_check.results | selectattr('item.folder', 'search', 'xsa') | list }}"
+  loop_control:
+    label:                             "{{ item.item.file }}"
 
-- name:                                "HANA HSR: - Ensure the Primary node XSA SSFS_{{ hana_tenant_database_name }}.DAT file exists"
-  ansible.builtin.debug:
-    var:                               primary_xsa_file_result
-    verbosity:                         2
+# ----------------------------------------
+# Cleanup: Remove temporary files from Controller
+# ----------------------------------------
 
-- name:                                "HANA HSR: - Copy XSA SSFS files from Primary node to the Secondary node"
-  block:
-    - name:                            "HANA HSR: - variable for XSA SSFS files"
-      ansible.builtin.set_fact:
-        xsa_ssfs_files:
-          - { file: "SSFS_{{ hana_tenant_database_name }}.DAT", folder: "/usr/sap/{{ hana_tenant_database_name }}/SYS/global/xsa/security/ssfs/data/", mode: '640' }
-          - { file: "SSFS_{{ hana_tenant_database_name }}.KEY", folder: "/usr/sap/{{ hana_tenant_database_name }}/SYS/global/xsa/security/ssfs/key/", mode: '600' }
-
-    - name:                            "HANA HSR: - Fetch XSA SSFS files from Primary node to Controller"
-      ansible.builtin.fetch:
-        src:                           "{{ item.folder }}{{ item.file }}"
-        dest:                          /tmp/xsa_ssfs/
-        flat:                          true
-      loop:                            "{{ xsa_ssfs_files }}"
-      when:                            ansible_hostname == primary_instance_name
-
-    - name:                            "HANA HSR: - Copy XSA SSFS files from Controller to Secondary node"
-      ansible.builtin.copy:
-        src:                           /tmp/xsa_ssfs/{{ item.file }}
-        dest:                          "{{ item.folder }}"
-        mode:                          "{{ item.mode }}"
-        owner:                         "{{ db_sid_admin_user }}"
-        group:                         "{{ hana_group }}"
-      loop:                            "{{ xsa_ssfs_files }}"
-      when:                            ansible_hostname == secondary_instance_name
-
-  when:                                hostvars[primary_instance_name]['primary_xsa_file_result'].stat.exists
+- name:                                "HANA HSR: - Cleanup SSFS files from Controller"
+  delegate_to:                         localhost
+  become:                              false
+  ansible.builtin.file:
+    path:                              /tmp/hana_ssfs
+    state:                             absent
+  run_once:                            true

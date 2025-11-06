@@ -1,11 +1,25 @@
 @{
+
     string controllerName = ViewBag.SapObjectType;
     string displayName = ViewBag.SapObjectDisplayName;
     string moreInfoUrl = ViewBag.MoreInformationUrl;
+
+    string adoRepoUrl = ViewBag.adoRepoUrl + displayName.ToUpper().Replace("WORKLOAD", "LANDSCAPE");
+    string adoPipelineUrl = ViewBag.adoPipelineUrl;
 }
 
 <div class="text-center">
     <h2>Existing @(displayName.ToLower() + "s")</h2>
+    <p>
+        <a href=@adoRepoUrl target="_blank" rel="noopener noreferrer">
+            Azure DevOps repository (@displayName.ToUpper())
+        </a>
+    </p>
+    <p>
+        <a href=@adoPipelineUrl target="_blank" rel="noopener noreferrer">
+            Azure DevOps Pipelines
+        </a>
+    </p>
     <p>
         <a href=@moreInfoUrl target="_blank" rel="noopener noreferrer">
             More information on configuring the @displayName.ToLower()
@@ -27,6 +41,7 @@
         </span>
     </div>
 </div>
+
 
 <div class="table-scroll">
     <table class="table" aria-label="Existing @(displayName.ToLower() + "s")">
@@ -155,4 +170,3 @@
     <fluent-anchor appearance="accent" style="float: right" href="@Url.Action("Templates", "File", new { sourceController=controllerName })">
         Templates
     </fluent-anchor>
-</p>

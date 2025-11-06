@@ -41,7 +41,7 @@ NW_ABAP_Import_Dialog.dbCodepage                                        = 4103
 NW_ABAP_Import_Dialog.migmonJobNum                                      = 16
 
 # Additional 'R3load' arguments for the LOAD phase
-NW_ABAP_Import_Dialog.migmonLoadArgs                                    = -c 100000 -loadprocedure fast
+NW_ABAP_Import_Dialog.migmonLoadArgs                                    = -c 1000 -loadprocedure fast
 
 # Number of parallel jobs for update statistics
 NW_SYB_DBPostload.numberParallelStatisticJobs                           = 10
@@ -51,10 +51,10 @@ NW_getDBInfoGeneric.dbhost                                              = {{ sap
 # The database ID (DBSID)
 NW_getDBInfoGeneric.dbsid                                               = {{ db_sid | upper }}
 # SAP INTERNAL USE ONLY
-NW_System.installSAPHostAgent = false
+NW_System.installSAPHostAgent                                           = false
 
 # ABAP message server port for connecting to the message server, leave empty for default
-NW_checkMsgServer.abapMSPort                                            = 3600
+NW_checkMsgServer.abapMSPort                                            = 36{{ scs_instance_number | int }}
 
 # The load type chosen by the user. Valid values are: 'SAP', 'STD', 'OBR', 'HCP', 'FLASHCOPY', 'MDA', 'HBR', 'SBR'
 NW_getLoadType.loadType                                                 = SAP
@@ -92,9 +92,8 @@ SYB.NW_DB.autoExpandSaptoolsThresholdDefault                            = 2
 # Only if you use the 'autoextend' feature: Free space threshold size for the saptools database log segment in GB
 SYB.NW_DB.autoExpandSaptoolsThresholdLog                                = 2
 
-
 # Database device information like 'type','folder','size','maxsize','growsize','name'
-SYB.NW_DB.databaseDevices = data device for SAP,/sybase/{{ db_sid | upper }}/sapdata_1,64,,10,{{ db_sid | upper }}_data_001,log device for SAP,/sybase/{{ db_sid | upper }}/saplog_1,32,,5,{{ db_sid | upper }}_log_001,data device for saptools,/sybase/{{ db_sid | upper }}/sapdiag,14,,2,saptools_data_001,log device for saptools,/sybase/{{ db_sid | upper }}/sapdiag,8,,2,saptools_log_001,data device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,8,,,sybsecurity_data_001,data device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,8,,,sybsecurity_data_002,log device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,4,,,sybsecurity_log_001,temp device for SAP,/sybase/{{ db_sid | upper }}/saptemp,8,,,saptempdb_data_001,
+SYB.NW_DB.databaseDevices = data device for SAP,/sybase/{{ db_sid | upper }}/sapdata_1,64,,10,{{ db_sid | upper }}_data_001,log device for SAP,/sybase/{{ db_sid | upper }}/saplog_1,32,,5,{{ db_sid | upper }}_log_001,data device for saptools,/sybase/{{ db_sid | upper }}/sapdiag,14,,2,saptools_data_001,log device for saptools,/sybase/{{ db_sid | upper }}/sapdiag,8,,2,saptools_log_001,data device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,8,,,sybsecurity_data_001,data device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,8,,,sybsecurity_data_002,log device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,4,,,sybsecurity_log_001,temp device for SAP,/sybase/{{ db_sid | upper }}/saptemp,8,,,saptempdb_data_001
 
 
 # Type of SAP ASE
@@ -197,4 +196,3 @@ SYB.NW_DB.userstore_hostname                                            = {{ sap
 
 # Master key password for database encryption
 SYB.NW_DB.encryptionMasterKeyPassword                                   = {{ main_password }}
-

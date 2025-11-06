@@ -14,13 +14,13 @@ variable "custom_disk_sizes_filename"                   {
                                                         }
 variable "database"                                     {}
 
-variable "database_dual_nics"                           {
+variable "database_dual_network_interfaces"             {
                                                           description = "Defines if the HANA DB uses dual network interfaces"
-                                                          default     = true
+                                                          type        = bool
                                                         }
 variable "enable_storage_nic"                           {
                                                           description = "Boolean to determine if a storage nic should be used when scale out is enabled"
-                                                          default     = true
+                                                          type        = bool
                                                         }
 variable "database_server_count"                        {
                                                           description = "The number of database servers"
@@ -63,7 +63,7 @@ variable "sid_keyvault_user_id"                         { description = "Details
 variable "sid_password"                                 { description = "SDU password" }
 variable "sid_username"                                 { description = "SDU username" }
 variable "storage_bootdiag_endpoint"                    { description = "Details of the boot diagnostics storage account" }
-variable "storage_subnet"                               { description = "Information about storage subnet" }
+variable "storage_subnet_id"                            { description = "Information about storage subnet" }
 variable "terraform_template_version"                   { description = "The version of Terraform templates that were identified in the state file" }
 variable "use_admin_nic_suffix_for_observer"            { description = "If true, the admin nic suffix will be used for the observer" }
 variable "use_admin_nic_for_asg"                        { description = "If true, the admin nic will be assigned to the ASG instead of the second nic" }

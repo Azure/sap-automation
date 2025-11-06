@@ -19,7 +19,19 @@
     current_host:                      "{{ ansible_hostname }}"
   when:
     - node_tier in ["oracle", "oracle-asm"]
-    - action == 'Prepare_and_Restore'
+    - ansible_play_hosts_all | length > 1
+
+- name:                                "Oracle Data Guard - Preparation Create password file"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.shell:               "orapwd file=$ORACLE_HOME/dbs/orapw{{ db_sid | upper }} password={{ oracle_password }} entries=5"
+  environment:
+    ORACLE_SID:                        "{{ db_sid | upper }}"
+    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  args:
+    creates:                           /oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/orapw{{ db_sid | upper }}
+    chdir:                             /etc/sap_deployment_automation/dgscripts
+    executable:                        /bin/csh
 
 - name:                                "Oracle Data Guard: Prepare secondary node"
   ansible.builtin.include_tasks:       "ora-dg-secondary-preparation.yaml"
@@ -53,7 +65,7 @@
     - node_tier != "observer"
     - action    == 'Post_Processing_Primary'
 
-# Enable Flashback Loggining on the Secondary for FSFO
+# Enable Flashback Logging on the Secondary for FSFO
 - name:                                "Oracle Data Guard: Post processing on Secondary"
   ansible.builtin.include_tasks:       "ora-dg-postprocessing-secondary.yaml"
   when:

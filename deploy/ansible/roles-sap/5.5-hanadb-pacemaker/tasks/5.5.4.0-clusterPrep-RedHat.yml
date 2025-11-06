@@ -101,12 +101,12 @@
       block:
         - name:                        "Configure filesystem resource in Pacemaker"
           ansible.builtin.shell: >
-                                       pcs resource create {{ item.fs_name }} --disabled ocf:heartbeat:Filesystem
-                                       device="{{ item.fs_mount }}" directory="{{ item.fs_dir }}" fstype="nfs"
-                                       options="rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys,nconnect=8"
-                                       op monitor interval=20s
-                                       on-fail=fence timeout=120s OCF_CHECK_LEVEL=20 --group {{ item.group_name }}
-                                       meta multiple-active=stop_unexpected
+                                       pcs resource create {{ item.fs_name }} --disabled ocf:heartbeat:Filesystem \
+                                         device="{{ item.fs_mount }}" directory="{{ item.fs_dir }}" fstype="nfs" \
+                                         options="rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys,nconnect=8" \
+                                         op monitor interval=20s \
+                                         on-fail=fence timeout=120s OCF_CHECK_LEVEL=20 --group {{ item.group_name }} \
+                                         meta multiple-active=stop_unexpected
           register:                    nfs_mounts_node2
           failed_when:                 false
           ignore_errors:               true

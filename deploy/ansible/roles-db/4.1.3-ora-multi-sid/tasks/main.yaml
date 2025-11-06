@@ -84,7 +84,7 @@
   failed_when:                         orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
     DB_SID:                             "{{ db_sid }}"
-    CV_ASSUME_DISTID:                   OL7
+    CV_ASSUME_DISTID:                   "{{ CV_ASSUME_DISTID }}"
   args:
     executable:                         /bin/csh
     chdir:                             "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
@@ -126,7 +126,7 @@
   failed_when:                         orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
     DB_SID:                             "{{ item.sid }}"
-    CV_ASSUME_DISTID:                   OL7
+    CV_ASSUME_DISTID:                   "{{ CV_ASSUME_DISTID }}"
   loop:                                 "{{ MULTI_SIDS }}"
   args:
     executable:                         /bin/csh
@@ -301,7 +301,7 @@
   ansible.builtin.shell:               $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}
   environment:
     DB_SID:                             "{{ db_sid }}"
-    CV_ASSUME_DISTID:                   OL7
+    CV_ASSUME_DISTID:                   "{{ CV_ASSUME_DISTID }}"
     IHRDBMS:                            /oracle/RDBMS/{{ ora_version }}
     ORACLE_HOME:                        /oracle/RDBMS/{{ ora_version }}
     RDBMS:                              /oracle/RDBMS/{{ ora_version }}
@@ -357,7 +357,7 @@
     marker_end:                         "-- END"
     block: |
         # User Specific environment
-        setenv ORACLE_HOME /oracle/{{ db_sid }}/{{ ora_release }}
+        setenv ORACLE_HOME /oracle/{{ db_sid }}/{{ ora_version }}
         setenv ORACLE_SID  {{ db_sid }}
         setenv ORACLE_BASE /oracle
         setenv LD_LIBRARY_PATH $ORACLE_HOME/lib

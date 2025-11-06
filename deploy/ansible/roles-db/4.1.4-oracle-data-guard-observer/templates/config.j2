@@ -1,0 +1,4 @@
+ORACLE_BASE=/oracle
+ORACLE_HOME=/oracle/{{ db_sid | upper }}/{{ ora_version }}
+LD_LIBRARY_PATH=/oracle/{{ db_sid | upper }}/{{ ora_version }}/lib
+TNS_ADMIN=/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin

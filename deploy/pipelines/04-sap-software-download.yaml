@@ -65,23 +65,18 @@ stages:
             displayName:               Install Terraform
             inputs:
               terraformVersion:        latest
+
           - task:                      Bash@3
             inputs:
-              targetType:              'inline'
+              targetType:              'filePath'
+              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/install-ansible.sh"
               failOnStderr:            false
-              script:
-                                      sudo pipx uninstall ansible-core
-
-                                      pipx install ansible-core=="${ansible_core_version:-2.16.5}" --force
-
-                                      ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general
-
-                                      ansible --version
-
+              workingDirectory:        "$(System.DefaultWorkingDirectory)"
             env:
               ansible_core_version:    $(ansible_core_version)
             name:                      AnsibleInstallation
             displayName:               Install Ansible
+
           - task:                      Bash@3
             inputs:
               targetType:              'filePath'
@@ -95,6 +90,8 @@ stages:
               ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              ARM_USE_MSI:              $(Use_MSI)
+              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
               CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               DEPLOYER_KEYVAULT:        $(DEPLOYER_KEYVAULT)
               SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
@@ -133,15 +130,17 @@ stages:
             displayName:               Download
             name:                      download
             env:
-              AGENT_TEMP_DIRECTORY:        $(Agent.TempDirectory)
-              ANSIBLE_COLLECTIONS_PATH:    ~/.ansible/collections:/opt/ansible/collections
-              ARM_CLIENT_ID:               $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:               $(ARM_TENANT_ID)
-              CONFIG_REPO_PATH:            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              DEPLOYER_KEYVAULT:           $(DEPLOYER_KEYVAULT)
-              EXTRA_PARAMETERS:            ${{ parameters.ExtraParams }}
-              SAMPLE_REPO_PATH:            ${{ parameters.sample_repo_path }}
-              SAP_AUTOMATION_REPO_PATH:    ${{ parameters.sap_automation_repo_path }}
-              USE_MSI:                     $(Use_MSI)
+              AGENT_TEMP_DIRECTORY:     $(Agent.TempDirectory)
+              ANSIBLE_COLLECTIONS_PATH: ~/.ansible/collections:/opt/ansible/collections
+              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:            $(ARM_TENANT_ID)
+              ARM_USE_MSI:              $(Use_MSI)
+              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
+              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              DEPLOYER_KEYVAULT:        $(DEPLOYER_KEYVAULT)
+              EXTRA_PARAMETERS:         ${{ parameters.ExtraParams }}
+              SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
+              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
+              USE_MSI:                  $(Use_MSI)

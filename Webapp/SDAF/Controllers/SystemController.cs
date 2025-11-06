@@ -15,6 +15,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.TeamFoundation.Common;
 
 namespace SDAFWebApp.Controllers
 {
@@ -41,6 +42,7 @@ namespace SDAFWebApp.Controllers
 
             imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
             InitializeImageOptionsAndMapping();
+
         }
         private FormViewModel<SystemModel> SetViewData()
         {
@@ -287,7 +289,21 @@ namespace SDAFWebApp.Controllers
                 }
 
                 string path = $"/SYSTEM/{id}/{id}.tfvars";
-                system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+
+                if (!system.subscription.IsNullOrEmpty())
+                {
+                    system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+                }
+
+                if (system.environment.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                {
+                    system.environment = system.workload_zone.Split('-')[0];
+                }
+                if (system.network_logical_name.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                {
+                    system.network_logical_name = system.workload_zone.Split('-')[2];
+                }
+
                 string content = Helper.ConvertToTerraform(system);
 
                 await restHelper.UpdateRepo(path, content);
@@ -411,6 +427,20 @@ namespace SDAFWebApp.Controllers
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
+                if (!system.subscription.IsNullOrEmpty())
+                {
+                    system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+                }
+
+                if (system.environment.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                {
+                    system.environment = system.workload_zone.Split('-')[0];
+                }
+                if (system.network_logical_name.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                {
+                    system.network_logical_name = system.workload_zone.Split('-')[2];
+                }
+
                 systemView.SapObject = system;
 
                 ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
@@ -435,7 +465,7 @@ namespace SDAFWebApp.Controllers
                 try
                 {
                     string newId = Helper.GenerateId(system);
-                    if (system.Id == null) system.Id = newId;
+                    system.Id ??= newId;
                     if (newId != system.Id)
                     {
                         if (String.IsNullOrEmpty(system.Description))
@@ -449,7 +479,20 @@ namespace SDAFWebApp.Controllers
                                 system.Description = system.database_platform + " distributed system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
                             }
                         }
-                        system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+                        if (!system.subscription.IsNullOrEmpty())
+                        {
+                            system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+                        }
+
+                        if (system.environment.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                        {
+                            system.environment = system.workload_zone.Split('-')[0];
+                        }
+                        if (system.network_logical_name.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                        {
+                            system.network_logical_name = system.workload_zone.Split('-')[2];
+                        }
+
                         await SubmitNewAsync(system);
                         string id = system.Id;
                         string path = $"/SYSTEM/{id}/{id}.tfvars";
@@ -487,6 +530,20 @@ namespace SDAFWebApp.Controllers
                                 system.Description = system.database_platform + " distributed system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
                             }
                         }
+                        if (!system.subscription.IsNullOrEmpty())
+                        {
+                            system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+                        }
+
+                        if (system.environment.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                        {
+                            system.environment = system.workload_zone.Split('-')[0];
+                        }
+                        if (system.network_logical_name.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                        {
+                            system.network_logical_name = system.workload_zone.Split('-')[2];
+                        }
+
                         DateTime currentDateAndTime = DateTime.Now;
                         system.LastModified = currentDateAndTime.ToShortDateString();
                         await _systemService.UpdateAsync(new SystemEntity(system));
@@ -540,6 +597,19 @@ namespace SDAFWebApp.Controllers
                     system.Id = Helper.GenerateId(system);
                     DateTime currentDateAndTime = DateTime.Now;
                     system.LastModified = currentDateAndTime.ToShortDateString();
+                    if (!system.subscription.IsNullOrEmpty())
+                    {
+                        system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+                    }
+
+                    if (system.environment.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                    {
+                        system.environment = system.workload_zone.Split('-')[0];
+                    }
+                    if (system.network_logical_name.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                    {
+                        system.network_logical_name = system.workload_zone.Split('-')[2];
+                    }
 
                     await _systemService.CreateAsync(new SystemEntity(system));
                     TempData["success"] = "Successfully created system " + system.Id;

@@ -69,7 +69,7 @@ Description = 'Module to setup SDAF Azure DevOps environment and to provide util
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('New-SDAFADOProject','New-SDAFADOWorkloadZone','New-SDAFUserAssignedIdentity','Remove-SDAFADOProject','Remove-SDAFADOWorkloadZone','Remove-SDAFUserAssignedIdentity')
+FunctionsToExport = @('Copy-AzDevOpsVariableGroupValues','Get-SDAFUserAssignedIdentity','New-SDAFADOProject','New-SDAFADOWorkloadZone','New-SDAFUserAssignedIdentity','Remove-SDAFADOProject','Remove-SDAFADOWorkloadZone','Remove-SDAFUserAssignedIdentity','Set-AdoManagedIdentityCredentials','Set-AdoSPNCredentials')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'

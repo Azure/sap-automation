@@ -213,9 +213,9 @@ function sdaf_remove_deployer() {
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 	#Persisting the parameters across executions
-	deployer_config_information="${CONFIG_DIR}/$CONTROL_PLANE_NAME"
+	deployer_environment_file_name="${CONFIG_DIR}/$CONTROL_PLANE_NAME"
 
-	load_config_vars "${deployer_config_information}" "step"
+	load_config_vars "${deployer_environment_file_name}" "step"
 
 	param_dirname=$(pwd)
 
@@ -347,7 +347,7 @@ function sdaf_remove_deployer() {
 	if [ 0 == $return_value ]; then
 		print_banner "Remove deployer" "Deployer removed successfully" "success"
 		step=0
-		save_config_var "step" "${deployer_config_information}"
+		save_config_var "step" "${deployer_environment_file_name}"
 	fi
 
 	unset TF_DATA_DIR

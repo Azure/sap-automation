@@ -9,27 +9,20 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 ---
-- name:                                "APP Install: Set the SCS Server name list"
+- name:                                "5.3 Additional Application Server Installation - Set the SCS Server name list"
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
-- name:                                "APP Install: -  Set the DB Server name list"
+- name:                                "5.3 Additional Application Server Installation - -  Set the DB Server name list"
   ansible.builtin.set_fact:
     db_server_temp:                    "{{ db_server_temp | default([]) + [item] }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
-- name:                                "Backward Compatibility - Check required Database HA variables"
-  ansible.builtin.set_fact:
-    database_high_availability:        "{{ db_high_availability | default(false) }}"
-  when:
-    - db_high_availability is defined
-    - database_high_availability is not defined
-
-- name:                                "APP Install: Calculate virtual host name when running scale out"
+- name:                                "5.3 Additional Application Server Installation - Calculate virtual host name when running scale out"
   ansible.builtin.set_fact:
     db_virtualhost_temp:  >-
                                        {%- set _host_name = hostvars[db_server_temp | first]['virtual_host'] -%}
@@ -38,7 +31,7 @@
                                        {%- endif -%}
                                        {{- _host_name -}}
 
-- name:                                "APP Install: Set BOM facts"
+- name:                                "5.3 Additional Application Server Installation - Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-app-{{ sid_to_be_deployed.sid }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "app-inifile-param.j2"
@@ -47,11 +40,11 @@
     db_lb_virtual_host_AnyDB:          "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ db_server_temp }}{% endif %}"
     app_virtual_hostname:              "{{ virtual_host }}"
 
-- name:                                "APP Install: Set BOM facts db host"
+- name:                                "5.3 Additional Application Server Installation - Set BOM facts db host"
   ansible.builtin.set_fact:
     db_lb_virtual_host:                "{% if platform == 'HANA' %}{{ custom_db_virtual_hostname | default(db_lb_virtual_host_HANA, true) }}{% else %}{{ custom_db_virtual_hostname | default(db_lb_virtual_host_AnyDB, true) }}{% endif %}"
 
-- name:                                "APP Install: -  Create directories"
+- name:                                "5.3 Additional Application Server Installation - Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -61,32 +54,32 @@
     - { mode: '0775', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
-- name:                                "APP Install: reset"
+- name:                                "5.3 Additional Application Server Installation - Reset the installation flag file if reinstall is requested"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_app.txt"
     state:                             absent
   when:                                reinstall
 
-- name:                                "APP Install: check if {{ sid_to_be_deployed.sid | upper }} is installed"
+- name:                                "5.3 Additional Application Server Installation - Check if {{ sid_to_be_deployed.sid | upper }} is already installed"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_app.txt"
   register:                            app_installed
 
 # Returns bom object
-- name:                                "APP Install: Register BoM"
+- name:                                "5.3 Additional Application Server Installation - Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    task_prefix:                       "APP Install: "
+    task_prefix:                       "5.3 Additional Application Server Installation - "
     sa_enabled:                        true
 
-- name:                                "APP Install: register variables"
+- name:                                "5.3 Additional Application Server Installation - Register installation variables"
   ansible.builtin.set_fact:
     app_bom_id:                        "{% if database_high_availability %}{{ bom.product_ids.app_ha | default(bom.product_ids.app) }}{% else %}{{ bom.product_ids.app }}{% endif %}"
 
-- name:                                "APP Install: Check if the DB load balancer port is available and listening"
+- name:                                "5.3 Additional Application Server Installation - Check if the DB load balancer port is available and listening"
   ansible.builtin.wait_for:
     host:                              "{{ db_lb_virtual_host }}"
     port:                              "3{{ db_instance_number }}13"
@@ -99,7 +92,7 @@
     - database_high_availability
     - platform == "HANA"
 
-- name:                                "APP Install: DEBUG - DB Loadbalancer check"
+- name:                                "5.3 Additional Application Server Installation - Show results from loadbalancer check"
   ansible.builtin.debug:
     msg:                               "{{ db_port_open.msg }}"
     verbosity:                         2
@@ -116,28 +109,6 @@
     - platform == "HANA"
     - db_port_open.msg is defined
 
-- name:                                "APP Install: Check if the DB load balancer port is available and listening"
-  ansible.builtin.wait_for:
-    host:                              "{{ db_lb_virtual_host }}"
-    port:                              "3{{ db_instance_number }}13"
-    state:                             started
-    timeout:                           30
-    msg:                               'INSTALL:0026:APP Install failed, database is unreachable.'
-  register:                            db_port_open
-  failed_when:                         false
-  when:
-    - database_high_availability
-    - platform == "HANA"
-
-- name:                                "APP Install: DEBUG - DB Loadbalancer check"
-  ansible.builtin.debug:
-    msg:                               "{{ db_port_open.msg }}"
-    verbosity:                         2
-  when:
-    - database_high_availability
-    - platform == "HANA"
-    - db_port_open.msg is defined
-
 - name:                                "ErrorHandling"
   ansible.builtin.fail:
     msg:                               "INSTALL:0026:APP Install failed, database is unreachable."
@@ -146,7 +117,7 @@
     - platform == "HANA"
     - db_port_open.msg is defined
 
-- name:                               "APP Install: Set Schema Name"
+- name:                               "5.3 Additional Application Server Installation - Set Schema Name"
   when:
     - platform == "HANA"
   ansible.builtin.include_role:
@@ -157,16 +128,16 @@
 #   SAP APP: Install
 # 2230669 - System Provisioning Using a Parameter Input File
 #
-- name:                                "APP Install"
+- name:                                "5.3 Additional Application Server Installation - Installation block"
   when:                                not app_installed.stat.exists
   block:
-    - name:                            "APP Install: Set the SCS Server name"
+    - name:                            "5.3 Additional Application Server Installation - Set the SCS Server name"
       ansible.builtin.set_fact:
         scs_server:                    "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
         db_virtual_hostname:           "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
         file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APPX{% else %}INSTALL/DISTRIBUTED/ABAP/APPS{% endif %}"
 
-    - name:                            "APP Install: check media exists"
+    - name:                            "5.3 Additional Application Server Installation - Check that installation media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"
       register:                        sapinst_found
@@ -176,7 +147,7 @@
         msg:                           "INSTALL:0007:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
-    - name:                            "APP Install: Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
+    - name:                            "5.3 Additional Application Server Installation - Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
       ansible.builtin.template:
         src:                           "{{ sap_inifile_template }}"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
@@ -202,7 +173,7 @@
         hana_schema:                   "{{ schema_name | default('') }}"
 
 
-    - name:                            "App Install: install variables"
+    - name:                            "5.3 Additional Application Server Installation - Show installation variables"
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ app_installed.stat.exists }}"
@@ -212,28 +183,22 @@
           - "HOST:       {{ app_virtual_hostname }}"
           - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
-    - name:                            "APP Install: HANA HSR - Update Profile"
+    - name:                            "5.3 Additional Application Server Installation - HANA HSR - Update Profile"
       ansible.builtin.import_tasks:    ../../../roles-db/4.0.1-hdb-hsr/tasks/4.0.1.7-sap-profile-changes.yml
       when:
         - database_high_availability
         - platform == "HANA"
 
-    - name:                            "APP Install: Create temp directory for sid"
-      ansible.builtin.file:
-        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
-        state:                         directory
-        mode:                          0755
-
-    - name:                            "APP Install: Create Symlink"
+    - name:                            "5.3 Additional Application Server Installation - Create Symlink"
       ansible.builtin.import_tasks:    ../../../roles-sap-os/2.10-sap-notes/tasks/2.10.3119751.yaml
       when:
         - ansible_os_family == 'RedHat'
 
-    - name:                            "APP Install: progress"
+    - name:                            "5.3 Additional Application Server Installation - progress"
       ansible.builtin.debug:
         msg:                           "Starting App Install ({{ sid_to_be_deployed.sid | upper }})"
 
-    - name:                            "APP Install: Running sapinst"
+    - name:                            "5.3 Additional Application Server Installation - Running sapinst"
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
@@ -251,22 +216,22 @@
       register:                        app_installation
       failed_when:                     app_installation.rc > 0
 
-    - name:                            "APP Install: Installation results"
+    - name:                            "5.3 Additional Application Server Installation - Show installation results if failed"
       ansible.builtin.debug:
         var:                           app_installation
       when:                            app_installation.rc > 0
 
-    - name:                            "APP Install: Installation results"
+    - name:                            "5.3 Additional Application Server Installation - Show installation results"
       ansible.builtin.debug:
         msg:                           "APP Installation succeeded"
       when:                            app_installation.rc == 0
 
-    - name:                            "APP Install: Cleanup ini file {{ ansible_hostname }}"
+    - name:                            "5.3 Additional Application Server Installation - Cleanup ini file {{ ansible_hostname }}"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
-    - name:                            "APP Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
+    - name:                            "5.3 Additional Application Server Installation - Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
         paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.app.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/{{ file_path }}"
         file_type:                     file
@@ -274,7 +239,7 @@
         recurse:                       true
       register:                        app_installed_according_to_sapinst
 
-    - name:                            "APP Install: flag"
+    - name:                            "5.3 Additional Application Server Installation - Set the installation flag file"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_app.txt"
         state:                         touch
@@ -284,7 +249,7 @@
         - app_installed_according_to_sapinst is defined
         - app_installed_according_to_sapinst | length > 0
 
-    - name:                            "APP Install: Get hdbuserstore path"
+    - name:                            "5.3 Additional Application Server Installation - Get hdbuserstore path"
       become:                          true
       become_user:                     "root"
       ansible.builtin.find:
@@ -299,21 +264,21 @@
         - database_high_availability
         - platform == 'HANA'
 
-    - name:                            "APP Install: Set hdbuserstore path"
+    - name:                            "5.3 Additional Application Server Installation - Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
       when:
         - database_high_availability
         - platform == 'HANA'
         - hdbuserstore_file | length > 0
-    - name:                            "APP Install: show hdbuserstore path"
+    - name:                            "5.3 Additional Application Server Installation - Show hdbuserstore path"
       ansible.builtin.debug:
         var:                           hdbuserstore_path
       when:
         - database_high_availability
         - platform == 'HANA'
 
-    - name:                            "APP Install: Set DB Virtual Host name"
+    - name:                            "5.3 Additional Application Server Installation - Set DB Virtual Host name '{{ app_virtual_hostname }}'"
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
       ansible.builtin.shell:           "{{ hdbuserstore_path }} -H {{ app_virtual_hostname }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}"
@@ -329,7 +294,7 @@
         - app_installed_according_to_sapinst is defined
         - app_installed_according_to_sapinst | length > 0
 
-    - name:                            "APP Install: Set DB Virtual Host name"
+    - name:                            "5.3 Additional Application Server Installation - Set DB Virtual Host name"
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
       ansible.builtin.shell:           "{{ hdbuserstore_path }}  SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}"
@@ -345,18 +310,18 @@
         - app_installed_according_to_sapinst is defined
         - app_installed_according_to_sapinst | length > 0
 
-- name:                                "APP Install: - status"
+- name:                                "5.3 Additional Application Server Installation - Installation status"
   block:
 
-    - name:                            "APP Install: - status"
+    - name:                            "5.3 Additional Application Server Installation - Show installation status"
       ansible.builtin.debug:
         msg:                           "APP Installation is already performed ({{ sid_to_be_deployed.sid | upper }})"
 
-    - name:                            "APP Install: - return value"
+    - name:                            "5.3 Additional Application Server Installation - Set installation flag"
       ansible.builtin.set_fact:
         app_already_installed:         true
 
-    - name:                            "APP Install: Get hdbuserstore path"
+    - name:                            "5.3 Additional Application Server Installation - Get hdbuserstore path"
       become:                          true
       become_user:                     "root"
       ansible.builtin.find:
@@ -371,7 +336,7 @@
         - database_high_availability
         - platform == 'HANA'
 
-    - name:                            "APP Install: Set hdbuserstore path"
+    - name:                            "5.3 Additional Application Server Installation - Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
       when:
@@ -379,14 +344,14 @@
         - platform == 'HANA'
         - hdbuserstore_file | length > 0
 
-    - name:                            "APP Install: show hdbuserstore path"
+    - name:                            "5.3 Additional Application Server Installation - Show hdbuserstore path"
       ansible.builtin.debug:
         var:                           hdbuserstore_path
       when:
         - database_high_availability
         - platform == 'HANA'
 
-    - name:                            "APP Install: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
+    - name:                            "5.3 Additional Application Server Installation - Set DB Virtual Host name ({{ app_virtual_hostname }})"
       ansible.builtin.shell:           "{{ hdbuserstore_path }} -H {{ app_virtual_hostname }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}"
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
@@ -400,7 +365,7 @@
         - database_high_availability
         - platform == 'HANA'
 
-    - name:                            "APP Install: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
+    - name:                            "5.3 Additional Application Server Installation - Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
       ansible.builtin.shell:           "{{ hdbuserstore_path }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}"
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"

@@ -13,8 +13,8 @@ parameters:
     type:                              string
     default:                           DEV-WEEU-SAP01-X00
 
-  - name:                              environment
-    displayName:                       Workload Environment (DEV, QA, PRD, ...)
+  - name:                              workload_zone_name
+    displayName:                       Workload Zone Name (DEV-WEEU-SAP01-X00)
     type:                              string
     default:                           DEV
 
@@ -31,13 +31,13 @@ parameters:
     type:                              boolean
 
 stages:
-  - stage: Deploy_SAP_infrastructure
-    condition: and(not(failed()), not(canceled()))
+  - stage:                             Deploy_SAP_infrastructure
+    condition:                         and(not(failed()), not(canceled()))
     variables:
       - template:                      variables/03-sap-system-deployment-variables.yaml
         parameters:
           sap_system:                  ${{ parameters.sap_system }}
-          environment:                 ${{ parameters.environment }}
+          workload_zone_name:          ${{ parameters.workload_zone_name }}
           test:                        ${{ parameters.test }}
     displayName:                       Deploy SAP infrastructure
     jobs:

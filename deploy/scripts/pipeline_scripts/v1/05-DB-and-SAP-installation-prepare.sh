@@ -49,7 +49,7 @@ if [ $USE_MSI == "true" ]; then
 fi
 
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.12.2}"
+	configureNonDeployer "${tf_version:-1.13.3}"
 fi
 
 if az account show --query name; then
@@ -73,22 +73,19 @@ if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 fi
 export VARIABLE_GROUP_ID
 
-ENVIRONMENT=$(echo "$SAP_SYSTEM_CONFIGURATION_NAME" | awk -F'-' '{print $1}' | xargs)
+ENVIRONMENT_IN_FILENAME=$(echo "$SAP_SYSTEM_CONFIGURATION_NAME" | awk -F'-' '{print $1}' | xargs)
 
-LOCATION=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $2}' | xargs)
+LOCATION_CODE_IN_FILENAME=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $2}' | xargs)
 
-NETWORK=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $3}' | xargs)
+NETWORK_IN_FILENAME=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $3}' | xargs)
 
 SID=$(echo "${SAP_SYSTEM_CONFIGURATION_NAME}" | awk -F'-' '{print $4}' | xargs)
 
 cd "$CONFIG_REPO_PATH" || exit
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
-if [ "v1" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}"
-elif [ "v2" == "${SDAFWZ_CALLER_VERSION:-v2}" ]; then
-	workload_environment_file_name="${automation_config_directory}${ENVIRONMENT}${LOCATION}${NETWORK}"
-fi
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+
+workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT_IN_FILENAME}" "${LOCATION_CODE_IN_FILENAME}" "${NETWORK_IN_FILENAME}")
 
 parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml"
 
@@ -107,7 +104,7 @@ if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
 fi
 
 if [ "azure pipelines" == "$THIS_AGENT" ]; then
-	echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$ENVIRONMENT variable group"
+	echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$ENVIRONMENT_IN_FILENAME variable group"
 	exit 2
 fi
 
@@ -125,9 +122,9 @@ echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$CONFIG_REPO_PATH/SYS
 echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
 echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"
 
-echo "Environment:                         $ENVIRONMENT"
-echo "Location:                            $LOCATION"
-echo "Virtual network logical name:        $NETWORK"
+echo "Environment:                         $ENVIRONMENT_IN_FILENAME"
+echo "Location:                            $LOCATION_CODE_IN_FILENAME"
+echo "Virtual network logical name:        $NETWORK_IN_FILENAME"
 echo "Keyvault:                            $key_vault"
 echo "SAP Application BoM:                 $BOM_BASE_NAME"
 

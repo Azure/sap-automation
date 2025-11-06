@@ -58,7 +58,7 @@ if [ $USE_MSI == "true" ]; then
 fi
 
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.12.2}"
+	configureNonDeployer "${tf_version:-1.13.3}"
 fi
 
 if az account show --query name; then
@@ -122,7 +122,7 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
-tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_STATE_STORAGE_ACCOUNT' | project id, name, subscription" --query data[0].id --output tsv)
+tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 control_plane_subscription=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 
 export control_plane_subscription
@@ -148,8 +148,9 @@ if [ -f "${filename}" ]; then
 						-e '_workspace_directory=$PARAMETERS_FOLDER' $EXTRA_PARAMS               \
 						-e orchestration_ansible_user=$USER                                      \
 						-e ansible_user=$user_name                                               \
-						-e ansible_python_interpreter=/usr/bin/python3                          \
-						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' $EXTRA_PARAM_FILE ${filename}"
+						-e ansible_python_interpreter=/usr/bin/python3                           \
+						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' $EXTRA_PARAM_FILE              \
+						${filename}"
 
 	eval "${command}"
 	return_code=$?
@@ -159,13 +160,13 @@ if [ -f "${filename}" ]; then
 fi
 
 command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey       \
-					-e 'kv_name=$VAULT_NAME' -e @$SAP_PARAMS                                    \
-					-e 'download_directory=$AGENT_TEMPDIRECTORY'                                \
-					-e '_workspace_directory=$PARAMETERS_FOLDER'                                \
-					-e orchestration_ansible_user=$USER                                         \
-  				-e ansible_user=$user_name                                                  \
-					-e ansible_python_interpreter=/usr/bin/python3                              \
-					-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' $EXTRA_PARAMS $EXTRA_PARAM_FILE   \
+					-e 'kv_name=$VAULT_NAME' -e @$SAP_PARAMS                                 \
+					-e 'download_directory=$AGENT_TEMPDIRECTORY'                             \
+					-e '_workspace_directory=$PARAMETERS_FOLDER' $EXTRA_PARAMS               \
+					-e orchestration_ansible_user=$USER                                      \
+					-e ansible_user=$user_name                                               \
+					-e ansible_python_interpreter=/usr/bin/python3                           \
+					-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' $EXTRA_PARAM_FILE              \
           $ANSIBLE_FILE_PATH"
 
 redacted_command="ansible-playbook -i $INVENTORY -e @$SAP_PARAMS $EXTRA_PARAMS        \
@@ -195,14 +196,14 @@ if [ -f "${filename}" ]; then
 	echo "##[section]Executing [$redacted_command]..."
 
 	command="ansible-playbook -i '$INVENTORY' --private-key '$PARAMETERS_FOLDER/sshkey'   \
-						-e 'kv_name=$VAULT_NAME' -e @$SAP_PARAMS                                    \
-						-e 'download_directory=$AGENT_TEMPDIRECTORY'                                \
-						-e orchestration_ansible_user=$USER                                         \
-  					-e ansible_user=$user_name                                                  \
-
-						-e '_workspace_directory=$PARAMETERS_FOLDER'                                \
-						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' '${filename}' $EXTRA_PARAMS       \
-						$EXTRA_PARAM_FILE"
+						-e 'kv_name=$VAULT_NAME' -e @$SAP_PARAMS                                 \
+						-e 'download_directory=$AGENT_TEMPDIRECTORY'                             \
+						-e '_workspace_directory=$PARAMETERS_FOLDER' $EXTRA_PARAMS               \
+						-e orchestration_ansible_user=$USER                                      \
+						-e ansible_user=$user_name                                               \
+						-e ansible_python_interpreter=/usr/bin/python3                           \
+						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' $EXTRA_PARAM_FILE              \
+						${filename}"
 
 	eval "${command}"
 	return_code=$?

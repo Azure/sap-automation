@@ -51,14 +51,36 @@
 # ----------------------------------------
 # BEGIN
 # ----------------------------------------
+    # Build dictionary keyed by parameter name
+    # Distribution params processed last, so they override common
 
-- name:                                "1.9 Kernel parameters - Gather list of parameters which need to be applied"
+- name:                                "1.9 Kernel parameters - Build final parameter list with explicit precedence"
   ansible.builtin.set_fact:
-    get_parameters_to_apply:           '{{
-                                          (parameters["common"] +
-                                          (parameters[distribution_id] | default([]))) | unique
-                                        }}'
+    params_by_name: >-
+                                       {{
+                                         (common_params + distro_params) |
+                                         items2dict(key_attr='name')
+                                       }}
+  vars:
+    common_params: >-
+                                       {{
+                                         parameters['common'] | default([]) |
+                                         selectattr('tier', 'in', ['all', tier]) |
+                                         selectattr('node_tier', 'in', ['all', node_tier]) |
+                                         list
+                                       }}
+    distro_params: >-
+                                       {{
+                                         parameters[distribution_id] | default([]) |
+                                         selectattr('tier', 'in', ['all', tier]) |
+                                         selectattr('node_tier', 'in', ['all', node_tier]) |
+                                         list
+                                       }}
 
+
+- name:                                "1.9 Kernel parameters - Convert back to list for iteration"
+  ansible.builtin.set_fact:
+    get_parameters_to_apply:           "{{ params_by_name.values() | list }}"
 # Print Distribution ID if it is passed correctly.
 - name:                                "1.9 Kernel parameters - Display distribution_id which will be used"
   ansible.builtin.debug:

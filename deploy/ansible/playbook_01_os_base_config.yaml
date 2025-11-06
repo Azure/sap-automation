@@ -14,12 +14,6 @@
     - vars/ansible-input-api.yaml # API Input template with defaults
 
   tasks:
-    - name:                            "OS configuration playbook: - Ensure jmespath is installed in the playbook python"
-      ansible.builtin.pip:
-        name:                          jmespath
-        state:                         present
-      tags:
-        - always
 
     - name:                            "OS configuration playbook: - Create Progress folder"
       ansible.builtin.file:
@@ -97,7 +91,7 @@
           tags:
             - always
 
-        - name:                        "SAP OS configuration playbook: - : Extract Subscription ID, Resource Group Name and Virtual Machine name"
+        - name:                        "SAP OS configuration playbook: - Extract Subscription ID, Resource Group Name and Virtual Machine name"
           ansible.builtin.set_fact:
             subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
             resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"

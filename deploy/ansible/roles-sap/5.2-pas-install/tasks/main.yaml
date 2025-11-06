@@ -11,27 +11,20 @@
 
 ---
 
-- name:                                "PAS Install: Set the SCS Server name list"
+- name:                                "5.2 Primary Application Server Installation - Set the SCS Server name list"
   ansible.builtin.set_fact:
     scs_server_temp:                   "{{ scs_server_temp | default([]) + [item] }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
-- name:                                "PAS Install: -  Set the DB Server name list"
+- name:                                "5.2 Primary Application Server Installation - Set the DB Server name list"
   ansible.builtin.set_fact:
     db_server_temp:                    "{{ db_server_temp | default([]) + [item] }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
-- name:                                "Backward Compatibility - Check required Database HA variables"
-  ansible.builtin.set_fact:
-    database_high_availability:        "{{ db_high_availability | default(false) }}"
-  when:
-    - db_high_availability is defined
-    - database_high_availability is not defined
-
-- name:                                "PAS Install: Calculate virtual host name when running scale out"
+- name:                                "5.2 Primary Application Server Installation - Calculate virtual host name when running scale out"
   ansible.builtin.set_fact:
     db_virtualhost_temp:  >-
                                        {%- set _host_name = hostvars[db_server_temp | first]['virtual_host'] -%}
@@ -40,7 +33,7 @@
                                        {%- endif -%}
                                        {{- _host_name -}}
 
-- name:                                "PAS Install: Set BOM facts"
+- name:                                "5.2 Primary Application Server Installation - Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-pas-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "pas-inifile-param.j2"
@@ -48,11 +41,11 @@
     db_lb_virtual_host_HANA:           "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}{% else %}{{ db_virtualhost_temp | default(hostvars[db_server_temp | first]['virtual_host'], true) }}{% endif %}"
     db_lb_virtual_host_AnyDB:          "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}{% else %}{{ db_server_temp }}{% endif %}"
 
-- name:                                "PAS Install: Set BOM facts db host"
+- name:                                "5.2 Primary Application Server Installation - Set BOM facts db host"
   ansible.builtin.set_fact:
     db_lb_virtual_host:                "{% if platform == 'HANA' %}{{ custom_db_virtual_hostname | default(db_lb_virtual_host_HANA, true) }}{% else %}{{ custom_db_virtual_hostname | default(db_lb_virtual_host_AnyDB, true) }}{% endif %}"
 
-- name:                                "PAS Install: -  Create directories"
+- name:                                "5.2 Primary Application Server Installation - -  Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -62,34 +55,34 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
-- name:                                "PAS Install: reset"
+- name:                                "5.2 Primary Application Server Installation - Reset the installation flag file if reinstall is requested"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_pas.txt"
     state:                             absent
   when:                                reinstall
 
-- name:                                "PAS Install: check if {{ sid_to_be_deployed.sid | upper }} is installed"
+- name:                                "5.2 Primary Application Server Installation - check if {{ sid_to_be_deployed.sid | upper }} is installed"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_pas.txt"
   register:                            pas_installed
 
 # Returns bom object
-- name:                                "PAS Install: Register BoM"
+- name:                                "5.2 Primary Application Server Installation - Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    task_prefix:                       "PAS Install: "
+    task_prefix:                       "5.2 Primary Application Server Installation - "
     sa_enabled:                        true
 
-# - name:                                "PAS Install: Default instance type"
+# - name:                                "5.2 Primary Application Server Installation - Default instance type"
 #   ansible.builtin.set_fact:
 #     instance_type:                     "ASCS"
 #     public:                            true
 #   when:                                bom.InstanceType is not defined
 
-# - name:                                "PAS Install: register instance type if JAVA"
+# - name:                                "5.2 Primary Application Server Installation - register instance type if JAVA"
 #   ansible.builtin.set_fact:
 #     instance_type:                     "JAVA"
 #     public:                            true
@@ -97,12 +90,12 @@
 #     - bom.InstanceType is defined
 #     - bom.InstanceType | upper == 'JAVA'
 
-- name:                                "PAS Install: register variables"
+- name:                                "5.2 Primary Application Server Installation - Register installation variables"
   ansible.builtin.set_fact:
     pas_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
     public:                            true
 
-- name:                                "PAS Install: Check if the DB load balancer port is available and listening"
+- name:                                "5.2 Primary Application Server Installation - Check if the DB load balancer port is available and listening"
   ansible.builtin.wait_for:
     host:                              "{{ db_lb_virtual_host }}"
     port:                              "625{{ db_instance_number }}"
@@ -115,7 +108,7 @@
     - database_high_availability
     - platform == "HANA"
 
-- name:                                "PAS Install: DEBUG - DB Loadbalancer check"
+- name:                                "5.2 Primary Application Server Installation - DEBUG - DB Loadbalancer check"
   ansible.builtin.debug:
     msg:                               "{{ db_port_open.msg }}"
     verbosity:                         2
@@ -132,14 +125,14 @@
     - platform == "HANA"
     - db_port_open.msg is defined
 
-- name:                               "PAS Install: Set Schema Name"
+- name:                               "5.2 Primary Application Server Installation - Set Schema Name"
   when:
     - platform == "HANA"
   ansible.builtin.include_role:
     name:                             "roles-db/4.0.4-hdb-schema"
     public:                           true
 
-- name:                                "PAS Install"
+- name:                                "5.2 Primary Application Server Installation - Installation block"
   block:
 
     # *====================================4=======================================8
@@ -148,15 +141,16 @@
     # |                                                                            |
     # *====================================4=======================================8
 
-    - name:                            "PAS Install: Set the SCS Server name"
+    - name:                            "5.2 Primary Application Server Installation - Set the SCS Server name"
       ansible.builtin.set_fact:
         scs_server:                    "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
         db_virtual_hostname:           "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
         file_path:                     "{% if scs_high_availability %}INSTALL/HA/ABAP/APP1{% else %}INSTALL/DISTRIBUTED/ABAP/APP1{% endif %}"
         DB:                            "{% if MULTI_SIDS is defined %}{{ sid_to_be_deployed.sid | upper }}/HDB{{ db_instance_number }}{% else %}{{ db_sid | upper }}/HDB{{ db_instance_number }}{% endif %}"
         pas_virtual_hostname:          "{{ custom_pas_virtual_hostname | default(virtual_host, true) }}"
+        pas_bom_id:                    "{{ bom.product_ids.pas }}"
 
-    - name:                            "PAS Install: check media exists"
+    - name:                            "5.2 Primary Application Server Installation - Check installation media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"
       register:                        sapinst_found
@@ -166,7 +160,7 @@
         msg:                           "INSTALL:0006:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
-    - name:                            "PAS Install: Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
+    - name:                            "5.2 Primary Application Server Installation - Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
       ansible.builtin.template:
         src:                           "{{ sap_inifile_template }}"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
@@ -188,11 +182,7 @@
         virt_do_not_resolve_hostname:  "{{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
         db_schema:                     "{% if platform == 'HANA' %}{{ schema_name }}{% endif %}"
 
-    - name:                            "PAS Install: register variables"
-      ansible.builtin.set_fact:
-        pas_bom_id:                    "{{ bom.product_ids.pas }}"
-
-    - name:                            "PAS Install: install variables"
+    - name:                            "5.2 Primary Application Server Installation - Show installation variables"
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ pas_installed.stat.exists }}"
@@ -203,7 +193,7 @@
           - "HOST:       {{ pas_virtual_hostname }}"
           - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
-    - name:                            "PAS Install: HANA HSR - Update Profile"
+    - name:                            "5.2 Primary Application Server Installation - HANA HSR - Update Profile"
       ansible.builtin.import_tasks:    ../../../roles-db/4.0.1-hdb-hsr/tasks/4.0.1.7-sap-profile-changes.yml
       vars:
         instance_type:                 "{{ pas_bom_instance_type }}"
@@ -211,27 +201,12 @@
         - database_high_availability
         - platform == "HANA"
 
-    - name:                            "PAS Install: Create temp directory for sid"
-      ansible.builtin.file:
-        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
-        state:                         directory
-        mode:                          0755
-
-    - name:                            "PAS Install: debug"
-      ansible.builtin.command:         "cat {{ dir_params }}/{{ sap_inifile }}"
-      register:                        debug_inifile
-
-    - name:                            "PAS Install: progress"
-      ansible.builtin.debug:
-        var:                           debug_inifile
-        verbosity:                     4
-
-    - name:                            "PAS Install: Create Symlink"
+    - name:                            "5.2 Primary Application Server Installation - Create Symlink based on SAP Note 3119751"
       ansible.builtin.import_tasks:    ../../../roles-sap-os/2.10-sap-notes/tasks/2.10.3119751.yaml
       when:
         - ansible_os_family == 'RedHat'
 
-    - name:                            "PAS Install: Get hdbuserstore path"
+    - name:                            "5.2 Primary Application Server Installation - Get hdbuserstore path"
       become:                          true
       become_user:                     "root"
       ansible.builtin.find:
@@ -246,7 +221,7 @@
         - database_high_availability
         - platform == 'HANA'
 
-    - name:                            "PAS Install: Set hdbuserstore path"
+    - name:                            "5.2 Primary Application Server Installation - Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
       when:
@@ -254,25 +229,25 @@
         - platform == 'HANA'
         - hdbuserstore_file | length > 0
 
-    - name:                            "PAS Install: show hdbuserstore path"
+    - name:                            "5.2 Primary Application Server Installation - Show hdbuserstore path"
       ansible.builtin.debug:
         var:                           hdbuserstore_path
       when:
         - database_high_availability
         - platform == 'HANA'
 
-    - name:                            "Starting PAS installation"
+    - name:                            "5.2 Primary Application Server Installation - Start installation"
       block:
 
-        - name:                            "PAS Install: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
-          become:                          true
-          become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+        - name:                        "5.2 Primary Application Server Installation - Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
+          become:                      true
+          become_user:                 "{{ sid_to_be_deployed.sid | lower }}adm"
           ansible.builtin.shell: |
-                                           {{ hdbuserstore_path }} -H {{ pas_virtual_hostname }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
+                                       {{ hdbuserstore_path }} -H {{ pas_virtual_hostname }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
           environment:
-            SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-            ssfs_connect:                  "1"
-          register:                        hdbuserstore
+            SAPSYSTEMNAME:             "{{ sid_to_be_deployed.sid | upper }}"
+            ssfs_connect:              "1"
+          register:                    hdbuserstore
           vars:
             allow_world_readable_tmpfiles: true
           when:
@@ -280,15 +255,15 @@
             - platform == 'HANA'
             - hdbuserstore_path | length > 0
 
-        - name:                            "PAS Install: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
-          become:                          true
-          become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+        - name:                        "5.2 Primary Application Server Installation - Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
+          become:                      true
+          become_user:                 "{{ sid_to_be_deployed.sid | lower }}adm"
           ansible.builtin.shell: |
-                                           {{ hdbuserstore_path }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
+                                       {{ hdbuserstore_path }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
           environment:
-            SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-            ssfs_connect:                  "1"
-          register:                        hdbuserstore
+            SAPSYSTEMNAME:             "{{ sid_to_be_deployed.sid | upper }}"
+            ssfs_connect:              "1"
+          register:                    hdbuserstore
           vars:
             allow_world_readable_tmpfiles: true
           when:
@@ -296,22 +271,22 @@
             - platform == 'HANA'
             - hdbuserstore_path | length > 0
 
-        - name:                            "PAS Install: Ensure ownership"
+        - name:                        "5.2 Primary Application Server Installation - Ensure ownership"
           ansible.builtin.file:
-            path:                          "{{ item.path }}"
-            owner:                         '{{ sid_to_be_deployed.sidadm_uid }}'
-            group:                         sapsys
-            recurse:                       true
-            state:                         directory
+            path:                      "{{ item.path }}"
+            owner:                     '{{ sid_to_be_deployed.sidadm_uid }}'
+            group:                     sapsys
+            recurse:                   true
+            state:                     directory
           loop:
             - { path: '/sapmnt/{{ sap_sid | upper }}' }
             - { path: '/usr/sap/{{ sap_sid | upper }}' }
 
-        - name:                            "PAS Install: progress"
+        - name:                        "5.2 Primary Application Server Installation - Show starting message"
           ansible.builtin.debug:
-            msg:                           "Starting PAS installation ({{ sid_to_be_deployed.sid | upper }})"
+            msg:                       "Starting PAS installation ({{ sid_to_be_deployed.sid | upper }})"
 
-        - name:                            "PAS Install"
+        - name:                        "5.2 Primary Application Server Installation - Run 'sapinst'"
           ansible.builtin.shell: |
                                           umask {{ custom_umask | default('022') }} ;
                                           ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}  \
@@ -331,39 +306,39 @@
           failed_when:                 pas_installation.rc > 0
 
       rescue:
-        - name:                        "PAS Install: Capturing the modified message for message server being offline"
+        - name:                        "5.2 Primary Application Server Installation - Capturing the modified message for message server being offline"
           ansible.builtin.set_fact:
             modified_error_message:    "{{ pas_installation.stdout | try_get_error_code(task_tag='pasinstall', failure='messageserver_offline') }}"
 
-        - name:                        "PAS Install: Capturing the modified message for database being offline"
+        - name:                        "5.2 Primary Application Server Installation - Capturing the modified message for database being offline"
           ansible.builtin.set_fact:
             modified_error_message:    "{{ modified_error_message | try_get_error_code(task_tag='pasinstall', failure='db_offline') }}"
 
-        - name:                        "PAS Install: Show error message"
+        - name:                        "5.2 Primary Application Server Installation - Show error message"
           ansible.builtin.debug:
             msg:                       "Modified error message: {{ modified_error_message }}"
           when:                        modified_error_message != pas_installation.stdout
 
-        - name:                        "PAS Install: Fail with the modified error message "
+        - name:                        "5.2 Primary Application Server Installation - Fail with the modified error message "
           ansible.builtin.fail:
             msg:                       "{{ modified_error_message }}"
 
-    - name:                            "PAS Install: Installation results"
+    - name:                            "5.2 Primary Application Server Installation - Show installation failure results"
       ansible.builtin.debug:
         var:                           pas_installation
       when:                            pas_installation.rc > 0
 
-    - name:                            "PAS Install: Installation results"
+    - name:                            "5.2 Primary Application Server Installation - Show installation results"
       ansible.builtin.debug:
         msg:                           "PAS Installation succeeded"
       when:                            pas_installation.rc == 0
 
-    - name:                            "PAS Install: Cleanup ini file {{ ansible_hostname }}"
+    - name:                            "5.2 Primary Application Server Installation - Cleanup ini file {{ ansible_hostname }}"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
-    - name:                            "PAS Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
+    - name:                            "5.2 Primary Application Server Installation - Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
         paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.pas.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/{{ file_path }}"
         file_type:                     file
@@ -371,7 +346,7 @@
         recurse:                       true
       register:                        pas_installed_according_to_sapinst
 
-    - name:                            "PAS Install: flag"
+    - name:                            "5.2 Primary Application Server Installation - Set the installation flag file"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_pas.txt"
         state:                         touch
@@ -381,7 +356,7 @@
         - pas_installed_according_to_sapinst is defined
         - pas_installed_according_to_sapinst | length > 0
 
-    - name:                            "PAS Install: Check if Standalone"
+    - name:                            "5.2 Primary Application Server Installation - Check if Standalone installation"
       ansible.builtin.set_fact:
         servers_temp:                  "{{ servers_temp | default([]) + [item] }}"
       with_items:
@@ -389,13 +364,13 @@
         - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
         - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') }}"
 
-    - name:                            "PAS Install: Restart SAPHostCtrl"
+    - name:                            "5.2 Primary Application Server Installation - Restart SAPHostCtrl"
       become:                          true
       ansible.builtin.command:         /usr/sap/hostctrl/exe/saphostexec -restart
       register:                        saphostexec_result
       when:                            (servers_temp | length) == 1
 
-    - name:                            "PAS Install: SAPHostCtrl output"
+    - name:                            "5.2 Primary Application Server Installation - SAPHostCtrl output"
       ansible.builtin.debug:
         var:                           saphostexec_result
       when:                            (servers_temp | length) == 1
@@ -403,21 +378,21 @@
   when:
     - not pas_installed.stat.exists
 
-- name:                                "PAS Install: - status"
+- name:                                "5.2 Primary Application Server Installation - Installation status"
   block:
-    - name:                            "PAS Install: - status"
+    - name:                            "5.2 Primary Application Server Installation - Show status"
       ansible.builtin.debug:
         msg:                           "PAS Installation is already performed ({{ sid_to_be_deployed.sid | upper }})"
 
-    - name:                            "PAS Install: - return value"
+    - name:                            "5.2 Primary Application Server Installation - Set return value"
       ansible.builtin.set_fact:
         pas_already_installed:         true
 
-    - name:                            "PAS Install: Calculate the virtual host name"
+    - name:                            "5.2 Primary Application Server Installation - Calculate the virtual host name"
       ansible.builtin.set_fact:
         pas_virtual_hostname:          "{{ custom_pas_virtual_hostname | default(virtual_host, true) }}"
 
-    - name:                            "PAS Install: Get hdbuserstore path"
+    - name:                            "5.2 Primary Application Server Installation - Get hdbuserstore path"
       become:                          true
       become_user:                     "root"
       ansible.builtin.find:
@@ -432,7 +407,7 @@
         - database_high_availability
         - platform == 'HANA'
 
-    - name:                            "PAS Install: Set hdbuserstore path"
+    - name:                            "5.2 Primary Application Server Installation - Set hdbuserstore path"
       ansible.builtin.set_fact:
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
       when:
@@ -440,14 +415,14 @@
         - platform == 'HANA'
         - hdbuserstore_file.matched > 0
 
-    - name:                            "PAS Install: show hdbuserstore path"
+    - name:                            "5.2 Primary Application Server Installation - Show hdbuserstore path"
       ansible.builtin.debug:
         var:                           hdbuserstore_path
       when:
         - database_high_availability
         - platform == 'HANA'
 
-    - name:                            "PAS Install: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
+    - name:                            "5.2 Primary Application Server Installation - Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
       ansible.builtin.shell: |
                                        {{ hdbuserstore_path }} -H {{ pas_virtual_hostname }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
       environment:

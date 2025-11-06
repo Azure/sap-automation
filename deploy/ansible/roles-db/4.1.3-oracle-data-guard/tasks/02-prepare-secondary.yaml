@@ -1,0 +1,162 @@
+---
+- name:                                "4.1.3 Oracle Data Guard - Preparation - Set DB Path "
+  ansible.builtin.set_fact:
+    db_path:                           "{% if node_tier == 'oracle-asm' %}GRID{% else %}{{ db_sid | upper }}{% endif %}"
+
+- name:                                "4.1.3 Oracle Data Guard - Preparation - Check if SPFile exists"
+  become:                              true
+  become_user:                         "{{ oracle_user_name }}"
+  ansible.builtin.stat:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/spfile{{ db_sid | upper }}_STDBY.ora"
+  register:                            spfile_stat
+
+- name:                                "4.1.3 Oracle Data Guard - Preparation - If SPFile does not exists"
+  when:                                not spfile_stat.stat.exists
+  block:
+
+    - name:                            "4.1.3 Oracle Data Guard - Preparation: Create folders"
+      when:                            node_tier == "oracle"
+      become:                          true
+      become_user:                     "root"
+      ansible.builtin.file:
+        state:                         directory
+        path:                          "{{ item.path }}"
+        owner:                         "{{ oracle_user_name }}"
+        group:                         oinstall
+        mode:                          "{{ item.mode }}"
+      loop:
+        - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/oraarch' }
+        - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/oraarch/standbylog' }
+        - { mode: '0775', path: '/usr/sap/install/downloads/{{ sap_sid | upper }}' }
+        - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/origlogA/cntrl' }
+        - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/origlogB/cntrl' }
+        - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/sapdata1/cntrl' }
+        - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/oraflash' }
+        - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/oraarch' }
+        - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/oraarch/{{ db_sid | upper }}arch' }
+
+    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Deploy standby tnsnames.ora"
+      ansible.builtin.template:
+        src:                           tnsnames_secondary.ora.j2
+        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/tnsnames.ora"
+        owner:                         "{{ oracle_user_name }}"
+        group:                         "{{ oracle_group }}"
+        mode:                          '0644'
+
+    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Deploy standby tnsnames.ora for app servers"
+      ansible.builtin.template:
+        src:                           tnsnames_secondary.ora.j2
+        dest:                          "{{ target_media_location }}/downloads/{{ sap_sid | upper }}/saptnsnames.ora"
+        owner:                         "{{ oracle_user_name }}"
+        group:                         "{{ oracle_group }}"
+        mode:                          '0644'
+
+    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Create the sqlnet.ora for Secondary"
+      ansible.builtin.template:
+        src:                           sqlnet_secondary.ora.j2
+        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/sqlnet.ora"
+        owner:                         "{{ oracle_user_name }}"
+        group:                         "{{ oracle_group }}"
+        mode:                          '0644'
+        force:                         true
+
+    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Configure static listener registration"
+      when:                            node_tier == "oracle"
+      ansible.builtin.template:
+        src:                           listener_secondary.ora.j2
+        dest:                          "/oracle/{{ db_path }}/{{ ora_version }}/network/admin/listener.ora"
+        owner:                         "{{ oracle_user_name }}"
+        group:                         "{{ oracle_group }}"
+        mode:                          '0644'
+      register:                        listener_config
+
+    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Configure static listener registration"
+      when:                            node_tier == "oracle-asm"
+      ansible.builtin.template:
+        src:                           listener_secondary.ora.j2
+        dest:                          "/oracle/{{ db_path }}/{{ ora_version }}/network/admin/listener.ora"
+        owner:                         "{{ grid_user_name }}"
+        group:                         "{{ oracle_group }}"
+        mode:                          '0644'
+      register:                        listener_config
+
+    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Start listener"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       export ORACLE_HOME=/oracle/{{ db_path }}/{{ ora_version }}
+                                       /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl start
+      environment:                     "{{ oracle_env }}"
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+      register:                        listener_start_results
+      failed_when:
+                                       - listener_start_results.rc not in [0, 1]
+                                       - "'TNS-01106' not in listener_start_results.stdout"
+
+    - name:                            "4.1.3 Oracle Data Guard - Set Variables"
+      ansible.builtin.set_fact:
+        pga_temp_l4tb_std:             "{{ ((ansible_memory_mb.real.total * 0.60 ) * 0.2) | round | int }}"
+        pga_temp_l4tb_dis:             "{{ ((ansible_memory_mb.real.total * 0.80 ) * 0.2) | round | int }}"
+
+    - name:                            "4.1.3 Oracle Data Guard - Set the SGA and PGA Sizes for RAM < 4TB"
+      ansible.builtin.set_fact:
+        main_mem1:                     "{{ ansible_memory_mb.real.total }}"
+        ora_sga:                       "{{ (ansible_memory_mb.real.total * 0.60) | round | int }}"
+        ora_pga:                       "{{ [(pga_temp_l4tb_std | int), 4194304] | min }}"
+      when:
+        - ansible_memory_mb.real.total < 4194304
+
+    - name:                            "4.1.3 Oracle Data Guard - Set the SGA and PGA Sizes for RAM > 4TB"
+      ansible.builtin.set_fact:
+        ora_sga:                       "{{ (ansible_memory_mb.real.total * 0.65) | round | int }}"
+        ora_pga:                       "{{ ((ansible_memory_mb.real.total*0.65)*0.2) | round | int }}"
+      when:
+        - ansible_memory_mb.real.total > 4194304
+
+    - name:                            "4.1.3 Oracle Data Guard - Show Main Memory"
+      ansible.builtin.debug:
+          msg:
+          - "Total memory:         {{ main_mem1 }}"
+          - "sga_max_size:         {{ ora_sga }}"
+          - "pga_aggregate_target: {{ ora_pga }}"
+
+    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Create standby initialization file"
+      ansible.builtin.template:
+        src:                           init_standby.ora.j2
+        dest:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ db_sid | upper }}_STDBY.ora"
+        owner:                         "{{ oracle_user_name }}"
+        group:                         "{{ oracle_group }}"
+        mode:                          '0644'
+      vars:
+        sga_max_size:                  "{{ ora_sga }}M"
+        pga_aggregate_target:          "{{ ora_pga }}M"
+
+    - name:                            "4.1.3 Oracle Data Guard ASM - Preparation - Create ASM Directories for Secondary System"
+      when:                            node_tier == "oracle-asm"
+      become:                          true
+      become_user:                     "{{ grid_user_name }}"
+      ansible.builtin.shell: |
+                                       asmcmd --privilege sysdba mkdir {{ item.path }};
+      environment:                     "{{ grid_env }}"
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+      loop:
+        - { path: 'DATA/{{ db_sid | upper }}_STDBY' }
+        - { path: 'DATA/{{ db_sid | upper }}_STDBY/DG_CONFIG' }
+        - { path: 'DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE' }
+      register:                        asm_oraarch_folders_created_results
+      failed_when:
+                                      - asm_oraarch_folders_created_results.rc != 0
+                                      - not asm_oraarch_folders_created_results.stderr is search('ORA-15032|ORA-15005')
+      changed_when:                    asm_oraarch_folders_created_results.rc == 0
+
+    - name:                            "4.1.3 Oracle Data Guard: - Restart Secondary"
+      ansible.builtin.include_tasks:   "00-restart-instance.yaml"
+      vars:
+        current_sid:                   "{{ db_sid | upper }}_STDBY"
+        use_pfile_on_startup:           true
+
+    - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Ensure listener is started"
+      ansible.builtin.pause:
+        seconds:                       30

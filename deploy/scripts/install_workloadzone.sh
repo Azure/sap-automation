@@ -23,11 +23,11 @@ parent_caller_directory="$(dirname $(realpath "${parent_caller}"))"
 
 # Check if parent caller is from v1 directory
 if [[ "${parent_caller_directory}" == *"/v1/"* || "${parent_caller_directory}" == *"/v1" ]]; then
-    echo "DEBUG: Detected v1 caller"
-		isCallerV1=0
+	echo "DEBUG: Detected v1 caller"
+	isCallerV1=0
 else
-		echo "DEBUG: Detected v2 caller"
-    isCallerV1=1
+	echo "DEBUG: Detected v2 caller"
+	isCallerV1=1
 fi
 
 #call stack has full script name when using source
@@ -65,7 +65,7 @@ while :; do
 		shift 2
 		;;
 	-d | --deployer_tfstate_key)
-		deployer_tfstate_key="$2"
+		deployerTerraformStatefileName="$2"
 		shift 2
 		;;
 	-e | --deployer_environment)
@@ -125,10 +125,7 @@ while :; do
 done
 tfstate_resource_id=""
 tfstate_parameter=""
-
-deployer_tfstate_key_parameter=""
 landscape_tfstate_key=""
-landscape_tfstate_key_parameter=""
 
 deployment_system="sap_landscape"
 
@@ -227,52 +224,46 @@ fi
 
 #Persisting the parameters across executions
 
-automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
-generic_config_information="${automation_config_directory}"/config
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+generic_environment_file_name="${automation_config_directory}"/config
 
-if [ $isCallerV1 -eq 1 ]; then
-	if [ "$deployer_environment" != "$environment" ]; then
-		if [ -f "${automation_config_directory}/${environment}${region_code}" ]; then
-			# Add support for having multiple vnets in the same environment and zone - rename exiting file to support seamless transition
-			if [ -f "${automation_config_directory}/${environment}${region_code}${network_logical_name}" ]; then
-				mv "${automation_config_directory}/${environment}${region_code}" "${automation_config_directory}/${environment}${region_code}${network_logical_name}"
-			fi
-		fi
-	fi
+ENVIRONMENT=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
+LOCATION_CODE=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $2}' | xargs)
+NETWORK=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $3}' | xargs)
+if [ -z "$ENVIRONMENT" ] || [ -z "$LOCATION_CODE" ] || [ -z "$NETWORK" ]; then
+	echo "Could not extract environment, location or network from parameter file name"
+	echo "Expected format <environment>-<location>-<network>-INFRASTRUCTURE.tfvars"
+	exit 2
 fi
 
-if [ $isCallerV1 -eq 0 ]; then
-	workload_config_information="${automation_config_directory}/${environment}${region_code}"
-elif [ $isCallerV1 -eq 1 ]; then
-	workload_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
-fi
+workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION_CODE}" "${NETWORK}")
 
-touch "${workload_config_information}"
-deployer_config_information="${automation_config_directory}/${deployer_environment}${region_code}"
-save_config_vars "${workload_config_information}" \
+touch "${workload_environment_file_name}"
+DEPLOYER_ENVIRONMENT=$(echo "$deployerTerraformStatefileName" | awk -F'-' '{print $1}' | xargs)
+DEPLOYER_LOCATION=$(echo "$deployerTerraformStatefileName" | awk -F'-' '{print $2}' | xargs)
+DEPLOYER_NETWORK=$(echo "$deployerTerraformStatefileName" | awk -F'-' '{print $3}' | xargs)
+
+if [ -z "$DEPLOYER_ENVIRONMENT" ] || [ -z "$DEPLOYER_LOCATION" ] || [ -z "$DEPLOYER_NETWORK" ]; then
+	echo "Could not extract environment, location or network from parameter file name"
+	echo "Expected format <environment>-<location>-<network>-INFRASTRUCTURE.tfvars"
+	exit 2
+fi
+deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${DEPLOYER_ENVIRONMENT}" "${DEPLOYER_LOCATION}" "${DEPLOYER_NETWORK}")
+
+save_config_vars "${workload_environment_file_name}" \
 	STATE_SUBSCRIPTION REMOTE_STATE_SA subscription
 
 if [ "${force}" == 1 ]; then
-	if [ -f "${workload_config_information}" ]; then
-		rm "${workload_config_information}"
+	if [ -f "${workload_environment_file_name}" ]; then
+		rm "${workload_environment_file_name}"
 	fi
 	rm -Rf .terraform terraform.tfstate*
 fi
 
-echo ""
-echo "Configuration file:                  $workload_config_information"
-echo "Deployment region:                   $region"
-echo "Deployment region code:              $region_code"
-echo "Deployment environment:              $deployer_environment"
-echo "Deployer Keyvault:                   $keyvault"
-echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
-echo "Remote state storage account:        $REMOTE_STATE_SA"
-echo "Target Subscription:                 $subscription"
-
 if [[ -n $STATE_SUBSCRIPTION ]]; then
 	if is_valid_guid "$STATE_SUBSCRIPTION"; then
 
-		save_config_vars "${workload_config_information}" \
+		save_config_vars "${workload_environment_file_name}" \
 			STATE_SUBSCRIPTION
 
 		echo ""
@@ -291,19 +282,59 @@ if [[ -n $STATE_SUBSCRIPTION ]]; then
 		echo -e "#The provided state_subscription is not valid:$bold_red ${val} $reset_formatting#"
 		echo "#                                                                                       #"
 		echo "#########################################################################################"
-		echo "The provided subscription for the terraform storage is not valid: ${val}" >"${workload_config_information}".err
+		echo "The provided subscription for the terraform storage is not valid: ${val}" >"${workload_environment_file_name}".err
 		exit 65
 	fi
 
 fi
+if [ -z "${keyvault}" ]; then
+	load_config_vars "${deployer_environment_file_name}" "keyvault"
+fi
+
+load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_RG"
+if [ -z "${REMOTE_STATE_SA}" ]; then
+	load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
+fi
+load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
+load_config_vars "${deployer_environment_file_name}" ""
+deployer_tfstate_key="${deployerTerraformStatefileName}"
+save_config_var "deployer_tfstate_key" "${workload_environment_file_name}"
+
+
+if [[ -n $deployer_tfstate_key ]]; then
+
+  deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+
+	deployer_Statefile_Size=$(expr "$deployer_Statefile_Size_String")
+
+	if [ "$deployer_Statefile_Size" -lt 50000 ]; then
+			print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "error"
+			unset TF_DATA_DIR
+
+			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+			exit 2
+	fi
+fi
+
 
 if [ -n "$REMOTE_STATE_SA" ]; then
-	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_config_information}"
+	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_environment_file_name}"
 fi
+
+echo ""
+echo "Configuration file:                  $workload_environment_file_name"
+echo "Control plane configuration file:    $deployer_environment_file_name"
+echo "Deployment region:                   $region"
+echo "Deployment region code:              $region_code"
+echo "Deployment environment:              $deployer_environment"
+echo "Deployer Keyvault:                   $keyvault"
+echo "Deployer Subscription:               $STATE_SUBSCRIPTION"
+echo "Remote state storage account:        $REMOTE_STATE_SA"
+echo "Target Subscription:                 $subscription"
 
 if [ -n "$keyvault" ]; then
 	if valid_kv_name "$keyvault"; then
-		save_config_var "keyvault" "${workload_config_information}"
+		save_config_var "keyvault" "${workload_environment_file_name}"
 	else
 		printf -v val %-40.40s "$keyvault"
 		echo "#########################################################################################"
@@ -312,74 +343,56 @@ if [ -n "$keyvault" ]; then
 		echo "#                                                                                       #"
 		echo "#########################################################################################"
 
-		echo "The provided keyvault is not valid: ${val}" >"${workload_config_information}".err
+		echo "The provided keyvault is not valid: ${val}" >"${workload_environment_file_name}".err
 		exit 65
 	fi
 
 fi
 
-if [ ! -f "${workload_config_information}" ]; then
+if [ ! -f "${workload_environment_file_name}" ]; then
 	# Ask for deployer environment name and try to read the deployer state file and resource group details from the configuration file
 	if [ -z "$deployer_environment" ]; then
 		read -r -p "Deployer environment name: " deployer_environment
 	fi
 
-	deployer_config_information="${automation_config_directory}"/"${deployer_environment}""${region_code}"
-	if [ -f "$deployer_config_information" ]; then
-		if [ -z "${keyvault}" ]; then
-			load_config_vars "${deployer_config_information}" "keyvault"
-		fi
-
-		load_config_vars "${deployer_config_information}" "REMOTE_STATE_RG"
-		if [ -z "${REMOTE_STATE_SA}" ]; then
-			load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
-		fi
-		load_config_vars "${deployer_config_information}" "tfstate_resource_id"
-		load_config_vars "${deployer_config_information}" "deployer_tfstate_key"
-
-		save_config_vars "${workload_config_information}" \
-			keyvault \
-			subscription \
-			deployer_tfstate_key \
-			tfstate_resource_id \
-			REMOTE_STATE_SA \
-			REMOTE_STATE_RG
-	fi
+	save_config_vars "${workload_environment_file_name}" \
+		keyvault \
+		subscription \
+		deployer_tf_state \
+		tfstate_resource_id \
+		REMOTE_STATE_SA \
+		REMOTE_STATE_RG
 fi
 
 if [ -z "$tfstate_resource_id" ]; then
 	echo "No tfstate_resource_id"
-	if [ -n "$deployer_environment" ]; then
-		deployer_config_information="${automation_config_directory}"/"${deployer_environment}""${region_code}"
-		echo "Deployer config file:                $deployer_config_information"
-		if [ -f "$deployer_config_information" ]; then
-			load_config_vars "${deployer_config_information}" "keyvault"
-			load_config_vars "${deployer_config_information}" "REMOTE_STATE_RG"
-			load_config_vars "${deployer_config_information}" "REMOTE_STATE_SA"
-			load_config_vars "${deployer_config_information}" "tfstate_resource_id"
-			load_config_vars "${deployer_config_information}" "deployer_tfstate_key"
+	if [ -f "$deployer_environment_file_name" ]; then
+		load_config_vars "${deployer_environment_file_name}" "keyvault"
+		load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_RG"
+		load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
+		load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
+		load_config_vars "${deployer_environment_file_name}" "deployer_tf_state"
 
-			save_config_vars "${workload_config_information}" \
-				tfstate_resource_id
+		save_config_vars "${workload_environment_file_name}" \
+			tfstate_resource_id
 
-			save_config_vars "${workload_config_information}" \
-				keyvault \
-				subscription \
-				deployer_tfstate_key \
-				REMOTE_STATE_SA \
-				REMOTE_STATE_RG
-		fi
+		save_config_vars "${workload_environment_file_name}" \
+			keyvault \
+			subscription \
+			deployer_tf_state \
+			REMOTE_STATE_SA \
+			REMOTE_STATE_RG
 	fi
 else
 
 	echo "Terraform Storage Account Id:        $tfstate_resource_id"
 
-	save_config_vars "${workload_config_information}" \
+	save_config_vars "${workload_environment_file_name}" \
 		tfstate_resource_id
 fi
 
 echo ""
-init "${automation_config_directory}" "${generic_config_information}" "${workload_config_information}"
+init "${automation_config_directory}" "${generic_environment_file_name}" "${workload_environment_file_name}"
 
 param_dirname=$(pwd)
 var_file="${param_dirname}"/"${parameterfile}"
@@ -403,7 +416,7 @@ if [ -n "$subscription" ]; then
 		echo "#                                                                                       #"
 		echo "#########################################################################################"
 
-		echo "The provided subscription is not valid: ${val}" >"${workload_config_information}".err
+		echo "The provided subscription is not valid: ${val}" >"${workload_environment_file_name}".err
 
 		exit 65
 	fi
@@ -447,22 +460,22 @@ fi
 # fi
 
 if [[ -z ${REMOTE_STATE_SA} ]]; then
-	load_config_vars "${workload_config_information}" "REMOTE_STATE_SA"
+	load_config_vars "${workload_environment_file_name}" "REMOTE_STATE_SA"
 fi
 
-load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
-load_config_vars "${workload_config_information}" "tfstate_resource_id"
+load_config_vars "${workload_environment_file_name}" "REMOTE_STATE_RG"
+load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
 
 if [[ -z ${STATE_SUBSCRIPTION} ]]; then
-	load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
+	load_config_vars "${workload_environment_file_name}" "STATE_SUBSCRIPTION"
 fi
 
 if [[ -z ${subscription} ]]; then
-	load_config_vars "${workload_config_information}" "subscription"
+	load_config_vars "${workload_environment_file_name}" "subscription"
 fi
 
-if [[ -z ${deployer_tfstate_key} ]]; then
-	load_config_vars "${workload_config_information}" "deployer_tfstate_key"
+if [[ -z ${deployerTerraformStatefileName} ]]; then
+	load_config_vars "${workload_environment_file_name}" "deployerTerraformStatefileName"
 fi
 
 if [ -n "$tfstate_resource_id" ]; then
@@ -470,12 +483,12 @@ if [ -n "$tfstate_resource_id" ]; then
 	REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d / -f9)
 	STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d / -f3)
 
-	save_config_vars "${workload_config_information}" \
+	save_config_vars "${workload_environment_file_name}" \
 		REMOTE_STATE_SA \
 		REMOTE_STATE_RG \
 		STATE_SUBSCRIPTION
 else
-	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_config_information}"
+	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_environment_file_name}"
 fi
 
 if [ -z "$subscription" ]; then
@@ -484,7 +497,7 @@ fi
 
 if [ -z "$REMOTE_STATE_SA" ]; then
 	if [ -z "$REMOTE_STATE_RG" ]; then
-		load_config_vars "${workload_config_information}" "tfstate_resource_id"
+		load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
 		if [ -n "${tfstate_resource_id}" ]; then
 			REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d / -f5)
 			REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d / -f9)
@@ -496,10 +509,10 @@ if [ -z "$REMOTE_STATE_SA" ]; then
 	export TF_VAR_tfstate_resource_id=${tfstate_resource_id}
 else
 	if [ -z "$REMOTE_STATE_RG" ]; then
-		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_config_information}"
-		load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
-		load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
-		load_config_vars "${workload_config_information}" "tfstate_resource_id"
+		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_environment_file_name}"
+		load_config_vars "${workload_environment_file_name}" "STATE_SUBSCRIPTION"
+		load_config_vars "${workload_environment_file_name}" "REMOTE_STATE_RG"
+		load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
 	fi
 fi
 
@@ -535,8 +548,8 @@ else
 	if [ -n "${keyvault}" ]; then
 		echo "Setting the secrets"
 
-		save_config_var "client_id" "${workload_config_information}"
-		save_config_var "tenant_id" "${workload_config_information}"
+		save_config_var "client_id" "${workload_environment_file_name}"
+		save_config_var "tenant_id" "${workload_environment_file_name}"
 
 		if [ -n "$spn_secret" ]; then
 			fixed_allParameters=$(printf " --workload --environment %s --region %s --vault %s  --subscription %s --spn_secret ***** --keyvault_subscription %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${ARM_SUBSCRIPTION_ID}" "${STATE_SUBSCRIPTION}" "${client_id}" "${tenant_id}")
@@ -570,26 +583,14 @@ else
 	fi
 fi
 
-if [ -z "${deployer_tfstate_key}" ]; then
-	load_config_vars "${workload_config_information}" "deployer_tfstate_key"
-	if [ -n "${deployer_tfstate_key}" ]; then
-		# Deployer state was specified in $CONFIG_REPO_PATH/.sap_deployment_automation library config
-		deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
-		export TF_VAR_deployer_tfstate_key_parameter=${deployer_tfstate_key}
-
-	fi
-else
-	deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key}"
-	export TF_VAR_deployer_tfstate_key_parameter=${deployer_tfstate_key}
-	save_config_vars "${workload_config_information}" deployer_tfstate_key
-fi
+export TF_VAR_deployer_tfstate_key=${deployerTerraformStatefileName}
 
 if [ -z "${REMOTE_STATE_SA}" ]; then
 	read -r -p "Terraform state storage account name: " REMOTE_STATE_SA
-	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_config_information}"
-	load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
-	load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
-	load_config_vars "${workload_config_information}" "tfstate_resource_id"
+	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_environment_file_name}"
+	load_config_vars "${workload_environment_file_name}" "STATE_SUBSCRIPTION"
+	load_config_vars "${workload_environment_file_name}" "REMOTE_STATE_RG"
+	load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
 
 	tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 	export TF_VAR_tfstate_resource_id=${tfstate_resource_id}
@@ -604,16 +605,16 @@ fi
 
 if [ -z "${REMOTE_STATE_RG}" ]; then
 	if [ -n "${REMOTE_STATE_SA}" ]; then
-		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_config_information}"
-		load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
-		load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
-		load_config_vars "${workload_config_information}" "tfstate_resource_id"
+		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_environment_file_name}"
+		load_config_vars "${workload_environment_file_name}" "STATE_SUBSCRIPTION"
+		load_config_vars "${workload_environment_file_name}" "REMOTE_STATE_RG"
+		load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
 
 		tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 	else
 		option="REMOTE_STATE_RG"
 		read -r -p "Remote state resource group name: " REMOTE_STATE_RG
-		save_config_vars "${workload_config_information}" REMOTE_STATE_RG
+		save_config_vars "${workload_environment_file_name}" REMOTE_STATE_RG
 	fi
 fi
 
@@ -621,8 +622,8 @@ if [ -n "${tfstate_resource_id}" ]; then
 	tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 	export TF_VAR_tfstate_resource_id=${tfstate_resource_id}
 else
-	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_config_information}"
-	load_config_vars "${workload_config_information}" "tfstate_resource_id"
+	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_environment_file_name}"
+	load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
 	tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 	export TF_VAR_tfstate_resource_id=${tfstate_resource_id}
 fi
@@ -739,12 +740,12 @@ else
 	check_output=0
 fi
 
-save_config_var "REMOTE_STATE_SA" "${workload_config_information}"
-save_config_var "subscription" "${workload_config_information}"
-save_config_var "STATE_SUBSCRIPTION" "${workload_config_information}"
-save_config_var "tfstate_resource_id" "${workload_config_information}"
+save_config_var "REMOTE_STATE_SA" "${workload_environment_file_name}"
+save_config_var "subscription" "${workload_environment_file_name}"
+save_config_var "STATE_SUBSCRIPTION" "${workload_environment_file_name}"
+save_config_var "tfstate_resource_id" "${workload_environment_file_name}"
 
-allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
+allParameters=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" )
 
 if [ 1 == $check_output ]; then
 	if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
@@ -767,7 +768,7 @@ if [ 1 == $check_output ]; then
 
 		workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
 		if valid_kv_name "$workloadkeyvault"; then
-			save_config_var "workloadkeyvault" "${workload_config_information}"
+			save_config_var "workloadkeyvault" "${workload_environment_file_name}"
 		fi
 
 		deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version)
@@ -775,7 +776,7 @@ if [ 1 == $check_output ]; then
 			echo ""
 			echo "#########################################################################################"
 			echo "#                                                                                       #"
-			echo -e "#   $bold_red The environment was deployed using an older version of the Terrafrom templates $reset_formatting    #"
+			echo -e "#   $bold_red The environment was deployed using an older version of the Terraform templates $reset_formatting    #"
 			echo "#                                                                                       #"
 			echo "#                               !!! Risk for Data loss !!!                              #"
 			echo "#                                                                                       #"
@@ -784,7 +785,7 @@ if [ 1 == $check_output ]; then
 			echo "#########################################################################################"
 			if [ 1 == $called_from_ado ]; then
 				unset TF_DATA_DIR
-				echo "The environment was deployed using an older version of the Terraform templates, Risk for data loss" >"${workload_config_information}".err
+				echo "The environment was deployed using an older version of the Terraform templates, Risk for data loss" >"${workload_environment_file_name}".err
 
 				exit 1
 			fi
@@ -905,7 +906,7 @@ echo "#                                                                         
 echo "#########################################################################################"
 echo ""
 
-allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
+allParameters=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" )
 
 # shellcheck disable=SC2086
 if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee plan_output.log; then
@@ -1009,9 +1010,9 @@ if [ 0 == $return_value ]; then
 	if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 		workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
 		if valid_kv_name "$workloadkeyvault"; then
-			save_config_var "workloadkeyvault" "${workload_config_information}"
+			save_config_var "workloadkeyvault" "${workload_environment_file_name}"
 		fi
-		save_config_vars "landscape_tfstate_key" "${workload_config_information}"
+		save_config_vars "landscape_tfstate_key" "${workload_environment_file_name}"
 
 	fi
 fi
@@ -1032,8 +1033,8 @@ if [ 1 == $apply_needed ]; then
 		parallelism=$TF_PARALLELLISM
 	fi
 
-	allParameters=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
-	allImportParameters=$(printf " -var-file=%s %s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
+	allParameters=$(printf " -var-file=%s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}")
+	allImportParameters=$(printf " -var-file=%s %s %s" "${var_file}" "${extra_vars}" "${tfstate_parameter}")
 
 	# shellcheck disable=SC2086
 
@@ -1044,7 +1045,7 @@ if [ 1 == $apply_needed ]; then
 		else
 			return_value=${PIPESTATUS[0]}
 		fi
-		echo    "Return value:                        $return_value"
+		echo "Return value:                        $return_value"
 		if [ $return_value -eq 1 ]; then
 			echo ""
 			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
@@ -1062,7 +1063,7 @@ if [ 1 == $apply_needed ]; then
 		terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters
 		return_value=$?
 
-		echo    "Return value:                        $return_value"
+		echo "Return value:                        $return_value"
 		if [ $return_value -ne 1 ]; then
 			echo ""
 			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
@@ -1148,21 +1149,21 @@ if [ -f apply_output.json ]; then
 	rm apply_output.json
 fi
 
-save_config_var "landscape_tfstate_key" "${workload_config_information}"
+save_config_var "landscape_tfstate_key" "${workload_environment_file_name}"
 
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 
 	workload_zone_prefix=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workload_zone_prefix | tr -d \")
-	save_config_var "workload_zone_prefix" "${workload_config_information}"
-	save_config_vars "landscape_tfstate_key" "${workload_config_information}"
+	save_config_var "workload_zone_prefix" "${workload_environment_file_name}"
+	save_config_vars "landscape_tfstate_key" "${workload_environment_file_name}"
 	workload_keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
 
 	workload_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 	if [ -n "${workload_random_id}" ]; then
-		save_config_var "workload_random_id" "${workload_config_information}"
+		save_config_var "workload_random_id" "${workload_environment_file_name}"
 		custom_random_id="${workload_random_id:0:3}"
 		sed -i -e /"custom_random_id"/d "${parameterfile}"
-		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+		printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
 	fi
 
 	resourceGroupName=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
@@ -1182,7 +1183,7 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 			echo "#########################################################################################"
 			echo ""
 			workloadkeyvault="$workload_keyvault"
-			save_config_var "workloadkeyvault" "${workload_config_information}"
+			save_config_var "workloadkeyvault" "${workload_environment_file_name}"
 		fi
 	fi
 fi
@@ -1233,8 +1234,8 @@ echo "#     - Key Vault: ${kvname}                             #"
 echo "#                                                                                       #"
 echo "#########################################################################################"
 
-if [ -f "${workload_config_information}".err ]; then
-	cat "${workload_config_information}".err
+if [ -f "${workload_environment_file_name}".err ]; then
+	cat "${workload_environment_file_name}".err
 fi
 
 unset TF_DATA_DIR

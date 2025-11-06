@@ -20,7 +20,7 @@
 # Step: 01
 # Description:  Create download directory structure
 #
-- name:                                 "3.3.1 BoM Processing: - Create BOM download directories"
+- name:                                 "3.3.1 BoM Processing - Create BOM download directories"
   ansible.builtin.file:
     path:                               "{{ item }}"
     state:                              directory
@@ -45,11 +45,11 @@
 # Step: 02 - END
 # -------------------------------------+---------------------------------------8
 
-- name:                                "3.3.1 BoM Processing: - Set the new name"
+- name:                                "3.3.1 BoM Processing - Set the new name"
   ansible.builtin.set_fact:
     new_bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
 
-- name:                                "3.3.1 BoM Processing: - Show new name"
+- name:                                "3.3.1 BoM Processing - Show new name"
   ansible.builtin.debug:
     msg:
       - "BoM Name:   {{ new_bom_name }}"
@@ -65,7 +65,7 @@
 # Step: 03-01
 # Description:
 #
-    - name:                             "3.3.1 BoM Processing: {{ bom_name }} Download: {{ new_bom_name }} from the storage account"
+    - name:                             "3.3.1 BoM Processing - Download: {{ new_bom_name }} from the storage account"
       ansible.builtin.get_url:
         url:                            "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}/{{ new_bom_name }}.yaml\
                                         {% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
@@ -84,7 +84,7 @@
 # Step: 03-03
 # Description:
 #
-    - name:                             "BOM: Show BoM download status"
+    - name:                             "3.3.1 BoM Processing - Show BoM download status"
       ansible.builtin.debug:
         msg:
           - "URL:    {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}/{{ new_bom_name }}.yaml{% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
@@ -107,7 +107,7 @@
 # Step: 04
 # Description:  Register BOM if found in Storage Account
 #
-- name:                                 "3.3.1 BoM Processing: Register BOM ({{ bom_name }}) from Storage Account"
+- name:                                 "3.3.1 BoM Processing - Retrieve BOM ({{ bom_name }}) from Storage Account"
   block:
 
 # -------------------------------------+---------------------------------------8

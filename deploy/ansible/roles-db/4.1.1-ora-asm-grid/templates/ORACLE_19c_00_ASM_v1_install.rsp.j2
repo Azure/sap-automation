@@ -183,14 +183,14 @@ oracle.install.crs.config.scanType=LOCAL_SCAN
 # Specify 'true' if you would like to configure Grid Naming Service(GNS), else
 # specify 'false'
 #-------------------------------------------------------------------------------
-#oracle.install.crs.config.gpnp.configureGNS=false
+oracle.install.crs.config.gpnp.configureGNS=false
 
 #-------------------------------------------------------------------------------
 # Applicable only for STANDALONE and DOMAIN cluster configuration if you choose to configure GNS.
 # Specify 'true' if you would like to assign SCAN name VIP and Node VIPs by DHCP
 # , else specify 'false'
 #-------------------------------------------------------------------------------
-#oracle.install.crs.config.autoConfigureClusterNodeVIP=false
+oracle.install.crs.config.autoConfigureClusterNodeVIP=false
 
 #-------------------------------------------------------------------------------
 # Applicable only if you choose to configure GNS.
@@ -198,7 +198,7 @@ oracle.install.crs.config.scanType=LOCAL_SCAN
 # Allowed values are: CREATE_NEW_GNS and USE_SHARED_GNS
 # Only USE_SHARED_GNS value is allowed for MEMBERDB cluster configuration.
 #-------------------------------------------------------------------------------
-#oracle.install.crs.config.gpnp.gnsOption=CREATE_NEW_GNS
+oracle.install.crs.config.gpnp.gnsOption=CREATE_NEW_GNS
 
 #-------------------------------------------------------------------------------
 # Applicable only if SHARED_GNS is being configured for cluster
@@ -249,7 +249,7 @@ oracle.install.crs.config.scanType=LOCAL_SCAN
 # hostnameprefix:lowerbound-upperbound:hostnamesuffix:vipsuffix:role of node
 #
 #-------------------------------------------------------------------------------
-#oracle.install.crs.config.clusterNodes=asmdb00l04cd.sap.com:
+oracle.install.crs.config.clusterNodes={{ ansible_hostname }}.{{ sap_fqdn }}
 
 #-------------------------------------------------------------------------------
 # The value should be a comma separated strings where each string is as shown below
@@ -273,7 +273,7 @@ oracle.install.crs.config.scanType=LOCAL_SCAN
 # This option is only applicable when CRS_CONFIG is chosen as install option,
 # and STANDALONE is chosen as cluster configuration.
 #------------------------------------------------------------------------------
-#oracle.install.crs.configureGIMR=false
+oracle.install.crs.configureGIMR=false
 
 #------------------------------------------------------------------------------
 # Create a separate ASM DiskGroup to store GIMR data.
@@ -282,7 +282,7 @@ oracle.install.crs.config.scanType=LOCAL_SCAN
 # Value should be 'true' for DOMAIN cluster configurations
 # Value can be true/false for STANDALONE cluster configurations.
 #------------------------------------------------------------------------------
-#oracle.install.asm.configureGIMRDataDG=false
+oracle.install.asm.configureGIMRDataDG=false
 
 ################################################################################
 #                                                                              #
@@ -325,7 +325,7 @@ oracle.install.crs.config.sharedFileSystemStorage.ocrLocations=
 # Specify 'true' if you would like to configure Intelligent Power Management interface
 # (IPMI), else specify 'false'
 #-------------------------------------------------------------------------------
-#oracle.install.crs.config.useIPMI=false
+oracle.install.crs.config.useIPMI=false
 
 #-------------------------------------------------------------------------------
 # Applicable only if you choose to configure IPMI
@@ -363,7 +363,7 @@ oracle.install.asm.diskGroup.name=DATA
 # Example: oracle.install.asm.diskGroup.redundancy=NORMAL
 #
 #-------------------------------------------------------------------------------
-oracle.install.asm.diskGroup.redundancy=NORMAL
+oracle.install.asm.diskGroup.redundancy=EXTERNAL
 
 #-------------------------------------------------------------------------------
 # Allocation unit size to be used by ASM.
@@ -378,6 +378,7 @@ oracle.install.asm.diskGroup.redundancy=NORMAL
 #
 #-------------------------------------------------------------------------------
 oracle.install.asm.diskGroup.AUSize=4
+
 
 #-------------------------------------------------------------------------------
 # Failure Groups for the disk group
@@ -410,7 +411,7 @@ oracle.install.asm.diskGroup.AUSize=4
 #     oracle.install.asm.diskGroup.disks=\\.\ORCLDISKDATA0,\\.\ORCLDISKDATA1
 #
 #-------------------------------------------------------------------------------
-oracle.install.asm.diskGroup.disks={{ asm_datadisklist }}
+oracle.install.asm.diskGroup.disks={{ asm_data_disk_list }}
 
 #-------------------------------------------------------------------------------
 # List of failure groups to be marked as QUORUM.
@@ -429,7 +430,12 @@ oracle.install.asm.diskGroup.quorumFailureGroupNames=
 #     oracle.install.asm.diskGroup.diskDiscoveryString=\\.\ORCLDISK*
 #
 #-------------------------------------------------------------------------------
-oracle.install.asm.diskGroup.diskDiscoveryString=/dev/oracleasm/disks
+{% if _is_UEK6 %}
+oracle.install.asm.diskGroup.diskDiscoveryString=/dev/oracleasm/disks/*
+{% else %}
+oracle.install.asm.diskGroup.diskDiscoveryString=ORCL:*
+{% endif %}
+
 
 #-------------------------------------------------------------------------------
 # Password for ASMSNMP account
@@ -548,7 +554,7 @@ oracle.install.crs.config.ignoreDownNodes=false
 # 1. CLOUD_CONTROL - If you want to manage your Oracle Grid Infrastructure with Enterprise Manager Cloud Control.
 # 2. NONE   -If you do not want to manage your Oracle Grid Infrastructure with Enterprise Manager Cloud Control.
 #-------------------------------------------------------------------------------
-#oracle.install.config.managementOption=NONE
+oracle.install.config.managementOption=NONE
 
 #-------------------------------------------------------------------------------
 # Specify the OMS host to connect to Cloud Control.
@@ -587,7 +593,7 @@ oracle.install.crs.config.ignoreDownNodes=false
 #
 # If this option is selected, password should be specified on the console.
 #-------------------------------------------------------------------------------------------------------
-#oracle.install.crs.rootconfig.executeRootScript=false
+oracle.install.crs.rootconfig.executeRootScript=false
 
 #--------------------------------------------------------------------------------------
 # Specify the configuration method to be used for automatic root script execution.
