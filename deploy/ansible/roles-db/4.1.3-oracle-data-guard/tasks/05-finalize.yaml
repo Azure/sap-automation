@@ -262,7 +262,6 @@
       environment:                     "{{ grid_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
-      register:                        srvctl_check
       register:                        disable_restart_secondary
       failed_when:
                                        - disable_restart_primary.rc not in [0, 2]

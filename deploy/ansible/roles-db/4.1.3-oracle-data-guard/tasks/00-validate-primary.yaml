@@ -195,4 +195,3 @@
     msg:
       - "Database instance:        {{ ansible_hostname }}"
       - "Primary instance open:    {{ primary_open }}"
-
