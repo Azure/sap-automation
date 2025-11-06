@@ -266,7 +266,7 @@ namespace SDAFWebApp.Controllers
                 string path = $"/LANDSCAPE/{id}/{id}.tfvars";
 
                 
-                if (!landscape.subscription.IsNullOrEmpty() )
+                if (!landscape.subscription.IsNullOrEmpty())
                 {
                     landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
                 }
