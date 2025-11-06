@@ -69,7 +69,7 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ current_sid | default(db_sid)upper }}
+                                       setenv ORACLE_SID {{ current_sid | default(db_sid) | upper }}
                                        setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        $ORACLE_HOME/sapbundle/catsbp
 
