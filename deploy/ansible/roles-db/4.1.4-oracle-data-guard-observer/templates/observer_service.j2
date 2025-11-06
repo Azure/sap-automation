@@ -1,0 +1,33 @@
+#######################
+# Observer Service File
+# Created by SDAF
+#######################
+
+[Unit]
+Description=Service for Oracle Fast Start Failover Observer startup
+After=network-online.target
+Wants=network-online.target
+
+
+[Service]
+LimitNOFILE=16384
+LimitMEMLOCK=infinity
+
+Type=forking
+
+User={{ oracle_user_name }}
+Group=oinstall
+EnvironmentFile=/etc/sysconfig/sdaf-oracle-fsfo
+WorkingDirectory=/oracle/observer
+UMask=0027
+RemainAfterExit=False
+Restart=on-abort
+RestartSec=5
+
+ExecStart=/bin/bash /opt/oracle/admin/observer/scripts/start_observer.sh
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sdaf-oracle-fsfo-observer
+[Install]
+WantedBy=multi-user.target

@@ -67,7 +67,7 @@ module "common_infrastructure" {
   custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   custom_prefix                                 = var.use_prefix ? var.custom_prefix : " "
   database                                      = local.database
-  database_dual_nics                            = var.database_dual_nics
+  database_dual_network_interfaces              = var.database_dual_nics
   deploy_application_security_groups            = var.deploy_application_security_groups
   deployer_tfstate                              = length(var.deployer_tfstate_key) > 0 ? data.terraform_remote_state.deployer[0].outputs : null
   deployment                                    = var.deployment
@@ -104,6 +104,8 @@ module "common_infrastructure" {
 #  HANA Infrastructure                                                         #
 #                                                                              #
 #--------------------------------------+---------------------------------------8
+
+
 module "hdb_node" {
   source                                        = "../../terraform-units/modules/sap_system/hdb_node"
   depends_on                                    = [module.common_infrastructure]
@@ -114,15 +116,15 @@ module "hdb_node" {
                                                     azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                                   }
 
-  admin_subnet                                  = module.common_infrastructure.admin_subnet
   Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
+  NFS_provider                                  = var.NFS_provider
+  admin_subnet                                  = module.common_infrastructure.admin_subnet
   anchor_vm                                     = module.common_infrastructure.anchor_vm // Workaround to create dependency from anchor to db to app
   cloudinit_growpart_config                     = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   database                                      = local.database
   database_active_active                        = var.database_active_active
-  database_dual_nics                            = try(module.common_infrastructure.admin_subnet, null) == null ? false : var.database_dual_nics
-  enable_storage_nic                            = var.enable_storage_nic
+  database_dual_network_interfaces              = var.database_dual_nics
   database_server_count                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
                                                     local.database.high_availability ? (
                                                       2 * (var.database_server_count + var.stand_by_node_count)) : (
@@ -141,17 +143,16 @@ module "hdb_node" {
   deployment                                    = var.deployment
   dns_settings                                  = local.dns_settings
   enable_firewall_for_keyvaults_and_storage     = var.enable_firewall_for_keyvaults_and_storage
+  enable_storage_nic                            = var.enable_storage_nic
   fencing_role_name                             = var.fencing_role_name
   hana_ANF_volumes                              = local.hana_ANF_volumes
   hanashared_id                                 = length(var.hanashared_id) > 0 ? (length(var.hanashared_id[0]) > 0 ? var.hanashared_id : []) : []
   hanashared_private_endpoint_id                = length(var.hanashared_private_endpoint_id) > 0 ? (length(var.hanashared_private_endpoint_id[0]) > 0 ? var.hanashared_private_endpoint_id : []) : []
-  use_single_hana_shared                        = var.use_single_hana_shared
   hanashared_volume_size                        = var.hanashared_volume_size
   infrastructure                                = local.infrastructure
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   license_type                                  = var.license_type
   naming                                        = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
-  NFS_provider                                  = var.NFS_provider
   observer_vm_size                              = var.observer_vm_size
   observer_vm_tags                              = var.observer_vm_tags
   observer_vm_zones                             = var.observer_vm_zones
@@ -166,17 +167,18 @@ module "hdb_node" {
   sid_password                                  = module.common_infrastructure.sid_password
   sid_username                                  = module.common_infrastructure.sid_username
   storage_bootdiag_endpoint                     = module.common_infrastructure.storage_bootdiag_endpoint
-  storage_subnet                                = module.common_infrastructure.storage_subnet
+  storage_subnet_id                             = module.common_infrastructure.storage_subnet_id
   tags                                          = var.tags
   terraform_template_version                    = var.terraform_template_version
-  use_admin_nic_suffix_for_observer             = var.use_admin_nic_suffix_for_observer
   use_admin_nic_for_asg                         = var.use_admin_nic_for_asg
+  use_admin_nic_suffix_for_observer             = var.use_admin_nic_suffix_for_observer
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_observer                                  = var.database_HANA_use_scaleout_scenario && local.database.high_availability && var.use_observer
   use_private_endpoint                          = var.use_private_endpoint
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
+  use_single_hana_shared                        = var.use_single_hana_shared
 }
 
 #########################################################################################
@@ -345,7 +347,7 @@ module "output_files" {
   #  Database tier                                                                        #
   #########################################################################################
   database_admin_ips                            = upper(try(local.database.platform, "HANA")) == "HANA" ? (
-                                                    module.hdb_node.db_admin_ip) : (
+                                                    var.database_dual_nics ? module.hdb_node.db_admin_ips : module.hdb_node.database_server_ips ) : (
                                                     module.anydb_node.database_server_admin_ips
                                                   ) #TODO Change to use Admin IP
   database_authentication_type                  = try(local.database.authentication.type, "key")
@@ -397,7 +399,10 @@ module "output_files" {
                                                     module.hdb_node.observer_vms) : (
                                                     module.anydb_node.observer_vms
                                                   )
-
+  observer_shared_disks                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.observer_shared_disks) : (
+                                                    try(module.anydb_node.observer_shared_disks, [])
+                                                  )
   platform                                      = upper(try(local.database.platform, "HANA"))
   sap_sid                                       = local.sap_sid
   web_sid                                       = var.web_sid

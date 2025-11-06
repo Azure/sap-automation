@@ -8,14 +8,26 @@
 #--------------------------------------+---------------------------------------8
 
 parameters:
-  sap_system: ''
-  environment: ''
-  test: false
+
+  - name:                              sap_system
+    displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
+    type:                              string
+    default:                           DEV-WEEU-SAP01-X00
+
+  - name:                              workload_zone_name
+    displayName:                       Workload Zone Name (DEV-WEEU-SAP01-X00)
+    type:                              string
+    default:                           DEV
+
+  - name:                              test
+    displayName:                       Test deployment without applying the changes
+    type:                              boolean
+    default:                           true
 
 variables:
   - group:                             "SDAF-General"
 
-  - group:                             SDAF-${{ parameters.environment }}
+  - group:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              sap_system_foldername
     value:                             ${{ parameters.sap_system }}
@@ -27,7 +39,10 @@ variables:
     value:                             https://releases.hashicorp.com/terraform/$(tf_version)/terraform_$(tf_version)_linux_amd64.zip
 
   - name:                              variable_group
-    value:                             SDAF-${{ parameters.environment }}
+    value:                             SDAF-${{ parameters.workload_zone_name }}
+
+  - name:                              variable_group_workload
+    value:                             SDAF-${{ parameters.workload_zone_name }}
 
   - name:                              this_agent
     value:                             $[lower(coalesce(variables['POOL'], variables['AGENT']))]

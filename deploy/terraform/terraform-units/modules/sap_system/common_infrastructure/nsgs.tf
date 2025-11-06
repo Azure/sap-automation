@@ -10,7 +10,7 @@
 # Creates SAP db subnet nsg
 resource "azurerm_network_security_group" "db" {
   provider                             = azurerm.main
-  count                                = local.enable_db_deployment ? (var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists ? 0 : 1) : 0
+  count                                = local.enable_db_deployment && var.infrastructure.virtual_networks.sap.subnet_db.defined ? ((var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists_in_workload) ? 0 : 1) : 0
   name                                 = local.database_subnet_nsg_name
   resource_group_name                  = var.options.nsg_asg_with_vnet ? (
                                            data.azurerm_virtual_network.vnet_sap.resource_group_name) : (
@@ -40,7 +40,7 @@ data "azurerm_network_security_group" "db" {
 # Associates SAP db nsg to SAP db subnet
 resource "azurerm_subnet_network_security_group_association" "db" {
   provider                             = azurerm.main
-  count                                = local.enable_db_deployment ? (var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists_in_workload ? 0 : 1) : 0
+  count                                = local.enable_db_deployment  && var.infrastructure.virtual_networks.sap.subnet_db.defined ? (var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists_in_workload ? 0 : 1) : 0
   subnet_id                            = azurerm_subnet.db[0].id
   network_security_group_id            = azurerm_network_security_group.db[0].id
 }
@@ -48,7 +48,7 @@ resource "azurerm_subnet_network_security_group_association" "db" {
 # Creates SAP admin subnet nsg
 resource "azurerm_network_security_group" "admin" {
   provider                             = azurerm.main
-  count                                = local.enable_admin_subnet ? (var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists ? 0 : 1) : 0
+  count                                = local.enable_admin_subnet && var.infrastructure.virtual_networks.sap.subnet_admin.defined ? (var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists_in_workload ? 0 : 1) : 0
   name                                 = local.admin_subnet_nsg_name
   resource_group_name                  = var.options.nsg_asg_with_vnet ? (
                                            data.azurerm_virtual_network.vnet_sap.resource_group_name) : (
@@ -78,7 +78,7 @@ data "azurerm_network_security_group" "admin" {
 // Associates SAP admin nsg to SAP admin subnet
 resource "azurerm_subnet_network_security_group_association" "admin" {
   provider                             = azurerm.main
-  count                                = local.enable_admin_subnet ? (var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists_in_workload ? 0 : 1) : 0
+  count                                = local.enable_admin_subnet && var.infrastructure.virtual_networks.sap.subnet_admin.defined ? (var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists_in_workload ? 0 : 1) : 0
   subnet_id                            = azurerm_subnet.admin[0].id
   network_security_group_id            = azurerm_network_security_group.admin[0].id
 }
@@ -86,7 +86,7 @@ resource "azurerm_subnet_network_security_group_association" "admin" {
 # Creates network security rule to allow internal traffic for SAP db subnet
 resource "azurerm_network_security_rule" "nsr_internal_db" {
   provider                             = azurerm.main
-  count                                = local.enable_db_deployment ? (var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists_in_workload ? 0 : 1) : 0
+  count                                = local.enable_db_deployment && var.infrastructure.virtual_networks.sap.subnet_db.defined ? (var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists_in_workload ? 0 : 1) : 0
   name                                 = "allow-internal-traffic"
   resource_group_name                  = var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists ? (
                                            data.azurerm_network_security_group.db[0].resource_group_name) : (
@@ -107,7 +107,7 @@ resource "azurerm_network_security_rule" "nsr_internal_db" {
 # ToDo: Check if this rule is needed
 resource "azurerm_network_security_rule" "nsr_external_db" {
   provider                             = azurerm.main
-  count                                = local.enable_db_deployment ? (var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists_in_workload ? 0 : 0) : 0
+  count                                = local.enable_db_deployment  && var.infrastructure.virtual_networks.sap.subnet_db.defined ? (var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists_in_workload ? 0 : 0) : 0
   name                                 = "deny-inbound-traffic"
   resource_group_name                  = var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists ? (
                                            data.azurerm_network_security_group.db[0].resource_group_name) : (

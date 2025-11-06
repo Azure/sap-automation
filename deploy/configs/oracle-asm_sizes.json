@@ -56,7 +56,6 @@
             "write_accelerator"          : false,
             "lun_start"                  : 20
           },
-
           {
             "name"                       : "oracle",
             "fullname"                   : "",
@@ -126,7 +125,6 @@
             "write_accelerator"          : false,
             "lun_start"                  : 20
           },
-
           {
             "name"                       : "oracle",
             "fullname"                   : "",
@@ -196,7 +194,6 @@
             "write_accelerator"          : false,
             "lun_start"                  : 20
           },
-
           {
             "name"                       : "oracle",
             "fullname"                   : "",
@@ -266,7 +263,6 @@
             "write_accelerator"          : false,
             "lun_start"                  : 20
           },
-
           {
             "name"                       : "oracle",
             "fullname"                   : "",

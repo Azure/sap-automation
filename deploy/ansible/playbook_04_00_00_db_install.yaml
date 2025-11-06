@@ -53,32 +53,31 @@
       tags:
         - 0.1-win-passwords
 
-    - name:                            "Backward Compatibility - Check required Database HA variables"
+    - name:                            "Database Installation Playbook - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                                 "Database Installation Playbook: - Read/Create key vault secrets"
+    - name:                            "Database Installation Playbook: - Read/Create key vault secrets"
       ansible.builtin.include_role:
-        name:                               roles-misc/0.2-kv-secrets
-        public:                             true
+        name:                          roles-misc/0.2-kv-secrets
+        public:                        true
       vars:
-        # tier:                               fencing
-        operation:                          fencing
-      when:                                 (database_high_availability and database_cluster_type == "AFA")
+        # tier:                        fencing
+        operation:                     fencing
+      when:                            (database_high_availability and database_cluster_type == "AFA")
       tags:
                                             - 0.2-kv-secrets
 
     - name:                            "Database Installation Playbook: - Read storage account details"
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
-        public:                        true
       vars:
         tier:                          bom_download
       tags:
-        - kv-sap-installation-media-storage-details
+        - always
 
     - name:                            "Database Installation Playbook: - Generate root password"
       ansible.builtin.set_fact:
@@ -117,7 +116,7 @@
   #
   # -------------------------------------+---------------------------------------8
 
-    - name:                            "Backward Compatibility - Check required Database HA variables"
+    - name:                            "Database Installation Playbook - HANA - Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
       when:
@@ -130,7 +129,7 @@
         - node_tier == 'hana'
         - not database_scale_out
       block:
-        - name:                        "Database Installation Playbook: - Setting the DB facts"
+        - name:                        "Database Installation Playbook: - HANA - Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      hdb                                     # Actions for HANA DB Serve
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -140,20 +139,20 @@
           tags:
             - always
 
-        - name:                        "Database Installation Playbook: - Show SAP password"
+        - name:                        "Database Installation Playbook: - HANA - Show SAP password"
           ansible.builtin.debug:
             msg:                       "{{ hostvars.localhost.sap_password }}"
             verbosity:                 4
 
-        - name:                        "Run the Database installation Playbook"
+        - name:                        "Database Installation Playbook: - HANA - Run the Database installation"
           block:
-            - name:                    "Database Installation Playbook: - run HANA installation"
+            - name:                    "Database Installation Playbook: - HANA - run HANA installation"
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.0-hdb-install
               when:
                 - not database_scale_out
 
-            - name:                    "Database Installation Playbook: - Create db-install-done flag"
+            - name:                    "Database Installation Playbook: - HANA - Create db-install-done flag"
               delegate_to:             localhost
               become:                  false
               ansible.builtin.file:
@@ -164,14 +163,14 @@
                 - hana_already_installed is defined or (hana_installation.rc is defined and hana_installation.rc == 0)
 
           always:
-            - name:                    "Database Installation Playbook: - Run post installation routines"
+            - name:                    "Database Installation Playbook: - HANA - Run post installation routines"
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_DB"
                 tier:                  'hana'
 
-            - name:                    "Database Installation Playbook: - Show errors from HANA installation"
+            - name:                    "Database Installation Playbook: - HANA - Show errors from HANA installation"
               ansible.builtin.debug:
                 msg:                   "{{ hana_installation.stdout_lines | select('search', 'ERROR') }}"
               when:
@@ -182,7 +181,7 @@
           tags:
             - 4.0.0-hdb-install
 
-    - name:                            "Database Installation Playbook: - Install Pacemaker (base)"
+    - name:                            "Database Installation Playbook: - HANA - Install Pacemaker (base)"
       become:                          true
       when:
         # - db_high_availability
@@ -190,7 +189,7 @@
         - node_tier == 'hana'
         - not database_scale_out
       block:
-        - name:                         "Database Installation Playbook: - Setting the facts"
+        - name:                         "Database Installation Playbook: - HANA - Setting the facts"
           ansible.builtin.set_fact:
             tier:                       ha
             main_password:              "{{ hostvars.localhost.sap_password }}"
@@ -201,7 +200,7 @@
             # fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{%- endif %}"
             # fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{%- endif %}"
 
-        - name:                         "Database Installation Playbook: - Setting the facts for fencing"
+        - name:                         "Database Installation Playbook: - HANA - Setting the facts for fencing"
           ansible.builtin.set_fact:
             fencing_spn_client_id:      "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
             fencing_spn_client_pwd:     "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
@@ -210,38 +209,38 @@
                                         - database_cluster_type == "AFA"
                                         - not use_msi_for_clusters
 
-        - name:                        "Database Installation Playbook: - Ensure the correct repositories are set"
+        - name:                        "Database Installation Playbook: - HANA - Ensure the correct repositories are set"
           ansible.builtin.include_role:
             name:                      roles-os/1.3-repository
           tags:
             - 1.3-repository
 
-        - name:                        "Database Installation Playbook: - Ensure the correct packages are installed"
+        - name:                        "Database Installation Playbook: - HANA - Ensure the correct packages are installed"
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
           tags:
             - 1.4-packages
 
         # Setup the kernel parameters required for pacemaker cluster VMs
-        - name:                        "Database Installation Playbook: - Ensure the correct kernel parameters are set"
+        - name:                        "Database Installation Playbook: - HANA - Ensure the correct kernel parameters are set"
           ansible.builtin.include_role:
             name:                      roles-os/1.9-kernelparameters
           tags:
             - 1.9-kernelparameters
 
-        - name:                        "Database Installation Playbook: - Ensure the needed services are enabled/disabled"
+        - name:                        "Database Installation Playbook: - HANA - Ensure the needed services are enabled/disabled"
           ansible.builtin.include_role:
             name:                      roles-os/1.16-services
           tags:
             - 1.16-services
 
-        - name:                        "Database Installation Playbook: - Ensure the accounts are present"
+        - name:                        "Database Installation Playbook: - HANA - Ensure the accounts are present"
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
           tags:
             - 1.11-accounts
 
-        - name:                        "Database Installation Playbook: - Install Pacemaker"
+        - name:                        "Database Installation Playbook: - HANA - Install Pacemaker"
           ansible.builtin.include_role:
             name:                      roles-os/1.17-generic-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
             apply:
@@ -255,7 +254,7 @@
           tags:
             - 1.17-generic-pacemaker
 
-        - name:                        "Database Installation Playbook: - Create pacemaker-install-done flag"
+        - name:                        "Database Installation Playbook: - HANA - Create pacemaker-install-done flag"
           delegate_to:                 localhost
           become:                      false
           ansible.builtin.file:
@@ -279,14 +278,18 @@
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
 
   tasks:
-    - name:                            "Backward Compatibility - Check required Database HA variables"
+    - name:                            "Database Installation Playbook: - HANA ScaleOut - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
+
     # This configures root account on HANA nodes for scale out configuration ( shared and shared nothing with HSR ) to use password based login.
-    - name:                            "SAP HANA: Configure root credential for Scale-Out"
+    - name:                            "Database Installation Playbook: - HANA ScaleOut - Configure root credential for Scale-Out"
+      when:
+                                       - database_scale_out
+                                       - hostvars.localhost.root_password is defined
       block:
         - name:                            Reset root password
           become:                          true
@@ -296,7 +299,7 @@
             password:                      "{{ hostvars.localhost.root_password | password_hash('sha512') }}"
             password_lock:                 false
 
-        - name:                            Enable {{ item.key }} in /etc/ssh/sshd_config
+        - name:                            "Database Installation Playbook: - HANA ScaleOut - Enable {{ item.key }} in /etc/ssh/sshd_config"
           become:                          true
           ansible.builtin.lineinfile:
             path:                          "/etc/ssh/sshd_config"
@@ -308,7 +311,15 @@
             - { key: "PasswordAuthentication", value: "yes" }
             - { key: "ChallengeResponseAuthentication", value: "yes" }
 
-        - name:                            Append root user to AllowUsers if used
+        - name:                            "Database Installation Playbook: - HANA ScaleOut - Debug sshdconfig file"
+          ansible.builtin.shell:           "cat /etc/ssh/sshd_config | grep -v '^#' | grep -v '^$'"
+          register:                        sshdconfig
+          changed_when:                    false
+          failed_when:                     false
+          ignore_errors:                   true
+
+        - name:                            "Database Installation Playbook: - HANA ScaleOut - Append root user to AllowUsers if used"
+          become:                          true
           ansible.builtin.lineinfile:
             path:                          "/etc/ssh/sshd_config"
             regexp:                        '^AllowUsers (?!.*root.*)(.*)'
@@ -316,14 +327,18 @@
             backrefs:                      true
             state:                         present
 
-        - name:                            "Restart SSHD on {{ ansible_hostname }}"
+        - name:                            "Database Installation Playbook: - HANA ScaleOut - Restart SSHD on {{ ansible_hostname }}"
           become:                          true
           ansible.builtin.service:
             name:                          sshd
             state:                         restarted
-      when:
-        - database_scale_out
-        - hostvars.localhost.root_password is defined
+
+        - name:                            "Database Installation Playbook: - HANA ScaleOut - Debug sshdconfig file after restart"
+          ansible.builtin.shell:           "cat /etc/ssh/sshd_config | grep -v '^#' | grep -v '^$'"
+          register:                        sshdconfig
+          changed_when:                    false
+          failed_when:                     false
+          ignore_errors:                   true
 
     - name:                            "Database Installation Playbook: - Install HANA Scale Out"
       become:                          true
@@ -331,7 +346,7 @@
         - node_tier == 'hana'
         - database_scale_out
       block:
-        - name:                        "Database Installation Playbook: - Setting the DB facts"
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      hdb                                     # Actions for HANA DB Serve
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -343,7 +358,7 @@
           tags:
             - always
 
-        - name:                        "Database Installation Playbook: - Setting the DB Scale Out facts"
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Setting the DB Scale Out facts"
           ansible.builtin.set_fact:
             root_password:             "{{ hostvars.localhost.root_password }}"
           when:
@@ -351,12 +366,12 @@
             - database_scale_out
             # - not db_high_availability
 
-        - name:                        "Database Installation Playbook: - Show SAP password"
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Show SAP password"
           ansible.builtin.debug:
             msg:                       "{{ hostvars.localhost.sap_password }}"
             verbosity:                 4
 
-        - name:                        "Run the Database installation Playbook"
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Run the Database installation Playbook"
           block:
             - name:                    "Database Installation Playbook: - run HANA installation"
               ansible.builtin.include_role:
@@ -364,22 +379,16 @@
               when:
                 - not database_scale_out
 
-            - name:                        "Database Installation Playbook: - Clear the failed state of hosts"
-              ansible.builtin.meta:        clear_host_errors
+            - name:                    "Database Installation Playbook: - HANA ScaleOut - Database Installation Playbook: - Clear the failed state of hosts"
+              ansible.builtin.meta:    clear_host_errors
 
-            # - name:                    "Database installation Playbook: - run HANA Scale-Out mounts"
-            #   ansible.builtin.include_role:
-            #     name:                   roles-sap-os/2.6-sap-mounts
-            #   when:
-            #     - database_scale_out | default(false) == true
-
-            - name:                    "Database Installation Playbook: - run HANA Scale-Out installation"
+            - name:                    "Database Installation Playbook: - HANA ScaleOut - perform HANA Scale-Out installation"
               ansible.builtin.include_role:
                 name:                  roles-db/4.0.3-hdb-install-scaleout
               when:
                 - database_scale_out
 
-            - name:                    "Database Installation Playbook: - Create db-install-done flag"
+            - name:                    "Database Installation Playbook: - HANA ScaleOut - Create db-install-done flag"
               delegate_to:             localhost
               become:                  false
               ansible.builtin.file:
@@ -390,14 +399,14 @@
                 - hana_already_installed is defined or (hana_installation.rc is defined and hana_installation.rc == 0)
 
           always:
-            - name:                    "Database Installation Playbook: - Run post installation routines"
+            - name:                    "Database Installation Playbook: - HANA ScaleOut - Run post installation routines"
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_DB"
                 tier:                  'hana'
 
-            - name:                    "Database Installation Playbook: - Show errors from HANA installation"
+            - name:                    "Database Installation Playbook: - HANA ScaleOut - Show errors from HANA installation"
               ansible.builtin.debug:
                 msg:                   "{{ hana_installation.stdout_lines | select('search', 'ERROR') }}"
               when:
@@ -407,17 +416,21 @@
 
           tags:
             - 4.0.0-hdb-install
+
     # This disables root account on HANA nodes for scale out configuration ( shared and shared nothing with HSR ) to use password based login.
-    - name:                           "SAP HANA: disable root credential for Scale-Out"
+    - name:                           "Database Installation Playbook: - HANA ScaleOut - disable root credential for Scale-Out"
+      when:
+        - database_scale_out
+        - hostvars.localhost.root_password is defined
       block:
-        - name:                            Reset root password to random local value
+        - name:                            "Database Installation Playbook: - HANA ScaleOut - Reset root password to random local value"
           become:                          true
           ansible.builtin.user:
             name:                          root
             update_password:               always
             password:                      "{{ lookup('ansible.builtin.password', '/dev/null', seed=inventory_hostname) | password_hash('sha512') }}"
 
-        - name:                            Enable {{ item.key }} in /etc/ssh/sshd_config
+        - name:                            "Database Installation Playbook: - HANA ScaleOut - Enable {{ item.key }} in /etc/ssh/sshd_config"
           become:                          true
           ansible.builtin.lineinfile:
             path:                          "/etc/ssh/sshd_config"
@@ -429,14 +442,11 @@
             - { key: "PasswordAuthentication", value: "no" }
             - { key: "ChallengeResponseAuthentication", value: "no" }
 
-        - name:                            "Restart SSHD on {{ ansible_hostname }}"
+        - name:                            "Database Installation Playbook: - HANA ScaleOut - Restart SSHD on {{ ansible_hostname }}"
           become:                          true
           ansible.builtin.service:
             name:                          sshd
             state:                         restarted
-      when:
-        - database_scale_out
-        - hostvars.localhost.root_password is defined
 
 
 # Configure HANA Scale out Pacemaker, run on DB nodes and majority maker node ( first node if multiple are provided, rest are ignored. )
@@ -449,83 +459,104 @@
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
   tasks:
-    - name:                        "Database Installation Playbook: - Install Pacemaker (Scale Out)"
+
+    - name:                            "Database Installation Playbook: - HANA ScaleOut - Backward Compatibility - Check required Database HA variables"
+      when:
+                                       - db_high_availability is defined
+                                       - database_high_availability is not defined
+      ansible.builtin.set_fact:
+        database_high_availability:    "{{ db_high_availability | default(false) }}"
+
+
+    - name:                            "Database Installation Playbook: - HANA ScaleOut - Install Pacemaker (Scale Out)"
       become:                          true
       when:
-        # - db_high_availability
-        - db_high_availability
-        - node_tier in ['hana','observer']
-        - database_scale_out
+                                       - database_high_availability
+                                       - node_tier in ['hana','observer']
+                                       - database_scale_out
       block:
-        - name:                        "Database Installation Playbook: - Setting the facts"
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Setting the facts"
           ansible.builtin.set_fact:
-            tier:                       ha
-            main_password:              "{{ hostvars.localhost.sap_password }}"
-            password_ha_db_cluster:     "{{ hostvars.localhost.db_cluster_password }}"
-            primary_instance_name:      "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
-            secondary_instance_name:    "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
-            # root_password:              "{{ hostvars.localhost.root_password }}"
-            # fencing_spn_client_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_client_id }}{% endif %}"
-            # fencing_spn_client_pwd:    "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_pwd }}{%- endif %}"
-            # fencing_spn_tenant_id:     "{% if not use_msi_for_clusters %}{{ hostvars.localhost.sap_fencing_spn_tenant_id }}{%- endif %}"
+            tier:                      ha
+            main_password:             "{{ hostvars.localhost.sap_password }}"
+            password_ha_db_cluster:    "{{ hostvars.localhost.db_cluster_password }}"
+            primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
+            secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
 
-        - name:                        "Database Installation Playbook: - Setting the facts for fencing"
-          ansible.builtin.set_fact:
-            fencing_spn_client_id:      "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
-            fencing_spn_client_pwd:     "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
-            fencing_spn_tenant_id:      "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Setting the facts for fencing"
           when:
-                                        - database_cluster_type == "AFA"
-                                        - not use_msi_for_clusters
+                                       - database_cluster_type == "AFA"
+                                       - not use_msi_for_clusters
+          ansible.builtin.set_fact:
+            fencing_spn_client_id:     "{{ hostvars.localhost.sap_fencing_spn_client_id }}"
+            fencing_spn_client_pwd:    "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
+            fencing_spn_tenant_id:     "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
 
-        - name:                        "Database Installation Playbook: - Ensure the correct repositories are set"
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Ensure the correct repositories are set"
           ansible.builtin.include_role:
             name:                      roles-os/1.3-repository
           tags:
-            - 1.3-repository
+                                       - 1.3-repository
 
-        - name:                        "Database Installation Playbook: - Ensure the correct packages are installed"
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Ensure the correct packages are installed"
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
           tags:
-            - 1.4-packages
+                                       - 1.4-packages
 
         # Setup the kernel parameters required for pacemaker cluster VMs
-        - name:                        "Database Installation Playbook: - Ensure the correct kernel parameters are set"
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Ensure the correct kernel parameters are set"
           ansible.builtin.include_role:
             name:                      roles-os/1.9-kernelparameters
           tags:
-            - 1.9-kernelparameters
+                                       - 1.9-kernelparameters
 
-        - name:                        "Database Installation Playbook: - Ensure the needed services are enabled/disabled"
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Ensure the needed services are enabled/disabled"
           ansible.builtin.include_role:
             name:                      roles-os/1.16-services
           tags:
-            - 1.16-services
+                                       - 1.16-services
 
-        - name:                        "Database Installation Playbook: - Ensure the accounts are present"
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Ensure the accounts are present"
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
+          vars:
+            tier:                      ha
           tags:
-            - 1.11-accounts
+                                       - 1.11-accounts
+
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Configure NFS optimizations"
+          when:
+                                       - node_tier == 'hana' or node_tier == 'observer'
+          ansible.builtin.blockinfile:
+            path:                      /etc/sysctl.d/ms-az.conf
+            backup:                    true
+            create:                    true
+            mode:                      0644
+            marker:                    "# {mark} HANA AFS optimizations"
+            block: |-
+                                       net.ipv6.conf.all.disable_ipv6 = 1
+                                       net.ipv4.tcp_max_syn_backlog = 16348
+                                       net.ipv4.conf.all.rp_filter = 0
+                                       sunrpc.tcp_slot_table_entries = 128
+                                       vm.swappiness=10
 
         # Scale out based pacemaker task/s
-        - name:                        "Database Installation Playbook: - Install Scale Out Pacemaker"
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Install Scale Out Pacemaker"
+          when:
+                                       - node_tier in ['hana','observer']
+                                       - database_scale_out
           ansible.builtin.include_role:
-            name:                      roles-os/1.18-scaleout-pacemaker                         # Configures the Pacemaker cluster with Azure fence agent
+            name:                      "Database Installation Playbook: - HANA ScaleOut - Install Pacemaker (Scale Out)"
             apply:
               tags:
-                - 1.18-scaleout-pacemaker
+                                       - 1.18-scaleout-pacemaker
               become:                  true
               become_user:             root
-          when:
-            - node_tier in ['hana','observer']
-            - database_scale_out
-
           tags:
             - 1.18-scaleout-pacemaker
 
-        - name:                        "Database Installation Playbook: - Create pacemaker-install-done flag"
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Create pacemaker-install-done flag"
           delegate_to:                 localhost
           become:                      false
           ansible.builtin.file:
@@ -552,7 +583,7 @@
   # Build the list of tasks to be executed in order here.
   #
   # -------------------------------------+---------------------------------------8
-    - name:                            "Database Installation Playbook: - Install Oracle"
+    - name:                            "Database Installation Playbook: - Oracle - Install Oracle"
       become:                          true
       become_user:                     root
       when:
@@ -560,14 +591,14 @@
         - platform == 'ORACLE'
       block:
 
-        - name:                        "Database Installation Playbook: - Setting the DB facts"
+        - name:                        "Database Installation Playbook: - Oracle - Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
 
-        - name:                        "Configure accounts for ora-msid"
+        - name:                        "Database Installation Playbook: - Oracle - Configure accounts for Multi Sid"
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
 
@@ -583,6 +614,42 @@
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
+  vars:
+    ansible_executable:                /bin/bash
+
+    oracle_base:                       "/oracle"
+    oracle_home:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    oracle_sid:                        "{{ db_sid | upper }}"
+    oracle_user:                       "{{ oracle_user_name }}"
+    grid_sid:                          "GRID"
+    grid_user:                         "{{ grid_user_name | default(oracle_user_name) }}"
+    grid_home:                         "/oracle/GRID/{{ ora_version }}"
+    asm_sid:                           +ASM
+    CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OL8 {% endif %}"
+
+    # Define once, use everywhere
+    oracle_env:
+      ORACLE_BASE:                     "{{ oracle_base }}"
+      ORACLE_HOME:                     "{{ oracle_home }}"
+      ORACLE_SID:                      "{{ oracle_sid }}"
+      PATH:                            "{{ oracle_home }}/bin:{{ ansible_env.PATH }}"
+      LD_LIBRARY_PATH:                 "{{ oracle_home }}/lib"
+      CV_ASSUME_DISTID:                "{{ CV_ASSUME_DISTID }}"
+      DB_SID:                          "{{ oracle_sid }}"
+      IHRDBMS :                        "{{ oracle_home }}"
+
+    oracle_standby_env:
+      ORACLE_BASE:                     "{{ oracle_base }}"
+      ORACLE_HOME:                     "{{ oracle_home }}"
+      ORACLE_SID:                      "{{ oracle_sid }}_STDBY"
+      PATH:                            "{{ oracle_home }}/bin:{{ ansible_env.PATH }}"
+      LD_LIBRARY_PATH:                 "{{ oracle_home }}/lib"
+
+    grid_env:
+      ORACLE_HOME:                     "{{ grid_home }}"
+      ORACLE_SID:                      "{{ asm_sid }}"
+      PATH:                            "{{ grid_home }}/bin:{{ ansible_env.PATH }}"
+      LD_LIBRARY_PATH:                 "{{ grid_home }}/lib"
 
   tasks:
   # -------------------------------------+---------------------------------------8
@@ -590,7 +657,7 @@
   # Build the list of tasks to be executed in order here.
   #
   # -------------------------------------+---------------------------------------8
-    - name:                            "Database Installation Playbook: - Install Oracle"
+    - name:                            "Database Installation Playbook: - Oracle -Install Oracle"
       become:                          true
       become_user:                     root
       when:
@@ -598,37 +665,45 @@
         - platform == 'ORACLE'
       block:
 
-        - name:                        "Database Installation Playbook: - Setting the DB facts"
+        - name:                        "Database Installation Playbook: - Oracle - Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            ora_primary:               "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
+            ora_secondary:             "{{ ansible_play_hosts_all[1] | default ('(N/A)')}}"         # Oracle Secondary Host
           tags:
             - always
 
-        - name:                        "Configure accounts for oracle"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.11-accounts
+        - name:                        "Database Installation Playbook: - Oracle ASM - Register repositories"
+          ansible.builtin.import_tasks: roles-os/1.3-repository/tasks/1.3.3-repositories-from-BOM.yaml
 
-        - name:                        "Configure accounts for oracle"
-          ansible.builtin.include_role:
-            name:                      roles-os/1.11-accounts
+        - name:                        "Database Installation Playbook: - Create Symlink"
+          ansible.builtin.import_tasks: roles-sap-os/2.10-sap-notes/tasks/2.10.3119751.yaml
 
-        - name:                        "Database Installation Playbook: - Check for file system mounts"
+        - name:                        "Database Installation Playbook: - Oracle - Create SAP users/groups"
+          ansible.builtin.include_role:
+            name:                      roles-sap-os/2.5-sap-users
+          tags:
+            - 2.5-sap-users
+
+        - name:                        "Database Installation Playbook: - Oracle - file mounts"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        "Database Installation Playbook: - run Oracle installer"
+        - name:                        "Database Installation Playbook: - Oracle - run Oracle installer"
           ansible.builtin.include_role:
             name:                      roles-db/4.1.0-ora-install
 
-        - name:                        "Database Installation Playbook: - Run post installation routines"
+        - name:                        "Database Installation Playbook: - Oracle - Run post installation routines"
           ansible.builtin.include_role:
             name:                      roles-sap/7.0.0-post-install
           vars:
             suffix:                    "_DB"
             tier:                      'oracle'
 
-        - name:                        "Database Installation Playbook: - Create db-install-done flag"
+        - name:                        "Database Installation Playbook: - Oracle - Create db-install-done flag"
           delegate_to:                 localhost
           become:                      false
           ansible.builtin.file:
@@ -636,36 +711,35 @@
             state:                     touch
             mode:                      0755
 
-
-    - name:                            "Install Oracle for MSID"
+    - name:                            "Database Installation Playbook: - Oracle - Install Oracle for Multi SID"
       become:                          true
       become_user:                     root
       when:
         - node_tier == 'oracle-multi-sid'
         - platform == 'ORACLE'
       block:
-        - name:                        Setting the DB facts for MSID
+        - name:                        "Database Installation Playbook: - Oracle - Setting the DB facts for MSID"
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
           tags:
             - always
 
-        - name:                        Include 1.5.2-disk-setup-ora-multi-sid role
+        - name:                        "Database Installation Playbook: - Oracle - Disk setup (Shared Home)"
           ansible.builtin.include_role:
             name:                      roles-os/1.5.2-disk-setup-ora-multi-sid
 
-        - name:                        Check for file system mounts
+        - name:                        "Database Installation Playbook: - Oracle - Check for file system mounts (Shared Home)"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
           when:                        node_tier == 'oracle-multi-sid'
 
-        - name:                        Installing Oracle
+        - name:                        "Database Installation Playbook: - Oracle - Installing Oracle (Shared Home)"
           ansible.builtin.include_role:
             name:                      roles-db/4.1.3-ora-multi-sid
           when:                        node_tier == 'oracle-multi-sid'
 
-        - name:                        "Database Installation Playbook: - Create db-install-done flag"
+        - name:                        "Database Installation Playbook: - Oracle - Create db-install-done flag (Shared Home)"
           delegate_to:                 localhost
           become:                      false
           ansible.builtin.file:
@@ -681,57 +755,70 @@
         - node_tier == 'oracle-asm'
         - platform == 'ORACLE-ASM'
       block:
-        - name:                        Setting the DB facts for ASM
+        - name:                        "Database Installation Playbook: - Oracle ASM - Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
+            sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
+            ora_primary:               "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
+            ora_secondary:             "{{ ansible_play_hosts_all[1] | default ('(N/A)')}}"         # Oracle Secondary Host
+
           tags:
             - always
 
-        - name:                        Include 1.5.1.1-disk-setup-asm-sap
+        - name:                         "Database Installation Playbook: - Oracle ASM - Register repositories"
+          ansible.builtin.import_tasks: roles-os/1.3-repository/tasks/1.3.3-repositories-from-BOM.yaml
+
+        - name:                        "Database Installation Playbook: - Oracle ASM - Install Oracle specific packages"
+          ansible.builtin.include_role:
+            name:                      roles-os/1.4-packages
+
+        - name:                        "Database Installation Playbook: - Oracle ASM - ASM Disk setup"
           ansible.builtin.include_role:
             name:                      roles-os/1.5.1.1-disk-setup-asm-sap
 
-        - name:                        "OS configuration playbook: - Ensure the kernel parameters are set"
+        - name:                        "Database Installation Playbook: - Oracle ASM - Ensure the kernel parameters are set"
           ansible.builtin.include_role:
             name:                      roles-os/1.9-kernelparameters
           tags:
             - 1.9-kernelparameters
 
-        # - name:                        "SAP OS configuration playbook: - Configure accounts"
-        #   ansible.builtin.include_role:
-        #     name:                      roles-os/1.11-accounts
-        #   tags:
-        #     - 1.11-accounts
-
-        - name:                        "SAP OS configuration playbook: - Create SAP users/groups"
+        - name:                        "Database Installation Playbook: - Oracle ASM - Create SAP users/groups"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.5-sap-users
           tags:
             - 2.5-sap-users
 
-        - name:                        Mount the file systems for ASM installation
+        - name:                        "Database Installation Playbook: - Oracle ASM - Mount the file systems for ASM installation"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        Include 1.5.1-disk-setup-asm role
+        - name:                        "Database Installation Playbook: - Oracle ASM - Include 1.5.1-disk-setup-asm role"
           ansible.builtin.include_role:
             name:                      roles-os/1.5.1-disk-setup-asm
 
-        - name:                        Check for file system mounts
+        - name:                        "Database Installation Playbook: - Oracle ASM - Check for file system mounts"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        Installing Oracle ASM Grid
+        - name:                        "Database Installation Playbook: - Oracle ASM - Installing Oracle ASM Grid"
           ansible.builtin.include_role:
             name:                      roles-db/4.1.1-ora-asm-grid
           tags:                        4.1.1-ora-asm-grid
 
-        - name:                        Installing Oracle on ASM
+        - name:                        "Database Installation Playbook: - Oracle ASM - Installing Oracle on ASM"
           ansible.builtin.include_role:
             name:                      roles-db/4.1.2-ora-asm-db-install
 
-        - name:                        "Database Installation Playbook: - Create db-install-done flag"
+        - name:                        "Database Installation Playbook: - Oracle ASM - Updating Oracle ASM Grid"
+          ansible.builtin.import_tasks: roles-db/4.1.1-ora-asm-grid/tasks/update.yaml
+
+        - name:                        "Database Installation Playbook: - Oracle ASM - Updating Oracle ASM Database"
+          ansible.builtin.import_tasks: roles-db/4.1.2-ora-asm-db-install/tasks/update.yaml
+          tags:                        4.1.2-ora-asm-db-install
+
+        - name:                        "Database Installation Playbook: - Oracle ASM - Create db-install-done flag"
           delegate_to:                 localhost
           become:                      false
           ansible.builtin.file:
@@ -753,12 +840,12 @@
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
-  # -------------------------------------+---------------------------------------8
+  # -----------------------------------+-----------------------------------------8
   #
   # Build the list of tasks to be executed in order here.
   #
-  # -------------------------------------+---------------------------------------8
-    - name:                            "Backward Compatibility - Check required Database HA variables"
+  # -----------------------------------+-----------------------------------------8
+    - name:                            "Database Installation Playbook: - DB2 - Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
       when:
@@ -773,7 +860,7 @@
         - not database_high_availability
       block:
 
-        - name:                        "DB2 : Setting the DB facts"
+        - name:                        "Database Installation Playbook: - DB2 - Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      db2                                    # Actions for Oracle DB Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -783,19 +870,19 @@
           tags:
             - always
 
-        - name:                        "DB2 : Install DB2 specific packages"
+        - name:                        "Database Installation Playbook: - DB2 - Install DB2 specific packages"
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
 
-        - name:                        "DB2 : Check for file system mounts"
+        - name:                        "Database Installation Playbook: - DB2 - Check for file system mounts"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        Installing DB2
+        - name:                        "Database Installation Playbook: - DB2 - Installing DB2"
           ansible.builtin.include_role:
             name:                      roles-db/4.2.0-db2-install
 
-        - name:                        "Database Installation Playbook: - Run post installation routines"
+        - name:                        "Database Installation Playbook: - DB2 - Run post installation routines"
           ansible.builtin.include_role:
             name:                      roles-sap/7.0.0-post-install
           vars:
@@ -824,7 +911,7 @@
   # Build the list of tasks to be executed in order here.
   #
   # -------------------------------------+---------------------------------------8
-    - name:                            "Backward Compatibility - Check required Database HA variables"
+    - name:                            "Database Installation Playbook: - DB2 - HA - Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
       when:
@@ -840,7 +927,7 @@
         - (ansible_play_hosts_all | length) >= 2
       block:
 
-        - name:                        Setting the DB facts
+        - name:                        "Database Installation Playbook: - DB2 - HA - Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      db2                                    # Actions for DB2 Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -852,19 +939,19 @@
           tags:
             - always
 
-        - name:                        "DB2 Installation Play: Install DB2 specific packages"
+        - name:                        "Database Installation Playbook: - DB2 - HA - Install DB2 specific packages"
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
 
-        - name:                        "DB2 Installation Play: Check for file system mounts"
+        - name:                        "Database Installation Playbook: - DB2 - HA - Check for file system mounts"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        "DB2 Installation Play: Installing DB2"
+        - name:                        "Database Installation Playbook: - DB2 - HA - Installing DB2"
           ansible.builtin.include_role:
             name:                      roles-db/4.2.1-db2-hainstall
 
-        - name:                        "DB2 Installation Play: : - Run post installation routines"
+        - name:                        "Database Installation Playbook: - DB2 - HA - Run post installation routines"
           ansible.builtin.include_role:
             name:                      roles-sap/7.0.0-post-install
           vars:
@@ -894,14 +981,14 @@
   # Build the list of tasks to be executed in order here.
   #
   # -------------------------------------+---------------------------------------8
-    - name:                            "Backward Compatibility - Check required Database HA variables"
+    - name:                            "Database Installation Playbook: - ASE - Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
       when:
         - db_high_availability is defined
         - database_high_availability is not defined
 
-    - name:                            "Install SAP ASE"
+    - name:                            "Database Installation Playbook: - ASE - Install SAP ASE"
       become:                          true
       become_user:                     root
       when:
@@ -909,7 +996,7 @@
         - not database_high_availability
       block:
 
-        - name:                        "ASE Installation Play: Setting the DB facts"
+        - name:                        "Database Installation Playbook: - ASE - Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      sybase
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -920,19 +1007,19 @@
           tags:
             - always
 
-        - name:                        "ASE Installation Play: Install ASE specific packages"
+        - name:                        "Database Installation Playbook: - ASE - Install ASE specific packages"
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
 
-        - name:                        "ASE Installation Play: Check for file system mounts"
+        - name:                        "Database Installation Playbook: - ASE - Check for file system mounts"
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.6-sap-mounts
 
-        - name:                        "ASE Installation Play: Installing ASE"
+        - name:                        "Database Installation Playbook: - ASE - Installing ASE"
           ansible.builtin.include_role:
             name:                      roles-db/4.3.0-ase-install
 
-        - name:                        "ASE Installation Play: Run post installation routines"
+        - name:                        "Database Installation Playbook: - ASE - Run post installation routines"
           ansible.builtin.include_role:
             name:                      roles-sap/7.0.0-post-install
           vars:
@@ -970,7 +1057,7 @@
         - node_tier == 'sqlserver'
       block:
 
-        - name:                        "Database Installation Playbook: - Setting the DB facts"
+        - name:                        "Database Installation Playbook: - SQL Server - Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      sqlserver                               # Actions for sql Servers
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -978,17 +1065,17 @@
           tags:
             - always
 
-        - name:                        "DBLoad Playbook: - Ensure Sharing Data Folder"
+        - name:                        "Database Installation Playbook: - SQL Server - Ensure Sharing Data Folder"
           ansible.builtin.include_role:
             name:                      roles-sap-os/windows/2.3-sap-exports
 
-        - name:                        "Database Installation Playbook: - Run SQL Server Installation"
+        - name:                        "Database Installation Playbook: - SQL Server - Run SQL Server Installation"
           ansible.builtin.include_role:
             name:                      roles-db/windows/4.4.0-mssql-install
           vars:
             domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
 
-        - name:                        "Database Installation Playbook: - Create db-install-done flag"
+        - name:                        "Database Installation Playbook: - SQL Server - Create db-install-done flag"
           delegate_to:                 localhost
           become:                      false
           ansible.builtin.file:
@@ -1033,7 +1120,7 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "DB Playbook - Post Install: Check for files in progress folder"
+    - name:                            "Database Installation Playbook: - Post Install: Check for files in progress folder"
       ansible.builtin.find:
         path:                          "{{ _workspace_directory }}/.progress/db"
         patterns:                      "*"
@@ -1041,7 +1128,7 @@
       delegate_to:                     localhost
       become:                          false
 
-    - name:                            "DB Playbook - Post Install: - Create db-install-done flag"
+    - name:                            "Database Installation Playbook: - Post Install: - Create db-install-done flag"
       delegate_to:                     localhost
       become:                          false
       ansible.builtin.file:

@@ -29,45 +29,29 @@
           }
         ],
         "Overrules": "",
-        "Display": 3
+        "Display": 1
       }
     ]
   },
   {
-    "Section": "Environment",
+    "Section": "Workload zone",
     "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#environment-parameters",
     "Parameters": [
       {
-        "Name": "environment",
+        "Name": "workload_zone",
         "Required": true,
-        "Description": "Identifier for the workload zone, used for partitioning the environments. For example 'DEV', 'QA', 'PROD', 'TEST', etc.",
-        "Type": "lookup",
-        "Options": [
-          {
-            "Text": "Select an environment...",
-            "Value": ""
-          },
-          {
-            "Text": "Development",
-            "Value": "DEV"
-          },
-          {
-            "Text": "Sandbox",
-            "Value": "SND"
-          },
-          {
-            "Text": "Prototype",
-            "Value": "PROTO"
-          },
-          {
-            "Text": "Non Production",
-            "Value": "NP"
-          },
-          {
-            "Text": "Production",
-            "Value": "PROD"
-          }
-        ],
+        "Description": "Identifier for the workload zone, used for partitioning the environments. For example 'DEV-WEEU-SAP01', 'QA-WEEU-SAP02', 'PROD-WEEU-SAP03',etc.",
+        "Type": "textbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "environment",
+        "Required": false,
+        "Description": "The name of the environment.",
+        "Type": "textbox",
+        "Options": [],
         "Overrules": "",
         "Display": 1
       },
@@ -82,6 +66,15 @@
             "Value": ""
           }
         ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "locationCode",
+        "Required": false,
+        "Description": "The SDAF short code for the location.",
+        "Type": "field",
+        "Options": [],
         "Overrules": "",
         "Display": 1
       },
@@ -271,7 +264,7 @@
     "Parameters": [
       {
         "Name": "network_logical_name",
-        "Required": true,
+        "Required": false,
         "Description": "Defines the workload virtual network logical name. Used in the naming convention.",
         "Type": "field",
         "Options": [],

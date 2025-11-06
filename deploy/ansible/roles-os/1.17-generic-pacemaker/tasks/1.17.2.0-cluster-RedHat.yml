@@ -261,7 +261,7 @@
                                          pcmk_monitor_retries=4 \
                                          pcmk_action_limit=3 \
                                          pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}" \
-                                         {%if not is_pcmk_ver_gt_204%}"pcmk_delay_max=15"{%endif%}
+                                         {%if not is_pcmk_ver_gt_204%}"pcmk_delay_max=15"{% endif %}
 
     - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured (MSI)"
       when:
@@ -278,7 +278,7 @@
                                          pcmk_monitor_retries=4 \
                                          pcmk_action_limit=3 \
                                          pcmk_host_map="{{ primary_instance_name }}:{{ hostvars[primary_instance_name]['primary_vm_name'] }};{{ secondary_instance_name }}:{{ hostvars[secondary_instance_name]['secondary_vm_name'] }}" \
-                                         {%if not is_pcmk_ver_gt_204%}"pcmk_delay_max=15"{%endif%}
+                                         {%if not is_pcmk_ver_gt_204%}"pcmk_delay_max=15"{% endif %}
 
     # The property priority-fencing-delay is applicable for pacemaker-2.0.4-6.el8 version or higher.
     # If you're setting up priority-fencing-delay on an existing cluster, make sure to unset the

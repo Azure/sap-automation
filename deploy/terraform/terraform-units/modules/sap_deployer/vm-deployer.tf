@@ -111,7 +111,6 @@ data "azurerm_user_assigned_identity" "deployer" {
 // Linux Virtual Machine for Deployer
 resource "azurerm_linux_virtual_machine" "deployer" {
   count                                = var.deployer_vm_count
-  depends_on                           = [ azurerm_key_vault.kv_user ]
 
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.vm,

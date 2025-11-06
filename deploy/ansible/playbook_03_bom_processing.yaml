@@ -11,13 +11,13 @@
 # +------------------------------------4--------------------------------------*/
 
 - hosts:                               localhost
-  name:                                Get Storage account details from KeyVault
+  name:                                "Bill of Materials Playbook: - Get Storage account details from KeyVault"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
   tasks:
 
-    - name:                            Create Progress folder
+    - name:                            "Bill of Materials Playbook: - Create Progress folder"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
         state:                         directory
@@ -25,14 +25,14 @@
       tags:
         - always
 
-    - name:                            Remove bom-processing-done flag
+    - name:                            "Bill of Materials Playbook: - Remove bom-processing-done flag"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/bom-processing-done"
         state:                         absent
       tags:
         - always
 
-    - name:                            Include 0.3.sap-installation-media-storage-details role
+    - name:                            "Bill of Materials Playbook: - Get Storage account details from KeyVault"
       ansible.builtin.import_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
       vars:
@@ -48,7 +48,7 @@
 
 - hosts:                               "{{ sap_sid | upper }}_SCS : {{ sap_sid | upper }}_DB"
 
-  name:                                BOM Processing
+  name:                                "Bill of Materials Playbook: - BOM Processing"
   remote_user:                         "{{ orchestration_ansible_user }}"
   gather_facts:                        true
   vars_files:
@@ -60,7 +60,7 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "Perform BoM processing"
+    - name:                            "Bill of Materials Playbook: - Process the Bill of Materials file"
       when:
         # run on SCS or the when no SCS is defined run on the first DB server to support HANA only install
         - "'scs' in supported_tiers or (
@@ -70,7 +70,7 @@
           )"
       block:
 
-        - name:                        Set facts
+        - name:                        "Bill of Materials Playbook: - Set Path to storage account containing the installation media"
           ansible.builtin.set_fact:
             tier:                      preparation
             sapbits_location_base_path: "{{ hostvars.localhost.sapbits_location_base_path }}"
@@ -78,25 +78,18 @@
           tags:
             - always
 
-        - name:                        Set facts
+        - name:                        "Bill of Materials Playbook: - Set User Defined SAS token"
           when:                        hostvars.localhost.sapbits_sas_token is defined
           ansible.builtin.set_fact:
             sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
           tags:
             - always
 
-        - name:                        Set facts
-          when:                        hostvars.localhost.sapbits_sas_token is defined
-          ansible.builtin.set_fact:
-            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
-          tags:
-            - always
-
-        - name:                        3.3-bom-processing role for Linux
+        - name:                        "Bill of Materials Playbook: - 3.3-bom-processing role for Linux"
           become:                      true
           when:                        ansible_os_family != "Windows"
           block:
-            - name:                    Include the 3.3-bom-processing role
+            - name:                    "Bill of Materials Playbook: - Process the Bill of Materials file"
               ansible.builtin.import_role:
                 name:                  "roles-sap/3.3-bom-processing"
               vars:
@@ -107,10 +100,10 @@
               tags:
                 - 3.3-bom-processing
 
-        - name:                        3.3-bom-processing role for Windows
+        - name:                        "Bill of Materials Playbook: - 3.3-bom-processing role for Windows"
           when:                        ansible_os_family == "Windows"
           block:
-            - name:                    Include the 3.3-bom-processing role
+            - name:                    "Bill of Materials Playbook: - Process the Bill of Materials file"
               ansible.builtin.import_role:
                 name:                  "roles-sap/windows/3.3-bom-processing"
               vars:
@@ -120,7 +113,7 @@
               tags:
                 - 3.3-bom-processing
 
-        - name:                        Create bom-processing flag
+        - name:                        "Bill of Materials Playbook: - Create bom-processing flag"
           delegate_to:                 localhost
           become:                      false
           ansible.builtin.file:

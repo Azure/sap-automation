@@ -126,7 +126,7 @@ function saveVariableInVariableGroup() {
 
 	if [ -n "$variable_value" ]; then
 
-	  print_banner "Saving variable" "Variable name: $variable_name" "info" "Variable value: $variable_value"
+		print_banner "Saving variable" "Variable name: $variable_name" "info" "Variable value: $variable_value"
 
 		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
 		if [ "$DEBUG" = True ]; then
@@ -159,10 +159,14 @@ function configureNonDeployer() {
 	reset="\e[0m"
 	local tf_version=$1
 	local tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip"
-	echo -e "$green--- Install dos2unix ---$reset"
-	sudo apt-get -qq install dos2unix
+	# echo -e "$green--- Install dos2unix ---$reset"
+	# sudo apt-get -qq install dos2unix
 
-	sudo apt-get -qq install zip
+	isZipInstalled=$(which zip || true)
+	if [ -z "$isZipInstalled" ]; then
+		echo -e "$green--- Install zip ---$reset"
+		sudo apt-get -qq install zip
+	fi
 
 	if ! which terraform; then
 		if [ -n "$tf_version" ]; then
@@ -207,7 +211,7 @@ function LogonToAzure() {
 			source "/etc/profile.d/deploy_server.sh"
 		else
 			echo "Running az login --identity"
-		  az login --identity --allow-no-subscriptions --client-id "$ARM_CLIENT_ID" --output none
+			az login --identity --allow-no-subscriptions --client-id "$ARM_CLIENT_ID" --output none
 		fi
 
 		az account show --query user --output yaml
@@ -361,7 +365,7 @@ function configure_devops() {
 
 	extension_installed=$(az extension list --query "[?contains(name, 'azure-devops')].name | [0]" --output tsv)
 
-	if [  -n  "$extension_installed" ]; then
+	if [ -n "$extension_installed" ]; then
 		echo "Azure DevOps extension already installed."
 		az extension update --name azure-devops --output none --only-show-errors
 	else
@@ -373,7 +377,7 @@ function configure_devops() {
 
 	extension_installed=$(az extension list --query "[?contains(name, 'resource-graph')].name | [0]" --output tsv)
 
-	if [  -n  "$extension_installed" ]; then
+	if [ -n "$extension_installed" ]; then
 		echo "Azure Resource Graph extension already installed."
 		az extension update --name resource-graph --output none --only-show-errors
 	else

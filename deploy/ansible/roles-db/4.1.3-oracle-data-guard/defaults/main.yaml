@@ -1,0 +1,16 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+
+is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
+CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OEL{{ ansible_distribution_version }}1 {% endif %}"
+
+# Network
+listener_port:                     1521
+oracle_group:                      oinstall
+
+# Recovery Settings
+db_recovery_file_dest:             "+RECO"
+db_recovery_file_dest_size:        30000M
+
+standby_redo_log_size:             200M

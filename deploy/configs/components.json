@@ -48,7 +48,7 @@
         "installer": "hdblcm"
       }
     ],
-    "depends_on": [ 
+    "depends_on": [
       "hana_database"
     ]
   },
@@ -61,7 +61,7 @@
         "installer": "xs"
       }
     ],
-    "depends_on": [ 
+    "depends_on": [
       "hana_database", "xs"
     ]
   }

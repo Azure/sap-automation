@@ -6,16 +6,10 @@
 
 
 # Location of Export CD
-SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT
 SAPINST.CD.PACKAGE.CLIENT                                             = {{ target_media_location }}/sapdb2_software/db2client
 SAPINST.CD.PACKAGE.RDBMS                                              = {{ target_media_location }}/sapdb2_software/db2server/LINUXX86_64
 SAPINST.CD.PACKAGE.LOAD                                               = {{ target_media_location }}/CD_EXPORT
 SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
-
-SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
-SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP2
-SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP3
-SAPINST.CD.PACKAGE.CD4                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP4
 
 NW_Unpack.sapExeDbSar                                                 = {{ target_media_location }}/download_basket
 NW_Unpack.sapExeSar                                                   = {{ target_media_location }}/download_basket
@@ -26,6 +20,13 @@ archives.downloadBasket                                               = {{ targe
 UmeConfiguration.adminPassword                                        = {{ main_password }}
 
 {% if platform | upper == 'HANA' %}
+
+SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP3
+SAPINST.CD.PACKAGE.CD4                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP4
+
 HDB_Schema_Check_Dialogs.schemaName                                   = {{ db_schema }}
 HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
 HDB_Userstore.doNotResolveHostnames                                   = {{ virt_do_not_resolve_hostname }}
@@ -121,9 +122,9 @@ storageBasedCopy.ora.listenerName                                    = LISTENER
 storageBasedCopy.ora.listenerPort                                    = 1521
 storageBasedCopy.ora.serverVersion                                   = {{ ora_release }}
 storageBasedCopy.ora.swowner                                         = oracle
-SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
-SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP2
-SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP3
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
+SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
+SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
 {% endif %}
 
 {% if platform | upper == 'ORACLE' %}

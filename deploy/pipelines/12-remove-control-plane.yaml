@@ -63,7 +63,6 @@ stages:
         steps:
           - template:                  templates\download.yaml
           - task:                      PostBuildCleanup@4
-          - task:                      PostBuildCleanup@4
           - task:                      TerraformInstaller@1
             displayName:               Install Terraform
             inputs:
@@ -86,6 +85,7 @@ stages:
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               TF_IN_AUTOMATION:         true
+              TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
               key_vault:                $(DEPLOYER_KEYVAULT)
@@ -141,6 +141,7 @@ stages:
               SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
               TF_IN_AUTOMATION:         true
+              TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
               TF_LOG:                   $(TF_LOG)
               USE_MSI:                  $(Use_MSI)
               key_vault:                $(DEPLOYER_KEYVAULT)
