@@ -1137,7 +1137,7 @@ if [ "${deployment_system}" == sap_landscape ]; then
 			save_config_var "workload_zone_random_id" "${system_environment_file_name}"
 			custom_random_id="${workload_zone_random_id:0:3}"
 			sed -i -e /"custom_random_id"/d "${parameterfile}"
-			printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+			printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
 		fi
 	fi
@@ -1153,7 +1153,7 @@ if [ "${deployment_system}" == sap_library ]; then
 		save_config_var "library_random_id" "${system_environment_file_name}"
 		custom_random_id="${library_random_id:0:3}"
 		sed -i -e /"custom_random_id"/d "${parameterfile}"
-		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+		printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
 	fi
 

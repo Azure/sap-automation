@@ -47,7 +47,7 @@ resource "azurerm_network_interface" "nics_dbnodes_admin" {
 
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
-  accelerated_networking_enabled        = true
+  accelerated_networking_enabled       = true
   tags                                 = var.tags
 
   ip_configuration {
@@ -86,7 +86,7 @@ resource "azurerm_network_interface" "nics_dbnodes_db" {
 
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
-  accelerated_networking_enabled        = true
+  accelerated_networking_enabled       = true
   tags                                 = var.tags
   dynamic "ip_configuration" {
                                iterator = pub
@@ -147,7 +147,7 @@ resource "azurerm_network_interface" "nics_dbnodes_storage" {
 
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
-  accelerated_networking_enabled        = true
+  accelerated_networking_enabled       = true
   tags                                 = var.tags
 
   ip_configuration {

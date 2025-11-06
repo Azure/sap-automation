@@ -134,11 +134,8 @@
                                        /oracle/media/client/runInstaller -silent -responseFile /oracle/media/{{ ansible_hostname }}_{{ db_sid | upper }}_install.rsp -ignoreSysPrereqs -waitForCompletion
       register:                        orainstaller_results
       failed_when:                     "'Successfully Setup Software' not in orainstaller_results.stdout"
-      environment:
-        DB_SID:                        "{{ db_sid | upper }}"
-        CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
+      environment:                     "{{ oracle_env }}"
       args:
-        executable:                    /bin/csh
         creates:                       "/etc/sap_deployment_automation/observer/oracle_installed.txt"
 
     - name:                            "4.1.4 Oracle Data Guard - Observer - Debug: installer output"
@@ -183,8 +180,7 @@
       become_user:                     root
       ansible.builtin.shell:           /oracle/oraInventory/orainstRoot.sh
       register:                        orainstRoot_results
-      args:
-        executable:                    /bin/csh
+      environment:                     "{{ oracle_env }}"
 
     - name:                            "4.1.4 Oracle Data Guard - Observer - Debug: orainstRoot output"
       ansible.builtin.debug:
@@ -214,8 +210,7 @@
       become_user:                     root
       ansible.builtin.shell:           /oracle/{{ db_sid | upper }}/{{ ora_version }}/root.sh
       register:                        rootscript_results
-      args:
-        executable:                    /bin/csh
+      environment:                     "{{ oracle_env }}"
 
     - name:                            "4.1.4 Oracle Data Guard - Observer - Debug: rootscript output"
       ansible.builtin.debug:
@@ -260,16 +255,12 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        $ORACLE_HOME/OPatch/opatch apply -silent
   register:                            orainstaller_results
   failed_when:                         orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
-  environment:
-    DB_SID:                            "{{ db_sid | upper }}"
-    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+  environment:                         "{{ oracle_env }}"
   args:
     chdir:                             "{{ patch_SBP_DBRU_directory.files[0].path }}"
-    executable:                        /bin/csh
     creates:                           "/etc/sap_deployment_automation/observer/SBP_DBRU_oracle_installed.txt"
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Debug: OPatch SBP_DBRU output"
@@ -311,16 +302,12 @@
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        $ORACLE_HOME/OPatch/opatch apply -silent
   register:                            orainstaller_results
   failed_when:                         orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
-  environment:
-    DB_SID:                            "{{ db_sid | upper }}"
-    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
+  environment:                         "{{ oracle_env }}"
   args:
     chdir:                             "{{ patch_SBP_JDKRU_directory.files[0].path }}"
-    executable:                        /bin/csh
     creates:                           "/etc/sap_deployment_automation/observer/SBP_JDKRU_oracle_installed.txt"
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Debug installer output log"
@@ -367,9 +354,9 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               tnsping {{ db_sid | upper }}
   register:                            tnsping_primary_results
+  environment:                         "{{ oracle_env }}"
   args:
     chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin
-    executable:                        /bin/csh
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Show tnsping Primary output"
   ansible.builtin.debug:
@@ -391,9 +378,9 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               tnsping {{ db_sid | upper }}_STDBY
   register:                            tnsping_secondary_results
+  environment:                         "{{ oracle_standby_env }}"
   args:
     chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin
-    executable:                        /bin/csh
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Show tnsping Secondary output"
   ansible.builtin.debug:
@@ -409,7 +396,6 @@
     mode:                              '0655'
   when:                                tnsping_secondary_results.stdout is defined
 
-
 - name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Create the sqlnet.ora for Secondary"
   ansible.builtin.template:
     src:                               sqlnet_observer.ora.j2
@@ -422,14 +408,7 @@
 - name:                                "4.1.4 Oracle Data Guard - Observer - DEbug"
   ansible.builtin.debug:
     msg:
-      - "Wallet password: {{ main_password | replace ('$', '') }}"
-      - "Observer Wallet path: /oracle/observer/wallet"
-      - "User passwprd: {{ main_password | replace ('$', '\\$') }}"
-      - "Command: mkstore -wrl /oracle/observer/wallet  -createEntry oracle.security.client.default_password << EOF
-                                       {{ main_password | replace ('$', '\\$') }}
-                                       {{ main_password | replace ('$', '\\$') }}
-                                       {{ main_password | replace ('$', '') }}
-                                       EOF"
+      - "Observer Wallet path:  /oracle/observer/wallet"
 
 # Create Wallet for storing the credentials
 
@@ -453,9 +432,9 @@
                                        {{ main_password | replace ('$', '') }}
                                        EOF
   register:                            create_password_results
+  environment:                         "{{ oracle_env }}"
   args:
     chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin
-    executable:                        /bin/csh
   failed_when:                         create_password_results.rc != 0 and 'PKI-03001' not in create_password_results.stdout
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Create default_password for {{ db_sid | upper }}"
@@ -468,9 +447,9 @@
                                        {{ main_password | replace ('$', '') }}
                                        EOF
   register:                            create_password_results
+  environment:                         "{{ oracle_env }}"
   args:
     chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin
-    executable:                        /bin/csh
   failed_when:                         create_password_results.rc != 0 and 'PKI-03001' not in create_password_results.stdout
 
 - name:                                "4.1.3 Oracle Data Guard - Prepare Secondary - Create DG Startup script"

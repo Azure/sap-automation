@@ -1163,7 +1163,7 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 		save_config_var "workload_random_id" "${workload_environment_file_name}"
 		custom_random_id="${workload_random_id:0:3}"
 		sed -i -e /"custom_random_id"/d "${parameterfile}"
-		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+		printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
 	fi
 
 	resourceGroupName=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")

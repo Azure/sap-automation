@@ -228,6 +228,43 @@
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
+  vars:
+    ansible_executable:                /bin/bash
+
+    oracle_base:                       "/oracle"
+    oracle_home:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    oracle_sid:                        "{{ db_sid | upper }}"
+    oracle_user:                       "{{ oracle_user_name }}"
+    grid_sid:                          "GRID"
+    grid_user:                         "{{ grid_user_name | default(oracle_user_name) }}"
+    grid_home:                         "/oracle/GRID/{{ ora_version }}"
+    asm_sid:                           +ASM
+
+    # Define once, use everywhere
+    oracle_env:
+      ORACLE_BASE:                     "{{ oracle_base }}"
+      ORACLE_HOME:                     "{{ oracle_home }}"
+      ORACLE_SID:                      "{{ oracle_sid }}"
+      GRID_HOME:                       "{{ grid_home }}"
+      GRID_SID:                        "{{ grid_sid }}"
+      PATH:                            "{{ oracle_home }}/bin:{{ ansible_env.PATH }}"
+      LD_LIBRARY_PATH:                 "{{ oracle_home }}/lib"
+
+    oracle_standby_env:
+      ORACLE_BASE:                     "{{ oracle_base }}"
+      ORACLE_HOME:                     "{{ oracle_home }}"
+      ORACLE_SID:                      "{{ oracle_sid }}_STDBY"
+      GRID_HOME:                       "{{ grid_home }}"
+      GRID_SID:                        "{{ grid_sid }}"
+      PATH:                            "{{ oracle_home }}/bin:{{ ansible_env.PATH }}"
+      LD_LIBRARY_PATH:                 "{{ oracle_home }}/lib"
+
+    grid_env:
+      ORACLE_HOME:                     "{{ grid_home }}"
+      ORACLE_SID:                      "{{ asm_sid }}"
+      PATH:                            "{{ grid_home }}/bin:{{ ansible_env.PATH }}"
+      LD_LIBRARY_PATH:                 "{{ grid_home }}/lib"
+
   tasks:
     - name:                            "Database High Availability Configuration Playbook - ORACLE : Backward Compatibility - Check required Database HA variables"
       ansible.builtin.set_fact:
@@ -294,6 +331,30 @@
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
+  vars:
+    ansible_executable:                /bin/bash
+
+    oracle_base:                       "/oracle"
+    oracle_home:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    oracle_sid:                        "{{ db_sid | upper }}"
+    oracle_user:                       "{{ oracle_user_name }}"
+    CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OL8 {% endif %}"
+
+    # Define once, use everywhere
+    oracle_env:
+      ORACLE_BASE:                     "{{ oracle_base }}"
+      ORACLE_HOME:                     "{{ oracle_home }}"
+      ORACLE_SID:                      "{{ oracle_sid }}"
+      PATH:                            "{{ oracle_home }}/bin:{{ ansible_env.PATH }}"
+      LD_LIBRARY_PATH:                 "{{ oracle_home }}/lib"
+      CV_ASSUME_DISTID:                "{{ CV_ASSUME_DISTID }}"
+      DB_SID:                          "{{ oracle_sid }}"
+      IHRDBMS :                        "{{ oracle_home }}"
+
+    oracle_standby_env:
+      ORACLE_BASE:                     "{{ oracle_base }}"
+      ORACLE_HOME:                     "{{ oracle_home }}"
+      ORACLE_SID:                      "{{ oracle_sid }}_STDBY"
 
   tasks:
     - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Backward Compatibility - Check required Database HA variables"

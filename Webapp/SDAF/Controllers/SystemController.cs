@@ -42,6 +42,7 @@ namespace SDAFWebApp.Controllers
 
             imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
             InitializeImageOptionsAndMapping();
+
         }
         private FormViewModel<SystemModel> SetViewData()
         {
@@ -464,7 +465,7 @@ namespace SDAFWebApp.Controllers
                 try
                 {
                     string newId = Helper.GenerateId(system);
-                    if (system.Id == null) system.Id = newId;
+                    system.Id ??= newId;
                     if (newId != system.Id)
                     {
                         if (String.IsNullOrEmpty(system.Description))

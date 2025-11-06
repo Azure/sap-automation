@@ -28,6 +28,9 @@
 .PARAMETER ControlPlaneName
     The control plane name (e.g., "MGMT-WEEU-DEP01").
 
+.PARAMETER ControlPlaneSubscriptionId
+    The subscription ID for the control plane resources.
+
 .PARAMETER WorkloadZoneCode
     The workload zone code identifier (e.g., QA).
 
@@ -42,6 +45,9 @@
 
 .PARAMETER ManagedIdentityObjectId
     The object ID of the managed identity (required for Managed Identity authentication).
+
+.PARAMETER ManagedIdentityId
+    The ID of the managed identity (required for Managed Identity authentication).
 
 .PARAMETER CreateConnections
     Switch to create service connections automatically.
@@ -81,6 +87,10 @@ function New-SDAFADOWorkloadZone {
     [Parameter(Mandatory = $false, HelpMessage = "Control Plane name (e.g., MGMT-WEEU-DEP01)")]
     [string]$ControlPlaneName = "",
 
+    [Parameter(Mandatory = $true, HelpMessage = "Control Plane subscription ID")]
+    [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
+    [string]$ControlPlaneSubscriptionId,
+
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone code (e.g., DEV)")]
     [string]$WorkloadZoneCode,
 
@@ -107,6 +117,10 @@ function New-SDAFADOWorkloadZone {
     [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
     [string]$ManagedIdentityObjectId,
 
+    # Managed Identity specific parameters
+    [Parameter(ParameterSetName = "ManagedIdentity", Mandatory = $false)]
+    [string]$ManagedIdentityId,
+
     # Switch parameters
     [Parameter(HelpMessage = "Create service connections automatically")]
     [switch]$CreateConnections,
@@ -123,6 +137,7 @@ function New-SDAFADOWorkloadZone {
     Write-Verbose "  TenantId: $TenantId"
     Write-Verbose "  AuthenticationMethod: $AuthenticationMethod"
     Write-Verbose "  ManagedIdentityObjectId: $ManagedIdentityObjectId"
+    Write-Verbose "  ManagedIdentityId: $ManagedIdentityId"
     Write-Verbose "  WorkloadZoneCode: $WorkloadZoneCode"
     Write-Verbose "  WorkloadZoneSubscriptionId: $WorkloadZoneSubscriptionId"
     Write-Verbose "  CreateConnections: $CreateConnections"
@@ -386,8 +401,6 @@ function New-SDAFADOWorkloadZone {
         throw "Project not found"
       }
 
-      $ManagedIdentityClientId = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].id" --subscription $ControlPlaneSubscriptionId --output tsv)
-
       $ControlPlaneVariableGroupId = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
       $AgentPoolName = ""
       if ($ControlPlaneVariableGroupId.Length -ne 0) {
@@ -410,10 +423,21 @@ function New-SDAFADOWorkloadZone {
           "App Configuration Data Owner"
         )
 
+        if ($ManagedIdentityId.Length -ne 0) {
+          $ResourceGroupName = $ManagedIdentityId.Split("/")[4]
+          $ManagedIdentityClientId = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].id" --subscription $ControlPlaneSubscriptionId --resource-group $ResourceGroupName --output tsv)
+          Write-Verbose "Client ID of the Managed Identity: $ManagedIdentityClientId"
+          if ($ManagedIdentityClientId.Length -eq 0) {
+            Write-Error "Managed Identity with Object ID $ManagedIdentityObjectId was not found in subscription $ControlPlaneSubscriptionId"
+            throw "Managed Identity not found"
+          }
+
+        }
+
         foreach ($RoleName in $Roles) {
 
-          Write-Host "Assigning role" $RoleName "to the Managed Identity" -ForegroundColor Green
-          Write-Verbose "Assigning role" $RoleName "to the Managed Identity ($ManagedIdentityObjectId)" -ForegroundColor Green
+          Write-Host "Assigning role $RoleName to the Managed Identity" -ForegroundColor Green
+          Write-Verbose "Assigning role $RoleName to the Managed Identity ($ManagedIdentityObjectId)"
           $roleAssignment = az role assignment create --assignee-object-id $ManagedIdentityObjectId --role $RoleName --scope /subscriptions/$WorkloadZoneSubscriptionId --query id --output tsv --only-show-errors
           if ($roleAssignment) {
             Write-Host "Successfully assigned $RoleName role to identity" -ForegroundColor Green

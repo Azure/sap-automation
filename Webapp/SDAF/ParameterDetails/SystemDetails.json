@@ -1,7 +1,7 @@
 [
   {
     "Section": "Set as default",
-    "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-SYSTEM?branch=main",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-system",
     "Parameters": [
       {
         "Name": "IsDefault",
@@ -15,7 +15,7 @@
   },
   {
     "Section": "Subscription *",
-    "Link": "https://learn.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-system",
     "Parameters": [
       {
         "Name": "subscription",

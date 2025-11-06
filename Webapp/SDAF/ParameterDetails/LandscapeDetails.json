@@ -40,34 +40,9 @@
       {
         "Name": "workload_zone",
         "Required": true,
-        "Description": "Identifier for the workload zone, used for partitioning the environments. For example 'DEV', 'QA', 'PROD', 'TEST', etc.",
-        "Type": "lookup",
-        "Options": [
-          {
-            "Text": "Select an environment...",
-            "Value": ""
-          },
-          {
-            "Text": "Development",
-            "Value": "DEV"
-          },
-          {
-            "Text": "Sandbox",
-            "Value": "SND"
-          },
-          {
-            "Text": "Prototype",
-            "Value": "PROTO"
-          },
-          {
-            "Text": "Non Production",
-            "Value": "NP"
-          },
-          {
-            "Text": "Production",
-            "Value": "PROD"
-          }
-        ],
+        "Description": "Identifier for the workload zone, used for partitioning the environments. For example 'DEV-WEEU-SAP01', 'QA-WEEU-SAP02', 'PROD-WEEU-SAP03',etc.",
+        "Type": "textbox",
+        "Options": [],
         "Overrules": "",
         "Display": 1
       },

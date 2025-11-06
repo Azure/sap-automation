@@ -8,7 +8,7 @@ function Get-IniContent {
     .SYNOPSIS
         Get-IniContent
 
-
+    
 .LINK
     https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
 
@@ -48,11 +48,11 @@ function Out-IniFile {
     <#
         .SYNOPSIS
             Out-IniContent
-
-
+    
+        
     .LINK
         https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
-
+    
         #>
     <#
     #>
@@ -356,7 +356,6 @@ function Get-SDAFUserAssignedIdentity {
           IdentityId       = $identity.id
           PrincipalId      = $identity.principalId
           ClientId         = $identity.clientId
-          RoleAssignmentId = $roleAssignment
         }
       }
       else {
@@ -378,7 +377,7 @@ function Get-SDAFUserAssignedIdentity {
 
 # Export the function
 Export-ModuleMember -Function Get-SDAFUserAssignedIdentity
-#EndRegion '.\Public\Get-SDAFUserAssignedIdentity.ps1' 102
+#EndRegion '.\Public\Get-SDAFUserAssignedIdentity.ps1' 101
 #Region '.\Public\New-SDAFADOProject.ps1' -1
 
 #Requires -Version 5.1
@@ -409,7 +408,7 @@ Export-ModuleMember -Function Get-SDAFUserAssignedIdentity
     The control plane code identifier (e.g., MGMT).
 
 .PARAMETER ControlPlaneName
-    The control plane name (e.g., MGMT-WEUE-DEP01).
+    The control plane name (e.g., MGMT-WEEU-DEP01).
 
 .PARAMETER ControlPlaneSubscriptionId
     The subscription ID for the control plane resources.
@@ -1796,13 +1795,16 @@ Export-ModuleMember -Function New-SDAFADOProject
     The control plane code identifier (e.g., MGMT).
 
 .PARAMETER ControlPlaneName
-    The control plane name (e.g., "MGMT-WEEU-DEP01  ").
+    The control plane name (e.g., "MGMT-WEEU-DEP01").
+
+.PARAMETER ControlPlaneSubscriptionId
+    The subscription ID for the control plane resources.
 
 .PARAMETER WorkloadZoneCode
     The workload zone code identifier (e.g., QA).
 
 .PARAMETER WorkloadZoneName
-    The workload zone name (e.g., "QA-WEEU-SAP01  ").
+    The workload zone name (e.g., "QA-WEEU-SAP01").
 
 .PARAMETER WorkloadZoneSubscriptionId
     The subscription ID for the workload zone resources.
@@ -1812,6 +1814,9 @@ Export-ModuleMember -Function New-SDAFADOProject
 
 .PARAMETER ManagedIdentityObjectId
     The object ID of the managed identity (required for Managed Identity authentication).
+
+.PARAMETER ManagedIdentityId
+    The ID of the managed identity (required for Managed Identity authentication).
 
 .PARAMETER CreateConnections
     Switch to create service connections automatically.
@@ -1849,13 +1854,17 @@ function New-SDAFADOWorkloadZone {
     [string]$ControlPlaneCode,
 
     [Parameter(Mandatory = $false, HelpMessage = "Control Plane name (e.g., MGMT-WEEU-DEP01)")]
-    [string]$ControlPlaneName="",
+    [string]$ControlPlaneName = "",
+
+    [Parameter(Mandatory = $true, HelpMessage = "Control Plane subscription ID")]
+    [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
+    [string]$ControlPlaneSubscriptionId,
 
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone code (e.g., DEV)")]
     [string]$WorkloadZoneCode,
 
     [Parameter(Mandatory = $false, HelpMessage = "Workload zone name (e.g., DEV-WEEU-SAP01)")]
-    [string]$WorkloadZoneName="",
+    [string]$WorkloadZoneName = "",
 
     [Parameter(Mandatory = $true, HelpMessage = "Workload zone subscription ID")]
     [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
@@ -1877,6 +1886,10 @@ function New-SDAFADOWorkloadZone {
     [ValidateScript({ [System.Guid]::TryParse($_, [ref][System.Guid]::Empty) })]
     [string]$ManagedIdentityObjectId,
 
+    # Managed Identity specific parameters
+    [Parameter(ParameterSetName = "ManagedIdentity", Mandatory = $false)]
+    [string]$ManagedIdentityId,
+
     # Switch parameters
     [Parameter(HelpMessage = "Create service connections automatically")]
     [switch]$CreateConnections,
@@ -1893,6 +1906,7 @@ function New-SDAFADOWorkloadZone {
     Write-Verbose "  TenantId: $TenantId"
     Write-Verbose "  AuthenticationMethod: $AuthenticationMethod"
     Write-Verbose "  ManagedIdentityObjectId: $ManagedIdentityObjectId"
+    Write-Verbose "  ManagedIdentityId: $ManagedIdentityId"
     Write-Verbose "  WorkloadZoneCode: $WorkloadZoneCode"
     Write-Verbose "  WorkloadZoneSubscriptionId: $WorkloadZoneSubscriptionId"
     Write-Verbose "  CreateConnections: $CreateConnections"
@@ -2156,8 +2170,6 @@ function New-SDAFADOWorkloadZone {
         throw "Project not found"
       }
 
-      $ManagedIdentityClientId = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].id" --subscription $ControlPlaneSubscriptionId --output tsv)
-
       $ControlPlaneVariableGroupId = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
       $AgentPoolName = ""
       if ($ControlPlaneVariableGroupId.Length -ne 0) {
@@ -2180,10 +2192,21 @@ function New-SDAFADOWorkloadZone {
           "App Configuration Data Owner"
         )
 
+        if ($ManagedIdentityId.Length -ne 0) {
+          $ResourceGroupName = $ManagedIdentityId.Split("/")[4]
+          $ManagedIdentityClientId = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].id" --subscription $ControlPlaneSubscriptionId --resource-group $ResourceGroupName --output tsv)
+          Write-Verbose "Client ID of the Managed Identity: $ManagedIdentityClientId"
+          if ($ManagedIdentityClientId.Length -eq 0) {
+            Write-Error "Managed Identity with Object ID $ManagedIdentityObjectId was not found in subscription $ControlPlaneSubscriptionId"
+            throw "Managed Identity not found"
+          }
+
+        }
+
         foreach ($RoleName in $Roles) {
 
-          Write-Host "Assigning role" $RoleName "to the Managed Identity" -ForegroundColor Green
-          Write-Verbose "Assigning role" $RoleName "to the Managed Identity ($ManagedIdentityObjectId)" -ForegroundColor Green
+          Write-Host "Assigning role $RoleName to the Managed Identity" -ForegroundColor Green
+          Write-Verbose "Assigning role $RoleName to the Managed Identity ($ManagedIdentityObjectId)"
           $roleAssignment = az role assignment create --assignee-object-id $ManagedIdentityObjectId --role $RoleName --scope /subscriptions/$WorkloadZoneSubscriptionId --query id --output tsv --only-show-errors
           if ($roleAssignment) {
             Write-Host "Successfully assigned $RoleName role to identity" -ForegroundColor Green
@@ -2322,7 +2345,7 @@ function New-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOWorkloadZone
-#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 555
+#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 579
 #Region '.\Public\New-SDAFUserAssignedIdentity.ps1' -1
 
 function New-SDAFUserAssignedIdentity {
@@ -2376,7 +2399,7 @@ function New-SDAFUserAssignedIdentity {
 
     # Verify resource group exists
     try {
-      $rgExists = az group exists --name $ResourceGroupName
+      $rgExists = az group exists --name $ResourceGroupName --subscription $SubscriptionId
       if ($rgExists -eq "false") {
         Write-Error "Resource group '$ResourceGroupName' does not exist in subscription '$SubscriptionId'"
         return

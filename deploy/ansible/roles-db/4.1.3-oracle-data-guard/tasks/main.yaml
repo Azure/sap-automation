@@ -46,7 +46,8 @@
                                        - tier != "observer"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell:               "orapwd file=/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/orapw{{ this_sid }} password='{{ main_password }}' entries=5 format=12 force=y"
+
+  ansible.builtin.shell:               "orapwd file=$ORACLE_HOME/dbs/orapw{{ db_sid | upper }}_STDBY password='{{ main_password }}' entries=5 format=12 force=y"
   environment:
     ORACLE_SID:                        "{{ this_sid }}"
     ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
@@ -56,7 +57,15 @@
     chdir:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin"
 
 - name:                                "4.1.3 Oracle Data Guard: - Validate"
-  ansible.builtin.include_tasks:       "00-validate.yaml"
+  when:
+    - ora_primary == ansible_hostname
+  ansible.builtin.include_tasks:       "00-validate-primary.yaml"
+
+- name:                                "4.1.3 Oracle Data Guard: - Validate Secondary/Standby"
+  when:
+    - ora_secondary == ansible_hostname
+  ansible.builtin.include_tasks:       "00-validate-secondary.yaml"
+
 
 - name:                                "4.1.3 Oracle Data Guard: - Prepare primary node"
   when:
@@ -76,8 +85,6 @@
   block:
     - name:                            "4.1.3 Oracle Data Guard - Test connectivity primary -> standby"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
                                        SELECT 'connected' FROM dual;
                                        EXIT;
@@ -85,9 +92,9 @@
       register:                        conn_test
       changed_when:                    false
       failed_when:                     false
+      environment:                     "{{ oracle_env }}"
       args:
         chdir:                         "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin"
-        executable:                    /bin/csh
 
     - name:                            "4.1.3 Oracle Data Guard - Test connectivity primary -> standby - Assert"
       ansible.builtin.fail:
@@ -109,8 +116,6 @@
   block:
     - name:                            "4.1.3 Oracle Data Guard - Test connectivity standby -> primary"
       ansible.builtin.shell: |
-                                       setenv ORACLE_SID {{ db_sid | upper }}
-                                       setenv ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
                                        sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }} as sysdba <<EOF
                                        SELECT 'connected' FROM dual;
                                        EXIT;
@@ -118,9 +123,9 @@
       register:                        conn_test_reverse
       changed_when:                    false
       failed_when:                     false
+      environment:                     "{{ oracle_standby_env }}"
       args:
         chdir:                         "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin"
-        executable:                    /bin/csh
 
     - name:                            "4.1.3 Oracle Data Guard - Test connectivity standby -> primary"
       ansible.builtin.fail:
@@ -132,7 +137,7 @@
       ansible.builtin.assert:
         that:
           - "'connected' in conn_test_reverse.stdout"
-        fail_msg:                   "Could not connect from standby to primary database. Please check tnsnames.ora and listener configuration."
+        fail_msg:                      "Could not connect from standby to primary database. Please check tnsnames.ora and listener configuration."
 
 - name:                                "4.1.3 Oracle Data Guard: - Duplicate the database"
   when:
@@ -140,16 +145,22 @@
     - not secondary_duplicated
   ansible.builtin.include_tasks:       "03-duplicate-database.yaml"
 
+- name:                                "4.1.3 Oracle Data Guard - Duplication failed"
+  ansible.builtin.fail:
+    msg:                               "The duplication of the database on the secondary node failed. Please check the logs."
+  when:
+    - not hostvars[ora_secondary].secondary_duplicated | default(false)
+
 - name:                                "4.1.3 Oracle Data Guard: - Configure Data Guard on Primary"
   when:
     - ora_primary == ansible_hostname
-    - hostvars[ora_secondary].secondary_dg_configured | default(false)
+    - hostvars[ora_secondary].secondary_duplicated | default(false)
   ansible.builtin.include_tasks:       "04-postdeployment-primary.yaml"
 
 - name:                                "4.1.3 Oracle Data Guard: - Configure Data Guard on Secondary"
   when:
     - ora_secondary == ansible_hostname
-    - secondary_dg_configured | default(false)
+    - secondary_duplicated | default(false)
   ansible.builtin.include_tasks:       "04-postdeployment-secondary.yaml"
 
 - name:                                "4.1.3 Oracle Data Guard: - Finalize"
