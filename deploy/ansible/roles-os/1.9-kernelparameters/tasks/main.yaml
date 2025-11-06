@@ -51,10 +51,10 @@
 # ----------------------------------------
 # BEGIN
 # ----------------------------------------
-
-- name:                                "1.9 Kernel parameters - Build final parameter list with explicit precedence"
     # Build dictionary keyed by parameter name
     # Distribution params processed last, so they override common
+
+- name:                                "1.9 Kernel parameters - Build final parameter list with explicit precedence"
   ansible.builtin.set_fact:
     params_by_name: >-
                                        {{
