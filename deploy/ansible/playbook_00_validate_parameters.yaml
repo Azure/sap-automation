@@ -412,21 +412,27 @@
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
+
+  vars:
+    distro_name:                       "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+    distribution_id:                   "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+    distribution_full_id:              "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+    distro_family:                     "{{ ansible_os_family | upper }}"
   tasks:
 
-    - name:                            "Validation Playbook: - Wait for system to become reachable"
+    - name:                            "Validation playbook - Wait for system to become reachable"
       ansible.builtin.wait_for_connection:
         timeout:                       120
       register:                        wait_for_connection_results
       tags:
                                        - always
 
-    - name:                            "Validation Playbook: - Gather facts for first time"
+    - name:                            "Validation playbook - Gather facts for first time"
       ansible.builtin.setup:
       tags:
                                        - always
 
-    - name:                            "Validation Playbook: - Set distribution facts"
+    - name:                            "Validation playbook - Set distribution facts"
       ansible.builtin.set_fact:
         distro_family:                 "{{ ansible_os_family | upper }}"
         distribution_id:               "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
@@ -434,7 +440,7 @@
       tags:
                                        - always
 
-    - name:                            "Validation Playbook: - Show distribution facts"
+    - name:                            "Validation playbook - Show distribution facts"
       ansible.builtin.debug:
         msg:
           - "Distribution family:  {{ distro_family }}"
@@ -443,7 +449,7 @@
       tags:
                                        - always
 
-    - name:                            "Validation Playbook: - Set Python version {{ distribution_id }}"
+    - name:                            "Validation playbook - Set Python version {{ distribution_id }}"
       when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
       ansible.builtin.set_fact:
         python_version: "python2"
