@@ -170,7 +170,7 @@
       tags:
         - always
 
-    - name:                            "Primary application server installation playbook -Define this SID"
+    - name:                            "Primary application server installation playbook - Define this SID"
       ansible.builtin.set_fact:
         this_sid:
           {
@@ -182,7 +182,7 @@
                 'app_inst_no':  '{{ app_instance_number }}'
           }
 
-    - name:                            "Primary application server installation playbook -Define list of SIDs"
+    - name:                            "Primary application server installation playbook - Define list of SIDs"
       ansible.builtin.set_fact:
         all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
       when:
