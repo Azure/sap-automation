@@ -284,7 +284,7 @@
                 domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
                 tier:                  app_tier
 
-            - name:                    "Additional application server installation playbook - - Install SAPInst"
+            - name:                    "Additional application server installation playbook - Install SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/windows/5.3-app-install
               vars:
