@@ -113,9 +113,9 @@
           register:                         nfs_constraint
           failed_when:                      nfs_constraint.rc > 0
 
-    - name:                                 "5.5.4.1 HANA cluster resource configuration - RHEL 8/9"
+    - name:                                 "5.5.4.1 HANA cluster resource configuration - RHEL 8/9/10"
       when:
-        - ansible_distribution_major_version in ["8", "9"]
+        - ansible_distribution_major_version in ["8", "9", "10"]
       block:
         - name:                             Ensure the SAP topology resource is configured and cloned
           ansible.builtin.shell:  >
@@ -204,16 +204,16 @@
       retries:                              12
       delay:                                10
       until:                                "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
-      when:                                 ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9"
+      when:                                 ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9" and ansible_distribution_major_version != "10"
     # '*' is a special character in regexp and needs to be escaped for literal matching
     # if we are worried about character spacing across distros we can match for '\* Online:'
-    - name:                                 "5.8 HANA Pacemaker Scaleout - Wait until cluster has stabilized on RHEL 8 or 9"
+    - name:                                 "5.8 HANA Pacemaker Scaleout - Wait until cluster has stabilized on RHEL 8 and newer"
       ansible.builtin.shell:                set -o pipefail && pcs status | grep '^  \* Online:'
       register:                             cluster_stable_check
       retries:                              12
       delay:                                10
       until:                                "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
-      when:                                 ansible_distribution_major_version in ["8", "9"]
+      when:                                 ansible_distribution_major_version in ["8", "9", "10"]
 
     - name:                                 "5.8 HANA Pacemaker Scaleout - Cleanup any stale cluster resource StartSystem"
       ansible.builtin.shell:                pcs resource cleanup
@@ -225,15 +225,15 @@
       retries:                            12
       delay:                              10
       until:                              "(primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
-      when:                               ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9"
+      when:                               ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9" and ansible_distribution_major_version != "10"
 
-    - name:                               "5.8 HANA Pacemaker Scaleout - Ensure Cluster resources are started on RHEL 8 or 9"
+    - name:                               "5.8 HANA Pacemaker Scaleout - Ensure Cluster resources are started on RHEL 8 and newer"
       ansible.builtin.shell:              set -o pipefail && pcs resource status | grep '\* Started:'
       register:                           hana_cluster_resource_check
       retries:                            12
       delay:                              10
       until:                              "(primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
-      when:                               ansible_distribution_major_version in ["8", "9"]
+      when:                               ansible_distribution_major_version in ["8", "9", "10"]
   when: ansible_hostname == primary_instance_name
 
 # End of HANA clustering resources

@@ -209,12 +209,12 @@
         block: |
                                        [ha_dr_provider_SAPHanaSR]
                                        provider = SAPHanaSR
-                                       path = /usr/share/SAPHanaSR-ScaleOut
+                                       path = /hana/shared/myHooks
                                        execution_order = 1
 
                                        [ha_dr_provider_chksrv]
                                        provider = ChkSrv
-                                       path = /usr/share/SAPHanaSR-ScaleOut
+                                       path = /hana/shared/myHooks
                                        execution_order = 2
                                        action_on_lost = kill
 

@@ -59,7 +59,7 @@
           ansible.builtin.command:     "pcs cluster setup --name {{ sap_sid | upper }}_cluster {{ primary_instance_name }} {{ secondary_instance_name }} --token {{ cluster_totem.token }}"
 
     - name:                            "1.17 Generic Pacemaker - Cluster initialization for RHEL 8.x and 9.x"
-      when:                            ansible_distribution_major_version in ["8", "9"]
+      when:                            ansible_distribution_major_version in ["8", "9", "10"]
       block:
         - name:                        "1.17 Generic Pacemaker - Ensure the cluster can authenticate nodes as hacluster"
           ansible.builtin.command:     "pcs host auth {{ primary_instance_name }} {{ secondary_instance_name }} -u hacluster -p {{ password_ha_db_cluster }}"
@@ -94,7 +94,7 @@
 
     # switch to using pcs status xml for RHEL 8.x and 9.x
     - name:                            "1.17 Generic Pacemaker - Wait until cluster has stabilized"
-      when:                            ansible_distribution_major_version in ["8", "9"]
+      when:                            ansible_distribution_major_version in ["8", "9", "10"]
       ansible.builtin.shell:           set -o pipefail && pcs status xml
       register:                        cluster_status_xml
       retries:                         12
@@ -169,7 +169,7 @@
     # switch to using pcs status xml for RHEL 8.x and 9.x
     - name:                            "1.17 Generic Pacemaker - Wait until cluster has stabilized [SBD]"
       when:
-                                       - ansible_distribution_major_version in ["8", "9"]
+                                       - ansible_distribution_major_version in ["8", "9", "10"]
                                        - pcs_create_sbd_result.rc == 0
       ansible.builtin.shell:           set -o pipefail && pcs status xml
       register:                        cluster_status_xml
@@ -200,7 +200,7 @@
                                        - inventory_hostname  == primary_instance_name
   block:
     - name:                            "1.17 Generic Pacemaker - Check if the pacemaker package version is greater than pacemaker-2.0.4"
-      when:                            ansible_distribution_major_version in ["8", "9"]
+      when:                            ansible_distribution_major_version in ["8", "9", "10"]
       ansible.builtin.set_fact:
         is_pcmk_ver_gt_204:            "{{ ansible_facts.packages['pacemaker'][0].version is version('2.0.4', '>') | default(false) }}"
 
@@ -246,7 +246,7 @@
 
     - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured (SPN)"
       when:
-        - ansible_distribution_major_version in ["8", "9"]
+        - ansible_distribution_major_version in ["8", "9", "10"]
         - not use_msi_for_clusters
       ansible.builtin.shell: >
                                        pcs stonith create rsc_st_azure fence_azure_arm \
@@ -265,7 +265,7 @@
 
     - name:                            "1.17 Generic Pacemaker - Ensure the STONTIH device is configured (MSI)"
       when:
-        - ansible_distribution_major_version in ["8", "9"]
+        - ansible_distribution_major_version in ["8", "9", "10"]
         - use_msi_for_clusters
       ansible.builtin.shell: >
                                        pcs stonith create rsc_st_azure fence_azure_arm \
@@ -286,12 +286,23 @@
     # @TODO: Add ansible code to create the stonith resource without the pcmk_delay_max option.
     - name:                            "1.17 Generic Pacemaker - set priority-fencing-delay"
       when:
-        - ansible_distribution_major_version in ["8", "9"]
+        - ansible_distribution_major_version in ["8", "9", "10"]
         - is_pcmk_ver_gt_204
       ansible.builtin.command:         pcs property set priority-fencing-delay=15
 
     - name:                            "1.17 Generic Pacemaker - Update Monitor interval"
-      ansible.builtin.command:         pcs resource update rsc_st_azure op monitor interval=3600
+      ansible.builtin.shell: |
+                                       if [ "{{ ansible_distribution_major_version }}" -eq 10 ]; then
+                                         pcs stonith update rsc_st_azure op monitor interval=3600 || \
+                                         pcs resource update rsc_st_azure op monitor interval=3600
+                                       else
+                                         pcs resource update rsc_st_azure op monitor interval=3600
+                                       fi
+      register:                        update_monitor
+      failed_when:
+                                       - update_monitor.rc not in [0, 2]
+                                       - "'Error:' in update_monitor.stderr"
+      changed_when:                    "'interval' in update_monitor.stderr or 'interval' in update_monitor.stdout"
 
     - name:                            "1.17 Generic Pacemaker - Ensure the STONITH action is set to reboot"
       ansible.builtin.command:         pcs property set stonith-action=reboot
@@ -339,8 +350,19 @@
                                        pcmk_host_list="{{ primary_instance_name }} {{ secondary_instance_name }}"
                                        timeout=30
 
-    - name:                            "1.17 Generic Pacemaker - Update Monitor interval"
-      ansible.builtin.command:         pcs resource update rsc_st_kdump op monitor interval=3600
+    - name:                            "1.17 Generic Pacemaker - Update Monitor interval for kdump"
+      ansible.builtin.shell: |
+                                       if [ "{{ ansible_distribution_major_version }}" -eq 10 ]; then
+                                         pcs stonith update rsc_st_kdump op monitor interval=3600 || \
+                                         pcs resource update rsc_st_kdump op monitor interval=3600
+                                       else
+                                         pcs resource update rsc_st_kdump op monitor interval=3600
+                                       fi
+      register:                        update_kdump_monitor
+      failed_when:
+                                       - update_kdump_monitor.rc not in [0, 2]
+                                       - "'Error:' in update_kdump_monitor.stderr"
+      changed_when:                    "'interval' in update_kdump_monitor.stderr or 'interval' in update_kdump_monitor.stdout"
 
     # for each node in the play, set the fence_kdump fencing device as the first fencing device to be used
     - name:                            "1.17 Generic Pacemaker - Set the fence_kdump fencing device as the first for {{ primary_instance_name }}"
@@ -437,7 +459,7 @@
 - name:                                "1.17 Generic Pacemaker - check if the OS version is RHEL 8.4 or newer"
   ansible.builtin.set_fact:
     is_rhel_84_or_newer:               "{{ ansible_distribution_version is version('8.4', '>=') }}"
-  when:                                ansible_distribution_major_version in ["8", "9"]
+  when:                                ansible_distribution_major_version in ["8", "9", "10"]
 
 - name:                                "1.17 Generic Pacemaker - Ensure Azure scheduled events is configured"
   when:
@@ -468,10 +490,10 @@
                                        - "{{ secondary_instance_name }}"
 
     - name:                            "1.17 Generic Pacemaker - Configure the resources in Pacemaker"
-      ansible.builtin.command:         pcs resource create health-azure-events ocf:heartbeat:azure-events-az op monitor interval=10s timeout=240s op start timeout=10s start-delay=90s
+      ansible.builtin.command:         pcs resource create health-azure-events ocf:heartbeat:azure-events-az meta failure-timeout=120s op monitor interval=10s timeout=240s op start timeout=10s start-delay=90s
 
     - name:                            "1.17 Generic Pacemaker - Ensure clone resource azure-events is configured"
-      ansible.builtin.command:         pcs resource clone health-azure-events allow-unhealthy-nodes=true failure-timeout=120s
+      ansible.builtin.command:         pcs resource clone health-azure-events allow-unhealthy-nodes=true
 
     - name:                            "1.17 Generic Pacemaker - Ensure maintenance mode is disabled"
       ansible.builtin.command:         pcs property set maintenance-mode=false
