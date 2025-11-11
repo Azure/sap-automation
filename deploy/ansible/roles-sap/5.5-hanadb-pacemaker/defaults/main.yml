@@ -15,3 +15,11 @@ min_hana_minor_version:                0
 min_hana_sps_level:                    50
 min_saphanaSR_version:                 "0.153"
 min_saphanaSR_version_suschk:          "0.161.1_BF"
+
+# RHEL: Check maintenance mode command based on OS version
+pcs_check_maintenance_mode: >-
+                                       {% if ansible_distribution_major_version is version ('10','<') %}
+                                       pcs property show maintenance-mode
+                                       {% else %}
+                                       pcs property config maintenance-mode
+                                       {% endif %}"
