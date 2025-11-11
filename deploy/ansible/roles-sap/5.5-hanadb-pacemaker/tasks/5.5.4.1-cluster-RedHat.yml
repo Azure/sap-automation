@@ -88,7 +88,7 @@
       block:
         - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA resource is created on RHEL 8, 9, 10"
           when:
-                                       - is_pcmk_ver_gt_204
+                                       - is_pcmk_ver_gt_204 | default(false)
                                        - ansible_distribution_major_version is version('10', '<')
           ansible.builtin.shell: >
                                        pcs resource create SAPHana_{{ db_sid | upper }}_{{ db_instance_number }} SAPHana
