@@ -238,7 +238,7 @@
 - Applied Copilot suggestions for code improvements
 
 #### Version Updates
-- Updated SDAF version to 3.17.0.0 across multiple scripts and configuration files
+- Updated SDAF version to 3.17.0.1 across multiple scripts and configuration files
 - Consistent version labeling across documentation and scripts
 
 ### Breaking Changes
