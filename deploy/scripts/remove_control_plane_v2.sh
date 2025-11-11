@@ -22,11 +22,6 @@
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
 
-#colors for terminal
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
-reset_formatting="\e[0m"
-
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
@@ -36,7 +31,7 @@ script_directory="$(dirname "${full_script_path}")"
 set -euo pipefail
 
 # Enable debug mode if DEBUG is set to 'true'
-if [[ "${DEBUG:-false}" == 'true' ]]; then
+if [[ "${DEBUG:-False}" == 'True' ]]; then
 	# Enable debugging
 	set -x
 	# Exit on error
@@ -69,7 +64,6 @@ terraform_storage_account_name=""
 # Example:                   																				                       #
 #   source_helper_scripts "script1.sh" "script2.sh"            														 #
 ############################################################################################
-
 
 function source_helper_scripts() {
 	local -a helper_scripts=("$@")
@@ -240,16 +234,12 @@ function parse_arguments() {
 ############################################################################################
 
 function retrieve_parameters() {
-	if ! is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-		load_config_vars "${deployer_environment_file_name}" "APPLICATION_CONFIGURATION_ID"
-	fi
 
 	if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-		application_configuration_name=$(echo "${APPLICATION_CONFIGURATION_ID}" | cut -d'/' -f9)
 		key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 		if [ -z "$key_vault_id" ]; then
 			if [ $ado_flag == "--ado" ]; then
-				echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
+				echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
 			fi
 		fi
 		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
@@ -306,7 +296,6 @@ function retrieve_parameters() {
 
 }
 
-
 #############################################################################################
 # Function to remove the control plane.                                                     #
 # Arguments:                                                                                #
@@ -335,8 +324,13 @@ function remove_control_plane() {
 	parse_arguments "$@"
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
+	ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
+	LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
+	NETWORK=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $3}' | xargs)
 
-	deployer_environment_file_name="${CONFIG_DIR}/$CONTROL_PLANE_NAME"
+	automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
+
+	deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
 
 	# Check that Terraform and Azure CLI is installed
 	validate_dependencies
@@ -344,13 +338,6 @@ function remove_control_plane() {
 	if [ 0 != $return_code ]; then
 		echo "validate_dependencies returned $return_code"
 		exit $return_code
-	fi
-
-	if ! checkforEnvVar APPLICATION_CONFIGURATION_ID; then
-		load_config_vars "${deployer_environment_file_name}" "APPLICATION_CONFIGURATION_ID"
-		export APPLICATION_CONFIGURATION_ID
-	else
-		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}"
 	fi
 
 	retrieve_parameters
@@ -439,7 +426,7 @@ function remove_control_plane() {
 
 		else
 			echo "Terraform state:                     local"
-			if terraform -chdir="${terraform_module_directory}" init  -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			if terraform -chdir="${terraform_module_directory}" init -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
 			else
@@ -465,14 +452,6 @@ function remove_control_plane() {
 		diagnostics_account_resource_group_name=$(echo "${diagnostics_account_id}" | cut -d'/' -f5)
 		diagnostics_account_subscription_id=$(echo "${diagnostics_account_id}" | cut -d'/' -f3)
 		az storage account update --name "$diagnostics_account_name" --resource-group "$diagnostics_account_resource_group_name" --subscription "$diagnostics_account_subscription_id" --allow-shared-key-access --output none
-	fi
-
-	if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
-		return_value=$?
-		print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
-	else
-		return_value=0
-		print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
 	fi
 
 	print_banner "Remove Control Plane " "Running Terraform init (library - local)" "info"
@@ -503,7 +482,7 @@ function remove_control_plane() {
 		azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 		if [ -n "$azure_backend" ]; then
 			echo "Terraform state:                     remote"
-			if terraform -chdir="${terraform_module_directory}" init  -upgrade -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			if terraform -chdir="${terraform_module_directory}" init -upgrade -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "Remove Control Plane " "Terraform init succeeded (library - local)" "success"
 			else
@@ -512,7 +491,7 @@ function remove_control_plane() {
 			fi
 		else
 			echo "Terraform state:                     local"
-			if terraform -chdir="${terraform_module_directory}" init  -upgrade -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			if terraform -chdir="${terraform_module_directory}" init -upgrade -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "Remove Control Plane " "Terraform init succeeded (library - local)" "success"
 			else
@@ -546,7 +525,7 @@ function remove_control_plane() {
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
 	use_spn="false"
-	if checkforEnvVar TF_VAR_use_spn ; then
+	if checkforEnvVar TF_VAR_use_spn; then
 		use_spn=$(echo $TF_VAR_use_spn | tr "[:upper:]" "[:lower:]")
 	fi
 
@@ -578,15 +557,44 @@ function remove_control_plane() {
 
 		save_config_vars "${deployer_environment_file_name}" \
 			tfstate_resource_id
-
 	fi
 
 	cd "${current_directory}" || exit
 
 	if [ 1 -eq $keep_agent ]; then
+
+		cd "${deployer_dirname}" || exit
+		param_dirname=$(pwd)
+
+		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
+		export TF_DATA_DIR="${param_dirname}/.terraform"
+
+		if terraform -chdir="${terraform_module_directory}" init --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			return_value=$?
+			print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
+		else
+			return_value=$?
+			print_banner "Remove Control Plane " "Terraform init failed (deployer - local)" "error"
+		fi
+
+		az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$DEPLOYER_KEYVAULT"
+		az appconfig update --name "$APPLICATION_CONFIGURATION_NAME" --enable-public-network
+		sleep 15
+
+		if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
+			return_value=$?
+			print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
+		else
+			return_value=0
+			print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
+		fi
+
 		print_banner "Remove Control Plane " "Keeping the Azure DevOps agent" "info"
 		step=1
 		save_config_var "step" "${deployer_environment_file_name}"
+		cd "${deployer_dirname}" || exit
+
+
 	else
 		cd "${deployer_dirname}" || exit
 
@@ -621,8 +629,19 @@ function remove_control_plane() {
 		if [ 0 != $return_value ]; then
 			keyvault=''
 			deployer_tfstate_key=''
+			DEPLOYER_KEYVAULT=''
+			APPLICATION_CONFIGURATION_NAME=''
+			APPLICATION_CONFIGURATION_DEPLOYMENT=''
+			APP_SERVICE_DEPLOYMENT=''
+			APP_SERVICE_NAME=''
+
 			save_config_var "$keyvault" "${deployer_environment_file_name}"
 			save_config_var "$deployer_tfstate_key" "${deployer_environment_file_name}"
+			save_config_var "$DEPLOYER_KEYVAULT" "${deployer_environment_file_name}"
+			save_config_var "$APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}"
+			save_config_var "$APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_environment_file_name}"
+			save_config_var "$APP_SERVICE_DEPLOYMENT" "${deployer_environment_file_name}"
+			save_config_var "$APP_SERVICE_NAME" "${deployer_environment_file_name}"
 			if [ -f "${deployer_environment_file_name}" ]; then
 				rm "${deployer_environment_file_name}"
 			fi
@@ -648,4 +667,3 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 		exit $?
 	fi
 fi
-
