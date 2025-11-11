@@ -9,6 +9,14 @@
 # [1] Create the SAP cluster resources
 # If using enqueue server 1 architecture (ENSA1), define the resources as follows:
 
+- name:                                "5.6 SCSERS - RHEL - Debug ENSA variables"
+  ansible.builtin.debug:
+    msg:
+      - "ENSA1: {{ ensa1 | default('ENSA1 NOT DEFINED') }}"
+      - "ENSA2: {{ ensa2 | default('ENSA2 NOT DEFINED') }}"
+      - "Primary instance: {{ primary_instance_name }}"
+      - "Current host: {{ inventory_hostname }}"
+
 - name:                                "5.6 SCSERS - RHEL - ENSA1 - SAP Resources - Cluster Configuration after Install"
   when:
     - inventory_hostname == primary_instance_name
@@ -109,7 +117,7 @@
       failed_when:                     co_location.rc > 1
 
 - name:                                "5.6 SCSERS - RHEL - Check if the pacemaker package version is greater than pacemaker-2.0.4"
-  when:                                ansible_distribution_major_version in ["8", "9"]
+  when:                                ansible_distribution_major_version in ["8", "9", "10"]
   ansible.builtin.set_fact:
     is_pcmk_ver_gt_204:                "{{ ansible_facts.packages['pacemaker'][0].version is version('2.0.4', '>') | default(false) }}"
 

@@ -18,11 +18,16 @@
 - name:                                "5.6 SCSERS - RHEL - Cluster Configuration before Install"
   throttle:                            1
   block:
+    - name:                            Set pcs command mode based on RHEL version
+      ansible.builtin.set_fact:
+        pcs_update_cmd:                "{{ 'update' if ansible_distribution_major_version | int >= 10 else '' }}"
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Configure cluster default properties"
       ansible.builtin.shell: |
-                                       pcs resource defaults resource-stickiness=1
-                                       pcs resource defaults migration-threshold=3
+                                       pcs resource defaults{% if pcs_update_cmd %} {{ pcs_update_cmd }}{% endif %} resource-stickiness=1
+                                       pcs resource defaults{% if pcs_update_cmd %} {{ pcs_update_cmd }}{% endif %} migration-threshold=3
+      register:                        cluster_defaults
+      failed_when:                     cluster_defaults.rc != 0
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Put Secondary host on standby"
       ansible.builtin.shell:           pcs node standby {{ secondary_instance_name }}
@@ -95,7 +100,7 @@
       retries:                         10
       delay:                           30
       changed_when:                    false
-      when:                            ansible_distribution_major_version in ["8", "9"]
+      when:                            ansible_distribution_major_version in ["8", "9", "10"]
 
 
     - name:                            "5.6 SCSERS - RHEL - SCS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
@@ -240,7 +245,7 @@
       retries:                         10
       delay:                           30
       changed_when:                    false
-      when:                            ansible_distribution_major_version in ["8", "9"]
+      when:                            ansible_distribution_major_version in ["8", "9", "10"]
 
 
     - name:                            "5.6 SCSERS - RHEL - ERS - List NFS mounts"

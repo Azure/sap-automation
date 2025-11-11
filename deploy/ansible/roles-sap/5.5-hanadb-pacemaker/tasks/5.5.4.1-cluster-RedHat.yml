@@ -14,19 +14,15 @@
 
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "4.0.3 - SAP HANA SCALE OUT: Create list of all db hosts"
-  ansible.builtin.set_fact:
-    db_hosts:                          "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
-    primary_site_hosts:                "{{ hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE1') | map(attribute='key') }}"
-    secondary_site_hosts:              "{{ hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE2') | map(attribute='key') }}"
-    all_hana_hosts:                    "{{ (hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE1') | map(attribute='key') | list) + (hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE2') | map(attribute='key') | list) }}"
-
 
 - name:                                "5.5.4.1 HANA Cluster configuration - Optimise the Pacemaker cluster for SAP HANA"
   when:                                ansible_hostname == primary_instance_name
   block:
+
+    # pcs_check_maintenance_mode defined in defaults/main.yml
     - name:                            "5.5.4.1 HANA Cluster configuration - Get the cluster maintenance mode status"
-      ansible.builtin.shell:           pcs property show maintenance-mode
+      ansible.builtin.shell: >-
+                                       {{ pcs_check_maintenance_mode }}
       register:                        get_status_maintenance_mode
       changed_when:                    false
       ignore_errors:                   true
@@ -34,165 +30,130 @@
     - name:                            "5.5.4.1 HANA Cluster configuration - Set the cluster maintenance mode if not already in maintenance mode"
       when: >-
                                        get_status_maintenance_mode.stdout is not search('maintenance-mode') or
-                                       get_status_maintenance_mode.stdout is search('maintenance-mode: false')
+                                       get_status_maintenance_mode.stdout is search('maintenance-mode: false') or
+                                       get_status_maintenance_mode.stdout is search('maintenance-mode=false')
       ansible.builtin.shell:           pcs property set maintenance-mode=true
 
     - name:                            "5.5.4.1 HANA Cluster configuration - Check if the pacemaker package version is greater than pacemaker-2.0.4"
-      when:                            ansible_distribution_major_version in ["8", "9"]
+      when:                            ansible_distribution_major_version is version('8', '>=')
       ansible.builtin.set_fact:
         is_pcmk_ver_gt_204:            "{{ ansible_facts.packages['pacemaker'][0].version is version('2.0.4', '>') | default(false) }}"
 
+    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA Topology resource is created"
+      ansible.builtin.shell: >
+                                       pcs resource create SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }} SAPHanaTopology
+                                       SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }}
+                                       op start timeout=600
+                                       op stop timeout=300
+                                       op monitor interval=10 timeout=600
+                                       clone clone-max=2 clone-node-max=1 interleave=true
+      register:                        sap_hana_topology
+      failed_when:                     sap_hana_topology.rc > 1
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - Create SAP HANA resources for RHEL 7.x"
-      when:                            ansible_distribution_major_version == "7"
+
+    # RHEL 7 specific cluster configuration
+    - name:                            "5.5.4.1 HANA Cluster configuration - Configure cluster resources for RHEL 7"
+      when:                            ansible_distribution_major_version is version('8', '<')
       block:
-
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the HANA topology resource is created on RHEL 7"
-          ansible.builtin.shell: >
-                                       pcs resource create SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }} SAPHanaTopologyScaleOut \
-                                         SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }} \
-                                         op start timeout=600 op stop timeout=300 op monitor interval=10 timeout=600
-          register:                    sap_hana_topology
-          failed_when:                 sap_hana_topology.rc > 1
-
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the HANA topology resource clone is created on RHEL 7"
-          ansible.builtin.shell: >
-                                       pcs resource clone SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }} \
-                                         meta clone-node-max=1 interleave=true
-          register:                    sap_hana_clone_topology
-          failed_when:                 sap_hana_clone_topology.rc > 1
-
         - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA resource is created on RHEL 7"
           ansible.builtin.shell: >
-                                       pcs resource create SAPHana_{{ db_sid | upper }}_{{ db_instance_number }} SAPHanaController \
-                                         SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }} PREFER_SITE_TAKEOVER=true DUPLICATE_PRIMARY_TIMEOUT=7200 AUTOMATED_REGISTER=false \
-                                         op start interval=0 timeout=3600 op stop interval=0 timeout=3600 op promote interval=0 timeout=3600 \
-                                         op monitor interval=60 role="Master" timeout=700 op monitor interval=61 role="Slave" timeout=700
+                                       pcs resource create SAPHana_{{ db_sid | upper }}_{{ db_instance_number }} SAPHana
+                                       SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }}
+                                       PREFER_SITE_TAKEOVER=true DUPLICATE_PRIMARY_TIMEOUT=7200
+                                       AUTOMATED_REGISTER=true
+                                       op start timeout={{ cluster_sap_hana_timeouts.start }}
+                                       op stop timeout={{ cluster_sap_hana_timeouts.stop }}
+                                       op monitor interval=59 role="Master" timeout={{ cluster_sap_hana_timeouts.monitor_master }}
+                                       op monitor interval=61 role="Slave" timeout={{ cluster_sap_hana_timeouts.monitor_slave }}
+                                       op promote timeout={{ cluster_sap_hana_timeouts.promote }}
+                                       op demote timeout={{ cluster_sap_hana_timeouts.demote }}
+                                       master notify=true clone-max=2 clone-node-max=1 interleave=true
           register:                    sap_hana
           failed_when:                 sap_hana.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA resource is created on RHEL 7"
-          ansible.builtin.shell: >
-                                       pcs resource master msl_SAPHana_{{ db_sid | upper }}_{{ db_instance_number }} SAPHana__{{ db_sid | upper }}_{{ db_instance_number }} \
-                                         meta master-max="1" clone-node-max=1 interleave=true
-          register:                    sap_hana_master
-          failed_when:                 sap_hana_master.rc > 1
-
-
-    - name:                            "5.5.4.1 HANA Cluster configuration - Create SAP HANA resources for RHEL 8.x and 9.x"
-      when:                            ansible_distribution_major_version in ["8", "9"]
-      block:
-
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the HANA topology resource is created on RHEL 8 & 9"
-          ansible.builtin.shell: >
-                                       pcs resource create SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }} SAPHanaTopology \
-                                         SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }}  meta clone-node-max=1 interleave=true \
-                                         op methods interval=0s timeout=5 \
-                                         op start timeout=600 op stop timeout=300 op monitor interval=10 timeout=600
-          register:                    sap_hana_topology
-          failed_when:                 sap_hana_topology.rc > 1
-
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the HANA topology resource clone is created on RHEL 8 & 9"
-          ansible.builtin.shell: >
-                                       pcs resource clone SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }} \
-                                         meta clone-node-max=1 interleave=true
-          register:                    sap_hana_clone_topology
-          failed_when:                 sap_hana_clone_topology.rc > 1
-
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA resource is created on RHEL 8 & 9"
-          ansible.builtin.shell: >
-                                       pcs resource create SAPHana_{{ db_sid | upper }}_{{ db_instance_number }} SAPHanaController \
-                                         SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }} \
-                                         PREFER_SITE_TAKEOVER=true DUPLICATE_PRIMARY_TIMEOUT=7200 AUTOMATED_REGISTER=false \
-                                         op demote interval=0s timeout=320 op methods interval=0s timeout=5 \
-                                         op start interval=0 timeout={{ cluster_sap_hana_timeouts.start }} \
-                                         op stop interval=0 timeout={{ cluster_sap_hana_timeouts.stop }} \
-                                         op promote interval=0 timeout={{ cluster_sap_hana_timeouts.promote }} \
-                                         op monitor interval=60 role="Master" timeout={{ cluster_sap_hana_timeouts.monitor_master }} \
-                                         op monitor interval=61 role="Slave" timeout={{ cluster_sap_hana_timeouts.monitor_slave }}
-          register:                    sap_hana
-          failed_when:                 sap_hana.rc > 1
-
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA resource is created on RHEL 8 & 9"
-          ansible.builtin.shell: >
-                                       pcs resource promotable  SAPHana_{{ db_sid | upper }}_{{ db_instance_number }} \
-                                         meta master-max="1" clone-node-max=1 interleave=true
-          register:                    sap_hana_master
-          failed_when:                 sap_hana_master.rc > 1
-
-
-    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure the Virtual IP resource for the Load Balancer Front End IP is created"
-      ansible.builtin.shell: >
-                                       pcs resource create vip_{{ db_sid | upper }}_{{ db_instance_number }} \
-                                         IPaddr2 ip="{{ database_loadbalancer_ip }}"
-      register:                        vip
-      failed_when:                     vip.rc > 1
-
-    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure the netcat resource for the Load Balancer Healthprobe is created"
-      ansible.builtin.shell: >
-                                       pcs resource create nc_{{ db_sid | upper }}_{{ db_instance_number }} azure-lb \
-                                         port=625{{ db_instance_number }}
-      register:                        netcat
-      failed_when:                     netcat.rc > 1
-
-    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure the Virtual IP group resource is created"
-      ansible.builtin.shell: >
-                                       pcs resource group add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} \
-                                         nc_{{ db_sid | upper }}_{{ db_instance_number }} vip_{{ db_sid | upper }}_{{ db_instance_number }}
-      register:                        vip_g
-      failed_when:                     vip_g.rc > 1
-
-
-    - name:                            "5.5.4.1 HANA Cluster configuration - Create constraints for SAP HANA and Virtual IP for RHEL 7.x"
-      when:                            ansible_distribution_major_version == "7"
-      block:
         - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the order constraint for the SAP HANA Topology is configured on RHEL 7"
-          ansible.builtin.shell: >
-                                       pcs constraint order SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone then \
-                                         msl_SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}
+          ansible.builtin.shell:       pcs constraint order SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone then SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-master symmetrical=false
           register:                    constraint
           failed_when:                 constraint.rc > 1
 
         - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Virtual IP group is configured to the Master node on RHEL 7"
-          ansible.builtin.shell: >
-                                       pcs constraint colocation add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} with \
-                                         master msl_SAPHana_{{ db_sid | upper }}_{{ db_instance_number }} 4000
-          register:                    constraint
-          failed_when:                 constraint.rc > 1
-
-        - name:                        "5.5.4.1 HANA Cluster configuration - HANA resources are only allowed to run on a node, if the node's NFS file systems are mounted. The constraint also avoids the majority maker node RHEL 7"
-          ansible.builtin.shell: >
-                                       pcs constraint location colocation add SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone \
-                                         rule resource-discovery=never score=-INFINITY hana_nfs_s1_active ne true and hana_nfs_s2_active ne true
+          ansible.builtin.shell:       pcs constraint colocation add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} with master SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-master 4000
           register:                    constraint
           failed_when:                 constraint.rc > 1
 
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - Create constraints for SAP HANA and Virtual IP for RHEL 8.x and 9.x"
-      when:                            ansible_distribution_major_version in ["8", "9"]
+    # RHEL 8, 9, 10 specific cluster configuration
+    - name:                            "5.5.4.1 HANA Cluster configuration - Configure cluster resources for RHEL 8, 9, 10"
+      when:                            ansible_distribution_major_version is version('8', '>=')
       block:
-
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the order constraint for the SAP HANA Topology is configured on RHEL 8 or 9"
+        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA resource is created on RHEL 8, 9, 10"
+          when:
+                                       - is_pcmk_ver_gt_204
+                                       - ansible_distribution_major_version is version('10', '<')
           ansible.builtin.shell: >
-                                       pcs constraint order SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone then \
-                                         SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone symmetrical=false
+                                       pcs resource create SAPHana_{{ db_sid | upper }}_{{ db_instance_number }} SAPHana
+                                       SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }}
+                                       PREFER_SITE_TAKEOVER=true DUPLICATE_PRIMARY_TIMEOUT=7200
+                                       AUTOMATED_REGISTER=true
+                                       op start timeout={{ cluster_sap_hana_timeouts.start }}
+                                       op stop timeout={{ cluster_sap_hana_timeouts.stop }}
+                                       op monitor interval=59 role="Master" timeout={{ cluster_sap_hana_timeouts.monitor_master }}
+                                       op monitor interval=61 role="Slave" timeout={{ cluster_sap_hana_timeouts.monitor_slave }}
+                                       op promote timeout={{ cluster_sap_hana_timeouts.promote }}
+                                       op demote timeout={{ cluster_sap_hana_timeouts.demote }}
+                                       promotable notify=true clone-max=2 clone-node-max=1 interleave=true
+          register:                    sap_hana
+          failed_when:                 sap_hana.rc > 1
+
+        # use 'Promoted', 'Started', 'Stopped', 'Unpromoted' for RHEL 10.x and above
+        # Deprecation Warning: Specifying 'meta' after 'promotable' now defines meta attributes for the base resource.
+        # In a future release, this will define meta attributes for the promotable.
+        # Specify --future to switch to the future behavior.
+        # Warning: Validating resource options using the resource agent itself is enabled by default and produces warnings.
+        # In a future version, this might be changed to errors. Specify --agent-validation to switch to the future behavior.
+        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA resource is created on RHEL 8, 9, 10"
+          when:
+                                       - is_pcmk_ver_gt_204
+                                       - ansible_distribution_major_version is version('10', '>=')
+          ansible.builtin.shell: >
+                                       pcs resource create SAPHana_{{ db_sid | upper }}_{{ db_instance_number }} SAPHana
+                                       SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }}
+                                       PREFER_SITE_TAKEOVER=true DUPLICATE_PRIMARY_TIMEOUT=7200
+                                       AUTOMATED_REGISTER=true
+                                       op start timeout={{ cluster_sap_hana_timeouts.start }}
+                                       op stop timeout={{ cluster_sap_hana_timeouts.stop }}
+                                       op monitor interval=59 role="Promoted" timeout={{ cluster_sap_hana_timeouts.monitor_master }}
+                                       op monitor interval=61 role="Unpromoted" timeout={{ cluster_sap_hana_timeouts.monitor_slave }}
+                                       op promote timeout={{ cluster_sap_hana_timeouts.promote }}
+                                       op demote timeout={{ cluster_sap_hana_timeouts.demote }}
+                                       promotable notify=true clone-max=2 clone-node-max=1 interleave=true
+          register:                    sap_hana
+          failed_when:                 sap_hana.rc > 1
+
+        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the order constraint for the SAP HANA Topology is configured on RHEL 8, 9, 10"
+          ansible.builtin.shell:       pcs constraint order SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone then SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone symmetrical=false
           register:                    constraint
           failed_when:                 constraint.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Virtual IP group is configured to the Master node on RHEL 8 or 9"
-          ansible.builtin.shell: >
-                                       pcs constraint colocation add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} with \
-                                         master SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone 4000
+        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Virtual IP group is configured to the Master node on RHEL 8, 9, 10"
+          ansible.builtin.shell:       pcs constraint colocation add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} with master SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone 4000
           register:                    constraint
           failed_when:                 constraint.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - HANA resources are only allowed to run on a node, if the node's NFS file systems are mounted. The constraint also avoids the majority maker node RHEL 7"
-          ansible.builtin.shell: >
-                                       pcs constraint location SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone \
-                                         rule resource-discovery=never score=-INFINITY hana_nfs_s1_active ne true and hana_nfs_s2_active ne true
-          register:                    constraint
-          failed_when:                 constraint.rc > 1
+    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure the netcat resource for the Load Balancer Healthprobe is created"
+      ansible.builtin.shell:           pcs resource create nc_{{ db_sid | upper }}_{{ db_instance_number }} azure-lb port=625{{ db_instance_number }}
+      register:                        netcat
+      failed_when:                     netcat.rc > 1
 
+    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure the Virtual IP resource for the Load Balancer Front End IP is created"
+      ansible.builtin.shell:           pcs resource create vip_{{ db_sid | upper }}_{{ db_instance_number }} IPaddr2 ip="{{ database_loadbalancer_ip }}"
+      register:                        vip
+      failed_when:                     vip.rc > 1
+
+    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure the Virtual IP group resource is created"
+      ansible.builtin.shell:           pcs resource group add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} nc_{{ db_sid | upper }}_{{ db_instance_number }} vip_{{ db_sid | upper }}_{{ db_instance_number }}
+      register:                        vip_g
+      failed_when:                     vip_g.rc > 1
 
     - name:                            "5.5.4.1 HANA Cluster configuration - Add resource defaults resource-stickiness=1000"
       ansible.builtin.shell:           pcs resource defaults resource-stickiness=1000
@@ -205,18 +166,19 @@
       failed_when:                     resource_defaults.rc > 1
 
     - name:                            "Backward Compatibility - Check required Database HA variables"
+      when:
+                                       - db_high_availability is defined
+                                       - database_high_availability is not defined
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
-      when:
-        - db_high_availability is defined
-        - database_high_availability is not defined
+
 
     # for two node clusters set properties
     - name:                            "5.5.4.1 HANA Cluster configuration - Set the cluster properties for two node clusters"
       when:
-        - database_high_availability
-        - not database_scale_out
-        - is_pcmk_ver_gt_204
+                                       - database_high_availability
+                                       - not database_scale_out
+                                       - is_pcmk_ver_gt_204
       block:
         - name:                        "5.5.4.1 HANA Cluster configuration - set resource defaults 'priority'"
           ansible.builtin.shell:       pcs resource defaults update priority=1
@@ -232,66 +194,6 @@
           register:                    constraint
           failed_when:                 constraint.rc > 1
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - Configure cluster constraints for SAP HANA and AFS"
-      when:
-                                       - database_high_availability
-                                       - NFS_provider == "AFS"
-                                       - hana_shared_mountpoint is defined
-                                       - hana_shared_mountpoint | length > 1
-      block:
-        - name:                        "5.5.4.1 HANA Cluster configuration - /hana/shared file system for site 1"
-          ansible.builtin.shell:  >
-                                       pcs resource create fs_hana_shared_s1 --disabled ocf:heartbeat:Filesystem \
-                                         device={{ hana_shared_mountpoint[0] }}  directory=/hana/shared \
-                                         fstype=nfs options='defaults,rw,hard,proto=tcp,noatime,nfsvers=4.1,lock' fast_stop=no \
-                                         op monitor interval=20s on-fail=fence timeout=120s OCF_CHECK_LEVEL=20 \
-                                         op start interval=0 timeout=120 op stop interval=0 timeout=120
-
-          register:                    shared_site1
-          failed_when:                 shared_site1.rc > 1
-
-        - name:                        "5.5.4.1 HANA Cluster configuration - clone the /hana/shared file system resources for both site1 and site2"
-          ansible.builtin.shell:       pcs resource clone fs_hana_shared_s1 meta clone-node-max=1 interleave=true
-          register:                    clone_site1
-          failed_when:                 clone_site1.rc > 1
-
-        - name:                        "5.5.4.1 HANA Cluster configuration - /hana/shared file system for site 2"
-          ansible.builtin.shell:  >
-                                       pcs resource create fs_hana_shared_s2 --disabled ocf:heartbeat:Filesystem \
-                                         device={{ hana_shared_mountpoint[1] }}  directory=/hana/shared \
-                                         fstype=nfs options='defaults,rw,hard,proto=tcp,noatime,nfsvers=4.1,lock' fast_stop=no \
-                                         op monitor interval=20s on-fail=fence timeout=120s OCF_CHECK_LEVEL=20 \
-                                         op start interval=0 timeout=120 op stop interval=0 timeout=120
-          register:                    shared_site2
-          failed_when:                 shared_site2.rc > 1
-
-        - name:                        "5.5.4.1 HANA Cluster configuration - clone the /hana/shared file system resources for both site1 and site2"
-          ansible.builtin.shell:       pcs resource clone fs_hana_shared_s2 meta clone-node-max=1 interleave=true
-          register:                    clone_site2
-          failed_when:                 clone_site2.rc > 1
-
-        # All SAP HANA DB nodes on replication site 1 are assigned attribute S1, and all SAP HANA DB nodes on
-        # replication site 2 are assigned attribute S2.
-        - name:                        "5.5.4.1 HANA Cluster configuration - Set Attributes for Site 1"
-          ansible.builtin.shell:       pcs node attribute {{ item }} NFS_SID_SITE=S1
-          with_items:                  "{{ primary_site_hosts }}"
-
-
-        - name:                        "5.5.4.1 HANA Cluster configuration - Set Attributes for Site 2"
-          ansible.builtin.shell:       pcs node attribute {{ item }} NFS_SID_SITE=S2
-          with_items:                  "{{ secondary_site_hosts }}"
-
-        - name:                        "5.5.4.1 HANA Cluster configuration - Set Location for Site 1"
-          ansible.builtin.shell:       pcs constraint location fs_hana_shared_s1-clone rule resource-discovery=never score=-INFINITY NFS_SID_SITE ne S1
-
-        - name:                        "5.5.4.1 HANA Cluster configuration - Set Location for Site 2"
-          ansible.builtin.shell:       pcs constraint location fs_hana_shared_s2-clone rule resource-discovery=never score=-INFINITY NFS_SID_SITE ne S2
-
-        - name:                        "5.5.4.1 HANA Cluster configuration - Enable the file system resources for site 1"
-          ansible.builtin.shell:       pcs resource enable fs_hana_shared_s1
-
-        - name:                        "5.5.4.1 HANA Cluster configuration - Enable the file system resources for site 2"
-          ansible.builtin.shell:       pcs resource enable fs_hana_shared_s2
 
     - name:                            "5.5.4.1 HANA Cluster configuration - Configure cluster constraints for SAP HANA and ANF"
       when:
@@ -305,31 +207,32 @@
                                        - hana_shared_mountpoint | length > 1
       block:
         - name:                        "5.5.4.1 HANA Cluster configuration - configure constraints between SAP HANA resources and NFS mounts"
-          ansible.builtin.shell: >
-                                       pcs constraint location SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone \
-                                         rule score=-INFINITY attr_hana_{{ db_sid | upper }}_NFS_1_active ne true and attr_hana_{{ db_sid | upper }}_NFS_2_active ne true
+          ansible.builtin.shell:       pcs constraint location SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone rule score=-INFINITY attr_hana_{{ db_sid | upper }}_NFS_1_active ne true and attr_hana_{{ db_sid | upper }}_NFS_2_active ne true
           register:                    constraint
           failed_when:                 constraint.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - configure constraints on RHEL 7.x"
-          ansible.builtin.shell: >
-                                       pcs constraint location SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-master rule \
-                                         score=-INFINITY attr_hana_{{ db_sid | upper }}_NFS_1_active ne true and attr_hana_{{ db_sid | upper }}_NFS_2_active ne true
-          register:                    constraint
-          failed_when:                 constraint.rc > 1
-          when: ansible_distribution_major_version == "7"
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - configure constraints on RHEL 8.x or 9.x"
-          when: ansible_distribution_major_version in ["8", "9"]
+        # RHEL 7 specific ANF constraints
+        - name:                        "5.5.4.1 HANA Cluster configuration - configure ANF constraints on RHEL 7"
+          when:                        ansible_distribution_major_version is version('8', '<')
           block:
-            - name:                    "5.5.4.1 HANA Cluster configuration - configure location constraints on RHEL 8.x or 9.x"
-              ansible.builtin.shell: >
-                                       pcs constraint location SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone \
-                                         rule score=-INFINITY attr_hana_{{ db_sid | upper }}_NFS_1_active ne true and attr_hana_{{ db_sid | upper }}_NFS_2_active ne true
+            - name:                    "5.5.4.1 HANA Cluster configuration - configure location constraints on RHEL 7"
+              ansible.builtin.shell:   pcs constraint location SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-master rule score=-INFINITY attr_hana_{{ db_sid | upper }}_NFS_1_active ne true and attr_hana_{{ db_sid | upper }}_NFS_2_active ne true
               register:                constraint
               failed_when:             constraint.rc > 1
 
-            - name:                    "5.5.4.1 HANA Cluster configuration - configure ordering constraints for SAPHana clone RHEL 8.x or 9.x"
+
+        # RHEL 8, 9, 10 specific ANF constraints
+        - name:                        "5.5.4.1 HANA Cluster configuration - configure ANF constraints on RHEL 8, 9, 10"
+          when:                        ansible_distribution_major_version is version('8', '>=')
+          block:
+            - name:                    "5.5.4.1 HANA Cluster configuration - configure location constraints on RHEL 8, 9, 10"
+              ansible.builtin.shell: >
+                                       pcs constraint location SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone rule score=-INFINITY attr_hana_{{ db_sid | upper }}_NFS_1_active ne true and attr_hana_{{ db_sid | upper }}_NFS_2_active ne true
+              register:                constraint
+              failed_when:             constraint.rc > 1
+
+            - name:                    "5.5.4.1 HANA Cluster configuration - configure ordering constraints for SAPHana clone RHEL 8, 9, 10"
               ansible.builtin.shell: >
                                        pcs constraint order stop SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone then stop {{ item.group_name }} symmetrical=false
               register:                constraint
@@ -340,7 +243,7 @@
                 loop_var:              item
               failed_when:             constraint.rc > 1
 
-            - name:                    "5.5.4.1 HANA Cluster configuration - configure ordering constraints for SAPHANA topology clone RHEL 8.x or 9.x"
+            - name:                    "5.5.4.1 HANA Cluster configuration - configure ordering constraints for SAPHANA topology clone RHEL 8, 9, 10"
               ansible.builtin.shell: >
                                        pcs constraint order stop SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone then stop {{ item.group_name }} symmetrical=false
               register:                constraint
@@ -350,6 +253,7 @@
               loop_control:
                 loop_var:              item
               failed_when:             constraint.rc > 1
+
 
     # HANA active/active
     - name:                            "5.5.4.1 HANA Cluster configuration - Configure HANA active/read-enabled system replication"
@@ -382,6 +286,7 @@
           register:                    sec_constraint
           failed_when:                 sec_constraint.rc > 1
 
+
         # https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-rhel?tabs=lb-portal#add-a-secondary-virtual-ip-address-resource-for-an-activeread-enabled-setup
         # Set the priority to primary IPaddr2 and azure-lb resource if priority-fencing-delay is configured
         - name:                        "5.5.4.1 HANA Cluster configuration - Set priority for the Virtual IP and azure-lb resources"
@@ -400,45 +305,47 @@
               register:                update_priority_nc
               failed_when:             update_priority_nc.rc > 1
 
-
     - name:                            "5.5.4.1 HANA Cluster configuration - Disable Maintenance mode for the cluster"
       ansible.builtin.shell:           pcs property set maintenance-mode=false
 
+    # RHEL 7 - Wait for cluster stabilization
     - name:                            "5.5.4.1 HANA Cluster configuration - Wait until cluster has stabilized on RHEL 7"
+      when:                            ansible_distribution_major_version is version('8', '<')
       ansible.builtin.shell:           set -o pipefail && pcs status | grep '^Online:'
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
-      when:                            ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9"
 
+    # RHEL 8, 9, 10 - Wait for cluster stabilization
     # '*' is a special character in regexp and needs to be escaped for literal matching
     # if we are worried about character spacing across distros we can match for '\* Online:'
-    - name:                            "5.5.4.1 HANA Cluster configuration - Wait until cluster has stabilized on RHEL 8 and RHEL 9"
+    - name:                            "5.5.4.1 HANA Cluster configuration - Wait until cluster has stabilized on RHEL 8, 9, 10"
+      when:                            ansible_distribution_major_version is version('8', '>=')
       ansible.builtin.shell:           set -o pipefail && pcs status | grep '^  \* Online:'
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
-      when:                            ansible_distribution_major_version in ["8", "9"]
 
-
+    # RHEL 7 - Ensure cluster resources are started
     # the leading spaces are irrelevant here as we are looking for *<space>Started:
     - name:                            "5.5.4.1 HANA Cluster configuration - Ensure Cluster resources are started on RHEL 7"
+      when:                            ansible_distribution_major_version is version('8', '<')
       ansible.builtin.shell:           set -o pipefail && pcs resource show | grep '    Started:'
       register:                        hana_cluster_resource_check
       retries:                         12
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
-      when:                            ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9"
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure Cluster resources are started on RHEL 8 or 9"
+    # RHEL 8, 9, 10 - Ensure cluster resources are started
+    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure Cluster resources are started on RHEL 8, 9, 10"
+      when:                            ansible_distribution_major_version is version('8', '>=')
       ansible.builtin.shell:           set -o pipefail && pcs resource status | grep '\* Started:'
       register:                        hana_cluster_resource_check
       retries:                         12
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
-      when:                            ansible_distribution_major_version in ["8", "9"]
 
 # End of HANA clustering resources
 
@@ -481,7 +388,7 @@
       register:                        dropinfile
 
     - name:                            "5.5.4.1 HANA Cluster configuration - systemd reload"
-      when: dropinfile.changed
+      when:                            dropinfile.changed
       ansible.builtin.systemd:
         daemon_reload:                 true
 

@@ -538,7 +538,7 @@
       vars:
         ansible_python_interpreter: "{{ python_version }}"
       when:
-                                       - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'redhat9', 'sles_sap15' ]
+                                       - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'redhat9', 'redhat10', 'sles_sap15' ]
                                        - ansible_os_family != "Windows"
                                        - check_outbound | bool
       tags:
@@ -556,7 +556,7 @@
           - 200
           - 403
       when:
-                                       - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'redhat9', 'sles_sap15' ]
+                                       - (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse15', 'redhat8', 'redhat9', 'redhat10', 'sles_sap15' ]
                                        - ansible_os_family != "Windows"
                                        - check_outbound | bool
       tags:
