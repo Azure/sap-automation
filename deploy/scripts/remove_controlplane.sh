@@ -366,13 +366,6 @@ if [ 0 != $return_value ]; then
 	exit 10
 fi
 
-if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
-	return_value=$?
-	print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
-else
-	print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
-fi
-
 print_banner "Remove Control Plane " "Running Terraform init (library - local)" "info"
 
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
@@ -477,7 +470,40 @@ step=1
 save_config_var "step" "${deployer_environment_file_name}"
 
 if [ 1 -eq $keep_agent ]; then
+
+	cd "${deployer_dirname}" || exit
+	param_dirname=$(pwd)
+
+	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
+	export TF_DATA_DIR="${param_dirname}/.terraform"
+
+	if terraform -chdir="${terraform_module_directory}" init  --backend-config "path=${param_dirname}/terraform.tfstate"; then
+		return_value=$?
+		print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
+	else
+		return_value=$?
+		print_banner "Remove Control Plane " "Terraform init failed (deployer - local)" "error"
+	fi
+
+	if [ -z "$keyvault" ]; then
+		load_config_vars "${deployer_environment_file_name}" "keyvault"
+		if valid_kv_name "$keyvault"; then
+			az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$keyvault"
+		fi
+
+	fi
+
+	if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
+		return_value=$?
+		print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
+	else
+		print_banner "Remove Control Plane " "Terraform apply (deployer) failed" "error"
+	fi
 	echo "Keeping the Azure DevOps agent"
+
+	cd "${deployer_dirname}" || exit
+
+	param_dirname=$(pwd)
 
 else
 	cd "${deployer_dirname}" || exit
@@ -501,8 +527,6 @@ else
 		extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 	fi
 
-	var_file="${param_dirname}"/"${deployer_tfvars_filename}"
-
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -511,7 +535,7 @@ else
 	echo "#########################################################################################"
 	echo ""
 
-	if terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}" "${approve_parameter}"; then
+	if terraform -chdir="${terraform_module_directory}" destroy -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
 		return_value=$?
 		echo ""
 		echo -e "${cyan}Terraform destroy:                      succeeded$reset_formatting"
@@ -537,8 +561,19 @@ else
 	if [ 0 != $return_value ]; then
 		keyvault=''
 		deployer_tfstate_key=''
+		DEPLOYER_KEYVAULT=''
+		APPLICATION_CONFIGURATION_NAME=''
+		APPLICATION_CONFIGURATION_DEPLOYMENT=''
+		APP_SERVICE_DEPLOYMENT=''
+		APP_SERVICE_NAME=''
+
 		save_config_var "$keyvault" "${deployer_environment_file_name}"
 		save_config_var "$deployer_tfstate_key" "${deployer_environment_file_name}"
+		save_config_var "$DEPLOYER_KEYVAULT" "${deployer_environment_file_name}"
+		save_config_var "$APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}"
+		save_config_var "$APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_environment_file_name}"
+		save_config_var "$APP_SERVICE_DEPLOYMENT" "${deployer_environment_file_name}"
+		save_config_var "$APP_SERVICE_NAME" "${deployer_environment_file_name}"
 		if [ -f "${deployer_environment_file_name}" ]; then
 			rm "${deployer_environment_file_name}"
 		fi
