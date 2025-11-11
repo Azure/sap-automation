@@ -8,7 +8,7 @@ function Get-IniContent {
     .SYNOPSIS
         Get-IniContent
 
-    
+
 .LINK
     https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
 
@@ -48,11 +48,11 @@ function Out-IniFile {
     <#
         .SYNOPSIS
             Out-IniContent
-    
-        
+
+
     .LINK
         https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
-    
+
         #>
     <#
     #>
@@ -1016,7 +1016,7 @@ resources:
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $ControlPlaneSubscriptionIdInternal = $ControlPlaneSubscriptionId
-      $VersionLabel = "v3.17.0.0"
+      $VersionLabel = "v3.17.0.1"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS
@@ -2036,7 +2036,7 @@ function New-SDAFADOWorkloadZone {
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $WorkloadZoneSubscriptionIdInternal = $WorkloadZoneSubscriptionId
-      $VersionLabel = "v3.17.0.0"
+      $VersionLabel = "v3.17.0.1"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS
@@ -2574,7 +2574,7 @@ function Remove-SDAFADOProject {
 
       #region Initialize variables
       Write-Verbose "Initializing variables from parameters"
-      $VersionLabel = "v3.17.0.0"
+      $VersionLabel = "v3.17.0.1"
       Write-Verbose "Version label set to: $VersionLabel"
       #endregion
 
@@ -2873,7 +2873,7 @@ function Remove-SDAFADOWorkloadZone {
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $WorkloadZoneSubscriptionIdInternal = $WorkloadZoneSubscriptionId
-      $VersionLabel = "v3.17.0.0"
+      $VersionLabel = "v3.17.0.1"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS
