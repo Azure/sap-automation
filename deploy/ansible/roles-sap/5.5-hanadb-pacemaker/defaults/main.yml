@@ -26,4 +26,4 @@ pcs_check_maintenance_mode: >-
                                        pcs property show maintenance-mode
                                        {% else %}
                                        pcs property config maintenance-mode
-                                       {% endif %}"
+                                       {% endif %}
