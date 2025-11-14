@@ -74,6 +74,11 @@
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
+  vars:
+    distro_name:                       "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+    distribution_id:                   "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+    distribution_full_id:              "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+    distro_family:                     "{{ ansible_os_family | upper }}"
 
   tasks:
 
@@ -83,7 +88,7 @@
         - platform not in [ "ORACLE", "ORACLE-ASM" ]
         - ansible_os_family != "Windows"
       block:
-        - name:                            "APP Installation Playbook: Define this SID"
+        - name:                            "Additional application server installation playbook - Define this SID"
           ansible.builtin.set_fact:
             this_sid:
               {
@@ -95,7 +100,7 @@
                 'app_inst_no':  '{{ app_instance_number }}'
               }
 
-        - name:                            "APP Installation Playbook: Define list of SIDs"
+        - name:                            "Additional application server installation playbook - Define list of SIDs"
           ansible.builtin.set_fact:
             all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
@@ -129,6 +134,11 @@
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
+  vars:
+    distro_name:                       "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+    distribution_id:                   "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+    distribution_full_id:              "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+    distro_family:                     "{{ ansible_os_family | upper }}"
 
 
   tasks:
@@ -147,7 +157,7 @@
         always_upload_jinja_templates: false
         sa_enabled:                    true
 
-    - name:                            "APP Installation Playbook: Define this SID"
+    - name:                            "Additional application server installation playbook - Define this SID"
       ansible.builtin.set_fact:
         this_sid:
           {
@@ -159,7 +169,7 @@
                 'app_inst_no':  '{{ app_instance_number }}'
           }
 
-    - name:                            "APP Installation Playbook: Define list of SIDs"
+    - name:                            "Additional application server installation playbook - Define list of SIDs"
       ansible.builtin.set_fact:
         all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
@@ -256,7 +266,7 @@
         - "'app' in supported_tiers"
         - ansible_os_family == "Windows"
       block:
-        - name:                        "APP Installation Playbook: - Ensure Sharing Data Folder"
+        - name:                        "Additional application server installation playbook - - Ensure Sharing Data Folder"
           ansible.builtin.include_role:
             name:                      roles-sap-os/windows/2.3-sap-exports
 
@@ -274,7 +284,7 @@
                 domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
                 tier:                  app_tier
 
-            - name:                    "APP Installation Playbook: - Install SAPInst"
+            - name:                    "Additional application server installation playbook - Install SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/windows/5.3-app-install
               vars:
@@ -287,14 +297,14 @@
                 loop_var:              sid_to_be_deployed
 
           always:
-            - name:                    "APP Installation Playbook: - Run post installation routines"
+            - name:                    "Additional application server installation playbook - - Run post installation routines"
               ansible.builtin.include_role:
                 name:                  roles-sap/windows/7.0.0-post-install
               vars:
                 suffix:                "_APP"
                 tier:                  'app'
 
-            - name:                    "APP Installation Playbook: - Show errors from APP installation"
+            - name:                    "Additional application server installation playbook - - Show errors from APP installation"
               ansible.builtin.debug:
                 msg:                   "{{ app_installation.stdout_lines | select('search', 'ERROR') }}"
               when:
