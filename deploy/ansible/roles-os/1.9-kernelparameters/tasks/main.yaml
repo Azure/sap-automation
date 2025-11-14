@@ -58,9 +58,10 @@
   ansible.builtin.set_fact:
     params_by_name: >-
                                        {{
-                                         dict((common_params + distro_params) |
-                                         map(attribute='name') |
-                                         zip(common_params + distro_params))
+                                         dict(zip(
+                                           (common_params + distro_params) | map(attribute='name'),
+                                           common_params + distro_params
+                                         ))
                                        }}
   vars:
     common_params: >-
