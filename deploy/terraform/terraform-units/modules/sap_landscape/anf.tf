@@ -164,7 +164,7 @@ resource "azurerm_netapp_volume" "transport" {
   tags                                 = var.tags
 
   export_policy_rule {
-                       allowed_clients     = ["0.0.0.0/0"]
+                       allowed_clients     = length(var.ANF_settings.export_policy_client_access_list > 0) ? var.ANF_settings.export_policy_client_access_list : azurerm_virtual_network.vnet_sap.address_space 
                        protocol            = ["NFSv4.1"]
                        rule_index          = 1
                        unix_read_only      = false
