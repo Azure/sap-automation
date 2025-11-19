@@ -136,7 +136,7 @@ output "landscape_key_vault_spn_arm_id"          {
 
 output "landscape_key_vault_user_arm_id"         {
                                                    description = "Azure resource identifier for the user credential keyvault"
-                                                   value       = trimspace(length(var.user_keyvault_id)) > 0 ? var.user_keyvault_id : module.sap_landscape.kv_user
+                                                   value       = length(trimspace(var.user_keyvault_id)) > 0 ? var.user_keyvault_id : module.sap_landscape.kv_user
                                                  }
 
 output "user_credential_vault_id"         {
