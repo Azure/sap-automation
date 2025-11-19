@@ -172,21 +172,6 @@ saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYE
 landscape_tfstate_key=$WORKLOAD_ZONE_FOLDERNAME.terraform.tfstate
 export landscape_tfstate_key
 
-echo -e "${green}Deployment details:"
-echo -e "-------------------------------------------------------------------------${reset}"
-
-echo "Control plane environment file:      $deployer_environment_file_name"
-echo "Workload Zone Environment file:      $workload_environment_file_name"
-echo "Workload zone TFvars:                $WORKLOAD_ZONE_TFVARS_FILENAME"
-echo ""
-
-echo "Environment:                         $ENVIRONMENT"
-echo "Environment in file:                 $ENVIRONMENT_IN_FILENAME"
-echo "Location:                            $LOCATION"
-echo "Location in file:                    $LOCATION_IN_FILENAME"
-echo "Network:                             $NETWORK"
-echo "Network in file:                     $NETWORK_IN_FILENAME"
-
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
 	print_banner "$banner_title" "Environment mismatch" "error" "The environment setting in the tfvars file is not a part of the $WORKLOAD_ZONE_TFVARS_FILENAME file name" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
 	echo "##vso[task.logissue type=error]The environment setting in $WORKLOAD_ZONE_TFVARS_FILENAME '$ENVIRONMENT' does not match the $WORKLOAD_ZONE_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"

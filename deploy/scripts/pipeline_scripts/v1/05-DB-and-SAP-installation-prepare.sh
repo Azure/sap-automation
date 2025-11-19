@@ -172,6 +172,7 @@ echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]${contro
 az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "$control_plane_subscription" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
 cp sap-parameters.yaml artifacts/.
 cp "${SID}_hosts.yaml" artifacts/.
+sudo chmod 600 artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey
 
 2> >(while read line; do (echo >&2 "STDERROR: $line"); done)
 

@@ -159,8 +159,6 @@ function configureNonDeployer() {
 	reset="\e[0m"
 	local tf_version=$1
 	local tf_url="https://releases.hashicorp.com/terraform/${tf_version}/terraform_${tf_version}_linux_amd64.zip"
-	# echo -e "$green--- Install dos2unix ---$reset"
-	# sudo apt-get -qq install dos2unix
 
 	isZipInstalled=$(which zip || true)
 	if [ -z "$isZipInstalled" ]; then
@@ -323,18 +321,21 @@ function print_header() {
 	local green="\e[1;32m"
 	local reset="\e[0m"
 	echo ""
-	echo -e "${green}DevOps information:"
-	echo -e "-------------------------------------------------------------------------------$reset"
+	if [ "${PLATFORM:-ado}" == "devops" ]; then
 
-	echo "Agent pool:                          $THIS_AGENT"
-	echo "Organization:                        $SYSTEM_COLLECTIONURI"
-	echo "Project:                             $SYSTEM_TEAMPROJECT"
-	echo ""
-	if printenv TF_VAR_agent_pat; then
-		echo "Deployer Agent PAT:                  IsDefined"
-	fi
-	if printenv POOL; then
-		echo "Deployer Agent Pool:                 $POOL"
+		echo -e "${green}DevOps information:"
+		echo -e "-------------------------------------------------------------------------------$reset"
+
+		echo "Agent pool:                          ${THIS_AGENT:-unknown}"
+		echo "Organization:                        $SYSTEM_COLLECTIONURI"
+		echo "Project:                             $SYSTEM_TEAMPROJECT"
+		echo ""
+		if printenv TF_VAR_agent_pat; then
+			echo "Deployer Agent PAT:                  IsDefined"
+		fi
+		if printenv POOL; then
+			echo "Deployer Agent Pool:                 $POOL"
+		fi
 	fi
 	echo ""
 	echo -e "${green}Azure CLI version:${reset}"
@@ -357,23 +358,27 @@ function print_header() {
 
 function configure_devops() {
 	echo ""
-	echo -e "$green--- Configure devops CLI extension ---$reset"
 	az config set extension.use_dynamic_install=yes_without_prompt --output none --only-show-errors
 	az config set extension.dynamic_install_allow_preview=true --output none --only-show-errors
 
-	# Check if Azure DevOps extension is installed, if not, install it
+	if [ -n "${TF_BUILD+x}" ]; then
 
-	extension_installed=$(az extension list --query "[?contains(name, 'azure-devops')].name | [0]" --output tsv)
+		echo -e "$green--- Configure devops CLI extension ---$reset"
 
-	if [ -n "$extension_installed" ]; then
-		echo "Azure DevOps extension already installed."
-		az extension update --name azure-devops --output none --only-show-errors
-	else
-		az extension add --name azure-devops --output none --only-show-errors
-		echo "Azure DevOps extension installed."
+		# Check if Azure DevOps extension is installed, if not, install it
+
+		extension_installed=$(az extension list --query "[?contains(name, 'azure-devops')].name | [0]" --output tsv)
+
+		if [ -n "$extension_installed" ]; then
+			echo "Azure DevOps extension already installed."
+			az extension update --name azure-devops --output none --only-show-errors
+		else
+			az extension add --name azure-devops --output none --only-show-errors
+			echo "Azure DevOps extension installed."
+		fi
+
+		az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECTID" --output none
 	fi
-
-	az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
 
 	extension_installed=$(az extension list --query "[?contains(name, 'resource-graph')].name | [0]" --output tsv)
 

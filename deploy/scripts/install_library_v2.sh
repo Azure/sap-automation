@@ -475,7 +475,7 @@ function install_library() {
 
 	return_value=0
 
-	if [ "${TEST_ONLY}" == "True" ]; then
+	if [ "${TEST_ONLY:-false}" == "true" ]; then
 		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 		exit 10
 	fi

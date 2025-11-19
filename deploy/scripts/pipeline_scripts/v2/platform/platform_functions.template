@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+# If you copy this file, make sure it has executable permissions e.g.
+# Linux/Mac: `chmod +x new_platform_functions.sh`
+# Windows: `git --update-index --chmod=+x new_platform_functions.sh`
+
+function setup_dependencies() {
+    # If you need to set platform specific dependencies, you can do it here.
+    # This function shouldn't echo anything, as the results are interpreted by the to export variables that are needed later during runs.
+
+    # Example:
+    # echo "VARIABLE_NAME=value"
+}
+
+function exit_error() {
+    MESSAGE="$(caller | awk '{print $2":"$1} ') $1"
+    ERROR_CODE=$2
+
+    echo -e "[ERROR] $bold_red--- ${MESSAGE} ---${reset_formatting}"
+
+    exit $ERROR_CODE
+}
+
+function log_warning() {
+    MESSAGE=$1
+
+    echo "[WARNING] ${MESSAGE}"
+}
+
+function start_group() {
+    MESSAGE=$1
+
+    echo "[START-GROUP] ${MESSAGE}"
+}
+
+function end_group() {
+    echo "[END-GROUP]"
+}
+
+function commit_changes() {
+    message=$1
+    is_custom_message=${2:-false}
+
+    if [[ $is_custom_message == "true" ]]; then
+        git commit -m "${message}"
+    else
+        # TODO: If you want to use this function, you need to implement it, so run specific information is added to the commit
+    fi
+
+    git push
+}
+
+function __get_value_with_key() {
+    key=$1
+
+    # TODO: If you want to use this function, you need to implement it
+    value=$()
+
+    echo $value
+}
+
+function __set_value_with_key() {
+    key=$1
+    new_value=$2
+
+    # TODO: If you want to use this function, you need to implement it
+}
+
+function upload_summary() {
+    summary=$1
+    #  TODO: If you want to use this function, you need to implement it
+}
