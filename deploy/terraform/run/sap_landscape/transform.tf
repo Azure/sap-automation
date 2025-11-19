@@ -116,7 +116,6 @@ locals {
                                            enable_rbac_authorization  = var.enable_rbac_authorization_for_keyvault
                                            set_secret_expiry          = var.set_secret_expiry
                                            exists                     = length(var.user_keyvault_id) > 0
-                                           set_secret_expiry          = var.set_secret_expiry
                                            enable_purge_control       = var.enable_purge_control_for_keyvaults
                                            soft_delete_retention_days = var.soft_delete_retention_days
                                         }
