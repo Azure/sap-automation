@@ -9,240 +9,241 @@
 # +------------------------------------4--------------------------------------*/
 
 parameters:
-  - name:                              deployer
-    displayName:                       "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type:                              string
+  - name:                                         deployer
+    displayName:                                  "Deployer configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                                         string
 
-  - name:                              library
-    displayName:                       "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
-    type:                              string
+  - name:                                         library
+    displayName:                                  "SAP Library configuration name, use the following syntax: ENV-LOCA-SAP_LIBRARY"
+    type:                                         string
 
-  - name:                              environment
-    displayName:                       "Environment name, MGMT, DEV, QA, etc"
-    type:                              string
+  - name:                                         environment
+    displayName:                                  "Environment name, MGMT, DEV, QA, etc"
+    type:                                         string
 
-  - name:                              use_webapp_param
-    displayName:                       "Deploy the configuration web application infrastructure"
-    type:                              boolean
-    default:                           true
+  - name:                                         use_webapp_param
+    displayName:                                  "Deploy the configuration web application infrastructure"
+    type:                                         boolean
+    default:                                      true
 
-  - name:                              deploy_webapp_software
-    displayName:                       "Deploy the configuration web application software"
-    type:                              boolean
-    default:                           true
+  - name:                                         deploy_webapp_software
+    displayName:                                  "Deploy the configuration web application software"
+    type:                                         boolean
+    default:                                      true
 
-  - name:                              use_deployer
-    displayName:                       Run on self hosted agent
-    type:                              boolean
-    default:                           false
+  - name:                                         use_deployer
+    displayName:                                  Run on self hosted agent
+    type:                                         boolean
+    default:                                      false
 
-  - name:                              sap_automation_repo_path
-    displayName:                       The local path on the agent where the sap_automation repo can be found
-    type:                              string
+  - name:                                         sap_automation_repo_path
+    displayName:                                  The local path on the agent where the sap_automation repo can be found
+    type:                                         string
 
-  - name:                              config_repo_path
-    displayName:                       The local path on the agent where the config repo can be found
-    type:                              string
+  - name:                                         config_repo_path
+    displayName:                                  The local path on the agent where the config repo can be found
+    type:                                         string
 
-  - name:                              connection_name
-    displayName:                       Service Connection Name
-    type:                              string
+  - name:                                         connection_name
+    displayName:                                  Service Connection Name
+    type:                                         string
 
-  - name:                              force_reset
-    displayName:                       Force a re-install - may require multiple re-runs
-    type:                              boolean
+  - name:                                         force_reset
+    displayName:                                  Force a re-install - may require multiple re-runs
+    type:                                         boolean
 
-  - name:                              test
-    displayName:                       Test the deployment
-    type:                              boolean
+  - name:                                         test
+    displayName:                                  Test the deployment
+    type:                                         boolean
 
 stages:
-  - stage:                             Prepare_Deployer
-    condition:                         and(not(failed()), not(canceled()))
+  - stage:                                        Prepare_Deployer
+    condition:                                    and(not(failed()), not(canceled()))
     variables:
-      - template:                      variables/01-deploy-control-plane-variables.yaml
+      - template:                                 variables/01-deploy-control-plane-variables.yaml
         parameters:
-          deployer:                    ${{ parameters.deployer }}
-          environment:                 ${{ parameters.environment }}
-          force_reset:                 ${{ parameters.force_reset }}
-          library:                     ${{ parameters.library }}
-          test:                        ${{ parameters.test }}
-          use_deployer:                ${{ parameters.use_deployer }}
-          use_webapp_param:            ${{ parameters.use_webapp_param }}
-    displayName:                       Prepare the self hosted agent(s)
+          deployer:                               ${{ parameters.deployer }}
+          environment:                            ${{ parameters.environment }}
+          force_reset:                            ${{ parameters.force_reset }}
+          library:                                ${{ parameters.library }}
+          test:                                   ${{ parameters.test }}
+          use_deployer:                           ${{ parameters.use_deployer }}
+          use_webapp_param:                       ${{ parameters.use_webapp_param }}
+    displayName:                                  Prepare the self hosted agent(s)
 
     jobs:
-      - job:                           Prepare_Deployer
-        displayName:                   Prepare the self hosted agent
+      - job:                                      Prepare_Deployer
+        displayName:                              Prepare the self hosted agent
         workspace:
-          clean:                       all
+          clean:                                  all
         steps:
-          - template:                  templates\download.yaml
-          - task:                      PostBuildCleanup@4
-          - task:                      TerraformInstaller@1
-            displayName:               Install Terraform
+          - template:                             templates\download.yaml
+          - task:                                 PostBuildCleanup@4
+          - task:                                 TerraformInstaller@1
+            displayName:                          Install Terraform
             inputs:
-              terraformVersion:        latest
+              terraformVersion:                   $(tf_version)
           # Set Variables.
-          - task:                      AzureCLI@2
-            continueOnError:           false
+          - task:                                 AzureCLI@2
+            continueOnError:                      false
             inputs:
-              azureSubscription:       ${{parameters.connection_name}}
-              scriptType:              bash
-              scriptLocation:          'scriptPath'
-              scriptPath:              $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-control-plane-prepare.sh
-              addSpnToEnvironment:     true
-              visibleAzLogin:          false
-              failOnStandardError:     false
+              azureSubscription:                  ${{parameters.connection_name}}
+              scriptType:                         bash
+              scriptLocation:                     'scriptPath'
+              scriptPath:                         $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-control-plane-prepare.sh
+              addSpnToEnvironment:                true
+              visibleAzLogin:                     false
+              failOnStandardError:                false
 
-            displayName: Prepare control plane
+            displayName:                          Prepare control plane
             env:
-              APP_REGISTRATION_APP_ID:        $(APP_REGISTRATION_APP_ID)
-              ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:                  $(ARM_TENANT_ID)
-              AZURE_DEVOPS_EXT_PAT:           $(System.AccessToken)
-              CONFIG_REPO_PATH:               ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              DEPLOYER_TFSTATE_KEY:           "${{ parameters.deployer }}.terraform.tfstate"
-              FORCE_RESET:                    ${{ lower(parameters.force_reset) }}
-              IS_PIPELINE_DEPLOYMENT:         true
-              LOGON_USING_SPN:                $(Logon_Using_SPN)
-              POOL:                           $(POOL)
-              SAP_AUTOMATION_REPO_PATH:       ${{ parameters.sap_automation_repo_path }}
-              SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-              TF_IN_AUTOMATION:               true
-              TF_LOG:                         $(TF_LOG)
-              TF_VAR_agent_ado_url:           $(System.CollectionUri)
-              TF_VAR_agent_pat:               $(System.AccessToken)
-              TF_VAR_agent_pool:              $(POOL)
-              TF_VAR_agent_ado_project:       $(System.TeamProject)
-              TF_VAR_ansible_core_version:    $(ansible_core_version)
-              TF_VAR_tf_version:              $(tf_version)
-              TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
-              USE_MSI:                        $(Use_MSI)
-              WEB_APP_CLIENT_SECRET:          $(WEB_APP_CLIENT_SECRET)
-              keyvault:                       $(DEPLOYER_KEYVAULT)
-  - stage:                             PopulateKeyVault
+              APP_REGISTRATION_APP_ID:            $(APP_REGISTRATION_APP_ID)
+              ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
+              CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              DEPLOYER_TFSTATE_KEY:               "${{ parameters.deployer }}.terraform.tfstate"
+              FORCE_RESET:                        ${{ lower(parameters.force_reset) }}
+              IS_PIPELINE_DEPLOYMENT:             true
+              LOGON_USING_SPN:                    $(Logon_Using_SPN)
+              POOL:                               $(POOL)
+              SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
+              TF_IN_AUTOMATION:                   true
+              TF_LOG:                             $(TF_LOG)
+              TF_VAR_agent_ado_url:               $(System.CollectionUri)
+              TF_VAR_agent_pat:                   $(System.AccessToken)
+              TF_VAR_agent_pool:                  $(POOL)
+              TF_VAR_agent_ado_project:           $(System.TeamProject)
+              TF_VAR_ansible_core_version:        $(ansible_core_version)
+              TF_VAR_tf_version:                  $(tf_version)
+              TF_VAR_app_registration_app_id:     $(APP_REGISTRATION_APP_ID)
+              USE_MSI:                            $(Use_MSI)
+              WEB_APP_CLIENT_SECRET:              $(WEB_APP_CLIENT_SECRET)
+              keyvault:                           $(DEPLOYER_KEYVAULT)
+  - stage:                                        PopulateKeyVault
     dependsOn:
       - Prepare_Deployer
-    pool:                              $(this_agent)
-    displayName:                       Save the Deployment Credentials in Azure Keyvault
+    pool:                                         $(this_agent)
+    displayName:                                  Save the Deployment Credentials in Azure Keyvault
     variables:
-      - template:                      variables/01-deploy-control-plane-variables.yaml
+      - template:                                 variables/01-deploy-control-plane-variables.yaml
         parameters:
-          deployer:                    ${{ parameters.deployer }}
-          environment:                 ${{ parameters.environment }}
-          force_reset:                 ${{ parameters.force_reset }}
-          library:                     ${{ parameters.library }}
-          test:                        ${{ parameters.test }}
-          use_deployer:                ${{ parameters.use_deployer }}
-          use_webapp_param:            ${{ parameters.use_webapp_param }}
+          deployer:                               ${{ parameters.deployer }}
+          environment:                            ${{ parameters.environment }}
+          force_reset:                            ${{ parameters.force_reset }}
+          library:                                ${{ parameters.library }}
+          test:                                   ${{ parameters.test }}
+          use_deployer:                           ${{ parameters.use_deployer }}
+          use_webapp_param:                       ${{ parameters.use_webapp_param }}
     jobs:
-      - job:                           SaveDeploymentCredentials
-        displayName:                   Save the Deployment Credentials
+      - job:                                      SaveDeploymentCredentials
+        displayName:                              Save the Deployment Credentials
         workspace:
-          clean:                       all
+          clean:                                  all
         steps:
-          - task:                      PostBuildCleanup@4
-          - task:                      TerraformInstaller@1
-            displayName:               Install Terraform
+          - task:                                 PostBuildCleanup@4
+          - task:                                 TerraformInstaller@1
+            displayName:                          Install Terraform
             inputs:
-              terraformVersion:        latest
-          - template:                  templates\download.yaml
+              terraformVersion:                   latest
+          - template:                             templates\download.yaml
             parameters:
-              getLatestFromBranch: true
-          - task:                      Bash@3
+              getLatestFromBranch:                true
+          - task:                                 Bash@3
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            name:                      StoreSecrets
-            displayName:               Store deployment credentials in Key Vault
+              targetType:                         'filePath'
+              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
+              failOnStderr:                       false
+              workingDirectory:                   "$(System.DefaultWorkingDirectory)"
+            name:                                 StoreSecrets
+            displayName:                          Store deployment credentials in Key Vault
             env:
-              ARM_CLIENT_ID:                $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
-              ARM_OBJECT_ID:                $(ARM_OBJECT_ID)
-              ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:                $(ARM_TENANT_ID)
-              AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
-              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
-              SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
-              USE_MSI:                      $(Use_MSI)
+              ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
+              ARM_OBJECT_ID:                      $(ARM_OBJECT_ID)
+              ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
+              CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
+              USE_MSI:                            $(Use_MSI)
+              ZONE:                               ${{ upper(replace(parameters.deployer, '-INFRASTRUCTURE', '')) }}
 
-              ZONE:                         ${{ upper(replace(parameters.deployer, '-INFRASTRUCTURE', '')) }}
-
-  - stage:                             Deploy_controlplane
+  - stage:                                        Deploy_controlplane
     dependsOn:
       - PopulateKeyVault
-    condition:                         eq(dependencies.PopulateKeyVault.result, 'Succeeded')
-    pool:                              $(this_agent)
+    condition:                                    eq(dependencies.PopulateKeyVault.result, 'Succeeded')
+    pool:                                         $(this_agent)
     variables:
-      - template:                      variables/01-deploy-control-plane-variables.yaml
+      - template:                                 variables/01-deploy-control-plane-variables.yaml
         parameters:
-          deployer:                    ${{ parameters.deployer }}
-          environment:                 ${{ parameters.environment }}
-          force_reset:                 ${{ parameters.force_reset }}
-          library:                     ${{ parameters.library }}
-          test:                        ${{ parameters.test }}
-          use_deployer:                ${{ parameters.use_deployer }}
-          use_webapp_param:            ${{ parameters.use_webapp_param }}
-    displayName:                       Deploy the control plane
+          deployer:                               ${{ parameters.deployer }}
+          environment:                            ${{ parameters.environment }}
+          force_reset:                            ${{ parameters.force_reset }}
+          library:                                ${{ parameters.library }}
+          test:                                   ${{ parameters.test }}
+          use_deployer:                           ${{ parameters.use_deployer }}
+          use_webapp_param:                       ${{ parameters.use_webapp_param }}
+    displayName:                                  Deploy the control plane
 
     jobs:
-      - job:                           Deploy_controlplane
-        displayName:                   Deploy the control plane
+      - job:                                      Deploy_controlplane
+        displayName:                              Deploy the control plane
         workspace:
-          clean:                       all
+          clean:                                  all
         steps:
-          - task:                      PostBuildCleanup@4
-          - template:                  templates\download.yaml
+          - task:                                 PostBuildCleanup@4
+          - template:                             templates\download.yaml
             parameters:
-              getLatestFromBranch: true
+              getLatestFromBranch:                true
 
-          - task:                      TerraformInstaller@1
-            displayName:               Install Terraform
+          - task:                                 TerraformInstaller@1
+            displayName:                          Install Terraform
             inputs:
-              terraformVersion:        latest
-          - task:                      Bash@3
+              terraformVersion:                   latest
+          - task:                                 Bash@3
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-control-plane-deploy.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            displayName:               Deploy control plane Part 2
+              targetType:                         'filePath'
+              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-control-plane-deploy.sh"
+              failOnStderr:                       false
+              workingDirectory:                   "$(System.DefaultWorkingDirectory)"
+            displayName:                          Deploy control plane Part 2
             env:
-              APP_REGISTRATION_APP_ID:     $(APP_REGISTRATION_APP_ID)
-              ARM_CLIENT_ID:               $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:               $(ARM_TENANT_ID)
-              AZURE_DEVOPS_EXT_PAT:        $(System.AccessToken)
-              CONFIG_REPO_PATH:            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              DEPLOYER_TFSTATE_KEY:        "${{ parameters.deployer }}.terraform.tfstate"
-              FORCE_RESET:                 ${{ lower(parameters.force_reset) }}
-              IS_PIPELINE_DEPLOYMENT:      true
-              LOGON_USING_SPN:             $(Logon_Using_SPN)
-              POOL:                        $(POOL)
-              SAP_AUTOMATION_REPO_PATH:    ${{ parameters.sap_automation_repo_path }}
-              SYSTEM_ACCESSTOKEN:          $(System.AccessToken)
-              TF_IN_AUTOMATION:            true
-              TF_LOG:                      $(TF_LOG)
-              TF_VAR_agent_ado_url:        $(System.CollectionUri)
-              TF_VAR_agent_pat:            $(System.AccessToken)
-              TF_VAR_agent_pool:           $(POOL)
-              TF_VAR_ansible_core_version: $(ansible_core_version)
-              TF_VAR_agent_ado_project:    $(System.TeamProject)
-              TF_VAR_spn_id:               $(ARM_OBJECT_ID)
-              TF_VAR_tf_version:           $(tf_version)
-              TF_VAR_use_webapp:           ${{ parameters.use_webapp_param }}
-              USE_MSI:                     $(Use_MSI)
-              WEB_APP_CLIENT_SECRET:       $(WEB_APP_CLIENT_SECRET)
-              keyvault:                    $(DEPLOYER_KEYVAULT)
-              DEPLOYER_KEYVAULT:           $(DEPLOYER_KEYVAULT)
-          - bash: |
+              APP_REGISTRATION_APP_ID:            $(APP_REGISTRATION_APP_ID)
+              APPLICATION_CONFIGURATION_NAME:     $(APPLICATION_CONFIGURATION_NAME)
+              ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
+              CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              DEPLOYER_KEYVAULT:                  $(DEPLOYER_KEYVAULT)
+              DEPLOYER_TFSTATE_KEY:               "${{ parameters.deployer }}.terraform.tfstate"
+              FORCE_RESET:                        ${{ lower(parameters.force_reset) }}
+              IS_PIPELINE_DEPLOYMENT:             true
+              LOGON_USING_SPN:                    $(Logon_Using_SPN)
+              POOL:                               $(POOL)
+              SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
+              TF_IN_AUTOMATION:                   true
+              TF_LOG:                             $(TF_LOG)
+              TF_VAR_agent_ado_project:           $(System.TeamProject)
+              TF_VAR_agent_ado_url:               $(System.CollectionUri)
+              TF_VAR_agent_pat:                   $(System.AccessToken)
+              TF_VAR_agent_pool:                  $(POOL)
+              TF_VAR_ansible_core_version:        $(ansible_core_version)
+              TF_VAR_spn_id:                      $(ARM_OBJECT_ID)
+              TF_VAR_tf_version:                  $(tf_version)
+              TF_VAR_use_webapp:                  ${{ parameters.use_webapp_param }}
+              USE_MSI:                            $(Use_MSI)
+              WEB_APP_CLIENT_SECRET:              $(WEB_APP_CLIENT_SECRET)
+              ZONE:                               $(CONTROL_PLANE_NAME)
+              keyvault:                           $(DEPLOYER_KEYVAULT)
+          - bash:                                 |
               #!/bin/bash
 
               if [ "${{ parameters.use_webapp_param }}" = "True" ] ; then
@@ -256,30 +257,30 @@ stages:
               echo "##vso[task.setvariable variable=appServiceDeployment;isOutput=true]$APP_SERVICE_DEPLOYMENT"
               exit 0
 
-            displayName:               "HasAppService"
-            name:                      "HasAppService"
+            displayName:                          "HasAppService"
+            name:                                 "HasAppService"
             env:
-              APP_SERVICE_DEPLOYMENT:  $(APP_SERVICE_DEPLOYMENT)
-              WEB_APP:                 ${{ parameters.use_webapp_param }}
+              APP_SERVICE_DEPLOYMENT:             $(APP_SERVICE_DEPLOYMENT)
+              WEB_APP:                            ${{ parameters.use_webapp_param }}
 
-  - stage:                             Web_App_Deployment
-    pool:                              $(this_agent)
+  - stage:                                        Web_App_Deployment
+    pool:                                         $(this_agent)
     variables:
-      - template:                      variables/01-deploy-control-plane-variables.yaml
+      - template:                                 variables/01-deploy-control-plane-variables.yaml
         parameters:
-          deployer:                    ${{ parameters.deployer }}
-          environment:                 ${{ parameters.environment }}
-          force_reset:                 ${{ parameters.force_reset }}
-          library:                     ${{ parameters.library }}
-          test:                        ${{ parameters.test }}
-          use_deployer:                ${{ parameters.use_deployer }}
-          use_webapp_param:            ${{ parameters.use_webapp_param }}
-    displayName:                       Deploy SAP configuration Web App
+          deployer:                               ${{ parameters.deployer }}
+          environment:                            ${{ parameters.environment }}
+          force_reset:                            ${{ parameters.force_reset }}
+          library:                                ${{ parameters.library }}
+          test:                                   ${{ parameters.test }}
+          use_deployer:                           ${{ parameters.use_deployer }}
+          use_webapp_param:                       ${{ parameters.use_webapp_param }}
+    displayName:                                  Deploy SAP configuration Web App
 
     dependsOn:
       - Deploy_controlplane
       - Prepare_Deployer
-    condition: |
+    condition:                                    |
       and
       (
         eq(dependencies.Deploy_controlplane.outputs['Deploy_controlplane.HasAppService.appServiceDeployment'], 'true'),
@@ -287,37 +288,37 @@ stages:
         eq(dependencies.Prepare_Deployer.result, 'Succeeded')
       )
     jobs:
-      - job: Deploy_web_app
-        displayName: Deploy SAP configuration Web App
+      - job:                                      Deploy_web_app
+        displayName:                              Deploy SAP configuration Web App
         workspace:
-          clean: all
+          clean:                                  all
         steps:
-          - template: templates\download.yaml
-          - task: PostBuildCleanup@4
-          - task: DotNetCoreCLI@2
-            displayName: "Build the Configuration Web Application"
+          - template:                             templates\download.yaml
+          - task:                                 PostBuildCleanup@4
+          - task:                                 DotNetCoreCLI@2
+            displayName:                          "Build the Configuration Web Application"
             inputs:
-              command: "build"
-              projects: "$(System.DefaultWorkingDirectory)/sap-automation/Webapp/SDAF/*.csproj"
-          - task: DotNetCoreCLI@2
-            displayName: "Publish the Configuration Web Application"
+              command:                            "build"
+              projects:                           "$(System.DefaultWorkingDirectory)/sap-automation/Webapp/SDAF/*.csproj"
+          - task:                                 DotNetCoreCLI@2
+            displayName:                          "Publish the Configuration Web Application"
             inputs:
-              command: publish
-              projects: "**/Webapp/**/*.csproj"
-              publishWebProjects: false
-              arguments: "--output $(Build.ArtifactStagingDirectory)/WebApp"
-              zipAfterPublish: true
-              modifyOutputPath: true
+              command:                            publish
+              projects:                           "**/Webapp/**/*.csproj"
+              publishWebProjects:                 false
+              arguments:                          "--output $(Build.ArtifactStagingDirectory)/WebApp"
+              zipAfterPublish:                    true
+              modifyOutputPath:                   true
 
-          - task:                      AzureWebApp@1
-            displayName:               "Deploy the Configuration Web Application"
+          - task:                                 AzureWebApp@1
+            displayName:                          "Deploy the Configuration Web Application"
             inputs:
-              azureSubscription:       ${{parameters.connection_name}}
-              appType:                 "webApp"
-              appName:                 $(APP_SERVICE_NAME)
-              package:                 "$(Build.ArtifactStagingDirectory)/WebApp/*.zip"
-              deploymentMethod:        "auto"
-              appSettings: '-CollectionUri $(System.CollectionUri)
+              azureSubscription:                  ${{parameters.connection_name}}
+              appType:                            "webApp"
+              appName:                            $(APP_SERVICE_NAME)
+              package:                            "$(Build.ArtifactStagingDirectory)/WebApp/*.zip"
+              deploymentMethod:                   "auto"
+              appSettings:                        '-CollectionUri $(System.CollectionUri)
                 -ProjectName "$(System.TeamProject)"
                 -RepositoryId $(Build.Repository.ID)
                 -SourceBranch "$(Build.SourceBranchName)"
@@ -329,38 +330,38 @@ stages:
                 -CONTROLPLANE_ENV $(CONTROL_PLANE_ENVIRONMENT)
                 -CONTROLPLANE_LOC $(CONTROL_PLANE_LOCATION)'
             env:
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              SYSTEM_PIPELINE_ID:      $(SYSTEM_PIPELINE_ID)
-              WORKLOADZONE_PIPELINE_ID: $(WORKLOADZONE_PIPELINE_ID)
-              SAP_INSTALL_PIPELINE_ID: $(SAP_INSTALL_PIPELINE_ID)
-              SDAF_GENERAL_GROUP_ID:   $(SDAF_GENERAL_GROUP_ID)
-              APP_SERVICE_NAME:         $(APP_SERVICE_NAME)
-              WEBAPP_RESOURCE_GROUP:     $(WEBAPP_RESOURCE_GROUP)
-              WEBAPP_ID:                 $(WEBAPP_ID)
-              APP_REGISTRATION_APP_ID:   $(APP_REGISTRATION_APP_ID)
-              APP_REGISTRATION_OBJECTID: $(APP_REGISTRATION_OBJECTID)
-              ARM_TENANT_ID:             $(ARM_TENANT_ID)
-              AZURE_CONNECTION_NAME:     ${{variables.connection_name}}
+              ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
+              SYSTEM_PIPELINE_ID:                 $(SYSTEM_PIPELINE_ID)
+              WORKLOADZONE_PIPELINE_ID:           $(WORKLOADZONE_PIPELINE_ID)
+              SAP_INSTALL_PIPELINE_ID:            $(SAP_INSTALL_PIPELINE_ID)
+              SDAF_GENERAL_GROUP_ID:              $(SDAF_GENERAL_GROUP_ID)
+              APP_SERVICE_NAME:                   $(APP_SERVICE_NAME)
+              WEBAPP_RESOURCE_GROUP:              $(WEBAPP_RESOURCE_GROUP)
+              WEBAPP_ID:                          $(WEBAPP_ID)
+              APP_REGISTRATION_APP_ID:            $(APP_REGISTRATION_APP_ID)
+              APP_REGISTRATION_OBJECTID:          $(APP_REGISTRATION_OBJECTID)
+              ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              AZURE_CONNECTION_NAME:              ${{variables.connection_name}}
 
-          - task:                      AzureCLI@2
-            continueOnError:           false
+          - task:                                 AzureCLI@2
+            continueOnError:                      false
             inputs:
-              azureSubscription:       ${{parameters.connection_name}}
-              scriptType:              bash
-              scriptLocation:          'scriptPath'
-              scriptPath:              $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-webapp-configuration.sh
-              addSpnToEnvironment:     true
-              visibleAzLogin:          false
-              failOnStandardError:     false
-            displayName: "Documentation"
+              azureSubscription:                  ${{parameters.connection_name}}
+              scriptType:                         bash
+              scriptLocation:                     'scriptPath'
+              scriptPath:                         $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-webapp-configuration.sh
+              addSpnToEnvironment:                true
+              visibleAzLogin:                     false
+              failOnStandardError:                false
+            displayName:                          "Documentation"
             env:
-              APP_REGISTRATION_APP_ID:   $(APP_REGISTRATION_APP_ID)
-              APP_REGISTRATION_OBJECTID: $(APP_REGISTRATION_OBJECTID)
-              APP_SERVICE_NAME:          $(APP_SERVICE_NAME)
-              ARM_SUBSCRIPTION_ID:       $(ARM_SUBSCRIPTION_ID)
-              BUILD_REPOSITORY_LOCALPATH: $(Build.Repository.LocalPath)
-              SYSTEM_PIPELINE_ID:        $(SYSTEM_PIPELINE_ID)
-              WEBAPP_ID:                 $(WEBAPP_ID)
-              WEBAPP_IDENTITY:           $(WEBAPP_IDENTITY)
-              APPLICATION_CONFIGURATION_ID: $(APPLICATION_CONFIGURATION_ID)
-              CONTROL_PLANE_NAME:        $(CONTROL_PLANE_NAME)
+              APP_REGISTRATION_APP_ID:            $(APP_REGISTRATION_APP_ID)
+              APP_REGISTRATION_OBJECTID:          $(APP_REGISTRATION_OBJECTID)
+              APP_SERVICE_NAME:                   $(APP_SERVICE_NAME)
+              ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
+              BUILD_REPOSITORY_LOCALPATH:         $(Build.Repository.LocalPath)
+              SYSTEM_PIPELINE_ID:                 $(SYSTEM_PIPELINE_ID)
+              WEBAPP_ID:                          $(WEBAPP_ID)
+              WEBAPP_IDENTITY:                    $(WEBAPP_IDENTITY)
+              APPLICATION_CONFIGURATION_ID:       $(APPLICATION_CONFIGURATION_ID)
+              CONTROL_PLANE_NAME:                 $(CONTROL_PLANE_NAME)

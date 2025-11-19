@@ -1,20 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-name:                                  Create Deployer Configuration
+name:                                             Create Deployer Configuration
 
-trigger:                               none
+trigger:                                          none
 
 parameters:
-  - name:                              deployer_environment_parameter
-    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
-    type:                              string
-    default:                           MGMT
+  - name:                                         deployer_environment_parameter
+    displayName:                                  Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type:                                         string
+    default:                                      MGMT
 
-  - name:                              deployer_region_parameter
-    displayName:                       Deployer region name code (MGMT, DEV, QA, PRD, ...)
-    type:                              string
-    default:                           WEEU
+  - name:                                         deployer_region_parameter
+    displayName:                                  Deployer region name code (MGMT, DEV, QA, PRD, ...)
+    type:                                         string
+    default:                                      WEEU
     values:
       - AUCE
       - AUC2
@@ -67,42 +67,42 @@ parameters:
       - WUS3
 
 variables:
-  - name:                              deployer_environment
-    value:                             ${{ parameters.deployer_environment_parameter }}
+  - name:                                         deployer_environment
+    value:                                        ${{ parameters.deployer_environment_parameter }}
 
-  - name:                              deployer_region
-    value:                             ${{ parameters.deployer_region_parameter }}
+  - name:                                         deployer_region
+    value:                                        ${{ parameters.deployer_region_parameter }}
 
-  - name:                              deployer_folder
-    value:                             ${{ format('{0}-{1}-DEP01-INFRASTRUCTURE', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
+  - name:                                         deployer_folder
+    value:                                        ${{ format('{0}-{1}-DEP01-INFRASTRUCTURE', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
 
-  - name:                              deployer_file
-    value:                             ${{ format('{0}-{1}-DEP01-INFRASTRUCTURE.tfvars', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
+  - name:                                         deployer_file
+    value:                                        ${{ format('{0}-{1}-DEP01-INFRASTRUCTURE.tfvars', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
 
-  - name:                              library_folder
-    value:                             ${{ format('{0}-{1}-SAP_LIBRARY', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
+  - name:                                         library_folder
+    value:                                        ${{ format('{0}-{1}-SAP_LIBRARY', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
 
-  - name:                              library_file
-    value:                             ${{ format('{0}-{1}-SAP_LIBRARY.tfvars', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
+  - name:                                         library_file
+    value:                                        ${{ format('{0}-{1}-SAP_LIBRARY.tfvars', parameters.deployer_environment_parameter, parameters.deployer_region_parameter) }}
 
 stages:
-  - stage:                             Create_Configuration
-    displayName:                       Create Deployer Configuration
+  - stage:                                        Create_Configuration
+    displayName:                                  Create Deployer Configuration
     jobs:
-      - job:                           Create_Deployer_Configuration
-        displayName:                   Create Deployer Configuration
+      - job:                                      Create_Deployer_Configuration
+        displayName:                              Create Deployer Configuration
         workspace:
-          clean:                       all
+          clean:                                  all
         steps:
-          - task:                      PostBuildCleanup@4
-          - checkout:                  self
-            persistCredentials:        true
-          - task:                      PowerShell@2
-            displayName:               "Create Sample configuration for the control plane"
+          - task:                                 PostBuildCleanup@4
+          - checkout:                             self
+            persistCredentials:                   true
+          - task:                                 PowerShell@2
+            displayName:                          "Create Sample configuration for the control plane"
             inputs:
-              targetType:              "inline"
+              targetType:                         "inline"
 
-              script: |
+              script:                             |
                     git fetch -q --all
                     git checkout -q $(Build.SourceBranchName)
                     git pull
@@ -174,7 +174,7 @@ stages:
                         if (Test-Path $(deployer_file)) {
                         }
                         else {
-                            $DeployerFile = New-Item -Path . -Name $(deployer_file) -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]::NewLine)
+                            $DeployerFile = New-Item -Path . -Name $(deployer_file) -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]: :NewLine)
                             Add-Content $(deployer_file) "environment = ""$(deployer_environment)"""
                             Add-Content $(deployer_file) "location = ""$region"""
                             Add-Content $(deployer_file) ""
@@ -204,7 +204,7 @@ stages:
                         cd $(Build.Repository.LocalPath)
                         $Folder = New-Item $Full -ItemType Directory
                         cd $Folder.FullName
-                        $DeployerFile = New-Item -Path . -Name $(deployer_file) -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]::NewLine)
+                        $DeployerFile = New-Item -Path . -Name $(deployer_file) -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]: :NewLine)
                         Add-Content $(deployer_file) "environment = ""$(deployer_environment)"""
                         Add-Content $(deployer_file) "location = ""$region"""
                         Add-Content $(deployer_file) ""
@@ -238,7 +238,7 @@ stages:
                         if (Test-Path $(library_file)) {
                         }
                         else {
-                            $LibraryFile = New-Item -Path . -Name $(library_file) -ItemType "file" -Value ("# Library Configuration File" + [Environment]::NewLine)
+                            $LibraryFile = New-Item -Path . -Name $(library_file) -ItemType "file" -Value ("# Library Configuration File" + [Environment]: :NewLine)
                             Add-Content $(library_file) "environment = ""$(deployer_environment)"""
                             Add-Content $(library_file) "location = ""$region"""
                             Add-Content $(library_file) ""
@@ -259,7 +259,7 @@ stages:
                         $Folder = New-Item $Full -ItemType Directory
                         cd $Full
                         Write-Host "Creating Library file"
-                        $LibraryFile = New-Item -Path . -Name $(library_file) -ItemType "file" -Value ("# Library Configuration File" + [Environment]::NewLine)
+                        $LibraryFile = New-Item -Path . -Name $(library_file) -ItemType "file" -Value ("# Library Configuration File" + [Environment]: :NewLine)
                         Add-Content $(library_file) "environment = ""$(deployer_environment)"""
                         Add-Content $(library_file) "location = ""$region"""
                         Add-Content $(library_file) ""
@@ -273,6 +273,6 @@ stages:
 
                     }
 
-              failOnStderr:            false
-              showWarnings:            true
-              pwsh:                    true
+              failOnStderr:                       false
+              showWarnings:                       true
+              pwsh:                               true

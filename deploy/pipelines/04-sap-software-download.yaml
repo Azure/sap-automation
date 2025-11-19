@@ -8,139 +8,139 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 parameters:
-  - name:                              bom_base_name
-    displayName:                       Name of Bill of Materials (BoM)
-    type:                              string
+  - name:                                         bom_base_name
+    displayName:                                  Name of Bill of Materials (BoM)
+    type:                                         string
 
-  - name:                              environment
-    displayName:                       Control Plane Environment
-    default:                           MGMT
+  - name:                                         environment
+    displayName:                                  Control Plane Environment
+    default:                                      MGMT
 
-  - name:                              region
-    displayName:                       Control Plane (SAP Library) location code
-    type:                              string
-    default:                           WEEU
+  - name:                                         region
+    displayName:                                  Control Plane (SAP Library) location code
+    type:                                         string
+    default:                                      WEEU
 
-  - name:                              re_download
-    displayName:                       Re-download software from SAP
-    type:                              boolean
-    default:                           false
+  - name:                                         re_download
+    displayName:                                  Re-download software from SAP
+    type:                                         boolean
+    default:                                      false
 
-  - name:                              sap_automation_repo_path
-    displayName:                       The local path on the agent where the sap_automation repo can be found
-    type:                              string
+  - name:                                         sap_automation_repo_path
+    displayName:                                  The local path on the agent where the sap_automation repo can be found
+    type:                                         string
 
-  - name:                              config_repo_path
-    displayName:                       The local path on the agent where the config repo can be found
-    type:                              string
+  - name:                                         config_repo_path
+    displayName:                                  The local path on the agent where the config repo can be found
+    type:                                         string
 
-  - name:                              sample_repo_path
-    displayName:                       The local path on the agent where the config repo can be found
-    type:                              string
+  - name:                                         sample_repo_path
+    displayName:                                  The local path on the agent where the config repo can be found
+    type:                                         string
 
-  - name:                              ExtraParams
-    displayName:                       Extra parameters to pass to Ansible
-    type:                              string
+  - name:                                         ExtraParams
+    displayName:                                  Extra parameters to pass to Ansible
+    type:                                         string
 
 stages:
-  - stage: Prepare_download
-    condition: and(not(failed()), not(canceled()))
+  - stage:                                        Prepare_download
+    condition:                                    and(not(failed()), not(canceled()))
     variables:
-      - template:                      variables/04-sap-software-download-variables.yaml
+      - template:                                 variables/04-sap-software-download-variables.yaml
         parameters:
-          bom_base_name:               ${{ parameters.bom_base_name }}
-          environment:                 ${{ parameters.environment }}
-          re_download:                 ${{ parameters.re_download }}
-          region:                      ${{ parameters.region }}
-    displayName:                       Preparation
+          bom_base_name:                          ${{ parameters.bom_base_name }}
+          environment:                            ${{ parameters.environment }}
+          re_download:                            ${{ parameters.re_download }}
+          region:                                 ${{ parameters.region }}
+    displayName:                                  Preparation
     jobs:
-      - job: Prepare_download_job
-        displayName:                   Preparation
+      - job:                                      Prepare_download_job
+        displayName:                              Preparation
         workspace:
-          clean:                       all
+          clean:                                  all
         steps:
-          - template:                  templates\download_samples.yaml
-          - task:                      PostBuildCleanup@4
-          - task:                      TerraformInstaller@1
-            displayName:               Install Terraform
+          - template:                             templates\download_samples.yaml
+          - task:                                 PostBuildCleanup@4
+          - task:                                 TerraformInstaller@1
+            displayName:                          Install Terraform
             inputs:
-              terraformVersion:        latest
+              terraformVersion:                   latest
 
-          - task:                      Bash@3
+          - task:                                 Bash@3
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/install-ansible.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
+              targetType:                         'filePath'
+              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/install-ansible.sh"
+              failOnStderr:                       false
+              workingDirectory:                   "$(System.DefaultWorkingDirectory)"
             env:
-              ansible_core_version:    $(ansible_core_version)
-            name:                      AnsibleInstallation
-            displayName:               Install Ansible
+              ansible_core_version:               $(ansible_core_version)
+            name:                                 AnsibleInstallation
+            displayName:                          Install Ansible
 
-          - task:                      Bash@3
+          - task:                                 Bash@3
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/04-sap-software-download-prepare.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            displayName:               Prepare download
-            name:                      Preparation
+              targetType:                         'filePath'
+              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/04-sap-software-download-prepare.sh"
+              failOnStderr:                       false
+              workingDirectory:                   "$(System.DefaultWorkingDirectory)"
+            displayName:                          Prepare download
+            name:                                 Preparation
             env:
-              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:            $(ARM_TENANT_ID)
-              ARM_USE_MSI:              $(Use_MSI)
-              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
-              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              DEPLOYER_KEYVAULT:        $(DEPLOYER_KEYVAULT)
-              SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              SPASSWORD:                $(S-Password)
-              SUSERNAME:                $(S-Username)
-              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              USE_MSI:                  $(Use_MSI)
-  - stage:                             Software_download
+              ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              ARM_USE_MSI:                        $(Use_MSI)
+              AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
+              CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              DEPLOYER_KEYVAULT:                  $(DEPLOYER_KEYVAULT)
+              SAMPLE_REPO_PATH:                   ${{ parameters.sample_repo_path }}
+              SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
+              SPASSWORD:                          $(S-Password)
+              SUSERNAME:                          $(S-Username)
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
+              USE_MSI:                            $(Use_MSI)
+  - stage:                                        Software_download
     variables:
-      - template:                      variables/04-sap-software-download-variables.yaml
+      - template:                                 variables/04-sap-software-download-variables.yaml
         parameters:
-          bom_base_name:               ${{ parameters.bom_base_name }}
-          environment:                 ${{ parameters.environment }}
-          re_download:                 ${{ parameters.re_download }}
-          region:                      ${{ parameters.region }}
-    displayName:                       Download software
+          bom_base_name:                          ${{ parameters.bom_base_name }}
+          environment:                            ${{ parameters.environment }}
+          re_download:                            ${{ parameters.re_download }}
+          region:                                 ${{ parameters.region }}
+    displayName:                                  Download software
 
     jobs:
-      - job:                           Software_download
-        displayName:                   Download software
+      - job:                                      Software_download
+        displayName:                              Download software
         variables:
-          BOM_NAME:                    $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.BOM_NAME'] ]
-          KV_NAME:                     $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.KV_NAME'] ]
-          SUSERNAME:                   $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SUSERNAME'] ]
-        timeoutInMinutes:              0
+          BOM_NAME:                               $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.BOM_NAME'] ]
+          KV_NAME:                                $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.KV_NAME'] ]
+          SUSERNAME:                              $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.SUSERNAME'] ]
+        timeoutInMinutes:                         0
         steps:
-          - template:                  templates\download_samples.yaml
-          - task:                      PostBuildCleanup@4
-          - task:                      Bash@3
+          - template:                             templates\download_samples.yaml
+          - task:                                 PostBuildCleanup@4
+          - task:                                 Bash@3
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/04-sap-software-download.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            displayName:               Download
-            name:                      download
+              targetType:                         'filePath'
+              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/04-sap-software-download.sh"
+              failOnStderr:                       false
+              workingDirectory:                   "$(System.DefaultWorkingDirectory)"
+            displayName:                          Download
+            name:                                 download
             env:
-              AGENT_TEMP_DIRECTORY:     $(Agent.TempDirectory)
-              ANSIBLE_COLLECTIONS_PATH: ~/.ansible/collections:/opt/ansible/collections
-              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:            $(ARM_TENANT_ID)
-              ARM_USE_MSI:              $(Use_MSI)
-              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
-              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              DEPLOYER_KEYVAULT:        $(DEPLOYER_KEYVAULT)
-              EXTRA_PARAMETERS:         ${{ parameters.ExtraParams }}
-              SAMPLE_REPO_PATH:         ${{ parameters.sample_repo_path }}
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              USE_MSI:                  $(Use_MSI)
+              AGENT_TEMP_DIRECTORY:               $(Agent.TempDirectory)
+              ANSIBLE_COLLECTIONS_PATH:           ~/.ansible/collections:/opt/ansible/collections
+              ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              ARM_USE_MSI:                        $(Use_MSI)
+              AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
+              CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              DEPLOYER_KEYVAULT:                  $(DEPLOYER_KEYVAULT)
+              EXTRA_PARAMETERS:                   ${{ parameters.ExtraParams }}
+              SAMPLE_REPO_PATH:                   ${{ parameters.sample_repo_path }}
+              SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
+              USE_MSI:                            $(Use_MSI)

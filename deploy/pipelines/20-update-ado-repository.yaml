@@ -8,29 +8,29 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-name:                                   Update Azure DevOps repository from GitHub $(branch) branch
-trigger:                                none
+name:                                             Update Azure DevOps repository from GitHub $(branch) branch
+trigger:                                          none
 
 parameters:
-  - name:                              repository
-    displayName:                       Source repository
-    type:                              string
-    default:                           https://github.com/Azure/sap-automation.git
+  - name:                                         repository
+    displayName:                                  Source repository
+    type:                                         string
+    default:                                      https://github.com/Azure/sap-automation.git
 
-  - name:                              branch
-    displayName:                       Source branch to update from
-    type:                              string
-    default:                           main
+  - name:                                         branch
+    displayName:                                  Source branch to update from
+    type:                                         string
+    default:                                      main
 
-  - name:                              tag
-    displayName:                       Git tag to fetch
-    type:                              string
-    default:                           latest
+  - name:                                         tag
+    displayName:                                  Git tag to fetch
+    type:                                         string
+    default:                                      latest
 
-  - name:                              force
-    displayName:                       Force the update
-    type:                              boolean
-    default:                           false
+  - name:                                         force
+    displayName:                                  Force the update
+    type:                                         boolean
+    default:                                      false
 
   #--------------------------------------------------------------------
   # Change:
@@ -40,27 +40,27 @@ parameters:
   #   Establish debug framework.
   #--------------------------------------------------------------------
   #>> START OF INSERTION <<
-  - name:                              p_debug
-    displayName:                       Debug Mode
-    type:                              boolean
-    default:                           false
+  - name:                                         p_debug
+    displayName:                                  Debug Mode
+    type:                                         boolean
+    default:                                      false
   #>> END   OF INSERTION <<
   #--------------------------------------------------------------------
 
 pool:
-  vmImage:                             ubuntu-latest
+  vmImage:                                        ubuntu-latest
 
 variables:
-  - name:                              repository
-    value:                             ${{ parameters.repository }}
-  - name:                              branch
-    value:                             ${{ parameters.branch }}
-  - name:                              tag
-    value:                             ${{ parameters.tag }}
-  - name:                              force
-    value:                             ${{ parameters.force }}
-  - name:                              log
-    value:                             logfile_$(Build.BuildId)
+  - name:                                         repository
+    value:                                        ${{ parameters.repository }}
+  - name:                                         branch
+    value:                                        ${{ parameters.branch }}
+  - name:                                         tag
+    value:                                        ${{ parameters.tag }}
+  - name:                                         force
+    value:                                        ${{ parameters.force }}
+  - name:                                         log
+    value:                                        logfile_$(Build.BuildId)
   #--------------------------------------------------------------------
   # Change:
   #   20230516 MKD
@@ -69,21 +69,21 @@ variables:
   #   Establish debug framework.
   #--------------------------------------------------------------------
   #>> START OF INSERTION <<
-  - name:                              v_debug
-    value:                             ${{ parameters.p_debug }}
+  - name:                                         v_debug
+    value:                                        ${{ parameters.p_debug }}
   #>> END   OF INSERTION <<
   #--------------------------------------------------------------------
 
 stages:
-  - stage:                             Update_ADO_repository
-    displayName:                       Update ADO repository
+  - stage:                                        Update_ADO_repository
+    displayName:                                  Update ADO repository
     jobs:
-      - job:                           Update_ADO_repository
-        displayName:                   Update ADO repository
+      - job:                                      Update_ADO_repository
+        displayName:                              Update ADO repository
         steps:
-          - checkout:                  self
-            persistCredentials:        true
-          - bash: |
+          - checkout:                             self
+            persistCredentials:                   true
+          - bash:                                 |
               #!/bin/bash
               green="\e[1;32m" ; reset="\e[0m" ; boldred="\e[1;31m"
               #--------------------------------------------------------------------
@@ -153,9 +153,9 @@ stages:
 
               exit $return_code
 
-            displayName:               Update ADO repository
+            displayName:                          Update ADO repository
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
             #--------------------------------------------------------------------
             # Change:
             #   20230516 MKD
@@ -164,10 +164,10 @@ stages:
             #
             #--------------------------------------------------------------------
             #>> START OF DELETION <<
-            # failOnStderr:              true
+            # failOnStderr:                       true
             #>> END   OF DELETION <<
             #>> START OF INSERTION <<
-            failOnStderr:              false
+            failOnStderr:                         false
             #>> END   OF INSERTION <<
             #--------------------------------------------------------------------
 ...
