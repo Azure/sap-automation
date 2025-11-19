@@ -90,3 +90,56 @@ data "azurerm_key_vault_secret" "cp_tenant_id" {
   key_vault_id                         = local.key_vault.spn.id
 }
 
+data "azurerm_key_vault_secret" "subscription_id_v2" {
+  count                                = length(var.subscription_id) > 0 ? 0 : (var.use_spn ? 1 : 0)
+  name                                 = format("%s-subscription-id", local.workload_zone_name)
+  key_vault_id                         = local.key_vault.spn.id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
+
+data "azurerm_key_vault_secret" "client_id_v2" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-client-id", local.workload_zone_name)
+  key_vault_id                         = local.key_vault.spn.id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
+ephemeral "azurerm_key_vault_secret" "client_secret_v2" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-client-secret", local.workload_zone_name)
+  key_vault_id                         = local.key_vault.spn.id
+
+}
+
+data "azurerm_key_vault_secret" "tenant_id_v2" {
+  count                                = var.use_spn ? 1 : 0
+  name                                 = format("%s-tenant-id", local.workload_zone_name)
+  key_vault_id                         = local.key_vault.spn.id
+  timeouts                             {
+                                          read = "1m"
+                                       }
+}
+
+
+data "azurerm_app_configuration_key" "deployer_state_file" {
+  count                                = local.infrastructure.use_application_configuration ? 1 : 0
+  configuration_store_id               = local.infrastructure.application_configuration_id
+  key                                  = format("%s_StateFileName", var.control_plane_name)
+  label                                = var.control_plane_name
+}
+data "azurerm_app_configuration_key" "deployer_subscription_id" {
+  count                                = local.infrastructure.use_application_configuration ? 1 : 0
+  configuration_store_id               = local.infrastructure.application_configuration_id
+  key                                  = format("%s_SubscriptionId", var.control_plane_name)
+  label                                = var.control_plane_name
+}
+
+data "azurerm_app_configuration_key" "deployer_key_vault_id" {
+  count                                = local.infrastructure.use_application_configuration ? 1 : 0
+  configuration_store_id               = local.infrastructure.application_configuration_id
+  key                                  = format("%s_KeyVaultResourceId", var.control_plane_name)
+  label                                = var.control_plane_name
+}

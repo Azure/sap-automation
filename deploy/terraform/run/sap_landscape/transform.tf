@@ -50,6 +50,17 @@ locals {
                                            shared_access_key_enabled_nfs = var.shared_access_key_enabled_nfs
                                            tags                          = var.resourcegroup_tags
                                            user_assigned_identity_id     = var.user_assigned_identity_id
+                                           application_configuration_id  = try(coalesce(
+                                                                             var.application_configuration_id,
+                                                                             try(data.terraform_remote_state.deployer[0].outputs.application_configuration_id, "")
+                                                                           ), "")
+
+                                           use_application_configuration = length(try(coalesce(
+                                                                             var.application_configuration_id,
+                                                                             try(data.terraform_remote_state.deployer[0].outputs.application_configuration_id, "")
+                                                                           ), "")) > 0 ? true : false
+                                           workload_zone_name            = local.workload_zone_name
+                                           control_plane_name            = var.control_plane_name
                                          }
 
   authentication                       = {
@@ -87,15 +98,27 @@ locals {
                                                                                     }
                                            spn                                    = {
 
-                                                                                      id     = coalesce(contains(keys(data.terraform_remote_state.deployer[0].outputs), "deployer_kv_user_arm_id") ? data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : "", var.spn_keyvault_id)
-                                                                                      exists = length(coalesce(contains(keys(data.terraform_remote_state.deployer[0].outputs), "deployer_kv_user_arm_id") ? data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : "", var.spn_keyvault_id)) > 0
+                                                                                      id     = trimspace(coalesce(
+                                                                                                         contains(keys(data.terraform_remote_state.deployer[0].outputs), "deployer_kv_user_arm_id") ? data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : "",
+                                                                                                         var.spn_keyvault_id,
+                                                                                                         " ")
+                                                                                                         )
+                                                                                      exists = length(trimspace(coalesce(
+                                                                                                         contains(keys(data.terraform_remote_state.deployer[0].outputs), "deployer_kv_user_arm_id") ? data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : "",
+                                                                                                         var.spn_keyvault_id,
+                                                                                                         " ")
+                                                                                                         )) > 0
                                                                                     }
-                                           private_key_secret_name                = var.workload_zone_private_key_secret_name
-                                           public_key_secret_name                 = var.workload_zone_public_key_secret_name
-                                           username_secret_name                   = var.workload_zone_username_secret_name
-                                           password_secret_name                   = var.workload_zone_password_secret_name
-                                           enable_rbac_authorization              = var.enable_rbac_authorization_for_keyvault
-                                           set_secret_expiry                      = var.set_secret_expiry
+                                           private_key_secret_name    = var.workload_zone_private_key_secret_name
+                                           public_key_secret_name     = var.workload_zone_public_key_secret_name
+                                           username_secret_name       = var.workload_zone_username_secret_name
+                                           password_secret_name       = var.workload_zone_password_secret_name
+                                           enable_rbac_authorization  = var.enable_rbac_authorization_for_keyvault
+                                           set_secret_expiry          = var.set_secret_expiry
+                                           exists                     = length(var.user_keyvault_id) > 0
+                                           set_secret_expiry          = var.set_secret_expiry
+                                           enable_purge_control       = var.enable_purge_control_for_keyvaults
+                                           soft_delete_retention_days = var.soft_delete_retention_days
                                         }
 
 

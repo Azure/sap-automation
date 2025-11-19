@@ -21,6 +21,11 @@ locals {
 
 
                                            use                          = var.use_deployer && length(var.deployer_statefile_foldername) > 0
+                                           application_configuration_id = trimspace(coalesce(var.application_configuration_id,
+                                                                                             contains(keys(data.terraform_remote_state.deployer[0].outputs), "application_configuration_id") ? (
+                                                                                               data.terraform_remote_state.deployer[0].outputs.application_configuration_id) : (
+                                                                                               " "),
+                                                                                             " "))
                                            control_plane_name           = trimspace(coalesce(var.control_plane_name,
                                                                                              contains(keys(data.terraform_remote_state.deployer[0].outputs), "control_plane_name") ? (
                                                                                                data.terraform_remote_state.deployer[0].outputs.control_plane_name) : (

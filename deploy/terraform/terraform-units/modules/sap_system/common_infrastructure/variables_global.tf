@@ -232,8 +232,6 @@ variable "sapmnt_private_endpoint_id"            {
                                                     default     = ""
                                                  }
 
-variable "database_dual_network_interfaces"      { description = "value to indicate if dual nics are used for HANA" }
-
 variable "hana_ANF_volumes"                      { description = "Defines HANA ANF  volumes" }
 
 variable "deploy_application_security_groups"    { description = "Defines if application security groups should be deployed" }
