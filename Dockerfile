@@ -85,7 +85,6 @@ RUN pip3 install \
     pywinrm \
     setuptools \
     wheel \
-    chmod \
     pyyaml
 
 COPY SAP-automation-samples /source/SAP-automation-samples
