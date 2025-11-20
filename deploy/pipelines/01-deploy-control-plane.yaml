@@ -104,6 +104,7 @@ stages:
               ARM_TENANT_ID:                      $(ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              DEPLOYER_KEYVAULT:                  $(DEPLOYER_KEYVAULT)
               DEPLOYER_TFSTATE_KEY:               "${{ parameters.deployer }}.terraform.tfstate"
               FORCE_RESET:                        ${{ lower(parameters.force_reset) }}
               IS_PIPELINE_DEPLOYMENT:             true
@@ -113,13 +114,13 @@ stages:
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
               TF_IN_AUTOMATION:                   true
               TF_LOG:                             $(TF_LOG)
+              TF_VAR_agent_ado_project:           $(System.TeamProject)
               TF_VAR_agent_ado_url:               $(System.CollectionUri)
               TF_VAR_agent_pat:                   $(System.AccessToken)
               TF_VAR_agent_pool:                  $(POOL)
-              TF_VAR_agent_ado_project:           $(System.TeamProject)
               TF_VAR_ansible_core_version:        $(ansible_core_version)
-              TF_VAR_tf_version:                  $(tf_version)
               TF_VAR_app_registration_app_id:     $(APP_REGISTRATION_APP_ID)
+              TF_VAR_tf_version:                  $(tf_version)
               USE_MSI:                            $(Use_MSI)
               WEB_APP_CLIENT_SECRET:              $(WEB_APP_CLIENT_SECRET)
               keyvault:                           $(DEPLOYER_KEYVAULT)

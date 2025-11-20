@@ -272,7 +272,7 @@ function bootstrap_deployer() {
 	fi
 
 	load_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT" "APPLICATION_CONFIGURATION_ID" "APPLICATION_CONFIGURATION_NAME"
-	echo "Key vault:                           ${DEPLOYER_KEYVAULT}"
+	echo "Key vault:                           ${DEPLOYER_KEYVAULT:-Undefined}"
 	export DEPLOYER_KEYVAULT
 
 	if [ -v APPLICATION_CONFIGURATION_NAME ]; then
