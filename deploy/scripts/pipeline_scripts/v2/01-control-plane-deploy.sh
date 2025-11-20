@@ -227,6 +227,7 @@ echo "Deployer Folder:                     $DEPLOYER_FOLDERNAME"
 echo "Deployer tfVars:                     $DEPLOYER_FOLDERNAME.tfvars"
 echo "Library Folder:                      $LIBRARY_FOLDERNAME"
 echo "Library tfVars:                      $LIBRARY_FOLDERNAME"
+echo "Subscription ID:                     $TF_VAR_subscription_id"
 
 if [ -n "${DEPLOYER_KEYVAULT}" ]; then
 	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
@@ -337,8 +338,6 @@ fi
 
 export TF_LOG_PATH="${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log"
 
-print_banner "$banner_title" "Calling deploy_control_plane_v2" "info"
-
 msi_flag=""
 if [ "${USE_MSI:-false}" == "true" ]; then
 	msi_flag=" --msi "
@@ -365,6 +364,9 @@ elif [ "$PLATFORM" == "github" ]; then
 else
 	platform_flag=""
 fi
+
+
+print_banner "$banner_title" "Calling deploy_control_plane_v2" "info"
 
 cd "$CONFIG_REPO_PATH" || exit
 start_group "Deploying control plane"
