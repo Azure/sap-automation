@@ -722,7 +722,8 @@ end_group
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" ]; then
   cat "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md"
 	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.uploadsummary]DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md"
+	  cp DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md cp.md
+		echo "##vso[task.uploadsummary]cp.md"
 	elif [ "$PLATFORM" == "github" ]; then
 		cat "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" >>$GITHUB_STEP_SUMMARY
 	fi
