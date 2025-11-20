@@ -10,15 +10,15 @@ locals {
     region                             = coalesce(var.location, try(var.infrastructure.region, ""))
     codename                           = try(var.codename, try(var.infrastructure.codename, ""))
     resource_group                     = {
-                                            name = var.resourcegroup_name,
-                                            id = var.resourcegroup_arm_id
+                                            name   = var.resourcegroup_name,
+                                            id     = var.resourcegroup_arm_id
                                             exists = length(var.resourcegroup_arm_id) > 0
                                           }
     tags                               = merge(
                                             var.tags, var.resourcegroup_tags
                                         )
 
-    virtual_network                   = {  
+    virtual_network                   = {
                                             logical_name            = var.management_network_logical_name
 
                                             management = {
@@ -79,6 +79,11 @@ locals {
                                            ansible_core_version           = var.ansible_core_version
                                            tf_version                     = var.tf_version
                                            DevOpsInfrastructure_object_id = var.DevOpsInfrastructure_object_id
+                                           app_token                      = var.github_app_token
+                                           repository                     = var.github_repository
+                                           server_url                     = var.github_server_url
+                                           api_url                        = var.github_api_url
+                                           platform                       = var.devops_platform
                                          }
 
     tfstate_resource_id                = var.tfstate_resource_id
@@ -209,5 +214,13 @@ locals {
                                            privatelink_dns_subscription_id              = var.privatelink_dns_subscription_id != var.management_dns_subscription_id ? var.privatelink_dns_subscription_id : var.management_dns_subscription_id
                                            privatelink_dns_resourcegroup_name           = var.management_dns_resourcegroup_name != var.privatelink_dns_resourcegroup_name ? var.privatelink_dns_resourcegroup_name : var.management_dns_resourcegroup_name
                                          }
+  app_config_service                   = {
+                                           name                                        = coalesce(var.application_configuration_name,module.sap_namegenerator.naming_new.appconfig_name)
+                                           id                                          = var.application_configuration_id
+                                           exists                                      = length(var.application_configuration_id) > 0 ? true : false
+                                           deploy                                      = var.application_configuration_deployment
+                                           control_plane_name                          = module.sap_namegenerator.naming.prefix.DEPLOYER
+                                         }
+
 
 }

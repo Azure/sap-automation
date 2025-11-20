@@ -32,6 +32,115 @@
 # /etc/profile.d file, so any local changes will be lost.
 #
 
+# GitHub Actions runner setup function
+function setup_github_runner() {
+  pushd $${agent_home}
+
+  if [[ -f svc.sh ]]; then
+    echo "Runner might already be installed"
+
+    set -e
+    sudo ./svc.sh status
+    exit_code=$?
+    set +e
+
+    if [ $exit_code -eq 0 ]; then
+      echo "Runner is already running"
+      return 0
+    fi
+  fi
+
+  echo "Installing GitHub Actions runner"
+  curl -sSfL $(curl -sSf https://api.github.com/repos/actions/runner/releases/latest | jq '.assets.[].browser_download_url' -r | egrep 'linux-x64-[0-9.]+tar.gz$') | tar zx
+
+  set +e
+  runner_token_response=$(curl -sS --fail-with-body \
+    -X POST \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer ${app_token}" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    -L "${api_url}/repos/${repository}/actions/runners/registration-token")
+  exit_code=$?
+  set -e
+
+  runner_token=$(echo $${runner_token_response} | jq -r .token)
+  if [[ 0 != $${exit_code} ]]; then
+    echo "Failed to get the GitHub Runner token: $${runner_token_response}"
+    return 1
+  fi
+
+  sudo chown -R "$${local_user}" $${agent_home}
+
+  # Remove runner if it already exists
+  ./config.sh remove --token $${runner_token} || true
+
+  sudo runuser -l "$${local_user}" -c "$${agent_home}/config.sh --unattended --url $${server_url}/$${repository} --token $${runner_token} --name $(hostname) --labels sap-deployer --replace"
+  sudo ./svc.sh install $${local_user}
+  sudo ./svc.sh start
+  sudo ./svc.sh status
+  popd
+}
+
+# Function to install Docker on Mariner Linux
+function install_deps_mariner() {
+  echo "Installing Docker dependencies for Mariner Linux"
+  tdnf install -y \
+    ca-certificates \
+    curl \
+    dotnet-runtime-8.0 \
+    dotnet-runtime-deps-8.0 \
+    krb5-libs \
+    libicu \
+    lttng-ust \
+    moby-cli \
+    moby-engine \
+    openssl-libs \
+    zlib
+
+  # Install jq, the Mariner version is ancient
+  curl -sSfL $(curl -sSf https://api.github.com/repos/jqlang/jq/releases/latest | grep browser_download_url | egrep 'jq-linux-amd64"' | tr -d " " | tr -d "\"" | sed 's/browser_download_url://g') -o jq
+  sudo install -m755 jq /usr/local/bin/jq
+
+  # Add the user to the docker group
+  sudo usermod -aG docker $${local_user}
+
+  # Enable and start Docker service
+  sudo systemctl enable docker.service
+  sudo systemctl start docker.service
+}
+
+# Function to install Docker on Ubuntu
+function install_deps_ubuntu() {
+  echo "Installing Docker dependencies for Ubuntu"
+  version=$(cat /etc/os-release | grep 'VERSION_ID=' | cut -d= -f2 | tr -d "\"")
+  curl -sSfL https://packages.microsoft.com/config/ubuntu/$${version}/packages-microsoft-prod.deb -o packages-microsoft-prod.deb
+  sudo dpkg -i packages-microsoft-prod.deb
+  rm packages-microsoft-prod.deb
+
+  sudo apt-get update
+  sudo apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    dotnet-runtime-8.0 \
+    dotnet-sdk-8.0 \
+    gnupg \
+    lsb-release \
+    moby-compose \
+    moby-containerd \
+    moby-engine
+
+  # Install jq, the Ubuntu version is ancient
+  curl -sSfL $(curl -sSf https://api.github.com/repos/jqlang/jq/releases/latest | grep browser_download_url | egrep 'jq-linux-amd64"' | tr -d " " | tr -d "\"" | sed 's/browser_download_url://g') -o jq
+  sudo install -m755 jq /usr/local/bin/jq
+
+  # Add the user to the docker group
+  sudo usermod -aG docker $${local_user}
+
+  # Start Docker service
+  sudo service docker start
+}
+
 #
 # Setup some useful shell options
 #
@@ -64,10 +173,40 @@ local_user="${local_user}"
 use_webapp="${use_webapp}"
 ansible_version="${ansible_core_version}"
 
+platform="${platform}"
+app_token="${app_token}"
+repository="${repository}"
+server_url="${server_url}"
+api_url="${api_url}"
 PAT="${pat}"
 DEVURL="${ado_repo}"
 POOL="${pool}"
 AGENTNAME=$(hostname)
+
+# Validate required parameters for selected platform
+if [ "$${platform}" == "github" ]; then
+  REQUIRED_VARS=(
+    "api_url"
+    "repository"
+    "app_token"
+    "server_url"
+  )
+
+  missing_vars=false
+
+  for var in "$${REQUIRED_VARS[@]}"; do
+    if [[ -z "$${!var}" ]]; then
+      echo "Missing required variable for GitHub: $var"
+      missing_vars="true"
+    fi
+  done
+
+  if [[ "$${missing_vars}" == "true" ]]; then
+    echo "Missing required GitHub variables. Cannot setup GitHub runner."
+    platform="none"
+    exit 10
+  fi
+fi
 
 #
 # Ansible Version settings
@@ -125,6 +264,30 @@ get_distro_name_version() {
 #
 # Package Management Functions
 #
+
+wait_for_apt_locks() {
+  echo "Checking for apt locks..."
+  local max_wait=30
+  local wait_time=0
+
+  while sudo lsof /var/lib/dpkg/lock >/dev/null 2>&1 || sudo lsof /var/lib/apt/lists/lock >/dev/null 2>&1 || sudo lsof /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+    echo "Waiting for apt locks to be released... ($wait_time/$max_wait seconds)"
+    sleep 5
+    wait_time=$((wait_time + 5))
+
+    if [ $wait_time -ge $max_wait ]; then
+      echo "Lock wait timeout exceeded. Checking blocking processes:"
+      ps aux | grep -i apt
+      echo "Continuing anyway, which may cause failures..."
+      break
+    fi
+  done
+
+  if [ $wait_time -gt 0 ] && [ $wait_time -lt $max_wait ]; then
+    echo "Apt locks are released, proceeding with installation"
+  fi
+}
+
 pkg_mgr_init() {
   typeset -g pkg_mgr
 
@@ -161,6 +324,7 @@ pkg_mgr_refresh() {
 
   case "$${pkg_mgr}" in
   apt-get)
+    wait_for_apt_locks
     sudo "$${pkg_mgr}" update --quiet
     ;;
   zypper)
@@ -189,6 +353,7 @@ pkg_mgr_upgrade() {
 
   case "$${pkg_mgr}" in
   apt-get)
+    wait_for_apt_locks
     sudo "$${pkg_mgr}" upgrade --quiet -y
     ;;
   zypper)
@@ -211,6 +376,7 @@ pkg_mgr_install() {
 
   case "$${pkg_mgr}" in
   apt-get)
+    wait_for_apt_locks
     sudo env DEBIAN_FRONTEND=noninteractive "$${pkg_mgr}" --quiet --yes install "$${@}"
     ;;
   zypper)
@@ -720,93 +886,125 @@ sudo runuser -l "$${local_user}" -c '/usr/bin/az login --identity --allow-no-sub
 # Azure SAP Automated Deployment directories
 export agent_home="/home/$${local_user}/agent"
 
+echo "------------------"
+echo "$${platform}"
+echo "------------------"
+
+# Install Docker and dependencies for GitHub runner if platform is github
+if [ "$${platform}" == "github" ]; then
+  echo "Setting up GitHub runner environment"
+
+  # Install Docker based on the OS distribution (only for Ubuntu and Mariner for GitHub runners)
+  case $(cat /etc/os-release | grep "^ID=" | cut -d= -f2 | tr -d "\"" | tr '[:upper:]' '[:lower:]') in
+  *mariner*)
+    install_deps_mariner
+    ;;
+  *ubuntu*)
+    install_deps_ubuntu
+    ;;
+  *)
+    echo "Docker installation for $(get_distro_name) is not supported for GitHub runners. Continuing with setup."
+    ;;
+  esac
+
+  # Create and setup GitHub runner
+  mkdir -p $${agent_home}
+  sudo chown -R "$${local_user}" "$${agent_home}"
+  setup_github_runner
+fi
+
 if [ -f "/home/$${local_user}/agent/agent_installed" ]; then
   echo "Agent already installed"
 else
-  sudo mkdir -p "$${agent_home}"
-  cd "$${agent_home}"
+  if [ "$${platform}" != "github" ]; then
+    sudo mkdir -p "$${agent_home}"
+    cd "$${agent_home}"
 
-  sudo wget -nv https://aka.ms/AAftpys -O agent.tar.gz
-  sudo tar zxvf agent.tar.gz >/dev/null 2>&1
+    sudo wget -nv https://aka.ms/AAftpys -O agent.tar.gz
+    sudo tar zxvf agent.tar.gz >/dev/null 2>&1
 
-  sudo touch "$${agent_home}/agent_installed"
+    sudo touch "$${agent_home}/agent_installed"
 
-  sudo chown -R "$${local_user}" "$${agent_home}"
+    sudo chown -R "$${local_user}" "$${agent_home}"
+  fi
 fi
 
 # turn tracing off when you are here
 set +o xtrace
 
-if [ -n "$${PAT}" ]; then
-  echo "Token specified and using it"
-  sudo touch "$${agent_home}/tok"
-else
-  echo "Token not specified for usage"
-  sudo touch "$${agent_home}/no_tok"
-fi
-
-if [ -f "$${agent_home}/agent_configured" ]; then
-  echo "Agent already configured"
-else
-  if [[ -n "$${PAT}" ]]; then
-    echo "Configuring Agent"
-    sudo chmod -R 744 "$${agent_home}"
-
-    cd "$${agent_home}"
-    ./env.sh
-
-    if [ -f "$${agent_home}/config_fixed_params.sh" ]; then
-      sudo rm "$${agent_home}/config_fixed_params.sh"
-    fi
-
-    (echo "$${agent_home}/config.sh" --unattended --url "$${DEVURL}" --auth pat --token "$${PAT}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a "$${agent_home}/config_fixed_params.sh") >/dev/null 2>&1
-    sudo chown "$${local_user}" "$${agent_home}/config_fixed_params.sh"
-    sudo chmod +x "$${agent_home}/config_fixed_params.sh"
-
-    echo "Installing Agent"
-
-    sudo runuser -l "$${local_user}" -c "$${agent_home}/config_fixed_params.sh" | sudo tee -a "$${agent_home}/log.txt"
-
-    # automatic start configuration after VM reboot
-
-    sudo "$${agent_home}/svc.sh" install "$${local_user}" | sudo tee -a "$${agent_home}/log.txt"
-
-    # start the daemon
-    sudo "$${agent_home}/svc.sh" start | sudo tee -a "$${agent_home}/log.txt"
-
-    sudo rm "$${agent_home}/config_fixed_params.sh"
-
-    sudo touch "$${agent_home}/agent_configured"
-
-    echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}" | sudo tee -a /etc/profile.d/deploy_server.sh
-    sudo chmod 775 /etc/profile.d/deploy_server.sh
-    # Install dotNet
-    case "$(get_distro_name)" in
-    ubuntu)
-      sudo snap install dotnet-sdk --classic
-      sudo snap alias dotnet-sdk.dotnet dotnet
-      ;;
-    sles)
-      # sudo rpm -Uvh https://packages.microsoft.com/config/sles/15/packages-microsoft-prod.rpm
-      # sudo ln --force -s /etc/yum.repos.d/microsoft-prod.repo /etc/zypp/repos.d/microsoft-prod.repo
-      # sudo zypper install dotnet-sdk-7.0
-      sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
-      sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
-      sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 8.0
-      ;;
-    rhel*)
-      sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
-      sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
-      sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 8.0
-      ;;
-    esac
+if [ "$${platform}" != "github" ]; then
+  if [ -n "$${PAT}" ]; then
+    echo "Token specified and using it"
+    sudo touch "$${agent_home}/tok"
   else
-    echo "NO PAT specified"
-    echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}":'$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
-    sudo chmod 775 /etc/profile.d/deploy_server.sh
+    echo "Token not specified for usage"
+    sudo touch "$${agent_home}/no_tok"
+  fi
 
-    echo "export SAP_AUTOMATION_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
-    echo "export DEPLOYMENT_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
-    echo "export CONFIG_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/WORKSPACES'" | sudo tee -a /etc/profile.d/deploy_server.sh
+  if [ -f "$${agent_home}/agent_configured" ]; then
+    echo "Agent already configured"
+  else
+    if [[ -n "$${PAT}" ]]; then
+      echo "Configuring Agent"
+      sudo chmod -R 744 "$${agent_home}"
+
+      cd "$${agent_home}"
+      ./env.sh
+
+      if [ -f "$${agent_home}/config_fixed_params.sh" ]; then
+        sudo rm "$${agent_home}/config_fixed_params.sh"
+      fi
+
+      (echo "$${agent_home}/config.sh" --unattended --url "$${DEVURL}" --auth pat --token "$${PAT}" --pool "$${POOL}" --agent "$${AGENTNAME}" --replace --acceptTeeEula | sudo tee -a "$${agent_home}/config_fixed_params.sh") >/dev/null 2>&1
+      sudo chown "$${local_user}" "$${agent_home}/config_fixed_params.sh"
+      sudo chmod +x "$${agent_home}/config_fixed_params.sh"
+
+      echo "Installing Agent"
+
+      sudo runuser -l "$${local_user}" -c "$${agent_home}/config_fixed_params.sh" | sudo tee -a "$${agent_home}/log.txt"
+
+      # automatic start configuration after VM reboot
+
+      sudo "$${agent_home}/svc.sh" install "$${local_user}" | sudo tee -a "$${agent_home}/log.txt"
+
+      # start the daemon
+      sudo "$${agent_home}/svc.sh" start | sudo tee -a "$${agent_home}/log.txt"
+
+      sudo rm "$${agent_home}/config_fixed_params.sh"
+
+      sudo touch "$${agent_home}/agent_configured"
+
+      echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}" | sudo tee -a /etc/profile.d/deploy_server.sh
+      sudo chmod 775 /etc/profile.d/deploy_server.sh
+    else
+      echo "NO PAT specified"
+      echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}":'$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts' | sudo tee -a /etc/profile.d/deploy_server.sh
+      sudo chmod 775 /etc/profile.d/deploy_server.sh
+
+      echo "export SAP_AUTOMATION_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
+      echo "export DEPLOYMENT_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
+      echo "export CONFIG_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/WORKSPACES'" | sudo tee -a /etc/profile.d/deploy_server.sh
+    fi
   fi
 fi
+
+# Install dotNet
+case "$(get_distro_name)" in
+ubuntu)
+  sudo snap install dotnet-sdk --classic
+  sudo snap alias dotnet-sdk.dotnet dotnet
+  ;;
+sles)
+  # sudo rpm -Uvh https://packages.microsoft.com/config/sles/15/packages-microsoft-prod.rpm
+  # sudo ln --force -s /etc/yum.repos.d/microsoft-prod.repo /etc/zypp/repos.d/microsoft-prod.repo
+  # sudo zypper install dotnet-sdk-7.0
+  sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
+  sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
+  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 8.0
+  ;;
+rhel*)
+  sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
+  sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
+  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 8.0
+  ;;
+esac

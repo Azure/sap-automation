@@ -25,6 +25,7 @@ module "sap_deployer" {
   Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
   additional_network_id                         = var.additional_network_id
   additional_users_to_add_to_keyvault_policies  = var.additional_users_to_add_to_keyvault_policies
+  app_config_service                            = local.app_config_service
   app_service                                   = local.app_service
   arm_client_id                                 = var.arm_client_id
   assign_subscription_permissions               = var.deployer_assign_subscription_permissions
