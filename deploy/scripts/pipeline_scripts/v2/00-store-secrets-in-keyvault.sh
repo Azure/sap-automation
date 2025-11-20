@@ -153,8 +153,8 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 		fi
 	fi
 else
-	load_config_vars "${workload_environment_file_name}" "keyvault"
-	key_vault="$keyvault"
+	load_config_vars "${workload_environment_file_name}" "DEPLOYER_KEYVAULT"
+	key_vault="$DEPLOYER_KEYVAULT"
 	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$key_vault' | project id, name, subscription" --query data[0].id --output tsv)
 fi
 
