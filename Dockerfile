@@ -5,8 +5,6 @@ ARG YQ_VERSION=v4.42.1
 ARG NODE_VERSION=18.19.1
 ARG ANSIBLE_VERSION=2.16.5
 
-# Set proper locale for Ansible
-
 # Install core utilities and system tools
 RUN tdnf install -y \
   sshpass \
@@ -65,16 +63,19 @@ RUN curl -fsSL https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-li
   ln -s /usr/local/bin/node /usr/bin/node && \
   ln -s /usr/local/bin/npm /usr/bin/npm
 
-# Install yq, as there are two competing versions and Azure Linux uses the jq wrappers, which breaks the GitHub Workflows
-RUN curl -sSfL https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64.tar.gz | tar zx && \
+# Install yq
+RUN curl -sSfL https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64.tar.gz -o yq.tar.gz && \
+  tar -xzf yq.tar.gz && \
   install -Dm755 yq_linux_amd64 /usr/bin/yq && \
-  rm -rf yq_linux_amd64.tar.gz yq_linux_amd64 install-man-page.sh yq.1
+  rm -rf yq.tar.gz yq_linux_amd64 install-man-page.sh yq.1
 
 # Set locales in environment file
 RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment && \
-    echo "LANG=en_US.UTF-8" >> /etc/environment
+    echo "LANG=en_US.UTF-8" >> /etc/environment && \
+    echo "export LC_ALL=en_US.UTF-8" >> /root/.bashrc && \
+    echo "export LANG=en_US.UTF-8" >> /root/.bashrc
 
-# Install Python dependencies and Ansible with required collections
+# Install Python dependencies and Ansible
 RUN pip3 install --no-cache-dir \
     ansible-core==${ANSIBLE_VERSION} \
     argcomplete \
@@ -86,8 +87,8 @@ RUN pip3 install --no-cache-dir \
     chmod \
     pyyaml
 
+# Copy BOM files
 COPY SAP-automation-samples /source/SAP-automation-samples
-
 COPY . /source
 
 ENV SAP_AUTOMATION_REPO_PATH=/source
@@ -95,25 +96,15 @@ ENV SAMPLE_REPO_PATH=/source/SAP-automation-samples
 
 RUN useradd -m -s /bin/bash azureadm && \
     usermod -aG sudo azureadm && \
-    passwd -d azureadm && \
-    echo "export LC_ALL=en_US.UTF-8" >> /home/azureadm/.bashrc && \
-    echo "export LANG=en_US.UTF-8" >> /home/azureadm/.bashrc
-# Password for azureadm user is not set. Use SSH key-based authentication or set password securely at runtime.
+    echo "azureadm ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/azureadm && \
+    chmod 0440 /etc/sudoers.d/azureadm
 
-# Configure SSH for Ansible (both root and azureadm)
-RUN mkdir -p /root/.ssh /home/azureadm/.ssh && \
-    chmod 700 /root/.ssh /home/azureadm/.ssh && \
-    echo "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > /root/.ssh/config && \
-    echo "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > /home/azureadm/.ssh/config && \
-    chmod 600 /root/.ssh/config /home/azureadm/.ssh/config && \
-    chown -R azureadm:azureadm /home/azureadm/.ssh
-
-# Set ownership of source directory to azureadm
-RUN chown -R azureadm:azureadm /source
+# Configure SSH for Ansible
+RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
+RUN echo "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > /root/.ssh/config && \
+    chmod 600 /root/.ssh/config
 
 WORKDIR /source
-
-USER azureadm
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD terraform version && ansible --version && az version || exit 1
