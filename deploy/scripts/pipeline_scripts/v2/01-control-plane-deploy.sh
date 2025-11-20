@@ -717,11 +717,11 @@ if [ 0 -eq "$return_code" ]; then
 fi
 end_group
 # Platform-specific summary handling
-if [ -f "$DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" ]; then
+if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.uploadsummary]$DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md"
+		echo "##vso[task.uploadsummary]DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md"
 	elif [ "$PLATFORM" == "github" ]; then
-		cat "$DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" >>$GITHUB_STEP_SUMMARY
+		cat "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" >>$GITHUB_STEP_SUMMARY
 	fi
 fi
 
