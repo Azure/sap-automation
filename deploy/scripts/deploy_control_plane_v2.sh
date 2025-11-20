@@ -1043,10 +1043,10 @@ function deploy_control_plane() {
 	echo "###############################################################################"
 	echo "#                                                                             #"
 	echo -e "# $cyan Please save these values: $reset_formatting                                                 #"
-	echo "#     - Key Vault:          ${key_vault_name}           #"
-	echo "#     - Storage Account:    ${storage_account}          #"
-	echo "#     - App Config:         ${app_config_name}          #"
-	echo "#     - Control Plane Name: ${ctrl_plane_name}          #"
+	echo "#     - Key Vault:                 ${key_vault_name}           #"
+	echo "#     - Terraform Storage Account: ${storage_account}          #"
+	echo "#     - Application Configuration: ${app_config_name}          #"
+	echo "#     - Control Plane Name:        ${ctrl_plane_name}          #"
 	echo "#                                                                             #"
 	echo "###############################################################################"
 
@@ -1066,8 +1066,8 @@ Date : "${now}"
 | Location                | $region              |
 | Keyvault Name           | ${DEPLOYER_KEYVAULT} |
 | Terraform state         | ${storage_account}   |
-| App Config              | $APPLICATION_CONFIGURATION_NAME}   |
-| Control Plane Name      | $CONTROL_PLANE_NAME}   |
+| App Config              | $APPLICATION_CONFIGURATION_NAME   |
+| Control Plane Name      | $CONTROL_PLANE_NAME   |
 
 EOF
 
