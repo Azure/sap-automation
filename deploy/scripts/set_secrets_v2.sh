@@ -504,6 +504,11 @@ function retrieve_parameters() {
 				export keyvault
 			fi
 		fi
+
+		if  [ -n "$KEYVAULT"  ]; then
+			keyvault="$KEYVAULT"
+		fi
+
 		[[ -z "$keyvault" ]] && {
 			print_banner "$banner_title" "key_vault is required" "error"
 			return 10
