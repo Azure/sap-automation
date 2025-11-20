@@ -156,7 +156,9 @@ def get_user_input():
     gh_app_name = input("Enter the GitHub App name: ").strip()
     gh_app_id = input("Enter the App ID (displayed in the GitHub App settings): ").strip()
 
-    while True:
+    max_retries = 3
+    retry_count = 0
+    while retry_count < max_retries:
         print(f"Enter the path to the downloaded private key file")
         print(f"(you can download the private key from here: https://github.com/settings/apps/{gh_app_name}#private-key):")
         private_key_path = input().strip('"\'')
@@ -167,15 +169,32 @@ def get_user_input():
                 private_key = file.read()
             break
         except FileNotFoundError:
+            retry_count += 1
             print(f"Error: Could not find the private key file at: {private_key_path}")
             print("Make sure you've entered the correct file path.")
+            if retry_count >= max_retries:
+                print(f"Maximum retry attempts ({max_retries}) reached. Exiting.")
+                sys.exit(1)
         except PermissionError:
             print(f"Error: Permission denied when trying to read: {private_key_path}")
             print("Make sure you have the necessary permissions to read this file.")
-        except Exception as e:
+            print("This may require running the script with appropriate permissions or changing file permissions.")
+            sys.exit(1)
+        except (OSError, IOError) as e:
             print(f"Error reading private key file: {str(e)}")
+            print("This may indicate a disk error or the file is in use by another process.")
+            retry_count += 1
+            if retry_count >= max_retries:
+                print(f"Maximum retry attempts ({max_retries}) reached. Exiting.")
+                sys.exit(1)
             print("Please check the file path and try again.")
-            continue
+        except UnicodeDecodeError:
+            print(f"Error: The file at {private_key_path} is not a valid text file.")
+            print("Make sure you're providing the path to a PEM-format private key file.")
+            retry_count += 1
+            if retry_count >= max_retries:
+                print(f"Maximum retry attempts ({max_retries}) reached. Exiting.")
+                sys.exit(1)
 
     print("\n[OPTIONAL] If you're using a GitHub organization account (not a personal account):")
     print("You'll need to make this GitHub App public for it to work properly with organization repositories.")
@@ -1015,8 +1034,6 @@ def create_azure_service_principal(user_data):
             "App Configuration Data Owner"
         ]
 
-        # Try to assign roles
-        roles_assigned = False
         roles_failed = []
 
         for role_name in recommended_roles:
@@ -1038,7 +1055,6 @@ def create_azure_service_principal(user_data):
                 role_result = run_az_command(role_assignment_args, capture_output=True, text=True)
                 if role_result.returncode == 0:
                     print(f"✓ Successfully assigned {role_name} role.")
-                    roles_assigned = True
                 else:
                     print(f"✗ Failed to assign {role_name} role.")
                     roles_failed.append(role_name)
@@ -1171,7 +1187,7 @@ def trigger_github_workflow(user_data, workflow_id):
         try:
             error_details = response.json()
             print(f"Details: {error_details}")
-        except:
+        except (json.JSONDecodeError, ValueError):
             print(f"Response: {response.text}")
         return False
     else:
@@ -1179,7 +1195,7 @@ def trigger_github_workflow(user_data, workflow_id):
         try:
             error_details = response.json()
             print(f"Error details: {error_details}")
-        except:
+        except (json.JSONDecodeError, ValueError):
             print(f"Response: {response.text}")
         return False
 
@@ -1753,4 +1769,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
