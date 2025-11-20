@@ -50,7 +50,7 @@ This script helps to automate the setup of a GitHub App, repository secrets, env
 
 5. Running the Script
 
-    `python sdaf_github_actions.py`
+    `python New-SDAFGitHubActions.py`
 
 ### Authentication Options
 
