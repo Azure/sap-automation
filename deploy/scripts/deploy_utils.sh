@@ -625,15 +625,15 @@ function get_configuration_file {
 	local region_code=$3
 	local logical_network_name=$4
 
-	local configurationFile="${directory}${environment}${region_code}${logical_network_name}"
+	local configurationFile="${directory}/${environment}${region_code}${logical_network_name}"
 
 	if [ ! -f "${configurationFile}" ]; then
-		configurationFile="${directory}${environment}${region_code}"
+		configurationFile="${directory}/${environment}${region_code}"
 		if [ ! -f "${configurationFile}" ]; then
-			configurationFile="${directory}${environment}${region_code}${logical_network_name}"
+			configurationFile="${directory}/${environment}${region_code}${logical_network_name}"
 		else
-			sudo mv "${configurationFile}" "${directory}${environment}${region_code}${logical_network_name}" 2>/dev/null || true
-			configurationFile="${directory}${environment}${region_code}${logical_network_name}"
+			sudo mv "${configurationFile}" "${directory}/${environment}${region_code}${logical_network_name}" 2>/dev/null || true
+			configurationFile="${directory}/${environment}${region_code}${logical_network_name}"
 		fi
 	fi
 

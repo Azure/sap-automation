@@ -214,8 +214,7 @@ function parse_arguments() {
 		export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
 	else
 		if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
-			sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
-			sudo chown -R "$USER" /opt/terraform
+			mkdir -p /opt/terraform/.terraform.d/plugin-cache
 		fi
 		export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 	fi
@@ -362,7 +361,7 @@ function remove_control_plane() {
 	fi
 
 	echo ""
-	echo -e "${green}Terraform details"
+	echo -e "${green}Terraform details:"
 	echo -e "-------------------------------------------------------------------------${reset}"
 	echo "Subscription:                        ${terraform_storage_account_subscription_id}"
 	echo "Storage Account:                     ${terraform_storage_account_name}"
@@ -577,8 +576,9 @@ function remove_control_plane() {
 			print_banner "Remove Control Plane " "Terraform init failed (deployer - local)" "error"
 		fi
 
-		az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$DEPLOYER_KEYVAULT"
-		az appconfig update --name "$APPLICATION_CONFIGURATION_NAME" --enable-public-network
+		az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$DEPLOYER_KEYVAULT" --output none
+		az keyvault update --name "$DEPLOYER_KEYVAULT" --public-network-access Enabled --output none
+		az appconfig update --name "$APPLICATION_CONFIGURATION_NAME" --enable-public-network --output none
 		sleep 15
 
 		if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then

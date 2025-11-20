@@ -205,6 +205,12 @@ else
 
 fi
 
+TF_VAR_DevOpsInfrastructure_object_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "${deployer_environment_file_name}" "DevOpsInfrastructureObjectId")
+if [ -n "${TF_VAR_DevOpsInfrastructure_object_id}" ]; then
+	echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+	export TF_VAR_DevOpsInfrastructure_object_id
+fi
+
 STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
 
 echo "Terraform state subscription:         $STATE_SUBSCRIPTION"
@@ -468,6 +474,27 @@ fi
 # fi
 
 if [ -f "${deployer_environment_file_name}" ]; then
+
+	APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
+		export APPLICATION_CONFIGURATION_NAME
+		echo "APPLICATION_CONFIGURATION_NAME:      ${APPLICATION_CONFIGURATION_NAME}"
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
+	fi
+
+	DevOpsInfrastructureObjectId=$(grep -m1 "^DevOpsInfrastructureObjectId" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "$DevOpsInfrastructureObjectId" ]; then
+		export DevOpsInfrastructureObjectId
+		echo "DevOpsInfrastructureObjectId:      ${DevOpsInfrastructureObjectId}"
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "$DevOpsInfrastructureObjectId"
+	fi
+
+	APPLICATION_CONFIGURATION_DEPLOYMENT=$(grep -m1 "^APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
+		export APPLICATION_CONFIGURATION_DEPLOYMENT
+		echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  ${APPLICATION_CONFIGURATION_DEPLOYMENT}"
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_DEPLOYMENT" "$APPLICATION_CONFIGURATION_DEPLOYMENT"
+	fi
 
 	file_deployer_tfstate_key=$(grep "^deployer_tfstate_key=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	echo "Deployer State:       ${file_deployer_tfstate_key}"
