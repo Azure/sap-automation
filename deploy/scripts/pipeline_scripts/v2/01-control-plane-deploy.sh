@@ -718,6 +718,7 @@ fi
 end_group
 # Platform-specific summary handling
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" ]; then
+  cat "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md"
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.uploadsummary]DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md"
 	elif [ "$PLATFORM" == "github" ]; then
