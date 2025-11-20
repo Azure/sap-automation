@@ -215,36 +215,3 @@ resource "azurerm_app_service_virtual_network_swift_connection" "webapp_vnet_con
 #   role_definition_name = "Website Contributor"
 #   principal_id         = azurerm_user_assigned_identity.deployer.principal_id
 # }
-
-
-# resource "azurerm_app_service_connection" "table" {
-#   count                  = var.app_service.use && length(var.infrastructure.tfstate_resource_id) > 0 ? 1 : 0
-#   name                   = "SDAF_table_connection"
-
-#   app_service_id         = azurerm_windows_web_app.webapp[0].id
-#   target_resource_id     = var.infrastructure.tfstate_resource_id
-#   authentication {
-#     type             = "userAssignedIdentity"
-#     subscription_id  = data.azurerm_client_config.deployer.subscription_id
-#     client_id        = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].client_id : azurerm_user_assigned_identity.deployer[0].client_id
-#   }
-#   vnet_solution          = "privateLink"
-
-# }
-
-# resource "azurerm_app_service_connection" "blob" {
-#   count                  = var.app_service.use && length(var.infrastructure.tfstate_resource_id) > 0 ? 1 : 0
-#   name                   = "SDAF_blob_connection"
-
-#   app_service_id         = azurerm_windows_web_app.webapp[0].id
-#   target_resource_id     = var.infrastructure.tfstate_resource_id
-
-#   authentication {
-#     type             = "userAssignedIdentity"
-#     subscription_id  = data.azurerm_client_config.deployer.subscription_id
-#     client_id        = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].client_id : azurerm_user_assigned_identity.deployer[0].client_id
-#   }
-
-#   vnet_solution          = "privateLink"
-
-# }

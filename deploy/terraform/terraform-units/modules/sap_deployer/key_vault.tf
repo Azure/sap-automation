@@ -215,7 +215,6 @@ resource "azurerm_management_lock" "keyvault" {
 }
 
 
-
 #######################################4#######################################8
 #                                                                              #
 #                           Azure Key Vault endpoints                          #

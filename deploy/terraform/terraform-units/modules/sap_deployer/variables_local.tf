@@ -214,4 +214,9 @@ locals {
   // Tags
   tags                                 = merge(var.infrastructure.tags,try(var.deployer.tags, { "Role" = "Deployer" }))
 
+  parsed_id                            = var.app_config_service.exists ? try(provider::azurerm::parse_resource_id(var.app_config_service.id), "") : null
+  app_config_name                      = var.app_config_service.exists ? local.parsed_id["resource_name"] : var.app_config_service.name
+  app_config_resource_group_name       = var.app_config_service.exists ? local.parsed_id["resource_group_name"] : ""
+
+
 }
