@@ -536,7 +536,7 @@ function migrate_deployer_state() {
 
 	fi
 
-	if [ -z "${terraform_storage_account_name}" ]; then
+	if [ -z "${tfstate_resource_id}" ]; then
 		export step=2
 		save_config_var "step" "${deployer_environment_file_name}"
 		echo " ##vso[task.setprogress value=40;]Progress Indicator"
@@ -545,7 +545,7 @@ function migrate_deployer_state() {
 	fi
 
 	echo ""
-	echo "Calling installer_v2.sh with: --type sap_deployer --parameter_file ${deployer_parameter_file_name} --control_plane_name ${CONTROL_PLANE_NAME} --application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-}"
+	echo "Calling installer_v2.sh with: --type sap_deployer --parameter_file ${deployer_parameter_file_name} --control_plane_name ${CONTROL_PLANE_NAME} --storage_accountname "${terraform_storage_account_name:-}" --application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-}"
 	echo ""
 
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$deployer_parameter_file_name" --type sap_deployer \
