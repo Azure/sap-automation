@@ -863,13 +863,16 @@ function validate_dependencies {
 
 	echo "Checking Terraform:                  $tfPath"
 
-	# if /opt/terraform exists, assign permissions to the user
-	if [ -d /opt/terraform ]; then
-		current_owner=$(stat /opt/terraform --format %U)
-		if [ "$current_owner" != "$USER" ]; then
-			print_banner "Installer" "Changing ownership of /opt/terraform to $USER" "info"
-			# Change ownership to the current user
-			sudo chown -R "$USER" /opt/terraform
+	if [ "$PLATFORM" == "devops" ]; then
+
+		# if /opt/terraform exists, assign permissions to the user
+		if [ -d /opt/terraform ]; then
+			current_owner=$(stat /opt/terraform --format %U)
+			if [ "$current_owner" != "$USER" ]; then
+				print_banner "Installer" "Changing ownership of /opt/terraform to $USER" "info"
+				# Change ownership to the current user
+				sudo chown -R "$USER" /opt/terraform
+			fi
 		fi
 	fi
 

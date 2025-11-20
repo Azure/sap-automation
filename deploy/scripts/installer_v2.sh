@@ -14,7 +14,7 @@ SCRIPT_NAME="$(basename "$0")"
 
 # Fail on any error, undefined variable, or pipeline failure
 
-# Enable debug mode if DEBUG is set to 'true'
+# Enable debug mode if DEBUG is set to 'True'
 if [[ "${DEBUG:-false}" == 'true' ]]; then
 	# Enable debugging
 	# Exit on error
@@ -94,18 +94,32 @@ function source_helper_scripts() {
 
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n installer_v2 -o p:t:o:d:l:s:n:c:w:ahif --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help -- "$@")
+	input_opts=$(getopt -n installer_v2 -o p:t:o:d:l:s:n:c:w:ahifg --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help,github,devops -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
-		show_help
+		show_help_installer_v2
 		return 1
 	fi
 
 	eval set -- "$input_opts"
 	while true; do
 		case "$1" in
+		--devops)
+			called_from_ado=1
+			approve="--auto-approve"
+			TF_IN_AUTOMATION=true
+			export TF_IN_AUTOMATION
+			shift
+			;;
 		-a | --ado)
+			called_from_ado=1
+			approve="--auto-approve"
+			TF_IN_AUTOMATION=true
+			export TF_IN_AUTOMATION
+			shift
+			;;
+		-g | --github)
 			called_from_ado=1
 			approve="--auto-approve"
 			TF_IN_AUTOMATION=true
@@ -114,12 +128,18 @@ function parse_arguments() {
 			;;
 		-d | --deployer_tfstate_key)
 			deployer_tfstate_key="$2"
+			TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
+			export TF_VAR_deployer_tfstate_key
 			shift 2
 			;;
 		-c | --control_plane_name)
 			CONTROL_PLANE_NAME="$2"
 			TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
 			export TF_VAR_control_plane_name
+			deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+			TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
+			export TF_VAR_deployer_tfstate_key
+
 			shift 2
 			;;
 		-n | --application_configuration_name)
@@ -528,7 +548,7 @@ function sdaf_installer() {
 	# Parse command line arguments
 	if ! parse_arguments "$@"; then
 		print_banner "$banner_title" "Validating parameters failed" "error"
-		return $?
+		return 100
 	fi
 
 	if ! retrieve_parameters; then
@@ -553,9 +573,11 @@ function sdaf_installer() {
 	echo "Parameter file:                      $parameterFilename"
 	echo "Current directory:                   $(pwd)"
 	echo "Control Plane name:                  ${CONTROL_PLANE_NAME}"
+	echo "Control Plane state file name:       ${deployer_tfstate_key}"
 	if [ -n "${WORKLOAD_ZONE_NAME}" ]; then
 		echo "Workload zone name:                  ${WORKLOAD_ZONE_NAME}"
 		landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+		echo "Workload state file name:            ${landscape_tfstate_key}"
 	fi
 	key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
@@ -673,17 +695,17 @@ function sdaf_installer() {
 	if [ ! -f .terraform/terraform.tfstate ]; then
 		print_banner "$banner_title" "New deployment" "info"
 
-		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
+			print_banner "$banner_title" "Terraform init succeeded." "success"
+		else
 			return_value=$?
 			print_banner "$banner_title" "Terraform init failed." "error"
 			return $return_value
-		else
-			return_value=$?
 		fi
 
 	else
@@ -1052,108 +1074,95 @@ function sdaf_installer() {
 
 	if [ "${deployment_system}" == sap_deployer ]; then
 
-		# terraform -chdir="${terraform_module_directory}"  output
-		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-
-			deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-			if [ -n "${deployer_random_id}" ]; then
-				save_config_var "deployer_random_id" "${system_environment_file_name}"
-				custom_random_id="${deployer_random_id:0:3}"
-				sed -i -e /"custom_random_id"/d "${parameterFilename}"
-				printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
-			fi
-			DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
-			if [ -n "${DEPLOYER_KEYVAULT}" ]; then
-				save_config_var "DEPLOYER_KEYVAULT" "${system_environment_file_name}"
-				export DEPLOYER_KEYVAULT
-			fi
-
-			APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
-			if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
-				save_config_var "APPLICATION_CONFIGURATION_ID" "${system_environment_file_name}"
-				export APPLICATION_CONFIGURATION_ID
-			fi
-
-			APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
-			if [ -n "${APP_SERVICE_NAME}" ]; then
-				save_config_var "APP_SERVICE_NAME" "${system_environment_file_name}"
-				export APP_SERVICE_NAME
-			fi
-
-			HAS_WEBAPP=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
-			if [ -n "${HAS_WEBAPP}" ]; then
-				save_config_var "HAS_WEBAPP" "${system_environment_file_name}"
-				export HAS_WEBAPP
-			fi
-
+		webapp_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_id | tr -d \")
+		if [ -n "$webapp_id" ]; then
+			save_config_var "webapp_id" "${system_environment_file_name}"
 		fi
 
-		DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color deployer_kv_user_name | tr -d \")
-
-		app_config_id=$(terraform -chdir="${terraform_module_directory}" output -no-color deployer_app_config_id | tr -d \")
-
-		app_service_name=$(terraform -chdir="${terraform_module_directory}" output -no-color webapp_url_base | tr -d \")
-
-		app_service_deployment=$(terraform -chdir="${terraform_module_directory}" output -no-color app_service_deployment | tr -d \")
-
-		echo ""
-		if [ 1 == $called_from_ado ]; then
-			if [ -n "${app_config_id}" ]; then
-				az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value")
-				if [ -z "${az_var}" ]; then
-					az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --value "${app_config_id}" --output none --only-show-errors
-				else
-					az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name APPLICATION_CONFIGURATION_ID --value "${app_config_id}" --output none --only-show-errors
-				fi
-			fi
-			if [ -n "${app_service_name}" ]; then
-				az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPSERVICE_NAME.value")
-				if [ -z "${az_var}" ]; then
-					az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name APPSERVICE_NAME --value "${app_service_name}" --output none --only-show-errors
-				else
-					az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name APPSERVICE_NAME --value "${app_service_name}" --output none --only-show-errors
-				fi
-			fi
-
-			if [ -n "${app_service_deployment}" ]; then
-				az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "HAS_APPSERVICE_DEPLOYED.value")
-				if [ -z "${az_var}" ]; then
-					az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name HAS_APPSERVICE_DEPLOYED --value "${app_service_deployment}" --output none --only-show-errors
-				else
-					az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name HAS_APPSERVICE_DEPLOYED --value "${app_service_deployment}" --output none --only-show-errors
-				fi
-			fi
-
-			if [ -n "${DEPLOYER_KEYVAULT}" ]; then
-				az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value")
-				if [ -z "${az_var}" ]; then
-					az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --value "${DEPLOYER_KEYVAULT}" --output none --only-show-errors
-				else
-					az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --value "${DEPLOYER_KEYVAULT}" --output none --only-show-errors
-				fi
-			fi
+		APP_CONFIG_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_config_deployment | tr -d \")
+		if [ -n "${APP_CONFIG_DEPLOYMENT}" ]; then
+			save_config_var "APP_CONFIG_DEPLOYMENT" "${system_environment_file_name}"
+			export APP_CONFIG_DEPLOYMENT
 		fi
 
+		APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")
+		if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
+			save_config_var "APPLICATION_CONFIGURATION_NAME" "${system_environment_file_name}"
+			export APPLICATION_CONFIGURATION_NAME
+		fi
+
+		APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
+		if [ -n "${APP_SERVICE_NAME}" ]; then
+			printf -v val %-.30s "$APP_SERVICE_NAME"
+			print_banner "$banner_title" "Application Service: $val" "info"
+			save_config_var "APP_SERVICE_NAME" "${system_environment_file_name}"
+			export APP_SERVICE_NAME
+		fi
+
+		APP_SERVICE_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
+		if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
+			save_config_var "APP_SERVICE_DEPLOYMENT" "${system_environment_file_name}"
+			export APP_SERVICE_DEPLOYMENT
+		fi
+
+		deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+		if [ -n "${deployer_random_id}" ]; then
+			save_config_var "deployer_random_id" "${system_environment_file_name}"
+			custom_random_id="${deployer_random_id}"
+			sed -i -e "" -e /"custom_random_id"/d "${var_file}"
+			printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+		fi
+
+		# shellcheck disable=SC2034
+		deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
+		save_config_var "deployer_public_ip_address" "${system_environment_file_name}"
+		keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+		if valid_kv_name "$keyvault"; then
+			save_config_var "keyvault" "${system_environment_file_name}"
+			print_banner "Installer" "The Control plane keyvault: ${val}" "info"
+		else
+			printf -v val %-40.40s "$keyvault"
+			print_banner "Installer" "The provided keyvault is not valid: ${val}" "error"
+		fi
 	fi
 
-	if [ "${deployment_system}" == sap_library ]; then
-		terraform_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
+	if [ "${deployment_system}" == sap_landscape ]; then
 
-		library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-		if [ -n "${library_random_id}" ]; then
-			save_config_var "library_random_id" "${system_environment_file_name}"
-			custom_random_id="${library_random_id:0:3}"
-			sed -i -e /"custom_random_id"/d "${parameterFilename}"
+		workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
+		if [ -n "${workloadkeyvault}" ]; then
+			save_config_var "workloadkeyvault" "${system_environment_file_name}"
+		fi
+		workload_zone_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+		if [ -n "${workload_zone_random_id}" ]; then
+			save_config_var "workload_zone_random_id" "${system_environment_file_name}"
+			custom_random_id="${workload_zone_random_id:0:3}"
+			sed -i -e /"custom_random_id"/d "${var_file}"
 			printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
 
 		fi
 
 	fi
 
+	if [ "${deployment_system}" == sap_library ]; then
+		REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
+
+		library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+		if [ -n "${library_random_id}" ]; then
+			save_config_var "library_random_id" "${system_environment_file_name}"
+			custom_random_id="${library_random_id:0:3}"
+			sed -i -e /"custom_random_id"/d "${var_file}"
+			printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
+
+		fi
+
+		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
+
+	fi
+
 	unset TF_DATA_DIR
 	print_banner "$banner_title" "Deployment completed." "success" "Exiting $SCRIPT_NAME"
 
-	exit 0
+	exit $return_value
 }
 
 ###############################################################################

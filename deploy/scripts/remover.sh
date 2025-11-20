@@ -273,8 +273,8 @@ else
 fi
 
 echo ""
-echo "Terraform details"
-echo "-------------------------------------------------------------------------"
+echo -e "${green}Terraform details:"
+echo -e "-------------------------------------------------------------------------${reset}"
 echo "Subscription:                        ${STATE_SUBSCRIPTION}"
 echo "Storage Account:                     ${REMOTE_STATE_SA}"
 echo "Resource Group:                      ${REMOTE_STATE_RG}"

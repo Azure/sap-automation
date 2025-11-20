@@ -335,7 +335,7 @@ function install_deployer() {
 		rm plan_output.log
 	fi
 
-	if [ "${TEST_ONLY}" == "True" ]; then
+	if [ "${TEST_ONLY:-false}" == "true" ]; then
 		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 		exit 10
 	fi
@@ -451,30 +451,32 @@ function install_deployer() {
 		export DEPLOYER_KEYVAULT
 	fi
 
-	APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_app_config_id | tr -d \")
-	if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
-		save_config_var "APPLICATION_CONFIGURATION_ID" "${deployer_environment_file_name}"
-		export APPLICATION_CONFIGURATION_ID
-	fi
-
-	APPLICATION_CONFIGURATION_NAME=$(echo "${APPLICATION_CONFIGURATION_ID}" | cut -d '/' -f 9)
+	APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")
 	if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
 		save_config_var "APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}"
 		export APPLICATION_CONFIGURATION_NAME
+		echo "APPLICATION_CONFIGURATION_NAME:         $APPLICATION_CONFIGURATION_NAME"
+	fi
+
+	APPLICATION_CONFIGURATION_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_config_deployment | tr -d \")
+	if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
+		save_config_var "APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_environment_file_name}"
+		export APPLICATION_CONFIGURATION_DEPLOYMENT
+		echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  $APPLICATION_CONFIGURATION_DEPLOYMENT"
 	fi
 
 	APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 	if [ -n "${APP_SERVICE_NAME}" ]; then
-		printf -v val %-.20s "$DEPLOYER_KEYVAULT"
+		printf -v val %-.20s "$APP_SERVICE_NAME"
 		print_banner "$banner_title" "Application Configuration: $val" "info"
 		save_config_var "APP_SERVICE_NAME" "${deployer_environment_file_name}"
 		export APP_SERVICE_NAME
 	fi
 
-	HAS_WEBAPP=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
-	if [ -n "${HAS_WEBAPP}" ]; then
-		save_config_var "HAS_WEBAPP" "${deployer_environment_file_name}"
-		export HAS_WEBAPP
+	APP_SERVICE_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
+	if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
+		save_config_var "APP_SERVICE_DEPLOYMENT" "${deployer_environment_file_name}"
+		export APP_SERVICE_DEPLOYMENT
 	fi
 
 	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")

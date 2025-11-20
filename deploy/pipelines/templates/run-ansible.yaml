@@ -2,10 +2,10 @@
 # Licensed under the MIT License.
 
 parameters:
-  azureClientId: ''
-  azureClientSecret: ''
-  azureTenantId: ''
-  azureSubscriptionId: ''
+  ARM_CLIENT_ID: ''
+  ARM_CLIENT_SECRET: ''
+  ARM_TENANT_ID: ''
+  ARM_SUBSCRIPTION_ID: ''
   USE_MSI: ''
   displayName: ''
   ansibleFilePath: ''
@@ -20,6 +20,8 @@ parameters:
   userNameSecretName: ''
   terraformStateStorageAccount: ''
   controlPlaneSubscriptionId: ''
+  controlPlaneName: ''
+  workloadZoneName: ''
 
 steps:
 - task:                             Bash@3
@@ -31,10 +33,10 @@ steps:
     failOnStderr:                   false
     workingDirectory:               "$(System.DefaultWorkingDirectory)"
   env:
-    AZURE_CLIENT_ID:                ${{ parameters.azureClientId }}
-    AZURE_CLIENT_SECRET:            ${{ parameters.azureClientSecret }}
-    AZURE_TENANT_ID:                ${{ parameters.azureTenantId }}
-    AZURE_SUBSCRIPTION_ID:          ${{ parameters.azureSubscriptionId }}
+    ARM_CLIENT_ID:                  ${{ parameters.ARM_CLIENT_ID }}
+    ARM_CLIENT_SECRET:              ${{ parameters.ARM_CLIENT_SECRET }}
+    ARM_TENANT_ID:                  ${{ parameters.ARM_TENANT_ID }}
+    ARM_SUBSCRIPTION_ID:            ${{ parameters.ARM_SUBSCRIPTION_ID }}
     USE_MSI:                        ${{ parameters.USE_MSI }}
     ANSIBLE_COLLECTIONS_PATH:       ~/.ansible/collections:/opt/ansible/collections
     ANSIBLE_PYTHON_INTERPRETER:     auto_silent
@@ -52,3 +54,5 @@ steps:
     USERNAME_KEY_NAME:              ${{ parameters.userNameSecretName }}
     TERRAFORM_STATE_STORAGE_ACCOUNT: ${{ parameters.terraformStateStorageAccount }}
     CONTROL_PLANE_SUBSCRIPTION_ID:   ${{ parameters.controlPlaneSubscriptionId }}
+    CONTROL_PLANE_NAME:             ${{ parameters.controlPlaneName }}
+    WORKLOAD_ZONE_NAME:             ${{ parameters.workloadZoneName }}

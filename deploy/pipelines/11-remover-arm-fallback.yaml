@@ -13,203 +13,203 @@
 # +------------------------------------4--------------------------------------*/
 
 parameters:
-  - name:                              cleanup_sap
-    displayName:                       Remove the SAP system
-    type:                              boolean
-    default:                           true
+  - name:                                         cleanup_sap
+    displayName:                                  Remove the SAP system
+    type:                                         boolean
+    default:                                      true
 
-  - name:                              sap_system
-    displayName:                       "SAP System configuration name, use this format: ENV-LOCA-VNET-SID"
-    type:                              string
-    default:                           DEV-WEEU-SAP01-X00
+  - name:                                         sap_system
+    displayName:                                  "SAP System configuration name, use this format: ENV-LOCA-VNET-SID"
+    type:                                         string
+    default:                                      DEV-WEEU-SAP01-X00
 
-  - name:                              cleanup_workload_zone
-    displayName:                       Remove the SAP workload zone
-    type:                              boolean
-    default:                           true
+  - name:                                         cleanup_workload_zone
+    displayName:                                  Remove the SAP workload zone
+    type:                                         boolean
+    default:                                      true
 
-  - name:                              workload_zone
-    displayName:                       "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type:                              string
-    default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
+  - name:                                         workload_zone
+    displayName:                                  "SAP workload zone configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                                         string
+    default:                                      DEV-WEEU-SAP01-INFRASTRUCTURE
 
-  - name:                              cleanup_control_plane
-    displayName:                       Remove the control plane
-    type:                              boolean
-    default:                           true
+  - name:                                         cleanup_control_plane
+    displayName:                                  Remove the control plane
+    type:                                         boolean
+    default:                                      true
 
-  - name:                              deployer
-    displayName:                       "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type:                              string
-    default:                           MGMT-WEEU-DEP00-INFRASTRUCTURE
+  - name:                                         deployer
+    displayName:                                  "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                                         string
+    default:                                      MGMT-WEEU-DEP00-INFRASTRUCTURE
 
-  - name:                              library
-    displayName:                       "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
-    type:                              string
-    default:                           MGMT-WEEU-SAP_LIBRARY
+  - name:                                         library
+    displayName:                                  "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
+    type:                                         string
+    default:                                      MGMT-WEEU-SAP_LIBRARY
 
-  - name:                              workload_environment
-    displayName:                       Environment (DEV, QUA, PRD)
-    type:                              string
-    default:                           DEV
+  - name:                                         workload_environment
+    displayName:                                  Environment (DEV, QUA, PRD)
+    type:                                         string
+    default:                                      DEV
 
-  - name:                              deployer_environment
-    displayName:                       Environment (MGMT, ...)
-    type:                              string
-    default:                           MGMT
+  - name:                                         deployer_environment
+    displayName:                                  Environment (MGMT, ...)
+    type:                                         string
+    default:                                      MGMT
 
-  - name:                              sap_automation_repo_path
-    displayName:                       The local path on the agent where the sap_automation repo can be found
-    type:                              string
+  - name:                                         sap_automation_repo_path
+    displayName:                                  The local path on the agent where the sap_automation repo can be found
+    type:                                         string
 
-  - name:                              config_repo_path
-    displayName:                       The local path on the agent where the config repo can be found
-    type:                              string
+  - name:                                         config_repo_path
+    displayName:                                  The local path on the agent where the config repo can be found
+    type:                                         string
 
-  - name:                              control_plane_connection
-    displayName:                       Service Connection Name for Control Plane
-    type:                              string
-    default:                           Control_Plane_Service_Connection
+  - name:                                         control_plane_connection
+    displayName:                                  Service Connection Name for Control Plane
+    type:                                         string
+    default:                                      Control_Plane_Service_Connection
 
-  - name:                              workload_zone_connection
-    displayName:                       Service Connection Name for Workload Zone
-    type:                              string
+  - name:                                         workload_zone_connection
+    displayName:                                  Service Connection Name for Workload Zone
+    type:                                         string
 
 stages:
-  - stage:                             Remove_SAP_systems
-    displayName:                       Remove SAP System
-    condition:                         eq(${{ parameters.cleanup_sap }}, true)
+  - stage:                                        Remove_SAP_systems
+    displayName:                                  Remove SAP System
+    condition:                                    eq(${{ parameters.cleanup_sap }}, true)
     variables:
-      - template:                      variables/11-remover-arm-fallback-variables.yaml
+      - template:                                 variables/11-remover-arm-fallback-variables.yaml
         parameters:
-          deployer:                    ${{ parameters.deployer }}
-          deployer_environment:        ${{ parameters.deployer_environment }}
-          library:                     ${{ parameters.library }}
-          sap_system:                  ${{ parameters.sap_system }}
-          workload_environment:        ${{ parameters.workload_environment }}
-          workload_zone:               ${{ parameters.workload_zone }}
-          connection_name:             ${{ parameters.workload_zone_connection }}
+          deployer:                               ${{ parameters.deployer }}
+          deployer_environment:                   ${{ parameters.deployer_environment }}
+          library:                                ${{ parameters.library }}
+          sap_system:                             ${{ parameters.sap_system }}
+          workload_environment:                   ${{ parameters.workload_environment }}
+          workload_zone:                          ${{ parameters.workload_zone }}
+          connection_name:                        ${{ parameters.workload_zone_connection }}
     jobs:
-      - job:                           Remove_SAP_system_RG
-        displayName:                   Remove SAP System ${{ parameters.cleanup_sap }}
+      - job:                                      Remove_SAP_system_RG
+        displayName:                              Remove SAP System ${{ parameters.cleanup_sap }}
         variables:
-          - group:                     SDAF-${{ parameters.workload_environment }}
+          - group:                                SDAF-${{ parameters.workload_environment }}
         steps:
-          - task:                      AzureResourceManagerTemplateDeployment@3
-            displayName:               Remove Resource Group $(sap_system_foldername)
+          - task:                                 AzureResourceManagerTemplateDeployment@3
+            displayName:                          Remove Resource Group $(sap_system_foldername)
             inputs:
-              deploymentScope:                "Resource Group"
-              azureResourceManagerConnection: ${{ parameters.workload_zone_connection }}
-              subscriptionId:                 "$(ARM_SUBSCRIPTION_ID)"
-              action:                         "DeleteRG"
-              resourceGroupName:              "$(sap_system_foldername)"
+              deploymentScope:                    "Resource Group"
+              azureResourceManagerConnection:     ${{ parameters.workload_zone_connection }}
+              subscriptionId:                     "$(ARM_SUBSCRIPTION_ID)"
+              action:                             "DeleteRG"
+              resourceGroupName:                  "$(sap_system_foldername)"
 
-      - job:                           Remove_sap_deployment_artifacts_in_WORKSPACES
-        displayName:                   Remove SAP System deployment artifacts from WORKSPACES
+      - job:                                      Remove_sap_deployment_artifacts_in_WORKSPACES
+        displayName:                              Remove SAP System deployment artifacts from WORKSPACES
         variables:
-          - group:                     SDAF-${{ parameters.workload_environment }}
+          - group:                                SDAF-${{ parameters.workload_environment }}
         steps:
-          - template:                  templates\download.yaml
-          - task:                      PostBuildCleanup@4
-          - task:                      Bash@3
+          - template:                             templates\download.yaml
+          - task:                                 PostBuildCleanup@4
+          - task:                                 Bash@3
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-system.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            displayName:               Remove_SAP_infrastructure
+              targetType:                         'filePath'
+              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-system.sh"
+              failOnStderr:                       false
+              workingDirectory:                   "$(System.DefaultWorkingDirectory)"
+            displayName:                          Remove_SAP_infrastructure
             env:
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
+              SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
 
-  - stage:                             Remove_SAP_workload_zone
-    displayName:                       Remove SAP workload zone
-    condition:                         eq(${{ parameters.cleanup_workload_zone }}, true)
+  - stage:                                        Remove_SAP_workload_zone
+    displayName:                                  Remove SAP workload zone
+    condition:                                    eq(${{ parameters.cleanup_workload_zone }}, true)
     variables:
-      - template:                      variables/11-remover-arm-fallback-variables.yaml
+      - template:                                 variables/11-remover-arm-fallback-variables.yaml
         parameters:
-          deployer:                    ${{ parameters.deployer }}
-          deployer_environment:        ${{ parameters.deployer_environment }}
-          library:                     ${{ parameters.library }}
-          sap_system:                  ${{ parameters.sap_system }}
-          workload_environment:        ${{ parameters.workload_environment }}
-          workload_zone:               ${{ parameters.workload_zone }}
-          connection_name:             ${{ parameters.workload_zone_connection }}
-          SAP_AUTOMATION_REPO_PATH:    ${{ parameters.sap_automation_repo_path }}
-          CONFIG_REPO_PATH:            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+          deployer:                               ${{ parameters.deployer }}
+          deployer_environment:                   ${{ parameters.deployer_environment }}
+          library:                                ${{ parameters.library }}
+          sap_system:                             ${{ parameters.sap_system }}
+          workload_environment:                   ${{ parameters.workload_environment }}
+          workload_zone:                          ${{ parameters.workload_zone }}
+          connection_name:                        ${{ parameters.workload_zone_connection }}
+          SAP_AUTOMATION_REPO_PATH:               ${{ parameters.sap_automation_repo_path }}
+          CONFIG_REPO_PATH:                       ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
     jobs:
-      - job:                           Remove_SAP_workload_zone
-        displayName:                   Remove SAP workload zone ${{ parameters.cleanup_workload_zone }}
+      - job:                                      Remove_SAP_workload_zone
+        displayName:                              Remove SAP workload zone ${{ parameters.cleanup_workload_zone }}
         variables:
-          - group:                     SDAF-${{ parameters.workload_environment }}
+          - group:                                SDAF-${{ parameters.workload_environment }}
         steps:
-          - task:                      AzureResourceManagerTemplateDeployment@3
-            displayName:               Remove Resource Group
+          - task:                                 AzureResourceManagerTemplateDeployment@3
+            displayName:                          Remove Resource Group
             inputs:
-              deploymentScope:                "Resource Group"
-              azureResourceManagerConnection: ${{ parameters.workload_zone_connection }}
-              subscriptionId:                 "$(ARM_SUBSCRIPTION_ID)"
-              action:                         "DeleteRG"
-              resourceGroupName:              "$(workload_zone_foldername)"
+              deploymentScope:                    "Resource Group"
+              azureResourceManagerConnection:     ${{ parameters.workload_zone_connection }}
+              subscriptionId:                     "$(ARM_SUBSCRIPTION_ID)"
+              action:                             "DeleteRG"
+              resourceGroupName:                  "$(workload_zone_foldername)"
 
-      - job:                           Remove_zone_deployment_artifacts_in_WORKSPACES
-        displayName:                   Remove Workload Zone deployment artifacts
+      - job:                                      Remove_zone_deployment_artifacts_in_WORKSPACES
+        displayName:                              Remove Workload Zone deployment artifacts
         variables:
-          - group:                     SDAF-${{ parameters.workload_environment }}
+          - group:                                SDAF-${{ parameters.workload_environment }}
         steps:
-          - template:                  templates\download.yaml
-          - task:                      PostBuildCleanup@4
-          - task:                      Bash@3
+          - template:                             templates\download.yaml
+          - task:                                 PostBuildCleanup@4
+          - task:                                 Bash@3
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-workload-zone.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            displayName:               Remove SAP Workload Zone deployment artifacts from WORKSPACES
+              targetType:                         'filePath'
+              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-workload-zone.sh"
+              failOnStderr:                       false
+              workingDirectory:                   "$(System.DefaultWorkingDirectory)"
+            displayName:                          Remove SAP Workload Zone deployment artifacts from WORKSPACES
             env:
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
+              SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
 
-  - stage:                             Remove_Control_plane
-    displayName:                       Remove Control Plane
-    condition:                         eq(${{ parameters.cleanup_control_plane }}, true)
+  - stage:                                        Remove_Control_plane
+    displayName:                                  Remove Control Plane
+    condition:                                    eq(${{ parameters.cleanup_control_plane }}, true)
 
     variables:
-      - template:                      variables/11-remover-arm-fallback-variables.yaml
+      - template:                                 variables/11-remover-arm-fallback-variables.yaml
         parameters:
-          deployer:                    ${{ parameters.deployer }}
-          deployer_environment:        ${{ parameters.deployer_environment }}
-          library:                     ${{ parameters.library }}
-          sap_system:                  ${{ parameters.sap_system }}
-          workload_environment:        ${{ parameters.workload_environment }}
-          workload_zone:               ${{ parameters.workload_zone }}
-          connection_name:             ${{ parameters.control_plane_connection }}
+          deployer:                               ${{ parameters.deployer }}
+          deployer_environment:                   ${{ parameters.deployer_environment }}
+          library:                                ${{ parameters.library }}
+          sap_system:                             ${{ parameters.sap_system }}
+          workload_environment:                   ${{ parameters.workload_environment }}
+          workload_zone:                          ${{ parameters.workload_zone }}
+          connection_name:                        ${{ parameters.control_plane_connection }}
     jobs:
-      - job:                           Remove_control_plane_deployment
-        displayName:                   Remove Control Plane deployment
+      - job:                                      Remove_control_plane_deployment
+        displayName:                              Remove Control Plane deployment
         variables:
-          - group:                     SDAF-${{ parameters.deployer_environment }}
+          - group:                                SDAF-${{ parameters.deployer_environment }}
         steps:
-          - template:                  templates\download.yaml
-          - task:                      PostBuildCleanup@4
-          - task:                      AzureCLI@2
-            continueOnError:           false
+          - template:                             templates\download.yaml
+          - task:                                 PostBuildCleanup@4
+          - task:                                 AzureCLI@2
+            continueOnError:                      false
             inputs:
-              azureSubscription:       ${{ parameters.control_plane_connection }}
-              scriptType:              bash
-              scriptLocation:          'scriptPath'
-              scriptPath:              "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-control-plane.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
-              addSpnToEnvironment:     true
-              visibleAzLogin:          false
+              azureSubscription:                  ${{ parameters.control_plane_connection }}
+              scriptType:                         bash
+              scriptLocation:                     'scriptPath'
+              scriptPath:                         "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-control-plane.sh"
+              failOnStderr:                       false
+              workingDirectory:                   "$(System.DefaultWorkingDirectory)"
+              addSpnToEnvironment:                true
+              visibleAzLogin:                     false
 
-            displayName:               Remove Control Plane deployment artifacts from WORKSPACES
+            displayName:                          Remove Control Plane deployment artifacts from WORKSPACES
             env:
-              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              USE_MSI:                  $(Use_MSI)
-              PAT:                      $(PAT)
+              ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
+              SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
+              CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              USE_MSI:                            $(Use_MSI)
+              PAT:                                $(PAT)
