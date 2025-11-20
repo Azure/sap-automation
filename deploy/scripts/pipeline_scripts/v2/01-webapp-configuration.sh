@@ -16,9 +16,10 @@ set -euo pipefail
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
+grand_parent_directory="$(dirname "$parent_directory")"
 
-source "${parent_directory}/deploy_utils.sh"
-source "${script_directory}/helper.sh"
+source "${grand_parent_directory}/deploy_utils.sh"
+source "${parent_directory}/helper.sh"
 
 ARM_TENANT_ID=$(az account show --query homeTenantId -o tsv)
 
