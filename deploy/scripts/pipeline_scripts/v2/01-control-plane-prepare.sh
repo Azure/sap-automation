@@ -270,11 +270,11 @@ if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" 
 	TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ]; then
-		echo "Terraform Remote State Account:       ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
+		echo "Terraform Remote State Account:      ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
 	fi
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
-		echo "Terraform Remote State RG Name:       ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
+		echo "Terraform Remote State RG Name:      ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
 	fi
 
 	if [ -n "${tfstate_resource_id}" ]; then
@@ -490,6 +490,26 @@ echo -e "$green--- Update repo ---$reset_formatting"
 if [ -f "${deployer_environment_file_name}" ]; then
 	git add "${deployer_environment_file_name}"
 	added=1
+
+	# check if DEPLOYER_KEYVAULT is already available as an export
+	if checkforEnvVar "DEPLOYER_KEYVAULT"; then
+		echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
+	else
+		# if not, try to read it from the environment file
+		DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+		# if the variable is not set, fallback to old variable name
+		if [ -z "${DEPLOYER_KEYVAULT}" ]; then
+			DEPLOYER_KEYVAULT=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+		fi
+		echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
+	fi
+
+	# if DEPLOYER_KEYVAULT is still not set, exit with an error
+	if [ -z "${DEPLOYER_KEYVAULT}" ]; then
+		echo "##vso[task.logissue type=error]Deployer Key Vault is not defined in the environment file."
+		exit 1
+	fi
+
 fi
 
 if [ -f "{$deployer_tfvars_file_name}" ]; then
@@ -522,28 +542,6 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
 		pass="localpassword"
 	fi
 	added=1
-fi
-
-if [ -f "${deployer_environment_file_name}" ]; then
-
-	# check if DEPLOYER_KEYVAULT is already available as an export
-	if checkforEnvVar "DEPLOYER_KEYVAULT"; then
-		echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
-	else
-		# if not, try to read it from the environment file
-		DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-		# if the variable is not set, fallback to old variable name
-		if [ -z "${DEPLOYER_KEYVAULT}" ]; then
-			DEPLOYER_KEYVAULT=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-		fi
-		echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
-	fi
-
-	# if DEPLOYER_KEYVAULT is still not set, exit with an error
-	if [ -z "${DEPLOYER_KEYVAULT}" ]; then
-		echo "##vso[task.logissue type=error]Deployer Key Vault is not defined in the environment file."
-		exit 1
-	fi
 fi
 
 if [ -f .sap_deployment_automation/terraform.log ]; then

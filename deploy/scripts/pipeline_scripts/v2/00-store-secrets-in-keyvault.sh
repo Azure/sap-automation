@@ -91,6 +91,11 @@ if [ "$PLATFORM" == "devops" ]; then
 
 fi
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
+ENVIRONMENT=$(echo "$ZONE" | awk -F'-' '{print $1}')
+LOCATION_CODE=$(echo "$ZONE" | awk -F'-' '{print $2}')
+NETWORK=$(echo "$ZONE" | awk -F'-' '{print $3}')
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION_CODE}" "${NETWORK}")
 
 echo -e "$green--- Read parameter values ---$reset"
 
@@ -121,7 +126,11 @@ else
 fi
 
 keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
-key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
+if [ -z "$KEYVAULT" ]; then
+	key_vault="$KEYVAULT"
+else
+	key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
+fi
 
 if [ -z "$key_vault" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
