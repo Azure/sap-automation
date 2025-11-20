@@ -413,23 +413,18 @@ if [ 1 = $added ]; then
 	fi
 fi
 
+# Platform-specific summary handling
+if [ -f "${SID}.md" ]; then
+	if [ "$PLATFORM" == "devops" ]; then
+	  cat "${SID}.md"
+	  sudo cp "${SID}.md" "$AGENT_TEMPDIRECTORY/${SID}.md"
+		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${SID}.md;]$AGENT_TEMPDIRECTORY/${SID}.md"
+	elif [ "$PLATFORM" == "github" ]; then
+		cat "${WORKLOAD_ZONE_NAME}.md" >>$GITHUB_STEP_SUMMARY
+	fi
+fi
+
 print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 
-# file_name=${SID}_inventory.md
-# if [ -f ${SID}_inventory.md ]; then
-#   az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none
-
-#   # ToDo: Fix this later
-#   # WIKI_NAME_FOUND=$(az devops wiki list --query "[?name=='SDAF'].name | [0]")
-#   # echo "${WIKI_NAME_FOUND}"
-#   # if [ -n "${WIKI_NAME_FOUND}" ]; then
-#   #   eTag=$(az devops wiki page show --path "${file_name}" --wiki SDAF --query eTag )
-#   #   if [ -n "$eTag" ]; then
-#   #     az devops wiki page update --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --only-show-errors --version $eTag --output none
-#   #   else
-#   #     az devops wiki page create --path "${file_name}" --wiki SDAF --file-path ./"${file_name}" --output none --only-show-errors
-#   #   fi
-#   # fi
-# fi
 
 exit $return_code

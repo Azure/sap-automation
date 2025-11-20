@@ -370,12 +370,14 @@ if [ 1 = $added ]; then
 	fi
 fi
 
-# Add summary if available
-if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${WORKLOAD_ZONE_NAME}.md" ]; then
+# Platform-specific summary handling
+if [ -f "${WORKLOAD_ZONE_NAME}.md" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${WORKLOAD_ZONE_NAME}.md"
+	  cat "${WORKLOAD_ZONE_NAME}.md"
+	  sudo cp "${WORKLOAD_ZONE_NAME}.md" "$AGENT_TEMPDIRECTORY/${WORKLOAD_ZONE_NAME}.md"
+		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${WORKLOAD_ZONE_NAME}.md;]$AGENT_TEMPDIRECTORY/${WORKLOAD_ZONE_NAME}.md"
 	elif [ "$PLATFORM" == "github" ]; then
-		cat "$CONFIG_REPO_PATH/.sap_deployment_automation/${WORKLOAD_ZONE_NAME}.md" >>$GITHUB_STEP_SUMMARY
+		cat "${WORKLOAD_ZONE_NAME}.md" >>$GITHUB_STEP_SUMMARY
 	fi
 fi
 

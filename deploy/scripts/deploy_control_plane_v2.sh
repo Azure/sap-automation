@@ -1074,18 +1074,15 @@ function deploy_control_plane() {
 	cat <<EOF >"${CONTROL_PLANE_NAME}".md
 # Control Plane Deployment #
 
-Date : "${now}"
+Deployed on: "${now}"
 
 ## Configuration details ##
 
-| Item                    | Name                 |
-| ----------------------- | -------------------- |
-| Environment             | $environment         |
-| Location                | $region              |
-| Keyvault Name           | ${DEPLOYER_KEYVAULT} |
-| Terraform state         | ${storage_account}   |
-| App Config              | $APPLICATION_CONFIGURATION_NAME   |
-| Control Plane Name      | $CONTROL_PLANE_NAME   |
+| -------------------------------------- | -------------------- |
+| Controlplane name                      | $CONTROL_PLANE_NAME   |
+| Controlplane keyvault name             | ${DEPLOYER_KEYVAULT} |
+| Terraform state file storage account   | ${storage_account}   |
+| Application Configuration              | $APPLICATION_CONFIGURATION_NAME   |
 
 EOF
 

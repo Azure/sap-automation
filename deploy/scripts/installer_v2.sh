@@ -1144,6 +1144,20 @@ function sdaf_installer() {
 
 		fi
 
+		now=$(date)
+		cat <<EOF >"${WORKLOAD_ZONE_NAME}".md
+# Workload Zone Deployment #
+
+Deployed on: "${now}"
+
+## Configuration details ##
+
+| -------------------------------------- | -------------------- |
+| Workload zone name                     | $WORKLOAD_ZONE_NAME  |
+| Workload zone keyvault name            | ${workloadkeyvault}  |
+
+EOF
+
 	fi
 
 	if [ "${deployment_system}" == sap_library ]; then
@@ -1162,6 +1176,31 @@ function sdaf_installer() {
 
 	fi
 
+	if [ "${deployment_system}" == sap_system ]; then
+
+		SID=$(grep -m1 "sap_sid" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		PLATFORM=$(grep -m1 "platform" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		SCS_HIGH_AVAILABILITY=$(grep -m1 "scs_high_availability" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		DB_HIGH_AVAILABILITY=$(grep -m1 "database_high_availability" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+
+
+		now=$(date)
+		cat <<EOF >"${SID}".md
+# System Deployment #
+
+Deployed on: "${now}"
+
+## Configuration details ##
+
+| -------------------------------------- | ----------------------- |
+| SID                                    | $SID                    |
+| Platform                               | $PLATFORM               |
+| SCS High Availability                  | $SCS_HIGH_AVAILABILITY  |
+| Database High Availability             | $DB_HIGH_AVAILABILITY   |
+
+EOF
+
+	fi
 	unset TF_DATA_DIR
 	print_banner "$banner_title" "Deployment completed." "success" "Exiting $SCRIPT_NAME"
 

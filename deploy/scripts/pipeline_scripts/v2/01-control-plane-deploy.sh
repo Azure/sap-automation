@@ -722,8 +722,8 @@ end_group
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 	  cat DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md
-	  sudo cp "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" "$AGENT_TEMPDIRECTORY/cp.md"
-		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=cp.md;]$AGENT_TEMPDIRECTORY/cp.md"
+	  sudo cp "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" "$AGENT_TEMPDIRECTORY/${CONTROL_PLANE_NAME}.md"
+		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${CONTROL_PLANE_NAME}.md;]$AGENT_TEMPDIRECTORY/${CONTROL_PLANE_NAME}.md"
 	elif [ "$PLATFORM" == "github" ]; then
 		cat "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" >>$GITHUB_STEP_SUMMARY
 	fi
