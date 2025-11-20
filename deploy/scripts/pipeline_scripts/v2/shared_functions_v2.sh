@@ -80,7 +80,8 @@ function load_platform_functions() {
 	case "$platform" in
 	"github") source "${script_directory}/platform/github_functions.sh" ;;
 	"devops") source "${script_directory}/platform/devops_functions.sh" ;;
-	*) echo "Unsupported platform - cannot determine if running in GitHub Actions or Azure DevOps" exit 1 ;;
+	*) echo "Unsupported platform - cannot determine if running in GitHub Actions or Azure DevOps"
+	exit 1 ;;
 	esac
 }
 

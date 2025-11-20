@@ -348,7 +348,7 @@ else
 		fi
 
 		# Commit changes based on platform
-		if [ 1 = $changed ]; then
+		if [ 1 == $changed ]; then
 			if [ "$PLATFORM" == "devops" ]; then
 				git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 				git config --global user.name "$BUILD_REQUESTEDFOR"
