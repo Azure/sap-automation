@@ -119,7 +119,7 @@ keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
 key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
 
 if [ -z "$key_vault" ]; then
-	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$application_configuration_name')."
+	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME')."
 	exit 2
 fi
 
