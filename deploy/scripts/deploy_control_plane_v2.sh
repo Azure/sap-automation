@@ -511,14 +511,18 @@ function migrate_deployer_state() {
 		load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
 		TF_VAR_tfstate_resource_id=$tfstate_resource_id
 		export TF_VAR_tfstate_resource_id
+
 		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 		export terraform_storage_account_name
 		terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
 		export terraform_storage_account_resource_group_name
-
 		terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 		export terraform_storage_account_subscription_id
+
+		ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+		export ARM_SUBSCRIPTION_ID
 	fi
+
 	if [ -z "$terraform_storage_account_name" ]; then
 		print_banner "$banner_title" "Sourcing parameters from: " "info" "statefile"
 		terraform_subscription_id=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
@@ -527,6 +531,8 @@ function migrate_deployer_state() {
 		tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --subscription "${terraform_subscription_id}" --out tsv)
 		TF_VAR_tfstate_resource_id=$tfstate_resource_id
 		export TF_VAR_tfstate_resource_id
+		ARM_SUBSCRIPTION_ID=$terraform_subscription_id
+		export ARM_SUBSCRIPTION_ID
 
 	fi
 
@@ -544,7 +550,7 @@ function migrate_deployer_state() {
 
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$deployer_parameter_file_name" --type sap_deployer \
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
-		$devops_flag "${autoApproveParameter}"; then
+		--storage_accountname "$terraform_storage_account_name" $devops_flag "${autoApproveParameter}"; then
 		print_banner "$banner_title" "Migrating the Deployer state succeeded." "success"
 
 	else
