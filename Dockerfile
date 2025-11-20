@@ -11,7 +11,6 @@ ENV LANG=en_US.UTF-8
 
 # Install core utilities and system tools
 RUN tdnf install -y \
-  ansible \
   sshpass \
   ca-certificates \
   curl \
@@ -33,7 +32,8 @@ RUN tdnf install -y \
   findutils \
   python3-devel \
   gcc \
-  make
+  make && \
+  tdnf clean all
 
 # Setup locales properly
 RUN localedef -i en_US -f UTF-8 en_US.UTF-8
@@ -46,7 +46,8 @@ RUN tdnf install -y \
   python3-virtualenv \
   powershell \
   git \
-  gh
+  gh && \
+  tdnf clean all
 
 # Install Terraform
 RUN curl -fsSo terraform.zip \
@@ -58,7 +59,8 @@ RUN curl -fsSo terraform.zip \
 # Install Azure CLI
 RUN rpm --import https://packages.microsoft.com/keys/microsoft.asc && \
     echo -e "[azure-cli]\nname=Azure CLI\nbaseurl=https://packages.microsoft.com/yumrepos/azure-cli\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/azure-cli.repo && \
-    tdnf install -y azure-cli
+    tdnf install -y azure-cli && \
+    tdnf clean all
 
 # Install Node.js
 RUN curl -fsSL https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz | tar -xz -C /usr/local --strip-components=1 && \
@@ -70,14 +72,12 @@ RUN curl -sSfL https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/y
   install -Dm755 yq_linux_amd64 /usr/bin/yq && \
   rm -rf yq_linux_amd64.tar.gz yq_linux_amd64 install-man-page.sh yq.1
 
-# Set locales
+# Set locales in environment file
 RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment && \
-    echo "LANG=en_US.UTF-8" >> /etc/environment && \
-    echo "export LC_ALL=en_US.UTF-8" >> /root/.bashrc && \
-    echo "export LANG=en_US.UTF-8" >> /root/.bashrc
+    echo "LANG=en_US.UTF-8" >> /etc/environment
 
 # Install Python dependencies and Ansible with required collections
-RUN pip3 install \
+RUN pip3 install --no-cache-dir \
     ansible-core==${ANSIBLE_VERSION} \
     argcomplete \
     jmespath \
@@ -85,6 +85,7 @@ RUN pip3 install \
     pywinrm \
     setuptools \
     wheel \
+    chmod \
     pyyaml
 
 COPY SAP-automation-samples /source/SAP-automation-samples
@@ -94,13 +95,27 @@ COPY . /source
 ENV SAP_AUTOMATION_REPO_PATH=/source
 ENV SAMPLE_REPO_PATH=/source/SAP-automation-samples
 
-RUN useradd -m -s /bin/bash azureadm
-RUN echo "azureadm:password" | chpasswd
-RUN usermod -aG sudo azureadm
+RUN useradd -m -s /bin/bash azureadm && \
+    usermod -aG sudo azureadm && \
+    passwd -d azureadm && \
+    echo "export LC_ALL=en_US.UTF-8" >> /home/azureadm/.bashrc && \
+    echo "export LANG=en_US.UTF-8" >> /home/azureadm/.bashrc
+# Password for azureadm user is not set. Use SSH key-based authentication or set password securely at runtime.
 
-# Configure SSH for Ansible
-RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
-RUN echo "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > /root/.ssh/config && \
-    chmod 600 /root/.ssh/config
+# Configure SSH for Ansible (both root and azureadm)
+RUN mkdir -p /root/.ssh /home/azureadm/.ssh && \
+    chmod 700 /root/.ssh /home/azureadm/.ssh && \
+    echo "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > /root/.ssh/config && \
+    echo "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > /home/azureadm/.ssh/config && \
+    chmod 600 /root/.ssh/config /home/azureadm/.ssh/config && \
+    chown -R azureadm:azureadm /home/azureadm/.ssh
+
+# Set ownership of source directory to azureadm
+RUN chown -R azureadm:azureadm /source
 
 WORKDIR /source
+
+USER azureadm
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD terraform version && ansible --version && az version || exit 1
