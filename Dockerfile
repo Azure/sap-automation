@@ -6,8 +6,6 @@ ARG NODE_VERSION=18.19.1
 ARG ANSIBLE_VERSION=2.16.5
 
 # Set proper locale for Ansible
-ENV LC_ALL=en_US.UTF-8
-ENV LANG=en_US.UTF-8
 
 # Install core utilities and system tools
 RUN tdnf install -y \
