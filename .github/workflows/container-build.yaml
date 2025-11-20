@@ -31,7 +31,7 @@ jobs:
       packages: write
 
     steps:
-    - name: Checkout main respository
+    - name: Checkout main repository
       uses: actions/checkout@v4
 
     - name: Checkout SAP-automation-samples
