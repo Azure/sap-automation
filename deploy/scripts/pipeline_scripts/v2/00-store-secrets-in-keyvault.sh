@@ -159,11 +159,6 @@ else
 fi
 
 keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
-if [ -z "$KEYVAULT" ]; then
-	key_vault="$KEYVAULT"
-else
-	key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
-fi
 
 if [ -z "$key_vault" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
