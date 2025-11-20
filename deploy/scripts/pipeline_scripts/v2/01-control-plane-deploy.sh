@@ -723,7 +723,7 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" ]; then
   cat "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md"
 	if [ "$PLATFORM" == "devops" ]; then
 	  cp DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md cp.md
-		echo "##vso[task.uploadsummary]cp.md"
+		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=controlplane;]cp.md"
 	elif [ "$PLATFORM" == "github" ]; then
 		cat "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" >>$GITHUB_STEP_SUMMARY
 	fi
