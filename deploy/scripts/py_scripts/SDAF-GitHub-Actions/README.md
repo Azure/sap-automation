@@ -26,7 +26,7 @@ This script helps to automate the setup of a GitHub App, repository secrets, env
     `git clone https://github.com/Azure/sap-automation.git`
 
 2. Change directory
-    `cd sdaf-gh-actions`
+    `cd deploy/scripts/py_scripts/SDAF-GitHub-Actions`
 
 3. **Create a Virtual Environment**: Create and activate a virtual environment.
 
