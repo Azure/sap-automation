@@ -1050,8 +1050,10 @@ function deploy_control_plane() {
 	echo "#                                                                             #"
 	echo "###############################################################################"
 
+
+  cd "${deployer_dirname}" || exit
 	now=$(date)
-	cat <<EOF >"${deployer_environment_file_name}".md
+	cat <<EOF >"${CONTROL_PLANE_NAME}".md
 # Control Plane Deployment #
 
 Date : "${now}"

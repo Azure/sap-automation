@@ -556,16 +556,13 @@ if [ 1 = $added ]; then
 			commit_changes "Added updates for deployment."
 		fi
 
-		if [ -f ".sap_deployment_automation/$CONTROL_PLANE_NAME.md" ]; then
-			upload_summary ".sap_deployment_automation/$CONTROL_PLANE_NAME.md"
-		fi
+	fi
+	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$CONTROL_PLANE_NAME.md" ]; then
+		upload_summary "DEPLOYER/$DEPLOYER_FOLDERNAME/$CONTROL_PLANE_NAME.md"
 	fi
 fi
 
 if [ "$PLATFORM" == "devops" ]; then
-	if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
-		echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
-	fi
 	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
 	if [ 0 -eq "$return_code" ]; then
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
@@ -573,11 +570,6 @@ if [ "$PLATFORM" == "devops" ]; then
 		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"
 	fi
 elif [ "$PLATFORM" == "github" ]; then
-	if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
-		echo "##[group]Upload summary"
-		upload_summary "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
-		echo "##[endgroup]"
-	fi
 	if [ 0 -eq "$return_code" ]; then
 		set_value_with_key "APPLICATION_CONFIGURATION_NAME" "${APPLICATION_CONFIGURATION_NAME}" "env"
 		set_value_with_key "CONTROL_PLANE_NAME" "${CONTROL_PLANE_NAME}" "env"
