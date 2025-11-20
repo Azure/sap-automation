@@ -7,6 +7,6 @@ sudo apt update
 sudo apt install -y \
     ansible-lint
 
-# Create a log file for Ansible as defined in the ansible.cfg in /deploy/ansible
-sudo touch /var/log/ansible.log
-sudo chown vscode:vscode /var/log/ansible.log
+# Create a log file for Ansible as defined in ansible.cfg (/var/tmp/ansible.log)
+sudo touch /var/tmp/ansible.log
+sudo chown vscode:vscode /var/tmp/ansible.log
