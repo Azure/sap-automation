@@ -138,9 +138,10 @@ stages:
               ARM_OBJECT_ID:                      $(ARM_OBJECT_ID)
               ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID:                      $(ARM_TENANT_ID)
-              KEYVAULT:                           $(DEPLOYER_KEYVAULT)
               AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONTROL_PLANE_NAME:                 $(CONTROL_PLANE_NAME)
+              KEYVAULT:                           $(DEPLOYER_KEYVAULT)
               SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
               USE_MSI:                            $(Use_MSI)
@@ -188,6 +189,7 @@ stages:
               ARM_USE_MSI:                        $(Use_MSI)
               AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONTROL_PLANE_NAME:                 $(CONTROL_PLANE_NAME)
               DEPLOYER_KEYVAULT:                  $(DEPLOYER_KEYVAULT)
               FENCING_SPN_PWD:                    $(FENCING_SPN_PWD)
               SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
