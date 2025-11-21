@@ -1078,12 +1078,14 @@ Deployment Date: $now
 
 **Resources**
 
-Keyvault name:                        ${DEPLOYER_KEYVAULT}
-Terraform state file storage account: ${storage_account}
-Application Configuration:            $APPLICATION_CONFIGURATION_NAME
-Deployer State File:                  ${deployer_tfstate_key}
-Library State File:                   ${library_tfstate_key}
-Control Plane subscription:           ${subscription}
+| Name                                  | Value                                      |
+|:------------------------------------- |:------------------------------------------ |
+| Keyvault name:                        | ${DEPLOYER_KEYVAULT}                       |
+| Terraform state file storage account: | ${terraform_storage_account_name}          |
+| Application Configuration:            | $APPLICATION_CONFIGURATION_NAME            |
+| Deployer State File:                  | ${deployer_tfstate_key}                    |
+| Library State File:                   | ${library_tfstate_key}                     |
+| Control Plane subscription:           | ${subscription}                            |
 
 EOF
 
