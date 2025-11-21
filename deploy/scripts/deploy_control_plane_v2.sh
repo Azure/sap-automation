@@ -500,7 +500,7 @@ function migrate_deployer_state() {
 		terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 		ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
 		export ARM_SUBSCRIPTION_ID
-		TF_VAR_subscription_id=$tfstate_resource_id
+		TF_VAR_subscription_id=$terraform_storage_account_subscription_id
 		export TF_VAR_subscription_id
 		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 	fi
