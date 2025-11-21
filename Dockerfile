@@ -82,8 +82,8 @@ RUN pip3 install --no-cache-dir \
     jmespath \
     netaddr \
     pywinrm \
-    setuptools \
-    wheel \
+    setuptools==68.2.2 \
+    wheel==0.42.0 \
     chmod \
     pyyaml
 
