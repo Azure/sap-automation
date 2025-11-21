@@ -34,17 +34,25 @@ Terraform_Remote_Storage_Resource_Group_Name=$(echo "$tfstate_resource_id" | cut
 
 printf "Configure the Web Application authentication using the following script.\n" >"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 printf "\n\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
+printf "**Configure authentication**\n" >"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
+
+printf "\n\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 
 printf "az ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\n" "$APP_REGISTRATION_APP_ID" "$app_service_name" "$app_service_name" "$app_service_name" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 
 printf "\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 printf "az role assignment create --assignee %s --role reader --subscription %s --scope /subscriptions/%s\n" "$app_service_identity_id" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
-printf "Run the above command for all subscriptions you want to use in the Web Application\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 
 printf "\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
+printf "\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
+printf "**Assign permissions**\n" >"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
+
+printf "\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
+printf "\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
+
 printf "az role assignment create --assignee %s --role 'Storage Blob Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s\n" "$app_service_identity_id" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" "$Terraform_Remote_Storage_Resource_Group_Name" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 printf "az role assignment create --assignee %s --role 'Storage Table Data Contributor' --subscription %s --scope /subscriptions/%s/resourceGroups/%s \n\n" "$app_service_identity_id" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" "$Terraform_Remote_Storage_Resource_Group_Name" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
-
+printf "\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 printf "\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 
 printf "az rest --method POST --uri \"https://graph.microsoft.com/beta/applications/%s/federatedIdentityCredentials\" --body \"{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/%s/v2.0', 'subject': '%s', 'audiences': [ 'api://AzureADTokenExchange' ]}\"" "$APP_REGISTRATION_OBJECT_ID" "$ARM_TENANT_ID" "$deployer_msi_id" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
