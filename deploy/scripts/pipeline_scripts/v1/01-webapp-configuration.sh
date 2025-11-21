@@ -51,10 +51,10 @@ printf "\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 printf "az rest --method POST --uri \"https://graph.microsoft.com/beta/applications/%s/federatedIdentityCredentials\" --body \"{'name': 'ManagedIdentityFederation', 'issuer': 'https://login.microsoftonline.com/%s/v2.0', 'subject': '%s', 'audiences': [ 'api://AzureADTokenExchange' ]}\"" "$APP_REGISTRATION_OBJECT_ID" "$ARM_TENANT_ID" "$ARM_OBJECT_ID" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 printf "\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 
-printf "az webapp restart --name %s  --resource-group %s --subscription %s \n\n" "$app_service_name" "$app_service_resource_group" "$app_service_subscription">>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
+printf "az webapp restart --name %s  --resource-group %s --subscription %s \n\n" "$APP_SERVICE_NAME" "$app_service_resource_group" "$app_service_subscription">>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 printf "\n\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 
-printf "[Access the Web App](https://%s.azurewebsites.net) \n\n" $app_service_name >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
+printf "[Access the Web App](https://%s.azurewebsites.net) \n\n" $APP_SERVICE_NAME >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 } >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 echo "##vso[task.uploadsummary]$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 exit 0
