@@ -1096,7 +1096,7 @@ function sdaf_installer() {
 
 		APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 		if [ -n "${APP_SERVICE_NAME}" ]; then
-			printf -v val %-.30s "$APP_SERVICE_NAME"
+			printf -v val 	%-.30s "$APP_SERVICE_NAME"
 			print_banner "$banner_title" "Application Service: $val" "info"
 			save_config_var "APP_SERVICE_NAME" "${system_environment_file_name}"
 			export APP_SERVICE_NAME
