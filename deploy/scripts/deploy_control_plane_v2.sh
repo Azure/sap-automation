@@ -493,6 +493,10 @@ function migrate_deployer_state() {
 		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 		TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 
+		user_keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
+		TF_VAR_user_keyvault_id="$user_keyvault_id"
+		export TF_VAR_user_keyvault_id
+
 		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 		terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 		terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
@@ -550,7 +554,6 @@ function migrate_deployer_state() {
 		export terraform_storage_account_resource_group_name
 		export terraform_storage_account_subscription_id
 		export tfstate_resource_id
-
 
 	fi
 
@@ -616,20 +619,31 @@ function migrate_library_state() {
 	if [ -z "$terraform_storage_account_name" ]; then
 		if is_valid_id "$APPLICATION_CONFIGURATION_ID:-" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 			TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
-			export TF_VAR_application_configuration_id
 
 			tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
-			export TF_VAR_tfstate_resource_id
+
+			user_keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
+			TF_VAR_user_keyvault_id="$user_keyvault_id"
 
 			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+
 			ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
-			export TF_VAR_tfstate_resource_id
 			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 			save_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
+
+			export ARM_SUBSCRIPTION_ID
+			export TF_VAR_application_configuration_id
+			export TF_VAR_subscription_id
+			export TF_VAR_tfstate_resource_id
+			export TF_VAR_user_keyvault_id
+			export terraform_storage_account_name
+			export terraform_storage_account_resource_group_name
+			export terraform_storage_account_subscription_id
+			export tfstate_resource_id
 		fi
 		if [ -z "$terraform_storage_account_name" ]; then
 
@@ -643,6 +657,8 @@ function migrate_library_state() {
 					terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 					tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
 					TF_VAR_tfstate_resource_id=$tfstate_resource_id
+    			ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+
 					export TF_VAR_tfstate_resource_id
 					export terraform_storage_account_name
 					export terraform_storage_account_resource_group_name
@@ -678,7 +694,7 @@ function migrate_library_state() {
 	echo ""
 	echo "Calling installer_v2.sh with: --type sap_library --parameter_file ${library_parameter_file_name} --control_plane_name ${CONTROL_PLANE_NAME} --application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-}"
 	echo ""
-	if  "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameter_file "${library_parameter_file_name}" \
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameter_file "${library_parameter_file_name}" \
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME:-}" \
 		$devops_flag "${autoApproveParameter}"; then
 		return_code=$?
@@ -901,7 +917,7 @@ function execute_deployment_steps() {
 		fi
 	fi
 	if [ 5 -eq "${step}" ]; then
-		if [ "${devops_flag}" != 	"--devops" ]; then
+		if [ "${devops_flag}" != "--devops" ]; then
 			if ! copy_files_to_public_deployer; then
 				return_value=$?
 				print_banner "Copy" "Copying files failed" "error"
@@ -1085,8 +1101,7 @@ function deploy_control_plane() {
 	echo "#                                                                             #"
 	echo "###############################################################################"
 
-
-  cd "${deployer_dirname}" || exit
+	cd "${deployer_dirname}" || exit
 	now=$(date)
 	cat <<EOF >"${CONTROL_PLANE_NAME}".md
 

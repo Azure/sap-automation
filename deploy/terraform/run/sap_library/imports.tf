@@ -40,7 +40,6 @@ locals {
   retrieve_cp_credentials                      = var.use_spn && length(local.control_plane_name_resolved) > 0
 }
 
-
 #
 # Control Plane Service Principal Credentials
 # Used for accessing shared control plane resources
