@@ -1,35 +1,35 @@
 FROM mcr.microsoft.com/azurelinux/base/core:3.0
 
-ARG TF_VERSION=1.13.5
+ARG TF_VERSION=1.14.0
 ARG YQ_VERSION=v4.42.1
 ARG NODE_VERSION=18.19.1
 ARG ANSIBLE_VERSION=2.16.5
 
 # Install core utilities and system tools
 RUN tdnf install -y \
-  sshpass \
-  ca-certificates \
-  curl \
-  gawk \
-  glibc-i18n \
-  jq \
-  openssl-devel \
-  openssl-libs \
-  sudo \
-  tar \
-  unzip \
-  util-linux \
-  acl \
-  which \
-  wget \
-  zip \
-  rsync \
-  less \
-  findutils \
-  python3-devel \
-  gcc \
-  make && \
-  tdnf clean all
+    sshpass \
+    ca-certificates \
+    curl \
+    gawk \
+    glibc-i18n \
+    jq \
+    openssl-devel \
+    openssl-libs \
+    sudo \
+    tar \
+    unzip \
+    util-linux \
+    acl \
+    which \
+    wget \
+    zip \
+    rsync \
+    less \
+    findutils \
+    python3-devel \
+    gcc \
+    make && \
+    tdnf clean all
 
 # Setup locales properly
 RUN localedef -i en_US -f UTF-8 en_US.UTF-8
@@ -60,14 +60,14 @@ RUN rpm --import https://packages.microsoft.com/keys/microsoft.asc && \
 
 # Install Node.js
 RUN curl -fsSL https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz | tar -xz -C /usr/local --strip-components=1 && \
-  ln -s /usr/local/bin/node /usr/bin/node && \
-  ln -s /usr/local/bin/npm /usr/bin/npm
+    ln -s /usr/local/bin/node /usr/bin/node && \
+    ln -s /usr/local/bin/npm /usr/bin/npm
 
 # Install yq
 RUN curl -sSfL https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64.tar.gz -o yq.tar.gz && \
-  tar -xzf yq.tar.gz && \
-  install -Dm755 yq_linux_amd64 /usr/bin/yq && \
-  rm -rf yq.tar.gz yq_linux_amd64 install-man-page.sh yq.1
+    tar -xzf yq.tar.gz && \
+    install -Dm755 yq_linux_amd64 /usr/bin/yq && \
+    rm -rf yq.tar.gz yq_linux_amd64 install-man-page.sh yq.1
 
 # Set locales in environment file
 RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment && \
