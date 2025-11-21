@@ -111,7 +111,6 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 fi
 
-
 if [ "$PLATFORM" == "devops" ]; then
 	# Configure DevOps
 	configure_devops
@@ -141,24 +140,30 @@ if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
 	export APPLICATION_CONFIGURATION_ID
 fi
 
-if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+key_vault="${KEYVAULT:-}"
+if [ -z "$key_vault" ]; then
 
-	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
-	if [ -z "$key_vault_id" ]; then
-		if [ -n "$KEYVAULT" ]; then
-			key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
-			if [ -z "$key_vault_id" ]; then
-				echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
+	if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+
+		key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
+		if [ -z "$key_vault_id" ]; then
+			if [ -n "$KEYVAULT" ]; then
+				key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
+				if [ -z "$key_vault_id" ]; then
+					echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
+				fi
 			fi
 		fi
+	else
+		load_config_vars "${workload_environment_file_name}" "DEPLOYER_KEYVAULT"
+		key_vault="$DEPLOYER_KEYVAULT"
+		key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$key_vault' | project id, name, subscription" --query data[0].id --output tsv)
 	fi
-else
-	load_config_vars "${workload_environment_file_name}" "DEPLOYER_KEYVAULT"
-	key_vault="$DEPLOYER_KEYVAULT"
-	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$key_vault' | project id, name, subscription" --query data[0].id --output tsv)
-fi
 
-keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
+	keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
+else
+	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
+fi
 
 if [ -z "$key_vault" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
