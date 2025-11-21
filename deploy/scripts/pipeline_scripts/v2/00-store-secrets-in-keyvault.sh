@@ -161,7 +161,6 @@ else
 	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$key_vault' | project id, name, subscription" --query data[0].id --output tsv)
 fi
 
-key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
 key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
 
