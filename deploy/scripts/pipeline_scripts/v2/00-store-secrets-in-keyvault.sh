@@ -124,16 +124,15 @@ if [ "$PLATFORM" == "devops" ]; then
 
 fi
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
-ENVIRONMENT=$(echo "$ZONE" | awk -F'-' '{print $1}')
-LOCATION_CODE=$(echo "$ZONE" | awk -F'-' '{print $2}')
-NETWORK=$(echo "$ZONE" | awk -F'-' '{print $3}')
+
+CONTROL_PLANE_ENVIRONMENT=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $1}')
+CONTROL_PLANE_LOCATION_CODE=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $2}')
+CONTROL_PLANE_NETWORK=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $3}')
+
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
-workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION_CODE}" "${NETWORK}")
+deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${CONTROL_PLANE_ENVIRONMENT}" "${CONTROL_PLANE_LOCATION_CODE}" "${CONTROL_PLANE_NETWORK}")
 
 echo -e "$green--- Read parameter values ---$reset"
-
-deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
-export deployer_tfstate_key
 
 if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
 	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
@@ -141,15 +140,21 @@ if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
 fi
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+  echo "Sourcing Key Vault Id from Application Configuration ($APPLICATION_CONFIGURATION_NAME)"
 	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
 else
 	if [ -n "$KEYVAULT" ]; then
 		key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 		if [ -z "$key_vault_id" ]; then
-			echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
+			if [ "$PLATFORM" == "devops" ]; then
+				echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
+			else
+				echo "'${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
+			fi
 		fi
 	else
-		load_config_vars "${workload_environment_file_name}" "DEPLOYER_KEYVAULT"
+		echo "Sourcing Key Vault from ($deployer_environment_file_name)"
+		load_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT"
 		key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 
 	fi
