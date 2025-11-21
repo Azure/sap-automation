@@ -822,6 +822,11 @@ variable "deploy_defender_extension"            {
 #                                                                                       #
 #########################################################################################
 
+variable "control_plane_name"                   {
+                                                  description = "The name of the control plane"
+                                                  default     = ""
+                                                }
+
 variable "application_configuration_id"          {
                                                     description = "Defines the Azure application configuration Resource id"
                                                     type        = string
