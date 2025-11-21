@@ -45,7 +45,7 @@ printf "az role assignment create --assignee %s --role reader --subscription %s 
 
 printf "\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 printf "\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
-printf "**Assign permissions**\n" >"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
+printf "**Assign permissions**\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 
 printf "\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 printf "\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
