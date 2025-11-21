@@ -304,6 +304,8 @@ resource "local_file" "sap_inventory_md" {
               pas_server                  = try(var.naming.virtualmachine_names.APP_COMPUTERNAME[0], "")
               application_servers         = join(",", var.naming.virtualmachine_names.APP_COMPUTERNAME)
               webdisp_servers             = length(var.naming.virtualmachine_names.WEB_COMPUTERNAME) > 0 ? join(",", var.naming.virtualmachine_names.WEB_COMPUTERNAME) : ""
+              scs_high_availability       = var.scs_high_availability ? "Yes" : "No"
+              database_high_availability  = var.database_high_availability ? "Yes" : "No"
               }
             )
   filename             = format("%s/%s.md", path.cwd, var.sap_sid)

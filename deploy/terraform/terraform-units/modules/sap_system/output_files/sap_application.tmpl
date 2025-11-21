@@ -1,23 +1,33 @@
-** SAP System Deployment **
+*SAP System Deployment*
 
 The SAP Application (${sid}) has been deployed to resource group ${resource_group_name} in subscription ${subscription_id}.
 
 The following servers have been deployed:
 
-Database Servers:      ${db_servers}
-SCS Servers:           ${scs_servers}
-PAS Server:            ${pas_server}
-Application Servers:   ${application_servers}
-Web Dispatcher Servers:${webdisp_servers}
 
-** Access credentials *
+| Role                           | Names                           |
+| ------------------------------ | ------------------------------- |
+| Database Servers               | ${db_servers}                   |
+| SCS Servers:                   | ${scs_servers}                  |
+| PAS Server:                    | ${pas_server}                   |
+| Application Servers:           | ${application_servers}          |
+| Web Dispatcher Servers:        | ${webdisp_servers}              |
 
-The SSH key is stored in key vault:${kv_name} in a secret named:${kv_pwd_secret}
 
-|: Setting         |: Value                           |
-| ---------------- | ------------------------------- |
-| SID              | ${sid}                          |
-| Database         | ${platform}                     |
-| DB SID           | ${db_sid}                       |
-| SCS Server IP    | ${scs_server_loadbalancer_ip}   |
+*Access credentials*
+
+The SSH key is stored in key vault: ${kv_name} in a secret named: ${kv_pwd_secret}
+
+
+*SAP Application Configuration*
+
+
+| Setting                  | Value                           |
+| ------------------------ | ------------------------------- |
+| SID                      | ${sid}                          |
+| Database                 | ${platform}                     |
+| DB SID                   | ${db_sid}                       |
+| SCS Server IP            | ${scs_server_loadbalancer_ip}   |
+| SCS High Availability    | ${scs_high_availability}        |
+| DB High Availability     | ${database_high_availability}   |
 
