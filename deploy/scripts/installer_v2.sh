@@ -1190,7 +1190,7 @@ EOF
 Deployed on: "${now}"
 
 **Configuration details**
-|: Resource												  		 |:	Name                   |
+| Resource | Name |
 | -------------------------------------- | ----------------------- |
 | SID                                    | $SID                    |
 | Platform                               | $PLATFORM               |
