@@ -34,7 +34,7 @@ Terraform_Remote_Storage_Resource_Group_Name=$(echo "$tfstate_resource_id" | cut
 
 printf "Configure the Web Application authentication using the following script.\n" >"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 printf "\n\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
-printf "**Configure authentication**\n" >"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
+printf "**Configure authentication**\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 
 printf "\n\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 
