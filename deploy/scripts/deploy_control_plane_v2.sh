@@ -493,7 +493,7 @@ function migrate_deployer_state() {
 		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 		TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 		export TF_VAR_tfstate_resource_id
-		export "$tfstate_resource_id"
+		export tfstate_resource_id
 
 		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 		terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
