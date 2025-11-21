@@ -1146,7 +1146,6 @@ function sdaf_installer() {
 
 		now=$(date)
 		cat <<EOF >"${WORKLOAD_ZONE_NAME}".md
-# Workload Zone Deployment #
 
 Deployed on: "${now}"
 
@@ -1187,13 +1186,11 @@ EOF
 
 		now=$(date)
 		cat <<EOF >"${SID}".md
-# System Deployment #
 
 Deployed on: "${now}"
 
-## Configuration details ##
 
-| Resource												  		 | Name                    |
+|: Resource												  		 |:	Name                   |
 | -------------------------------------- | ----------------------- |
 | SID                                    | $SID                    |
 | Platform                               | $PLATFORM               |

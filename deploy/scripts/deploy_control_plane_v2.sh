@@ -1072,13 +1072,11 @@ function deploy_control_plane() {
   cd "${deployer_dirname}" || exit
 	now=$(date)
 	cat <<EOF >"${CONTROL_PLANE_NAME}".md
-# Control Plane Deployment #
 
 Deployed on: "${now}"
 
-## Configuration details ##
 
-| Resource												  		 | Name                 |
+|: Resource												  		 |: Name                 |
 | -------------------------------------- | -------------------- |
 | Controlplane name                      | $CONTROL_PLANE_NAME  |
 | Controlplane keyvault name             | ${DEPLOYER_KEYVAULT} |
