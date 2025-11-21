@@ -527,7 +527,7 @@ function migrate_deployer_state() {
 		terraform_subscription_id=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
 		terraform_storage_account_name=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 		terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-		tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --subscription "${terraform_subscription_id}" --out tsv)
+		tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --resource-group "${terraform_storage_account_resource_group_name}" --subscription "${terraform_subscription_id}" --out tsv)
 		export tfstate_resource_id
 		TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 		export TF_VAR_tfstate_resource_id
