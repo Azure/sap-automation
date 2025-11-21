@@ -492,47 +492,65 @@ function migrate_deployer_state() {
 
 		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 		TF_VAR_tfstate_resource_id="$tfstate_resource_id"
-		export TF_VAR_tfstate_resource_id
-		export tfstate_resource_id
 
 		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 		terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 		terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+
 		ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
-		export ARM_SUBSCRIPTION_ID
 		TF_VAR_subscription_id=$terraform_storage_account_subscription_id
-		export TF_VAR_subscription_id
 		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+
+		export ARM_SUBSCRIPTION_ID
+		export TF_VAR_subscription_id
+		export TF_VAR_tfstate_resource_id
+		export terraform_storage_account_name
+		export terraform_storage_account_resource_group_name
+		export terraform_storage_account_subscription_id
+		export tfstate_resource_id
+
 	fi
 
 	if [ -z "$terraform_storage_account_name" ]; then
 		print_banner "$banner_title" "Sourcing parameters from: " "info" "$(basename ${deployer_environment_file_name})"
 		load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
 		TF_VAR_tfstate_resource_id="$tfstate_resource_id"
-		export TF_VAR_tfstate_resource_id
 
 		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-		export terraform_storage_account_name
 		terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
-		export terraform_storage_account_resource_group_name
 		terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
-		export terraform_storage_account_subscription_id
 
 		ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+
 		export ARM_SUBSCRIPTION_ID
+		export TF_VAR_subscription_id
+		export TF_VAR_tfstate_resource_id
+		export terraform_storage_account_name
+		export terraform_storage_account_resource_group_name
+		export terraform_storage_account_subscription_id
+		export tfstate_resource_id
 	fi
 
 	if [ -z "$terraform_storage_account_name" ]; then
 		print_banner "$banner_title" "Sourcing parameters from: " "info" "statefile"
+
 		terraform_subscription_id=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
 		terraform_storage_account_name=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 		terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+
 		tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --resource-group "${terraform_storage_account_resource_group_name}" --subscription "${terraform_subscription_id}" --out tsv)
-		export tfstate_resource_id
+
 		TF_VAR_tfstate_resource_id="$tfstate_resource_id"
-		export TF_VAR_tfstate_resource_id
 		ARM_SUBSCRIPTION_ID=$terraform_subscription_id
+
 		export ARM_SUBSCRIPTION_ID
+		export TF_VAR_subscription_id
+		export TF_VAR_tfstate_resource_id
+		export terraform_storage_account_name
+		export terraform_storage_account_resource_group_name
+		export terraform_storage_account_subscription_id
+		export tfstate_resource_id
+
 
 	fi
 

@@ -693,13 +693,13 @@ function sdaf_installer() {
 
 	new_deployment=0
 
-	az account set --subscription "${terraform_storage_account_subscription_id}"
+	az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 	if [ ! -f .terraform/terraform.tfstate ]; then
 		print_banner "$banner_title" "New deployment" "info"
 
 		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
-			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
+			--backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
 			--backend-config "container_name=tfstate" \
