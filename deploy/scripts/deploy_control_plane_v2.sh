@@ -1078,11 +1078,13 @@ Deployed on: "${now}"
 
 ## Configuration details ##
 
+| Resource												  		 | Name                 |
 | -------------------------------------- | -------------------- |
-| Controlplane name                      | $CONTROL_PLANE_NAME   |
+| Controlplane name                      | $CONTROL_PLANE_NAME  |
 | Controlplane keyvault name             | ${DEPLOYER_KEYVAULT} |
 | Terraform state file storage account   | ${storage_account}   |
 | Application Configuration              | $APPLICATION_CONFIGURATION_NAME   |
+
 
 EOF
 

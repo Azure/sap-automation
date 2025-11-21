@@ -1152,6 +1152,7 @@ Deployed on: "${now}"
 
 ## Configuration details ##
 
+| Resource												  		 | Name                 |
 | -------------------------------------- | -------------------- |
 | Workload zone name                     | $WORKLOAD_ZONE_NAME  |
 | Workload zone keyvault name            | ${workloadkeyvault}  |
@@ -1192,6 +1193,7 @@ Deployed on: "${now}"
 
 ## Configuration details ##
 
+| Resource												  		 | Name                    |
 | -------------------------------------- | ----------------------- |
 | SID                                    | $SID                    |
 | Platform                               | $PLATFORM               |
