@@ -1,0 +1,18 @@
+{
+	"name": "C# (.NET)",
+	"image": "mcr.microsoft.com/devcontainers/dotnet:1-8.0-bookworm",
+	"features": {
+		"ghcr.io/devcontainers-extra/features/ansible:2": {},
+		"ghcr.io/devcontainers/features/azure-cli:1": {},
+		"ghcr.io/devcontainers/features/terraform:1": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {}
+	},
+	"postCreateCommand": "./.devcontainer/post-create.sh",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-azuretools.vscode-docker"
+			]
+		}
+	}
+}
