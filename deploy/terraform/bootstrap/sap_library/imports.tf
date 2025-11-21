@@ -6,8 +6,6 @@
       Import deployer resources
 */
 
-data "azurerm_client_config" "current" {}
-
 data "terraform_remote_state" "deployer"          {
                                                     backend      = "local"
                                                     count        = length(var.deployer_statefile_foldername) > 0  ? 1 : 0
