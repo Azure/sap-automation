@@ -1,15 +1,23 @@
-# SAP System Deployment
+** SAP System Deployment **
 
-| Setting          | Value                           |
+The SAP Application (${sid}) has been deployed to resource group ${resource_group_name} in subscription ${subscription_id}.
+
+The following servers have been deployed:
+
+Database Servers:      ${db_servers}
+SCS Servers:           ${scs_servers}
+PAS Server:            ${pas_server}
+Application Servers:   ${application_servers}
+Web Dispatcher Servers:${webdisp_servers}
+
+** Access credentials *
+
+The SSH key is stored in key vault:${kv_name} in a secret named:${ssh_key_secret_name}
+
+|: Setting         |: Value                           |
 | ---------------- | ------------------------------- |
 | SID              | ${sid}                          |
 | Database         | ${platform}                     |
 | DB SID           | ${db_sid}                       |
 | SCS Server IP    | ${scs_server_loadbalancer_ip}   |
 
-## Access credentials
-
-| Setting          | Value                           |
-| ---------------- | ------------------------------- |
-| Keyvault         | ${kv_name}                      |
-| Secret           | ${kv_pwd_secret}                |

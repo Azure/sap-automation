@@ -297,6 +297,13 @@ resource "local_file" "sap_inventory_md" {
               scs_server_loadbalancer_ip  = length(var.scs_server_loadbalancer_ip) > 0 ? var.scs_server_loadbalancer_ip : try(var.scs_server_ips[0], "")
               platform                    = lower(var.platform)
               kv_pwd_secret               = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
+              resource_group_name         = var.created_resource_group_name
+              subscription_id             = var.created_resource_group_subscription_id
+              db_servers                  = var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",", var.naming.virtualmachine_names.ANYDB_COMPUTERNAME)
+              scs_servers                 = join(",", var.naming.virtualmachine_names.SCS_COMPUTERNAME)
+              pas_server                  = try(var.naming.virtualmachine_names.APP_COMPUTERNAME[0], "")
+              application_servers         = join(",", var.naming.virtualmachine_names.APP_COMPUTERNAME)
+              webdisp_servers             = length(var.naming.virtualmachine_names.WEB_COMPUTERNAME) > 0 ? join(",", var.naming.virtualmachine_names.WEB_COMPUTERNAME) : ""
               }
             )
   filename             = format("%s/%s.md", path.cwd, var.sap_sid)

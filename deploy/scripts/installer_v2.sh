@@ -1197,6 +1197,7 @@ Deployed on: "${now}"
 | SCS High Availability                  | $SCS_HIGH_AVAILABILITY  |
 | Database High Availability             | $DB_HIGH_AVAILABILITY   |
 
+
 EOF
 
 	fi
