@@ -1,6 +1,6 @@
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |     This workflow builds the SAP Container Image with GitHub Actions      |
+# |     This workflows builds the SAP Container Image with GitHub Actions      |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -33,10 +33,10 @@ jobs:
 
     steps:
     - name: Checkout main repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
 
     - name: Checkout SAP-automation-samples
-      uses: actions/checkout@v4
+      uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
       with:
         repository: Azure/SAP-automation-samples
         path: SAP-automation-samples
@@ -44,7 +44,7 @@ jobs:
     - name: Determine package versions
       id: versions
       run: |
-        jq_version=$(gh api https://api.github.com/repos/mikefarah/yq/releases/latest | jq '.name' -r)
+        jq_version=$(gh api https://api.github.com/repos/mikefarah/yq/releases/latest| jq '.name' -r)
         echo "jq=$jq_version" >> $GITHUB_OUTPUT
 
         tf_version=$(curl -s https://releases.hashicorp.com/terraform/index.json | jq -r '.versions | keys[]' | grep -Ev 'alpha|beta|rc' | sort -V | tail -n 1)
