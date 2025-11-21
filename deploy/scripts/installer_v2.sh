@@ -1149,7 +1149,7 @@ function sdaf_installer() {
 
 Deployed on: "${now}"
 
-## Configuration details ##
+**Configuration details**
 
 | Resource												  		 | Name                 |
 | -------------------------------------- | -------------------- |
@@ -1189,7 +1189,7 @@ EOF
 
 Deployed on: "${now}"
 
-
+**Configuration details**
 |: Resource												  		 |:	Name                   |
 | -------------------------------------- | ----------------------- |
 | SID                                    | $SID                    |
