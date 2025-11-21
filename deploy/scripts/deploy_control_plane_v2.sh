@@ -1072,20 +1072,21 @@ function deploy_control_plane() {
 	now=$(date)
 	cat <<EOF >"${CONTROL_PLANE_NAME}".md
 
-Control Plane Deployment $CONTROL_PLANE_NAME details:
+**Control Plane Deployment details**
 
-Deployment Date: $now
-
-**Resources**
 
 | Name                                  | Value                                      |
 |:------------------------------------- |:------------------------------------------ |
-| Keyvault name:                        | ${DEPLOYER_KEYVAULT}                       |
-| Terraform state file storage account: | ${terraform_storage_account_name}          |
-| Application Configuration:            | $APPLICATION_CONFIGURATION_NAME            |
-| Deployer State File:                  | ${deployer_tfstate_key}                    |
-| Library State File:                   | ${library_tfstate_key}                     |
-| Control Plane subscription:           | ${subscription}                            |
+| Control Plane name                    | ${CONTROL_PLANE_NAME}                      |
+| Keyvault name                         | ${DEPLOYER_KEYVAULT}                       |
+| Terraform state file storage account  | ${terraform_storage_account_name}          |
+| Application Configuration             | $APPLICATION_CONFIGURATION_NAME            |
+| Deployer State File                   | ${deployer_tfstate_key}                    |
+| Library State File                    | ${library_tfstate_key}                     |
+| Control Plane subscription            | ${subscription}                            |
+
+Deployment Date: $now
+
 
 EOF
 
