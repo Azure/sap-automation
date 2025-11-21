@@ -28,8 +28,8 @@ source "${grand_parent_directory}/deploy_utils.sh"
 source "${parent_directory}/helper.sh"
 
 app_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APP_SERVICE_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-app_service_resource_group=$(echo "$app_service_id" | cut -d '/' -f 5)
-app_service_subscription=$(echo "$app_service_id" | cut -d '/' -f 3)
+app_service_resource_group=$(echo "$app_resource_id" | cut -d '/' -f 5)
+app_service_subscription=$(echo "$app_resource_id" | cut -d '/' -f 3)
 {
 printf "Configure the Web Application authentication using the following script.\n" >"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
 printf "\n\n" >>"$BUILD_REPOSITORY_LOCALPATH/Web Application Configuration.md"
