@@ -104,7 +104,6 @@ stages:
               ARM_TENANT_ID:                      $(ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              DEPLOYER_KEYVAULT:                  $(DEPLOYER_KEYVAULT)
               DEPLOYER_TFSTATE_KEY:               "${{ parameters.deployer }}.terraform.tfstate"
               FORCE_RESET:                        ${{ lower(parameters.force_reset) }}
               IS_PIPELINE_DEPLOYMENT:             true
