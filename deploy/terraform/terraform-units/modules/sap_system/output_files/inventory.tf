@@ -308,7 +308,7 @@ resource "local_file" "sap_inventory_md" {
               webdisp_servers             = length(var.naming.virtualmachine_names.WEB_COMPUTERNAME) > 0 ? join(",", var.naming.virtualmachine_names.WEB_COMPUTERNAME) : ""
               scs_high_availability       = var.scs_high_availability ? "Yes" : "No"
               database_high_availability  = var.database_high_availability ? "Yes" : "No"
-              url                         = format("https://portal.azure.com/#%s/resource/subscriptions/%s/resourceGroups/%s/overview", data.azurerm_client_config.current.tenant_id, var.created_resource_group_subscription_id, var.created_resource_group_name)
+              url                         = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/overview", data.azurerm_client_config.current.tenant_id, var.created_resource_group_subscription_id, var.created_resource_group_name)
               }
             )
   filename             = format("%s/%s.md", path.cwd, var.sap_sid)
