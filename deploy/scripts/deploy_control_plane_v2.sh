@@ -1084,7 +1084,7 @@ Terraform state file storage account: ${storage_account}
 Application Configuration:            $APPLICATION_CONFIGURATION_NAME
 Deployer State File:                  ${deployer_tfstate_key}
 Library State File:                   ${library_tfstate_key}
-Control Plane subscription:           ${subscription}"
+Control Plane subscription:           ${subscription}
 
 EOF
 
