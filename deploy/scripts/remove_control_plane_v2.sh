@@ -411,9 +411,10 @@ function remove_control_plane() {
 		rm init_error.log
 	fi
 
-	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
+	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/sap_deployer"
 
 	if [ -f "${deployer_dirname}/.terraform/terraform.tfstate" ]; then
+	  cat "${deployer_dirname}/.terraform/terraform.tfstate"
 		azure_backend=$(grep "\"type\": \"azurerm\"" "${deployer_dirname}/.terraform/terraform.tfstate" || true)
 		if [ -n "$azure_backend" ]; then
 			echo "Terraform state:                     remote"
