@@ -1104,7 +1104,7 @@ function ImportAndReRunApply {
 			else
 				print_banner "Installer" "Number of permission errors: $msi_error_count - can safely be ignored" "info"
 			fi
-an association between
+
 			# Check for resource that can be imported
 			existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
 			if [[ -z $existing ]]; then
@@ -1117,6 +1117,10 @@ an association between
 				readarray -t associations < <(echo "${existing_associations}" | jq -c '.')
 				for item in "${associations[@]}"; do
 				  echo $item
+     			moduleID=$(jq -c -r '.address ' <<<"$item")
+					echo $"Trying to import association into $moduleID"
+					azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
+
 
 				done
 			fi
