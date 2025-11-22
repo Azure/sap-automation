@@ -459,7 +459,7 @@ function remove_control_plane() {
 	deployer_statefile_foldername_path="${param_dirname}"
 	export TF_VAR_deployer_statefile_foldername="${deployer_statefile_foldername_path}"
 
-	if [ -z $TF_VAR_spn_keyvault_id ]; then
+	if [ ! -v TF_VAR_spn_keyvault_id ]; then
 		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 			keyvault_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
 			TF_VAR_spn_keyvault_id="${keyvault_id}"
