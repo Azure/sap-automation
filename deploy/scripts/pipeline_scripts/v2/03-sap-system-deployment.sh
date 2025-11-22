@@ -422,7 +422,7 @@ if [ -f "${SID}.md" ]; then
 	  sudo cp "${SID}.md" "$AGENT_TEMPDIRECTORY/${SID}.md"
 		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${SID}.md;]$AGENT_TEMPDIRECTORY/${SID}.md"
 	elif [ "$PLATFORM" == "github" ]; then
-		cat "${WORKLOAD_ZONE_NAME}.md" >>$GITHUB_STEP_SUMMARY
+		cat "${SID}.md" >>$GITHUB_STEP_SUMMARY
 	fi
 fi
 
