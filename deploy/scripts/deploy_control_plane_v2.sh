@@ -653,7 +653,7 @@ function migrate_library_state() {
 					terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 					tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
 					TF_VAR_tfstate_resource_id=$tfstate_resource_id
-    			ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+					ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
 
 					export TF_VAR_tfstate_resource_id
 					export terraform_storage_account_name
@@ -823,9 +823,6 @@ function retrieve_parameters() {
 			load_config_vars "${deployer_environment_file_name}" \
 				tfstate_resource_id DEPLOYER_KEYVAULT
 
-			TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
-			export TF_VAR_spn_keyvault_id
-
 			export TF_VAR_tfstate_resource_id
 			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
 			export terraform_storage_account_name
@@ -836,6 +833,13 @@ function retrieve_parameters() {
 			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 			export terraform_storage_account_subscription_id
 		fi
+	fi
+
+	if [ -n "${DEPLOYER_KEYVAULT:-}" ]; then
+		load_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT"
+
+		TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
+		export TF_VAR_spn_keyvault_id
 	fi
 
 }
