@@ -1118,8 +1118,9 @@ function ImportAndReRunApply {
 				for item in "${associations[@]}"; do
 				  echo $item
      			moduleID=$(jq -c -r '.address ' <<<"$item")
-					echo $"Trying to import association into $moduleID"
-					azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
+					echo "Trying to import association into $moduleID"
+					azureResourceID=$(jq -c -r '.summary ' <<< $info | awk -v RS="an association between " '{print $1}')
+					echo "Trying to import $azureResourceID association into $moduleID"
 
 
 				done
