@@ -94,7 +94,7 @@ provider "azurerm"                     {
                                        }
 
 provider "azuread"                     {
-                                         client_id                  = var.use_spn ? var.subscription_id : null
+                                         client_id                  = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null
                                          client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.client_secret[0].value : null
                                          tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
                                        }
