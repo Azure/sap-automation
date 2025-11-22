@@ -477,13 +477,9 @@ elif [ "$PLATFORM" == "github" ]; then
 fi
 
 echo -e "$green--- Update repo ---$reset_formatting"
-if [ -f ".sap_deployment_automation/$CONTROL_PLANE_NAME" ]; then
-	git add ".sap_deployment_automation/$CONTROL_PLANE_NAME"
-	added=1
-fi
 
-if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md" ]; then
-	git add ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
+if [ -f "${deployer_environment_file_name}" ]; then
+	git add -f "${deployer_environment_file_name}"
 	added=1
 fi
 
