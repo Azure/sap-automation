@@ -350,30 +350,28 @@ function retrieve_parameters() {
 
 		if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 			print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$APPLICATION_CONFIGURATION_NAME ($app_config_subscription)"
+			TF_VAR_spn_keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+			keyvault=$(echo "$TF_VAR_spn_keyvault_id" | cut -d'/' -f9)
+
+			management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
+			TF_VAR_management_subscription_id=${management_subscription_id}
+			export TF_VAR_management_subscription_id
+			export TF_VAR_spn_keyvault_id
+			export keyvault
 
 			if [ -z "$tfstate_resource_id" ]; then
-
 				tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
-				TF_VAR_tfstate_resource_id=$tfstate_resource_id
-
-				TF_VAR_spn_keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-				keyvault=$(echo "$TF_VAR_spn_keyvault_id" | cut -d'/' -f9)
-
-				management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
-				TF_VAR_management_subscription_id=${management_subscription_id}
-
+			else
 				terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
 				terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
 				terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
-
-				export TF_VAR_management_subscription_id
-				export TF_VAR_spn_keyvault_id
-				export TF_VAR_tfstate_resource_id
-				export keyvault
-				export terraform_storage_account_name
-				export terraform_storage_account_resource_group_name
-				export terraform_storage_account_subscription_id
 			fi
+			TF_VAR_tfstate_resource_id=$tfstate_resource_id
+
+			export TF_VAR_tfstate_resource_id
+			export terraform_storage_account_name
+			export terraform_storage_account_resource_group_name
+			export terraform_storage_account_subscription_id
 		fi
 	fi
 
