@@ -338,6 +338,12 @@ function retrieve_parameters() {
 
 	TF_VAR_control_plane_name="${CONTROL_PLANE_NAME}"
 	export TF_VAR_control_plane_name
+	if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+		if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+			export APPLICATION_CONFIGURATION_ID
+		fi
+	fi
 
 	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
 		app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
@@ -1095,7 +1101,7 @@ function sdaf_installer() {
 
 		APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 		if [ -n "${APP_SERVICE_NAME}" ]; then
-			printf -v val 	%-.30s "$APP_SERVICE_NAME"
+			printf -v val %-.30s "$APP_SERVICE_NAME"
 			print_banner "$banner_title" "Application Service: $val" "info"
 			save_config_var "APP_SERVICE_NAME" "${system_environment_file_name}"
 			export APP_SERVICE_NAME
@@ -1181,7 +1187,6 @@ EOF
 		PLATFORM=$(grep -m1 "platform" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
 		SCS_HIGH_AVAILABILITY=$(grep -m1 "scs_high_availability" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
 		DB_HIGH_AVAILABILITY=$(grep -m1 "database_high_availability" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
-
 
 		now=$(date)
 		cat <<EOF >"${SID}".md
