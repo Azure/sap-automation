@@ -295,7 +295,7 @@ resource "local_file" "sap_inventory_md" {
   content = templatefile(format("%s/sap_application.tmpl", path.module), {
               sid                         = var.sap_sid,
               db_sid                      = var.db_sid
-              kv_name                     = local.kv_name,
+              keyvault_name               = local.kv_name,
               scs_server_loadbalancer_ip  = length(var.scs_server_loadbalancer_ip) > 0 ? var.scs_server_loadbalancer_ip : try(var.scs_server_ips[0], "")
               platform                    = lower(var.platform)
               password_secret_name        = format("%s-%s-sid-password", local.secret_prefix, var.sap_sid)

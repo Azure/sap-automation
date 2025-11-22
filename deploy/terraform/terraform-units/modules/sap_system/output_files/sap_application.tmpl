@@ -4,36 +4,39 @@ The SAP Application (${sid}) has been deployed to resource group **${resource_gr
 
 You can access the resource group directly in the Azure Portal using the following link: [${resource_group_name}](${url})
 
+**SAP Application Information**
 
 
-The following servers have been deployed:
+| Setting                    | Value                           |
+| :------------------------- | :------------------------------ |
+| SID                        | ${sid}                          |
+| Database                   | ${platform}                     |
+| DB SID                     | ${db_sid}                       |
+| SCS Server Loadbalancer IP | ${scs_server_loadbalancer_ip}   |
+| SCS High Availability      | ${scs_high_availability}        |
+| DB High Availability       | ${database_high_availability}   |
+
+
+**Server Roles and Names**
 
 
 | Role                           | Names                           |
 | :----------------------------- | :------------------------------ |
-| Database Servers               | ${db_servers}                   |
-| SCS Servers:                   | ${scs_servers}                  |
-| PAS Server:                    | ${pas_server}                   |
-| Application Servers:           | ${application_servers}          |
-| Web Dispatcher Servers:        | ${webdisp_servers}              |
+| Database                       | ${db_servers}                   |
+| Central Services               | ${scs_servers}                  |
+| Primary Application Server     | ${pas_server}                   |
+| Additional Application Servers | ${application_servers}          |
+| Web Dispatchers         | ${webdisp_servers}              |
 
 
 **Access credentials**
 
-The username is stored in the key vault: **${kv_name}** in a secret named **${username_secret_name}**
-The SSH key is stored in the key vault: **${kv_name}** in a secret named **${ssh_secret_name}**
-The password key stored in the key vault: **${kv_name}** in a secret named **${password_secret_name}**
-
-
-**SAP Application Configuration**
-
 
 | Setting                  | Value                           |
 | :----------------------- | :------------------------------ |
-| SID                      | ${sid}                          |
-| Database                 | ${platform}                     |
-| DB SID                   | ${db_sid}                       |
-| SCS Server IP            | ${scs_server_loadbalancer_ip}   |
-| SCS High Availability    | ${scs_high_availability}        |
-| DB High Availability     | ${database_high_availability}   |
+| Key Vault Name           | ${keyvault_name}                |
+| Secret name for username | ${username_secret_name}         |
+| Secret name for password | ${password_secret_name}         |
+| Secret name for SSH key  | ${ssh_secret_name}              |
+
 
