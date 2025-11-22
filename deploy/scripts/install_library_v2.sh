@@ -435,8 +435,6 @@ function install_library() {
 		fi
 	fi
 
-	printenv | sort | grep ARM
-
 	print_banner "$banner_title" "Running Terraform plan" "info"
 
 	return_value=0

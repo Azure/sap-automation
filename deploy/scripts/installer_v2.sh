@@ -598,6 +598,7 @@ function sdaf_installer() {
 		export TF_LOG
 		echo ""
 		printenv | grep ARM_
+		printenv | grep TF_VAR_
 	fi
 
 	if [ 1 == $called_from_ado ]; then
