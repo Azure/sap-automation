@@ -413,11 +413,11 @@ function remove_control_plane() {
 
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
 
-	if [ -f .terraform/terraform.tfstate ]; then
-		azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+	if [ -f "${deployer_dirname}/.terraform/terraform.tfstate" ]; then
+		azure_backend=$(grep "\"type\": \"azurerm\"" "${deployer_dirname}/.terraform/terraform.tfstate" || true)
 		if [ -n "$azure_backend" ]; then
 			echo "Terraform state:                     remote"
-			if terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade -force-copy --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			if terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade -force-copy --backend-config "path=${deployer_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
 			else
@@ -427,7 +427,7 @@ function remove_control_plane() {
 
 		else
 			echo "Terraform state:                     local"
-			if terraform -chdir="${terraform_module_directory}" init -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			if terraform -chdir="${terraform_module_directory}" init -upgrade --backend-config "path=${deployer_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
 			else
@@ -438,7 +438,7 @@ function remove_control_plane() {
 		fi
 	else
 		echo "Terraform state:                     unknown"
-		if terraform -chdir="${terraform_module_directory}" init -reconfigure -upgrade --backend-config "path=${param_dirname}/terraform.tfstate"; then
+		if terraform -chdir="${terraform_module_directory}" init -reconfigure -upgrade --backend-config "path=${deployer_dirname}/terraform.tfstate"; then
 			return_value=$?
 			print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
 		else
@@ -479,11 +479,11 @@ function remove_control_plane() {
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
-	if [ -f .terraform/terraform.tfstate ]; then
-		azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
+	if [ -f "${library_dirname}/.terraform/terraform.tfstate" ]; then
+		azure_backend=$(grep "\"type\": \"azurerm\"" "${library_dirname}/.terraform/terraform.tfstate" || true)
 		if [ -n "$azure_backend" ]; then
 			echo "Terraform state:                     remote"
-			if terraform -chdir="${terraform_module_directory}" init -upgrade -force-copy -migrate-state --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			if terraform -chdir="${terraform_module_directory}" init -upgrade -force-copy -migrate-state --backend-config "path=${library_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "Remove Control Plane " "Terraform init succeeded (library - local)" "success"
 			else
@@ -492,7 +492,7 @@ function remove_control_plane() {
 			fi
 		else
 			echo "Terraform state:                     local"
-			if terraform -chdir="${terraform_module_directory}" init -upgrade -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
+			if terraform -chdir="${terraform_module_directory}" init -upgrade  --backend-config "path=${library_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "Remove Control Plane " "Terraform init succeeded (library - local)" "success"
 			else
@@ -503,7 +503,7 @@ function remove_control_plane() {
 		fi
 	else
 		echo "Terraform state:                     unknown"
-		if terraform -chdir="${terraform_module_directory}" init -upgrade -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
+		if terraform -chdir="${terraform_module_directory}" init -upgrade -reconfigure --backend-config "path=${library_dirname}/terraform.tfstate"; then
 			return_value=$?
 			print_banner "Remove Control Plane " "Terraform init succeeded (library - local)" "success"
 		else
