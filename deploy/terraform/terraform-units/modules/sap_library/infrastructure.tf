@@ -19,6 +19,10 @@ resource "azurerm_resource_group" "library" {
                 tags
               ]
             }
+  timeouts {
+             create = "10m"
+             delete = "10m"
+           }
 
 }
 
