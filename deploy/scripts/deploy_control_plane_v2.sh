@@ -565,8 +565,6 @@ function migrate_deployer_state() {
 	echo "Calling installer_v2.sh with: --type sap_deployer --parameter_file ${deployer_parameter_file_name} --control_plane_name ${CONTROL_PLANE_NAME} --storage_accountname "${terraform_storage_account_name:-}" --application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-}"
 	echo ""
 
-	printenv | sort | grep TF_VAR_
-
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$deployer_parameter_file_name" --type sap_deployer \
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
 		--storage_accountname "$terraform_storage_account_name" $devops_flag "${autoApproveParameter}"; then

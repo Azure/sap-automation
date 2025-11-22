@@ -263,11 +263,13 @@ fi
 terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 
 export terraform_storage_account_name
 export terraform_storage_account_resource_group_name
 export terraform_storage_account_subscription_id
 export tfstate_resource_id
+export TF_VAR_tfstate_resource_id
 
 cd "$CONFIG_REPO_PATH/LANDSCAPE/${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE" || exit
 print_banner "$banner_title" "Starting the deployment" "info"
