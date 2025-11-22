@@ -354,6 +354,17 @@ function remove_control_plane() {
 
 	key=$(echo "${deployer_parameter_file}" | cut -d. -f1)
 
+	current_directory=$(pwd)
+
+	#we know that we have a valid az session so let us set the environment variables
+
+	# Deployer
+
+	cd "${deployer_dirname}" || exit
+
+	param_dirname=$(pwd)
+
+
 	if [ -f .terraform/terraform.tfstate ]; then
 		terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
 		terraform_storage_account_name=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
@@ -388,16 +399,6 @@ function remove_control_plane() {
 	export TF_VAR_Agent_IP=$this_ip
 	echo "Agent IP:                              $this_ip"
 
-	current_directory=$(pwd)
-
-	#we know that we have a valid az session so let us set the environment variables
-	set_executing_user_environment_variables "none"
-
-	# Deployer
-
-	cd "${deployer_dirname}" || exit
-
-	param_dirname=$(pwd)
 
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/sap_deployer/
 	export TF_DATA_DIR="${param_dirname}/.terraform"
