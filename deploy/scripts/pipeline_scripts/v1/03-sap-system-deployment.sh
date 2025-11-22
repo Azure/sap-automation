@@ -57,7 +57,6 @@ if [ $USE_MSI == "true" ]; then
 	export ARM_USE_MSI
 fi
 
-
 if az account show --query name; then
 	echo -e "$green--- Already logged in to Azure ---$reset"
 else
@@ -289,6 +288,18 @@ fi
 if [ -f "${SID}_virtual_machines.json" ]; then
 	git add "${SID}_virtual_machines.json"
 	added=1
+fi
+
+if [ -f "${SID}.md" ]; then
+	sudo cp "${SID}.md" "readme.md"
+	git add "readme.md"
+	added=1
+fi
+
+if [ -f "${SID}.md" ]; then
+	cat "${SID}.md"
+	sudo cp "${SID}.md" "$AGENT_TEMPDIRECTORY/${SID}.md"
+	echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${SID}.md;]$AGENT_TEMPDIRECTORY/${SID}.md"
 fi
 
 if [ 1 == $added ]; then

@@ -370,6 +370,12 @@ if [ -f "${SID}_virtual_machines.json" ]; then
 	added=1
 fi
 
+if [ -f "${SID}.md" ]; then
+	sudo cp "${SID}.md" "readme.md"
+	git add "readme.md"
+	added=1
+fi
+
 
 # Commit changes based on platform
 if [ 1 = $added ]; then
