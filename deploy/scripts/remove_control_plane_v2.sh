@@ -321,6 +321,14 @@ function remove_control_plane() {
 
 	# Parse command line arguments
 	parse_arguments "$@"
+
+	if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+		if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+			export APPLICATION_CONFIGURATION_ID
+		fi
+	fi
+
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 	ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
@@ -363,13 +371,6 @@ function remove_control_plane() {
 	cd "${deployer_dirname}" || exit
 
 	param_dirname=$(pwd)
-
-
-	if [ -f .terraform/terraform.tfstate ]; then
-		terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
-		terraform_storage_account_name=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-		terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-	fi
 
 	echo ""
 	echo -e "${green}Terraform details:"
