@@ -70,7 +70,7 @@ provider "azurerm"                     {
                                          subscription_id            = var.use_deployer ? (
                                                                         coalesce(
                                                                           var.subscription_id,
-                                                                          data.azurerm_key_vault_secret.subscription_id[0].value)
+                                                                          try(data.azurerm_key_vault_secret.subscription_id[0].value,""))
                                                                           ) : (
                                                                         null
                                                                         )
