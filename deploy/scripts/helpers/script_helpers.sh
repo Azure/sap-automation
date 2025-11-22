@@ -1088,29 +1088,6 @@ function ImportAndReRunApply {
 
 		if [[ -n $errors_occurred ]]; then
 
-			msi_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("The role assignment already exists."))' "$fileName")
-			if [[ -n "${msi_errors_temp}" ]]; then
-				readarray -t msi_errors < <(echo "${msi_errors_temp}" | jq -c '.')
-				msi_error_count=${#msi_errors[@]}
-			fi
-
-			errors_temp=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} ' "$fileName")
-			if [[ -n "${errors_temp}" ]]; then
-				readarray -t errors < <(echo "${errors_temp}" | jq -c '.')
-				error_count=${#errors[@]}
-			fi
-			if [[ "${error_count}" -gt 0 ]]; then
-				print_banner "Installer" "Number of errors: $error_count" "error" "Number of permission errors: $msi_error_count"
-			else
-				print_banner "Installer" "Number of permission errors: $msi_error_count - can safely be ignored" "info"
-			fi
-
-			# Check for resource that can be imported
-			existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
-			if [[ -z $existing ]]; then
-				existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("a resource with the ID"))' "$fileName")
-			fi
-
 			existing_associations=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("an association between"))' "$fileName")
 			if [[ -n $existing_associations ]]; then
 				echo "Importing existing associations:"
@@ -1139,6 +1116,28 @@ function ImportAndReRunApply {
 					fi
 
 				done
+			fi
+			msi_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("The role assignment already exists."))' "$fileName")
+			if [[ -n "${msi_errors_temp}" ]]; then
+				readarray -t msi_errors < <(echo "${msi_errors_temp}" | jq -c '.')
+				msi_error_count=${#msi_errors[@]}
+			fi
+
+			errors_temp=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} ' "$fileName")
+			if [[ -n "${errors_temp}" ]]; then
+				readarray -t errors < <(echo "${errors_temp}" | jq -c '.')
+				error_count=${#errors[@]}
+			fi
+			if [[ "${error_count}" -gt 0 ]]; then
+				print_banner "Installer" "Number of errors: $error_count" "error" "Number of permission errors: $msi_error_count"
+			else
+				print_banner "Installer" "Number of permission errors: $msi_error_count - can safely be ignored" "info"
+			fi
+
+			# Check for resource that can be imported
+			existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
+			if [[ -z $existing ]]; then
+				existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("a resource with the ID"))' "$fileName")
 			fi
 
 			if [[ -n $existing ]]; then
