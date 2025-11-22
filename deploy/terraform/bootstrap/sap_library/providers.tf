@@ -101,9 +101,9 @@ provider "azurerm"                     {
                                        }
 
 provider "azuread"                     {
-                                         client_id                  = data.azurerm_key_vault_secret.client_id[0].value
-                                         client_secret              = ephemeral.azurerm_key_vault_secret.client_secret[0].value
-                                         tenant_id                  = data.azurerm_key_vault_secret.tenant_id[0].value
+                                         client_id                  = local.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null
+                                         client_secret              = local.use_spn ? ephemeral.azurerm_key_vault_secret.client_secret[0].value : null
+                                         tenant_id                  = local.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
                                        }
 
 terraform                              {
