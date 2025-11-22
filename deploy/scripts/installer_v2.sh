@@ -346,11 +346,10 @@ function retrieve_parameters() {
 	fi
 
 	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
-		app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
 		app_config_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f3)
 
 		if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-			print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
+			print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$APPLICATION_CONFIGURATION_NAME ($app_config_subscription)"
 
 			if [ -z "$tfstate_resource_id" ]; then
 
@@ -358,11 +357,10 @@ function retrieve_parameters() {
 				TF_VAR_tfstate_resource_id=$tfstate_resource_id
 
 				TF_VAR_spn_keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+				keyvault=$(echo "$TF_VAR_spn_keyvault_id" | cut -d'/' -f9)
 
 				management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
 				TF_VAR_management_subscription_id=${management_subscription_id}
-
-				keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
 
 				terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
 				terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
@@ -676,6 +674,8 @@ function sdaf_installer() {
 	echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
 	echo "Deployer state file:                 ${deployer_tfstate_key}"
 	echo "Workload zone state file:            ${landscape_tfstate_key}"
+	echo "Control plane keyvault:              ${keyvault}"
+	echo ""
 	echo "Current directory:                   $(pwd)"
 	echo "Parallelism count:                   $parallelism"
 	echo ""
