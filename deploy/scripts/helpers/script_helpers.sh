@@ -1111,13 +1111,13 @@ function ImportAndReRunApply {
 				existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("a resource with the ID"))' "$fileName")
 			fi
 
-  		existing_associations=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("an association between"))' "$fileName")
+			existing_associations=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("an association between"))' "$fileName")
 			if [[ -n $existing_associations ]]; then
-			  echo "Importing existing associations:"
+				echo "Importing existing associations:"
 				readarray -t associations < <(echo "${existing_associations}" | jq -c '.')
 				for item in "${associations[@]}"; do
-     			moduleID=$(jq -c -r '.address ' <<<"$item")
-					azureResourceID=$(jq -c -r '.summary ' <<< "$item" | awk -v RS="an association between " '{print $1}' | tr '\n' ''  | xargs)
+					moduleID=$(jq -c -r '.address ' <<<"$item")
+					azureResourceID=$(jq -c -r '.summary ' <<<"$item" | awk -v RS="an association between " '{print $1}' | xargs)
 					echo "Trying to import $azureResourceID association into $moduleID"
 					if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
 						import_return_value=$?
@@ -1131,7 +1131,12 @@ function ImportAndReRunApply {
 							fi
 						fi
 					fi
-
+					# shellcheck disable=SC2086
+					if terraform -chdir="${terraform_module_directory}" apply -no-color  -replace=$moduleID -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
+						import_return_value=${PIPESTATUS[0]}
+					else
+						import_return_value=${PIPESTATUS[0]}
+					fi
 
 				done
 			fi
