@@ -393,6 +393,15 @@ variable "deployer_authentication_path_to_private_key" {
 #                                                                              #
 #######################################4#######################################8
 
+variable "spn_keyvault_id"                      {
+                                                  description = "Azure resource identifier for the keyvault where the spn will be stored"
+                                                  default = ""
+                                                  validation {
+                                                    condition     = length(var.spn_keyvault_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.spn_keyvault_id))
+                                                    error_message = "If specified the 'spn_keyvault_id' variable must be a correct Azure resource identifier."
+                                                  }
+
+                                                }
 variable "user_keyvault_id"                           {
                                                         description = "Azure resource identifier for the Azure Key Vault containing the deployment credentials"
                                                         default     = ""

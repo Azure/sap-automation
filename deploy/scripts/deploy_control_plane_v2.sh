@@ -799,10 +799,10 @@ function retrieve_parameters() {
 		export terraform_storage_account_resource_group_name
 
 		terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
-		TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-		export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+		TF_VAR_spn_keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+		export TF_VAR_spn_keyvault_id
 
-		keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+		keyvault=$(echo "$TF_VAR_spn_keyvault_id" | cut -d'/' -f9)
 		export keyvault
 
 		app_service_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_AppServiceId" "${CONTROL_PLANE_NAME}")

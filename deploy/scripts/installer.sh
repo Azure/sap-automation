@@ -399,10 +399,10 @@ if [ "${deployment_system}" != sap_deployer ]; then
 	fi
 else
 	load_config_vars "${system_environment_file_name}" "keyvault"
-	TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
-	export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+	TF_VAR_spn_keyvault_id=$(az resource list --name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+	export TF_VAR_spn_keyvault_id
 
-	echo "Deployer Keyvault ID:                $TF_VAR_deployer_kv_user_arm_id"
+	echo "Deployer Keyvault ID:                $TF_VAR_spn_keyvault_id"
 	deployer_parameter="  -var subscription_id=${STATE_SUBSCRIPTION} "
 
 	export ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
