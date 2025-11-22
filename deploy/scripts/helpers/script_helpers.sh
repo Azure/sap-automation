@@ -1117,7 +1117,7 @@ function ImportAndReRunApply {
 				readarray -t associations < <(echo "${existing_associations}" | jq -c '.')
 				for item in "${associations[@]}"; do
      			moduleID=$(jq -c -r '.address ' <<<"$item")
-					azureResourceID=$(jq -c -r '.summary ' <<< "$item" | awk -v RS="an association between " '{print $1}')
+					azureResourceID=$(jq -c -r '.summary ' <<< "$item" | awk -v RS="an association between " '{print $1}' | tr '\n' ''  | xargs)
 					echo "Trying to import $azureResourceID association into $moduleID"
 					if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
 						import_return_value=$?
