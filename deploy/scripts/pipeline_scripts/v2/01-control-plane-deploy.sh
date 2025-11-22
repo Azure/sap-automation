@@ -254,7 +254,7 @@ if [ -n "$tfstate_resource_id" ]; then
 	export tfstate_resource_id
 
 else
-	echo "Terraform storage account:            undefined"
+	echo "Terraform storage account:          undefined"
 fi
 
 start_group "Decrypting state files"
