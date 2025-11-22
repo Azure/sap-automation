@@ -1104,10 +1104,21 @@ function ImportAndReRunApply {
 			else
 				print_banner "Installer" "Number of permission errors: $msi_error_count - can safely be ignored" "info"
 			fi
+an association between
 			# Check for resource that can be imported
 			existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
 			if [[ -z $existing ]]; then
 				existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("a resource with the ID"))' "$fileName")
+			fi
+
+  		existing_associations=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("an association between"))' "$fileName")
+			if [[ -n $existing_associations ]]; then
+			  echo "Importing existing associations:"
+				readarray -t associations < <(echo "${existing_associations}" | jq -c '.')
+				for item in "${associations[@]}"; do
+				  echo $item
+
+				done
 			fi
 
 			if [[ -n $existing ]]; then
