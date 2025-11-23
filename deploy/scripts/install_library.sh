@@ -306,13 +306,7 @@ else
 	fi
 fi
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                             Running Terraform plan                                    #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+print_banner "$banner_title" "Running Terraform plan" "info"
 
 if [ -f terraform.tfvars ]; then
 	extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
@@ -368,13 +362,7 @@ echo "Parallelism count:                   $parallelism"
 
 install_library_return_value=0
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                             Running Terraform apply                                   #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+print_banner "$banner_title" "Running Terraform apply" "info"
 
 if [ -n "${approve}" ]; then
 	# shellcheck disable=SC2086
