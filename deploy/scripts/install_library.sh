@@ -2,18 +2,34 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#error codes include those from /usr/include/sysexits.h
+# Ensure that the exit status of a pipeline command is non-zero if any
+# stage of the pipefile has a non-zero exit status.
+set -o pipefail
 
 #colors for terminal
 bold_red_underscore="\e[1;4;31m"
 bold_red="\e[1;31m"
 cyan="\e[1;36m"
+green="\e[1;32m"
 reset_formatting="\e[0m"
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
+
+# Detect version from environment variable
+caller_version="${SDAFWZ_CALLER_VERSION:-v2}"
+
+banner_title="Install Library"
+
+if [[ "$caller_version" == "v1" ]]; then
+	isCallerV1=0
+	echo "INFO: Detected v1 caller via environment variable"
+else
+	isCallerV1=1
+	echo "INFO: Detected v2 caller via environment variable"
+fi
 
 #call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
@@ -108,12 +124,7 @@ fi
 
 if [ ! -f "${parameterfile_name}" ]; then
 	printf -v val %-40.40s "$parameterfile_name"
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#               Parameter file does not exist: ${val} #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+	print_banner "Installer" "Parameter file does not exist: ${val}" "error"
 	exit 65
 fi
 
@@ -121,12 +132,7 @@ param_dirname=$(dirname "${parameterfile_name}")
 export TF_DATA_DIR="${param_dirname}"/.terraform
 
 if [ "$param_dirname" != '.' ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#   Please run this command from the folder containing the parameter file               #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+	print_banner "Installer" "Please run this command from the folder containing the parameter file" "error"
 	exit 3
 fi
 
@@ -150,43 +156,19 @@ key=$(echo "${parameterfile_name}" | cut -d. -f1)
 deployer_tf_state="${key}.terraform.tfstate"
 
 if [ -z "${environment}" ]; then
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#                           Incorrect parameter file.                                   #"
-	echo "#                                                                                       #"
-	echo "#              The file needs to contain the environment attribute!!                    #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "Installer" "The file needs to contain the environment attribute!!" "error"
 	exit 64
 fi
 
 if [ -z "${region}" ]; then
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#                           Incorrect parameter file.                                   #"
-	echo "#                                                                                       #"
-	echo "#       The file needs to contain the infrastructure.region attribute!!                 #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "Installer" "The file needs to contain the region attribute!!" "error"
 	exit 64
 fi
 
-# Convert the region to the correct code
-region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
-get_region_code "$region"
-
 if [ true == "$use_deployer" ]; then
 	if [ ! -d "${deployer_statefile_foldername}" ]; then
-		printf -v val %-40.40s "$deployer_statefile_foldername"
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo "#                    Directory does not exist:  ${deployer_statefile_foldername} #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		exit
+	  print_banner "Installer" "Directory does not exist: ${deployer_statefile_foldername}" "error"
+		exit 3
 	fi
 fi
 
@@ -219,36 +201,6 @@ init "${automation_config_directory}" "${generic_environment_file_name}" "${libr
 export TF_DATA_DIR="${param_dirname}"/.terraform
 var_file="${param_dirname}"/"${parameterfile_name}"
 
-if [ -z "${SAP_AUTOMATION_REPO_PATH}" ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#   Missing environment variables (SAP_AUTOMATION_REPO_PATH)!!!                         #"
-	echo "#                                                                                       #"
-	echo "#   Please export the following variables:                                              #"
-	echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))              #"
-	echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	unset TF_DATA_DIR
-	exit 4
-fi
-
-if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#   Missing environment variables (ARM_SUBSCRIPTION_ID)!!!                              #"
-	echo "#                                                                                       #"
-	echo "#   Please export the following variables:                                              #"
-	echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))              #"
-	echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	unset TF_DATA_DIR
-	exit 3
-fi
-
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/"${deployment_system}"/
 
 if [ ! -d "${terraform_module_directory}" ]; then
@@ -266,11 +218,7 @@ if [ ! -d "${terraform_module_directory}" ]; then
 fi
 
 if [ -f ./backend-config.tfvars ]; then
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#                        The bootstrapping has already been done!                       #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+	print_banner "Install SAP Library" "The bootstrapping has already been done!" "info"
 else
 	sed -i /REMOTE_STATE_RG/d "${library_environment_file_name}"
 	sed -i /REMOTE_STATE_SA/d "${library_environment_file_name}"
@@ -286,11 +234,7 @@ if [ -n "${keyvault}" ]; then
 fi
 
 if [ ! -d ./.terraform/ ]; then
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#                                   New deployment                                      #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+	print_banner "$banner_title" "New deployment" "info"
 	terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
 	sed -i /REMOTE_STATE_RG/d "${library_environment_file_name}"
 	sed -i /REMOTE_STATE_SA/d "${library_environment_file_name}"
@@ -300,11 +244,7 @@ else
 	if [ -f ./.terraform/terraform.tfstate ]; then
 		azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 		if [ -n "$azure_backend" ]; then
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo "#                     The state is already migrated to Azure!!!                         #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
+			print_banner "$banner_title" "Migrating the state to Azure" "info"
 
 			REINSTALL_SUBSCRIPTION=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
 			REINSTALL_ACCOUNTNAME=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
