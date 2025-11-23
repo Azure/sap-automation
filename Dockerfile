@@ -47,10 +47,10 @@ RUN tdnf install -y \
 
 # Install Terraform
 RUN curl -fsSo terraform.zip \
- https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip && \
- unzip terraform.zip && \
-  install -Dm755 terraform /usr/bin/terraform && \
-  rm -f terraform terraform.zip
+    https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip && \
+    unzip terraform.zip && \
+    install -Dm755 terraform /usr/bin/terraform && \
+    rm -f terraform terraform.zip
 
 # Install Azure CLI
 RUN rpm --import https://packages.microsoft.com/keys/microsoft.asc && \
