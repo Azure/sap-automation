@@ -396,7 +396,7 @@ function retrieve_parameters() {
 
 	fi
 
-  if [ "$USE_MSI" == "true" ]; then
+  if [ "${USE_MSI:-ARM_USE_MSI}" == "true" ]; then
 		unset ARM_CLIENT_SECRET
 		ARM_USE_MSI=true
 		export ARM_USE_MSI
