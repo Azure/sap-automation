@@ -122,9 +122,9 @@ resource "azurerm_linux_virtual_machine" "observer" {
   dynamic "plan" {
                    for_each = range(var.database.os.type == "marketplace_with_plan" ? 1 : 0)
                    content {
-                             name      = var.database.os.sku
-                             publisher = var.database.os.publisher
-                             product   = var.database.os.offer
+                             name      = local.observer_os.sku
+                             publisher = local.observer_os.publisher
+                             product   = local.observer_os.offer
                            }
                  }
 
