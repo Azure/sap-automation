@@ -99,6 +99,11 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 fi
 
+if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	export APPLICATION_CONFIGURATION_ID
+fi
+
 tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 control_plane_subscription=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 
