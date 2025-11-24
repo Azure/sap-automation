@@ -65,7 +65,7 @@ export local_user=$USER
 #
 
 if [ -z "${TF_VERSION}" ]; then
-	TF_VERSION="1.11.3"
+	TF_VERSION="1.14.0"
 fi
 
 # Fail if attempting to access and unset variable or parameter
@@ -487,12 +487,17 @@ esac
 # Install Azure CLI
 case "$(get_distro_name)" in
 ubuntu)
+	# No Azure CLI package for "plucky", use "noble" instead
+	AZ_REPO=$(lsb_release -cs)
+	if [ "$AZ_REPO" == "plucky" ]; then
+		AZ_REPO="noble"
+	fi
+
 	echo "Getting the Microsoft Key"
 	sudo mkdir -p /etc/apt/keyrings
 	curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg >/dev/null
 	sudo chmod go+r /etc/apt/keyrings/microsoft.gpg
 
-	AZ_REPO=$(lsb_release -cs)
 	echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |
 		sudo tee /etc/apt/sources.list.d/azure-cli.list
 

@@ -166,6 +166,10 @@ set -o nounset
 #
 rg_name="${rg_name}"
 terraform_version="${terraform_version}"
+
+if [ -z "$${terraform_version}" ]; then
+  terraform_version="1.14.0"
+fi
 ARM_CLIENT_ID="${client_id}"
 ARM_SUBSCRIPTION_ID="${subscription_id}"
 ARM_TENANT_ID="${tenant_id}"
