@@ -322,13 +322,6 @@ function remove_control_plane() {
 	# Parse command line arguments
 	parse_arguments "$@"
 
-	if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
-		if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
-			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-			export APPLICATION_CONFIGURATION_ID
-		fi
-	fi
-
 	CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 	ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
@@ -338,6 +331,19 @@ function remove_control_plane() {
 	automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 	deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
+
+	if [ ! -v APPLICATION_CONFIGURATION_NAME ]; then
+    load_config_vars "${deployer_environment_file_name}" "APPLICATION_CONFIGURATION_NAME"
+	fi
+
+	if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+		if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+			export APPLICATION_CONFIGURATION_ID
+		fi
+	fi
+
+
 
 	# Check that Terraform and Azure CLI is installed
 	validate_dependencies
