@@ -46,11 +46,12 @@ resource "time_sleep" "wait_for_appconfig_data_owner_assignment" {
 }
 
 resource "time_sleep" "wait_for_appconfig_private_endpoint" {
-  create_duration                      = "60s"
+  create_duration                      = "120s"
   count                                = var.app_config_service.deploy ? 1 : 0
 
   triggers                           = {
-                                           endpoint = try(azurerm_private_endpoint.app_config[0].id, "")
+                                           endpoint        = try(azurerm_private_endpoint.app_config[0].id, "")
+                                           role_assignment = try(azurerm_role_assignment.appconfig_data_owner_msi[0].id, "")
                                        }
 
 }
