@@ -467,7 +467,7 @@ function sdaf_remover() {
 		set -o errexit
 	fi
 
-	if [ 1 == $called_from_ado ]; then
+	if [ 1 == ${called_from_ado:-0} ]; then
 		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 		export TF_VAR_Agent_IP=$this_ip
 		echo "Agent IP:                            $this_ip"
