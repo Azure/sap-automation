@@ -304,7 +304,7 @@ variable "deployer_disk_type"                   {
 
 variable "deployer_use_DHCP"                    {
                                                   description = "If true, the deployers will use Azure Provided IP addresses"
-                                                  default     = false
+                                                  default     = true
                                                 }
 
 variable "deployer_image"                       {
