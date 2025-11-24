@@ -99,12 +99,12 @@ locals {
                                            spn                                    = {
 
                                                                                       id     = trimspace(coalesce(
-                                                                                                         contains(keys(data.terraform_remote_state.deployer[0].outputs), "deployer_kv_user_arm_id") ? data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : "",
+                                                                                                         try(contains(keys(data.terraform_remote_state.deployer[0].outputs), "deployer_kv_user_arm_id") ? data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : "",""),
                                                                                                          var.spn_keyvault_id,
                                                                                                          " ")
                                                                                                          )
                                                                                       exists = length(trimspace(coalesce(
-                                                                                                         contains(keys(data.terraform_remote_state.deployer[0].outputs), "deployer_kv_user_arm_id") ? data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : "",
+                                                                                                         try(contains(keys(data.terraform_remote_state.deployer[0].outputs), "deployer_kv_user_arm_id") ? data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : "",""),
                                                                                                          var.spn_keyvault_id,
                                                                                                          " ")
                                                                                                          )) > 0
