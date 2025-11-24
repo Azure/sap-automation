@@ -66,8 +66,7 @@
     - { state: 'directory', mode: '0755', recurse: false, path: '/etc/sap_deployment_automation/grid' }
     - { state: 'directory', mode: '0775', recurse: false, path: "/oracle/BASE" }
     - { state: 'directory', mode: '0775', recurse: false, path: "/oracle/BASE/crsdata" }
-    - { state: 'directory', mode: '0775', recurse: false, path: "/oracle/BASE/admin" }
-    - { state: 'directory', mode: '0775', recurse: true,  path: "/oracle/GRID/{{ ora_version }}" }
+    - { state: 'directory', mode: '0775', recurse: true,  path: "/oracle/oraInventory" }
 
 - name:                                "4.1.1. ORACLE Grid Setup - Check if installed"
   ansible.builtin.stat:
