@@ -227,6 +227,7 @@ echo "Deployer Folder:                     $DEPLOYER_FOLDERNAME"
 echo "Deployer tfVars:                     $DEPLOYER_FOLDERNAME.tfvars"
 echo "Library Folder:                      $LIBRARY_FOLDERNAME"
 echo "Library tfVars:                      $LIBRARY_FOLDERNAME"
+echo "Subscription ID:                     $TF_VAR_subscription_id"
 
 if [ -n "${DEPLOYER_KEYVAULT}" ]; then
 	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
@@ -253,7 +254,7 @@ if [ -n "$tfstate_resource_id" ]; then
 	export tfstate_resource_id
 
 else
-	echo "Terraform storage account:            undefined"
+	echo "Terraform storage account:          undefined"
 fi
 
 start_group "Decrypting state files"
@@ -337,8 +338,6 @@ fi
 
 export TF_LOG_PATH="${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log"
 
-print_banner "$banner_title" "Calling deploy_control_plane_v2" "info"
-
 msi_flag=""
 if [ "${USE_MSI:-false}" == "true" ]; then
 	msi_flag=" --msi "
@@ -365,6 +364,9 @@ elif [ "$PLATFORM" == "github" ]; then
 else
 	platform_flag=""
 fi
+
+
+print_banner "$banner_title" "Calling deploy_control_plane_v2" "info"
 
 cd "$CONFIG_REPO_PATH" || exit
 start_group "Deploying control plane"
@@ -475,13 +477,9 @@ elif [ "$PLATFORM" == "github" ]; then
 fi
 
 echo -e "$green--- Update repo ---$reset_formatting"
-if [ -f ".sap_deployment_automation/$CONTROL_PLANE_NAME" ]; then
-	git add ".sap_deployment_automation/$CONTROL_PLANE_NAME"
-	added=1
-fi
 
-if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md" ]; then
-	git add ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
+if [ -f "${deployer_environment_file_name}" ]; then
+	git add -f "${deployer_environment_file_name}"
 	added=1
 fi
 
@@ -717,11 +715,13 @@ if [ 0 -eq "$return_code" ]; then
 fi
 end_group
 # Platform-specific summary handling
-if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md" ]; then
+if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
+	  cat DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md
+	  sudo cp "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" "$AGENT_TEMPDIRECTORY/${CONTROL_PLANE_NAME}.md"
+		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${CONTROL_PLANE_NAME}.md;]$AGENT_TEMPDIRECTORY/${CONTROL_PLANE_NAME}.md"
 	elif [ "$PLATFORM" == "github" ]; then
-		cat "$CONFIG_REPO_PATH/.sap_deployment_automation/${CONTROL_PLANE_NAME}.md" >>$GITHUB_STEP_SUMMARY
+		cat "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" >>$GITHUB_STEP_SUMMARY
 	fi
 fi
 

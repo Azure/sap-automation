@@ -1,15 +1,42 @@
-# SAP System Deployment
+**SAP System Deployment**
 
-| Setting          | Value                           |
-| ---------------- | ------------------------------- |
-| SID              | ${sid}                          |
-| Database         | ${platform}                     |
-| DB SID           | ${db_sid}                       |
-| SCS Server IP    | ${scs_server_loadbalancer_ip}   |
+The SAP Application (**${sid}**) has been deployed to resource group **${resource_group_name}** in subscription **${subscription_id}**.
 
-## Access credentials
+You can access the resource group directly in the Azure Portal using the following link: [${resource_group_name}](${url})
 
-| Setting          | Value                           |
-| ---------------- | ------------------------------- |
-| Keyvault         | ${kv_name}                      |
-| Secret           | ${kv_pwd_secret}                |
+**SAP Application Information**
+
+
+| Setting                    | Value                           |
+| :------------------------- | :------------------------------ |
+| SID                        | ${sid}                          |
+| Database                   | ${platform}                     |
+| DB SID                     | ${db_sid}                       |
+| SCS Server Loadbalancer IP | ${scs_server_loadbalancer_ip}   |
+| SCS High Availability      | ${scs_high_availability}        |
+| DB High Availability       | ${database_high_availability}   |
+
+
+**Server Roles and Names**
+
+
+| Role                           | Names                           |
+| :----------------------------- | :------------------------------ |
+| Database                       | ${db_servers}                   |
+| Central Services               | ${scs_servers}                  |
+| Primary Application Server     | ${pas_server}                   |
+| Additional Application Servers | ${application_servers}          |
+| Web Dispatchers         | ${webdisp_servers}              |
+
+
+**Access credentials**
+
+
+| Setting                  | Value                           |
+| :----------------------- | :------------------------------ |
+| Key Vault Name           | ${keyvault_name}                |
+| Secret name for username | ${username_secret_name}         |
+| Secret name for password | ${password_secret_name}         |
+| Secret name for SSH key  | ${ssh_secret_name}              |
+
+

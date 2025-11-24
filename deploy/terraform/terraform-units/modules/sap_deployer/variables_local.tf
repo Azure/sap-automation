@@ -102,12 +102,12 @@ locals {
                                            length(var.infrastructure.virtual_network.management.subnet_agent.name) > 0 ? (
                                              var.infrastructure.virtual_network.management.subnet_agent.name) : (
                                              format("%s%s%s",
-                                               var.naming.resource_prefixes.agent_subnet,
+                                               try(var.naming.resource_prefixes.agent_subnet, ""),
                                                length(local.prefix) > 0 ? (
                                                  local.prefix) : (
                                                  var.infrastructure.environment
                                                ),
-                                               var.naming.resource_suffixes.agent_subnet
+                                               try(var.naming.resource_suffixes.agent_subnet, "_agent-subnet")
                                              )
                                          ))
 

@@ -79,7 +79,7 @@ stages:
         steps:
           - template:                             templates\download.yaml
           - task:                                 PostBuildCleanup@4
-          - task:                                 TerraformInstaller@1
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName:                          Install Terraform
             inputs:
               terraformVersion:                   $(tf_version)
@@ -113,13 +113,13 @@ stages:
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
               TF_IN_AUTOMATION:                   true
               TF_LOG:                             $(TF_LOG)
+              TF_VAR_agent_ado_project:           $(System.TeamProject)
               TF_VAR_agent_ado_url:               $(System.CollectionUri)
               TF_VAR_agent_pat:                   $(System.AccessToken)
               TF_VAR_agent_pool:                  $(POOL)
-              TF_VAR_agent_ado_project:           $(System.TeamProject)
               TF_VAR_ansible_core_version:        $(ansible_core_version)
-              TF_VAR_tf_version:                  $(tf_version)
               TF_VAR_app_registration_app_id:     $(APP_REGISTRATION_APP_ID)
+              TF_VAR_tf_version:                  $(tf_version)
               USE_MSI:                            $(Use_MSI)
               WEB_APP_CLIENT_SECRET:              $(WEB_APP_CLIENT_SECRET)
               keyvault:                           $(DEPLOYER_KEYVAULT)
@@ -145,7 +145,7 @@ stages:
           clean:                                  all
         steps:
           - task:                                 PostBuildCleanup@4
-          - task:                                 TerraformInstaller@1
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName:                          Install Terraform
             inputs:
               terraformVersion:                   latest
@@ -168,6 +168,8 @@ stages:
               ARM_TENANT_ID:                      $(ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONTROL_PLANE_NAME:                 $(CONTROL_PLANE_NAME)
+              KEYVAULT:                           $(DEPLOYER_KEYVAULT)
               SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
               USE_MSI:                            $(Use_MSI)
@@ -201,7 +203,7 @@ stages:
             parameters:
               getLatestFromBranch:                true
 
-          - task:                                 TerraformInstaller@1
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName:                          Install Terraform
             inputs:
               terraformVersion:                   latest

@@ -338,33 +338,37 @@ function retrieve_parameters() {
 
 	TF_VAR_control_plane_name="${CONTROL_PLANE_NAME}"
 	export TF_VAR_control_plane_name
+	if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+		if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+			export APPLICATION_CONFIGURATION_ID
+		fi
+	fi
 
 	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
-		app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
 		app_config_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f3)
 
 		if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-			print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
-
-			tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
-			TF_VAR_tfstate_resource_id=$tfstate_resource_id
-
-			TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-			TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+			print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$APPLICATION_CONFIGURATION_NAME ($app_config_subscription)"
+			TF_VAR_spn_keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+			keyvault=$(echo "$TF_VAR_spn_keyvault_id" | cut -d'/' -f9)
 
 			management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
 			TF_VAR_management_subscription_id=${management_subscription_id}
-
-			keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
-
-			terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
-
 			export TF_VAR_management_subscription_id
 			export TF_VAR_spn_keyvault_id
-			export TF_VAR_tfstate_resource_id
 			export keyvault
+
+			if [ -z "$tfstate_resource_id" ]; then
+				tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
+			else
+				terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
+				terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+				terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+			fi
+			TF_VAR_tfstate_resource_id=$tfstate_resource_id
+
+			export TF_VAR_tfstate_resource_id
 			export terraform_storage_account_name
 			export terraform_storage_account_resource_group_name
 			export terraform_storage_account_subscription_id
@@ -594,6 +598,7 @@ function sdaf_installer() {
 		export TF_LOG
 		echo ""
 		printenv | grep ARM_
+		printenv | grep TF_VAR_
 	fi
 
 	if [ 1 == $called_from_ado ]; then
@@ -668,6 +673,8 @@ function sdaf_installer() {
 	echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
 	echo "Deployer state file:                 ${deployer_tfstate_key}"
 	echo "Workload zone state file:            ${landscape_tfstate_key}"
+	echo "Control plane keyvault:              ${keyvault}"
+	echo ""
 	echo "Current directory:                   $(pwd)"
 	echo "Parallelism count:                   $parallelism"
 	echo ""
@@ -682,6 +689,49 @@ function sdaf_installer() {
 		export ARM_USE_AZUREAD=true
 	fi
 
+	if [ "${deployment_system}" == sap_system ]; then
+
+		if [[ -n $landscape_tfstate_key ]]; then
+			workloadZone_State_file_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$landscape_tfstate_key'].properties.contentLength" --output tsv)
+
+			workloadZone_State_file_Size=$(("$workloadZone_State_file_Size_String"))
+
+			if [ "$workloadZone_State_file_Size" -lt 50000 ]; then
+				print_banner "Installer" "Workload zone terraform state file ('$landscape_tfstate_key') is empty" "info"
+				az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+			fi
+		fi
+
+		if [[ -n $deployer_tfstate_key ]]; then
+
+			deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+
+			deployer_Statefile_Size=$(("$deployer_Statefile_Size_String"))
+
+			if [ "$deployer_Statefile_Size" -lt 50000 ]; then
+				print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "info"
+
+				az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+			fi
+		fi
+	fi
+
+	if [ "${deployment_system}" == sap_landscape ]; then
+
+		if [[ -n $deployer_tfstate_key ]]; then
+
+			deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+
+			deployer_Statefile_Size=$(("$deployer_Statefile_Size_String"))
+
+			if [ "$deployer_Statefile_Size" -lt 50000 ]; then
+				print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "info"
+
+				az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+			fi
+		fi
+	fi
+
 	TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 	export TF_VAR_subscription_id
 
@@ -690,13 +740,13 @@ function sdaf_installer() {
 
 	new_deployment=0
 
-	az account set --subscription "${terraform_storage_account_subscription_id}"
+	az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 	if [ ! -f .terraform/terraform.tfstate ]; then
 		print_banner "$banner_title" "New deployment" "info"
 
 		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
-			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
+			--backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
 			--backend-config "container_name=tfstate" \
@@ -1141,6 +1191,20 @@ function sdaf_installer() {
 
 		fi
 
+		now=$(date)
+		cat <<EOF >"${WORKLOAD_ZONE_NAME}".md
+
+Workload zone $WORKLOAD_ZONE_NAME was successfully deployed.
+
+Deployed on: "${now}"
+
+**Deployment details**
+
+Workload zone name: $WORKLOAD_ZONE_NAME
+Keyvault name:      ${workloadkeyvault}
+
+EOF
+
 	fi
 
 	if [ "${deployment_system}" == sap_library ]; then
@@ -1159,6 +1223,30 @@ function sdaf_installer() {
 
 	fi
 
+	if [ "${deployment_system}" == sap_system ]; then
+
+		SID=$(grep -m1 "sap_sid" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		PLATFORM=$(grep -m1 "platform" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		SCS_HIGH_AVAILABILITY=$(grep -m1 "scs_high_availability" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		DB_HIGH_AVAILABILITY=$(grep -m1 "database_high_availability" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+
+		now=$(date)
+		cat <<EOF >"${SID}".md
+
+Deployed on: "${now}"
+
+**Configuration details**
+| Resource | Name |
+| -------------------------------------- | ----------------------- |
+| SID                                    | $SID                    |
+| Platform                               | $PLATFORM               |
+| SCS High Availability                  | $SCS_HIGH_AVAILABILITY  |
+| Database High Availability             | $DB_HIGH_AVAILABILITY   |
+
+
+EOF
+
+	fi
 	unset TF_DATA_DIR
 	print_banner "$banner_title" "Deployment completed." "success" "Exiting $SCRIPT_NAME"
 

@@ -332,6 +332,11 @@ else
 			changed=1
 		fi
 
+		if [ -f "readme.md" ]; then
+			git rm --ignore-unmatch -q "readme.md"
+			changed=1
+		fi
+
 		if [ -f "${SID}_inventory.md" ]; then
 			git rm --ignore-unmatch -q "${SID}_inventory.md"
 			changed=1

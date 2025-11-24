@@ -167,7 +167,7 @@ resource "azurerm_app_configuration_key" "SAPMediaPath" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
+  count                                = local.application_configuration_deployed && var.dns_settings.register_storage_accounts_keyvaults_with_dns && !var.use_custom_dns_a_registration && var.use_private_endpoint ? 1 : 0
   depends_on                           = [
                                            azurerm_private_dns_zone.appconfig
                                          ]
@@ -193,7 +193,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig" {
 
 resource "azurerm_private_dns_zone_virtual_network_link" "appconfig_additional" {
   provider                             = azurerm.dnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_private_endpoint && length(var.dns_settings.additional_network_id) > 0 ? 1 : 0
+  count                                = local.application_configuration_deployed && var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.use_private_endpoint && length(var.dns_settings.additional_network_id) > 0 ? 1 : 0
   depends_on                           = [
                                             azurerm_private_dns_zone.appconfig
                                          ]
@@ -219,7 +219,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "appconfig_additional" 
 
 resource "azurerm_private_dns_zone_virtual_network_link" "appconfig_agent" {
   provider                             = azurerm.dnsmanagement
-  count                                = ( var.dns_settings.register_storage_accounts_keyvaults_with_dns &&
+  count                                = ( local.application_configuration_deployed && var.dns_settings.register_storage_accounts_keyvaults_with_dns &&
                                            var.use_private_endpoint &&
                                            (contains(keys(var.deployer_tfstate), "additional_network_id") ? length(var.deployer_tfstate.additional_network_id) > 0 : false) ? 1 : 0
   )
