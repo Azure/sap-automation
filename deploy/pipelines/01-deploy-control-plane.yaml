@@ -79,7 +79,7 @@ stages:
         steps:
           - template:                             templates\download.yaml
           - task:                                 PostBuildCleanup@4
-          - task:                                 TerraformInstaller@1
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName:                          Install Terraform
             inputs:
               terraformVersion:                   $(tf_version)
@@ -145,7 +145,7 @@ stages:
           clean:                                  all
         steps:
           - task:                                 PostBuildCleanup@4
-          - task:                                 TerraformInstaller@1
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName:                          Install Terraform
             inputs:
               terraformVersion:                   latest
@@ -203,7 +203,7 @@ stages:
             parameters:
               getLatestFromBranch:                true
 
-          - task:                                 TerraformInstaller@1
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName:                          Install Terraform
             inputs:
               terraformVersion:                   latest
