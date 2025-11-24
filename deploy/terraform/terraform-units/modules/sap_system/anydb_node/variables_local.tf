@@ -242,6 +242,7 @@ locals {
                                                  disk_size_gb              = storage_type.size_gb,
                                                  disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
                                                  disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
+                                                 logical_sector_size       = try(storage_type.logical_sector_size, 4096)
                                                  caching                   = storage_type.caching,
                                                  write_accelerator_enabled = try(storage_type.write_accelerator, false)
                                                }
@@ -268,6 +269,7 @@ locals {
                                                  disk_size_gb              = storage_type.size_gb,
                                                  disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
                                                  disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
+                                                 logical_sector_size       = try(storage_type.logical_sector_size, 4096)
                                                  caching                   = storage_type.caching,
                                                  write_accelerator_enabled = try(storage_type.write_accelerator, false)
                                                  type                      = storage_type.name
@@ -292,6 +294,7 @@ locals {
                                                disk_size_gb              = storage_type.size_gb
                                                disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
                                                disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
+                                               logical_sector_size       = try(storage_type.logical_sector_size, 4096)
                                                tier                      = try(storage_type.tier, null)
                                                caching                   = storage_type.caching
                                                write_accelerator_enabled = try(storage_type.write_accelerator, false)
@@ -316,6 +319,7 @@ locals {
                                                write_accelerator_enabled = datadisk.write_accelerator_enabled
                                                disk_iops_read_write      = datadisk.disk_iops_read_write
                                                disk_mbps_read_write      = datadisk.disk_mbps_read_write
+                                               logical_sector_size       = try(storage_type.logical_sector_size, 4096)
                                                lun                       = datadisk.lun
                                                type                      = datadisk.type
                                                tier                      = datadisk.tier
@@ -334,6 +338,7 @@ locals {
                                               write_accelerator_enabled = datadisk.write_accelerator_enabled
                                               disk_iops_read_write      = datadisk.disk_iops_read_write
                                               disk_mbps_read_write      = datadisk.disk_mbps_read_write
+                                              logical_sector_size       = try(storage_type.logical_sector_size, 4096)
                                               lun                       = datadisk.lun
                                               type                      = datadisk.type
                                               tier                      = datadisk.tier

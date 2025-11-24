@@ -12,6 +12,7 @@ locals {
                                                  //The following two lines are for Ultradisks only
                                                  disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
                                                  disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
+                                                 logical_sector_size       = try(storage_type.logical_sector_size, 4096)
                                                  caching                   = storage_type.caching,
                                                  write_accelerator_enabled = storage_type.write_accelerator
                                                  type                      = storage_type.name
@@ -37,6 +38,7 @@ locals {
                                                 //The following two lines are for Ultradisks only
                                                 disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
                                                 disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
+                                                logical_sector_size       = try(storage_type.logical_sector_size, 4096)
                                                 caching                   = storage_type.caching,
                                                 write_accelerator_enabled = storage_type.write_accelerator
                                                 type                      = storage_type.name
@@ -67,6 +69,7 @@ locals {
                                                    write_accelerator_enabled = datadisk.write_accelerator_enabled
                                                    disk_iops_read_write      = datadisk.disk_iops_read_write
                                                    disk_mbps_read_write      = datadisk.disk_mbps_read_write
+                                                   logical_sector_size       = try(storage_type.logical_sector_size, 4096)
                                                    lun                       = datadisk.lun
                                                    type                      = datadisk.type
                                                  }
@@ -84,6 +87,7 @@ locals {
                                                //The following two lines are for Ultradisks only
                                                disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
                                                disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
+                                               logical_sector_size       = try(storage_type.logical_sector_size, 4096)
                                                caching                   = storage_type.caching,
                                                write_accelerator_enabled = storage_type.write_accelerator
                                                type                      = storage_type.name
@@ -108,6 +112,7 @@ locals {
                                                    //The following two lines are for Ultradisks only
                                                    disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
                                                    disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
+                                                   logical_sector_size       = try(storage_type.logical_sector_size, 4096)
                                                    caching                   = storage_type.caching,
                                                    write_accelerator_enabled = storage_type.write_accelerator
                                                    type                      = storage_type.name
@@ -138,6 +143,7 @@ locals {
                                                  write_accelerator_enabled = datadisk.write_accelerator_enabled
                                                  disk_iops_read_write      = datadisk.disk_iops_read_write
                                                  disk_mbps_read_write      = datadisk.disk_mbps_read_write
+                                                 logical_sector_size       = try(storage_type.logical_sector_size, 4096)
                                                  type                      = datadisk.type
                                                  lun                       = datadisk.lun
 
@@ -156,6 +162,7 @@ locals {
                                                //The following two lines are for Ultradisks only
                                                disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
                                                disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
+                                               logical_sector_size       = try(storage_type.logical_sector_size, 4096)
                                                caching                   = storage_type.caching,
                                                write_accelerator_enabled = storage_type.write_accelerator
                                                type                      = storage_type.name
@@ -181,6 +188,7 @@ locals {
                                                 //The following two lines are for Ultradisks only
                                                 disk_iops_read_write      = try(storage_type.disk_iops_read_write, null)
                                                 disk_mbps_read_write      = try(storage_type.disk_mbps_read_write, null)
+                                                logical_sector_size       = try(storage_type.logical_sector_size, 4096)
                                                 caching                   = storage_type.caching,
                                                 write_accelerator_enabled = storage_type.write_accelerator
                                                 type                      = storage_type.name
@@ -211,6 +219,7 @@ locals {
                                                  write_accelerator_enabled = datadisk.write_accelerator_enabled
                                                  disk_iops_read_write      = datadisk.disk_iops_read_write
                                                  disk_mbps_read_write      = datadisk.disk_mbps_read_write
+                                                 logical_sector_size       = try(storage_type.logical_sector_size, 4096)
                                                  lun                       = datadisk.lun
                                                  type                      = datadisk.type
                                                }
