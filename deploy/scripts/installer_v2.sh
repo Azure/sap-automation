@@ -689,6 +689,49 @@ function sdaf_installer() {
 		export ARM_USE_AZUREAD=true
 	fi
 
+	if [ "${deployment_system}" == sap_system ]; then
+
+		if [[ -n $landscape_tfstate_key ]]; then
+			workloadZone_State_file_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$landscape_tfstate_key'].properties.contentLength" --output tsv)
+
+			workloadZone_State_file_Size=$(("$workloadZone_State_file_Size_String"))
+
+			if [ "$workloadZone_State_file_Size" -lt 50000 ]; then
+				print_banner "Installer" "Workload zone terraform state file ('$landscape_tfstate_key') is empty" "info"
+				az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+			fi
+		fi
+
+		if [[ -n $deployer_tfstate_key ]]; then
+
+			deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+
+			deployer_Statefile_Size=$(("$deployer_Statefile_Size_String"))
+
+			if [ "$deployer_Statefile_Size" -lt 50000 ]; then
+				print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "info"
+
+				az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+			fi
+		fi
+	fi
+
+	if [ "${deployment_system}" == sap_landscape ]; then
+
+		if [[ -n $deployer_tfstate_key ]]; then
+
+			deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+
+			deployer_Statefile_Size=$(("$deployer_Statefile_Size_String"))
+
+			if [ "$deployer_Statefile_Size" -lt 50000 ]; then
+				print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "info"
+
+				az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+			fi
+		fi
+	fi
+
 	TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 	export TF_VAR_subscription_id
 
