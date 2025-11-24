@@ -160,7 +160,7 @@ def get_user_input():
     retry_count = 0
     while retry_count < max_retries:
         print(f"Enter the path to the downloaded private key file")
-        print(f"(you can download the private key from here: https://github.com/settings/apps/{gh_app_name}#private-key):")
+        print(f"(you can download the private key from here: {server_url}/settings/apps/{gh_app_name}#private-key):")
         private_key_path = input().strip('"\'')
         normalized_path = os.path.normpath(private_key_path)
         # Read the private key
@@ -202,7 +202,7 @@ def get_user_input():
     is_org_account = input("Are you using a GitHub organization account? (y/n): ").strip().lower()
 
     if is_org_account in ['y', 'yes']:
-        advanced_settings_url = f"https://github.com/settings/apps/{gh_app_name}/advanced"
+        advanced_settings_url = f"{server_url}/settings/apps/{gh_app_name}/advanced"
         print(f"\nVisit the following URL to set the GitHub App to public: {advanced_settings_url}")
         print("In the Advanced tab, scroll down to 'Make this GitHub App public' and check the box.")
         input("Press Enter after setting the GitHub App to public.\n")
@@ -210,7 +210,7 @@ def get_user_input():
         print("\nSkipping the 'Make public' step since you're using a personal account.\n")
 
     # Provide the installation URL for the GitHub App
-    installation_url = f"https://github.com/settings/apps/{gh_app_name}/installations"
+    installation_url = f"{server_url}/settings/apps/{gh_app_name}/installations"
     print(
         f"\nPlease visit the following URL and press install the GitHub App: {installation_url}"
     )
@@ -749,8 +749,8 @@ def create_user_assigned_identity(identity_name, resource_group, subscription_id
 
     # Define the roles to assign
     roles = [
-        "Contributor",
         "User Access Administrator",
+        "Contributor",
         "Storage Blob Data Owner",
         "Key Vault Administrator",
         "App Configuration Data Owner"
@@ -814,7 +814,7 @@ def create_user_assigned_identity(identity_name, resource_group, subscription_id
                     "id": role_result.stdout.strip()
                 })
             else:
-                print(f"✗ Failed to assign {role_name} role")
+                print(f"✗ Failed to assign {role_name} role: {role_result.stderr}")
                 roles_failed.append(role_name)
 
         # Show warning if role assignment failed
@@ -897,65 +897,76 @@ def create_azure_service_principal(user_data):
             "App Configuration Data Owner"
         ]
 
-        # First check User Access Administrator role assignment to avoid duplication errors
-        check_role_args = [
-            "role",
-            "assignment",
-            "list",
-            "--assignee",
-            user_data["spn_appid"],
-            "--role",
-            "User Access Administrator",
-            "--scope",
-            f"/subscriptions/{user_data['subscription_id']}",
-        ]
+        roles_failed = []
 
-        check_result = run_az_command(check_role_args, capture_output=True, text=True)
-        if check_result.returncode != 0:
-            print("Failed to check existing role assignments.")
-            print(check_result.stderr)
-            return None
+        for role_name in recommended_roles:
+            # Check if role is already assigned
+            check_role_args = [
+                "role",
+                "assignment",
+                "list",
+                "--assignee",
+                user_data["spn_appid"],
+                "--role",
+                role_name,
+                "--scope",
+                f"/subscriptions/{user_data['subscription_id']}",
+            ]
 
-        # If role is not already assigned, assign it
-        try:
-            roles = json.loads(check_result.stdout)
-            role_exists = len(roles) > 0
+            check_result = run_az_command(check_role_args, capture_output=True, text=True)
+            if check_result.returncode != 0:
+                print(f"Failed to check existing role assignments for {role_name}.")
+                print(check_result.stderr)
+                roles_failed.append(role_name)
+                continue
 
-            if not role_exists:
-                print("Assigning User Access Administrator role...")
-                role_args = [
-                    "role",
-                    "assignment",
-                    "create",
-                    "--assignee",
-                    user_data["spn_appid"],
-                    "--role",
-                    "User Access Administrator",
-                    "--scope",
-                    f"/subscriptions/{user_data['subscription_id']}",
-                ]
+            try:
+                roles = json.loads(check_result.stdout)
+                role_exists = len(roles) > 0
 
-                role_result = run_az_command(role_args, capture_output=True, text=True)
-                if role_result.returncode != 0:
-                    print("\nWARNING: Failed to assign User Access Administrator role.")
-                    print("Your user account does not have permission to assign roles.")
-                    print("\nRecommended roles that should be assigned to this Service Principal:")
-                    print("  - User Access Administrator")
-                    print("  - Contributor")
-                    print("  - Storage Blob Data Owner")
-                    print("  - Key Vault Administrator")
-                    print("  - App Configuration Data Owner")
-                    print("\nPlease have an Azure subscription administrator assign these roles")
-                    print("to the Service Principal before deploying SAP workload.")
-                    print("The script will continue, but deployment may fail without proper permissions.")
+                if not role_exists:
+                    print(f"Assigning {role_name} role...")
+                    role_args = [
+                        "role",
+                        "assignment",
+                        "create",
+                        "--assignee",
+                        user_data["spn_appid"],
+                        "--role",
+                        role_name,
+                        "--scope",
+                        f"/subscriptions/{user_data['subscription_id']}",
+                        "--only-show-errors"
+                    ]
+
+                    role_result = run_az_command(role_args, capture_output=True, text=True)
+                    if role_result.returncode == 0:
+                        print(f"✓ Successfully assigned {role_name} role.")
+                    else:
+                        print(f"✗ Failed to assign {role_name} role.")
+                        roles_failed.append(role_name)
                 else:
-                    print("User Access Administrator role assigned successfully.")
-            else:
-                print("User Access Administrator role is already assigned.")
+                    print(f"✓ Role '{role_name}' is already assigned.")
 
-        except json.JSONDecodeError:
-            print("Failed to parse role assignment check output.")
-            print(check_result.stdout)
+            except json.JSONDecodeError:
+                print(f"Failed to parse role assignment check output for {role_name}.")
+                print(check_result.stdout)
+                roles_failed.append(role_name)
+
+        # Show warning if any role assignment failed
+        if roles_failed:
+            print("\n\033[1;33mWARNING: Not all roles could be assigned to the Service Principal.\033[0m")
+            print("Your user account may not have permission to assign the following roles:")
+            for role in roles_failed:
+                print(f"  - {role}")
+
+            print("\nRecommended roles that should be assigned to this Service Principal:")
+            for role in recommended_roles:
+                print(f"  - {role}")
+
+            print("\nPlease have an Azure subscription administrator assign these roles")
+            print(f"to the Service Principal '{user_data['spn_name']}' (App ID: {user_data['spn_appid']}).")
+            print("The script will continue, but deployment may fail without proper permissions.")
 
         return spn_data
 
@@ -1503,8 +1514,8 @@ def main():
             # Check if the identity has the necessary roles assigned
             print("\nChecking role assignments for the Managed Identity...")
             required_roles = [
-                "Contributor",
                 "User Access Administrator",
+                "Contributor",
                 "Storage Blob Data Owner",
                 "Key Vault Administrator",
                 "App Configuration Data Owner"
