@@ -114,10 +114,14 @@ if [ -v PARENT_VARIABLE_GROUP ]; then
 		APPLICATION_CONFIGURATION_NAME=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_NAME.value" --output tsv)
 
 		WZ_APPLICATION_CONFIGURATION_NAME=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_NAME.value" --output tsv)
-		if [ -z "$WZ_APPLICATION_CONFIGURATION_NAME" ]; then
-			az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_NAME" --value "$APPLICATION_CONFIGURATION_NAME" --output none
-		else
-			az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_NAME" --value "$APPLICATION_CONFIGURATION_NAME" --output none
+		if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+			echo "Application Configuration Name:      $APPLICATION_CONFIGURATION_NAME"
+			if [ -z "$WZ_APPLICATION_CONFIGURATION_NAME" ]; then
+
+				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_NAME" --value "$APPLICATION_CONFIGURATION_NAME" --output none
+			else
+				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_NAME" --value "$APPLICATION_CONFIGURATION_NAME" --output none
+			fi
 		fi
 
 		if [ "$USE_MSI" = "true" ]; then
