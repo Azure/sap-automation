@@ -451,7 +451,7 @@
 # Step 14
 - name:                                "4.1.1. ORACLE Grid Update - Run the post-installation script for the database component of Grid Infrastructure Release Update 19.28.0.0.250715"
   become:                              true
-  become_user:                         "{{ grid_user_name }}"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        {{ STAGE_SBP_OCWRU }}/custom/scripts/postpatch.sh -dbhome $IHRDBMS
   register:                            postpatch_results
