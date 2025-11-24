@@ -130,7 +130,7 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 fi
 
-az account set --subscription "$APPLICATION_CONFIGURATION_SUBSCRIPTION_ID" --output none --only-show-errors
+az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
 
 echo "SID:                                 ${SID}"
 echo "Workload Zone Name:                  $WORKLOAD_ZONE_NAME"
