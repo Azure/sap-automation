@@ -271,12 +271,15 @@ function bootstrap_deployer() {
 		fi
 	fi
 
-	load_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT" "APPLICATION_CONFIGURATION_ID" "APPLICATION_CONFIGURATION_NAME"
-	echo "Key vault:                           ${DEPLOYER_KEYVAULT}"
+	load_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT" "APPLICATION_CONFIGURATION_NAME"
+	echo "Key vault:                           ${DEPLOYER_KEYVAULT:-Undefined}"
 	export DEPLOYER_KEYVAULT
 
 	if [ -v APPLICATION_CONFIGURATION_NAME ]; then
 		echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME}"
+		APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+		export APPLICATION_CONFIGURATION_ID
+
 	fi
 
 	if [ "$devops_flag" == "--devops" ]; then
@@ -395,7 +398,11 @@ function bootstrap_library {
 	#                                                                                        #
 	##########################################################################################
 	local banner_title="Bootstrap Library"
-	load_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT" "APPLICATION_CONFIGURATION_ID" "APPLICATION_CONFIGURATION_NAME"
+	load_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT" "APPLICATION_CONFIGURATION_NAME"
+	if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+		APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+		export APPLICATION_CONFIGURATION_ID
+	fi
 
 	if [ 2 -eq $step ]; then
 		print_banner "$banner_title" "Bootstrapping the library..." "info"
@@ -491,35 +498,69 @@ function migrate_deployer_state() {
 		print_banner "$banner_title" "Sourcing parameters from: $APPLICATION_CONFIGURATION_NAME" "info"
 
 		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-		TF_VAR_tfstate_resource_id=$tfstate_resource_id
-		export TF_VAR_tfstate_resource_id
+		TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 
 		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 		terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 		terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+
 		ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
-		export ARM_SUBSCRIPTION_ID
-		TF_VAR_subscription_id=$tfstate_resource_id
-		export TF_VAR_subscription_id
-		TF_VAR_tfstate_resource_id=$tfstate_resource_id
-		export TF_VAR_tfstate_resource_id
+		TF_VAR_subscription_id=$terraform_storage_account_subscription_id
 		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+
+		export ARM_SUBSCRIPTION_ID
+		export TF_VAR_subscription_id
+		export TF_VAR_tfstate_resource_id
+		export terraform_storage_account_name
+		export terraform_storage_account_resource_group_name
+		export terraform_storage_account_subscription_id
+		export tfstate_resource_id
+
 	fi
 
 	if [ -z "$terraform_storage_account_name" ]; then
 		print_banner "$banner_title" "Sourcing parameters from: " "info" "$(basename ${deployer_environment_file_name})"
 		load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
-		TF_VAR_tfstate_resource_id=$tfstate_resource_id
-		export TF_VAR_tfstate_resource_id
-		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-		export terraform_storage_account_name
-		terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
-		export terraform_storage_account_resource_group_name
+		TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 
+		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+		terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
 		terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
+
+		ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+
+		export ARM_SUBSCRIPTION_ID
+		export TF_VAR_subscription_id
+		export TF_VAR_tfstate_resource_id
+		export terraform_storage_account_name
+		export terraform_storage_account_resource_group_name
 		export terraform_storage_account_subscription_id
+		export tfstate_resource_id
 	fi
-	if [ -z "${terraform_storage_account_name}" ]; then
+
+	if [ -z "$terraform_storage_account_name" ]; then
+		print_banner "$banner_title" "Sourcing parameters from: " "info" "statefile"
+
+		terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		terraform_storage_account_name=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+
+		tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --resource-group "${terraform_storage_account_resource_group_name}" --subscription "${terraform_storage_account_subscription_id}" --out tsv)
+
+		TF_VAR_tfstate_resource_id="$tfstate_resource_id"
+		ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+
+		export ARM_SUBSCRIPTION_ID
+		export TF_VAR_subscription_id
+		export TF_VAR_tfstate_resource_id
+		export terraform_storage_account_name
+		export terraform_storage_account_resource_group_name
+		export terraform_storage_account_subscription_id
+		export tfstate_resource_id
+
+	fi
+
+	if [ -z "${tfstate_resource_id}" ]; then
 		export step=2
 		save_config_var "step" "${deployer_environment_file_name}"
 		echo " ##vso[task.setprogress value=40;]Progress Indicator"
@@ -528,12 +569,12 @@ function migrate_deployer_state() {
 	fi
 
 	echo ""
-	echo "Calling installer_v2.sh with: --type sap_deployer --parameter_file ${deployer_parameter_file_name} --control_plane_name ${CONTROL_PLANE_NAME} --application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-}"
+	echo "Calling installer_v2.sh with: --type sap_deployer --parameter_file ${deployer_parameter_file_name} --control_plane_name ${CONTROL_PLANE_NAME} --storage_accountname "${terraform_storage_account_name:-}" --application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-}"
 	echo ""
 
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$deployer_parameter_file_name" --type sap_deployer \
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
-		$devops_flag "${autoApproveParameter}"; then
+		--storage_accountname "$terraform_storage_account_name" $devops_flag "${autoApproveParameter}"; then
 		print_banner "$banner_title" "Migrating the Deployer state succeeded." "success"
 
 	else
@@ -581,20 +622,31 @@ function migrate_library_state() {
 	if [ -z "$terraform_storage_account_name" ]; then
 		if is_valid_id "$APPLICATION_CONFIGURATION_ID:-" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 			TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
-			export TF_VAR_application_configuration_id
 
 			tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
-			export TF_VAR_tfstate_resource_id
+
+			user_keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
+			TF_VAR_user_keyvault_id="$user_keyvault_id"
 
 			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+
 			ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
-			export TF_VAR_tfstate_resource_id
 			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 			save_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
+
+			export ARM_SUBSCRIPTION_ID
+			export TF_VAR_application_configuration_id
+			export TF_VAR_subscription_id
+			export TF_VAR_tfstate_resource_id
+			export TF_VAR_user_keyvault_id
+			export terraform_storage_account_name
+			export terraform_storage_account_resource_group_name
+			export terraform_storage_account_subscription_id
+			export tfstate_resource_id
 		fi
 		if [ -z "$terraform_storage_account_name" ]; then
 
@@ -608,6 +660,8 @@ function migrate_library_state() {
 					terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 					tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
 					TF_VAR_tfstate_resource_id=$tfstate_resource_id
+					ARM_SUBSCRIPTION_ID=$terraform_storage_account_subscription_id
+
 					export TF_VAR_tfstate_resource_id
 					export terraform_storage_account_name
 					export terraform_storage_account_resource_group_name
@@ -643,7 +697,7 @@ function migrate_library_state() {
 	echo ""
 	echo "Calling installer_v2.sh with: --type sap_library --parameter_file ${library_parameter_file_name} --control_plane_name ${CONTROL_PLANE_NAME} --application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-}"
 	echo ""
-	if  "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameter_file "${library_parameter_file_name}" \
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameter_file "${library_parameter_file_name}" \
 		--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME:-}" \
 		$devops_flag "${autoApproveParameter}"; then
 		return_code=$?
@@ -733,13 +787,6 @@ function retrieve_parameters() {
 	fi
 
 	if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-		application_configuration_name=$(echo "${APPLICATION_CONFIGURATION_ID}" | cut -d'/' -f9)
-		key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
-		if [ -z "$key_vault_id" ]; then
-			if [ $devops_flag == "--devops" ]; then
-				echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$application_configuration_name' )."
-			fi
-		fi
 
 		ARM_SUBSCRIPTION_ID=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
 		export ARM_SUBSCRIPTION_ID
@@ -759,10 +806,10 @@ function retrieve_parameters() {
 		export terraform_storage_account_resource_group_name
 
 		terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
-		TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-		export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+		TF_VAR_spn_keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+		export TF_VAR_spn_keyvault_id
 
-		keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+		keyvault=$(echo "$TF_VAR_spn_keyvault_id" | cut -d'/' -f9)
 		export keyvault
 
 		app_service_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_AppServiceId" "${CONTROL_PLANE_NAME}")
@@ -783,9 +830,6 @@ function retrieve_parameters() {
 			load_config_vars "${deployer_environment_file_name}" \
 				tfstate_resource_id DEPLOYER_KEYVAULT
 
-			TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
-			export TF_VAR_spn_keyvault_id
-
 			export TF_VAR_tfstate_resource_id
 			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
 			export terraform_storage_account_name
@@ -795,6 +839,13 @@ function retrieve_parameters() {
 
 			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 			export terraform_storage_account_subscription_id
+		fi
+	fi
+
+	if [ ! -v TF_VAR_spn_keyvault_id ]; then
+		if [ -n "${DEPLOYER_KEYVAULT:-}" ]; then
+			TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
+			export TF_VAR_spn_keyvault_id
 		fi
 	fi
 
@@ -866,7 +917,7 @@ function execute_deployment_steps() {
 		fi
 	fi
 	if [ 5 -eq "${step}" ]; then
-		if [ "${devops_flag}" != 	"--devops" ]; then
+		if [ "${devops_flag}" != "--devops" ]; then
 			if ! copy_files_to_public_deployer; then
 				return_value=$?
 				print_banner "Copy" "Copying files failed" "error"
@@ -1043,29 +1094,32 @@ function deploy_control_plane() {
 	echo "###############################################################################"
 	echo "#                                                                             #"
 	echo -e "# $cyan Please save these values: $reset_formatting                                                 #"
-	echo "#     - Key Vault:          ${key_vault_name}           #"
-	echo "#     - Storage Account:    ${storage_account}          #"
-	echo "#     - App Config:         ${app_config_name}          #"
-	echo "#     - Control Plane Name: ${ctrl_plane_name}          #"
+	echo "#     - Key Vault:                 ${key_vault_name}           #"
+	echo "#     - Terraform Storage Account: ${storage_account}          #"
+	echo "#     - Application Configuration: ${app_config_name}          #"
+	echo "#     - Control Plane Name:        ${ctrl_plane_name}          #"
 	echo "#                                                                             #"
 	echo "###############################################################################"
 
+	cd "${deployer_dirname}" || exit
 	now=$(date)
-	cat <<EOF >"${deployer_environment_file_name}".md
-# Control Plane Deployment #
+	cat <<EOF >"${CONTROL_PLANE_NAME}".md
 
-Date : "${now}"
+**Control Plane Deployment details**
 
-## Configuration details ##
 
-| Item                    | Name                 |
-| ----------------------- | -------------------- |
-| Environment             | $environment         |
-| Location                | $region              |
-| Keyvault Name           | ${DEPLOYER_KEYVAULT} |
-| Terraform state         | ${storage_account}   |
-| App Config              | $APPLICATION_CONFIGURATION_NAME}   |
-| Control Plane Name      | $CONTROL_PLANE_NAME}   |
+| Name                                  | Value                                      |
+|:------------------------------------- |:------------------------------------------ |
+| Control Plane name                    | ${CONTROL_PLANE_NAME}                      |
+| Keyvault name                         | ${DEPLOYER_KEYVAULT}                       |
+| Terraform state file storage account  | ${terraform_storage_account_name}          |
+| Application Configuration             | $APPLICATION_CONFIGURATION_NAME            |
+| Deployer State File                   | ${deployer_tfstate_key}                    |
+| Library State File                    | ${library_tfstate_key}                     |
+| Control Plane subscription            | ${subscription}                            |
+
+Deployment Date: $now
+
 
 EOF
 

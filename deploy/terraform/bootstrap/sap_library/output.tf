@@ -44,9 +44,9 @@ output "sapbits_sa_resource_group_name"          {
                                                  }
 
 output "saplibrary_subscription_id"              {
-                                                   description = "Subscription Id for SAP Binaries"
+                                                   description = "Subscription Id for SAP installation media"
                                                    sensitive   = true
-                                                   value       = local.spn.subscription_id
+                                                   value       = data.azurerm_client_config.current.subscription_id
                                                  }
 
 output "tfstate_resource_id"                     {

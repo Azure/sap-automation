@@ -73,7 +73,7 @@ locals {
                                            enable_secure_transfer = true
                                            use_spn                = var.use_spn
                                            assign_permissions     = var.assign_permissions
-                                           spn_id                 = coalesce(data.azurerm_client_config.current_main.object_id, var.spn_id)
+                                           spn_id                 = coalesce(data.azurerm_client_config.current.object_id, var.spn_id)
                                          }
   key_vault_temp =                       {
                                            exists                 = length(var.user_keyvault_id) > 0
@@ -99,12 +99,12 @@ locals {
                                            spn                                    = {
 
                                                                                       id     = trimspace(coalesce(
-                                                                                                         contains(keys(data.terraform_remote_state.deployer[0].outputs), "deployer_kv_user_arm_id") ? data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : "",
+                                                                                                         try(contains(keys(data.terraform_remote_state.deployer[0].outputs), "deployer_kv_user_arm_id") ? data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : "",""),
                                                                                                          var.spn_keyvault_id,
                                                                                                          " ")
                                                                                                          )
                                                                                       exists = length(trimspace(coalesce(
-                                                                                                         contains(keys(data.terraform_remote_state.deployer[0].outputs), "deployer_kv_user_arm_id") ? data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : "",
+                                                                                                         try(contains(keys(data.terraform_remote_state.deployer[0].outputs), "deployer_kv_user_arm_id") ? data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id : "",""),
                                                                                                          var.spn_keyvault_id,
                                                                                                          " ")
                                                                                                          )) > 0

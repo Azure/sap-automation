@@ -116,7 +116,7 @@ stages:
           clean:                                  all
         steps:
           - task:                                 PostBuildCleanup@4
-          - task:                                 TerraformInstaller@1
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName:                          Install Terraform
             inputs:
               terraformVersion:                   latest
@@ -140,11 +140,12 @@ stages:
               ARM_TENANT_ID:                      $(ARM_TENANT_ID)
               AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONTROL_PLANE_NAME:                 $(CONTROL_PLANE_NAME)
+              KEYVAULT:                           $(DEPLOYER_KEYVAULT)
               SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
               USE_MSI:                            $(Use_MSI)
               ZONE:                               ${{ upper(parameters.workload_environment) }}
-
 
   - stage:                                        Deploy_SAP_workload_zone
     dependsOn:
@@ -167,7 +168,7 @@ stages:
         steps:
           - template:                             templates\download.yaml
           - task:                                 PostBuildCleanup@4
-          - task:                                 TerraformInstaller@1
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName:                          Install Terraform
             inputs:
               terraformVersion:                   latest
@@ -188,6 +189,7 @@ stages:
               ARM_USE_MSI:                        $(Use_MSI)
               AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONTROL_PLANE_NAME:                 $(CONTROL_PLANE_NAME)
               DEPLOYER_KEYVAULT:                  $(DEPLOYER_KEYVAULT)
               FENCING_SPN_PWD:                    $(FENCING_SPN_PWD)
               SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}

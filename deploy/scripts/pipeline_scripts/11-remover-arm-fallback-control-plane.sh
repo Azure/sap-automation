@@ -152,7 +152,6 @@ if [  0 == $deployer_return_code ]; then
 		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_KEYVAULT"
 		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_RANDOM_ID"
 		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_STATE_FILENAME"
-		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
 		remove_variable "$VARIABLE_GROUP_ID" "INSTALLATION_MEDIA_ACCOUNT"
 		remove_variable "$VARIABLE_GROUP_ID" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME"
 		remove_variable "$VARIABLE_GROUP_ID" "TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION"
@@ -160,7 +159,7 @@ if [  0 == $deployer_return_code ]; then
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_IDENTITY"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_RESOURCE_GROUP"
 		remove_variable "$VARIABLE_GROUP_ID" "WEBAPP_URL_BASE"
-
+		remove_variable "$VARIABLE_GROUP_ID" "Deployer_Key_Vault"
 
 	fi
 	cd "$CONFIG_REPO_PATH" || exit
