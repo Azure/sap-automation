@@ -228,19 +228,23 @@ if [ -z "$tfstate_resource_id" ]; then
 	exit 2
 fi
 
+terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" "$terraform_storage_account_subscription_id"
+
+
+if [ -z "$tfstate_resource_id" ]; then
+	tfstate_resource_id=$(az resource list --name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+	export tfstate_resource_id
+fi
 
 export terraform_storage_account_name
 export terraform_storage_account_resource_group_name
 export terraform_storage_account_subscription_id
 export tfstate_resource_id
 
-if [ -z "$tfstate_resource_id" ]; then
-	tfstate_resource_id=$(az resource list --name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-	export tfstate_resource_id
-fi
+
 saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$terraform_storage_account_name"
 
 print_banner "$banner_title" "Starting the deployment" "info"
