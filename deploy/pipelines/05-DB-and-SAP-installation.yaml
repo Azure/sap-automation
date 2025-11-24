@@ -155,7 +155,7 @@ stages:
             name:                                 AnsibleInstallation
             displayName:                          Install Ansible
 
-          - task:                                 TerraformInstaller@1
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName:                          Install Terraform
             inputs:
               terraformVersion:                   latest
@@ -190,14 +190,15 @@ stages:
           - template:                             templates\run-ansible.yaml
             parameters:
               displayName:                        "Parameter validation"
-              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
-              USE_MSI:                            $(Use_MSI)
               ansibleConfigPath:                  ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
               ansibleFilePath:                    ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_00_validate_parameters.yaml
               ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              SAP_SYSTEM_CONFIGURATION_NAME:      ${{ parameters.sap_system_configuration_name }}
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
+              USE_MSI:                            $(Use_MSI)
               controlPlaneName:                   $(CONTROL_PLANE_NAME)
               controlPlaneSubscriptionId:         $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
               extraParams:                        $(Preparation.NEW_PARAMETERS)
@@ -211,14 +212,15 @@ stages:
               - template:                         templates\run-ansible.yaml
                 parameters:
                   displayName:                    "Operating System Configuration"
-                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
                   ansibleConfigPath:              ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   ansibleFilePath:                ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_01_os_base_config.yaml
                   ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
+                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+                  USE_MSI:                        $(Use_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -232,14 +234,15 @@ stages:
               - template:                         templates\run-ansible.yaml
                 parameters:
                   displayName:                    "SAP Specific Operating System Configuration"
-                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
                   ansibleConfigPath:              ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   ansibleFilePath:                ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_02_os_sap_specific_config.yaml
                   ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
+                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+                  USE_MSI:                        $(Use_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -253,14 +256,15 @@ stages:
               - template:                         templates\run-ansible.yaml
                 parameters:
                   displayName:                    "Software download"
-                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
                   ansibleConfigPath:              ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   ansibleFilePath:                ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_03_bom_processing.yaml
                   ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
+                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+                  USE_MSI:                        $(Use_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -274,14 +278,15 @@ stages:
               - template:                         templates\run-ansible.yaml
                 parameters:
                   displayName:                    Central Services Installation
-                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
                   ansibleConfigPath:              ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   ansibleFilePath:                ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_00_00_sap_scs_install.yaml
                   ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
+                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+                  USE_MSI:                        $(Use_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -295,14 +300,15 @@ stages:
               - template:                         templates\run-ansible.yaml
                 parameters:
                   displayName:                    "Database installation"
-                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
                   ansibleConfigPath:              ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   ansibleFilePath:                ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_04_00_00_db_install.yaml
                   ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
+                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+                  USE_MSI:                        $(Use_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -316,14 +322,15 @@ stages:
               - template:                         templates\run-ansible.yaml
                 parameters:
                   displayName:                    Database Load
-                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
                   ansibleConfigPath:              ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   ansibleFilePath:                ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_01_sap_dbload.yaml
                   ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
+                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+                  USE_MSI:                        $(Use_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -337,14 +344,15 @@ stages:
               - template:                         templates\run-ansible.yaml
                 parameters:
                   displayName:                    Database High Availability configuration
-                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
                   ansibleConfigPath:              ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   ansibleFilePath:                ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_04_00_01_db_ha.yaml
                   ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
+                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+                  USE_MSI:                        $(Use_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -358,14 +366,15 @@ stages:
               - template:                         templates\run-ansible.yaml
                 parameters:
                   displayName:                    Primary Application Server Installation
-                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
                   ansibleConfigPath:              ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   ansibleFilePath:                ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_02_sap_pas_install.yaml
                   ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
+                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+                  USE_MSI:                        $(Use_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -379,14 +388,15 @@ stages:
               - template:                         templates\run-ansible.yaml
                 parameters:
                   displayName:                    Application Installation
-                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
                   ansibleConfigPath:              ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   ansibleFilePath:                ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_03_sap_app_install.yaml
                   ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
+                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+                  USE_MSI:                        $(Use_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -402,19 +412,20 @@ stages:
                   displayName:                    Web Dispatcher
                   ansibleFilePath:                ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_05_04_sap_web_install.yaml
                   ansibleConfigPath:              ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  vaultName:                      $(KEYVAULT)
-                  parametersFolder:               $(Preparation.FOLDER)
-                  sapParams:                      ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
-                  sidHosts:                       $(Preparation.HOSTS)
-                  extraParams:                    $(Preparation.NEW_PARAMETERS)
                   ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
-                  ARM_TENANT_ID:                  $(ARM_TENANT_ID)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
-                  USE_MSI:                        $(Use_MSI)
+                  ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  remoteStateStorageAccount:      $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  USE_MSI:                        $(Use_MSI)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
+                  extraParams:                    $(Preparation.NEW_PARAMETERS)
+                  parametersFolder:               $(Preparation.FOLDER)
+                  remoteStateStorageAccount:      $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  sapParams:                      ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+                  sidHosts:                       $(Preparation.HOSTS)
+                  vaultName:                      $(KEYVAULT)
           - ${{ if eq(parameters.post_configuration_actions, true) }}:
               - template:                         templates\run-ansible.yaml
                 parameters:

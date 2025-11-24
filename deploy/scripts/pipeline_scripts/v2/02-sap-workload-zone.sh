@@ -114,6 +114,12 @@ if [ "$PLATFORM" == "devops" ]; then
 		echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
 	fi
 
+	tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' and type=='microsoft.storage/storageaccounts' | project id, name, subscription" --query data[0].id --output tsv)
+
+	TF_VAR_tfstate_resource_id="$tfstate_resource_id"
+	export TF_VAR_tfstate_resource_id
+
+
 elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
@@ -257,11 +263,13 @@ fi
 terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 
 export terraform_storage_account_name
 export terraform_storage_account_resource_group_name
 export terraform_storage_account_subscription_id
 export tfstate_resource_id
+export TF_VAR_tfstate_resource_id
 
 cd "$CONFIG_REPO_PATH/LANDSCAPE/${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE" || exit
 print_banner "$banner_title" "Starting the deployment" "info"
@@ -370,12 +378,14 @@ if [ 1 = $added ]; then
 	fi
 fi
 
-# Add summary if available
-if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${WORKLOAD_ZONE_NAME}.md" ]; then
+# Platform-specific summary handling
+if [ -f "${WORKLOAD_ZONE_NAME}.md" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${WORKLOAD_ZONE_NAME}.md"
+	  cat "${WORKLOAD_ZONE_NAME}.md"
+	  sudo cp "${WORKLOAD_ZONE_NAME}.md" "$AGENT_TEMPDIRECTORY/${WORKLOAD_ZONE_NAME}.md"
+		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${WORKLOAD_ZONE_NAME}.md;]$AGENT_TEMPDIRECTORY/${WORKLOAD_ZONE_NAME}.md"
 	elif [ "$PLATFORM" == "github" ]; then
-		cat "$CONFIG_REPO_PATH/.sap_deployment_automation/${WORKLOAD_ZONE_NAME}.md" >>$GITHUB_STEP_SUMMARY
+		cat "${WORKLOAD_ZONE_NAME}.md" >>$GITHUB_STEP_SUMMARY
 	fi
 fi
 

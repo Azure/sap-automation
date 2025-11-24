@@ -1088,6 +1088,35 @@ function ImportAndReRunApply {
 
 		if [[ -n $errors_occurred ]]; then
 
+			existing_associations=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("an association between"))' "$fileName")
+			if [[ -n $existing_associations ]]; then
+				echo "Importing existing associations:"
+				readarray -t associations < <(echo "${existing_associations}" | jq -c '.')
+				for item in "${associations[@]}"; do
+					moduleID=$(jq -c -r '.address ' <<<"$item")
+					azureResourceID=$(jq -c -r '.summary ' <<<"$item" | awk -v RS="an association between " '{print $1}' | xargs)
+					echo "Trying to import $azureResourceID association into $moduleID"
+					if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
+						import_return_value=$?
+					else
+						import_return_value=$?
+						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+							if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
+								import_return_value=$?
+							else
+								import_return_value=$?
+							fi
+						fi
+					fi
+					# shellcheck disable=SC2086
+					if terraform -chdir="${terraform_module_directory}" apply -no-color  -replace=$moduleID -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
+						import_return_value=${PIPESTATUS[0]}
+					else
+						import_return_value=${PIPESTATUS[0]}
+					fi
+
+				done
+			fi
 			msi_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("The role assignment already exists."))' "$fileName")
 			if [[ -n "${msi_errors_temp}" ]]; then
 				readarray -t msi_errors < <(echo "${msi_errors_temp}" | jq -c '.')
@@ -1104,6 +1133,7 @@ function ImportAndReRunApply {
 			else
 				print_banner "Installer" "Number of permission errors: $msi_error_count - can safely be ignored" "info"
 			fi
+
 			# Check for resource that can be imported
 			existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
 			if [[ -z $existing ]]; then

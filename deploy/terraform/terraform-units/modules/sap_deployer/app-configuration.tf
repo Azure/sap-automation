@@ -46,11 +46,12 @@ resource "time_sleep" "wait_for_appconfig_data_owner_assignment" {
 }
 
 resource "time_sleep" "wait_for_appconfig_private_endpoint" {
-  create_duration                      = "60s"
+  create_duration                      = "120s"
   count                                = var.app_config_service.deploy ? 1 : 0
 
   triggers                           = {
-                                           endpoint = try(azurerm_private_endpoint.app_config[0].id, "")
+                                           endpoint        = try(azurerm_private_endpoint.app_config[0].id, "")
+                                           role_assignment = try(azurerm_role_assignment.appconfig_data_owner_msi[0].id, "")
                                        }
 
 }
@@ -418,7 +419,7 @@ resource "azurerm_private_endpoint" "app_config" {
 
 data "azurerm_private_dns_zone" "appconfig" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = !var.bootstrap && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  count                                = var.app_config_service.deploy && !var.bootstrap && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   name                                 = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,

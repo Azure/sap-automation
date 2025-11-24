@@ -35,18 +35,5 @@ locals {
                                            jsondecode(file(format("%s/%s", path.cwd, var.name_override_file)))) : (
                                            null
                                          )
-  spn                                  = {
-                                          subscription_id = local.use_spn ? coalesce(data.azurerm_key_vault_secret.subscription_id_v2[0].value,data.azurerm_key_vault_secret.subscription_id[0].value) : null,
-                                          client_id       = local.use_spn ? coalesce(data.azurerm_key_vault_secret.client_id_v2[0].value,data.azurerm_key_vault_secret.client_id[0].value) : null,
-                                          client_secret   = local.use_spn ? coalesce(ephemeral.azurerm_key_vault_secret.client_secret_v2[0].value, ephemeral.azurerm_key_vault_secret.client_secret[0].value) : null,
-                                          tenant_id       = local.use_spn ? coalesce(data.azurerm_key_vault_secret.tenant_id_v2[0].value,data.azurerm_key_vault_secret.tenant_id[0].value) : null
-                                        }
-
-  account                              = {
-                                           subscription_id = local.use_spn ? coalesce(data.azurerm_key_vault_secret.subscription_id_v2[0].value,data.azurerm_key_vault_secret.subscription_id[0].value) : null,
-                                           tenant_id       = data.azurerm_client_config.current.tenant_id,
-                                           object_id       = data.azurerm_client_config.current.object_id
-                                         }
-
 
 }

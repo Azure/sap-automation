@@ -12,7 +12,7 @@ SCRIPT_NAME="$(basename "$0")"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]SAP Configuration and Installation"
+	echo "##vso[build.updatebuildnumber]SAP Configuration and Installation of ${SAP_SYSTEM_CONFIGURATION_NAME:-}"
 fi
 
 # External helper functions
@@ -107,7 +107,6 @@ export control_plane_subscription
 key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultResourceId" "${WORKLOAD_ZONE_NAME}")
 key_vault_subscription=$(echo "$key_vault_id" | cut -d '/' -f 3)
 key_vault_name=$(echo "$key_vault_id" | cut -d '/' -f 9)
-
 
 if [ ! -v SSH_KEY_NAME ]; then
 	SSH_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-sshkey"
