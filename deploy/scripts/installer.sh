@@ -443,34 +443,49 @@ if [ "${deployment_system}" == sap_system ]; then
 	fi
 fi
 
-if [[ -n $landscape_tfstate_key ]]; then
-	workloadZone_State_file_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$landscape_tfstate_key'].properties.contentLength" --output tsv)
+if [ "${deployment_system}" == sap_system ]; then
 
-	workloadZone_State_file_Size=$(expr "$workloadZone_State_file_Size_String")
+	if [[ -n $landscape_tfstate_key ]]; then
+		workloadZone_State_file_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$landscape_tfstate_key'].properties.contentLength" --output tsv)
 
-	if [ "$workloadZone_State_file_Size" -lt 50000 ]; then
-		print_banner "Installer" "Workload zone terraform state file ('$landscape_tfstate_key') is empty" "error"
-		unset TF_DATA_DIR
+		workloadZone_State_file_Size=$(expr "$workloadZone_State_file_Size_String")
 
-		az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
-		exit 2
+		if [ "$workloadZone_State_file_Size" -lt 50000 ]; then
+			print_banner "Installer" "Workload zone terraform state file ('$landscape_tfstate_key') is empty" "info"
+			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+		fi
+	fi
+
+	if [[ -n $deployer_tfstate_key ]]; then
+
+		deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+
+		deployer_Statefile_Size=$(expr "$deployer_Statefile_Size_String")
+
+		if [ "$deployer_Statefile_Size" -lt 50000 ]; then
+			print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "info"
+
+			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+		fi
 	fi
 fi
 
-if [[ -n $deployer_tfstate_key ]]; then
+if [ "${deployment_system}" == sap_landscape ]; then
 
-	deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+	if [[ -n $deployer_tfstate_key ]]; then
 
-	deployer_Statefile_Size=$(expr "$deployer_Statefile_Size_String")
+		deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
 
-	if [ "$deployer_Statefile_Size" -lt 50000 ]; then
-		print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "error"
-		unset TF_DATA_DIR
+		deployer_Statefile_Size=$(expr "$deployer_Statefile_Size_String")
 
-		az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
-		exit 2
+		if [ "$deployer_Statefile_Size" -lt 50000 ]; then
+			print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "info"
+
+			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+		fi
 	fi
 fi
+
 
 if [[ -z $STATE_SUBSCRIPTION ]]; then
 	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
