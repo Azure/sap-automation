@@ -163,7 +163,7 @@ function secretExists {
 
 	set +e
 
-	if [ "$DEBUG" == True ]; then
+	if [ "${DEBUG:-false}" == true ]; then
 		echo "DEBUG: Current az account: $(az account show --query user --output yaml)" >&2
 		echo "DEBUG: About to run az command with params: keyvault='$keyvault', subscription='$subscription', secret_name='$secret_name'" >&2
 	fi
@@ -180,12 +180,12 @@ function secretExists {
 	set -e
 
 	if [ $kvSecretExitsCode -eq 0 ]; then
-		if [ "$DEBUG" == True ]; then
+		if [ "${DEBUG:-false}" == true ]; then
 			echo "DEBUG: Secret ${secret_name} exists in Key Vault ${keyvault}" >&2
 		fi
 	else
 		# If the secret does not exist, we return 1
-		if [ "$DEBUG" == True ]; then
+		if [ "${DEBUG:-false}" == true ]; then
 			echo "DEBUG: Secret ${secret_name} does not exist in Key Vault ${keyvault} - Return code: ${kvSecretExitsCode}" >&2
 		fi
 	fi
