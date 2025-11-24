@@ -173,7 +173,7 @@ function secretExists {
 		--query "[?name=='${secret_name}'].name | [0]" \
 		--output tsv >&2
 	kvSecretExitsCode=$?
-	if [ "$DEBUG" == True ]; then
+	if [ "${DEBUG:-false}" == true ]; then
 		echo "DEBUG: Command completed. exit_code=$kvSecretExitsCode" >&2
 	fi
 
