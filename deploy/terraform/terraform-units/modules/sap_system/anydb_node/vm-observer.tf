@@ -123,6 +123,15 @@ resource "azurerm_linux_virtual_machine" "observer" {
                                      }
                                    }
 
+  dynamic "plan" {
+                   for_each = range(var.database.os.type == "marketplace_with_plan" ? 1 : 0)
+                   content {
+                             name      = var.database.os.sku
+                             publisher = var.database.os.publisher
+                             product   = var.database.os.offer
+                           }
+                 }
+
   boot_diagnostics {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
