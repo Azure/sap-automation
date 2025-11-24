@@ -131,7 +131,7 @@ def get_user_input():
         "Enter your GitHub Personal Access Token (PAT): "
     ).strip()
     repo_name = input(
-        "Step 3: Enter the full repository name (e.g., 'owner/repository'): "
+        "Step 3: Enter the full repository name (case-sensitive, e.g., 'owner/repository'): "
     ).strip()
     owner = repo_name.split("/")[0]
     server_url = (
@@ -1628,7 +1628,7 @@ def main():
     repository_variables = {
         "DOCKER_IMAGE": user_data["docker_image"],
         "TF_IN_AUTOMATION": "true",
-        "TF_LOG": "ERROR",
+        "TF_LOG": "OFF",
         "ANSIBLE_CORE_VERSION": "2.16",
         "TF_VERSION": "1.14.0"
     }
@@ -1731,14 +1731,8 @@ def main():
 
     print("Environment creation workflow has been triggered successfully.")
 
-    # Prompt for environment name after triggering the workflow
-    print("\nWait for the workflow to complete, then:")
-    environment_name = input(
-        f"Visit this link https://github.com/{user_data['repo_name']}/settings/environments\n"
-        "Enter the environment name that was created: "
-    ).strip()
-
-    # Update the environment name for federated identity and secrets
+    # Set the environment name to control_plane_name
+    environment_name = user_data["control_plane_name"]
     user_data["environment_name"] = environment_name
 
     # Add variables to the newly created environment
@@ -1766,6 +1760,7 @@ def main():
     print(f"\nSetup completed successfully!")
     print(f"Environment '{environment_name}' has been configured with all necessary variables and secrets.")
     print("You can now proceed with deploying your SAP environment using GitHub Actions.")
+    print(f"Repository: {user_data['server_url']}/{user_data['repo_name']}")
 
 if __name__ == "__main__":
     main()
