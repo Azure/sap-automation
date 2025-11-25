@@ -89,7 +89,6 @@ set -eu
 curdir=$(dirname "$SAP_PARAMS")
 
 cd "$curdir" || exit
-echo "SSH Key name: $SSH_KEY_NAME"
 
 if [ ! -v SSH_KEY_NAME ]; then
 	SSH_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-sshkey"
