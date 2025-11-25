@@ -86,7 +86,9 @@ fi
 
 set -eu
 
-cd $SAP_PARAMS || exit
+curdir=$(dirname "$SAP_PARAMS")
+
+cd "$curdir" || exit
 
 if [ ! -v SSH_KEY_NAME ]; then
 	SSH_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-sshkey"
