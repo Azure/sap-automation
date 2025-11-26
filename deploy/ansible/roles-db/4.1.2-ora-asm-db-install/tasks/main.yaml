@@ -60,35 +60,13 @@
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             "{{ item.state }}"
-    recurse:                           true
+    recurse:                           "{{ item.recurse }}"
     mode:                              "{{ item.mode }}"
   loop:
-    - { state: 'directory', mode: '0775', path: '/etc/sap_deployment_automation/' }
-    - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/oracle' }
-    - { state: 'directory', mode: '0755', path: "/etc/sap_deployment_automation/{{ sap_sid | upper }}" }
-    - { state: 'directory', mode: '0755', path: "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}" }
-
-- name:                                "4.1.2. Oracle ASM Database Installation - Create and permission Oracle directories"
-  ansible.builtin.file:
-    path:                              "{{ item.path }}"
-    state:                             "{{ item.state }}"
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
-    recurse:                           true
-    mode:                              "{{ item.mode }}"
-  loop:
-    - { state: 'directory', mode: '0755', path: "/oracle" }
-
-- name:                                "4.1.2. Oracle ASM Database Installation - Create and permission Oracle directories"
-  ansible.builtin.file:
-    path:                              "{{ item.path }}"
-    state:                             "{{ item.state }}"
-    owner:                             "{{ grid_user_name }}"
-    group:                             oinstall
-    recurse:                           true
-    mode:                              "{{ item.mode }}"
-  loop:
-    - { state: 'directory', mode: '0775', path: "/oracle/GRID/{{ ora_version }}" }
+    - { state: 'directory', mode: '0775', recurse: false, path: '/etc/sap_deployment_automation/' }
+    - { state: 'directory', mode: '0755', recurse: false, path: '/etc/sap_deployment_automation/oracle' }
+    - { state: 'directory', mode: '0755', recurse: false, path: "/etc/sap_deployment_automation/{{ sap_sid | upper }}" }
+    - { state: 'directory', mode: '0755', recurse: true,  path: "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}" }
 
 - name:                                "4.1.2. Oracle ASM Database Installation - Find Patch ID for Database Release Update"
   become:                              true

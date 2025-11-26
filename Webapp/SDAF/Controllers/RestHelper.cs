@@ -17,10 +17,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Services.Client;
-using Microsoft.VisualStudio.Services.Common;
-using Microsoft.VisualStudio.Services.TenantPolicy;
-using Microsoft.VisualStudio.Services.WebApi;
 
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -90,7 +86,7 @@ namespace SDAFWebApp.Controllers
 
                     //var tokenRequestContext = new TokenRequestContext(new[] { "https://management.azure.com/.default", "499b84ac-1321-427f-aa17-267ca6975798/.default" });
 
-                    var tokenRequestContext = new TokenRequestContext(VssAadSettings.DefaultScopes);
+                    var tokenRequestContext = new TokenRequestContext(new[] { "499b84ac-1321-427f-aa17-267ca6975798/.default" });
                     var token = credential.GetToken(tokenRequestContext, CancellationToken.None);
 
                     var accessToken = token.Token;
