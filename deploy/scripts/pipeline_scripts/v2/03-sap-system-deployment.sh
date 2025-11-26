@@ -228,10 +228,17 @@ else
 	else
 		echo "::warning title=Application Configuration ID Not Defined::Variable APPLICATION_CONFIGURATION_ID was not defined."
 	fi
-	load_config_vars "${workload_environment_file_name}" "keyvault"
-	key_vault="$keyvault"
+	if [ -n "$KEYVAULT" ]; then
+		key_vault="$KEYVAULT"
+		key_vault_id=$(az resource list --name "${KEYVAULT}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+	else
+		load_config_vars "${workload_environment_file_name}" "workloadkeyvault"
+		key_vault="$workloadkeyvault"
+		key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+	fi
+
 	load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
-	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+
 fi
 
 if [ -z "$key_vault" ]; then
