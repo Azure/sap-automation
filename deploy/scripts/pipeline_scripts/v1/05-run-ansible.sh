@@ -76,6 +76,7 @@ fi
 
 key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$VAULT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 key_vault_subscription=$(echo "$key_vault_id" | cut -d '/' -f 3)
+key_vault_name=$VAULT_NAME
 
 if [ -n "$key_vault_subscription" ]; then
 	echo "##[section]Using Key Vault subscription: $key_vault_subscription"
@@ -132,7 +133,7 @@ user_name=$(az keyvault secret show --name "$USERNAME_KEY_NAME" --vault-name "$k
 
 ANSIBLE_PASSWORD="${password_secret}"
 export ANSIBLE_PASSWORD
-
+export ANSIBLE_HOST_KEY_CHECKING=False
 base=$(basename "$ANSIBLE_FILE_PATH")
 
 filename_without_prefix=$(echo "$base" | awk -F'.' '{print $1}')
@@ -163,6 +164,8 @@ if [ -f "$SAP_PARAMS/extra-params.yaml" ]; then
 	EXTRA_PARAM_FILE="-e @$SAP_PARAMS/extra-params.yaml"
 fi
 
+sudo chmod 600 "$SSH_KEY_NAME"
+
 ############################################################################################
 #                                                                                          #
 # Run Pre tasks if Ansible playbook with the correct naming exists                         #
@@ -175,19 +178,19 @@ echo "Check if file: ${filename} exists"
 if [ -f "${filename}" ]; then
 	echo "##[group]- preconfiguration"
 
-	redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SAP_PARAMS/$SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$curdir' $EXTRA_PARAMS -e orchestration_ansible_user=$USER -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${filename}"
+	redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$curdir' $EXTRA_PARAMS -e orchestration_ansible_user=$USER -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${filename}"
 
 	echo "##[section]Executing [$redacted_command]..."
 
 	command="ansible-playbook -i '$INVENTORY'                                    \
-	              --private-key $SAP_PARAMS/$SSH_KEY_NAME                        \
+	              --private-key $SSH_KEY_NAME                                    \
 								-e 'kv_name=$VAULT_NAME'                                       \
 								-e 'download_directory=$AGENT_TEMPDIRECTORY'                   \
 								-e '_workspace_directory=$curdir' $EXTRA_PARAMS                \
 								-e orchestration_ansible_user=$USER                            \
 								-e ansible_user=$user_name                                     \
 								-e ansible_python_interpreter=/usr/bin/python3                 \
-    						-e ansible_ssh_pass='{{ lookup("env", "ANSIBLE_PASSWORD") }}'  \
+    						-e ansible_ssh_pass='$ANSIBLE_PASSWORD'                        \
 		      			-e @$SAP_PARAMS $EXTRA_PARAM_FILE	${filename}"
 
 	eval "${command}"
@@ -198,14 +201,14 @@ if [ -f "${filename}" ]; then
 fi
 
 command="ansible-playbook -i '$INVENTORY'                                      \
-	              --private-key $SAP_PARAMS/$SSH_KEY_NAME                        \
+	              --private-key $SSH_KEY_NAME                                    \
 								-e 'kv_name=$VAULT_NAME'                                       \
 								-e 'download_directory=$AGENT_TEMPDIRECTORY'                   \
 								-e '_workspace_directory=$curdir' $EXTRA_PARAMS                \
 								-e orchestration_ansible_user=$USER                            \
 								-e ansible_user=$user_name                                     \
 								-e ansible_python_interpreter=/usr/bin/python3                 \
-    						-e ansible_ssh_pass='{{ lookup("env", "ANSIBLE_PASSWORD") }}'  \
+    						-e ansible_ssh_pass='$ANSIBLE_PASSWORD'                        \
 		      			-e @$SAP_PARAMS $EXTRA_PARAM_FILE	${ANSIBLE_FILE_PATH}	"
 
 redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$curdir' $EXTRA_PARAMS -e orchestration_ansible_user=$USER -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${ANSIBLE_FILE_PATH}"
@@ -233,14 +236,14 @@ if [ -f "${filename}" ]; then
 	echo "##[section]Executing [$redacted_command]..."
 
 	command="ansible-playbook -i '$INVENTORY'                                    \
-	              --private-key $SAP_PARAMS/$SSH_KEY_NAME                        \
+	              --private-key $SSH_KEY_NAME                        \
 								-e 'kv_name=$VAULT_NAME'                                       \
 								-e 'download_directory=$AGENT_TEMPDIRECTORY'                   \
 								-e '_workspace_directory=$curdir' $EXTRA_PARAMS                \
 								-e orchestration_ansible_user=$USER                            \
 								-e ansible_user=$user_name                                     \
 								-e ansible_python_interpreter=/usr/bin/python3                 \
-    						-e ansible_ssh_pass='{{ lookup("env", "ANSIBLE_PASSWORD") }}'  \
+    						-e ansible_ssh_pass='$ANSIBLE_PASSWORD'                        \
 		      			-e @$SAP_PARAMS $EXTRA_PARAM_FILE	${filename}"
 
 	eval "${command}"
