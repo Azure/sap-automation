@@ -258,7 +258,7 @@ else
 	fi
 	load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
 	load_config_vars "${deployer_environment_file_name}" "subscription"
-	TF_VAR_management_subscription_id="${subscription:-terraform_storage_account_subscription_id}"
+	TF_VAR_management_subscription_id="${subscription:-$terraform_storage_account_subscription_id}"
 	export TF_VAR_management_subscription_id
 
 fi
