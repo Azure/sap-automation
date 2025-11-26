@@ -212,9 +212,16 @@ if [ "$SID" != "$SID_IN_FILENAME" ]; then
 fi
 
 if [ -v TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME	]; then
-	tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	tfstate_resource_id=$§(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 	export tfstate_resource_id
 fi
+
+if [ -v KEYVAULT	]; then
+	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	export key_vault_id
+	key_vault="$KEYVAULT"
+fi
+
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
   ZONE="${CONTROL_PLANE_NAME}"
@@ -287,7 +294,7 @@ echo "System TFvars:                       $SAP_SYSTEM_TFVARS_FILENAME"
 echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload statefile:                  $landscape_tfstate_key"
 echo "Deployer Key vault:                  $key_vault"
-echo "Workload Key vault:                  ${workload_key_vault}"
+echo "Workload Key vault:                  ${workload_key_vault:-}"
 echo "Statefile subscription:              $terraform_storage_account_subscription_id"
 echo "Statefile storage account:           $terraform_storage_account_name"
 echo ""
