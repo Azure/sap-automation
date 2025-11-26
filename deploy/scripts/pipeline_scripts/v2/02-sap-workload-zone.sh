@@ -230,6 +230,18 @@ if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
 	fi
 	exit 2
 fi
+if [ -z "$tfstate_resource_id" ]; then
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
+	elif [ "$PLATFORM" == "github" ]; then
+		echo "Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
+	fi
+	exit 2
+fi
+
+terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
+terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
+terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 	application_configuration_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 9)
@@ -246,23 +258,11 @@ else
 	fi
 	load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
 	load_config_vars "${deployer_environment_file_name}" "subscription"
-	TF_VAR_management_subscription_id="$subscription"
+	TF_VAR_management_subscription_id="${subscription:-terraform_storage_account_subscription_id}"
 	export TF_VAR_management_subscription_id
 
 fi
 
-if [ -z "$tfstate_resource_id" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
-	elif [ "$PLATFORM" == "github" ]; then
-		echo "Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$application_configuration_name' nor was it defined in ${workload_environment_file_name})."
-	fi
-	exit 2
-fi
-
-terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
-terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
-terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 
 export terraform_storage_account_name
