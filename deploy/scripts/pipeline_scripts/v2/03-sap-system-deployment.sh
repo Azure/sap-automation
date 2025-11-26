@@ -210,6 +210,8 @@ if [ "$SID" != "$SID_IN_FILENAME" ]; then
 	exit 2
 fi
 
+load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
+
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
   ZONE="${CONTROL_PLANE_NAME}"
 	export ZONE
