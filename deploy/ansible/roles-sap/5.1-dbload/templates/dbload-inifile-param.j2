@@ -26,7 +26,7 @@ HDB_Schema_Check_Dialogs.dropSchema                                   = true
 NW_ABAP_Import_Dialog.migmonJobNum                                    = 12
 hanadb.landscape.reorg.useParameterFile                               = DONOTUSEFILE
 
-{% if platform | upper == 'HANA' %}
+{% if platform | upper == 'HANA' and hana_schema == 'SAPHANADB' %}
 
 SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT
 SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
@@ -60,6 +60,26 @@ NW_Recovery_Install_HDB.extractParallelJobs                           = 24
 NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid | lower }}adm
 NW_Recovery_Install_HDB.sidAdmPassword                                = {{ main_password }}
 
+
+{% endif %}
+
+{% if platform | upper == 'HANA' and hana_schema == 'SAPJAVA1' %}
+
+SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT
+
+HDB_Schema_Check_Dialogs.schemaName                                   = {{ hana_schema }}
+HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
+
+NW_HDB_DB.javaSchemaName                                              = {{ hana_schema }}
+NW_HDB_DB.javaSchemaPassword                                          = {{ main_password }}
+NW_HDB_getDBInfo.dbhost                                               = {{ sap_db_hostname }}
+NW_HDB_getDBInfo.dbsid                                                = {{ db_sid | upper }}
+NW_HDB_getDBInfo.instanceNumber                                       = {{ db_instance_number }}
+NW_HDB_getDBInfo.systemPassword                                       = {{ main_password }}
+NW_HDB_getDBInfo.systemid                                             = {{ db_sid | upper }}
+NW_HDB_getDBInfo.usingSSL                                             = true
+NW_JAVA_Export.keyPhrase                                              = {{ main_password }}
 
 {% endif %}
 
