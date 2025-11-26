@@ -72,6 +72,11 @@ SID=$(basename "${SAP_SYSTEM_CONFIGURATION_NAME}" | cut -d'-' -f4)
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
+if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	export APPLICATION_CONFIGURATION_ID
+fi
+
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
 	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultResourceId" "${WORKLOAD_ZONE_NAME}")
@@ -125,7 +130,7 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 fi
 
-az account set --subscription "$APPLICATION_CONFIGURATION_SUBSCRIPTION_ID" --output none --only-show-errors
+az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
 
 echo "SID:                                 ${SID}"
 echo "Workload Zone Name:                  $WORKLOAD_ZONE_NAME"

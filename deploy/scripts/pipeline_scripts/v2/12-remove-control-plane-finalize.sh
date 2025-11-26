@@ -228,7 +228,7 @@ else
 	echo "Deployer using:                      Service Principal"
 fi
 
-if [ "$DEBUG" == True ]; then
+if [ "${DEBUG:-false}" == true ]; then
 	echo "ARM Environment variables:"
 	printenv | grep ARM_
 fi
