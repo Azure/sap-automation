@@ -116,7 +116,7 @@ if [ "$param_dirname" != '.' ]; then
 	exit 3
 fi
 
-if [ "$DEBUG" == True ]; then
+if [ "${DEBUG:-false}" == true ]; then
 	echo -e "${cyan}Enabling debug mode$reset_formatting"
 	set -x
 	set -o errexit
