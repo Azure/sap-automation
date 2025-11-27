@@ -137,7 +137,14 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 fi
 
-az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
+if [ -v KEYVAULT	]; then
+	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	export key_vault_id
+	key_vault="$KEYVAULT"
+	key_vault_subscription_id=$(echo "$key_vault_id" | cut -d'/' -f3)
+fi
+
+az account set --subscription "${key_vault_subscription_id:-$ARM_SUBSCRIPTION_ID}" --output none --only-show-errors
 
 echo "SID:                                 ${SID}"
 echo "Workload Zone Name:                  $WORKLOAD_ZONE_NAME"
