@@ -13,6 +13,7 @@
 
 - name:                                "5.8 HANA Pacemaker Scaleout - HANA 2.0 only - Implement the Python system replication hook SAPHanaSR-ScaleOut MultiTarget"
   when:
+                                       - node_tier == 'hana'
                                        - hdb_version[0:2] == "2."
                                        - database_high_availability
   block:
