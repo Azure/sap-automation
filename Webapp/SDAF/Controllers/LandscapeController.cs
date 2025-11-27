@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Net.Http.Headers;
-using Microsoft.TeamFoundation.Common;
 using Newtonsoft.Json;
 using SDAFWebApp.Models;
 using SDAFWebApp.Services;
@@ -196,16 +195,16 @@ namespace SDAFWebApp.Controllers
                     landscape.Id = Helper.GenerateId(landscape);
                     DateTime currentDateAndTime = DateTime.Now;
                     landscape.LastModified = currentDateAndTime.ToShortDateString();
-                    if (!landscape.subscription.IsNullOrEmpty())
+                    if (!string.IsNullOrEmpty(landscape.subscription))
                     {
                         landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
                     }
 
-                    if (landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                    if (string.IsNullOrEmpty(landscape.environment) && !string.IsNullOrEmpty(landscape.workload_zone))
                     {
                         landscape.environment = landscape.workload_zone.Split('-')[0];
                     }
-                    if (landscape.network_logical_name.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                    if (string.IsNullOrEmpty(landscape.network_logical_name) && !string.IsNullOrEmpty(landscape.workload_zone))
                     {
                         landscape.network_logical_name = landscape.workload_zone.Split('-')[2];
                     }
@@ -266,12 +265,12 @@ namespace SDAFWebApp.Controllers
                 string path = $"/LANDSCAPE/{id}/{id}.tfvars";
 
                 
-                if (!landscape.subscription.IsNullOrEmpty())
+                if (!string.IsNullOrEmpty(landscape.subscription))
                 {
                     landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
                 }
 
-                if (landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                if (string.IsNullOrEmpty(landscape.environment) && !string.IsNullOrEmpty(landscape.workload_zone))
                 {
                     landscape.environment = landscape.workload_zone.Split('-')[0];
                 }
@@ -344,16 +343,16 @@ namespace SDAFWebApp.Controllers
             {
                 ActionResult<LandscapeModel> result = await GetById(id, partitionKey);
                 LandscapeModel landscape = result.Value;
-                if (!landscape.subscription.IsNullOrEmpty())
+                if (!string.IsNullOrEmpty(landscape.subscription))
                 {
                     landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
                 }
 
-                if (landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                if (string.IsNullOrEmpty(landscape.environment) && !string.IsNullOrEmpty(landscape.workload_zone))
                 {
                     landscape.environment = landscape.workload_zone.Split('-')[0];
                 }
-                if (landscape.network_logical_name.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                if (string.IsNullOrEmpty(landscape.network_logical_name) && !string.IsNullOrEmpty(landscape.workload_zone))
                 {
                     landscape.network_logical_name = landscape.workload_zone.Split('-')[2];
                 }
@@ -411,15 +410,15 @@ namespace SDAFWebApp.Controllers
                         }
                         DateTime currentDateAndTime = DateTime.Now;
                         landscape.LastModified = currentDateAndTime.ToShortDateString();
-                        if (landscape.environment.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                        if (string.IsNullOrEmpty(landscape.environment) && !string.IsNullOrEmpty(landscape.workload_zone))
                         {
                             landscape.environment = landscape.workload_zone.Split('-')[0];
                         }
-                        if (landscape.network_logical_name.IsNullOrEmpty() && !landscape.workload_zone.IsNullOrEmpty())
+                        if (string.IsNullOrEmpty(landscape.network_logical_name) && !string.IsNullOrEmpty(landscape.workload_zone))
                         {
                             landscape.network_logical_name = landscape.workload_zone.Split('-')[2];
                         }
-                        if (!landscape.subscription.IsNullOrEmpty())
+                        if (!string.IsNullOrEmpty(landscape.subscription))
                         {
                             landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
                         }

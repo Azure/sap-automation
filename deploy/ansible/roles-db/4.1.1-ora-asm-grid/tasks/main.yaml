@@ -57,15 +57,16 @@
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
-    mode:                              '0755'
+    mode:                              "{{ item.mode }}"
     owner:                             "{{ grid_user_name }}"
     group:                             oinstall
+    recurse:                           "{{ item.recurse }}"
   loop:
-    - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/' }
-    - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/grid' }
-    - { state: 'directory', mode: '0755', path: "/oracle" }
-    - { state: 'directory', mode: '0775', path: "/oracle/BASE" }
-    - { state: 'directory', mode: '0775', path: "/oracle/GRID/{{ ora_version }}" }
+    - { state: 'directory', mode: '0755', recurse: false, path: '/etc/sap_deployment_automation/' }
+    - { state: 'directory', mode: '0755', recurse: false, path: '/etc/sap_deployment_automation/grid' }
+    - { state: 'directory', mode: '0775', recurse: false, path: "/oracle/BASE" }
+    - { state: 'directory', mode: '0775', recurse: false, path: "/oracle/BASE/crsdata" }
+    - { state: 'directory', mode: '0775', recurse: true,  path: "/oracle/oraInventory" }
 
 - name:                                "4.1.1. ORACLE Grid Setup - Check if installed"
   ansible.builtin.stat:
