@@ -85,6 +85,13 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 
 	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 	tfstate_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
+else
+	if [ -v KEYVAULT ]; then
+		key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+		export key_vault_id
+		key_vault_subscription_id=$(echo "$key_vault_id" | cut -d'/' -f3)
+		key_vault="$KEYVAULT"
+	fi
 fi
 
 cd "$CONFIG_REPO_PATH" || exit
