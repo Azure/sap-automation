@@ -566,7 +566,7 @@
                                        - node_tier in ['hana','observer']
                                        - database_scale_out
           ansible.builtin.include_role:
-            name:                      "Database Installation Playbook: - HANA ScaleOut - Install Pacemaker (Scale Out)"
+            name:                      roles-sap/5.8-hanadb-scaleout-pacemaker
             apply:
               tags:
                                        - 1.18-scaleout-pacemaker
