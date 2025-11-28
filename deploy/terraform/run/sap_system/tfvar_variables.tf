@@ -11,10 +11,10 @@
 variable "environment"                           {
                                                    description = "This is the environment name for the deployment"
                                                    type        = string
-                                                  validation    {
-                                                                  condition     = length(var.environment) != 0
-                                                                  error_message = "The 'environment' variable must not be empty."
-                                                                }
+                                                   validation {
+                                                     condition     = length(var.environment) <= 5 && length(var.environment) > 0
+                                                     error_message = "The 'environment' variable must be specified and at most 5 characters long."
+                                                   }
                                                  }
 
 variable "codename"                              {
