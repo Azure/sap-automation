@@ -77,7 +77,10 @@ resource "azurerm_network_interface" "deployer" {
                                            private_ip_address            = try(var.deployer.private_ip_address[count.index], var.deployer.use_DHCP ? (
                                                                              null) : (
                                                                              cidrhost(
-                                                                               var.infrastructure.virtual_network.management.subnet_mgmt.prefix,
+                                                                               var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
+                                                                            data.azurerm_subnet.subnet_mgmt[0].prefixes[0]) : (
+                                                                            var.infrastructure.virtual_network.management.subnet_mgmt.prefix
+                                                                          ),
                                                                                tonumber(count.index) + 4
                                                                              )
                                                                              )
