@@ -80,10 +80,9 @@
 # Disable SELinux
 # WILL NOT DISABLE SELINUX ON RHEL10
 - name:                                "2.10.1 sap-notes: - Disable SELinux"
-  block:
   when:
     - distribution_id in ['redhat7', 'redhat8', 'redhat9']
-
+  block:
     - name:                            "2.10.1 sap-notes: - Disable SELinux"
       ansible.posix.selinux:
         state:                         disabled
