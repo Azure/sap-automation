@@ -88,7 +88,7 @@
         state:                         disabled
       register:                        selinux_disabled
       notify:                          "2.10-sap-notes: Reboot after the selinux is configured"
-      tags: ansible_skip_lint
+      tags:                            ansible_skip_lint
 
     # only for debugging purposes
     - name:                            "2.10.1 sap-notes: - Save SELinux status"
@@ -96,16 +96,17 @@
       register:                        selinux_status
 
     # only for debugging purposes
-    - name:                           "2.10.1 sap-notes: - Display SELinux status"
+    - name:                            "2.10.1 sap-notes: - Display SELinux status"
       ansible.builtin.debug:
         msg:                           "SELinux status: {{ selinux_status.stdout }}"
-      tags: ansible_skip_lint
+      tags:                            ansible_skip_lint
+      verbosity:                       2
 
     - name:                            "2.10.1 sap-notes: Clear the failed state of hosts"
       when:
         - selinux_disabled.changed
         - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
-      ansible.builtin.meta:        clear_host_errors
+      ansible.builtin.meta:            clear_host_errors
 
     - name:                            "2.10.1 sap-notes: Including Task for VM Agent Actions"
       when:
