@@ -101,25 +101,29 @@
         msg:                           "SELinux status: {{ selinux_status.stdout }}"
       tags: ansible_skip_lint
 
-    - name:                            "2.10.1 sap-notes: Check VM Agent Status"
+    - name:                            "2.10.1 sap-notes: Clear the failed state of hosts"
       when:
         - selinux_disabled.changed
         - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
-      block:
-        - name:                        "2.10.1 sap-notes: Clear the failed state of hosts"
-          ansible.builtin.meta:        clear_host_errors
+      ansible.builtin.meta:        clear_host_errors
 
-        - name:                        "2.10.1 sap-notes: Including Task for VM Agent Actions"
-          ansible.builtin.include_tasks:   roles-misc/0.7-VmAgentActions/tasks/main.yaml
-          vars:
-            subscriptionId:            "{{ subscription_id }}"
-            resourceGroup_name:        "{{ resource_group_name }}"
-            vmName:                    "{{ vm_name }}"
+    - name:                            "2.10.1 sap-notes: Including Task for VM Agent Actions"
+      when:
+        - selinux_disabled.changed
+        - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
+      ansible.builtin.include_tasks:   roles-misc/0.7-VmAgentActions/tasks/main.yaml
+      vars:
+        subscriptionId:                "{{ subscription_id }}"
+        resourceGroup_name:            "{{ resource_group_name }}"
+        vmName:                        "{{ vm_name }}"
 
-        - name:                        "2.10.1 sap-notes: Wait for system to become reachable"
-          ansible.builtin.wait_for_connection:
-            timeout:                   300
-          register:                    wait_for_connection_results
+    - name:                            "2.10.1 sap-notes: Wait for system to become reachable"
+      when:
+        - selinux_disabled.changed
+        - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
+      ansible.builtin.wait_for_connection:
+        timeout:                       300
+      register:                        wait_for_connection_results
 
 - name:                                "2.10.1 - SAP Note 2777782 tasks on RHEL OS"
   ansible.builtin.include_tasks:       2.10.1.yaml
