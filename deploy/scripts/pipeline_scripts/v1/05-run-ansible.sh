@@ -164,8 +164,6 @@ if [ -f "$SAP_PARAMS/extra-params.yaml" ]; then
 	EXTRA_PARAM_FILE="-e @$SAP_PARAMS/extra-params.yaml"
 fi
 
-sudo chmod 600 "$SSH_KEY_NAME"
-dos2unix "$SSH_KEY_NAME"
 
 ############################################################################################
 #                                                                                          #
