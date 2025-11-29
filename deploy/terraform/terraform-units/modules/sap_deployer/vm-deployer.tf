@@ -78,7 +78,7 @@ resource "azurerm_network_interface" "deployer" {
                                                                              null) : (
                                                                              cidrhost(
                                                                                var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
-                                                                            data.azurerm_subnet.subnet_mgmt[0].prefixes[0]) : (
+                                                                            data.azurerm_subnet.subnet_mgmt[0].address_prefixes[0]) : (
                                                                             var.infrastructure.virtual_network.management.subnet_mgmt.prefix
                                                                           ),
                                                                                tonumber(count.index) + 4
