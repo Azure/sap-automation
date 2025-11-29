@@ -86,6 +86,7 @@
     - name:                            "2.10.1 sap-notes: - Disable SELinux"
       ansible.posix.selinux:
         state:                         disabled
+      register:                        selinux_disabled
       notify:                          "2.10-sap-notes: Reboot after the selinux is configured"
       tags: ansible_skip_lint
 
