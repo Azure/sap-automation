@@ -99,8 +99,9 @@
     - name:                            "2.10.1 sap-notes: - Display SELinux status"
       ansible.builtin.debug:
         msg:                           "SELinux status: {{ selinux_status.stdout }}"
+        verbosity:                     2
       tags:                            ansible_skip_lint
-      verbosity:                       2
+
 
     - name:                            "2.10.1 sap-notes: Clear the failed state of hosts"
       when:
