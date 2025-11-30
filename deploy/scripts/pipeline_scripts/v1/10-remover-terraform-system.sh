@@ -196,11 +196,6 @@ if [ "$SID" != "$SID_IN_FILENAME" ]; then
 	exit 2
 fi
 
-if [ -z "$DEPLOYER_KEYVAULT" ]; then
-	echo "##vso[task.logissue type=error]Key vault was not defined in ${workload_environment_file_name})."
-	exit 2
-fi
-
 if [ -z "$tfstate_resource_id" ]; then
 	echo "##vso[task.logissue type=error]Terraform state storage account resource id was not found in ${workload_environment_file_name})."
 	exit 2
