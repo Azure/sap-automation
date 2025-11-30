@@ -146,7 +146,7 @@ fi
 export deployer_tfstate_key
 CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d'-' -f1-3)
 
-DEPLOYER_ENVIRONMENT=$(echo $CONTROL_PLANE_NAME | awk -F'-' '{print $1}')
+DEPLOYER_ENVIRONMENT="$CONTROL_PLANE_NAME"
 separator="-"
 if [[ "$DEPLOYER_ENVIRONMENT" == *"$separator"* ]]; then
 	DEPLOYER_ENVIRONMENT_IN_FILENAME=$(echo $DEPLOYER_ENVIRONMENT | awk -F'-' '{print $1}')
