@@ -21,7 +21,7 @@
 
 - name:                                "1.18.2.0 Generic Pacemaker - Check if we are on RHEL 9 or newer"
   ansible.builtin.set_fact:
-    is_rhel_9_or_newer:                "{{ ansible_distribution_major_version | int >= 9 }}"
+    is_rhel_9_or_newer:                "{{ ansible_distribution_version is version('9.0', '>=') }}"
 
 - name:                                "1.18.2.0 Generic Pacemaker - Check if we are on RHEL 8.4 or newer"
   ansible.builtin.set_fact:
@@ -169,7 +169,7 @@
                                          pcmk_delay_max=15
                                          pcmk_host_map="{% for item in ansible_play_hosts_all %}{{ item }}:{{ hostvars[item]['vm_name'] }}{{ ';' if not loop.last }}{% endfor %}"
       when:
-        - ansible_distribution_major_version in ["8", "9", "10"]
+        - ansible_distribution_version is version('8.0', '>=')
         - not use_msi_for_clusters
 
     - name:                            "1.18.2.0 Generic Pacemaker - Ensure the STONTIH device is configured (MSI)"
@@ -186,7 +186,7 @@
                                          pcmk_delay_max=15
                                          pcmk_host_map="{% for item in ansible_play_hosts_all %}{{ item }}:{{ hostvars[item]['vm_name'] }}{{ ';' if not loop.last }}{% endfor %}"
       when:
-        - ansible_distribution_major_version in ["8", "9", "10"]
+        - ansible_distribution_version is version('8.0', '>=')
         - use_msi_for_clusters
 
     - name:                            "1.18.2.0 Generic Pacemaker - Update Monitor interval"
