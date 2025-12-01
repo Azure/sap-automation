@@ -134,9 +134,22 @@ resource "azurerm_linux_virtual_machine" "observer" {
 
 }
 
+
+
 resource "azurerm_virtual_machine_data_disk_attachment" "cluster_observer" {
   provider                             = azurerm.main
-  count                                = var.use_observer && length(azurerm_managed_disk.cluster) > 0 ? 1 : 0
+  depends_on                           = [ azurerm_managed_disk.cluster ]
+  count                                = (
+                                           var.use_observer &&
+                                           var.database.high_availability &&
+                                           (
+                                             upper(var.database.os.os_type) == "WINDOWS" ||
+                                             (
+                                               upper(var.database.os.os_type) == "LINUX" &&
+                                               upper(var.database.database_cluster_type) == "ASD"
+                                             )
+                                           )
+                                         ) ? 1 : 0
   managed_disk_id                      = azurerm_managed_disk.cluster[0].id
   virtual_machine_id                   = azurerm_linux_virtual_machine.observer[0].id
   caching                              = "None"
