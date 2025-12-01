@@ -378,14 +378,6 @@ function remove_control_plane() {
 
 	param_dirname=$(pwd)
 
-	echo ""
-	echo -e "${green}Terraform details:"
-	echo -e "-------------------------------------------------------------------------${reset}"
-	echo "Subscription:                        ${terraform_storage_account_subscription_id}"
-	echo "Storage Account:                     ${terraform_storage_account_name}"
-	echo "Resource Group:                      ${terraform_storage_account_resource_group_name:-undefined}"
-	echo "State file:                          ${key}.terraform.tfstate"
-
 	if [ ! -f "$deployer_environment_file_name" ]; then
 		if [ -f "${CONFIG_DIR}/${environment}${region_code}" ]; then
 			echo "Copying existing configuration file"
@@ -423,6 +415,12 @@ function remove_control_plane() {
 		azure_backend=$(grep "\"type\": \"azurerm\"" "${deployer_dirname}/.terraform/terraform.tfstate" || true)
 		if [ -n "$azure_backend" ]; then
 			echo "Terraform state:                     remote"
+			terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+			terraform_storage_account_name=$(grep -m1 "storage_account_name" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+			terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+			tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
+			export TF_VAR_tfstate_resource_id
+
 			if terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade -force-copy --backend-config "path=${deployer_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "Remove Control Plane " "Terraform init succeeded (deployer - local)" "success"
@@ -452,6 +450,14 @@ function remove_control_plane() {
 			print_banner "Remove Control Plane " "Terraform init failed (deployer - local)" "error"
 		fi
 	fi
+
+	echo ""
+	echo -e "${green}Terraform details:"
+	echo -e "-------------------------------------------------------------------------${reset}"
+	echo "Subscription:                        ${terraform_storage_account_subscription_id:-undefined}"
+	echo "Storage Account:                     ${terraform_storage_account_name:-undefined}"
+	echo "Resource Group:                      ${terraform_storage_account_resource_group_name:-undefined}"
+	echo "State file:                          ${key}.terraform.tfstate"
 
 	diagnostics_account_id=$(terraform -chdir="${terraform_module_directory}" output diagnostics_account_id | tr -d \")
 	if [ -n "${diagnostics_account_id}" ]; then
@@ -489,6 +495,12 @@ function remove_control_plane() {
 		azure_backend=$(grep "\"type\": \"azurerm\"" "${library_dirname}/.terraform/terraform.tfstate" || true)
 		if [ -n "$azure_backend" ]; then
 			echo "Terraform state:                     remote"
+			terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" "${library_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+			terraform_storage_account_name=$(grep -m1 "storage_account_name" "${library_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+			terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" "${library_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+			tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
+			export TF_VAR_tfstate_resource_id
+
 			if terraform -chdir="${terraform_module_directory}" init -upgrade -force-copy -migrate-state --backend-config "path=${library_dirname}/terraform.tfstate"; then
 				return_value=$?
 				print_banner "Remove Control Plane " "Terraform init succeeded (library - local)" "success"
@@ -559,11 +571,6 @@ function remove_control_plane() {
 
 	if [ 0 != $return_value ]; then
 		return $return_value
-	else
-		print_banner "Remove Control Plane " "Reset Local File" "success"
-
-		save_config_vars "${deployer_environment_file_name}" \
-			tfstate_resource_id
 	fi
 
 	cd "${current_directory}" || exit
