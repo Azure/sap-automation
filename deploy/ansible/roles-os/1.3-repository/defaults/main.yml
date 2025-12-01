@@ -1,0 +1,3 @@
+# Defaults for roles-os/1.3-repository
+
+distribution_full_id: "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
