@@ -571,11 +571,6 @@ function remove_control_plane() {
 
 	if [ 0 != $return_value ]; then
 		return $return_value
-	else
-		print_banner "Remove Control Plane " "Reset Local File" "success"
-
-		save_config_vars "${deployer_environment_file_name}" \
-			tfstate_resource_id
 	fi
 
 	cd "${current_directory}" || exit
