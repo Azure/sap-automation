@@ -66,6 +66,7 @@
     verbosity:                         2
 
 - name:                                "5.8 HANA Pacemaker Scaleout - Ensure HANA DB version is checked and captured"
+  when:                                node_tier == 'hana'
   block:
     - name:                            Check HANA DB Version and register
       become_user:                     "{{ db_sid | lower }}adm"
