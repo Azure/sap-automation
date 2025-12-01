@@ -35,6 +35,9 @@ function save_config_vars() {
 
 	for var_name; do # iterate over function params
 		sed -i -e "" -e /"${var_name}"/d "${var_file}"
+		if [[ -z "${!var_name}" ]]; then
+			continue
+		fi
 		echo "${var_name}=${!var_name}" >>"${var_file}"
 
 	done
