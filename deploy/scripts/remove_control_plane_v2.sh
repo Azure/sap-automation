@@ -574,8 +574,6 @@ function remove_control_plane() {
 	else
 		print_banner "Remove Control Plane " "Reset Local File" "success"
 
-		if
-
 		save_config_vars "${deployer_environment_file_name}" \
 			tfstate_resource_id
 	fi
