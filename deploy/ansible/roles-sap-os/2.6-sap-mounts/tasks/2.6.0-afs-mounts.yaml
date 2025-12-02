@@ -447,7 +447,7 @@
   vars:
     primary_host:                      "{{ ansible_hostname }}"
 
-- name:                                "2.6.0 - AFS - SAP HANA SCALE OUT perform directory creation on hana_shared"
+- name:                                "2.6.0 - AFS - SAP HANA Scale-out perform directory creation on hana_shared"
   when:
                                        - database_scale_out | default(false)
                                        - database_high_availability | default(false)
@@ -455,7 +455,7 @@
                                        - hana_shared_mountpoint is defined
                                        - hana_shared_mountpoint | length == 2
   block:
-    - name:                                "2.6.0 - AFS - SAP HANA SCALE OUT: Create list of all db hosts"
+    - name:                                "2.6.0 - AFS - SAP HANA Scale-out: Create list of all db hosts"
       ansible.builtin.set_fact:
         db_hosts:                      "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
         site1_hosts: >-
