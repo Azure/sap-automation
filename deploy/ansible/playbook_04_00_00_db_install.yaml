@@ -414,7 +414,7 @@
 
             - name:                    "Database Installation Playbook: - HANA Scale-out - perform HANA Scale-Out installation"
               ansible.builtin.include_role:
-                name:                  roles-db/4.0.3-hdb-install-Scale-out
+                name:                  roles-db/4.0.3-hdb-install-scaleout
               when:
                 - database_scale_out
 
