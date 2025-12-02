@@ -587,7 +587,7 @@
             name:                      roles-sap/5.8-hanadb-Scale-out-pacemaker
             apply:
               tags:
-                                       - 1.18-Scale-out-pacemaker
+                                       - 1.18-scaleout-pacemaker
               become:                  true
               become_user:             root
           tags:
