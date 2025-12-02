@@ -135,9 +135,14 @@
         - node_tier == 'hana'
         - not database_scale_out
       block:
+
+        - name:                    "Database Installation Playbook: - HANA - Get HANA version"
+          ansible.builtin.include_role:
+            name:                  roles-db/4.0.5-hdb-version
+
         - name:
           ansible.builtin.debug:
-            msg:                       "Installing {{ sap_sid | upper }} using {{ bom_base_name }} ({{ platform }}) on {{ distribution_full_id }}"
+            msg:                       "Installing {{ sap_sid | upper }} using {{ bom_base_name }} ({{ platform }} - {{ HANA_version }} ) on {{ distribution_full_id }}"
 
         - name:                        "Database Installation Playbook: - HANA - Setting the DB facts"
           ansible.builtin.set_fact:
@@ -307,58 +312,63 @@
                                        - database_scale_out
                                        - hostvars.localhost.root_password is defined
       block:
+
+        - name:                        "Database Installation Playbook: - HANA - Get HANA version"
+          ansible.builtin.include_role:
+            name:                      roles-db/4.0.5-hdb-version
+
         - name:
           ansible.builtin.debug:
-            msg:                          "Installing {{ sap_sid | upper }} using {{ bom_base_name }} ({{ platform }} ScaleOut) on {{ distribution_full_id }}"
+            msg:                       "Installing {{ sap_sid | upper }} using {{ bom_base_name }} ({{ platform }} ScaleOut - {{ HANA_version }} ) on {{ distribution_full_id }}"
 
-        - name:                            Reset root password
-          become:                          true
+        - name:                        Reset root password
+          become:                      true
           ansible.builtin.user:
-            name:                          root
-            update_password:               always
-            password:                      "{{ hostvars.localhost.root_password | password_hash('sha512') }}"
-            password_lock:                 false
+            name:                      root
+            update_password:           always
+            password:                  "{{ hostvars.localhost.root_password | password_hash('sha512') }}"
+            password_lock:             false
 
-        - name:                            "Database Installation Playbook: - HANA ScaleOut - Enable {{ item.key }} in /etc/ssh/sshd_config"
-          become:                          true
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Enable {{ item.key }} in /etc/ssh/sshd_config"
+          become:                      true
           ansible.builtin.lineinfile:
-            path:                          "/etc/ssh/sshd_config"
-            regex:                         "^(# *)?{{ item.key }}"
-            line:                          "{{ item.key }} {{ item.value }}"
-            state:                         present
+            path:                      "/etc/ssh/sshd_config"
+            regex:                     "^(# *)?{{ item.key }}"
+            line:                      "{{ item.key }} {{ item.value }}"
+            state:                     present
           loop:
             - { key: "PermitRootLogin", value: "yes" }
             - { key: "PasswordAuthentication", value: "yes" }
             - { key: "ChallengeResponseAuthentication", value: "yes" }
 
-        - name:                            "Database Installation Playbook: - HANA ScaleOut - Debug sshdconfig file"
-          ansible.builtin.shell:           "cat /etc/ssh/sshd_config | grep -v '^#' | grep -v '^$'"
-          register:                        sshdconfig
-          changed_when:                    false
-          failed_when:                     false
-          ignore_errors:                   true
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Debug sshdconfig file"
+          ansible.builtin.shell:       "cat /etc/ssh/sshd_config | grep -v '^#' | grep -v '^$'"
+          register:                    sshdconfig
+          changed_when:                false
+          failed_when:                 false
+          ignore_errors:               true
 
-        - name:                            "Database Installation Playbook: - HANA ScaleOut - Append root user to AllowUsers if used"
-          become:                          true
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Append root user to AllowUsers if used"
+          become:                      true
           ansible.builtin.lineinfile:
-            path:                          "/etc/ssh/sshd_config"
-            regexp:                        '^AllowUsers (?!.*root.*)(.*)'
-            line:                          'AllowUsers \g<1> root'
-            backrefs:                      true
-            state:                         present
+            path:                      "/etc/ssh/sshd_config"
+            regexp:                    '^AllowUsers (?!.*root.*)(.*)'
+            line:                      'AllowUsers \g<1> root'
+            backrefs:                  true
+            state:                     present
 
-        - name:                            "Database Installation Playbook: - HANA ScaleOut - Restart SSHD on {{ ansible_hostname }}"
-          become:                          true
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Restart SSHD on {{ ansible_hostname }}"
+          become:                      true
           ansible.builtin.service:
-            name:                          sshd
-            state:                         restarted
+            name:                      sshd
+            state:                     restarted
 
-        - name:                            "Database Installation Playbook: - HANA ScaleOut - Debug sshdconfig file after restart"
-          ansible.builtin.shell:           "cat /etc/ssh/sshd_config | grep -v '^#' | grep -v '^$'"
-          register:                        sshdconfig
-          changed_when:                    false
-          failed_when:                     false
-          ignore_errors:                   true
+        - name:                        "Database Installation Playbook: - HANA ScaleOut - Debug sshdconfig file after restart"
+          ansible.builtin.shell:       "cat /etc/ssh/sshd_config | grep -v '^#' | grep -v '^$'"
+          register:                    sshdconfig
+          changed_when:                false
+          failed_when:                 false
+          ignore_errors:               true
 
     - name:                            "Database Installation Playbook: - Install HANA Scale Out"
       become:                          true

@@ -41,7 +41,7 @@
     path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
   register:                            hana_installed
 
-- name:                                "4.0.0. SAP HANA - Installation -  Check instalaltion media exists"
+- name:                                "4.0.0. SAP HANA - Installation -  Check installation media exists"
   ansible.builtin.stat:
     path:                              "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE/hdblcm"
   register:                            hdblcm_found
@@ -51,7 +51,7 @@
     msg:                               "INSTALL:0001:Unable to find hdblcm, please check that the installation media is mounted"
   when: not hdblcm_found.stat.exists
 
-- name:                                "4.0.0. SAP HANA - Installation -  check sp version from manifest"
+- name:                                "4.0.0. SAP HANA - Installation -  Check SP version from manifest"
   ansible.builtin.shell: |
                                        set -o pipefail
                                        grep sp-number manifest | cut -d ":" -f 2 | tr -d [:space:]
@@ -59,7 +59,7 @@
     chdir:                             "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE/server"
   register:                            manifest_hana_sp
 
-- name:                                "4.0.0. SAP HANA - Installation -  Show sps leve"
+- name:                                "4.0.0. SAP HANA - Installation -  Show SPS level"
   ansible.builtin.debug:
     msg:                               "HANA SP Level: {{ manifest_hana_sp.stdout }}"
 
