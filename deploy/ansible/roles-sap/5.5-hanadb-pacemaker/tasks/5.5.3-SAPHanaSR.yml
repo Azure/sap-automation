@@ -185,6 +185,8 @@
       when:
         - ansible_os_family | upper == "REDHAT"
         - not my_hooks_stat.stat.exists
+        - not database_scale_out
+
       ansible.builtin.copy:
         src:                           /usr/share/SAPHanaSR/srHook/
         dest:                          /hana/shared/myHooks/

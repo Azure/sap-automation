@@ -81,17 +81,15 @@
       ansible.builtin.wait_for:
         timeout:                       "{{ hana_wait_for_stop_in_sec }}"
 
-    - name:                            "5.8 HANA Pacemaker Scale-out - Copy Python hooks from /usr/share/SAPHanaSR-Scale-out/ to /hana/shared/myHooks/ (RHEL)"
+    - name:                            "5.8 HANA Pacemaker Scale-out - Copy Python hooks from /usr/share/SAPHanaSR-ScaleOut/ to /hana/shared/myHooks/ (RHEL)"
       ansible.builtin.copy:
-        src:                           /usr/share/SAPHanaSR-Scale-out/{{ item }}
+        src:                           /usr/share/SAPHanaSR-ScaleOut/
         dest:                          /hana/shared/myHooks/
         remote_src:                    true
         owner:                         root
         group:                         root      # TODO - check the correct group once the python hook package is installed
         mode:                          '0644'
-      loop:
-        - SAPHanaSR.py
-        - ChkSrv.py
+        
       when: not my_hooks_stat.stat.exists
 
     - name:                            "5.8 HANA Pacemaker Scale-out - Change ownership of the directory"
