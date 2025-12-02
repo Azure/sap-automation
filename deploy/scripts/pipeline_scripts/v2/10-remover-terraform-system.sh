@@ -354,18 +354,17 @@ else
 
 		# Commit changes based on platform
 		if [ 1 == $changed ]; then
+			commit_message="Added updates from SAP System Infrastructure Removal of $SAP_SYSTEM_FOLDERNAME [skip ci]"
 			if [ "$PLATFORM" == "devops" ]; then
 				git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 				git config --global user.name "$BUILD_REQUESTEDFOR"
-				commit_message="Added updates from SAP System Infrastructure Removal of $SAP_SYSTEM_FOLDERNAME [skip ci]"
+				
 			elif [ "$PLATFORM" == "github" ]; then
 				git config --global user.email "github-actions@github.com"
 				git config --global user.name "GitHub Actions"
-				commit_message="Added updates from SAP System Infrastructure Removal of $SAP_SYSTEM_FOLDERNAME [skip ci]"
 			else
 				git config --global user.email "local@example.com"
 				git config --global user.name "Local User"
-				commit_message="Added updates from SAP System Infrastructure Removal of $SAP_SYSTEM_FOLDERNAME [skip ci]"
 			fi
 
 			if [ "$DEBUG" = True ]; then
