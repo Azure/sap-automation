@@ -137,7 +137,7 @@
       block:
         - name:
           ansible.builtin.debug:
-            msg:                       "Installing {{ bom_base_name }} ({{ platform }}) on {{ distribution_full_id }}"
+            msg:                       "Installing {{ sap_sid | upper }} using {{ bom_base_name }} ({{ platform }}) on {{ distribution_full_id }}"
 
         - name:                        "Database Installation Playbook: - HANA - Setting the DB facts"
           ansible.builtin.set_fact:
@@ -309,7 +309,7 @@
       block:
         - name:
           ansible.builtin.debug:
-            msg:                          "Installing {{ bom_base_name }} ({{ platform }} ScaleOut) on {{ distribution_full_id }}"
+            msg:                          "Installing {{ sap_sid | upper }} using {{ bom_base_name }} ({{ platform }} ScaleOut) on {{ distribution_full_id }}"
 
         - name:                            Reset root password
           become:                          true
@@ -626,7 +626,7 @@
 
         - name:
           ansible.builtin.debug:
-            msg:                       "Installing {{ bom_base_name }} ({{ platform }}) on {{ distribution_full_id }}"
+            msg:                       "Installing {{ sap_sid | upper }} using {{ bom_base_name }} ({{ platform }}) on {{ distribution_full_id }}"
 
         - name:                        "Database Installation Playbook: - Oracle - Setting the DB facts"
           ansible.builtin.set_fact:
@@ -918,7 +918,7 @@
 
         - name:
           ansible.builtin.debug:
-            msg:                       "Installing {{ bom_base_name }} ({{ platform }}) on {{ distribution_full_id }}"
+            msg:                       "Installing {{ sap_sid | upper }} using {{ bom_base_name }} ({{ platform }}) on {{ distribution_full_id }}"
 
         - name:                        "Database Installation Playbook: - DB2 - Setting the DB facts"
           ansible.builtin.set_fact:
@@ -1071,7 +1071,7 @@
       block:
         - name:
           ansible.builtin.debug:
-            msg:                       "Installing {{ bom_base_name }} ({{ platform }}) on {{ distribution_full_id }}"
+            msg:                       "Installing {{ sap_sid | upper }} using {{ bom_base_name }} ({{ platform }}) on {{ distribution_full_id }}"
 
         - name:                        "Database Installation Playbook: - ASE - Setting the DB facts"
           ansible.builtin.set_fact:
