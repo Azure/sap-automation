@@ -67,6 +67,14 @@
   ansible.builtin.set_fact:
     hana_sp08_or_higher:               "{{ manifest_hana_sp.stdout is version('080', '>=') }}"
 
+- name:                                "4.0.0. SAP HANA SP08 or higher are not supported on RHEL 8.x or 7.x"
+  ansible.builtin.fail:
+    msg:                               "The installation of SAP HANA SPS08 on RHEL 8 is not possible and not supported, see SAP Note: 2235581"
+  when:
+    - hana_sp08_or_higher
+    - ansible_distribution | upper == 'REDHAT'
+    - ansible_distribution_major_version | int < 9
+
 # all | client | es | ets | lcapps | server | smartda | streaming | rdsync | xs | studio | afl | sca | sop | eml | rme | rtl | trp
 - name:                                "4.0.0. SAP HANA - Installation -  Set HANA components"
   ansible.builtin.set_fact:
