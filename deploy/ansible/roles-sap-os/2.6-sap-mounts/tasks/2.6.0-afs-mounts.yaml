@@ -8,7 +8,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "AFS Mount: Define this SID"
+- name:                                "2.6.0 AFS Mounts - Define this SID"
   ansible.builtin.set_fact:
     this_sid:
       {
@@ -20,29 +20,29 @@
         'app_inst_no': '{{ app_instance_number }}'
       }
 
-- name:                                "AFS Mount: Create list of all_sap_mounts to support "
+- name:                                "2.6.0 AFS Mounts - Create list of all_sap_mounts to support "
   ansible.builtin.set_fact:
     all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts | default([]) + [this_sid] }}{% endif %}"
 
-- name:                                "AFS Mount: Get the Server name list"
+- name:                                "2.6.0 AFS Mounts - Get the Server name list"
   ansible.builtin.set_fact:
     first_server_temp:                 "{{ first_server_temp | default([]) + [item] }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
-- name:                                "AFS Mount: Set the NFSmount options"
+- name:                                "2.6.0 AFS Mounts - Set the NFSmount options"
   ansible.builtin.set_fact:
     afs_mnt_options:                   'noresvport,vers=4,minorversion=1,sec=sys'
 
-- name:                                "AFS Mount: Create list of all_sap_mounts to support"
+- name:                                "2.6.0 AFS Mounts - Create list of all_sap_mounts to support"
   ansible.builtin.debug:
     msg:
       - "List of all the SAP mounts: {{ all_sap_mounts }}"
       - "First server: {{ first_server_temp }}"
     verbosity:                         2
 
-- name:                                "AFS Mount: Create configuration file
+- name:                                "2.6.0 AFS Mounts - Create configuration file
                                         with additional optimization settings"
   when:
                                        - node_tier == 'hana'
@@ -69,19 +69,19 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
-- name:                                "AFS Mount: Create local directories"
+ 
+- name:                                "2.6.0 AFS Mounts - Create local directories"
   when:
                                        - tier == 'sapos'
                                        - "'scs' in supported_tiers"
                                        - sap_mnt is defined
   block:
 
-    - name:                            "AFS Mount: sap_mnt"
+    - name:                            "2.6.0 AFS Mounts - sap_mnt"
       when:
                                        - sap_mnt is defined
       block:
-        - name:                        "AFS Mount: Create /saptmp"
+        - name:                        "2.6.0 AFS Mounts - Create /saptmp"
           ansible.builtin.file:
             path:                      "/saptmp"
             state:                     directory
@@ -90,9 +90,9 @@
 
         # Mount Filesystem on AFS
         # This is needed so that we can create the correct directory
-        - name:                        "AFS Mount: sap_mnt (preparation)"
+        - name:                        "2.6.0 AFS Mounts - sap_mnt (preparation)"
           block:
-            - name:                    "AFS Mount: sap_mnt (preparation)"
+            - name:                    "2.6.0 AFS Mounts - sap_mnt (preparation)"
               ansible.posix.mount:
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
@@ -101,15 +101,15 @@
                 state:                 mounted
 
           rescue:
-            - name:                    "Rescue - AFS Mount: sap_mnt (preparation) - logging"
+            - name:                    "Rescue - 2.6.0 AFS Mounts - sap_mnt (preparation) - logging"
               ansible.builtin.debug:
-                msg:                   "Rescue - AFS Mount: sap_mnt (preparation)"
+                msg:                   "Rescue - 2.6.0 AFS Mounts - sap_mnt (preparation)"
 
-            - name:                    "Rescue - AFS Mount: sap_mnt - Pause for 5 seconds"
+            - name:                    "Rescue - 2.6.0 AFS Mounts - sap_mnt - Pause for 5 seconds"
               ansible.builtin.pause:
                 seconds:               15
 
-            - name:                    "Rescue - AFS Mount: sap_mnt (preparation)"
+            - name:                    "Rescue - 2.6.0 AFS Mounts - sap_mnt (preparation)"
               ansible.posix.mount:
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
@@ -117,7 +117,7 @@
                 opts:                  "{{ afs_mnt_options }}"
                 state:                 mounted
 
-        - name:                        "AFS Mount: Create SAP Directories (AFS)"
+        - name:                        "2.6.0 AFS Mounts - Create SAP Directories (AFS)"
           ansible.builtin.file:
             path:                      "{{ item.path }}"
             state:                     directory
@@ -130,7 +130,7 @@
             - { path: '/saptmp/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}'  }
             - { path: '/saptmp/usrsap{{ sap_sid | upper }}sys'                           }
 
-        - name:                        "AFS Mount: Create SAP Directories (AFS)"
+        - name:                        "2.6.0 AFS Mounts - Create SAP Directories (AFS)"
           ansible.builtin.file:
             path:                      "/saptmp/sapmnt{{ item.sid | upper }}"
             state:                     directory
@@ -139,13 +139,13 @@
             mode:                      0755
           loop:                        "{{ all_sap_mounts }}"
 
-        - name:                        "AFS Mount: Unmount file systems (sapmnt)"
+        - name:                        "2.6.0 AFS Mounts - Unmount file systems (sapmnt)"
           ansible.posix.mount:
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
             state:                     unmounted
 
-        - name:                        "AFS Mount: Delete locally created SAP Directories (sapmnt)"
+        - name:                        "2.6.0 AFS Mounts - Delete locally created SAP Directories (sapmnt)"
           ansible.builtin.file:
             path:                      "{{ item.path }}"
             state:                     absent
@@ -155,13 +155,13 @@
             - { path: '/saptmp/usrsap{{ sap_sid | upper }}sys'                           }
             - { path: '/saptmp/usrsap{{ sap_sid | upper }}'                              }
 
-        - name:                        "AFS Mount: Remove /saptmp/sapmnt (AFS)"
+        - name:                        "2.6.0 AFS Mounts - Remove /saptmp/sapmnt (AFS)"
           ansible.builtin.file:
             path:                      "/saptmp/sapmnt{{ item.sid | upper }}"
             state:                     absent
           loop:                        "{{ all_sap_mounts }}"
 
-        - name:                        "AFS Mount: Cleanup fstab and directory (sapmnt)"
+        - name:                        "2.6.0 AFS Mounts - Cleanup fstab and directory (sapmnt)"
           ansible.posix.mount:
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
@@ -170,7 +170,7 @@
             state:                     absent
 
 
-- name:                                "AFS Mount: install"
+- name:                                "2.6.0 AFS Mounts - Mount install volume on /usr/sap/install from {{ usr_sap_install_mountpoint }} "
   when:
                                        - tier == 'sapos'
                                        - usr_sap_install_mountpoint is defined
@@ -194,13 +194,13 @@
     primary_host:                     "{{ first_server_temp | first }}"
 
 
-- name:                                "AFS Mount: sap_mnt"
+- name:                                "2.6.0 AFS Mounts - Mount sap_mnt"
   when:
                                        - tier == 'sapos'
                                        - single_server or ( node_tier not in ['hana' , 'observer'] )
                                        - sap_mnt is defined
   block:
-    - name:                            "AFS Mount: Create SAP Directories (sapmnt)"
+    - name:                            "2.6.0 AFS Mounts - Create SAP Directories (sapmnt)"
       ansible.builtin.file:
         owner:                         '{{ item.sidadm_uid }}'
         group:                         sapsys
@@ -210,7 +210,7 @@
       register:                        is_created_now
       loop:                            "{{ all_sap_mounts }}"
 
-    - name:                            "AFS Mount: Change attribute only when we create SAP Directories (sapmnt)"
+    - name:                            "2.6.0 AFS Mounts - Change attribute only when we create SAP Directories (sapmnt)"
       when:
                                        - item.item is changed
       ansible.builtin.file:
@@ -229,14 +229,14 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "AFS Mount: sap_mnt (scs & ers)"
+- name:                                "2.6.0 AFS Mounts - Mount sap_mnt on SCS and ERS"
   when:
                                        - tier == 'sapos'
                                        - "'scs' in supported_tiers or 'ers' in supported_tiers "
                                        - sap_mnt is defined
                                        - MULTI_SIDS is undefined
   block:
-    - name:                            "AFS Mount: Create SAP Directories (scs & ers)"
+    - name:                            "2.6.0 AFS Mounts - Create SAP Directories (scs & ers)"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
         state:                         directory
@@ -250,7 +250,7 @@
                                        - { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}' }
       register:                        is_created_now3
 
-    - name:                            "AFS Mount: Change attribute only when we create SAP Directories (scs & ers)"
+    - name:                            "2.6.0 AFS Mounts - Change attribute only when we create SAP Directories (scs & ers)"
       when:
                                        - item.item is changed
       ansible.builtin.file:
@@ -262,7 +262,7 @@
       register:                        set_immutable_attribute
 
 
-- name:                                "AFS Mount Debug"
+- name:                                "AFS Mount - Show information about mounts"
   ansible.builtin.debug:
     msg:
                                        - "Is HA System      : {{ not scs_high_availability }}"
@@ -271,14 +271,14 @@
                                        - "Is MULTI_SIDS     : {{ MULTI_SIDS is undefined }}"
     verbosity:                         4
 
-- name:                                "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
+- name:                                "2.6.0 AFS Mounts - sapmnt/{{ sap_sid | upper }} - Standalone"
   when:
                                        - not scs_high_availability
                                        - single_server or ( node_tier not in ['hana' , 'observer'] )
                                        - sap_mnt is defined
                                        - MULTI_SIDS is undefined
   block:
-    - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
+    - name:                            "2.6.0 AFS Mounts - sapmnt/{{ sap_sid | upper }} - Standalone"
       ansible.posix.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
@@ -288,7 +288,7 @@
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
   rescue:
-    - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
+    - name:                            "2.6.0 AFS Mounts - sapmnt/{{ sap_sid | upper }} - Standalone"
       ansible.posix.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
@@ -298,14 +298,14 @@
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
 
-    - name:                            "AFS Mount: Pause for 15 seconds"
+    - name:                            "2.6.0 AFS Mounts - Pause for 15 seconds"
       ansible.builtin.pause:
         seconds:                       15
-    - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
+    - name:                            "2.6.0 AFS Mounts - sapmnt/{{ sap_sid | upper }} - Standalone"
       ansible.builtin.debug:
-        msg:                           "Rescue - AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
+        msg:                           "Rescue - 2.6.0 AFS Mounts - sapmnt/{{ sap_sid | upper }} - Standalone"
 
-    - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone"
+    - name:                            "2.6.0 AFS Mounts - sapmnt/{{ sap_sid | upper }} - Standalone"
       ansible.posix.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
@@ -316,7 +316,7 @@
         - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
 
 
-- name:                                "AFS Mount: sapmnt/{{ sap_sid | upper }} - Standalone MULTI_SIDS"
+- name:                                "2.6.0 AFS Mounts - sapmnt/{{ sap_sid | upper }} - Standalone MULTI_SIDS"
   become:                              true
   become_user:                         root
   when:
@@ -332,13 +332,13 @@
   loop:                                "{{ MULTI_SIDS }}"
 
 
-- name:                                "AFS Mount: sapmnt/{{ sap_sid | upper }} HA"
+- name:                                "2.6.0 AFS Mounts - sapmnt/{{ sap_sid | upper }} HA"
   when:
                                        - scs_high_availability
                                        - node_tier not in ['hana' , 'observer']
                                        - sap_mnt is defined
   block:
-    - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} HA"
+    - name:                            "2.6.0 AFS Mounts - sapmnt/{{ sap_sid | upper }} HA"
       ansible.posix.mount:
         src:                           "{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}"
         path:                          "/sapmnt/{{ sap_sid | upper }}"
@@ -346,10 +346,10 @@
         opts:                          "{{ afs_mnt_options }}"
         state:                         mounted
   rescue:
-    - name:                            "AFS Mount: Pause for 15 seconds"
+    - name:                            "2.6.0 AFS Mounts - Pause for 15 seconds"
       ansible.builtin.pause:
         seconds:                       15
-    - name:                            "AFS Mount: sapmnt/{{ sap_sid | upper }} HA"
+    - name:                            "2.6.0 AFS Mounts - sapmnt/{{ sap_sid | upper }} HA"
       ansible.posix.mount:
         src:                           "{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}"
         path:                          "/sapmnt/{{ sap_sid | upper }}"
@@ -357,14 +357,14 @@
         opts:                          "{{ afs_mnt_options }}"
         state:                         mounted
 
-- name:                                "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
+- name:                                "2.6.0 AFS Mounts - usr/sap/{{ sap_sid | upper }}/SYS"
   when:
                                        - scs_high_availability
                                        - node_tier in ['scs','ers']
                                        - sap_mnt is defined
   block:
 
-    - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
+    - name:                            "2.6.0 AFS Mounts - usr/sap/{{ sap_sid | upper }}/SYS"
       ansible.posix.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
@@ -375,18 +375,18 @@
       loop:
         - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}sys', path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
   rescue:
-    - name:                            "AFS Mount: Pause for 15 seconds"
+    - name:                            "2.6.0 AFS Mounts - Pause for 15 seconds"
       ansible.builtin.pause:
         seconds:                       15
-    - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
+    - name:                            "2.6.0 AFS Mounts - usr/sap/{{ sap_sid | upper }}/SYS"
       ansible.builtin.debug:
-        msg:                           "Rescue - AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
+        msg:                           "Rescue - 2.6.0 AFS Mounts - usr/sap/{{ sap_sid | upper }}/SYS"
 
-    - name:                            "AFS Mount: Debug"
+    - name:                            "2.6.0 AFS Mounts - Debug"
       ansible.builtin.debug:
         var:                           sys_mounted
 
-    - name:                            "AFS Mount: usr/sap/{{ sap_sid | upper }}/SYS"
+    - name:                            "2.6.0 AFS Mounts - usr/sap/{{ sap_sid | upper }}/SYS"
       ansible.posix.mount:
         src:                           "{{ item.src }}"
         path:                          "{{ item.path }}"
@@ -400,7 +400,7 @@
     - sap_app_ha_sys_mount
 
 
-- name:                                "AFS Mount: sap_trans"
+- name:                                "2.6.0 AFS Mounts - Mount SAP Transport Directory"
   when:
                                        - tier == 'sapos'
                                        - sap_trans is defined
@@ -424,7 +424,7 @@
 
 
 # Scale out - shared nothing configuration code to support AFS based /hana/shared mount
-- name:                                 "AFS Mount: Scale out hana_shared"
+- name:                                 "2.6.0 AFS Mounts - Mount Scale-out hana_shared"
   when:
                                        - database_scale_out
                                        - database_high_availability
@@ -478,7 +478,7 @@
                                        }}
 
 
-    - name:                            "AFS Mount: Create backup directory on SITE1 hana_shared"
+    - name:                            "2.6.0 AFS Mounts - Create backup directory on SITE1 hana_shared"
       become:                          true
       become_user:                     root
       when:
@@ -493,7 +493,7 @@
         recurse:                       true
 
 
-    - name:                            "AFS Mount: Create backup directory on SITE2 hana_shared"
+    - name:                            "2.6.0 AFS Mounts - Create backup directory on SITE2 hana_shared"
       become:                          true
       become_user:                     root
       when:
