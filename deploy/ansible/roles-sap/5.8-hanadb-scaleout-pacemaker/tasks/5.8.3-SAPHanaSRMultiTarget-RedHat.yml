@@ -29,12 +29,12 @@
       when:
         - ansible_facts.packages['resource-agents-sap-hana'] is defined
 
-    - name:                            "5.8 HANA Pacemaker Scale-out - Ensure resource-agents-sap-hana-Scale-out is installed (REDHAT)"
+    - name:                            "5.8 HANA Pacemaker Scale-out - Ensure resource-agents-sap-hana-scale-out is installed (REDHAT)"
       ansible.builtin.package:
-        name:                          resource-agents-sap-hana-Scale-out
+        name:                          resource-agents-sap-hana-scale-out
         state:                         present
       when:
-        - ansible_facts.packages['resource-agents-sap-hana-Scale-out'] is not defined
+        - ansible_facts.packages['resource-agents-sap-hana-scale-out'] is not defined
 
     # <TODO> add package verification for RHEL based on link https://access.redhat.com/articles/3397471
 
