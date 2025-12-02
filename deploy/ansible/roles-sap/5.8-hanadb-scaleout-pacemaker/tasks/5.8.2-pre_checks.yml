@@ -36,7 +36,7 @@
     path:                              "/usr/sbin/crm"
   register:                            cluster_scripts_status_results
   failed_when:                         not cluster_scripts_status_results.stat.exists
-  when: ansible_os_family == 'SUSE'
+  when:                                ansible_os_family == 'SUSE'
 
 - name:                                "5.8 HANA Pacemaker Scaleout - Create run flag directory"
   ansible.builtin.file:

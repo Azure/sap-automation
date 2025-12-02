@@ -13,6 +13,13 @@
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
+
+  vars:
+    distro_name:                       "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+    distribution_id:                   "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+    distribution_full_id:              "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+    distro_family:                     "{{ ansible_os_family | upper }}"
+
   tasks:
 
     - name:                            "Database High Availability Configuration Playbook: Backward Compatibility - Check required Database HA variables"
@@ -204,7 +211,6 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/5.5-hanadb-pacemaker
               when:
-                                       - database_high_availability
                                        - not database_scale_out
               tags:
                                        - 5.5-hanadb-pacemaker
@@ -213,7 +219,6 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/5.8-hanadb-scaleout-pacemaker
               when:
-                                       - database_high_availability
                                        - database_scale_out
               tags:
                                        - 5.8-hanadb-scaleout-pacemaker
