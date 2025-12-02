@@ -59,7 +59,6 @@
       sunrpc.tcp_slot_table_entries = 128
       vm.swappiness=10
 
-
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |         Prepare for the sap_mnt mounts                                     |
@@ -68,7 +67,6 @@
 # |         Unmount and clean up temporary directory structure                 |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
  
 - name:                                "2.6.0 AFS Mounts - Create local directories"
   when:
