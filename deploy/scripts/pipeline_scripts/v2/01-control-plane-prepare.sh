@@ -18,14 +18,15 @@ source "${parent_directory}/helper.sh"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in ${DEPLOYER_FOLDERNAME}"
-	DEBUG=false
-	if [ "${SYSTEM_DEBUG:-False}" == True ]; then
+	if [ "${SYSTEM_DEBUG:-false}" == true ]; then
 		set -x
 		DEBUG=true
 		echo "Environment variables:"
 		printenv | sort
+	else
+		DEBUG=false
 	fi
+
 fi
 
 export DEBUG

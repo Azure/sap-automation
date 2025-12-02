@@ -10,10 +10,6 @@ source "${SCRIPT_DIR}/set-colors.sh"
 
 SCRIPT_NAME="$(basename "$0")"
 
-# Set platform-specific output
-if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDERNAME"
-fi
 
 # External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
