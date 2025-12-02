@@ -13,9 +13,9 @@
 
 - name:                                "5.8 HANA Pacemaker Scale-out - HANA 2.0 only - Implement the Python system replication hook SAPHanaSR-Scale-out MultiTarget"
   when:
-    - node_tier == 'hana'
-    - hdb_version[0:2] == "2."
-    - database_high_availability
+                                       - node_tier == 'hana'
+                                       - hdb_version[0:2] == "2."
+                                       - database_high_availability
   block:
     - name:                            "5.8 HANA Pacemaker Scale-out - Generate list of deployed packages on current host"
       ansible.builtin.package_facts:
@@ -89,10 +89,11 @@
         owner:                         root
         group:                         root      # TODO - check the correct group once the python hook package is installed
         mode:                          '0644'
-        
-      when: not my_hooks_stat.stat.exists
+      when:                            not my_hooks_stat.stat.exists
 
     - name:                            "5.8 HANA Pacemaker Scale-out - Change ownership of the directory"
+      become:                          true
+      become_user:                     root
       ansible.builtin.file:
         path:                          /hana/shared/myHooks
         state:                         directory
@@ -162,7 +163,7 @@
 # This needs to be run on all the nodes where HANA is deployed.
     - name:                            Verify that the hook script is working as expected (REDHAT)"
       when:
-      - ansible_hostname == primary_instance_name
+                                       - ansible_hostname == primary_instance_name
       block:
         - name:                        "5.8 HANA Pacemaker Scale-out - Verify the hook Installation (REDHAT)"
           become_user:                 "{{ db_sid | lower }}adm"
