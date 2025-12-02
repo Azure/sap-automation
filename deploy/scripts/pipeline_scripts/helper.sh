@@ -351,7 +351,7 @@ function print_header() {
 	fi
 
 	if [ -n "$tfPath" ]; then
-		"${tfPath}" --version
+		"${tfPath}" --version || true
 	fi
 
 }
