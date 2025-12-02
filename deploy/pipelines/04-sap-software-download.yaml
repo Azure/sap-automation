@@ -64,7 +64,7 @@ stages:
           - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName:                          Install Terraform
             inputs:
-              terraformVersion:                   latest
+              terraformVersion:                   $TF_VERSION
 
           - task:                                 Bash@3
             inputs:
@@ -121,6 +121,10 @@ stages:
         steps:
           - template:                             templates\download_samples.yaml
           - task:                                 PostBuildCleanup@4
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
+            displayName:                          Install Terraform
+            inputs:
+              terraformVersion:                   $TF_VERSION
           - task:                                 Bash@3
             inputs:
               targetType:                         'filePath'
