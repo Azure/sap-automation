@@ -135,6 +135,10 @@
         - node_tier == 'hana'
         - not database_scale_out
       block:
+        - name:
+          ansible.builtin.debug:
+            msg:                       "Installing {{ bom_base_name }} ({{ platform }}) on {{ distribution_full_id }}"
+
         - name:                        "Database Installation Playbook: - HANA - Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      hdb                                     # Actions for HANA DB Serve
@@ -303,6 +307,10 @@
                                        - database_scale_out
                                        - hostvars.localhost.root_password is defined
       block:
+        - name:
+          ansible.builtin.debug:
+            msg:                          "Installing {{ bom_base_name }} ({{ platform }} ScaleOut) on {{ distribution_full_id }}"
+
         - name:                            Reset root password
           become:                          true
           ansible.builtin.user:
@@ -616,6 +624,10 @@
         - platform == 'ORACLE'
       block:
 
+        - name:
+          ansible.builtin.debug:
+            msg:                       "Installing {{ bom_base_name }} ({{ platform }}) on {{ distribution_full_id }}"
+
         - name:                        "Database Installation Playbook: - Oracle - Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
@@ -695,6 +707,10 @@
         - node_tier == 'oracle'
         - platform == 'ORACLE'
       block:
+
+        - name:
+          ansible.builtin.debug:
+            msg:                       "Installing {{ bom_base_name }} (ORACLE) on {{ distribution_full_id }}"
 
         - name:                        "Database Installation Playbook: - Oracle - Setting the DB facts"
           ansible.builtin.set_fact:
@@ -786,6 +802,10 @@
         - node_tier == 'oracle-asm'
         - platform == 'ORACLE-ASM'
       block:
+        - name:
+          ansible.builtin.debug:
+            msg:                       "Installing {{ bom_base_name }} (ORACLE-ASM) on {{ distribution_full_id }}"
+
         - name:                        "Database Installation Playbook: - Oracle ASM - Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      ora                                    # Actions for Oracle DB Servers
@@ -896,6 +916,10 @@
         - not database_high_availability
       block:
 
+        - name:
+          ansible.builtin.debug:
+            msg:                       "Installing {{ bom_base_name }} ({{ platform }}) on {{ distribution_full_id }}"
+
         - name:                        "Database Installation Playbook: - DB2 - Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      db2                                    # Actions for Oracle DB Servers
@@ -967,6 +991,10 @@
         - database_high_availability
         - (ansible_play_hosts_all | length) >= 2
       block:
+
+        - name:
+          ansible.builtin.debug:
+            msg:                       "Installing {{ bom_base_name }} (DB2 HA) on {{ distribution_full_id }}"
 
         - name:                        "Database Installation Playbook: - DB2 - HA - Setting the DB facts"
           ansible.builtin.set_fact:
@@ -1041,6 +1069,9 @@
         - platform == 'SYBASE'
         - not database_high_availability
       block:
+        - name:
+          ansible.builtin.debug:
+            msg:                       "Installing {{ bom_base_name }} ({{ platform }}) on {{ distribution_full_id }}"
 
         - name:                        "Database Installation Playbook: - ASE - Setting the DB facts"
           ansible.builtin.set_fact:
