@@ -434,12 +434,12 @@
                                        - ansible_hostname == primary_instance_name
                                        - not hana_installed.stat.exists
       block:
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: remove install response file if exists"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: remove install response file if exists"
           ansible.builtin.file:
             path:                      "{{ dir_params }}/{{ sap_inifile }}"
             state:                     absent
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install_scaleout.rsp }}"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install_scaleout.rsp }}"
           ansible.builtin.template:
             src:                       "HANA_2_00_install_scaleout.rsp"
             dest:                      "{{ dir_params }}/{{ sap_inifile }}"
@@ -467,7 +467,7 @@
               {{ hostvars[item].virtual_host | trim }}:role=worker:group=default:workergroup=default{{ ',' if not loop.last }}
               {% endfor %}"
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: Template processing: Create custom ini file {{ sap_custom_config }} from {{ HANA_2_00_customconfig.rsp }}"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Template processing: Create custom ini file {{ sap_custom_config }} from {{ HANA_2_00_customconfig.rsp }}"
           ansible.builtin.template:
             src:                       "HANA_2_00_customconfig.rsp"
             dest:                      "{{ dir_params }}/{{ sap_custom_config }}"
@@ -478,15 +478,15 @@
             _rsp_hana_data_basepath:   "{{ hana_data_basepath }}"
             _rsp_hana_log_basepath:    "{{ hana_log_basepath }}"
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: Progress"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Progress"
           ansible.builtin.debug:
             msg:                       "Start HANA Installation on primary node"
 
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: installation"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: installation"
           block:
 
-            - name:                    "SAP HANA SCALE OUT-HSR: Execute hdblcm on {{ primary_instance_name }}"
+            - name:                    "SAP HANA Scale-out HSR: Execute hdblcm on {{ primary_instance_name }}"
               ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        chmod 755 /usr/sap;
@@ -504,16 +504,16 @@
               ansible.builtin.fail:
                 msg:                   "INSTALL:0022:Execute hdblcm failed."
 
-            - name:                    "SAP HANA SCALE OUT-HSR: Progress"
+            - name:                    "SAP HANA Scale-out HSR: Progress"
               when:                    hana_installation.rc == 1
               ansible.builtin.debug:
                 msg:                   "Restarting the HANA Installation on primary node"
 
 
-            - name:                    "SAP HANA SCALE OUT-HSR: Re-execute hdblcm on {{ virtual_host }} and rescue"
+            - name:                    "SAP HANA Scale-out HSR: Re-execute hdblcm on {{ virtual_host }} and rescue"
               block:
 
-                - name:                "SAP HANA SCALE OUT-HSR: Re-execute hdblcm on {{ virtual_host }}"
+                - name:                "SAP HANA Scale-out HSR: Re-execute hdblcm on {{ virtual_host }}"
                   when:                hana_installation.rc == 1
                   ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
@@ -532,7 +532,7 @@
                   ansible.builtin.fail:
                     msg:               "INSTALL:0022:Execute hdblcm failed on primary node."
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: Installation results"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Installation results"
           when:
                                        - hana_installation.rc is defined
                                        - hana_installation.rc > 0
@@ -550,17 +550,17 @@
             msg:                       "INSTALL:{{ hana_installation }}"
 
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: Successful installation"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Successful installation"
           when:
                                        - hana_installation.rc is defined
                                        - hana_installation.rc < 1
           block:
 
-            - name:                    "SAP HANA SCALE OUT-HSR: Installation results"
+            - name:                    "SAP HANA Scale-out HSR: Installation results"
               ansible.builtin.debug:
                 msg:                   "HANA Installation succeeded on primary node"
 
-            - name:                    "SAP HANA SCALE OUT-HSR: HANA Install: flag"
+            - name:                    "SAP HANA Scale-out HSR: HANA Install: flag"
               ansible.builtin.file:
                 path:                  "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
                 state:                 touch
@@ -592,23 +592,23 @@
                 subscriptionId:        "{{ subscription_id }}"
                 resourceGroupName:     "{{ resource_group_name }}"
 
-            - name:                    "SAP HANA SCALE OUT-HSR: ARM Deployment flag"
+            - name:                    "SAP HANA Scale-out HSR: ARM Deployment flag"
               ansible.builtin.file:
                 path:                  "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb_arm.txt"
                 state:                 touch
                 mode:                  0755
 
-            - name:                    "SAP HANA SCALE OUT-HSR: remove install response file"
+            - name:                    "SAP HANA Scale-out HSR: remove install response file"
               ansible.builtin.file:
                 path:                  "{{ dir_params }}/{{ sap_inifile }}"
                 state:                 absent
 
-            - name:                    "SAP HANA SCALE OUT-HSR: remove custom config response file"
+            - name:                    "SAP HANA Scale-out HSR: remove custom config response file"
               ansible.builtin.file:
                 path:                  "{{ dir_params }}/{{ sap_custom_config }}"
                 state:                 absent
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: Create backup folder"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Create backup folder"
           ansible.builtin.file:
             path:                      "{{ hana_backup_path }}"
             state:                     directory
@@ -617,7 +617,7 @@
             mode:                      0755
 
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: Configure global.ini"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Configure global.ini"
           block:
 
             - name:                    "Prepare global.ini for domain name resolution."
@@ -669,7 +669,7 @@
                 - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
 
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: Restart HANA"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Restart HANA"
           block:
 
           - name:                      "Stop HANA Database"
@@ -723,14 +723,14 @@
                                        - not hana_installed.stat.exists
       block:
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: remove install response file if exists"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: remove install response file if exists"
           ansible.builtin.file:
             path:                      "{{ dir_params }}/{{ sap_inifile }}"
             state:                     absent
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install_scaleout.rsp }}"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install_Scale-out.rsp }}"
           ansible.builtin.template:
-            src:                       "HANA_2_00_install_scaleout.rsp"
+            src:                       "HANA_2_00_install_Scale-out.rsp"
             dest:                      "{{ dir_params }}/{{ sap_inifile }}"
             mode:                      0644
             force:                     true
@@ -757,7 +757,7 @@
               {{ hostvars[item].virtual_host | trim }}:role=worker:group=default:workergroup=default{{ ',' if not loop.last }}
               {% endfor %}"
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: Template processing: Create custom ini file {{ sap_custom_config }} from {{ HANA_2_00_customconfig.rsp }}"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Template processing: Create custom ini file {{ sap_custom_config }} from {{ HANA_2_00_customconfig.rsp }}"
           ansible.builtin.template:
             src:                       "HANA_2_00_customconfig.rsp"
             dest:                      "{{ dir_params }}/{{ sap_custom_config }}"
@@ -768,12 +768,12 @@
             _rsp_hana_data_basepath:   "{{ hana_data_basepath }}"
             _rsp_hana_log_basepath:    "{{ hana_log_basepath }}"
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: Progress"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Progress"
           ansible.builtin.debug:
             msg:                       "Start HANA Installation on secondary node"
 
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: installation"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: installation"
           block:
             - name:                    "SAP HANA: Execute hdblcm on {{ secondary_instance_name }}"
               ansible.builtin.shell: |
@@ -819,7 +819,7 @@
                   ansible.builtin.fail:
                     msg:               "INSTALL:0022:Execute hdblcm failed on secondary node."
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: Installation results"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Installation results"
           when:
                                        - hana_installation.rc is defined
                                        - hana_installation.rc > 0
@@ -836,17 +836,17 @@
             msg:                       "INSTALL:{{ hana_installation }}"
 
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: Successful installation"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Successful installation"
           when:
                                        - hana_installation.rc is defined
                                        - hana_installation.rc < 1
           block:
 
-            - name:                    "SAP HANA SCALE OUT-HSR: Installation results"
+            - name:                    "SAP HANA Scale-out HSR: Installation results"
               ansible.builtin.debug:
                 msg:                   "HANA Installation succeeded on secondary node"
 
-            - name:                    "SAP HANA SCALE OUT-HSR: HANA Install: flag"
+            - name:                    "SAP HANA Scale-out HSR: HANA Install: flag"
               ansible.builtin.file:
                 path:                  "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
                 state:                 touch
@@ -878,24 +878,24 @@
                 subscriptionId:        "{{ subscription_id }}"
                 resourceGroupName:     "{{ resource_group_name }}"
 
-            - name:                    "SAP HANA SCALE OUT-HSR: ARM Deployment flag"
+            - name:                    "SAP HANA Scale-out HSR: ARM Deployment flag"
               ansible.builtin.file:
                 path:                  "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb_arm.txt"
                 state:                 touch
                 mode:                  0755
 
-            - name:                    "SAP HANA SCALE OUT-HSR: remove install response file"
+            - name:                    "SAP HANA Scale-out HSR: remove install response file"
               ansible.builtin.file:
                 path:                  "{{ dir_params }}/{{ sap_inifile }}"
                 state:                 absent
 
-            - name:                    "SAP HANA SCALE OUT-HSR: remove custom config response file"
+            - name:                    "SAP HANA Scale-out HSR: remove custom config response file"
               ansible.builtin.file:
                 path:                  "{{ dir_params }}/{{ sap_custom_config }}"
                 state:                 absent
 
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: Create backup folder"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Create backup folder"
           ansible.builtin.file:
             path:                      "{{ hana_backup_path }}"
             state:                     directory
@@ -903,7 +903,7 @@
             owner:                     "{{ db_sid | lower }}adm"
             mode:                      0755
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: Configure global.ini"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Configure global.ini"
           block:
             - name:                    "Prepare global.ini for domain name resolution."
               become_user:             root
@@ -954,7 +954,7 @@
                 - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
 
 
-        - name:                        "4.0.3 - SAP HANA SCALE OUT-HSR: Restart HANA"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Restart HANA"
           block:
 
           - name:                      "Stop HANA Database"

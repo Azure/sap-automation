@@ -17,38 +17,38 @@
 # +------------------------------------4--------------------------------------*/
 
 # Fetch the majority maker node OS Hostname as we need to create a constraint to prevent HANA resources from running on it
-- name:                                "5.8 HANA Pacemaker Scaleout - Scale-Out Cluster Compatibility - Fetch majority maker node name"
+- name:                                "5.8 HANA Pacemaker Scale-out - Scale-Out Cluster Compatibility - Fetch majority maker node name"
   ansible.builtin.set_fact:
     majority_maker:                    "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_OBSERVER_DB') | first | default([]) }}"
 
-- name:                                "5.8 HANA Pacemaker Scaleout - Optimise the Pacemaker cluster for SAP HANA"
+- name:                                "5.8 HANA Pacemaker Scale-out - Optimise the Pacemaker cluster for SAP HANA"
   block:
-    - name:                            "5.8 HANA Pacemaker Scaleout - Get the cluster maintenance mode status"
+    - name:                            "5.8 HANA Pacemaker Scale-out - Get the cluster maintenance mode status"
       ansible.builtin.shell:           pcs property show maintenance-mode
       register:                        get_status_maintenance_mode
       changed_when:                    false
       ignore_errors:                   true
 
-    - name:                            "5.8 HANA Pacemaker Scaleout - Set the cluster maintenance mode if not already in maintenance mode"
+    - name:                            "5.8 HANA Pacemaker Scale-out - Set the cluster maintenance mode if not already in maintenance mode"
       ansible.builtin.shell:           pcs property set maintenance-mode=true
       when: >-
         get_status_maintenance_mode.stdout is not search('maintenance-mode') or
         get_status_maintenance_mode.stdout is search('maintenance-mode: false')
 
-    - name:                            "5.8 HANA Pacemaker Scaleout - RHEL 7"
+    - name:                            "5.8 HANA Pacemaker Scale-out - RHEL 7"
       when:
         - ansible_distribution_major_version == "7"
       block:
-        - name:                        "5.8 HANA Pacemaker Scaleout - Ensure the SAP topology resource is configured and cloned"
+        - name:                        "5.8 HANA Pacemaker Scale-out - Ensure the SAP topology resource is configured and cloned"
           ansible.builtin.shell:  >
-                                            pcs resource create SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} SAPHanaTopologyScaleOut \
+                                            pcs resource create SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} SAPHanaTopologyScale-out \
                                             SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }} \
                                             op start timeout=600 op stop timeout=300 op monitor interval=10 timeout=600 \
                                             clone meta clone-node-max=1 interleave=true
           register:                    hana_t
           failed_when:                 hana_t.rc > 0
 
-        - name:                        "5.8 HANA Pacemaker Scaleout - Ensure the SAP HANA instance resource is created"
+        - name:                        "5.8 HANA Pacemaker Scale-out - Ensure the SAP HANA instance resource is created"
           ansible.builtin.shell:  >
                                             pcs resource create SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} SAPHanaController \
                                             SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }} PREFER_SITE_TAKEOVER=true DUPLICATE_PRIMARY_TIMEOUT=7200 AUTOMATED_REGISTER=true \
@@ -57,19 +57,19 @@
           register:                    sap_hana
           failed_when:                 sap_hana.rc > 0
 
-        - name:                        "5.8 HANA Pacemaker Scaleout - Ensure master-slave (msl) resource for managing an SAP HANA instance is created"
+        - name:                        "5.8 HANA Pacemaker Scale-out - Ensure master-slave (msl) resource for managing an SAP HANA instance is created"
           ansible.builtin.shell: >
                                             pcs resource master msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} \
                                             meta master-max="1" clone-node-max=1 interleave=true
           register:                     msl_sap_hana
           failed_when:                  msl_sap_hana.rc > 0
 
-        - name:                         "5.8 HANA Pacemaker Scaleout - Ensure the netcat resource for the Load Balancer Healthprobe is created"
+        - name:                         "5.8 HANA Pacemaker Scale-out - Ensure the netcat resource for the Load Balancer Healthprobe is created"
           ansible.builtin.shell:            pcs resource create nc_{{ db_sid | upper }}_{{ db_instance_number }} azure-lb port=625{{ db_instance_number }}
           register:                     netcat
           failed_when:                  netcat.rc > 0
 
-        - name:                         "5.8 HANA Pacemaker Scaleout - Ensure the Virtual IP resource for the Load Balancer Front End IP is created"
+        - name:                         "5.8 HANA Pacemaker Scale-out - Ensure the Virtual IP resource for the Load Balancer Front End IP is created"
           ansible.builtin.shell:            pcs resource create vip_{{ db_sid | upper }}_{{ db_instance_number }} ocf:heartbeat:IPaddr2 ip={{ database_loadbalancer_ip }} op monitor interval="10s" timeout="20s"
           register:                         vip
           failed_when:                      vip.rc > 0
@@ -195,10 +195,10 @@
           failed_when:                      nfs_constraint.rc > 0
 
 
-    - name:                                 "5.8 HANA Pacemaker Scaleout - Disable Maintenance mode for the cluster"
+    - name:                                 "5.8 HANA Pacemaker Scale-out - Disable Maintenance mode for the cluster"
       ansible.builtin.shell:                pcs property set maintenance-mode=false
 
-    - name:                                 "5.8 HANA Pacemaker Scaleout - Wait until cluster has stabilized on RHEL 7"
+    - name:                                 "5.8 HANA Pacemaker Scale-out - Wait until cluster has stabilized on RHEL 7"
       ansible.builtin.shell:                set -o pipefail && pcs status | grep '^Online:'
       register:                             cluster_stable_check
       retries:                              12
@@ -207,7 +207,7 @@
       when:                                 ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9" and ansible_distribution_major_version != "10"
     # '*' is a special character in regexp and needs to be escaped for literal matching
     # if we are worried about character spacing across distros we can match for '\* Online:'
-    - name:                                 "5.8 HANA Pacemaker Scaleout - Wait until cluster has stabilized on RHEL 8 and newer"
+    - name:                                 "5.8 HANA Pacemaker Scale-out - Wait until cluster has stabilized on RHEL 8 and newer"
       ansible.builtin.shell:                set -o pipefail && pcs status | grep '^  \* Online:'
       register:                             cluster_stable_check
       retries:                              12
@@ -215,11 +215,11 @@
       until:                                "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
       when:                                 ansible_distribution_major_version in ["8", "9", "10"]
 
-    - name:                                 "5.8 HANA Pacemaker Scaleout - Cleanup any stale cluster resource StartSystem"
+    - name:                                 "5.8 HANA Pacemaker Scale-out - Cleanup any stale cluster resource StartSystem"
       ansible.builtin.shell:                pcs resource cleanup
 
     # the leading spaces are irrelevant here as we are looking for *<space>Started:
-    - name:                               "5.8 HANA Pacemaker Scaleout - Ensure Cluster resources are started on RHEL 7"
+    - name:                               "5.8 HANA Pacemaker Scale-out - Ensure Cluster resources are started on RHEL 7"
       ansible.builtin.shell:              set -o pipefail && pcs resource show | grep '    Started:'
       register:                           hana_cluster_resource_check
       retries:                            12
@@ -227,7 +227,7 @@
       until:                              "(primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
       when:                               ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9" and ansible_distribution_major_version != "10"
 
-    - name:                               "5.8 HANA Pacemaker Scaleout - Ensure Cluster resources are started on RHEL 8 and newer"
+    - name:                               "5.8 HANA Pacemaker Scale-out - Ensure Cluster resources are started on RHEL 8 and newer"
       ansible.builtin.shell:              set -o pipefail && pcs resource status | grep '\* Started:'
       register:                           hana_cluster_resource_check
       retries:                            12
@@ -245,17 +245,17 @@
 # +------------------------------------4--------------------------------------*/
 # Follow steps described in https://access.redhat.com/articles/6884531
 
-- name:                                "5.8 HANA Pacemaker Scaleout - check if the OS version is RHEL 8.2 or newer"
+- name:                                "5.8 HANA Pacemaker Scale-out - check if the OS version is RHEL 8.2 or newer"
   ansible.builtin.set_fact:
     is_rhel_82_or_newer:               "{{ ansible_distribution_version is version('8.2', '>=') | default(false) }}"
 
-- name:                                "5.8 HANA Pacemaker Scaleout - (systemd) Creating drop-in file"
+- name:                                "5.8 HANA Pacemaker Scale-out - (systemd) Creating drop-in file"
   become:                              true
   when:
     - is_rhel_82_or_newer is defined
     - is_rhel_82_or_newer
   block:
-    - name:                            "5.8 HANA Pacemaker Scaleout - (systemd) Create drop-in file"
+    - name:                            "5.8 HANA Pacemaker Scale-out - (systemd) Create drop-in file"
       ansible.builtin.lineinfile:
         path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
         create:                        true
@@ -265,7 +265,7 @@
         mode:                          '0644'
         line:                          "[Unit]"
 
-    - name:                            "5.8 HANA Pacemaker Scaleout - (systemd) Update drop-in file"
+    - name:                            "5.8 HANA Pacemaker Scale-out - (systemd) Update drop-in file"
       ansible.builtin.lineinfile:
         path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
         create:                        true
@@ -276,7 +276,7 @@
         insertafter:                   '^[Unit]$'
         line:                          "Description=Pacemaker needs the SAP HANA instance service"
 
-    - name:                            "5.8 HANA Pacemaker Scaleout - (systemd) Update drop-in file"
+    - name:                            "5.8 HANA Pacemaker Scale-out - (systemd) Update drop-in file"
       ansible.builtin.lineinfile:
         path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
         create:                        true
@@ -287,7 +287,7 @@
         insertafter:                   '^Description=Pacemaker needs the SAP HANA instance service$'
         line:                          "Wants=SAP{{ db_sid | upper }}_{{ db_instance_number }}.service"
 
-    - name:                            "5.8 HANA Pacemaker Scaleout - (systemd) Update drop-in file"
+    - name:                            "5.8 HANA Pacemaker Scale-out - (systemd) Update drop-in file"
       ansible.builtin.lineinfile:
         path:                          /etc/systemd/system/pacemaker.service.d/00-pacemaker.conf
         create:                        true
@@ -299,7 +299,7 @@
         line:                          "After=SAP{{ db_sid | upper }}_{{ db_instance_number }}.service"
       register:                        dropinfile
 
-    - name:                            "5.8 HANA Pacemaker Scaleout - systemd reload"
+    - name:                            "5.8 HANA Pacemaker Scale-out - systemd reload"
       ansible.builtin.systemd:
         daemon_reload:                 true
       when:

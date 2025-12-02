@@ -299,7 +299,7 @@
     distro_family:                     "{{ ansible_os_family | upper }}"
 
   tasks:
-    - name:                            "Database Installation Playbook: - HANA ScaleOut - Check required Database HA variables"
+    - name:                            "Database Installation Playbook: - HANA Scale-out - Check required Database HA variables"
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
       when:
@@ -307,7 +307,7 @@
         - database_high_availability is not defined
 
     # This configures root account on HANA nodes for scale out configuration ( shared and shared nothing with HSR ) to use password based login.
-    - name:                            "Database Installation Playbook: - HANA ScaleOut - Configure root credential for Scale-Out"
+    - name:                            "Database Installation Playbook: - HANA Scale-out - Configure root credential for Scale-Out"
       when:
                                        - database_scale_out
                                        - hostvars.localhost.root_password is defined
@@ -319,7 +319,7 @@
 
         - name:
           ansible.builtin.debug:
-            msg:                       "Installing {{ sap_sid | upper }} using {{ bom_base_name }} ({{ platform }} ScaleOut - {{ HANA_version }} ) on {{ distribution_full_id }}"
+            msg:                       "Installing {{ sap_sid | upper }} using {{ bom_base_name }} ({{ platform }} Scale-out - {{ HANA_version }} ) on {{ distribution_full_id }}"
 
         - name:                        Reset root password
           become:                      true
@@ -329,7 +329,7 @@
             password:                  "{{ hostvars.localhost.root_password | password_hash('sha512') }}"
             password_lock:             false
 
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Enable {{ item.key }} in /etc/ssh/sshd_config"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Enable {{ item.key }} in /etc/ssh/sshd_config"
           become:                      true
           ansible.builtin.lineinfile:
             path:                      "/etc/ssh/sshd_config"
@@ -341,14 +341,14 @@
             - { key: "PasswordAuthentication", value: "yes" }
             - { key: "ChallengeResponseAuthentication", value: "yes" }
 
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Debug sshdconfig file"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Debug sshdconfig file"
           ansible.builtin.shell:       "cat /etc/ssh/sshd_config | grep -v '^#' | grep -v '^$'"
           register:                    sshdconfig
           changed_when:                false
           failed_when:                 false
           ignore_errors:               true
 
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Append root user to AllowUsers if used"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Append root user to AllowUsers if used"
           become:                      true
           ansible.builtin.lineinfile:
             path:                      "/etc/ssh/sshd_config"
@@ -357,13 +357,13 @@
             backrefs:                  true
             state:                     present
 
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Restart SSHD on {{ ansible_hostname }}"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Restart SSHD on {{ ansible_hostname }}"
           become:                      true
           ansible.builtin.service:
             name:                      sshd
             state:                     restarted
 
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Debug sshdconfig file after restart"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Debug sshdconfig file after restart"
           ansible.builtin.shell:       "cat /etc/ssh/sshd_config | grep -v '^#' | grep -v '^$'"
           register:                    sshdconfig
           changed_when:                false
@@ -376,7 +376,7 @@
         - node_tier == 'hana'
         - database_scale_out
       block:
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Setting the DB facts"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Setting the DB facts"
           ansible.builtin.set_fact:
             tier:                      hdb                                     # Actions for HANA DB Serve
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -388,7 +388,7 @@
           tags:
             - always
 
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Setting the DB Scale Out facts"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Setting the DB Scale Out facts"
           ansible.builtin.set_fact:
             root_password:             "{{ hostvars.localhost.root_password }}"
           when:
@@ -396,12 +396,12 @@
             - database_scale_out
             # - not db_high_availability
 
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Show SAP password"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Show SAP password"
           ansible.builtin.debug:
             msg:                       "{{ hostvars.localhost.sap_password }}"
             verbosity:                 4
 
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Run the Database installation Playbook"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Run the Database installation Playbook"
           block:
             - name:                    "Database Installation Playbook: - run HANA installation"
               ansible.builtin.include_role:
@@ -409,16 +409,16 @@
               when:
                 - not database_scale_out
 
-            - name:                    "Database Installation Playbook: - HANA ScaleOut - Database Installation Playbook: - Clear the failed state of hosts"
+            - name:                    "Database Installation Playbook: - HANA Scale-out - Database Installation Playbook: - Clear the failed state of hosts"
               ansible.builtin.meta:    clear_host_errors
 
-            - name:                    "Database Installation Playbook: - HANA ScaleOut - perform HANA Scale-Out installation"
+            - name:                    "Database Installation Playbook: - HANA Scale-out - perform HANA Scale-Out installation"
               ansible.builtin.include_role:
-                name:                  roles-db/4.0.3-hdb-install-scaleout
+                name:                  roles-db/4.0.3-hdb-install-Scale-out
               when:
                 - database_scale_out
 
-            - name:                    "Database Installation Playbook: - HANA ScaleOut - Create db-install-done flag"
+            - name:                    "Database Installation Playbook: - HANA Scale-out - Create db-install-done flag"
               delegate_to:             localhost
               become:                  false
               ansible.builtin.file:
@@ -429,14 +429,14 @@
                 - hana_already_installed is defined or (hana_installation.rc is defined and hana_installation.rc == 0)
 
           always:
-            - name:                    "Database Installation Playbook: - HANA ScaleOut - Run post installation routines"
+            - name:                    "Database Installation Playbook: - HANA Scale-out - Run post installation routines"
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                "_DB"
                 tier:                  'hana'
 
-            - name:                    "Database Installation Playbook: - HANA ScaleOut - Show errors from HANA installation"
+            - name:                    "Database Installation Playbook: - HANA Scale-out - Show errors from HANA installation"
               ansible.builtin.debug:
                 msg:                   "{{ hana_installation.stdout_lines | select('search', 'ERROR') }}"
               when:
@@ -448,19 +448,19 @@
             - 4.0.0-hdb-install
 
     # This disables root account on HANA nodes for scale out configuration ( shared and shared nothing with HSR ) to use password based login.
-    - name:                           "Database Installation Playbook: - HANA ScaleOut - disable root credential for Scale-Out"
+    - name:                           "Database Installation Playbook: - HANA Scale-out - disable root credential for Scale-Out"
       when:
         - database_scale_out
         - hostvars.localhost.root_password is defined
       block:
-        - name:                            "Database Installation Playbook: - HANA ScaleOut - Reset root password to random local value"
+        - name:                            "Database Installation Playbook: - HANA Scale-out - Reset root password to random local value"
           become:                          true
           ansible.builtin.user:
             name:                          root
             update_password:               always
             password:                      "{{ lookup('ansible.builtin.password', '/dev/null', seed=inventory_hostname) | password_hash('sha512') }}"
 
-        - name:                            "Database Installation Playbook: - HANA ScaleOut - Enable {{ item.key }} in /etc/ssh/sshd_config"
+        - name:                            "Database Installation Playbook: - HANA Scale-out - Enable {{ item.key }} in /etc/ssh/sshd_config"
           become:                          true
           ansible.builtin.lineinfile:
             path:                          "/etc/ssh/sshd_config"
@@ -472,7 +472,7 @@
             - { key: "PasswordAuthentication", value: "no" }
             - { key: "ChallengeResponseAuthentication", value: "no" }
 
-        - name:                            "Database Installation Playbook: - HANA ScaleOut - Restart SSHD on {{ ansible_hostname }}"
+        - name:                            "Database Installation Playbook: - HANA Scale-out - Restart SSHD on {{ ansible_hostname }}"
           become:                          true
           ansible.builtin.service:
             name:                          sshd
@@ -497,7 +497,7 @@
 
   tasks:
 
-    - name:                            "Database Installation Playbook: - HANA ScaleOut - Backward Compatibility - Check required Database HA variables"
+    - name:                            "Database Installation Playbook: - HANA Scale-out - Backward Compatibility - Check required Database HA variables"
       when:
                                        - db_high_availability is defined
                                        - database_high_availability is not defined
@@ -505,14 +505,14 @@
         database_high_availability:    "{{ db_high_availability | default(false) }}"
 
 
-    - name:                            "Database Installation Playbook: - HANA ScaleOut - Install Pacemaker (Scale Out)"
+    - name:                            "Database Installation Playbook: - HANA Scale-out - Install Pacemaker (Scale Out)"
       become:                          true
       when:
                                        - database_high_availability
                                        - node_tier in ['hana','observer']
                                        - database_scale_out
       block:
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Setting the facts"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Setting the facts"
           ansible.builtin.set_fact:
             tier:                      ha
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -520,7 +520,7 @@
             primary_instance_name:     "{{ ansible_play_hosts_all[0] }}"         # Setting up Primary Instance Name
             secondary_instance_name:   "{{ ansible_play_hosts_all[1] }}"         # Setting up Secondary Instance Name
 
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Setting the facts for fencing"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Setting the facts for fencing"
           when:
                                        - database_cluster_type == "AFA"
                                        - not use_msi_for_clusters
@@ -529,32 +529,32 @@
             fencing_spn_client_pwd:    "{{ hostvars.localhost.sap_fencing_spn_pwd }}"
             fencing_spn_tenant_id:     "{{ hostvars.localhost.sap_fencing_spn_tenant_id }}"
 
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Ensure the correct repositories are set"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Ensure the correct repositories are set"
           ansible.builtin.include_role:
             name:                      roles-os/1.3-repository
           tags:
                                        - 1.3-repository
 
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Ensure the correct packages are installed"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Ensure the correct packages are installed"
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
           tags:
                                        - 1.4-packages
 
         # Setup the kernel parameters required for pacemaker cluster VMs
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Ensure the correct kernel parameters are set"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Ensure the correct kernel parameters are set"
           ansible.builtin.include_role:
             name:                      roles-os/1.9-kernelparameters
           tags:
                                        - 1.9-kernelparameters
 
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Ensure the needed services are enabled/disabled"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Ensure the needed services are enabled/disabled"
           ansible.builtin.include_role:
             name:                      roles-os/1.16-services
           tags:
                                        - 1.16-services
 
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Ensure the accounts are present"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Ensure the accounts are present"
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
           vars:
@@ -562,7 +562,7 @@
           tags:
                                        - 1.11-accounts
 
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Configure NFS optimizations"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Configure NFS optimizations"
           when:
                                        - node_tier == 'hana' or node_tier == 'observer'
           ansible.builtin.blockinfile:
@@ -579,21 +579,21 @@
                                        vm.swappiness=10
 
         # Scale out based pacemaker task/s
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Install Scale Out Pacemaker"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Install Scale Out Pacemaker"
           when:
                                        - node_tier in ['hana','observer']
                                        - database_scale_out
           ansible.builtin.include_role:
-            name:                      roles-sap/5.8-hanadb-scaleout-pacemaker
+            name:                      roles-sap/5.8-hanadb-Scale-out-pacemaker
             apply:
               tags:
-                                       - 1.18-scaleout-pacemaker
+                                       - 1.18-Scale-out-pacemaker
               become:                  true
               become_user:             root
           tags:
-            - 1.18-scaleout-pacemaker
+            - 1.18-Scale-out-pacemaker
 
-        - name:                        "Database Installation Playbook: - HANA ScaleOut - Create pacemaker-install-done flag"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Create pacemaker-install-done flag"
           delegate_to:                 localhost
           become:                      false
           ansible.builtin.file:
