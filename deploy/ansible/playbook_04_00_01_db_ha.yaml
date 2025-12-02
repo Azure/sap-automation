@@ -376,56 +376,58 @@
       ORACLE_SID:                      "{{ oracle_sid }}_STDBY"
 
   tasks:
-    - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Backward Compatibility - Check required Database HA variables"
-      ansible.builtin.set_fact:
-        database_high_availability:    "{{ db_high_availability | default(false) }}"
-      when:
-        - db_high_availability is defined
-        - database_high_availability is not defined
-
-    - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Get Instance names"
-      ansible.builtin.set_fact:
-        primary_observer_name :        "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
-        secondary_observer_name:       "{{ ansible_play_hosts_all[1] | default('N/A') }}"         # Setting up Secondary Instance Name
-        tertiary_observer_name:        "{{ ansible_play_hosts_all[2] | default('N/A') }}"         # Setting up Tertiary Instance Name
-
     - name:                            "Database High Availability Configuration Playbook - ORACLE Observer :  Observer setup"
       become:                          true
       when:
         - database_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
       block:
-        - name:                          "Database High Availability Configuration Playbook - ORACLE Observer : Setting the DB facts"
+
+        - name:                        "Database High Availability Configuration Playbook - ORACLE Observer : Backward Compatibility - Check required Database HA variables"
           ansible.builtin.set_fact:
-            node_tier:                   observer
-            action:                      'Setup_Observer'
-            main_password:               "{{ hostvars.localhost.sap_password }}"
+            database_high_availability: "{{ db_high_availability | default(false) }}"
+          when:
+            - db_high_availability is defined
+            - database_high_availability is not defined
+
+        - name:                        "Database High Availability Configuration Playbook - ORACLE Observer : Get Instance names"
+          ansible.builtin.set_fact:
+            primary_observer_name :    "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
+            secondary_observer_name:   "{{ ansible_play_hosts_all[1] | default('N/A') }}"         # Setting up Secondary Instance Name
+            tertiary_observer_name:    "{{ ansible_play_hosts_all[2] | default('N/A') }}"         # Setting up Tertiary Instance Name
+
+
+        - name:                        "Database High Availability Configuration Playbook - ORACLE Observer : Setting the DB facts"
+          ansible.builtin.set_fact:
+            node_tier:                 observer
+            action:                    'Setup_Observer'
+            main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path:  "{{ hostvars.localhost.sapbits_location_base_path }}"
-            sapbits_sas_token:           "{{ hostvars.localhost.sapbits_sas_token }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
 
           tags:
             - always
 
         # Specify the active tier for this playbook run
 
-        - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Check if the mounts are made"
+        - name:                        "Database High Availability Configuration Playbook - ORACLE Observer : Check if the mounts are made"
           ansible.builtin.include_role:
-            name:                          roles-sap-os/2.6-sap-mounts
+            name:                      roles-sap-os/2.6-sap-mounts
           vars:
-            tier:                          sapos
+            tier:                      sapos
 
-        - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Oracle Observer setup"
+        - name:                        "Database High Availability Configuration Playbook - ORACLE Observer : Oracle Observer setup"
           ansible.builtin.include_role:
-            name:                          roles-db/4.1.4-oracle-data-guard-observer
+            name:                      roles-db/4.1.4-oracle-data-guard-observer
           vars:
-            tier:                          observer
+            tier:                      observer
 
-        - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Run post installation routines"
+        - name:                        "Database High Availability Configuration Playbook - ORACLE Observer : Run post installation routines"
           ansible.builtin.include_role:
-            name:                          roles-sap/7.0.0-post-install
+            name:                      roles-sap/7.0.0-post-install
           vars:
-            suffix:                        "_OBSERVER"
-            tier:                          'oracle'
+            suffix:                    "_OBSERVER"
+            tier:                      'oracle'
 
 # # /*-------------------------------------------------------------------------8
 # # |                                                                          |
