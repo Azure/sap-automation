@@ -22,37 +22,39 @@ parameters:
   controlPlaneSubscriptionId: ''
   controlPlaneName: ''
   workloadZoneName: ''
+  SAP_SYSTEM_CONFIGURATION_NAME: ''
 
 steps:
-- task:                             Bash@3
-  name:                             ${{ parameters.name }}
-  displayName:                      ${{ parameters.displayName }}
+- task:                              Bash@3
+  name:                              ${{ parameters.name }}
+  displayName:                       ${{ parameters.displayName }}
   inputs:
-    targetType:                     'filePath'
-    filePath:                       "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/05-run-ansible.sh"
-    failOnStderr:                   false
-    workingDirectory:               "$(System.DefaultWorkingDirectory)"
+    targetType:                      'filePath'
+    filePath:                        "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/05-run-ansible.sh"
+    failOnStderr:                    false
+    workingDirectory:                "$(System.DefaultWorkingDirectory)"
   env:
-    ARM_CLIENT_ID:                  ${{ parameters.ARM_CLIENT_ID }}
-    ARM_CLIENT_SECRET:              ${{ parameters.ARM_CLIENT_SECRET }}
-    ARM_TENANT_ID:                  ${{ parameters.ARM_TENANT_ID }}
-    ARM_SUBSCRIPTION_ID:            ${{ parameters.ARM_SUBSCRIPTION_ID }}
-    USE_MSI:                        ${{ parameters.USE_MSI }}
-    ANSIBLE_COLLECTIONS_PATH:       ~/.ansible/collections:/opt/ansible/collections
-    ANSIBLE_PYTHON_INTERPRETER:     auto_silent
-    ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
-    ANSIBLE_HOST_KEY_CHECKING:      false
-    ANSIBLE_FILE_PATH:              ${{ parameters.ansibleFilePath }}
-    ANSIBLE_CONFIG:                 ${{ parameters.ansibleConfigPath }}
-    PARAMETERS_FOLDER:              ${{ parameters.parametersFolder }}
-    EXTRA_PARAMS:                   ${{ parameters.extraParams }}
-    SAP_PARAMS:                     ${{ parameters.sapParams }}
-    INVENTORY:                      ${{ parameters.parametersFolder }}/${{ parameters.sidHosts }}
-    SSH_KEY_NAME:                   ${{ parameters.secretName }}
-    VAULT_NAME:                     ${{ parameters.vaultName }}
-    PASSWORD_KEY_NAME:              ${{ parameters.passwordSecretName }}
-    USERNAME_KEY_NAME:              ${{ parameters.userNameSecretName }}
-    TERRAFORM_STATE_STORAGE_ACCOUNT: ${{ parameters.terraformStateStorageAccount }}
+    ANSIBLE_COLLECTIONS_PATH:        ~/.ansible/collections:/opt/ansible/collections
+    ANSIBLE_CONFIG:                  ${{ parameters.ansibleConfigPath }}
+    ANSIBLE_DISPLAY_SKIPPED_HOSTS:   false
+    ANSIBLE_FILE_PATH:               ${{ parameters.ansibleFilePath }}
+    ANSIBLE_HOST_KEY_CHECKING:       false
+    ANSIBLE_PYTHON_INTERPRETER:      auto_silent
+    ARM_CLIENT_ID:                   ${{ parameters.ARM_CLIENT_ID }}
+    ARM_CLIENT_SECRET:               ${{ parameters.ARM_CLIENT_SECRET }}
+    ARM_SUBSCRIPTION_ID:             ${{ parameters.ARM_SUBSCRIPTION_ID }}
+    ARM_TENANT_ID:                   ${{ parameters.ARM_TENANT_ID }}
+    CONTROL_PLANE_NAME:              ${{ parameters.controlPlaneName }}
     CONTROL_PLANE_SUBSCRIPTION_ID:   ${{ parameters.controlPlaneSubscriptionId }}
-    CONTROL_PLANE_NAME:             ${{ parameters.controlPlaneName }}
-    WORKLOAD_ZONE_NAME:             ${{ parameters.workloadZoneName }}
+    EXTRA_PARAMS:                    ${{ parameters.extraParams }}
+    INVENTORY:                       ${{ parameters.parametersFolder }}/${{ parameters.sidHosts }}
+    PARAMETERS_FOLDER:               ${{ parameters.parametersFolder }}
+    PASSWORD_KEY_NAME:               ${{ parameters.passwordSecretName }}
+    SAP_PARAMS:                      ${{ parameters.sapParams }}
+    SAP_SYSTEM_CONFIGURATION_NAME:   ${{ parameters.SAP_SYSTEM_CONFIGURATION_NAME }}
+    SSH_KEY_NAME:                    ${{ parameters.secretName }}
+    TERRAFORM_STATE_STORAGE_ACCOUNT: ${{ parameters.terraformStateStorageAccount }}
+    USERNAME_KEY_NAME:               ${{ parameters.userNameSecretName }}
+    USE_MSI:                         ${{ parameters.USE_MSI }}
+    VAULT_NAME:                      ${{ parameters.vaultName }}
+    WORKLOAD_ZONE_NAME:              ${{ parameters.workloadZoneName }}
