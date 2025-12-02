@@ -192,7 +192,7 @@
         - name:                        "5.8 HANA Pacemaker Scale-out - Start HANA on both nodes"
           ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
           when:
-           - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
+            - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
 
     - name:                            "5.8 HANA Pacemaker Scale-out - Wait for SAP system to stabilize (debug)"
       ansible.builtin.debug:
