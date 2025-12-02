@@ -579,19 +579,19 @@
                                        vm.swappiness=10
 
         # Scale out based pacemaker task/s
-        - name:                        "Database Installation Playbook: - HANA Scale-out - Install Scale Out Pacemaker"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Install Pacemaker"
           when:
                                        - node_tier in ['hana','observer']
                                        - database_scale_out
           ansible.builtin.include_role:
-            name:                      roles-sap/5.8-hanadb-Scale-out-pacemaker
+            name:                      roles-os/1.18-scaleout-pacemaker
             apply:
               tags:
                                        - 1.18-scaleout-pacemaker
               become:                  true
               become_user:             root
           tags:
-            - 1.18-Scale-out-pacemaker
+            - 1.18-scaleout-pacemaker
 
         - name:                        "Database Installation Playbook: - HANA Scale-out - Create pacemaker-install-done flag"
           delegate_to:                 localhost
