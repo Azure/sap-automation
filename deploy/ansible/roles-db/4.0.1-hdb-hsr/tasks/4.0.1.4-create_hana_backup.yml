@@ -10,7 +10,7 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- name:                                "HANA HSR: - Ensure backup directory exists for HANA database with System Identifier {{ db_sid }}"
+- name:                                "4.0.1.4 Hana System Replication - Ensure backup directory exists for HANA database with System Identifier {{ db_sid }}"
   ansible.builtin.file:
     path:                              "{{ db_sid_backup_dir }}"
     state:                             directory
@@ -23,33 +23,33 @@
 # |                                                                            |
 # /*---------------------------------------------------------------------------8
 
-- name:                                "HANA HSR: - Ensure backup is taken on primary node"
+- name:                                "4.0.1.4 Hana System Replication - Ensure backup is taken on primary node"
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
   block:
-    - name:                            "HANA HSR: - Check whether backup exists for SYSTEMDB database for System Identifier: {{ db_sid }}"
+    - name:                            "4.0.1.4 Hana System Replication - Check whether backup exists for SYSTEMDB database for System Identifier: {{ db_sid }}"
       ansible.builtin.shell: >
         {{ hdbsql_systemdb_command }} "{{ backup_exists_cmd_for_systemdb }}"
       register:                        backup_exists_cmd_for_systemdb_result
       changed_when:                    false
 
-    - name:                            "HANA HSR: - Ensure backup exists for SYSTEMDB database for System Identifier {{ db_sid }}"
+    - name:                            "4.0.1.4 Hana System Replication - Ensure backup exists for SYSTEMDB database for System Identifier {{ db_sid }}"
       ansible.builtin.set_fact:
         backup_systemdb:               "{{ (backup_cmd_no_rows_found in backup_exists_cmd_for_systemdb_result.stdout) | bool }}"
 
-    - name:                            "HANA HSR: - Results for backup check for SYSTEMDB database for System Identifier: {{ db_sid }}"
+    - name:                            "4.0.1.4 Hana System Replication - Results for backup check for SYSTEMDB database for System Identifier: {{ db_sid }}"
       ansible.builtin.debug:
         msg:
           - "Backup needed:             {{ backup_systemdb }}"
           - "Backup query results:      {{ backup_exists_cmd_for_systemdb_result.stdout }}"
 
-    - name:                            "HANA HSR: - Backup SYSTEMDB database for System Identifier {{ db_sid }}"
+    - name:                            "4.0.1.4 Hana System Replication - Backup SYSTEMDB database for System Identifier {{ db_sid }}"
       ansible.builtin.shell: >
                                        {{ hdbsql_systemdb_command }} "{{ backup_cmd_for_systemdb }}"
       register:                        backup_systemdb_result
       when:                            backup_systemdb
 
-    - name:                            "HANA HSR: - Backup completed SYSTEMDB database for System Identifier: {{ db_sid }}"
+    - name:                            "4.0.1.4 Hana System Replication - Backup completed SYSTEMDB database for System Identifier: {{ db_sid }}"
       ansible.builtin.debug:
         msg:
           - "Backup results:  {{ backup_systemdb_result }}"
@@ -57,31 +57,31 @@
         - backup_systemdb
         - backup_systemdb_result.stdout is defined
 
-    - name:                            "HANA HSR: - Check if there is a tenant db needing backup"
+    - name:                            "4.0.1.4 Hana System Replication - Check if there is a tenant db needing backup"
       block:
-        - name:                        "HANA HSR: - Check whether backup exists for tenant {{ hana_tenant_database_name }} database for System Identifier {{ db_sid }}"
+        - name:                        "4.0.1.4 Hana System Replication - Check whether backup exists for tenant {{ hana_tenant_database_name }} database for System Identifier {{ db_sid }}"
           ansible.builtin.shell: >
                                        {{ hdbsql_tenant_command }} "{{ backup_exists_cmd_for_tenant }}"
           register:                    backup_exists_cmd_for_tenant_result
           changed_when:                false
 
-        - name:                        "HANA HSR: - Ensure backup exists for tenant {{ hana_tenant_database_name }} database for System Identifier {{ db_sid }}"
+        - name:                        "4.0.1.4 Hana System Replication - Ensure backup exists for tenant {{ hana_tenant_database_name }} database for System Identifier {{ db_sid }}"
           ansible.builtin.set_fact:
             backup_tenantdb:           "{{ (backup_cmd_no_rows_found in backup_exists_cmd_for_tenant_result.stdout) | bool }}"
 
-        - name:                            "HANA HSR: - Results for backup check for {{ hana_tenant_database_name }} database for System Identifier: {{ db_sid }}"
+        - name:                            "4.0.1.4 Hana System Replication - Results for backup check for {{ hana_tenant_database_name }} database for System Identifier: {{ db_sid }}"
           ansible.builtin.debug:
             msg:
               - "Backup needed:         {{ backup_tenantdb }}"
               - "Backup query results:  {{ backup_exists_cmd_for_tenant_result.stdout }}"
 
-        - name:                        "HANA HSR: - Backup {{ hana_tenant_database_name }} database for System Identifier {{ db_sid }}"
+        - name:                        "4.0.1.4 Hana System Replication - Backup {{ hana_tenant_database_name }} database for System Identifier {{ db_sid }}"
           ansible.builtin.shell: >
                                        {{ hdbsql_tenant_command }} "{{ backup_cmd_for_tenant }}"
           register:                    backup_tenantdb_result
           when:                        backup_tenantdb
 
-        - name:                        "HANA HSR: - Backup completed {{ hana_tenant_database_name }} database for System Identifier: {{ db_sid }}"
+        - name:                        "4.0.1.4 Hana System Replication - Backup completed {{ hana_tenant_database_name }} database for System Identifier: {{ db_sid }}"
           ansible.builtin.debug:
             msg:
               - "Backup results:  {{ backup_tenantdb_result }}"
