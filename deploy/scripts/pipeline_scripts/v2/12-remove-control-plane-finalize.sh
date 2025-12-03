@@ -94,7 +94,7 @@ echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.13.3}"
+	configureNonDeployer "${tf_version:-1.1.14.1}"
 
 	if [ "$PLATFORM" == "devops" ]; then
 		ARM_CLIENT_ID="${servicePrincipalId:-$ARM_CLIENT_ID}"

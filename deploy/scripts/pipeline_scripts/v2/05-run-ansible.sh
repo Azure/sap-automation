@@ -74,7 +74,7 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
 
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.13.3}"
+	configureNonDeployer "${tf_version:-1.1.14.1}"
 fi
 if [ "$PLATFORM" == "devops" ]; then
 	# Set logon variables

@@ -86,7 +86,7 @@ fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.13.3}"
+	configureNonDeployer "${tf_version:-1.1.14.1}"
 fi
 echo -e "$green--- az login ---$reset"
 # Set logon variables
@@ -358,7 +358,7 @@ else
 			if [ "$PLATFORM" == "devops" ]; then
 				git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 				git config --global user.name "$BUILD_REQUESTEDFOR"
-				
+
 			elif [ "$PLATFORM" == "github" ]; then
 				git config --global user.email "github-actions@github.com"
 				git config --global user.name "GitHub Actions"
