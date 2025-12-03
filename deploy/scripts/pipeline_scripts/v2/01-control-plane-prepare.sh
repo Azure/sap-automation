@@ -96,6 +96,7 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 
 	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
+	DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT")
 
 elif [ "$PLATFORM" == "github" ]; then
 	echo "Configuring for GitHub Actions"
@@ -295,7 +296,13 @@ if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" 
 	if [ -n "${tfstate_resource_id}" ]; then
 		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 		az storage account network-rule add --account-name "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" --resource-group "$TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME" --ip-address "${this_ip}" --only-show-errors --output none
+		az storage account update --name "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" --resource-group "$TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME" --subscription "$ARM_SUBSCRIPTION_ID" --public-network-access Enabled --only-show-errors --output none
 	fi
+
+	if [ -n "${DEPLOYER_KEYVAULT:-}" ]; then
+		az keyvault update --name "$keyvault"  --subscription "$ARM_SUBSCRIPTION_ID" --public-network-access Enabled --only-show-errors --output none
+	fi
+
 
 	REINSTALL_ACCOUNTNAME=$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME
 	export REINSTALL_ACCOUNTNAME
