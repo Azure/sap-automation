@@ -249,6 +249,8 @@ if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConf
 	export TF_VAR_management_subscription_id
 fi
 
+APPLICATION_CONFIGURATION_SUBSCRIPTION_ID=$(echo "${APPLICATION_CONFIGURATION_ID:-}" | cut -d'/' -f3 || true)
+
 # Force reset handling across platforms
 if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
