@@ -361,7 +361,7 @@ function install_deployer() {
 	fi
 
 	print_banner "$banner_title" "Running Terraform plan" "info"
-aa
+
 	#########################################################################################"
 	#                                                                                       #
 	#                             Running Terraform plan                                    #
