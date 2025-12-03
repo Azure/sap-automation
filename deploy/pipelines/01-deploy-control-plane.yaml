@@ -239,6 +239,7 @@ stages:
               TF_VAR_agent_pat:                   $(System.AccessToken)
               TF_VAR_agent_pool:                  $(POOL)
               TF_VAR_ansible_core_version:        $(ansible_core_version)
+              TF_VAR_app_registration_app_id:     $(APP_REGISTRATION_APP_ID)
               TF_VAR_spn_id:                      $(ARM_OBJECT_ID)
               TF_VAR_tf_version:                  $(tf_version)
               TF_VAR_use_webapp:                  ${{ parameters.use_webapp_param }}
