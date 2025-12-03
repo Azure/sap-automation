@@ -296,7 +296,6 @@
         - is_pcmk_ver_gt_204
       ansible.builtin.shell: |
                                        pcs stonith update rsc_st_azure op monitor interval=3600
-                                       pcs resource update rsc_st_azure op monitor interval=3600
       register:                        update_monitor
       failed_when:
                                        - update_monitor.rc not in [0, 2]
