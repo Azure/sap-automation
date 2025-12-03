@@ -728,9 +728,9 @@
             path:                      "{{ dir_params }}/{{ sap_inifile }}"
             state:                     absent
 
-        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Template processing: Create ini file {{ sap_inifile }} from {{ HANA_2_00_install_Scale-out.rsp }}"
+        - name:                        "4.0.3 - SAP HANA Scale-out HSR: Template processing: Create ini file {{ sap_inifile }} from HANA_2_00_install_scaleout.rsp"
           ansible.builtin.template:
-            src:                       "HANA_2_00_install_Scale-out.rsp"
+            src:                       "HANA_2_00_install_scaleout.rsp"
             dest:                      "{{ dir_params }}/{{ sap_inifile }}"
             mode:                      0644
             force:                     true
