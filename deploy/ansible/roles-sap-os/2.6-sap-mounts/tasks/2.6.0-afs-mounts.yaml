@@ -67,7 +67,7 @@
 # |         Unmount and clean up temporary directory structure                 |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
- 
+
 - name:                                "2.6.0 AFS Mounts - Create local directories"
   when:
                                        - tier == 'sapos'
