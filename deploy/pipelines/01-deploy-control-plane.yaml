@@ -216,6 +216,7 @@ stages:
             displayName:                          Deploy control plane Part 2
             env:
               APP_REGISTRATION_APP_ID:            $(APP_REGISTRATION_APP_ID)
+              APP_REGISTRATION_OBJECTID:          $(APP_REGISTRATION_OBJECTID)
               APPLICATION_CONFIGURATION_NAME:     $(APPLICATION_CONFIGURATION_NAME)
               ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
