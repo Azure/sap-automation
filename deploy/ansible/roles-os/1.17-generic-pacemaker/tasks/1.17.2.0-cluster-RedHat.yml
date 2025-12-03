@@ -291,13 +291,24 @@
       ansible.builtin.command:         pcs property set priority-fencing-delay=15
 
     - name:                            "1.17 Generic Pacemaker - Update Monitor interval"
+      when:
+        - ansible_distribution_major_version in ["10"]
+        - is_pcmk_ver_gt_204
       ansible.builtin.shell: |
-                                       if [ "{{ ansible_distribution_major_version }}" -eq 10 ]; then
-                                         pcs stonith update rsc_st_azure op monitor interval=3600 || \
-                                         pcs resource update rsc_st_azure op monitor interval=3600
-                                       else
-                                         pcs resource update rsc_st_azure op monitor interval=3600
-                                       fi
+                                       pcs stonith update rsc_st_azure op monitor interval=3600
+                                       pcs resource update rsc_st_azure op monitor interval=3600
+      register:                        update_monitor
+      failed_when:
+                                       - update_monitor.rc not in [0, 2]
+                                       - "'Error:' in update_monitor.stderr"
+      changed_when:                    "'interval' in update_monitor.stderr or 'interval' in update_monitor.stdout"
+
+    - name:                            "1.17 Generic Pacemaker - Update Monitor interval"
+      when:
+        - ansible_distribution_major_version in ["8", "9"]
+        - is_pcmk_ver_gt_204
+      ansible.builtin.shell: |
+                                       pcs resource update rsc_st_azure op monitor interval=3600
       register:                        update_monitor
       failed_when:
                                        - update_monitor.rc not in [0, 2]
