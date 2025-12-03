@@ -239,11 +239,14 @@ if printenv ARM_SUBSCRIPTION_ID; then
 	echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 fi
 
+if [ -v APPLICATION_CONFIGURATION_NAME ]; then
+  APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | where type == 'microsoft.appconfiguration/configurationstores' | where name == '${APPLICATION_CONFIGURATION_NAME}' | project id" --query "data[0].id" -o tsv 2>/dev/null || true)
+	export APPLICATION_CONFIGURATION_ID
+fi
+
 if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 	TF_VAR_management_subscription_id=$ARM_SUBSCRIPTION_ID
 	export TF_VAR_management_subscription_id
-else
-	unset APPLICATION_CONFIGURATION_NAME
 fi
 
 # Force reset handling across platforms
@@ -261,7 +264,7 @@ if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" 
 	tfstate_resource_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 	if [ -z "$tfstate_resource_id" ]; then
 		if [ "$PLATFORM" == "devops" ]; then
-			echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
+			echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
 		else
 			echo "WARNING: Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration."
 		fi
