@@ -95,6 +95,8 @@ if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=warning]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
 	fi
 
+	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
+
 elif [ "$PLATFORM" == "github" ]; then
 	echo "Configuring for GitHub Actions"
 	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
@@ -241,6 +243,7 @@ fi
 
 if [ -v APPLICATION_CONFIGURATION_NAME ]; then
   APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | where type == 'microsoft.appconfiguration/configurationstores' | where name == '${APPLICATION_CONFIGURATION_NAME}' | project id" --query "data[0].id" -o tsv 2>/dev/null || true)
+
 	export APPLICATION_CONFIGURATION_ID
 fi
 
@@ -263,8 +266,14 @@ if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" 
 	sed -i 's/step=2/step=0/' "$deployer_environment_file_name"
 	sed -i 's/step=3/step=0/' "$deployer_environment_file_name"
 
-	tfstate_resource_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+	if [ -v TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME ]; then
+		tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	else
+		tfstate_resource_id=""
+	fi
+
 	if [ -z "$tfstate_resource_id" ]; then
+	  tfstate_resource_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 		if [ "$PLATFORM" == "devops" ]; then
 			echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
 		else
