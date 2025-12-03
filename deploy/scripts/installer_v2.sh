@@ -612,11 +612,15 @@ function sdaf_installer() {
 		mkdir -p "${HOME}/.terraform.d/plugin-cache"
 		export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
 	else
-		if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
-			sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
-			sudo chown -R "$USER" /opt/terraform
+		if [ -f "/etc/profile.d/deploy_server.sh" ]; then
+		  if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
+			  sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
+			  sudo chown -R "$USER" /opt/terraform/.terraform.d
+			else
+			  sudo chown -R "$USER" /opt/terraform/.terraform.d
+		  fi
+  		export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 		fi
-		export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 	fi
 
 	param_dirname=$(pwd)
