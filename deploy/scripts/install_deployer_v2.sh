@@ -315,10 +315,10 @@ function install_deployer() {
 						fi
 					fi
 
-					moduleID="module.sap_deployer.azurerm_app_configuration_key.web_application_resource_id"
+					moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_network_id"
 					if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
 						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-							echo "Setting 'web_application_resource_id' removed from state"
+							echo "Setting 'deployer_network_id' removed from state"
 						fi
 					fi
 
@@ -328,10 +328,11 @@ function install_deployer() {
 							echo "Setting 'deployer_msi_id' removed from state"
 						fi
 					fi
-					moduleID="module.sap_deployer.azurerm_app_configuration_key.web_application_identity_id"
+
+					moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_subnet_id"
 					if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
 						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-							echo "Setting 'deployer_msi_id' removed from state"
+							echo "Setting 'deployer_subnet_id' removed from state"
 						fi
 					fi
 
