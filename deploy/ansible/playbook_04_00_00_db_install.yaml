@@ -136,11 +136,11 @@
         - not database_scale_out
       block:
 
-        - name:                    "Database Installation Playbook: - HANA - Get HANA version"
+        - name:                        "Database Installation Playbook: - HANA - Get HANA version"
           ansible.builtin.include_role:
-            name:                  roles-db/4.0.5-hdb-version
+            name:                      roles-db/4.0.5-hdb-version
 
-        - name:
+        - name:                        "Database Installation Playbook: - HANA - Show installation information"
           ansible.builtin.debug:
             msg:                       "Installing {{ sap_sid | upper }} using {{ bom_base_name }} ({{ platform }} - {{ HANA_version }} ) on {{ distribution_full_id }}"
 
@@ -317,7 +317,7 @@
           ansible.builtin.include_role:
             name:                      roles-db/4.0.5-hdb-version
 
-        - name:
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Show installation information"
           ansible.builtin.debug:
             msg:                       "Installing {{ sap_sid | upper }} using {{ bom_base_name }} ({{ platform }} Scale-out - {{ HANA_version }} ) on {{ distribution_full_id }}"
 
@@ -634,7 +634,7 @@
         - platform == 'ORACLE'
       block:
 
-        - name:
+        - name:                        "Database Installation Playbook: - Oracle - Show installation information"
           ansible.builtin.debug:
             msg:                       "Installing {{ sap_sid | upper }} using {{ bom_base_name }} ({{ platform }}) on {{ distribution_full_id }}"
 
@@ -718,7 +718,7 @@
         - platform == 'ORACLE'
       block:
 
-        - name:
+        - name:                        "Database Installation Playbook: - Oracle - Show installation information"
           ansible.builtin.debug:
             msg:                       "Installing {{ bom_base_name }} (ORACLE) on {{ distribution_full_id }}"
 
@@ -812,7 +812,7 @@
         - node_tier == 'oracle-asm'
         - platform == 'ORACLE-ASM'
       block:
-        - name:
+        - name:                        "Database Installation Playbook: - Oracle ASM - Show installation information"
           ansible.builtin.debug:
             msg:                       "Installing {{ bom_base_name }} (ORACLE-ASM) on {{ distribution_full_id }}"
 
@@ -926,7 +926,7 @@
         - not database_high_availability
       block:
 
-        - name:
+        - name:                        "Database Installation Playbook: - DB2 - Show installation information"
           ansible.builtin.debug:
             msg:                       "Installing {{ sap_sid | upper }} using {{ bom_base_name }} ({{ platform }}) on {{ distribution_full_id }}"
 
@@ -1002,7 +1002,7 @@
         - (ansible_play_hosts_all | length) >= 2
       block:
 
-        - name:
+        - name:                        "Database Installation Playbook: - DB2 - HA - Show installation information"
           ansible.builtin.debug:
             msg:                       "Installing {{ bom_base_name }} (DB2 HA) on {{ distribution_full_id }}"
 
@@ -1079,7 +1079,7 @@
         - platform == 'SYBASE'
         - not database_high_availability
       block:
-        - name:
+        - name:                        "Database Installation Playbook: - ASE - Show installation information"
           ansible.builtin.debug:
             msg:                       "Installing {{ sap_sid | upper }} using {{ bom_base_name }} ({{ platform }}) on {{ distribution_full_id }}"
 
