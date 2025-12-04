@@ -190,7 +190,13 @@
         - use_msi_for_clusters
 
     - name:                            "1.18.2.0 Generic Pacemaker - Update Monitor interval"
-      ansible.builtin.command:         pcs resource update rsc_st_azure op monitor interval=3600
+      ansible.builtin.shell:           |
+                                       if [ "{{ ansible_distribution_major_version }}" -eq 10 ]; then
+                                         pcs stonith update rsc_st_azure op monitor interval=3600 || \
+                                         pcs resource update rsc_st_azure op monitor interval=3600
+                                       else
+                                         pcs resource update rsc_st_azure op monitor interval=3600
+                                       fi
 
     - name:                            "1.18.2.0 Generic Pacemaker - Ensure the STONITH action is set to reboot"
       ansible.builtin.command:         pcs property set stonith-action=reboot
