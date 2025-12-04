@@ -13,7 +13,7 @@
 # BEGIN
 # ----------------------------------------
 
-- name:                                "5.6 SCSERS - Retrieve Subscription ID and Resource Group Name"
+- name:                                "5.6.1 SCS/ERS Pacemaker - Retrieve Subscription ID and Resource Group Name"
   ansible.builtin.uri:
     url:                               http://169.254.169.254/metadata/instance?api-version=2021-02-01
     use_proxy:                         false
@@ -21,17 +21,17 @@
       Metadata:                        true
   register: azure_metadata
 
-- name:                                "5.6 SCSERS - Set the primary intance nic and secondary instance nic IP"
+- name:                                "5.6.1 SCS/ERS Pacemaker - Set the primary intance nic and secondary instance nic IP"
   ansible.builtin.set_fact:
     primary_ip:                        "{{ azure_metadata.json.network.interface[0].ipv4.ipAddress[0].privateIpAddress }}"
     subnet_prefix:                     "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
 
-- name:                                "5.6 SCSERS - Extract NIC IPs"
+- name:                                "5.6.1 SCS/ERS Pacemaker - Extract NIC IPs"
   ansible.builtin.set_fact:
     primary_instance_ip:               "{{ hostvars[primary_instance_name]['primary_ip'] | string }}"
     secondary_instance_ip:             "{{ hostvars[secondary_instance_name]['primary_ip'] | string }}"
 
-- name:                                "5.6 SCSERS - Print - Virtual Instance hostnames"
+- name:                                "5.6.1 SCS/ERS Pacemaker - Print - Virtual Instance hostnames"
   ansible.builtin.debug:
     msg:
       - "The SCS Virtual hostname is {{ scs_virtual_hostname }}"
@@ -39,7 +39,7 @@
     verbosity:                         2
 
 # Returns bom object
-- name:                                "5.6 SCSERS - SCS HA Install - Register BoM"
+- name:                                "5.6.1 SCS/ERS Pacemaker - SCS HA Install - Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
@@ -49,12 +49,12 @@
     sa_enabled:                        true
   when:                                bom is not defined
 
-- name:                                "5.6 SCSERS - HA Install: Default instance type"
+- name:                                "5.6.1 SCS/ERS Pacemaker - HA Install: Default instance type"
   ansible.builtin.set_fact:
     instance_type:                     "ASCS"
   when:                                bom.InstanceType is not defined
 
-- name:                                "5.6 SCSERS - HA Install: register instance type"
+- name:                                "5.6.1 SCS/ERS Pacemaker - HA Install: register instance type"
   ansible.builtin.set_fact:
     instance_type:  >-
                                         {%- set _instance_type = 'ASCS' -%}
@@ -69,7 +69,7 @@
     public:                            true
   when:                                bom.InstanceType is defined
 
-- name:                                "5.6 SCSERS - HA Install: Populate InstanceName for cluster resource"
+- name:                                "5.6.1 SCS/ERS Pacemaker - HA Install: Populate InstanceName for cluster resource"
   ansible.builtin.set_fact:
     instance_name:                     "{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
     start_profile_path:                "/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
@@ -77,7 +77,7 @@
 
   # Set fact for the timeout value of monitor operation for filesystem and ASCS/ERS resources
   # Since we only configure NFS4.1, the timeout value is set to 40 seconds for non-ANF and 105 seconds for ANF
-- name:                                "5.6 SCSERS - HA install calculate filesystem timeout"
+- name:                                "5.6.1 SCS/ERS Pacemaker - HA install calculate filesystem timeout"
   ansible.builtin.set_fact:
     clus_fs_mon_timeout:  >-
                                        {%- set _timeoutvalue = 40 -%}
@@ -94,7 +94,7 @@
   when:
     - scs_high_availability
 
-- name:                                "5.6 SCSERS - HA install calculate SAP resource monitor timeout"
+- name:                                "5.6.1 SCS/ERS Pacemaker - HA install calculate SAP resource monitor timeout"
   ansible.builtin.set_fact:
     clus_sap_mon_timeout:  >-
                                        {%- set _timeoutvalue = 60 -%}
@@ -111,7 +111,7 @@
   when:
     - scs_high_availability
 
-- name:                                "5.6 SCSERS - HA install calculate NFS mount options"
+- name:                                "5.6.1 SCS/ERS Pacemaker - HA install calculate NFS mount options"
   ansible.builtin.set_fact:
     clus_nfs_options:  >-
                                        {%- set _nfsopts = 'noresvport,vers=4.1,sec=sys' -%}
@@ -130,36 +130,36 @@
   when:
     - scs_high_availability
 
-- name:                                "5.6 SCSERS - HA install show NFS mount options"
+- name:                                "5.6.1 SCS/ERS Pacemaker - HA install show NFS mount options"
   ansible.builtin.debug:
     msg:                               "NFS mount options: {{ clus_nfs_options }}"
   when:
     - scs_high_availability
 
-- name:                                "5.6 SCSERS - ASCS/ERS check if installed"
+- name:                                "5.6.1 SCS/ERS Pacemaker - ASCS/ERS check if installed"
   become:                              true
   block:
-    - name:                            "5.6 SCSERS - SCS HA Install: check if installed"
+    - name:                            "5.6.1 SCS/ERS Pacemaker - SCS HA Install: check if installed"
       ansible.builtin.stat:
         path:                          /etc/sap_deployment_automation//{{ sap_sid | upper }}/sap_deployment_scs.txt
       register:                        scs_installed
 
-    - name:                            "5.6 SCSERS - ERS Install: check if installed"
+    - name:                            "5.6.1 SCS/ERS Pacemaker - ERS Install: check if installed"
       ansible.builtin.stat:
         path:                          /etc/sap_deployment_automation//{{ sap_sid | upper }}/sap_deployment_ers.txt
       register:                        ers_installed
 
-- name:                                "5.6 SCSERS - check if the OS version is RHEL 8.2 or newer"
+- name:                                "5.6.1 SCS/ERS Pacemaker - check if the OS version is RHEL 8.2 or newer"
   ansible.builtin.set_fact:
     is_rhel_82_or_newer:               false
     is_sles_15_or_newer:               false
 
-- name:                                "5.6 SCSERS - check if the OS version is RHEL 8.2 or newer"
+- name:                                "5.6.1 SCS/ERS Pacemaker - check if the OS version is RHEL 8.2 or newer"
   ansible.builtin.set_fact:
     is_rhel_82_or_newer:               "{{ ansible_distribution_version is version('8.2', '>=') | default(false) }}"
   when:                                ansible_os_family | upper == 'REDHAT'
 
-- name:                                "5.6 SCSERS - check if the OS version is SLES 15 or newer"
+- name:                                "5.6.1 SCS/ERS Pacemaker - check if the OS version is SLES 15 or newer"
   ansible.builtin.set_fact:
     is_sles_15_or_newer:               "{{ ansible_distribution_version is version('15', '>=') | default(false) }}"
   when:                                ansible_os_family | upper == 'SUSE'
