@@ -7,12 +7,12 @@
 # This file calls the OS specific tasks to configure HANA specific clustering resources  #8
 ###########################################################################################
 
-# 1. Design the role 5.5.4.0-cluster one into all the actions upto cluster roles defenition including installation
+# 1. Design the role 5.5.4.0-cluster one into all the actions up to cluster roles definition including installation
 # 2. create a separate task which has common ASCS profile changes actions which could be used for both sles/rhel
 # 3. create os based cluster resources yaml where you actually create the cluster resources
 
 # Clustering commands are based on the Host OS
-- name:                                "5.6 SCSERS: SCS HA Install: check if installed"
+- name:                                "5.6.4 SCS/ERS Pacemaker - SCS Installation - check if installed"
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation//{{ sap_sid | upper }}/sap_deployment_scs.txt
   register:                            scs_installed
@@ -26,13 +26,13 @@
 #   delay:                               60
 #   until:                               is_scs_check_complete
 
-- name:                                "5.6 SCSERS: ERS Install: check if installed"
+- name:                                "5.6.4 SCS/ERS Pacemaker - ERS Installation - check if installed"
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt
   register:                            ers_installed
   when:                                ansible_hostname == secondary_instance_name
 
-- name:                                "5.6 SCSERS: SCS HA Install: check if SAP resources are installed"
+- name:                                "5.6.4 SCS/ERS Pacemaker - SCS Installation - check if SAP resources are installed"
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation//{{ sap_sid | upper }}/sap_resources_deployment.txt
   register:                            sap_resources_installed
@@ -45,12 +45,12 @@
 #   delay:                               60
 #   until:                               is_ers_check_complete
 
-- name:                                "5.6 SCSERS: SCS HA Install: check if installed"
+- name:                                "5.6.4 SCS/ERS Pacemaker - SCS Installation - check if installed"
   ansible.builtin.set_fact:
     scs_is_installed:                  "{{ hostvars[primary_instance_name].scs_installed.stat.exists | default(false) }}"
     ers_is_installed:                  "{{ hostvars[secondary_instance_name].ers_installed.stat.exists | default(false) }}"
 
-- name:                                "5.6 SCSERS: Cluster based on OS in VM"
+- name:                                "5.6.4 SCS/ERS Pacemaker - Cluster based on OS in VM"
   ansible.builtin.include_tasks:
     file:                              "5.6.4.0-cluster-{{ ansible_os_family }}.yml"
     apply:
@@ -62,7 +62,7 @@
     - not scs_is_installed or not ers_is_installed
     - not use_simple_mount
 
-- name:                                "5.6 SCSERS: Cluster based on OS in VM"
+- name:                                "5.6.4 SCS/ERS Pacemaker - Cluster based on OS in VM"
   ansible.builtin.include_tasks:
     file:                              "5.6.4.0-cluster-{{ ansible_os_family }}-SimpleMount.yml"
     apply:
@@ -75,7 +75,7 @@
     - use_simple_mount
     - ansible_os_family | upper == "SUSE"
 
-- name:                                "5.6 SCSERS: Post SCS HA Install check if installed"
+- name:                                "5.6.4 SCS/ERS Pacemaker - Post SCS HA Install check if installed"
   become:                              true
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
@@ -83,7 +83,7 @@
   failed_when:                         not post_scs_install.stat.exists
   when:                                ansible_hostname == primary_instance_name
 
-- name:                                "5.6 SCSERS: Post ERS Install check if installed"
+- name:                                "5.6.4 SCS/ERS Pacemaker - Post ERS Install check if installed"
   become:                              true
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
@@ -96,12 +96,12 @@
 # ansible.builtin.stat fails with dict object has no attribute 'stat', because the
 # dict doesn't have any values as the exec on primary node is skipped and
 # registered post_[scs/ers] vars are empty not dictionaries
-- name:                                "5.6 SCSERS: Adapt the ASCS/SCS and ERS instance profiles"
+- name:                                "5.6.4 SCS/ERS Pacemaker - Adapt the ASCS/SCS and ERS instance profiles"
   throttle:                            1
   when:                                not sap_resources_installed.stat.exists
   block:
 
-    - name:                            "5.6 SCSERS: SCS cluster group validation"
+    - name:                            "5.6.4 SCS/ERS Pacemaker - SCS cluster group validation"
       ansible.builtin.include_tasks:
         file:                          "5.6.6-validate.yml"
         apply:
@@ -110,7 +110,7 @@
           tags:
             - "5.6.6-validate"
 
-    - name:                            "5.6 SCSERS: SCSERS - profile"
+    - name:                            "5.6.4 SCS/ERS Pacemaker - SCSERS - profile"
       ansible.builtin.include_tasks:
         file:                          "5.6.4.1-scsersprofile.yaml"
         apply:
@@ -119,7 +119,7 @@
           tags:
             - "5.6.4.1-scsersprofile"
 
-    - name:                            "5.6 SCSERS - SAP resources"
+    - name:                            "5.6.4 SCSERS - SAP resources"
       ansible.builtin.include_tasks:
         file:                          "5.6.4.2-sap-resources-{{ ansible_os_family }}.yml"
         apply:
@@ -130,7 +130,7 @@
       when:
         - not use_simple_mount
 
-    - name:                            "5.6 SCSERS - SAP resources"
+    - name:                            "5.6.4 SCSERS - SAP resources"
       ansible.builtin.include_tasks:
         file:                          "5.6.4.2-sap-resources-{{ ansible_os_family }}-SimpleMount.yml"
         apply:
@@ -141,7 +141,7 @@
       when:
         - use_simple_mount
 
-    # - name:                            "5.6 SCSERS - SAP resources"
+    # - name:                            "5.6.4 SCSERS - SAP resources"
     #   ansible.builtin.include_tasks:
     #     file:                          "5.6.4.2-sap-resources-{{ ansible_os_family }}.yml"
     #     apply:
