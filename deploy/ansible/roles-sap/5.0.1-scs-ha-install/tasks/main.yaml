@@ -320,103 +320,109 @@
     - scs_installed.stat.exists
 
 - name:                                "5.0.1. Central Services Installation (HA) - SCS - ENSA1 set defaults"
+  when:                                ensa1 is not defined
   ansible.builtin.set_fact:
     ensa1:                             false
-  when: ensa1 is not defined
 
 - name:                                "5.0.1. Central Services Installation (HA) - SCS - ENSA2 set defaults"
+  when:                                ensa2 is not defined
   ansible.builtin.set_fact:
     ensa2:                             false
-  when: ensa2 is not defined
+
 
 - name:                                "5.0.1. Central Services Installation (HA) - SCS - Enqueue Server Setup"
+  when:
+                                       - inventory_hostname == primary_instance_name
   block:
-    - name:                            "SCSERS - Get the variable to determine ENSA version"
-      become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
-      become:                          true
-      ansible.builtin.shell:           "{{ sapcontrolscs_command }} -host {{ scs_virtual_hostname }} -function GetProcessList"
-      environment:
-        PATH:                          /usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64:/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/run:/home/{{ sid_to_be_deployed.sid | lower }}adm
-        DIR_LIBRARY:                   /usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/run
-        LD_LIBRARY_PATH:               /usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/run:/usr/sap/{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64
-        SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
-      vars:
-        allow_world_readable_tmpfiles: true
-        ansible_python_interpreter:    "{{ python_version }}"
-      register:                        enq_server
-      failed_when:                     enq_server.rc > 3
-      changed_when:                    false
+    - name:                            "5.0.1. Central Services Installation (HA) - SCS - Read DEFAULT.PFL"
+      ansible.builtin.slurp:
+        src:                           "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/profile/DEFAULT.PFL"
+      register:                        default_pfl
 
-    # enserver, EnqueueServer
+    - name:                            "5.0.1. Central Services Installation (HA) - SCS - Detect ENSA version from profile"
+      ansible.builtin.set_fact:
+        _pfl_content:                  "{{ default_pfl.content | b64decode }}"
+
     - name:                            "5.0.1. Central Services Installation (HA) - SCS - Check if ENSA1"
       ansible.builtin.set_fact:
-        ensa1:                         "{{ enq_server.stdout_lines | select('search', 'enserver') | length > 0 }}"
+        ensa1:                         "{{ _pfl_content | regex_search('^\\s*enque/server(host|inst)\\s*=', multiline=True) is not none }}"
 
-    # logic added to identify java based installations
-    - name:                            "5.0.1. Central Services Installation (HA) - SCS - Check if ENSA1 - JAVA"
-      ansible.builtin.set_fact:
-        ensa1:                         "{{ enq_server.stdout_lines | select('search', 'enrepserver') | length > 0 }}"
-      when:
-        - not ensa1
-
-    # enq_server, Enqueue Server 2
     - name:                            "5.0.1. Central Services Installation (HA) - SCS - Check if ENSA2"
       ansible.builtin.set_fact:
-        ensa2:                         "{{ enq_server.stdout_lines | select('search', 'enq_server') | length > 0 }}"
+        ensa2:                         "{{ _pfl_content | regex_search('^\\s*enq/server(host|inst)\\s*=', multiline=True) is not none }}"
+
+    - name:                            "5.0.1. Central Services Installation (HA) - SCS - Validate ENSA detection"
+      ansible.builtin.assert:
+        that:
+          - (ensa1 and not ensa2) or (ensa2 and not ensa1)
+        fail_msg:                      "Invalid ENSA configuration: both or neither version detected in DEFAULT.PFL"
 
     - name:                            "5.0.1. Central Services Installation (HA) - SCS - Print the value of ENSA1/ENSA2"
       ansible.builtin.debug:
         msg:
-          - "ENSA1: {{ ensa1 }}"
-          - "ENSA2: {{ ensa2 }}"
+          - "ENSA1:                    {{ ensa1 }}"
+          - "ENSA2:                    {{ ensa2 }}"
+
   rescue:
-    - name:                            "5.0.1. Central Services Installation (HA) - SCS - Set default to ENSA2 for HANA if message server is down"
+    - name:                            "5.0.1. Central Services Installation (HA) - SCS - DEFAULT.PFL not found, apply platform defaults"
+      ansible.builtin.debug:
+        msg:                           "DEFAULT.PFL not accessible, falling back to platform-based defaults"
+
+    - name:                            "5.0.1. Central Services Installation (HA) - SCS - Set default to ENSA2 for HANA ABAP"
+      when:
+                                       - platform == 'HANA'
+                                       - scs_bom_instance_type == 'ABAP'
       ansible.builtin.set_fact:
         ensa2:                         true
-      when:                            platform == 'HANA'
+        ensa1:                         false
 
-    - name:                            "5.0.1. Central Services Installation (HA) - SCS - Set default to ENSA1 for AnyDB if message server is down"
+    - name:                            "5.0.1. Central Services Installation (HA) - SCS - Set default to ENSA1 for HANA JAVA"
+      when:
+                                       - platform == 'HANA'
+                                       - scs_bom_instance_type == 'JAVA'
       ansible.builtin.set_fact:
         ensa1:                         true
+        ensa2:                         false
+
+    - name:                            "5.0.1. Central Services Installation (HA) - SCS - Set default to ENSA1 for AnyDB"
       when:                            platform != 'HANA'
+      ansible.builtin.set_fact:
+        ensa1:                         true
+        ensa2:                         false
 
+
+# Fallback for when block didn't run but variables still undefined
+- name:                                "5.0.1. Central Services Installation (HA) - SCS - Apply final platform defaults if still unset"
   when:
-    - inventory_hostname == primary_instance_name
+                                       - inventory_hostname == primary_instance_name
+                                       - not ensa1 and not ensa2
+  block:
+    - name:                            "5.0.1. Central Services Installation (HA) - SCS - Set default to ENSA2 for HANA ABAP"
+      when:
+                                       - platform == 'HANA'
+                                       - scs_bom_instance_type == 'ABAP'
+      ansible.builtin.set_fact:
+        ensa2:                         true
 
-- name:                                "5.0.1. Central Services Installation (HA) - SCS - Set default to ENSA2 for HANA if message server is down"
-  ansible.builtin.set_fact:
-    ensa2:                             true
-  when:
-    - platform == 'HANA'
-    - scs_bom_instance_type == 'ABAP'
-    - not ensa1
-    - not ensa2
-    - inventory_hostname == primary_instance_name
+    - name:                            "5.0.1. Central Services Installation (HA) - SCS - Set default to ENSA1 for HANA JAVA"
+      when:
+                                       - platform == 'HANA'
+                                       - scs_bom_instance_type == 'JAVA'
+      ansible.builtin.set_fact:
+        ensa1:                         true
 
-- name:                                "5.0.1. Central Services Installation (HA) - SCS - Set default to ENSA for HANA (JAVA) if message server is down"
-  ansible.builtin.set_fact:
-    ensa1:                             true
-  when:
-    - platform == 'HANA'
-    - scs_bom_instance_type == 'JAVA'
-    - not ensa1
-    - not ensa2
-    - inventory_hostname == primary_instance_name
+    - name:                            "5.0.1. Central Services Installation (HA) - SCS - Set default to ENSA1 for AnyDB"
+      when:                            platform != 'HANA'
+      ansible.builtin.set_fact:
+        ensa1:                         true
 
-- name:                                "5.0.1. Central Services Installation (HA) - SCS - Set default to ENSA1 for AnyDB if message server is down"
-  ansible.builtin.set_fact:
-    ensa1:                             true
-  when:
-    - platform != 'HANA'
-    - not ensa1
-    - not ensa2
-    - inventory_hostname == primary_instance_name
-
-- name:                                "5.0.1. Central Services Installation (HA) - SCS - Print the value of ENSA1/ENSA2"
+- name:                                "5.0.1. Central Services Installation (HA) - SCS - Print final ENSA1/ENSA2 values"
+  when:                                inventory_hostname == primary_instance_name
   ansible.builtin.debug:
     msg:
-      - "ENSA1: {{ ensa1 }}"
-      - "ENSA2: {{ ensa2 }}"
+      - "ENSA1:                        {{ ensa1 }}"
+      - "ENSA2:                        {{ ensa2 }}"
+
 
 ...
 # /*---------------------------------------------------------------------------8
