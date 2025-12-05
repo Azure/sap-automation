@@ -14,13 +14,13 @@
 ---
 
 # +------------------------------------4--------------------------------------*/
-- name:                                "4.0.0. SAP HANA - Installation -  Set BOM facts"
+- name:                                "4.0.0 SAP HANA - Installation -  Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "hdbserver_{{ virtual_host }}_{{ sap_sid }}_install.rsp"
     dir_params:                        "{{ tmp_directory }}/.params"
 
 #   0x) Create hidden directory for parameter files
-- name:                                "4.0.0. SAP HANA - Installation -  Create directories"
+- name:                                "4.0.0 SAP HANA - Installation -  Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -30,18 +30,18 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ db_sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ db_sid | upper }}' }
 
-- name:                                "4.0.0. SAP HANA - Installation -  Install reset"
+- name:                                "4.0.0 SAP HANA - Installation -  Reset"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
     state:                             absent
   when: reinstall
 
-- name:                                "4.0.0. SAP HANA - Installation -  Check if already installed"
+- name:                                "4.0.0 SAP HANA - Installation -  Check if already installed"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
   register:                            hana_installed
 
-- name:                                "4.0.0. SAP HANA - Installation -  Check installation media exists"
+- name:                                "4.0.0 SAP HANA - Installation -  Check installation media exists"
   ansible.builtin.stat:
     path:                              "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE/hdblcm"
   register:                            hdblcm_found
@@ -51,7 +51,7 @@
     msg:                               "INSTALL:0001:Unable to find hdblcm, please check that the installation media is mounted"
   when: not hdblcm_found.stat.exists
 
-- name:                                "4.0.0. SAP HANA - Installation -  Check SP version from manifest"
+- name:                                "4.0.0 SAP HANA - Installation -  Check SP version from manifest"
   ansible.builtin.shell: |
                                        set -o pipefail
                                        grep sp-number manifest | cut -d ":" -f 2 | tr -d [:space:]
@@ -59,15 +59,15 @@
     chdir:                             "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE/server"
   register:                            manifest_hana_sp
 
-- name:                                "4.0.0. SAP HANA - Installation -  Show SPS level"
+- name:                                "4.0.0 SAP HANA - Installation -  Show SPS level"
   ansible.builtin.debug:
     msg:                               "HANA SP Level: {{ manifest_hana_sp.stdout }}"
 
-- name:                                "4.0.0. SAP HANA - Installation -  Set fact when sps is 08 or higher"
+- name:                                "4.0.0 SAP HANA - Installation -  Set fact when sps is 08 or higher"
   ansible.builtin.set_fact:
     hana_sp08_or_higher:               "{{ manifest_hana_sp.stdout is version('080', '>=') }}"
 
-- name:                                "4.0.0. SAP HANA SP08 or higher are not supported on RHEL 8.x or 7.x"
+- name:                                "4.0.0 SAP HANA SP08 or higher are not supported on RHEL 8.x or 7.x"
   ansible.builtin.fail:
     msg:                               "The installation of SAP HANA SPS08 on RHEL 8 is not possible and not supported, see SAP Note: 2235581"
   when:
@@ -76,21 +76,21 @@
     - ansible_distribution_major_version | int < 9
 
 # all | client | es | ets | lcapps | server | smartda | streaming | rdsync | xs | studio | afl | sca | sop | eml | rme | rtl | trp
-- name:                                "4.0.0. SAP HANA - Installation -  Set HANA components"
+- name:                                "4.0.0 SAP HANA - Installation -  Set HANA components"
   ansible.builtin.set_fact:
     hana_components:                   "server, lcapps, afl, vch2021"
   when:
     - hana_sp08_or_higher
     - hana_components == 'all'
 
-- name:                                "4.0.0. SAP HANA - Installation -  Show HANA components"
+- name:                                "4.0.0 SAP HANA - Installation -  Show HANA components"
   ansible.builtin.debug:
     msg:                               "HANA Components: {{ hana_components }}"
 
 - name:                                "HANA Install"
   block:
 
-    - name:                            "4.0.0. SAP HANA - Installation -  remove install response file if exists"
+    - name:                            "4.0.0 SAP HANA - Installation -  Remove installation response file if exists"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
@@ -117,13 +117,13 @@
         # use_master_password:           "{{ hana_use_master_password }}"
         # password_copy:                 "{{ main_password if hana_use_master_password == 'n' else '' }}"
 
-    - name:                            "4.0.0. SAP HANA - Installation -  Progress"
+    - name:                            "4.0.0 SAP HANA - Installation -  Progress"
       ansible.builtin.debug:
         msg:                           "Start HANA Installation"
 
-    - name:                            "4.0.0. SAP HANA - Installation -  installation"
+    - name:                            "4.0.0 SAP HANA - Installation"
       block:
-        - name:                        "4.0.0. SAP HANA - Installation -  Execute hdblcm on {{ virtual_host }}"
+        - name:                        "4.0.0 SAP HANA - Installation -  Execute hdblcm on {{ virtual_host }}"
           ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        chmod 755 /usr/sap;
@@ -141,15 +141,15 @@
             msg:                        "INSTALL:0022:Execute hdblcm failed."
           when:                         hana_installation.rc > 1
 
-        - name:                        "4.0.0. SAP HANA - Installation -  Progress"
+        - name:                        "4.0.0 SAP HANA - Installation - Progress"
           ansible.builtin.debug:
             msg:                       "Restarting the HANA Installation"
           when:                        hana_installation.rc == 1
 
 
-        - name:                        "4.0.0. SAP HANA - Installation -  Re-execute hdblcm on {{ virtual_host }} and rescue"
+        - name:                        "4.0.0 SAP HANA - Installation - Re-execute hdblcm on {{ virtual_host }} and rescue"
           block:
-            - name:                      "4.0.0. SAP HANA - Installation -  Re-execute hdblcm on {{ virtual_host }}"
+            - name:                      "4.0.0 SAP HANA - Installation - Re-execute hdblcm on {{ virtual_host }}"
               ansible.builtin.shell: |
                                           umask {{ custom_umask | default('022') }} ;
                                           chmod 755 /usr/sap;
@@ -172,7 +172,7 @@
               ansible.builtin.fail:
                 msg:                       "INSTALL:0022:Execute hdblcm failed."
 
-    - name:                            "4.0.0. SAP HANA - Installation -  Installation results"
+    - name:                            "4.0.0 SAP HANA - Installation -  Installation results"
       ansible.builtin.debug:
         msg:
           - "HANA Installation failed"
@@ -188,20 +188,20 @@
         - hana_installation.rc is defined
         - hana_installation.rc > 0
 
-    - name:                            "4.0.0. SAP HANA - Installation -  Successful installation"
+    - name:                            "4.0.0 SAP HANA - Installation - Successful installation"
       block:
 
-        - name:                        "4.0.0. SAP HANA - Installation -  Installation results"
+        - name:                        "4.0.0 SAP HANA - Installation - Results"
           ansible.builtin.debug:
             msg:                       "HANA Installation succeeded"
 
-        - name:                        "4.0.0. SAP HANA - Installation -  HANA Install: flag"
+        - name:                        "4.0.0 SAP HANA - Installation - HANA Install: flag"
           ansible.builtin.file:
             path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb.txt"
             state:                     touch
             mode:                      0755
 
-        - name:                        "4.0.0. SAP HANA - Installation -  Create backup folder"
+        - name:                        "4.0.0 SAP HANA - Installation -  Create backup folder"
           ansible.builtin.file:
             path:                      "{{ hana_backup_path }}"
             state:                     directory
@@ -235,13 +235,13 @@
             subscriptionId:           "{{ subscription_id }}"
             resourceGroupName:       "{{ resource_group_name }}"
 
-        - name:                        "4.0.0. SAP HANA - Installation -  ARM Deployment flag"
+        - name:                        "4.0.0 SAP HANA - Installation -  ARM Deployment flag"
           ansible.builtin.file:
             path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb_arm.txt"
             state:                     touch
             mode:                      0755
 
-        # - name:                        "4.0.0. SAP HANA - Installation -  remove install response file"
+        # - name:                        "4.0.0 SAP HANA - Installation -  remove install response file"
         #   ansible.builtin.file:
         #     path:                      "{{ dir_params }}/{{ sap_inifile }}"
         #     state:                     absent
@@ -265,7 +265,7 @@
       ansible.builtin.set_fact:
         hana_already_installed:         true
 
-    - name:                            "4.0.0. SAP HANA - Installation -  Create backup folder"
+    - name:                            "4.0.0 SAP HANA - Installation - Create backup folder"
       ansible.builtin.file:
         path:                          "{{ hana_backup_path }}"
         state:                         directory
@@ -273,12 +273,12 @@
         owner:                         "{{ db_sid | lower }}adm"
         mode:                          0755
 
-    - name:                            "4.0.0. SAP HANA - Installation -  check if ARM Deployment done"
+    - name:                            "4.0.0 SAP HANA - Installation - Check if ARM Deployment done"
       ansible.builtin.stat:
         path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb_arm.txt"
       register:                        hana_arm_deployment_done
 
-    - name:                            "4.0.0. SAP HANA - Installation -  Successful installation"
+    - name:                            "4.0.0 SAP HANA - Installation - Successful installation"
       block:
         - name:                        "Retrieve Subscription ID and Resource Group Name"
           ansible.builtin.uri:
@@ -306,7 +306,7 @@
             subscription_id:           "{{ subscription_id_tmp }}"
             resource_group_name:       "{{ resource_group_name_tmp }}"
 
-        - name:                        "4.0.0. SAP HANA - Installation -  ARM Deployment flag"
+        - name:                        "4.0.0 SAP HANA - Installation -  ARM Deployment flag"
           ansible.builtin.file:
             path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb_arm.txt"
             state:                     touch
