@@ -29,26 +29,29 @@ parameters:
     type:                                         string
     default:                                      WEEU
     values:
-      - AUCE
       - AUC2
+      - AUCE
       - AUEA
       - AUSE
-      - BRSO
       - BRSE
+      - BRSO
       - BRUS
       - CACE
       - CAEA
       - CEIN
-      - CEUS
       - CEUA
+      - CEUS
       - EAAS
       - EAUS
-      - EUSA
       - EUS2
+      - EUSA
+      - EUSG
       - FRCE
       - FRSO
       - GENO
       - GEWC
+      - ISCE
+      - ITNO
       - JAEA
       - JAWE
       - JINC
@@ -56,17 +59,20 @@ parameters:
       - KOCE
       - KOSO
       - NCUS
-      - NOEU
       - NOEA
+      - NOEU
       - NOWE
       - NZNO
+      - PLCE
+      - QACE
       - SANO
       - SAWE
-      - SCUS
       - SCUG
+      - SCUS
+      - SECE
+      - SESO
       - SOEA
       - SOIN
-      - SECE
       - SWNO
       - SWWE
       - UACE
@@ -79,7 +85,6 @@ parameters:
       - WEUS
       - WUS2
       - WUS3
-
   - name:                                         inherit_settings
     displayName:                                  Inherit Terraform state file information from control plane
     type:                                         boolean
