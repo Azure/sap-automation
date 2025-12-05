@@ -115,7 +115,7 @@
   when:
     - dbload_performed.stat.exists
 
-- name:                                "5.1. Database Load - check if DBLoad is performed for {{ sid_to_be_deployed.sid | upper }}"
+- name:                                "5.1. Database Load - Check if DBLoad is performed for {{ sid_to_be_deployed.sid | upper }}"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
   register:                            dbload_installed

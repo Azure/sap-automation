@@ -191,7 +191,7 @@
     - supported_tiers == "scs"
 
 # Block to check if a reboot has been performed already after updating SGA & PGS
-- name:                                "5.1. Database Load - ORACLE: DBLoad - check if DBLoad is performed for {{ sid_to_be_deployed.sid | upper }}"
+- name:                                "5.1. Database Load - ORACLE: DBLoad- Check if DBLoad is performed for {{ sid_to_be_deployed.sid | upper }}"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/ora_sga_updated.txt"
   register:                            sga_update_status

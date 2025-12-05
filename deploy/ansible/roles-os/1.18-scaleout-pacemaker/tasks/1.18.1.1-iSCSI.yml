@@ -94,7 +94,7 @@
 # some versions of RHEL 9 do not seem to create the /etc/iscsi/initiatorname.iscsi file
 # https://access.redhat.com/solutions/7024764
 # Check and configure initiatorname.iscsi file if needed
-- name:                                "1.18.1 iSCSI configuration - check if /etc/iscsi/initiatorname.iscsi exists"
+- name:                                "1.18.1 iSCSI configuration - Check if /etc/iscsi/initiatorname.iscsi exists"
   ansible.builtin.stat:
     path:                              /etc/iscsi/initiatorname.iscsi
   register:                            initiatorname_iscsistat

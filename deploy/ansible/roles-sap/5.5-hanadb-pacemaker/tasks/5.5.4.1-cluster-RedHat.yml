@@ -189,7 +189,7 @@
           ansible.builtin.shell:       pcs resource update SAPHana_{{ db_sid | upper }}_{{ db_instance_number }} meta priority=10
           register:                    update_priority_saphana
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - RHEL -set priority-fencing-delay"
+        - name:                        "5.5.4.1 HANA Cluster configuration - RHEL - Set 'priority-fencing-delay' property to 15 seconds"
           ansible.builtin.shell:       pcs property set priority-fencing-delay=15s
           register:                    constraint
           failed_when:                 constraint.rc > 1

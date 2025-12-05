@@ -336,7 +336,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "1.18.2.0 Generic Pacemaker - check if the OS version is RHEL 8.4 or newer"
+- name:                                "1.18.2.0 Generic Pacemaker - Check if the OS version is RHEL 8.4 or newer"
   ansible.builtin.set_fact:
     is_rhel_84_or_newer:               "{{ ansible_distribution_version is version('8.4', '>=') }}"
   when:                                ansible_distribution_major_version in ["8", "9", "10"]

@@ -14,7 +14,7 @@
 # if it is not started, then we do not need to stop it
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "5.7.3.0 DB2 Cluster configuration - Find if the databases are active"
+- name:                                "5.7.3.0 DB2 - Pacemaker - configuration - Find if the databases are active"
   become:                              true
   become_user:                         db2{{ db_sid | lower }}
   ansible.builtin.shell:               db2 list active databases
@@ -25,7 +25,7 @@
   register:                            db2_list_active_databases
   failed_when:                         db2_list_active_databases.rc not in [0,4]
 
-- name:                                "5.7.3.0 DB2 Cluster configuration - Stop the primary DB"
+- name:                                "5.7.3.0 DB2 - Pacemaker - configuration - Stop the primary DB"
   when:                                db2_list_active_databases.rc == 0
   become:                              true
   become_user:                         db2{{ db_sid | lower }}
@@ -35,23 +35,23 @@
   environment:
     PATH: "{{ ansible_env.PATH }}:/db2/db2{{ db_sid | lower }}/sqllib/gskit/bin"
 
-- name:                                "5.7.3.0 DB2 Cluster configuration - Change to ksh Shell"
+- name:                                "5.7.3.0 DB2 - Pacemaker - configuration - Change to ksh Shell"
   ansible.builtin.user:
     user:                              db2{{ db_sid | lower }}
     shell:                             /bin/ksh
 
-- name:                                "5.7.3.0 DB2 Cluster configuration - Optimize the Pacemaker cluster for SAP DB2"
+- name:                                "5.7.3.0 DB2 - Pacemaker - configuration - Optimize the Pacemaker cluster for SAP DB2"
   when:                                ansible_hostname == primary_instance_name
   block:
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Enable Maintenance mode for the cluster"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Enable Maintenance mode for the cluster"
       ansible.builtin.shell:           pcs property set maintenance-mode=true
 
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Check if the pacemaker package version is greater than pacemaker-2.0.4"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Check if the pacemaker package version is greater than pacemaker-2.0.4"
       when:                            ansible_distribution_major_version in ["8", "9", "10"]
       ansible.builtin.set_fact:
         is_pcmk_ver_gt_204:            "{{ ansible_facts.packages['pacemaker'][0].version is version('2.0.4', '>') | default(false) }}"
 
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Ensure SAP DB2 resource is created"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Ensure SAP DB2 resource is created"
       ansible.builtin.shell: >
                                        pcs resource create Db2_HADR_{{ db_sid | upper }} db2 instance='db2{{ db_sid | lower }}' dblist='{{ db_sid | upper }}'
                                        master meta notify=true resource-stickiness=5000
@@ -59,7 +59,7 @@
       failed_when:                     sap_db2.rc > 1
       when:                            ansible_distribution_major_version == "7"
 
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Ensure SAP DB2  DB2 resource is created"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Ensure SAP DB2  DB2 resource is created"
       ansible.builtin.shell: >
                                        pcs resource create Db2_HADR_{{ db_sid | upper }} db2 instance='db2{{ db_sid | lower }}' dblist='{{ db_sid | upper }}'
                                        meta resource-stickiness=5000 promotable notify=true
@@ -67,67 +67,67 @@
       failed_when:                     sap_db2.rc > 1
       when:                            ansible_distribution_major_version in ["8", "9", "10"]
 
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Ensure the Virtual IP resource for the Load Balancer Front End IP is created"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Ensure the Virtual IP resource for the Load Balancer Front End IP is created"
       ansible.builtin.shell:           pcs resource create vip_db2{{ db_sid | lower }}_{{ db_sid | upper }} IPaddr2 ip='{{ database_loadbalancer_ip }}'
       register:                        vip
       failed_when:                     vip.rc > 1
 
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Ensure the netcat resource for the Load Balancer Healthprobe is created - Probe port for Azure Load Balacer"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Ensure the netcat resource for the Load Balancer Healthprobe is created - Probe port for Azure Load Balacer"
       ansible.builtin.shell:           pcs resource create nc_db2{{ db_sid | lower }}_{{ db_sid | upper }} azure-lb port=625{{ db_instance_number }}
       register:                        netcat
       failed_when:                     netcat.rc > 1
 
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Ensure a group for ip and Azure loadbalancer probe port is created"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Ensure a group for ip and Azure loadbalancer probe port is created"
       ansible.builtin.shell:           pcs resource group add g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }} vip_db2{{ db_sid | lower }}_{{ db_sid | upper }} nc_db2{{ db_sid | lower }}_{{ db_sid | upper }}
       register:                        vip_g
       failed_when:                     vip_g.rc > 1
 
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Create colocation constraints - keep Db2 HADR Master and Group on same node - RHEL7"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Create colocation constraints - keep Db2 HADR Master and Group on same node - RHEL7"
       ansible.builtin.shell:           pcs constraint colocation add g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }} with master Db2_HADR_{{ db_sid | upper }}-master
       register:                        constraint
       failed_when:                     constraint.rc > 1
       when:                            ansible_distribution_major_version == "7"
 
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Create colocation constraints - keep Db2 HADR Master and Group on same node - RHEL8 / RHEL9"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Create colocation constraints - keep Db2 HADR Master and Group on same node - RHEL8 / RHEL9"
       ansible.builtin.shell:           pcs constraint colocation add g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }} with master Db2_HADR_{{ db_sid | upper }}-clone
       register:                        constraint
       failed_when:                     constraint.rc > 1
       when:                            ansible_distribution_major_version in ["8", "9", "10"]
 
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Ensure the order constraint for the SAP DB2 is configured - RHEL7"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Ensure the order constraint for the SAP DB2 is configured - RHEL7"
       ansible.builtin.shell:           pcs constraint order promote Db2_HADR_{{ db_sid | upper }}-master then g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }}
       register:                        constraint
       failed_when:                     constraint.rc > 1
       when:                            ansible_distribution_major_version == "7"
 
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Ensure the order constraint for the SAP DB2 is configured - RHEL8/RHEL9/RHEL10"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Ensure the order constraint for the SAP DB2 is configured - RHEL8/RHEL9/RHEL10"
       ansible.builtin.shell:           pcs constraint order promote Db2_HADR_{{ db_sid | upper }}-clone then g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }}
       register:                        constraint
       failed_when:                     constraint.rc > 1
       when:                            ansible_distribution_major_version in ["8", "9", "10"]
 
     # for two node clusters set properties
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Set the cluster properties for two node clusters"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Set the cluster properties for two node clusters"
       when: is_pcmk_ver_gt_204
       block:
-        - name:                        "5.7.3.0 DB2 Cluster configuration - set resource defaults 'priority'"
+        - name:                        "5.7.3.0 DB2 - Pacemaker - configuration - set resource defaults 'priority'"
           ansible.builtin.shell:       pcs resource defaults update priority=1
           register:                    update_priority
           failed_when:                 update_priority.rc > 1
 
-        - name:                        "5.7.3.0 DB2 Cluster configuration - set Db2_HADR defaults 'priority' to 10"
+        - name:                        "5.7.3.0 DB2 - Pacemaker - configuration - set Db2_HADR defaults 'priority' to 10"
           ansible.builtin.shell:       pcs resource update Db2_HADR_{{ db_sid | upper }} meta priority=10
           register:                    update_priority_db2_hadr
 
-        - name:                        5.7.3.0 DB2 Cluster configuration - set priority-fencing-delay"
+        - name:                        "5.7.3.0 DB2 - Pacemaker - configuration - Set 'priority-fencing-delay' property to 15 seconds"
           ansible.builtin.shell:       pcs property set priority-fencing-delay=15s
           register:                    constraint
           failed_when:                 constraint.rc > 1
 
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Disable Maintenance mode for the cluster"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Disable Maintenance mode for the cluster"
       ansible.builtin.shell:           pcs property set maintenance-mode=false
 
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Wait until cluster has stabilized"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Wait until cluster has stabilized"
       ansible.builtin.shell:           set -o pipefail && pcs status | grep '^Online:'
       register:                        cluster_stable_check
       retries:                         12
@@ -137,7 +137,7 @@
 
     # '*' is a special character in regexp and needs to be escaped for literal matching
     # if we are worried about character spacing across distros we can match for '\* Online:'
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Wait until cluster has stabilized - RHEL8 / RHEL9 / RHEL10"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Wait until cluster has stabilized - RHEL8 / RHEL9 / RHEL10"
       ansible.builtin.shell:           set -o pipefail && pcs status | grep '^  \* Online:'
       register:                        cluster_stable_check
       retries:                         12
@@ -145,7 +145,7 @@
       until:                           "'{{ primary_instance_name }} {{ secondary_instance_name }}' in cluster_stable_check.stdout or '{{ secondary_instance_name }} {{ primary_instance_name }}' in cluster_stable_check.stdout"
       when:                            ansible_distribution_major_version in ["8", "9", "10"]
 
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Ensure Cluster resources are started - RHEL7"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Ensure Cluster resources are started - RHEL7"
       ansible.builtin.shell:           set -o pipefail && pcs resource show | grep '    Started:'
       register:                        db2_cluster_resource_check
       retries:                         12
@@ -153,7 +153,7 @@
       until:                           "'{{ primary_instance_name }} {{ secondary_instance_name }}' in db2_cluster_resource_check.stdout or '{{ secondary_instance_name }} {{ primary_instance_name }}' in db2_cluster_resource_check.stdout"
       when:                            ansible_distribution_major_version == "7"
 
-    - name:                            "5.7.3.0 DB2 Cluster configuration - Ensure Cluster resources are started - RHEL8 / RHEL9 / RHEL10"
+    - name:                            "5.7.3.0 DB2 - Pacemaker - configuration - Ensure Cluster resources are started - RHEL8 / RHEL9 / RHEL10"
       ansible.builtin.shell:           set -o pipefail && pcs resource status | grep 'Started'
       register:                        db2_cluster_resource_check
       retries:                         12

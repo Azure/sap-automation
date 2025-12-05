@@ -69,7 +69,7 @@
     path:                              /etc/init.d.bckp
   register:                            initd_dir_bckp
 
-- name:                                "1.4 Packages - check if the OS version is RHEL 9.0 or newer"
+- name:                                "1.4 Packages - Check if the OS version is RHEL 9.0 or newer"
   ansible.builtin.set_fact:
     is_rhel_90_or_newer:               "{{ ansible_distribution_version is version('9.0', '>=') | default(false) }}"
     init_d_bckp_exists:                "{{ initd_dir_bckp.stat.exists }}"

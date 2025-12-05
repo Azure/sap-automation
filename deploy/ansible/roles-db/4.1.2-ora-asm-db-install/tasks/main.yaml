@@ -177,7 +177,7 @@
     mode:                              '0755'
 
 
-- name:                                "4.1.2. Oracle ASM Database Installation - check if installed"
+- name:                                "4.1.2. Oracle ASM Database Installation - Check if installed"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/oracle/oracle_installed.txt"
   register:                            oracle_installed

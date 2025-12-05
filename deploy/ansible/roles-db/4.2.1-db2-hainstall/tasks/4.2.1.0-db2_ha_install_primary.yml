@@ -54,7 +54,7 @@
         msg:                           "INSTALL:0009:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
-    - name:                            "4.2.1. DB2 High availability Installation - check if installed"
+    - name:                            "4.2.1. DB2 High availability Installation - Check if installed"
       ansible.builtin.stat:
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_db2.txt"
       register:                        db2_installed

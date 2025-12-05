@@ -284,7 +284,7 @@
     # If you're setting up priority-fencing-delay on an existing cluster, make sure to unset the
     # pcmk_delay_max option in the fencing device.
     # @TODO: Add ansible code to create the stonith resource without the pcmk_delay_max option.
-    - name:                            "1.17 Generic Pacemaker - set priority-fencing-delay"
+    - name:                            "1.17 Generic Pacemaker - Set 'priority-fencing-delay' property to 15 seconds"
       when:
         - ansible_distribution_major_version in ["8", "9", "10"]
         - is_pcmk_ver_gt_204
@@ -466,7 +466,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "1.17 Generic Pacemaker - check if the OS version is RHEL 8.4 or newer"
+- name:                                "1.17 Generic Pacemaker- Check if the OS version is RHEL 8.4 or newer"
   ansible.builtin.set_fact:
     is_rhel_84_or_newer:               "{{ ansible_distribution_version is version('8.4', '>=') }}"
   when:                                ansible_distribution_major_version in ["8", "9", "10"]

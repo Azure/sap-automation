@@ -59,7 +59,7 @@
     - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/{{ db_sid | upper }}' }
     - { state: 'directory', mode: '0755', path: '{{ tmp_directory }}/{{ db_sid | upper }}' }
 
-- name:                                "4.1.0. Oracle Installation - check if installed"
+- name:                                "4.1.0. Oracle Installation - Check if installed"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sbp_installed.txt"
   register:                            oracle_installed
@@ -98,7 +98,7 @@
       - "ApplyRU:      {{ ApplyRU }}"
       - "OPatchPath:   {{ OPatchPath }}"
 
-- name:                                "4.1.0. Oracle Installation - check if installed"
+- name:                                "4.1.0. Oracle Installation - Check if installed"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/oracle_installed.txt"
   register:                            oracle_installed
@@ -296,7 +296,7 @@
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
 
-- name:                                "4.1.0. Oracle Installation - check if ARM Deployment done"
+- name:                                "4.1.0. Oracle Installation - Check if ARM Deployment done"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_db_arm.txt"
   register:                            db_arm_deployment_done

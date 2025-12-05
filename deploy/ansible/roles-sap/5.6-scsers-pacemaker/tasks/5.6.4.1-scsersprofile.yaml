@@ -19,7 +19,7 @@
 
 # For systemd services the SAP ASCS/SCS and ERS resources are created as systemd services
 # the path for the service file is /etc/systemd/system/SAP<SID>_<InstanceNumber>.service
-- name:                                "5.6.4.1 SCS/ERS Pacemaker - Profile - check if the SAP ASCS/SCS and ERS resources are created as systemd services"
+- name:                                "5.6.4.1 SCS/ERS Pacemaker - Profile - Check if the SAP ASCS/SCS and ERS resources are created as systemd services"
   ansible.builtin.stat:
     path:                              "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ sap_instance_number }}.service"
   register:                            systemd_service_file_path

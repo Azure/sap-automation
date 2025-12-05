@@ -640,7 +640,7 @@
             path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}'
             state:                             directory
 
-        - name:                                "Database High Availability Configuration Playbook - SQL Server - check if SQL Server service is started"
+        - name:                                "Database High Availability Configuration Playbook - SQL Server - Check if SQL Server service is started"
           ansible.windows.win_service_info:
             name:                              MSSQLServer
           register:                            sql_service

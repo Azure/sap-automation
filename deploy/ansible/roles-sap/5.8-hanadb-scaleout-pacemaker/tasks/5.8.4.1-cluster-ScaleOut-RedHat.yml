@@ -245,7 +245,7 @@
 # +------------------------------------4--------------------------------------*/
 # Follow steps described in https://access.redhat.com/articles/6884531
 
-- name:                                "5.8 HANA Pacemaker Scale-out - check if the OS version is RHEL 8.2 or newer"
+- name:                                "5.8 HANA Pacemaker Scale-out- Check if the OS version is RHEL 8.2 or newer"
   ansible.builtin.set_fact:
     is_rhel_82_or_newer:               "{{ ansible_distribution_version is version('8.2', '>=') | default(false) }}"
 

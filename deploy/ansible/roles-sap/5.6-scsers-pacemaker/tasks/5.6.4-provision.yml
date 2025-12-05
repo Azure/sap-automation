@@ -12,7 +12,7 @@
 # 3. create os based cluster resources yaml where you actually create the cluster resources
 
 # Clustering commands are based on the Host OS
-- name:                                "5.6.4 SCS/ERS Pacemaker - SCS Installation - check if installed"
+- name:                                "5.6.4 SCS/ERS Pacemaker - SCS Installation - Check if installed"
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation//{{ sap_sid | upper }}/sap_deployment_scs.txt
   register:                            scs_installed
@@ -26,13 +26,13 @@
 #   delay:                               60
 #   until:                               is_scs_check_complete
 
-- name:                                "5.6.4 SCS/ERS Pacemaker - ERS Installation - check if installed"
+- name:                                "5.6.4 SCS/ERS Pacemaker - ERS Installation - Check if installed"
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt
   register:                            ers_installed
   when:                                ansible_hostname == secondary_instance_name
 
-- name:                                "5.6.4 SCS/ERS Pacemaker - SCS Installation - check if SAP resources are installed"
+- name:                                "5.6.4 SCS/ERS Pacemaker - SCS Installation - Check if SAP resources are installed"
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation//{{ sap_sid | upper }}/sap_resources_deployment.txt
   register:                            sap_resources_installed
@@ -45,7 +45,7 @@
 #   delay:                               60
 #   until:                               is_ers_check_complete
 
-- name:                                "5.6.4 SCS/ERS Pacemaker - SCS Installation - check if installed"
+- name:                                "5.6.4 SCS/ERS Pacemaker - SCS Installation - Check if installed"
   ansible.builtin.set_fact:
     scs_is_installed:                  "{{ hostvars[primary_instance_name].scs_installed.stat.exists | default(false) }}"
     ers_is_installed:                  "{{ hostvars[secondary_instance_name].ers_installed.stat.exists | default(false) }}"
@@ -110,7 +110,7 @@
           tags:
             - "5.6.6-validate"
 
-    - name:                            "5.6.4 SCS/ERS Pacemaker - SCSERS - profile"
+    - name:                            "5.6.4 SCS/ERS Pacemaker - SCS/ERS - profile"
       ansible.builtin.include_tasks:
         file:                          "5.6.4.1-scsersprofile.yaml"
         apply:
