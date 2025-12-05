@@ -1,11 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-- name:                                "2.6 SCSERS: Block"
+- name:                                "2.6 SAP Central Services High availability installation"
+  when:
+    - node_tier in ['scs', 'ers']
   block:
 
     # Returns bom object
-    - name:                            "2.6 SCSERS: SCS HA Install - Register BoM"
+    - name:                            "2.6 SAP Central Services High availability installation - Register BoM"
       ansible.builtin.include_role:
         name:                          roles-sap/3.3.1-bom-utility
         tasks_from:                    bom-register
@@ -18,13 +20,13 @@
         - enable_sap_cal is not defined or not enable_sap_cal
 
     # default to ASCS instance when BOM is not defined or instance type in BOM is not defined
-    - name:                            "2.6 SCS High availability installation - Default instance type"
+    - name:                            "2.6 SAP Central Services High availability installation - Default instance type"
       ansible.builtin.set_fact:
         instance_type:                 "ASCS"
       when:                            bom is not defined or bom.InstanceType is not defined
 
 
-    - name:                            "2.6 SCS High availability installation - register instance type"
+    - name:                            "2.6 SAP Central Services High availability installation - register instance type"
       ansible.builtin.set_fact:
         instance_type:  >-
                                             {%- set _instance_type = 'ASCS' -%}
@@ -45,5 +47,3 @@
         start_profile_path:            "/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
         profile_directory:             "/usr/sap/{{ sap_sid | upper }}/{{ instance_type }}{{ scs_instance_number }}"
       when:                            bom.InstanceType is defined
-  when:
-    - node_tier in ['scs', 'ers']
