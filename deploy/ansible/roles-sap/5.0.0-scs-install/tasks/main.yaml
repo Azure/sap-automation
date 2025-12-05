@@ -11,12 +11,12 @@
 
 ---
 
-- name:                                "5.0.0. SCS Install - Information"
+- name:                                "5.0.0 SAP Central Services Installation - Information"
   ansible.builtin.debug:
     msg:
       - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
-- name:                                "5.0.0. SCS Install - Get the SCS Server name list"
+- name:                                "5.0.0 SAP Central Services Installation - Get the SCS Server name list"
   ansible.builtin.set_fact:
     scs_server_temp: "{{ scs_server_temp | default([]) + [item] }}"
 
@@ -24,17 +24,17 @@
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
-- name:                                "5.0.0. SCS Install - Set the SCS Server name"
+- name:                                "5.0.0 SAP Central Services Installation - Set the SCS Server name"
   ansible.builtin.set_fact:
     scs_server: "{{ hostvars[scs_server_temp | first]['virtual_host'] }}"
 
-- name:                                "5.0.0. SCS Install - Set BOM facts"
+- name:                                "5.0.0 SAP Central Services Installation - Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-scs-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "scs-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
 
-- name:                                "5.0.0. SCS Install - Create directories"
+- name:                                "5.0.0 SAP Central Services Installation - Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -44,47 +44,7 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
-# ToDo: Validate this works
-# - name:                                "SCS Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
-#   ansible.builtin.find:
-#     paths:                             "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/ABAP/ASCS"
-#     file_type:                         file
-#     patterns:                          'installationSuccesfullyFinished.dat'
-#     recurse:                           true
-#   register:                            scs_installed_according_to_sapinst
-
-# - name:                                "SCS Install: show"
-#   ansible.builtin.debug:
-#     var:                               scs_installed_according_to_sapinst
-#     verbosity:                         2
-
-# - name:                                "SCS Install: flag"
-#   ansible.builtin.file:
-#     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
-#     state:                             touch
-#     mode:                              0755
-#   when:
-#     - scs_installed_according_to_sapinst is defined
-#     - scs_installed_according_to_sapinst | length > 0
-
-- name:                                "5.0.0. SCS Install - Reset the installation flag file if reinstall is requested"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
-    state:                             absent
-  when:                                reinstall
-
-- name:                                "5.0.0. SCS Install - Check if {{ sid_to_be_deployed.sid | upper }} is installed"
-  ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
-  register:                            scs_installed
-  when:                                "'scs' in supported_tiers"
-
-- name:                                "5.0.0. SCS Install - Check if installed"
-  ansible.builtin.debug:
-    var:                               scs_installed
-    verbosity:                         2
-
-- name:                                "5.0.0. SCS Install - Include 3.3.1-bom-utility role"
+- name:                                "5.0.0 SAP Central Services Installation - Include 3.3.1-bom-utility role"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
@@ -93,16 +53,71 @@
     task_prefix:                       "SCS Install: "
     sa_enabled:                        true
 
-- name:                                "5.0.0. SCS Install - Register variables"
+- name:                                "5.0.0 SAP Central Services Installation - Set default instance type"
+  ansible.builtin.set_fact:
+    instance_type:                     "ASCS"
+  when:                                bom.InstanceType is not defined
+
+- name:                                "5.0.0 SAP Central Services Installation - register instance type"
+  ansible.builtin.set_fact:
+    instance_type:  >-
+                                       {%- set _instance_type = 'ASCS' -%}
+                                       {%- if bom.InstanceType == 'JAVA' -%}
+                                       {%- set _instance_type = 'SCS' -%}
+                                       {%- elif bom.InstanceType == 'ABAP' -%}
+                                       {%- set _instance_type = 'ASCS' -%}
+                                       {%- else -%}
+                                       {%- set _instance_type = 'ASCS' -%}
+                                       {%- endif -%}
+                                       {{- _instance_type -}}
+    public:                            true
+  when:                                bom.InstanceType is defined
+
+- name:                                "5.0.0 SAP Central Services Installation - Register application type"
+  ansible.builtin.set_fact:
+    application_type:                  "{% if instance_type == 'SCS' %}JAVA{% else %}ABAP{% endif %}"
+
+- name:                                "5.0.0 SAP Central Services Installation - Find the installationSuccesfullyFinished.dat (SAPINST)"
+  ansible.builtin.find:
+    paths:                             "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ scs_bom_instance_type }}/{{ application_type }}"
+    file_type:                         file
+    patterns:                          'installationSuccesfullyFinished.dat'
+    recurse:                           false
+  register:                            scs_installed_according_to_sapinst
+  when:                                not reinstall
+
+- name:                                "5.0.0 SAP Central Services Installation - Create installation flag"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
+    state:                             touch
+    mode:                              0755
+  when:
+    - scs_installed_according_to_sapinst is defined
+    - scs_installed_according_to_sapinst | length > 0
+    - not reinstall
+
+- name:                                "5.0.0 SAP Central Services Installation - Reset the installation flag file if reinstall is requested"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
+    state:                             absent
+  when:                                reinstall
+
+- name:                                "5.0.0 SAP Central Services Installation - Check if {{ sid_to_be_deployed.sid | upper }} is installed"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
+  register:                            scs_installed
+  when:                                "'scs' in supported_tiers"
+
+- name:                                "5.0.0 SAP Central Services Installation - Register variables"
   ansible.builtin.set_fact:
     scs_bom_id:                        "{{ bom.product_ids.scs }}"
     scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType | upper }}{% else %}ABAP{% endif %}"
 
-- name:                                "5.0.0. SCS Install - Register additional variables"
+- name:                                "5.0.0 SAP Central Services Installation - Register additional variables"
   ansible.builtin.set_fact:
     installGateway:                    "{% if scs_bom_instance_type == 'ABAP' %}true{% else %}false{% endif %}"
 
-- name:                                "SCS Install"
+- name:                                "5.0.0 SAP Central Services Installation"
   block:
 
 # *====================================4=======================================8
@@ -110,7 +125,7 @@
 # | 2230669 - System Provisioning Using a Parameter Input File                 |
 # *====================================4=======================================8
 
-    - name:                            "5.0.0. SCS Install - check media exists"
+    - name:                            "5.0.0 SAP Central Services Installation - check media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"
       register:                        sapinst_found
@@ -120,7 +135,7 @@
         msg:                           "INSTALL:0002:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
-    - name:                            "5.0.0. SCS Install - Template processing: Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
+    - name:                            "5.0.0 SAP Central Services Installation - Template processing: Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
       ansible.builtin.template:
         src:                           "{{ sap_inifile_template }}"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
@@ -135,7 +150,7 @@
         set_ascsInstallGateway:        "{{ installGateway | bool | lower }}"
         set_ascsInstallWebDispatcher:  "{{ ascsInstallWebDispatcher | default(false) | bool | lower }}"
 
-    - name:                            "5.0.0. SCS Install - Show installation variables"
+    - name:                            "5.0.0 SAP Central Services Installation - Show installation variables"
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ scs_installed.stat.exists }}"
@@ -146,51 +161,26 @@
           - "HOST:       {{ scs_virtual_hostname }}"
           - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
-    - name:                            "5.0.0. SCS Install - Default instance type"
-      ansible.builtin.set_fact:
-        instance_type:                 "ASCS"
-      when:                            bom.InstanceType is not defined
-
-    - name:                            "5.0.0. SCS Install - Register instance type"
-      ansible.builtin.set_fact:
-        instance_type:  >-
-                                        {%- set _instance_type = 'ASCS' -%}
-                                        {%- if bom.InstanceType == 'JAVA' -%}
-                                        {%- set _instance_type = 'SCS' -%}
-                                        {%- elif bom.InstanceType == 'ABAP' -%}
-                                        {%- set _instance_type = 'ASCS' -%}
-                                        {%- else -%}
-                                        {%- set _instance_type = 'ASCS' -%}
-                                        {%- endif -%}
-                                        {{- _instance_type -}}
-        public:                        true
-      when:                            bom.InstanceType is defined
-
-    - name:                            "5.0.0. SCS Install - Register instance type"
-      ansible.builtin.set_fact:
-        scs_bom_instance_type:         "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
-        public:                        true
-
-    - name:                            "5.0.0. SCS Install - Create temp directory for sid"
+    - name:                            "5.0.0 SAP Central Services Installation - Create temp directory for sid"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         state:                         directory
         mode:                          0755
 
-    - name:                            "5.0.0. SCS Install - Comment out required message server ports in /etc/services"
+    - name:                            "5.0.0 SAP Central Services Installation - Comment out required message server ports in /etc/services"
       ansible.builtin.replace:
         path:                          /etc/services
         regexp:                        '^([a-z\-]+\s+36{{ scs_instance_number }}/.*)$'
         replace:                       '# \1'
         backup:                        true
 
-    - name:                            "5.0.0. SCS Install - Create Symlink"
+    - name:                            "5.0.0 SAP Central Services Installation - Create Symlink"
       ansible.builtin.import_tasks:    ../../../roles-sap-os/2.10-sap-notes/tasks/2.10.3119751.yaml
       when:
         - ansible_os_family == 'RedHat'
         - "distribution_id != 'oraclelinux8'"
 
-    - name:                            "5.0.0. SCS Install - Assign ownership"
+    - name:                            "5.0.0 SAP Central Services Installation - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
         owner:                         '{{ sid_to_be_deployed.sidadm_uid }}'
@@ -201,11 +191,11 @@
         - { path: '/sapmnt/{{ sap_sid | upper }}' }
         - { path: '/usr/sap/{{ sap_sid | upper }}' }
 
-    - name:                            "5.0.0. SCS Install - Progress"
+    - name:                            "5.0.0 SAP Central Services Installation - Progress"
       ansible.builtin.debug:
-        msg:                           "Start SCS Installation"
+        msg:                           "Start SAP Central Services Installation on {{ scs_virtual_hostname }}"
 
-    - name:                            "5.0.0. SCS Install - SAP SCS Install on {{ scs_virtual_hostname }}"
+    - name:                            "5.0.0 SAP Central Services Installation - SAP SCS Install on {{ scs_virtual_hostname }}"
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
@@ -223,12 +213,12 @@
       register:                        scs_installation
       failed_when:                     scs_installation.rc > 0
 
-    - name:                            "5.0.0. SCS Install - Cleanup ini file {{ ansible_hostname }}"
+    - name:                            "5.0.0 SAP Central Services Installation - Cleanup ini file {{ ansible_hostname }}"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
-    - name:                            "5.0.0. SCS Install - Installation results"
+    - name:                            "5.0.0 SAP Central Services Installation - Installation results"
       ansible.builtin.debug:
         msg:
           - "SCS Installation failed with return code {{ scs_installation.rc }}. Check the sapinst log for details."
@@ -236,25 +226,25 @@
 
       when:                            scs_installation.rc > 0
 
-    - name:                            "5.0.0. SCS Install - Installation results"
+    - name:                            "5.0.0 SAP Central Services Installation - Installation results"
       ansible.builtin.debug:
         msg:                           "SCS Installation succeeded"
       when:                            scs_installation.rc == 0
 
-    - name:                            "5.0.0. SCS Install - Find the installationSuccesfullyFinished.dat (SAPINST)"
+    - name:                            "5.0.0 SAP Central Services Installation - Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
-        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ scs_bom_instance_type }}/ASCS"
+        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ scs_bom_instance_type }}/{{ application_type }}"
         file_type:                     file
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true
       register:                        scs_installed_according_to_sapinst
 
-    - name:                            "5.0.0. SCS Install - SCS Install: show"
+    - name:                            "5.0.0 SAP Central Services Installation - SCS Install: show"
       ansible.builtin.debug:
         var:                           scs_installed_according_to_sapinst
         verbosity:                     2
 
-    - name:                            "5.0.0. SCS Install - Create 'sap_deployment_scs.txt' flag file"
+    - name:                            "5.0.0 SAP Central Services Installation - Create 'sap_deployment_scs.txt' flag file"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
         state:                         touch
@@ -268,14 +258,14 @@
     - "'scs' in supported_tiers"
     - not scs_installed.stat.exists
 
-- name:                                "5.0.0. SCS Install - SCS Install status"
+- name:                                "5.0.0 SAP Central Services Installation - SAP Central Services is already installed"
   block:
 
-    - name:                            "5.0.0. SCS Install - SCS Install status"
+    - name:                            "5.0.0 SAP Central Services Installation - SAP Central Services Install status"
       ansible.builtin.debug:
-        msg:                           "SCS is already installed"
+        msg:                           "SAP Central Services is already installed"
 
-    - name:                            "5.0.0. SCS Install - SCS: - return value"
+    - name:                            "5.0.0 SAP Central Services Installation - SAP Central Services: - return value"
       ansible.builtin.set_fact:
         scs_already_installed:         true
   when:
