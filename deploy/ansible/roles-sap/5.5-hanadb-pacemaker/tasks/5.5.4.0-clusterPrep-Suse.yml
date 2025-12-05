@@ -8,7 +8,7 @@
 # Ref: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability
 # Ref: https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-netapp-files-suse#create-file-system-resources
 
-- name:                            "Backward Compatibility - Check required Database HA variables"
+- name:                                "5.5.4.0 HANA Pacemaker - Cluster Preparation - SUSE - Backward Compatibility - Check required Database HA variables"
   when:
     - db_high_availability is defined
     - database_high_availability is not defined
@@ -20,7 +20,7 @@
 # Filesystem /hana/shared is already mounted with entries in /etc/fstab on each host.
 # SAPHanaFilesystem and Pacemaker doesn't mount the filesystem for HANA and doesn't
 # need any additional mount or subdirectory pre-created.
-- name:                                "Configure the ANF specific resources when relevant"
+- name:                                "5.5.4.0 HANA Pacemaker - Cluster Preparation - SUSE - Configure the ANF specific resources when relevant"
   when:
     - database_high_availability
     - NFS_provider == "ANF"
@@ -32,7 +32,7 @@
     - hana_shared_mountpoint is defined
     - hana_shared_mountpoint | length > 1
   block:
-    - name:                            "Create dummy file system cluster resource for monitoring"
+    - name:                            "5.5.4.0 HANA Pacemaker - Cluster Preparation - Create dummy file system cluster resource for monitoring"
       ansible.builtin.file:
         path:                          "{{ item.folderpath }}"
         state:                         directory
