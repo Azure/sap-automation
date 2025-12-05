@@ -132,13 +132,13 @@
           tags:
             - 1.2-hostname
 
-        - name:                        "Operating system configuration playbook - Ensure the repositories are registered"
+        - name:                        "Operating system configuration playbook - Ensure repositories are registered"
           ansible.builtin.include_role:
             name:                      roles-os/1.3-repository
           tags:
             - 1.3-repository
 
-        - name:                        "Operating system configuration playbook - Ensure the packages are registered"
+        - name:                        "Operating system configuration playbook - Ensure packages are registered"
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
           tags:
@@ -164,7 +164,7 @@
           tags:
             - 1.7-chrony
 
-        - name:                        "Operating system configuration playbook - Ensure the kernel parameters are set"
+        - name:                        "Operating system configuration playbook - Ensure kernel parameters are set"
           ansible.builtin.include_role:
             name:                      roles-os/1.9-kernelparameters
           tags:
