@@ -11,20 +11,20 @@
         tasks_from:                    bom-register
       vars:
         bom_name:                      "{{ bom_base_name }}"
-        task_prefix:                   "SCS HA Install: "
+        task_prefix:                   "SCS High availability installation - "
       when:
         - bom is not defined
         - not is_run_with_infraCreate_only
         - enable_sap_cal is not defined or not enable_sap_cal
 
     # default to ASCS instance when BOM is not defined or instance type in BOM is not defined
-    - name:                            "2.6 SCS HA Install: Default instance type"
+    - name:                            "2.6 SCS High availability installation - Default instance type"
       ansible.builtin.set_fact:
         instance_type:                 "ASCS"
       when:                            bom is not defined or bom.InstanceType is not defined
 
 
-    - name:                            "2.6 SCS HA Install: register instance type"
+    - name:                            "2.6 SCS High availability installation - register instance type"
       ansible.builtin.set_fact:
         instance_type:  >-
                                             {%- set _instance_type = 'ASCS' -%}
@@ -39,7 +39,7 @@
         public:                        true
       when:                            bom.InstanceType is defined
 
-    - name:                            "2.6 SCS HA Install: Populate InstanceName for cluster resource"
+    - name:                            "2.6 SCS High availability installation - Populate InstanceName for cluster resource"
       ansible.builtin.set_fact:
         instance_name:                 "{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
         start_profile_path:            "/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"

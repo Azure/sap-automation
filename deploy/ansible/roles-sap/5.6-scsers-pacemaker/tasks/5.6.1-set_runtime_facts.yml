@@ -45,16 +45,16 @@
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    task_prefix:                       "SCS HA Install: "
+    task_prefix:                       "SCS High availability installation - "
     sa_enabled:                        true
   when:                                bom is not defined
 
-- name:                                "5.6.1 SCS/ERS Pacemaker - HA Install: Default instance type"
+- name:                                "5.6.1 SCS/ERS Pacemaker - High availability installation - Default instance type"
   ansible.builtin.set_fact:
     instance_type:                     "ASCS"
   when:                                bom.InstanceType is not defined
 
-- name:                                "5.6.1 SCS/ERS Pacemaker - HA Install: register instance type"
+- name:                                "5.6.1 SCS/ERS Pacemaker - High availability installation - register instance type"
   ansible.builtin.set_fact:
     instance_type:  >-
                                         {%- set _instance_type = 'ASCS' -%}
@@ -69,7 +69,7 @@
     public:                            true
   when:                                bom.InstanceType is defined
 
-- name:                                "5.6.1 SCS/ERS Pacemaker - HA Install: Populate InstanceName for cluster resource"
+- name:                                "5.6.1 SCS/ERS Pacemaker - High availability installation - Populate InstanceName for cluster resource"
   ansible.builtin.set_fact:
     instance_name:                     "{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
     start_profile_path:                "/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_{{ instance_type }}{{ scs_instance_number }}_{{ scs_virtual_hostname }}"
@@ -139,7 +139,7 @@
 - name:                                "5.6.1 SCS/ERS Pacemaker - ASCS/ERS check if installed"
   become:                              true
   block:
-    - name:                            "5.6.1 SCS/ERS Pacemaker - SCS HA Install: check if installed"
+    - name:                            "5.6.1 SCS/ERS Pacemaker - SCS High availability installation - check if installed"
       ansible.builtin.stat:
         path:                          /etc/sap_deployment_automation//{{ sap_sid | upper }}/sap_deployment_scs.txt
       register:                        scs_installed
