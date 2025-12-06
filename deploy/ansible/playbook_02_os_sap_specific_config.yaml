@@ -213,7 +213,7 @@
           tags:
             - 1.11-accounts
         - name:                        "SAP OS configuration playbook: - Ensure packages are registered"
-         ansible.builtin.include_role:
+          ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
           tags:
             - 1.4-packages

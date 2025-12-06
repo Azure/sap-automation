@@ -85,7 +85,7 @@ resource "azurerm_windows_web_app" "webapp" {
                                                     )
   resource_group_name                            = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                                       = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
-  service_plan_id                                = provider::azurerm::normalise_resource_id(azurerm_service_plan.appserviceplan[0].id)
+  service_plan_id                                = provider::azurerm::normalise_resource_id(replace(azurerm_service_plan.appserviceplan[0].id,"serverfarm","serverFarm"))
 
   https_only                                     = true
   webdeploy_publish_basic_authentication_enabled = false
