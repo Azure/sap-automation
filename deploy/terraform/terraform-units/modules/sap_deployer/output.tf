@@ -279,7 +279,7 @@ output "application_configuration_id"                  {
 }
 
 
-resource "local_file" "sap_inventory_md" {
+resource "local_file" "deployer_md" {
   content = templatefile(format("%s/templates/deployer.tmpl", path.module), {
               resource_group_name         = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
@@ -310,11 +310,12 @@ resource "local_file" "sap_inventory_md" {
                                                       data.azurerm_key_vault.kv_user[0].name :
                                                       azurerm_key_vault.kv_user[0].name
                                                     )
-              key_vault_name              = var.key_vault.exists ?
-                                                    data.azurerm_key_vault.kv_user[0].name :
+              key_vault_name              = var.key_vault.exists ? (
+                                                    data.azurerm_key_vault.kv_user[0].name) : (
                                                     azurerm_key_vault.kv_user[0].name
+                                                  )
 
-              app_serviceurl              = var.app_service.use ? format("https://%s.azurewebsites.net", try(azurerm_windows_web_app.webapp[0].name, "")) : ""
+              app_service_url              = var.app_service.use ? format("https://%s.azurewebsites.net", try(azurerm_windows_web_app.webapp[0].name, "")) : ""
               app_service_name            = var.app_service.use ? try(azurerm_windows_web_app.webapp[0].name, "") : ""
               }
             )
