@@ -293,25 +293,25 @@ resource "local_file" "sap-parameters_yml" {
 
 resource "local_file" "sap_inventory_md" {
   content = templatefile(format("%s/sap_application.tmpl", path.module), {
-              sid                         = var.sap_sid,
+
+              application_servers         = join(",", var.naming.virtualmachine_names.APP_COMPUTERNAME)
+              database_high_availability  = var.database_high_availability ? "Yes" : "No"
+              db_servers                  = var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",", var.naming.virtualmachine_names.ANYDB_COMPUTERNAME)
               db_sid                      = var.db_sid
-              scs_server_loadbalancer_ip  = length(var.scs_server_loadbalancer_ip) > 0 ? var.scs_server_loadbalancer_ip : try(var.scs_server_ips[0], "")
+              key_vault_name              = local.key_vault_name,
+              pas_server                  = try(var.naming.virtualmachine_names.APP_COMPUTERNAME[0], "")
+              password_secret_name        = local.use_local_credentials ? format("%s-%s-sid-password", local.secret_prefix, var.sap_sid) : format("%s-sid-password", local.secret_prefix)
               platform                    = lower(var.platform)
               resource_group_name         = var.created_resource_group_name
-              subscription_id             = var.created_resource_group_subscription_id
-              db_servers                  = var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",", var.naming.virtualmachine_names.ANYDB_COMPUTERNAME)
-              scs_servers                 = join(",", var.naming.virtualmachine_names.SCS_COMPUTERNAME)
-              pas_server                  = try(var.naming.virtualmachine_names.APP_COMPUTERNAME[0], "")
-              application_servers         = join(",", var.naming.virtualmachine_names.APP_COMPUTERNAME)
-              webdisp_servers             = length(var.naming.virtualmachine_names.WEB_COMPUTERNAME) > 0 ? join(",", var.naming.virtualmachine_names.WEB_COMPUTERNAME) : ""
               scs_high_availability       = var.scs_high_availability ? "Yes" : "No"
-              database_high_availability  = var.database_high_availability ? "Yes" : "No"
-              url                         = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/overview", data.azurerm_client_config.current.tenant_id, var.created_resource_group_subscription_id, var.created_resource_group_name)
-              keyvault_name               = local.key_vault_name,
-              password_secret_name        = local.use_local_credentials ? format("%s-%s-sid-password", local.secret_prefix, var.sap_sid) : format("%s-sid-password", local.secret_prefix)
-              username_secret_name        = local.use_local_credentials ? format("%s-%s-sid-username", local.secret_prefix, var.sap_sid) : format("%s-sid-username", local.secret_prefix)
+              scs_server_loadbalancer_ip  = length(var.scs_server_loadbalancer_ip) > 0 ? var.scs_server_loadbalancer_ip : try(var.scs_server_ips[0], "")
+              scs_servers                 = join(",", var.naming.virtualmachine_names.SCS_COMPUTERNAME)
+              sid                         = var.sap_sid,
               ssh_secret_name             = local.use_local_credentials ? format("%s-%s-sid-sshkey", local.secret_prefix, var.sap_sid) : format("%s-sid-sshkey", local.secret_prefix)
-
+              subscription_id             = var.created_resource_group_subscription_id
+              url                         = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/overview", data.azurerm_client_config.current.tenant_id, var.created_resource_group_subscription_id, var.created_resource_group_name)
+              username_secret_name        = local.use_local_credentials ? format("%s-%s-sid-username", local.secret_prefix, var.sap_sid) : format("%s-sid-username", local.secret_prefix)
+              webdisp_servers             = length(var.naming.virtualmachine_names.WEB_COMPUTERNAME) > 0 ? join(",", var.naming.virtualmachine_names.WEB_COMPUTERNAME) : ""
               key_vault_url               = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/overview",
                                                     data.azurerm_client_config.current.tenant_id,
                                                     local.key_vault_subscription_id,
