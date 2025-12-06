@@ -389,7 +389,7 @@ resource "local_file" "sap_inventory_for_wiki_md" {
   content = templatefile(format("%s/sid-description.tmpl", path.module), {
     sid                 = var.sap_sid,
     db_sid              = var.db_sid
-    kv_name             = local.kv_name,
+    kv_name             = local.key_vault_name ,
     scs_server_loadbalancer_ip           = length(var.scs_server_loadbalancer_ip) > 0 ? var.scs_server_loadbalancer_ip : try(var.scs_server_ips[0], "")
     platform            = upper(var.platform)
     kv_pwd_secret       = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
