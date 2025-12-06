@@ -39,7 +39,7 @@
     verbosity:                         2
 
 # Returns bom object
-- name:                                "5.6.1 SCS/ERS Pacemaker - SCS HA Install - Register BoM"
+- name:                                "5.6.1 SCS/ERS Pacemaker - Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register

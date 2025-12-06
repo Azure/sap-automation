@@ -75,7 +75,7 @@
     - use_simple_mount
     - ansible_os_family | upper == "SUSE"
 
-- name:                                "5.6.4 SCS/ERS Pacemaker - Post SCS HA Install check if installed"
+- name:                                "5.6.4 SCS/ERS Pacemaker - Check if already installed"
   become:                              true
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
