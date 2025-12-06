@@ -344,12 +344,6 @@ if [ -f "${SID}_hosts.yaml" ]; then
 	added=1
 fi
 
-if [ -f "${SID}.md" ]; then
-	git add "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDERNAME/${SID}.md"
-	# echo "##vso[task.uploadsummary]./${SID}.md)"
-	added=1
-fi
-
 if [ -f "${SID}_inventory.md" ]; then
 	git add "${SID}_inventory.md"
 	added=1
@@ -370,8 +364,7 @@ if [ -f "${SID}_virtual_machines.json" ]; then
 	added=1
 fi
 
-if [ -f "${SID}.md" ]; then
-	sudo cp "${SID}.md" "readme.md"
+if [ -f "readme.md" ]; then
 	git add "readme.md"
 	added=1
 fi
@@ -423,11 +416,10 @@ fi
 # Platform-specific summary handling
 if [ -f "${SID}.md" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-	  cat "${SID}.md"
-	  sudo cp "${SID}.md" "$AGENT_TEMPDIRECTORY/${SID}.md"
+	  sudo cp "$readme.md" "$AGENT_TEMPDIRECTORY/${SID}.md"
 		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${SID}.md;]$AGENT_TEMPDIRECTORY/${SID}.md"
 	elif [ "$PLATFORM" == "github" ]; then
-		cat "${SID}.md" >>$GITHUB_STEP_SUMMARY
+		cat "readme.md" >>$GITHUB_STEP_SUMMARY
 	fi
 fi
 

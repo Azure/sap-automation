@@ -259,14 +259,13 @@ else
 	return_code=1
 fi
 
-if [ -f "${SID}_hosts.yaml" ]; then
-	git add -f "${SID}_hosts.yaml"
+if [ -f readme.md ]; then
+	git add readme.md
 	added=1
 fi
 
-if [ -f "${SID}.md" ]; then
-	git add "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDERNAME/${SID}.md"
-	# echo "##vso[task.uploadsummary]./${SID}.md)"
+if [ -f "${SID}_hosts.yaml" ]; then
+	git add -f "${SID}_hosts.yaml"
 	added=1
 fi
 
@@ -290,15 +289,8 @@ if [ -f "${SID}_virtual_machines.json" ]; then
 	added=1
 fi
 
-if [ -f "${SID}.md" ]; then
-	sudo cp "${SID}.md" "readme.md"
-	git add "readme.md"
-	added=1
-fi
-
-if [ -f "${SID}.md" ]; then
-	cat "${SID}.md"
-	sudo cp "${SID}.md" "$AGENT_TEMPDIRECTORY/${SID}.md"
+if [ -f "$readme.md" ]; then
+	sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/${SID}.md"
 	echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${SID}.md;]$AGENT_TEMPDIRECTORY/${SID}.md"
 fi
 
