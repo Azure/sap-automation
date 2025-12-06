@@ -636,7 +636,7 @@ resource "local_file" "resource_group_md" {
 
               password_secret_name        = local.sid_password_secret_name
               username_secret_name        = local.sid_username_secret_name
-              ssh_secret_name             = local.sid_private_key_secret_name
+              ssh_secret_name             = local.sid_public_key_secret_name
 
               key_vault_url               = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/overview",
                                                     data.azurerm_client_config.current.tenant_id,
@@ -675,7 +675,7 @@ resource "local_file" "resource_group_md" {
                                                       data.azurerm_key_vault.kv_user[0].name) : (
                                                       azurerm_key_vault.kv_user[0].name
                                                     ),
-                                                    local.sid_private_key_secret_name
+                                                    local.sid_public_key_secret_name
                                                     )
 
 
