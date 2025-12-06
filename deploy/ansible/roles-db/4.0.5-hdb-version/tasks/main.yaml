@@ -16,7 +16,7 @@
     chdir:                             "{{ target_media_location }}/CD_HDBSERVER/SAP_HANA_DATABASE/server"
   register:                            manifest_hana_sp
 
-- name:                                "4.0.5. SAP HANA Version - Show SPS level"
+- name:                                "4.0.5. SAP HANA Version - Show SP level"
   ansible.builtin.debug:
     msg:                               "HANA SP Level: {{ manifest_hana_sp.stdout }}"
 
