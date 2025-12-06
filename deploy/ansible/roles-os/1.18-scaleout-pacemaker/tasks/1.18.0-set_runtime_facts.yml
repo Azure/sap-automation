@@ -113,7 +113,7 @@
   until:                                          is_primIP_defined_on_host
 
 
-- name:                                           "1.18.0 Generic Pacemaker - Extract NIC IPs"
+- name:                                           "1.18.0 Generic Pacemaker - Extract network interface IP addresses"
   ansible.builtin.set_fact:
     # "{{ host_var }}_instance_ip":                 "{{ hostvars[ansible_hostname]['primary_ip'] | string }}"
     "instance_ip":                                "{{ hostvars[ansible_hostname]['primary_ip'] | string }}"

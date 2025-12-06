@@ -21,12 +21,12 @@
       Metadata:                        true
   register: azure_metadata
 
-- name:                                "5.6.1 SCS/ERS Pacemaker - Set the primary intance nic and secondary instance nic IP"
+- name:                                "5.6.1 SCS/ERS Pacemaker - Get the primary and secondary network interface cards IP addresses"
   ansible.builtin.set_fact:
     primary_ip:                        "{{ azure_metadata.json.network.interface[0].ipv4.ipAddress[0].privateIpAddress }}"
     subnet_prefix:                     "{{ azure_metadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
 
-- name:                                "5.6.1 SCS/ERS Pacemaker - Extract NIC IPs"
+- name:                                "5.6.1 SCS/ERS Pacemaker - Extract network interface IP addresses"
   ansible.builtin.set_fact:
     primary_instance_ip:               "{{ hostvars[primary_instance_name]['primary_ip'] | string }}"
     secondary_instance_ip:             "{{ hostvars[secondary_instance_name]['primary_ip'] | string }}"

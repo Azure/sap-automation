@@ -37,12 +37,12 @@
     resource_group_name:               "{{ hanavmmetadata.json.compute.resourceGroupName }}"
   no_log:                              true
 
-- name:                                "5.8 HANA Pacemaker Scale-out - Set the primary intance nic and secondary instance nic IP"
+- name:                                "5.8 HANA Pacemaker Scale-out - Get the primary and secondary network interface cards IP addresses"
   ansible.builtin.set_fact:
     primary_ip:                        "{{ hanavmmetadata.json.network.interface[0].ipv4.ipAddress[0].privateIpAddress }}"
     subnet_prefix:                     "{{ hanavmmetadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
 
-- name:                                "5.8 HANA Pacemaker Scale-out - Extract NIC IPs"
+- name:                                "5.8 HANA Pacemaker Scale-out - Extract network interface IP addresses"
   ansible.builtin.set_fact:
     primary_instance_ip_db:            "{{ hostvars[primary_instance_name]['primary_ip'] | string }}"
     secondary_instance_ip_db:          "{{ hostvars[secondary_instance_name]['primary_ip'] | string }}"
