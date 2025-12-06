@@ -281,6 +281,11 @@ else
 			changed=1
 		fi
 
+		if [ -f "readme.md" ]; then
+			git rm --ignore-unmatch -q "readme.md"
+			changed=1
+		fi
+
 		if [ -d .terraform ]; then
 			rm -r .terraform
 		fi

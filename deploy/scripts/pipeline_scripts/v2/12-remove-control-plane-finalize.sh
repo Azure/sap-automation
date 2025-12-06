@@ -346,10 +346,17 @@ if [ 0 == $return_code ]; then
 		git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 		changed=1
 	fi
+
+	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/readme.md" ]; then
+		git rm --ignore-unmatch -q "DEPLOYER/$DEPLOYER_FOLDERNAME/readme.md"
+		changed=1
+	fi
+
 	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg" ]; then
 		git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg"
 		changed=1
 	fi
+
 	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
 		if [ 0 == $return_code ]; then
 			echo "Removing the library state zip file"
@@ -357,6 +364,7 @@ if [ 0 == $return_code ]; then
 			changed=1
 		fi
 	fi
+
 	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" ]; then
 		if [ 0 == $return_code ]; then
 			echo "Removing the library state gpg file"
@@ -372,6 +380,11 @@ if [ 0 == $return_code ]; then
 
 	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
 		git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+		changed=1
+	fi
+
+	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/readme.md" ]; then
+		git rm --ignore-unmatch -q "LIBRARY/$LIBRARY_FOLDERNAME/readme.md"
 		changed=1
 	fi
 

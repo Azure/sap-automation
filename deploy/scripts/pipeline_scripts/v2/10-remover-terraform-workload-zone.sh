@@ -285,6 +285,11 @@ else
 			changed=1
 		fi
 
+		if [ -f "readme.md" ]; then
+			git rm --ignore-unmatch -q "readme.md"
+			changed=1
+		fi
+
 		if [ -f "${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars" ]; then
 			git add "${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars"
 			changed=1
