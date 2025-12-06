@@ -315,8 +315,23 @@ resource "local_file" "deployer_md" {
                                                     azurerm_key_vault.kv_user[0].name
                                                   )
 
-              app_service_url              = var.app_service.use ? format("https://%s.azurewebsites.net", try(azurerm_windows_web_app.webapp[0].name, "")) : ""
+              app_service_url             = var.app_service.use ? format("https://%s.azurewebsites.net", try(azurerm_windows_web_app.webapp[0].name, "")) : ""
               app_service_name            = var.app_service.use ? try(azurerm_windows_web_app.webapp[0].name, "") : ""
+
+              appl_configuration_url      = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppConfiguration/configurationStores/%s/overview",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    var.infrastructure.resource_group.exists ? (
+                                                      split("/", data.azurerm_resource_group.deployer[0].id))[2] : (
+                                                      split("/", azurerm_resource_group.deployer[0].id)[2]),
+                                                    var.infrastructure.resource_group.exists ? (
+                                                      data.azurerm_resource_group.deployer[0].name) : (
+                                                      azurerm_resource_group.deployer[0].name),
+                                                    var.app_config_service.deploy ? (
+                                                      length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].name : data.azurerm_app_configuration.app_config[0].name) : ("")
+                                                    )
+              app_configuration_name      = var.app_config_service.deploy ? (
+                                              length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].name : data.azurerm_app_configuration.app_config[0].name) : ("")
+
               }
             )
   filename             = format("%s/readme.md", path.cwd)
