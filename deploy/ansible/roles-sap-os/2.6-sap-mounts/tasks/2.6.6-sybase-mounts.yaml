@@ -14,7 +14,7 @@
 - name:                                "SYBASE: Get Logical volumes created in 1.5"
   ansible.builtin.include_vars:        disks_config.yml
 
-- name:                                "SYBASE: Check if LVs exists."
+- name:                                "SYBASE: Check if  logical volumes exist."
   ansible.builtin.stat:
     path:                              "{{ dev_path_from_lv_item }}"
   loop:                                "{{ logical_volumes }}"
@@ -25,7 +25,7 @@
     var:                               sybasevolstat
     verbosity:                         2
 
-- name:                                "SYBASE: Gather existing LVs"
+- name:                                "SYBASE: Gather existing Logical Volumes"
   ansible.builtin.set_fact:
     lvexists:                          "{{ sybasevolstat.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item.lv') | list }}"
 
