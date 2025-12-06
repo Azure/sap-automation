@@ -26,17 +26,17 @@ You can access the resource group directly in the Azure Portal using the followi
 | Central Services               | ${scs_servers}                  |
 | Primary Application Server     | ${pas_server}                   |
 | Additional Application Servers | ${application_servers}          |
-| Web Dispatchers         | ${webdisp_servers}              |
+| Web Dispatchers                | ${webdisp_servers}              |
 
 
 **Access credentials**
 
 
-| Setting                  | Value                           |
-| :----------------------- | :------------------------------ |
-| Key Vault Name           | ${keyvault_name}                |
-| Secret name for username | ${username_secret_name}         |
-| Secret name for password | ${password_secret_name}         |
-| Secret name for SSH key  | ${ssh_secret_name}              |
+| Setting                  | Value                                             |
+| :----------------------- | :------------------------------------------------ |
+| Key Vault Name           | [${key_vault_name}](${key_vault_url})             |
+| Secret name for username | [${username_secret_name}](${username_secret_url}) |
+| Secret name for password | [${password_secret_name}](${password_secret_url}) |
+| Secret name for SSH key  | [${ssh_secret_name}](${ssh_secret_url})           |
 
 

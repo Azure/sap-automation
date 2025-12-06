@@ -295,7 +295,7 @@ resource "local_file" "sap_inventory_md" {
   content = templatefile(format("%s/sap_application.tmpl", path.module), {
               sid                         = var.sap_sid,
               db_sid                      = var.db_sid
-              keyvault_name               = local.kv_name,
+              keyvault_name               = local.key_vault_name,
               scs_server_loadbalancer_ip  = length(var.scs_server_loadbalancer_ip) > 0 ? var.scs_server_loadbalancer_ip : try(var.scs_server_ips[0], "")
               platform                    = lower(var.platform)
               password_secret_name        = format("%s-%s-sid-password", local.secret_prefix, var.sap_sid)
@@ -311,6 +311,28 @@ resource "local_file" "sap_inventory_md" {
               scs_high_availability       = var.scs_high_availability ? "Yes" : "No"
               database_high_availability  = var.database_high_availability ? "Yes" : "No"
               url                         = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/overview", data.azurerm_client_config.current.tenant_id, var.created_resource_group_subscription_id, var.created_resource_group_name)
+              key_vault_url               = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/overview",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    local.key_vault_subscription_id,
+                                                    local.key_vault_resource_group,
+                                                    local.key_vault_name
+                                                    )
+              username_secret_url         = format("https://portal.azure.com/#@%s/asset/Microsoft_Azure_KeyVault/Secret/https://%s.vault.azure.net/secrets/%s",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    local.key_vault_name,
+                                                    format("%s-%s-sid-username", local.secret_prefix, var.sap_sid)
+                                                    )
+              password_secret_url         = format("https://portal.azure.com/#@%s/asset/Microsoft_Azure_KeyVault/Secret/https://%s.vault.azure.net/secrets/%s",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    local.key_vault_name,
+                                                    format("%s-%s-sid-password", local.secret_prefix, var.sap_sid)
+                                                    )
+              ssh_secret_url              = format("https://portal.azure.com/#@%s/asset/Microsoft_Azure_KeyVault/Secret/https://%s.vault.azure.net/secrets/%s",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    local.key_vault_name,
+                                                    format("%s-%s-sid-sshkey", local.secret_prefix, var.sap_sid)
+                                                    )
+
               }
             )
   filename             = format("%s/readme.md", path.cwd)
