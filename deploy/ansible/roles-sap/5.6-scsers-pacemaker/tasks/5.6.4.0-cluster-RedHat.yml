@@ -10,36 +10,36 @@
 # [1] Configure cluster default properties
 # [1] Create a virtual IP resource and health-probe for the ASCS instance
 
-- name:                                "5.6.4.0 SCS/ERS Pacemaker - RHEL - Central Services - Check if installation succeeded"
+- name:                                "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - Check if installation succeeded"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
   register:                            scs_installed
 
-- name:                                "5.6.4.0 SCS/ERS Pacemaker - RHEL - Cluster Configuration before Install"
+- name:                                "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Cluster Configuration before Install"
   throttle:                            1
   block:
     - name:                            Set pcs command mode based on RHEL version
       ansible.builtin.set_fact:
         pcs_update_cmd:                "{{ 'update' if ansible_distribution_major_version | int >= 10 else '' }}"
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - Central Services - Configure cluster default properties"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - Configure cluster default properties"
       ansible.builtin.shell: |
                                        pcs resource defaults{% if pcs_update_cmd %} {{ pcs_update_cmd }}{% endif %} resource-stickiness=1
                                        pcs resource defaults{% if pcs_update_cmd %} {{ pcs_update_cmd }}{% endif %} migration-threshold=3
       register:                        cluster_defaults
       failed_when:                     cluster_defaults.rc != 0
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - Central Services - Put Secondary host on standby"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - Put Secondary host on standby"
       ansible.builtin.shell:           pcs node standby {{ secondary_instance_name }}
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - Set fact for ASCS Filesystem"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Set fact for ASCS Filesystem"
       when:
         - NFS_provider in ['AFS', 'ANF']
         - sap_mnt is defined
       ansible.builtin.set_fact:
         ascs_filesystem_device:        "{{ sap_mnt }}/usrsap{{ sap_sid | upper }}{{ instance_type | lower }}{{ scs_instance_number }}"
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - Central Services - Configure File system resources"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - Configure File system resources"
       ansible.builtin.shell:   >
                                        pcs resource create fs_{{ sap_sid | upper }}_{{ instance_type | upper }} Filesystem \
                                        device='{{ ascs_filesystem_device }}' \
@@ -51,7 +51,7 @@
       register:                        ascs_fs_resource
       failed_when:                     ascs_fs_resource.rc > 1
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - Central Services - Create ASCS VIP - This is LB frontend ASCS/SCS IP"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - Create ASCS VIP - This is LB frontend ASCS/SCS IP"
       ansible.builtin.shell:   >
                                        pcs resource create vip_{{ sap_sid | upper }}_{{ instance_type | upper }} IPaddr2 \
                                        ip={{ scs_lb_ip }} cidr_netmask={{ subnet_prefix }} \
@@ -59,7 +59,7 @@
       register:                        ascs_vip
       failed_when:                     ascs_vip.rc > 1
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - Central Services - create Azure LB resource"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - create Azure LB resource"
       ansible.builtin.shell:   >
                                        pcs resource create nc_{{ sap_sid | upper }}_{{ instance_type | upper }} azure-lb port=620{{ scs_instance_number }} \
                                        --group g-{{ sap_sid | upper }}_{{ instance_type | upper }}
@@ -71,16 +71,16 @@
     - not scs_installed.stat.exists
 
 # [1] Install SAP NetWeaver ASCS - this is where we call the SCS role
-- name:                                "5.6.4.0 SCS/ERS Pacemaker - RHEL - Central Services - Install SCS on Primary host"
+- name:                                "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - Install SCS on Primary host"
   throttle:                            1
   block:
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - SCS Bring Primary host online "
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - SCS Bring Primary host online "
       ansible.builtin.shell:           pcs node unstandby {{ primary_instance_name }}
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - Central Services - Put Secondary host on standby"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - Put Secondary host on standby"
       ansible.builtin.shell:           pcs node standby {{ secondary_instance_name }}
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - Central Services - wait until SCS fs resource has come online"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - wait until SCS fs resource has come online"
       ansible.builtin.shell: >-
                                        set -o pipefail;
                                        pcs resource show | grep fs_{{ sap_sid | upper }}_{{ instance_type | upper }}
@@ -91,7 +91,7 @@
       changed_when:                    false
       when:                            ansible_distribution_major_version == "7"
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - Central Services - wait until SCS fs resource has come online"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - wait until SCS fs resource has come online"
       ansible.builtin.shell: >-
                                        set -o pipefail;
                                        pcs resource status | grep fs_{{ sap_sid | upper }}_{{ instance_type | upper }}
@@ -103,14 +103,14 @@
       when:                            ansible_distribution_major_version in ["8", "9", "10"]
 
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - Central Services - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
       ansible.builtin.shell: >-
                                        set -o pipefail;
                                        df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/SYS'
       register:                        nfs_sys_mounted
       changed_when:                    false
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - Central Services - attempt to mount SYS directory"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - attempt to mount SYS directory"
       ansible.builtin.include_role:
         name:                          roles-sap-os/2.6-sap-mounts
         apply:
@@ -118,7 +118,7 @@
             - sap_app_ha_sys_mount
       when: inventory_hostname == primary_instance_name and nfs_sys_mounted.rc >= 1
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - Central Services - Check if NFS mount for instance directory is available before proceeding"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - Check if NFS mount for instance directory is available before proceeding"
       ansible.builtin.shell: >-
                                        set -o pipefail;
                                        df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/{{ instance_type | upper }}{{ scs_instance_number }}'
@@ -126,7 +126,7 @@
       failed_when:                     nfs_instdir_mounted.rc >= 1
       changed_when:                    false
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - Central Services - Assign ownership"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
         owner:                         "{{ sap_sid | lower }}adm"
@@ -139,11 +139,11 @@
         - { path: '/usr/sap/{{ sap_sid | upper }}/{{ instance_type | upper }}{{ scs_instance_number }}', mode: '0755' }
       when: inventory_hostname == primary_instance_name
 
-    - name:                            "5.6 SCSERS - RHEL - Central Services - Install SCS on Primary host"
+    - name:                            "5.6 SCSERS - REDHAT - Central Services - Install SCS on Primary host"
       ansible.builtin.include_role:
         name:                          roles-sap/5.0.1-scs-ha-install
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - Central Services - Check if installation succeeded"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - Check if installation succeeded"
       ansible.builtin.stat:
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
       register:                        scs_installed_final
@@ -160,29 +160,29 @@
 
 # [1] Create a virtual IP resource and health-probe for the ERS instance
 
-- name:                                "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - Check if installation succeeded before"
+- name:                                "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - Check if installation succeeded before"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
   register:                            ers_installed
   when: inventory_hostname == secondary_instance_name
 
-- name:                                "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - Cluster Configuration before Install "
+- name:                                "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - Cluster Configuration before Install "
   throttle:                            1
   block:
-    - name:                            "5.6 SCSERS - RHEL - ERS - Put Secondary host on online"
+    - name:                            "5.6 SCSERS - REDHAT - ERS - Put Secondary host on online"
       ansible.builtin.shell:           pcs node unstandby {{ secondary_instance_name }}
 
-    - name:                            "5.6 SCSERS - RHEL - ERS - Put Primary host on standby"
+    - name:                            "5.6 SCSERS - REDHAT - ERS - Put Primary host on standby"
       ansible.builtin.shell:           pcs node standby {{ primary_instance_name }}
 
-    - name:                            "5.6 SCSERS - RHEL - ERS - Set fact for ERS Filesystem"
+    - name:                            "5.6 SCSERS - REDHAT - ERS - Set fact for ERS Filesystem"
       when:
         - NFS_provider in ['AFS', 'ANF']
         - sap_mnt is defined
       ansible.builtin.set_fact:
         ers_filesystem_device:        "{{ sap_mnt }}/usrsap{{ sap_sid | upper }}ers{{ ers_instance_number }}"
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - Configure File system resources"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - Configure File system resources"
       ansible.builtin.shell:   >
                                        pcs resource create fs_{{ sap_sid | upper }}_ERS Filesystem \
                                        device='{{ ers_filesystem_device }}' \
@@ -194,7 +194,7 @@
       register:                        ers_fs_resource
       failed_when:                     ers_fs_resource.rc > 1
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - Create ERS VIP - This is LB frontend ERS IP"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - Create ERS VIP - This is LB frontend ERS IP"
       ansible.builtin.shell:   >
                                        pcs resource create vip_{{ sap_sid | upper }}_ERS IPaddr2 \
                                        ip={{ ers_lb_ip }} cidr_netmask={{ subnet_prefix }} \
@@ -202,7 +202,7 @@
       register:                        ers_vip
       failed_when:                     ers_vip.rc > 1
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - create Azure LB resource "
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - create Azure LB resource "
       ansible.builtin.shell:   >
                                        pcs resource create nc_{{ sap_sid | upper }}_ERS azure-lb port=621{{ ers_instance_number }} \
                                        --group g-{{ sap_sid | upper }}_ERS
@@ -215,17 +215,17 @@
 
 # [2] Install SAP NetWeaver ERS - Build a new role for ERS Installation - done
 
-- name:                                "5.6.4.0 SCS/ERS Pacemaker - RHEL - Install ERS on Secondary host"
+- name:                                "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Install ERS on Secondary host"
   throttle:                            1
   block:
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - Bring Secondary host online"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - Bring Secondary host online"
       ansible.builtin.shell:           pcs node unstandby {{ secondary_instance_name }}
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - Put Primary host on standby"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - Put Primary host on standby"
       ansible.builtin.shell:           pcs node standby {{ primary_instance_name }}
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - wait until ERS fs resource has come online"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - wait until ERS fs resource has come online"
       ansible.builtin.shell: >-
                                        set -o pipefail;
                                        pcs resource show | grep fs_{{ sap_sid | upper }}_ERS
@@ -236,7 +236,7 @@
       changed_when:                    false
       when:                            ansible_distribution_major_version == "7"
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - wait until ERS fs resource has come online"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - wait until ERS fs resource has come online"
       ansible.builtin.shell: >-
                                        set -o pipefail;
                                        pcs resource status | grep fs_{{ sap_sid | upper }}_ERS
@@ -247,34 +247,34 @@
       changed_when:                    false
       when:                            ansible_distribution_major_version in ["8", "9", "10"]
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - List NFS mounts"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - List NFS mounts"
       ansible.builtin.shell:           df -kHT
       register:                        nfs_instdir_mounted_debug
       changed_when:                    false
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - Show NFS mounts"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - Show NFS mounts"
       ansible.builtin.debug:
         var:                           nfs_instdir_mounted_debug
         verbosity:                     4
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - Check Cluster status"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - Check Cluster status"
       ansible.builtin.shell:           pcs status --full
       register:                        cluster_status_debug
       changed_when:                    false
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - Show Cluster status"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - Show Cluster status"
       ansible.builtin.debug:
         var:                           cluster_status_debug
         verbosity:                     2
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
       ansible.builtin.shell: >-
                                        set -o pipefail;
                                        df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/SYS'
       register:                        nfs_sys_mounted
       changed_when:                    false
 
-    - name:                            "5.6 SCSERS - RHEL - ERS - attempt to mount SYS directory"
+    - name:                            "5.6 SCSERS - REDHAT - ERS - attempt to mount SYS directory"
       ansible.builtin.include_role:
         name:                          roles-sap-os/2.6-sap-mounts
         apply:
@@ -282,7 +282,7 @@
             - sap_app_ha_sys_mount
       when: inventory_hostname == secondary_instance_name and nfs_sys_mounted.rc >= 1
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - Check if NFS mount for instance directory is available before proceeding"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - Check if NFS mount for instance directory is available before proceeding"
       ansible.builtin.shell: >-
                                        set -o pipefail;
                                        df -kHT | grep '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}'
@@ -290,7 +290,7 @@
       failed_when:                     nfs_instdir_mounted.rc >= 1
       changed_when:                    false
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - Assign ownership"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - Assign ownership"
       ansible.builtin.file:
         path:                          "{{ item.path }}"
         owner:                         "{{ sap_sid | lower }}adm"
@@ -303,17 +303,17 @@
         - { path: '/usr/sap/{{ sap_sid | upper }}/ERS{{ ers_instance_number }}', mode: '0755' }
       when: inventory_hostname == secondary_instance_name
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - Install on Secondary host"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - Install on Secondary host"
       ansible.builtin.include_role:
         name:                          roles-sap/5.0.2-ers-ha-install
 
   always:
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - Put Primary host on line"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - Put Primary host on line"
       ansible.builtin.shell:           pcs node unstandby {{ primary_instance_name }}
       register:                        primary_online
       changed_when:                    primary_online.rc != 0
 
-    - name:                            "5.6.4.0 SCS/ERS Pacemaker - RHEL - ERS - Check if installation succeeded"
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - Check if installation succeeded"
       ansible.builtin.stat:
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
       register:                        ers_installed_final
@@ -330,7 +330,7 @@
     - not ers_installed.stat.exists
 
 # [A] Add firewall rules for ASCS and ERS on both nodes Add the firewall rules for ASCS and ERS on both nodes.
-- name:                                 "5.6.4.0 SCS/ERS Pacemaker - RHEL - Add firewall rules for ASCS and ERS on both nodes"
+- name:                                 "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Add firewall rules for ASCS and ERS on both nodes"
   ansible.posix.firewalld:
     zone:                               public
     port:                               "{{ item.port }}/tcp"

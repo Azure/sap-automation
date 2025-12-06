@@ -47,7 +47,7 @@
           - "PRODUCT ID: {{ bom.product_ids.dbl }}"
           - "MEDIA:      {{ target_media_location }}"
 
-    - name:                            "SYBASE Install: Create temp directory for sid"
+    - name:                            "SYBASE Install: Create directory for installation log files"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sap_sid | upper }}"
         state:                         directory

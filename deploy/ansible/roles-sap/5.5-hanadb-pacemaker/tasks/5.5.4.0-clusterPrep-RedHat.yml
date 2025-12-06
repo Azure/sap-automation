@@ -15,14 +15,14 @@
 # Additonal steps inherited from  https://access.redhat.com/articles/6093611
 
 # +------------------------------------4--------------------------------------*/
-- name:                                "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Check required Database HA variables"
+- name:                                "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Check required Database HA variables"
   ansible.builtin.set_fact:
     database_high_availability:        "{{ db_high_availability | default(false) }}"
   when:
     - db_high_availability is defined
     - database_high_availability is not defined
 
-- name:                                "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Configure the ANF file system resources"
+- name:                                "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Configure the ANF file system resources"
   when:
     - database_high_availability
     - NFS_provider == "ANF"
@@ -44,7 +44,7 @@
     #   when: >-
     #     get_status_maintenance_mode.stdout is not search('maintenance-mode') or
     #     get_status_maintenance_mode.stdout is search('maintenance-mode: false')
-    - name:                            "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Stop HANA System on both nodes"
+    - name:                            "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Stop HANA System on both nodes"
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
       ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem"
@@ -55,10 +55,10 @@
     # - name:                            Stop HANA Database
     #   ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-stop_hana.yml
 
-    - name:                            "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Configure ANF hana mounts on {{ primary_instance_name }}"
+    - name:                            "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Configure ANF hana mounts on {{ primary_instance_name }}"
       when:                            ansible_hostname == primary_instance_name
       block:
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Configure filesystem resource in Pacemaker"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Configure filesystem resource in Pacemaker"
           ansible.builtin.shell: >
                                        pcs resource create {{ item.fs_name }} --disabled ocf:heartbeat:Filesystem
                                        device="{{ item.fs_mount }}" directory="{{ item.fs_dir }}" fstype="nfs"
@@ -76,16 +76,16 @@
           loop_control:
             loop_var:                  item
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Check if ANF hana mounts did not error on {{ primary_instance_name }}"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Check if ANF hana mounts did not error on {{ primary_instance_name }}"
           ansible.builtin.set_fact:
             chk_nfs_mounts_node1:      "{{ nfs_mounts_node1.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list }}"
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Fail when ANF hana mounts errored on {{ primary_instance_name }}"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Fail when ANF hana mounts errored on {{ primary_instance_name }}"
           ansible.builtin.fail:
             msg:                       "Failed to create ANF hana mounts on {{ primary_instance_name }}"
           when:                        chk_nfs_mounts_node1 | length > 0
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Comment out the mountpoints on {{ primary_instance_name }} from '/etc/fstab' file"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Comment out the mountpoints on {{ primary_instance_name }} from '/etc/fstab' file"
           ansible.builtin.replace:
             path:                      /etc/fstab
             regexp:                    "^{{ item }}"
@@ -96,10 +96,10 @@
             - "{{ hana_log_mountpoint[0] }}/hanalog"
             - "{{ hana_shared_mountpoint[0] }}/hanashared"
 
-    - name:                            "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Configure ANF hana mounts on {{ secondary_instance_name }}"
+    - name:                            "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Configure ANF hana mounts on {{ secondary_instance_name }}"
       when:                            ansible_hostname == secondary_instance_name
       block:
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Configure filesystem resource in Pacemaker"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Configure filesystem resource in Pacemaker"
           ansible.builtin.shell: >
                                        pcs resource create {{ item.fs_name }} --disabled ocf:heartbeat:Filesystem \
                                          device="{{ item.fs_mount }}" directory="{{ item.fs_dir }}" fstype="nfs" \
@@ -117,16 +117,16 @@
           loop_control:
             loop_var:                  item
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Check if ANF hana mounts did not error on {{ secondary_instance_name }}"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Check if ANF hana mounts did not error on {{ secondary_instance_name }}"
           ansible.builtin.set_fact:
             chk_nfs_mounts_node2:      "{{ nfs_mounts_node2.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | default([]) | list }}"
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Fail when ANF hana mounts errored on {{ secondary_instance_name }}"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Fail when ANF hana mounts errored on {{ secondary_instance_name }}"
           ansible.builtin.fail:
             msg:                       "Failed to create ANF hana mounts on {{ secondary_instance_name }}"
           when:                        chk_nfs_mounts_node2 | length > 0
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Comment out the mountpoints on {{ secondary_instance_name }} from '/etc/fstab' file"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Comment out the mountpoints on {{ secondary_instance_name }} from '/etc/fstab' file"
           ansible.builtin.replace:
             path:                      /etc/fstab
             regexp:                    "^{{ item }}"
@@ -137,10 +137,10 @@
             - "{{ hana_log_mountpoint[1] }}/hanalog"
             - "{{ hana_shared_mountpoint[1] }}/hanashared"
 
-    - name:                            "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Configure location constraints and attribute resources"
+    - name:                            "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Configure location constraints and attribute resources"
       when:                            ansible_hostname == primary_instance_name
       block:
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Wait for NFS mount configuration on {{ secondary_instance_name }} to finish"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Wait for NFS mount configuration on {{ secondary_instance_name }} to finish"
           ansible.builtin.set_fact:
             is_nfs_secondary_configured:   "{{
                                          hostvars[secondary_instance_name]['chk_nfs_mounts_node2'] is defined and
@@ -150,7 +150,7 @@
           delay:                       60
           until:                       is_nfs_secondary_configured
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Configure location constraints"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Configure location constraints"
           ansible.builtin.shell: >
                                        pcs constraint location {{ item.group_name }}
                                        avoids {{ item.node }}
@@ -164,7 +164,7 @@
             loop_var:                  item
           when:                        is_nfs_secondary_configured
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Configure location constraints"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Configure location constraints"
           ansible.builtin.shell: >
                                        pcs constraint location {{ item.group_name }}
                                        rule score=-INFINITY resource-discovery=never \#uname eq {{ item.node }}
@@ -178,16 +178,16 @@
             loop_var:                  item
           when:                        is_nfs_secondary_configured
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Check if location constraints did not error on {{ primary_instance_name }}"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Check if location constraints did not error on {{ primary_instance_name }}"
           ansible.builtin.set_fact:
             chk_nfs_location_constraints: "{{ nfs_location_constraints.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | list }}"
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Fail when location constraints errored on {{ primary_instance_name }}"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Fail when location constraints errored on {{ primary_instance_name }}"
           ansible.builtin.fail:
             msg:                        "Failed to create location constraints on {{ primary_instance_name }}"
           when:                         chk_nfs_location_constraints | length > 0
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Configure attribute resources"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Configure attribute resources"
           ansible.builtin.shell: >
                                        pcs resource create {{ item.attribute_name }} ocf:pacemaker:attribute
                                        active_value=true inactive_value=false name={{ item.attribute_name }}
@@ -201,16 +201,16 @@
             loop_var:                  item
           when:                        is_nfs_secondary_configured
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Check if attribute resources did not error on {{ primary_instance_name }}"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Check if attribute resources did not error on {{ primary_instance_name }}"
           ansible.builtin.set_fact:
             chk_nfs_attribute_resources: "{{ nfs_attribute_resources.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | list }}"
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Fail when attribute resources errored on {{ primary_instance_name }}"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Fail when attribute resources errored on {{ primary_instance_name }}"
           ansible.builtin.fail:
             msg:                       "Failed to create attribute resources on {{ primary_instance_name }}"
           when:                        chk_nfs_attribute_resources | length > 0
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Configure constraints for attribute resources"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Configure constraints for attribute resources"
           ansible.builtin.shell: >
                                        pcs constraint location {{ item.attribute_name }} avoids {{ item.node }}
           register:                    nfs_attribute_constraints
@@ -223,16 +223,16 @@
             loop_var:                  item
           when:                        is_nfs_secondary_configured
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Check if attribute constraints did not error on {{ primary_instance_name }}"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Check if attribute constraints did not error on {{ primary_instance_name }}"
           ansible.builtin.set_fact:
             chk_nfs_attribute_constraints: "{{ nfs_attribute_constraints.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | list }}"
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Fail when attribute constraints errored on {{ primary_instance_name }}"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Fail when attribute constraints errored on {{ primary_instance_name }}"
           ansible.builtin.fail:
             msg:                       "Failed to create attribute constraints on {{ primary_instance_name }}"
           when:                        chk_nfs_attribute_constraints | length > 0
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Configure ordering constraints for NFS mounts to start before attribute resources"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Configure ordering constraints for NFS mounts to start before attribute resources"
           ansible.builtin.shell: >
                                        pcs constraint order {{ item.group_name }} then {{ item.attribute_name }}
           register:                    nfs_ordering_constraints
@@ -245,11 +245,11 @@
             loop_var:                  item
           when:                        is_nfs_secondary_configured
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Check if ordering constraints did not error on {{ primary_instance_name }}"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Check if ordering constraints did not error on {{ primary_instance_name }}"
           ansible.builtin.set_fact:
             chk_nfs_ordering_constraints: "{{ nfs_ordering_constraints.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | list }}"
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Fail when ordering constraints errored on {{ primary_instance_name }}"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Fail when ordering constraints errored on {{ primary_instance_name }}"
           ansible.builtin.fail:
             msg:                       "Failed to create ordering constraints on {{ primary_instance_name }}"
           when:                        chk_nfs_ordering_constraints | length > 0
@@ -270,10 +270,10 @@
           ansible.builtin.pause:
             seconds:                   120
 
-    - name:                            "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Enable ANF hana mounts on {{ primary_instance_name }}"
+    - name:                            "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Enable ANF hana mounts on {{ primary_instance_name }}"
       when:                            ansible_hostname == primary_instance_name
       block:
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Enable filesystem resource in Pacemaker"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Enable filesystem resource in Pacemaker"
           ansible.builtin.shell: >
                                        pcs resource enable {{ item.fs_name }}
           register:                    nfs_mounts_enable_node1
@@ -286,19 +286,19 @@
           loop_control:
             loop_var:                  item
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Check if ANF hana mounts did not error on {{ primary_instance_name }}"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Check if ANF hana mounts did not error on {{ primary_instance_name }}"
           ansible.builtin.set_fact:
             chk_nfs_mounts_enable_node1:  "{{ nfs_mounts_enable_node1.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | list }}"
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Fail when ANF hana mounts errored on {{ primary_instance_name }}"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Fail when ANF hana mounts errored on {{ primary_instance_name }}"
           ansible.builtin.fail:
             msg:                       "Failed to create ANF hana mounts on {{ primary_instance_name }}"
           when:                        chk_nfs_mounts_enable_node1 | length > 0
 
-    - name:                            "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Enable ANF hana mounts on {{ secondary_instance_name }}"
+    - name:                            "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Enable ANF hana mounts on {{ secondary_instance_name }}"
       when:                            ansible_hostname == secondary_instance_name
       block:
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Enable filesystem resource in Pacemaker"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Enable filesystem resource in Pacemaker"
           ansible.builtin.shell: >
                                        pcs resource enable {{ item.fs_name }}
           register:                    nfs_mounts_enable_node2
@@ -311,16 +311,16 @@
           loop_control:
             loop_var:                  item
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Check if ANF hana mounts did not error on {{ secondary_instance_name }}"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Check if ANF hana mounts did not error on {{ secondary_instance_name }}"
           ansible.builtin.set_fact:
             chk_nfs_mounts_enable_node2:  "{{ nfs_mounts_enable_node2.results | selectattr('rc', 'ne', 0) | rejectattr('stderr', 'search', 'already exists') | list }}"
 
-        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Fail when ANF hana mounts errored on {{ secondary_instance_name }}"
+        - name:                        "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Fail when ANF hana mounts errored on {{ secondary_instance_name }}"
           ansible.builtin.fail:
             msg:                       "Failed to create ANF hana mounts on {{ secondary_instance_name }}"
           when:                        chk_nfs_mounts_enable_node2 | length > 0
 
-    - name:                            "5.5.4.0 HANA Pacemaker - Cluster Preparation - RHEL - Start HANA System on node"
+    - name:                            "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Start HANA System on node"
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
       ansible.builtin.command:         "{{ sapcontrol_command }} -function StartSystem"

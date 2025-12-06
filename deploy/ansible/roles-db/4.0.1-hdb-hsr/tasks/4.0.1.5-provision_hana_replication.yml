@@ -80,10 +80,9 @@
         SAP_RETRIEVAL_PATH:            "/usr/sap/{{ DB }}/{{ virtual_host }}"
         SECUDIR:                       "/usr/sap/{{ DB }}/{{ virtual_host }}/sec"
 
-    - name:                            "4.0.1.5 Hana System Replication - Debug replication status"
+    - name:                            "4.0.1.5 Hana System Replication - Show replication status"
       ansible.builtin.debug:
-        var:                           hana_replication_status
-        verbosity:                     0
+        msg:                           "HANA replication status: {{ hana_replication_status.stdout | default('No status returned') }}"
 
     - name:                            "4.0.1.5 Hana System Replication - Ensure Primary node is configured for System Replication"
       become_user:                     "{{ db_sid_admin_user }}"
@@ -107,13 +106,6 @@
     - name:                            "4.0.1.5 Hana System Replication - Check replication state on primary"
       ansible.builtin.set_fact:
         primary_replication_enabled:   "{{ ('mode: primary' in hana_replication_status.stdout_lines) | bool }}"
-      vars:
-        allow_world_readable_tmpfiles: true
-      environment:
-        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
 - name:                                "4.0.1.5 Hana System Replication - Set INI File values"
   ansible.builtin.import_tasks:        4.0.1.5.0-set_global_ini_values.yml

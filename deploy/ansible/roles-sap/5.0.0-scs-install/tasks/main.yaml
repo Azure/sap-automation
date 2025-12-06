@@ -161,7 +161,7 @@
           - "HOST:       {{ scs_virtual_hostname }}"
           - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
-    - name:                            "5.0.0 SAP Central Services Installation - Create temp directory for sid"
+    - name:                            "5.0.0 SAP Central Services Installation - Create directory for installation log files"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         state:                         directory

@@ -150,7 +150,7 @@
     # | 2230669 - System Provisioning Using a Parameter Input File                 |
     # *====================================4=======================================8
 
-    - name:                            "5.0.1. Central Services Installation (HA) - SCS - Create temp directory for sid"
+    - name:                            "5.0.1. Central Services Installation (HA) - SCS - Create directory for installation log files"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         state:                         directory
