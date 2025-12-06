@@ -13,20 +13,19 @@
 - name:                                "5.6.5 SCS/ERS Pacemaker - Cleanup stonith"
   ansible.builtin.shell:               stonith_admin --cleanup --history={{ primary_instance_name }}
   when:
-#    - ansible_os_family | upper == 'SUSE'
     - inventory_hostname == primary_instance_name
 
 - name:                                "5.6.5 SCS/ERS Pacemaker Pause to give cluster time to stabilize"
   ansible.builtin.pause:
     seconds:                           "{{ cluster_status_report_wait_in_s }}"
 
-- name:                                "5.6.5 SCS/ERS Pacemaker - SUSE - Check the post-provisioning cluster status"
+- name:                                "5.6.5 SCS/ERS Pacemaker - Check the cluster status"
   ansible.builtin.shell:               "{{ cluster_status_cmd[ansible_os_family] }}"
   register:                            cluster_status_report
   changed_when:                        false
   failed_when:                         false
 
-- name:                                "5.6.5 SCS/ERS Pacemaker - SUSE - Output cluster status"
+- name:                                "5.6.5 SCS/ERS Pacemaker - Show cluster status"
   ansible.builtin.debug:
     msg:                               "Cluster status: {{ cluster_status_report.stdout }}"
 
