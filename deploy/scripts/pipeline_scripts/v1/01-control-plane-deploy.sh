@@ -372,6 +372,11 @@ if [ -f "${deployer_configuration_file}" ]; then
 	added=1
 fi
 
+if [ -f DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md ]; then
+	git add -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md"
+	added=1
+fi
+
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
 	added=1

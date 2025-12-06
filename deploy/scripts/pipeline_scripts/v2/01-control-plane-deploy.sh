@@ -553,6 +553,12 @@ if [ -f "${library_tfvars_file_name}" ]; then
 	added=1
 fi
 
+if [ -f DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md ]; then
+	git add -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md"
+	added=1
+fi
+
+
 if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(grep -m1 "storage_account_name" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 

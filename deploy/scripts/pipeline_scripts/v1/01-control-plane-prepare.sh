@@ -367,6 +367,8 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	added=1
 fi
 
+
+
 if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
 	git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
 	added=1
@@ -374,6 +376,11 @@ fi
 
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name" ]; then
 	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name"
+	added=1
+fi
+
+if [ -f DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md ]; then
+	git add -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md"
 	added=1
 fi
 

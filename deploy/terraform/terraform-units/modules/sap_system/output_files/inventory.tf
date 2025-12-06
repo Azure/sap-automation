@@ -313,7 +313,7 @@ resource "local_file" "sap_inventory_md" {
               url                         = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/overview", data.azurerm_client_config.current.tenant_id, var.created_resource_group_subscription_id, var.created_resource_group_name)
               }
             )
-  filename             = format("%s/%s.md", path.cwd, var.sap_sid)
+  filename             = format("%s/readme.md", path.cwd)
   file_permission      = "0660"
   directory_permission = "0770"
 }

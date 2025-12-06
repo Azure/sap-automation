@@ -279,3 +279,47 @@ output "application_configuration_id"                  {
 }
 
 
+resource "local_file" "sap_inventory_md" {
+  content = templatefile(format("%s/templates/deployer.tmpl", path.module), {
+              resource_group_name         = var.infrastructure.resource_group.exists ? (
+                                           data.azurerm_resource_group.deployer[0].name) : (
+                                           azurerm_resource_group.deployer[0].name
+                                         )
+              subscription_id             = var.infrastructure.resource_group.exists ? (
+                                           split("/", data.azurerm_resource_group.deployer[0].id))[2] : (
+                                           split("/", azurerm_resource_group.deployer[0].id)[2]
+                                         )
+              url                         = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/overview",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    var.infrastructure.resource_group.exists ? (
+                                                      split("/", data.azurerm_resource_group.deployer[0].id))[2] : (
+                                                      split("/", azurerm_resource_group.deployer[0].id)[2]),
+                                                    var.infrastructure.resource_group.exists ? (
+                                                      data.azurerm_resource_group.deployer[0].name) : (
+                                                      azurerm_resource_group.deployer[0].name)
+                                                  )
+              key_vault_url               = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/overview",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    var.infrastructure.resource_group.exists ? (
+                                                      split("/", data.azurerm_resource_group.deployer[0].id))[2] : (
+                                                      split("/", azurerm_resource_group.deployer[0].id)[2]),
+                                                    var.infrastructure.resource_group.exists ? (
+                                                      data.azurerm_resource_group.deployer[0].name) : (
+                                                      azurerm_resource_group.deployer[0].name),
+                                                    var.key_vault.exists ?
+                                                      data.azurerm_key_vault.kv_user[0].name :
+                                                      azurerm_key_vault.kv_user[0].name
+                                                    )
+              key_vault_name              = var.key_vault.exists ?
+                                                    data.azurerm_key_vault.kv_user[0].name :
+                                                    azurerm_key_vault.kv_user[0].name
+
+              app_serviceurl              = var.app_service.use ? format("https://%s.azurewebsites.net", try(azurerm_windows_web_app.webapp[0].name, "")) : ""
+              app_service_name            = var.app_service.use ? try(azurerm_windows_web_app.webapp[0].name, "") : ""
+              }
+            )
+  filename             = format("%s/readme.md", path.cwd)
+  file_permission      = "0660"
+  directory_permission = "0770"
+}
+

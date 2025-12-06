@@ -303,7 +303,7 @@ else
 		git clean -d -f -X
 
 		if [ -f ".terraform/terraform.tfstate" ]; then
-			git rm --ignore-unmatch -q --ignore-unmatch ".terraform/terraform.tfstate"
+			git rm -f --ignore-unmatch -q --ignore-unmatch ".terraform/terraform.tfstate"
 			changed=1
 		fi
 
@@ -318,17 +318,17 @@ else
 		fi
 
 		if [ -f "sap-parameters.yaml" ]; then
-			git rm --ignore-unmatch -q "sap-parameters.yaml"
+			git rm -f --ignore-unmatch -q "sap-parameters.yaml"
 			changed=1
 		fi
 
 		if [ -f "${SID}_hosts.yaml" ]; then
-			git rm --ignore-unmatch -q "${SID}_hosts.yaml"
+			git rm -f --ignore-unmatch -q "${SID}_hosts.yaml"
 			changed=1
 		fi
 
 		if [ -f "${SID}.md" ]; then
-			git rm --ignore-unmatch -q "${SID}.md"
+			git rm -f --ignore-unmatch -q "${SID}.md"
 			changed=1
 		fi
 
