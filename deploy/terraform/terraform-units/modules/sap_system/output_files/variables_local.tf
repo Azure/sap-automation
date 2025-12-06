@@ -70,4 +70,6 @@ locals {
                                               format("{ host: '%s', ip : %s, iqn: %s, type: 'db' }", vm, var.iSCSI_server_ips[idx], local.db_iqn)]]))) : (
                                           [])
 
+  use_local_credentials                = length(var.authentication) > 0
+
 }
