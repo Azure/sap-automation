@@ -49,24 +49,24 @@
     state:                             restarted
 
 # Check the current swap size
-- name:                                "check swap size"
+- name:                                "1.1 Swap - Check swap size"
   ansible.builtin.shell:               set -o pipefail && cat /proc/meminfo | grep SwapTotal
   register:                            swap_space
 
-- name:                                "SWAP space from /proc/meminfo"
+- name:                                "1.1 Swap - Show SWAP space from /proc/meminfo"
   ansible.builtin.debug:
     msg:                               "SWAP size from procinfo: {{ swap_space }}"
     verbosity:                         2
 
-- name:                                "Trim Swap space"
+- name:                                "1.1 Swap - Store SWAP space value"
   ansible.builtin.set_fact:
     swap_value:                        "{{ swap_space.stdout_lines[0] | regex_search('([0-9]+)') }}"
 
-- name:                                "Swap space in Integer"
+- name:                                "1.1 Swap - Swap space in Integer"
   ansible.builtin.set_fact:
     swap_size:                         "{{ swap_value | int }}"
 
-- name:                                "SWAP size"
+- name:                                "1.1 Swap - Show SWAP size"
   ansible.builtin.debug:
     msg:                               "Swap size: {{ swap_size }}"
 

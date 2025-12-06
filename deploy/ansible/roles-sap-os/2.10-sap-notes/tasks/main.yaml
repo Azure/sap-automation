@@ -87,7 +87,7 @@
       ansible.posix.selinux:
         state:                         disabled
       register:                        selinux_disabled
-      notify:                          "2.10-SAP Note Reboot after the selinux is configured"
+      notify:                          "2.10 SAP Note - Reboot after the selinux is configured"
       tags:                            ansible_skip_lint
 
     # only for debugging purposes

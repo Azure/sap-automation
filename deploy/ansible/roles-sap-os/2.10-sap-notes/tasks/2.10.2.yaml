@@ -42,7 +42,7 @@
   ansible.posix.selinux:
     state:                             permissive
     policy:                            targeted
-  notify:                              "2.10-SAP Note Reboot after the selinux is configured"
+  notify:                              "2.10.2 - Force all notified handlers to run now"
   tags: ansible_skip_lint
 
 
