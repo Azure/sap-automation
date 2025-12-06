@@ -610,19 +610,19 @@ resource "local_file" "resource_group_md" {
                                             )
               url                         = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/overview",
                                                     data.azurerm_client_config.current.tenant_id,
-                                                    var.infrastructure.resource_group.exists ? (
+                                                    local.resource_group_exists ? (
                                                       split("/", data.azurerm_resource_group.resource_group[0].id))[2] : (
                                                       split("/", azurerm_resource_group.resource_group[0].id)[2]),
-                                                    var.infrastructure.resource_group.exists ? (
+                                                    local.resource_group_exists ? (
                                                       data.azurerm_resource_group.resource_group[0].name) : (
                                                       azurerm_resource_group.resource_group[0].name)
                                                   )
               key_vault_url               = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/overview",
                                                     data.azurerm_client_config.current.tenant_id,
-                                                    var.infrastructure.resource_group.exists ? (
+                                                    local.resource_group_exists ? (
                                                       split("/", data.azurerm_resource_group.resource_group[0].id))[2] : (
                                                       split("/", azurerm_resource_group.resource_group[0].id)[2]),
-                                                    var.infrastructure.resource_group.exists ? (
+                                                    local.resource_group_exists ? (
                                                       data.azurerm_resource_group.resource_group[0].name) : (
                                                       azurerm_resource_group.resource_group[0].name),
                                                     var.key_vault.exists ?
