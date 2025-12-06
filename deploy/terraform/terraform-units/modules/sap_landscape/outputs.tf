@@ -188,7 +188,7 @@ output "storage_nsg_id"                         {
 
 output "subnet_mgmt_id"                         {
                                                   description = "Azure resource identifier for the management subnet"
-                                                  value       = local.resource_group_subnet_management_id
+                                                  value       = local.deployer_virtual_network_id
                                                 }
 
 
@@ -636,7 +636,7 @@ resource "local_file" "resource_group_md" {
 
               password_secret_name        = local.sid_password_secret_name
               username_secret_name        = local.sid_username_secret_name
-              ssh_secret_name             = local.sid_ssh_secret_name
+              ssh_secret_name             = local.sid_private_key_secret_name
 
               key_vault_url               = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/overview",
                                                     data.azurerm_client_config.current.tenant_id,
