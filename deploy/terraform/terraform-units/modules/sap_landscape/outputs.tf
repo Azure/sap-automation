@@ -645,8 +645,8 @@ resource "local_file" "resource_group_md" {
                                                       azurerm_key_vault.kv_user[0].name
                                                     ),
                                                     var.key_vault.exists ? (
-                                                      split(data.azurerm_key_vault.kv_user[0].id, "/")[2]) : (
-                                                      split(azurerm_key_vault.kv_user[0].id, "/")[2]
+                                                      split( "/", data.azurerm_key_vault.kv_user[0].id)[2]) : (
+                                                      split( "/", azurerm_key_vault.kv_user[0].id)[2]
                                                     ),
                                                     var.key_vault.exists ? (
                                                       split(data.azurerm_key_vault.kv_user[0].id, "/")[4]) : (
