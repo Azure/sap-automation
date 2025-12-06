@@ -197,16 +197,16 @@
   when:                                           ansible_os_family | upper == "REDHAT"
   ansible.builtin.debug:
     msg:
-      - "pacemaker:                               {{ ansible_facts.packages['pacemaker'] }}"
-      - "resource-agents:                         {{ ansible_facts.packages['resource-agents'] }}"
-      - "fence-agents-azure-arm:                  {{ ansible_facts.packages['fence-agents-azure-arm'] }}"
+      - "pacemaker:                               {{ ansible_facts.packages['pacemaker'][0].name }} {{ ansible_facts.packages['pacemaker'][0].version }}"
+      - "resource-agents:                         {{ ansible_facts.packages['resource-agents'][0].name }} {{ ansible_facts.packages['resource-agents'][0].version }}"
+      - "fence-agents-azure-arm:                  {{ ansible_facts.packages['fence-agents-azure-arm'][0].name }} {{ ansible_facts.packages['fence-agents-azure-arm'][0].version }}"
 
 - name:                                           "1.18.0 Generic Pacemaker - Show packages information ({{ ansible_os_family | upper }})"
   when:                                           ansible_os_family | upper == "SUSE"
   ansible.builtin.debug:
     msg:
-      - "pacemaker:                               {{ ansible_facts.packages['pacemaker'] }}"
-      - "resource-agents:                         {{ ansible_facts.packages['resource-agents'] }}"
+      - "pacemaker:                               {{ ansible_facts.packages['pacemaker'][0].name }} {{ ansible_facts.packages['pacemaker'][0].version }}"
+      - "resource-agents:                         {{ ansible_facts.packages['resource-agents'][0].name }} {{ ansible_facts.packages['resource-agents'][0].version  }}"
 
 - name:                                           "Verify that the packages are the right version"
   ansible.builtin.assert:
