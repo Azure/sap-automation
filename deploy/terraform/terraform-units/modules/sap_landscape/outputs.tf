@@ -188,7 +188,7 @@ output "storage_nsg_id"                         {
 
 output "subnet_mgmt_id"                         {
                                                   description = "Azure resource identifier for the management subnet"
-                                                  value       = local.deployer_virtual_network_id
+                                                  value       = local.deployer_subnet_management_id
                                                 }
 
 
