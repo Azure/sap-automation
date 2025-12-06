@@ -649,8 +649,8 @@ resource "local_file" "resource_group_md" {
                                                       split( "/", azurerm_key_vault.kv_user[0].id)[2]
                                                     ),
                                                     var.key_vault.exists ? (
-                                                      split(data.azurerm_key_vault.kv_user[0].id, "/")[4]) : (
-                                                      split(azurerm_key_vault.kv_user[0].id, "/")[4]
+                                                      split("/", data.azurerm_key_vault.kv_user[0].id)[4]) : (
+                                                      split("/", azurerm_key_vault.kv_user[0].id)[4]
                                                     ),
                                                     )
               username_secret_url         = format("https://portal.azure.com/#@%s/asset/Microsoft_Azure_KeyVault/Secret/https://%s.vault.azure.net/secrets/%s",
