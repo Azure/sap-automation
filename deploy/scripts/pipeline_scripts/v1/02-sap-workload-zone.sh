@@ -292,6 +292,11 @@ if [ -f .terraform/terraform.tfstate ]; then
 	added=1
 fi
 
+if [ -f readme.md ]; then
+	git add -f "readme.md"
+	added=1
+fi
+
 if [ -f "${workload_environment_file_name}" ]; then
 	git add "${workload_environment_file_name}"
 	added=1
