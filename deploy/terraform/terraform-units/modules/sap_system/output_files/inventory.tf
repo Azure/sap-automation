@@ -224,7 +224,7 @@ resource "local_file" "sap-parameters_yml" {
               is_use_fence_kdump          = var.is_use_fence_kdump
               is_use_sles_hanasr_angi     = var.database.database_hana_use_saphanasr_angi
               iscsi_server_list           = concat(local.iscsi_scs_servers, local.iscsi_db_servers)
-              kv_name                     = lower(local.kv_name),
+              kv_name                     = lower(local.key_vault_name),
               NFS_provider                = var.NFS_provider
               pas_instance_number         = var.pas_instance_number
               platform                    = var.platform
