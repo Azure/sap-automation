@@ -289,7 +289,7 @@ if [ -f "${SID}_virtual_machines.json" ]; then
 	added=1
 fi
 
-if [ -f "$readme.md" ]; then
+if [ -f "readme.md" ]; then
 	sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/${SID}.md"
 	echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${SID}.md;]$AGENT_TEMPDIRECTORY/${SID}.md"
 fi
