@@ -20,8 +20,8 @@
 
 - name:                                "5.5.5 HANA Pacemaker configuration - Output cluster status"
   ansible.builtin.debug:
-    msg:                               "{{ cluster_status_report.stdout }}"
-    verbosity:                         2
+    msg:                               "Cluster Status: {{ cluster_status_report.stdout }}"
+
 
 - name:                                "5.5.5 HANA Pacemaker configuration - Check the SBD devices status"
   ansible.builtin.shell:               set -o pipefail && crm_mon -1 | grep sbd
@@ -83,18 +83,13 @@
 - name:                                "5.5.5 HANA Pacemaker configuration - Log that the hook script is working as expected"
   block:
 
-    - name:                            "5.5.5 HANA Pacemaker configuration - Debug (saphanasr)"
-      ansible.builtin.debug:
-        var:                           saphanasr
-        verbosity:                     2
-
     - name:                            "5.5.5 HANA Pacemaker configuration - set_fact (saphanasr)"
       ansible.builtin.set_fact:
         hsr_result:                    saphanasr.stdout
 
-    - name:                            "5.5.5 HANA Pacemaker configuration - Debug (hsr_result)"
+    - name:                            "5.5.5 HANA Pacemaker configuration - Show HSR Hook verification result"
       ansible.builtin.debug:
-        var:                           hsr_result
+        msg:                           "HSR Hook verification result: {{ hsr_result }}"
         verbosity:                     2
 
     - name:                            "5.5.5 HANA Pacemaker configuration - Assert HSR Hook verification is successful"
@@ -109,7 +104,7 @@
     var:                               saphanasr
     verbosity:                         2
 
-- name:                                "5.5.5 HANA Pacemaker configuration - HANA PCM Install: reset"
+- name:                                "5.5.5 HANA Pacemaker configuration - Set Flag file for SAP Deployment Automation"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
     state:                             touch
