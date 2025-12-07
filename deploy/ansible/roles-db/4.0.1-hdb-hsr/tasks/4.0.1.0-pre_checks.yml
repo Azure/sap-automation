@@ -98,14 +98,13 @@
       # code will cope with a missing tenant DB.
       when: not hana_has_system_db
 
+      # If HSR is already enabled, we cannot read from the secondary node
+
 - name:                                "4.0.1.0 Hana System Replication - Check that HANA DB SYSTEM user can access the SYSTEM database"
-  block:
   when:
     - ansible_hostname == primary_instance_name
     - hana_system_replication_needed
-
-      # If HSR is already enabled, we cannot read from the secondary node
-
+  block:
     - name:                            "4.0.1.0 Hana System Replication - Check that HANA DB SYSTEM user can access the SYSTEM database"
       become_user:                     "{{ db_sid_admin_user }}"
       become:                          true
