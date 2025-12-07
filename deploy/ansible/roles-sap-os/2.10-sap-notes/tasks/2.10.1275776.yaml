@@ -42,7 +42,7 @@
 - name:                                "2.10 SAP Note 1275776 - Disable SELinux"
   ansible.posix.selinux:
     state:                             disabled
-  notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
+  notify:                              "2.10 SAP Note - Reboot after configuration"
   tags: ansible_skip_lint
 
 

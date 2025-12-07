@@ -20,7 +20,7 @@
     state:                             directory
     mode:                              "0755"
   notify:
-    - Restart waagent
+    - "1.1 Swap - Restart waagent"
 
 # - name:                                "1.1 Swap - Update WAAgent on {{ ansible_os_family }}"
 #   ansible.builtin.dnf:

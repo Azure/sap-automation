@@ -42,11 +42,11 @@
   ansible.posix.selinux:
     state:                             permissive
     policy:                            targeted
-  notify:                              "2.10.2 - Force all notified handlers to run now"
+  notify:                              "2.10 SAP Note - Reboot after configuration"
   tags: ansible_skip_lint
 
 
-- name:                                "2.10.2 - Force all notified handlers to run now"
+- name:                                "2.10 SAP Note - Force all notified handlers to run now"
   ansible.builtin.meta:                flush_handlers
 
 

@@ -3,7 +3,7 @@
 
 # ---
 
-- name:                                "2.10 SAP Note - Reboot after the selinux is configured"
+- name:                                "2.10 SAP Note - Reboot after configuration"
   become:                              true
   become_user:                         root
   ansible.builtin.reboot:
