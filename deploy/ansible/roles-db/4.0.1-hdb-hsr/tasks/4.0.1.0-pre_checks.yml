@@ -82,7 +82,7 @@
       vars:
         db_sid_upper:                  "{{ db_sid | upper }}"
 
-    - name:                            "4.0.1.0 Hana System Replication -  Show if HANA has the 'SYSTEMDB' database"
+    - name:                            "4.0.1.0 Hana System Replication - Show if HANA has the 'SYSTEMDB' database"
       ansible.builtin.debug:
         msg:
           - "HANA has SYSTEMDB:        {{ hana_has_system_db }}"
