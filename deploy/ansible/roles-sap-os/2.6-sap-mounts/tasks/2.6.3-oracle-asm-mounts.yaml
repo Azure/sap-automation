@@ -49,7 +49,7 @@
 
 - name:                                "2.6.3 ORACLE ASM - Mounts -  Gather existing Logical Volumes"
   ansible.builtin.set_fact:
-    lvexists -                          "{{ oravgstat.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item.lv') | list }}"
+    lvexists:                          "{{ oravgstat.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item.lv') | list }}"
 
 - name:                                "2.6.3 ORACLE ASM - Mounts -  Print lvexists"
   ansible.builtin.debug:
