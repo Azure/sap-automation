@@ -79,7 +79,7 @@
 
 - name:                                "5.0.0 SAP Central Services Installation - Find the installationSuccesfullyFinished.dat (SAPINST)"
   ansible.builtin.find:
-    paths:                             "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ scs_bom_instance_type }}/{{ application_type }}"
+    paths:                             "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ instance_type }}/{{ application_type }}"
     file_type:                         file
     patterns:                          'installationSuccesfullyFinished.dat'
     recurse:                           false
@@ -233,7 +233,7 @@
 
     - name:                            "5.0.0 SAP Central Services Installation - Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
-        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ scs_bom_instance_type }}/{{ application_type }}"
+        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ instance_type }}/{{ application_type }}"
         file_type:                     file
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true
