@@ -7,23 +7,32 @@
 # | Post processing
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+- name:                                "5.8.5 HANA Pacemaker Scale-out - Cleanup resources"
+  ansible.builtin.shell:               "{{ cluster_cleanup_cmd[ansible_os_family] }}"
+  when:
+    - inventory_hostname == primary_instance_name
 
-- name:                                "5.8 HANA Pacemaker Scale-out - Pause to give cluster time to stabilize"
+- name:                                "5.8.5 HANA Pacemaker Scale-out - Cleanup stonith"
+  ansible.builtin.shell:               stonith_admin --cleanup --history={{ primary_instance_name }}
+  when:
+    - inventory_hostname == primary_instance_name
+
+- name:                                "5.8.5 HANA Pacemaker Scale-out - Pause to give cluster time to stabilize"
   ansible.builtin.wait_for:
     timeout:                           "{{ cluster_status_report_wait_in_s }}"
 
-- name:                                "5.8 HANA Pacemaker Scale-out - Check the post-provisioning cluster status"
+- name:                                "5.8.5 HANA Pacemaker Scale-out - Check the post-provisioning cluster status"
   ansible.builtin.command:             "{{ cluster_status_cmd[ansible_os_family] }}"
   register:                            cluster_status_report
   changed_when:                        false
   failed_when:                         false
 
-- name:                                "5.8 HANA Pacemaker Scale-out - Output cluster status"
+- name:                                "5.8.5 HANA Pacemaker Scale-out - Output cluster status"
   ansible.builtin.debug:
     msg:                               "{{ cluster_status_report.stdout }}"
     verbosity:                         2
 
-- name:                                "5.8 HANA Pacemaker Scale-out - Check the SBD devices status"
+- name:                                "5.8.5 HANA Pacemaker Scale-out - Check the SBD devices status"
   when:                                ansible_os_family | upper == 'SUSE'
   ansible.builtin.shell:               set -o pipefail && crm_mon -1 | grep sbd
   register:                            sbd_status_report
@@ -31,7 +40,7 @@
   failed_when:                         false
 
 
-- name:                                "5.8 HANA Pacemaker Scale-out - Output SBD status"
+- name:                                "5.8.5 HANA Pacemaker Scale-out - Output SBD status"
   when:                                ansible_os_family | upper == 'SUSE'
   ansible.builtin.debug:
     msg:                               "{{ sbd_status_report.stdout }}"
@@ -41,13 +50,13 @@
     timeout:                           "{{ hsr_status_report_wait_in_s }}"
 
 # Code block is specifically for Scale-out, SUSE and RedHat
-- name:                                "5.8 HANA Pacemaker Scale-out - Verify that the hook script is working as expected (Scale Out) for SUSE "
+- name:                                "5.8.5 HANA Pacemaker Scale-out - Verify that the hook script is working as expected (Scale Out) for SUSE "
   when:
                                        - database_scale_out
                                        - ansible_os_family | upper == 'SUSE'
                                        - inventory_hostname == primary_instance_name
   block:
-    - name:                            "5.8 HANA Pacemaker Scale-out - Verify the hook Installation (SUSE)"
+    - name:                            "5.8.5 HANA Pacemaker Scale-out - Verify the hook Installation (SUSE)"
       become_user:                     root
       become:                          true
       ansible.builtin.shell:           /usr/sbin/SAPHanaSR-showAttr
@@ -56,11 +65,11 @@
       retries:                         10
       delay:                           30
   rescue:
-    - name:                            "[Rescue] 5.8 HANA Pacemaker Scale-out - Pause to give HANA replication time to stabilize"
+    - name:                            "[Rescue] 5.8.5 HANA Pacemaker Scale-out - Pause to give HANA replication time to stabilize"
       ansible.builtin.wait_for:
         timeout:                       "{{ rescue_hsr_status_report_wait_in_s }}"
 
-    - name:                            "[Rescue] 5.8 HANA Pacemaker Scale-out - Verify the hook Installation (SUSE)"
+    - name:                            "[Rescue] 5.8.5 HANA Pacemaker Scale-out - Verify the hook Installation (SUSE)"
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
       ansible.builtin.shell: |
@@ -73,7 +82,7 @@
       retries:                         10
       delay:                           30
 
-- name:                                "5.8 HANA Pacemaker Scale-out - Verify that the hook script is working as expected (Scale Out) for Red Hat {{ ansible_distribution_major_version }}"
+- name:                                "5.8.5 HANA Pacemaker Scale-out - Verify that the hook script is working as expected (Scale Out) for Red Hat {{ ansible_distribution_major_version }}"
   when:
                                        - ansible_os_family | upper == "REDHAT"
                                        - ansible_hostname == primary_instance_name
@@ -93,11 +102,11 @@
       retries:                         10
       delay:                           30
   rescue:
-    - name:                            "[Rescue] 5.8 HANA Pacemaker Scale-out - Pause to give HANA replication time to stabilize"
+    - name:                            "[Rescue] 5.8.5 HANA Pacemaker Scale-out - Pause to give HANA replication time to stabilize"
       ansible.builtin.wait_for:
         timeout:                       "{{ rescue_hsr_status_report_wait_in_s }}"
 
-    - name:                            "[Rescue] 5.8 HANA Pacemaker Scale-out - Verify the hook Installation (REDHAT)"
+    - name:                            "[Rescue] 5.8.5 HANA Pacemaker Scale-out - Verify the hook Installation (REDHAT)"
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
       ansible.builtin.shell: |
@@ -111,7 +120,7 @@
       retries:                         10
       delay:                           30
 
-- name:                                "5.8 HANA Pacemaker Scale-out - flag"
+- name:                                "5.8.5 HANA Pacemaker Scale-out - flag"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
     state:                             touch

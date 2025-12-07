@@ -8,6 +8,16 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
+- name:                                "5.5.5 HANA Pacemaker configuration - Cleanup resources"
+  ansible.builtin.shell:               "{{ cluster_cleanup_cmd[ansible_os_family] }}"
+  when:
+    - inventory_hostname == primary_instance_name
+
+- name:                                "5.5.5 HANA Pacemaker configuration - Cleanup stonith"
+  ansible.builtin.shell:               stonith_admin --cleanup --history={{ primary_instance_name }}
+  when:
+    - inventory_hostname == primary_instance_name
+
 - name:                                "5.5.5 HANA Pacemaker configuration - Pause to give cluster time to stabilize"
   ansible.builtin.pause:
     seconds:                           "{{ cluster_status_report_wait_in_s }}"
