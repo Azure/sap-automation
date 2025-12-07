@@ -9,7 +9,7 @@
 # +------------------------------------4--------------------------------------*/
 
 - name:                                "2.6.3 ORACLE ASM - Mounts - Gather Logical volumes created in 1.5.1"
-  ansible.builtin.include_vars -        disks_config_asm.yml
+  ansible.builtin.include_vars:        disks_config_asm.yml
 
 - name:                                "2.6.3 ORACLE ASM - Mounts -  Set the NFS Server name list"
   ansible.builtin.set_fact:
