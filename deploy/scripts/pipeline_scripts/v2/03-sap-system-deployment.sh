@@ -416,7 +416,7 @@ fi
 # Platform-specific summary handling
 if [ -f "${SID}.md" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-	  sudo cp "$readme.md" "$AGENT_TEMPDIRECTORY/${SID}.md"
+	  sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/${SID}.md"
 		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${SID}.md;]$AGENT_TEMPDIRECTORY/${SID}.md"
 	elif [ "$PLATFORM" == "github" ]; then
 		cat "readme.md" >>$GITHUB_STEP_SUMMARY
