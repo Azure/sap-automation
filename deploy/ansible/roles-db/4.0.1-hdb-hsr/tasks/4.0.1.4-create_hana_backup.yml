@@ -52,7 +52,8 @@
     - name:                            "4.0.1.4 Hana System Replication - Backup completed SYSTEMDB database for System Identifier: {{ db_sid }}"
       ansible.builtin.debug:
         msg:
-          - "Backup results:  {{ backup_systemdb_result }}"
+          - "Backup command:  {{ backup_systemdb_result.cmd | default('N/A') }}"
+          - "Backup results:  {{ backup_systemdb_result.stdout }}"
       when:
         - backup_systemdb
         - backup_systemdb_result.stdout is defined
@@ -73,6 +74,7 @@
           ansible.builtin.debug:
             msg:
               - "Backup needed:         {{ backup_tenantdb }}"
+              - "Backup command:        {{ backup_exists_cmd_for_tenant_result.cmd | default('N/A') }}"
               - "Backup query results:  {{ backup_exists_cmd_for_tenant_result.stdout }}"
 
         - name:                        "4.0.1.4 Hana System Replication - Backup {{ hana_tenant_database_name }} database for System Identifier {{ db_sid }}"
