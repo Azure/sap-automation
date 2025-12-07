@@ -55,7 +55,7 @@
   args:
     executable:                        /bin/csh
 
-- name:                                "5.1. Database Load - ORACLE: Check if catsbp exists"
+- name:                                "5.1 Database Load  - ORACLE: Check if catsbp exists"
   ansible.builtin.stat:
     path:                               "/oracle/{{ db_sid | upper }}/{{ ora_version }}/sapbundle/catsbp"
   register:                            catsbp_stat

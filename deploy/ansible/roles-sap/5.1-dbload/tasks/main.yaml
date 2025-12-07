@@ -11,14 +11,14 @@
 
 ---
 
-- name:                                "5.1. Database Load - Set dbload facts"
+- name:                                "5.1 Database Load  - Set dbload facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "dbload-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.params"
     pas_virtual_hostname:              "{{ custom_pas_virtual_hostname | default(virtual_host, true) }}"
 
-- name:                                "5.1. Database Load - Create directories"
+- name:                                "5.1 Database Load  - Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -28,14 +28,14 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
 
-- name:                                "5.1. Database Load - Reset the installation flag file if reinstall is requested"
+- name:                                "5.1 Database Load  - Reset the installation flag file if reinstall is requested"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
     state:                             absent
   when:                                reinstall
 
 # Returns bom object
-- name:                                "5.1. Database Load - Register BoM"
+- name:                                "5.1 Database Load  - Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
@@ -49,7 +49,7 @@
     instance_type:                     "ASCS"
   when:                                bom.InstanceType is not defined
 
-- name:                                "5.1. Database Load - register instance type"
+- name:                                "5.1 Database Load  - register instance type"
   ansible.builtin.set_fact:
     instance_type:  >-
                                        {%- set _instance_type = 'ASCS' -%}
@@ -64,15 +64,15 @@
     public:                            true
   when:                                bom.InstanceType is defined
 
-- name:                                "5.1. Database Load - Register application type"
+- name:                                "5.1 Database Load  - Register application type"
   ansible.builtin.set_fact:
     application_type:                  "{% if instance_type == 'SCS' %}JAVA{% else %}ABAP{% endif %}"
 
-- name:                                "5.1. Database Load - Set the product ID"
+- name:                                "5.1 Database Load  - Set the product ID"
   ansible.builtin.set_fact:
     product_id:                        "{{ bom.product_ids.dbl }}"
 
-- name:                                "5.1. Database Load - Set dbload path"
+- name:                                "5.1 Database Load  - Set dbload path"
   ansible.builtin.set_fact:
     db_load_path:                      "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ product_id.replace('.', '/').replace('/' + application_type, '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ application_type }}/DB"
 
@@ -81,16 +81,16 @@
     path:                              "{{ db_load_path }}"
   register:                            dbload_performed
 
-- name:                                "5.1. Database Load - Set Database Schema Name"
+- name:                                "5.1 Database Load  - Set Database Schema Name"
   when:
     - platform == "HANA"
   ansible.builtin.include_role:
     name:                              "roles-db/4.0.4-hdb-schema"
     public:                            true
 
-- name:                                "5.1. Database Load - Check if install has been performed previously"
+- name:                                "5.1 Database Load  - Check if install has been performed previously"
   block:
-    - name:                            "5.1. Database Load - Find the installationSuccesfullyFinished.dat (SAPINST)"
+    - name:                            "5.1 Database Load  - Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
         paths:                         "{{ db_load_path }}"
         file_type:                     file
@@ -98,13 +98,13 @@
         recurse:                       false
       register:                        dbload_performed_according_to_sapinst
 
-    - name:                            "5.1. Database Load - Show the installation status according to SAPINST results"
+    - name:                            "5.1 Database Load  - Show the installation status according to SAPINST results"
       ansible.builtin.debug:
         var:                           dbload_performed_according_to_sapinst
         verbosity:                     2
       when:                            dbload_performed.stat.exists
 
-    - name:                            "5.1. Database Load - DBLoad: Set flag file if install has been performed according to SAPINST"
+    - name:                            "5.1 Database Load  - DBLoad: Set flag file if install has been performed according to SAPINST"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
         state:                          touch
@@ -115,12 +115,12 @@
   when:
     - dbload_performed.stat.exists
 
-- name:                                "5.1. Database Load - Check if DBLoad is performed for {{ sid_to_be_deployed.sid | upper }}"
+- name:                                "5.1 Database Load  - Check if DBLoad is performed for {{ sid_to_be_deployed.sid | upper }}"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
   register:                            dbload_installed
 
-- name:                                "5.1. Database Load - Register installation variables"
+- name:                                "5.1 Database Load  - Register installation variables"
   ansible.builtin.set_fact:
     dbl_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}ABAP{% endif %}"
     public:                            true
@@ -131,23 +131,23 @@
 #
 # *====================================4=======================================8
 
-- name:                                "5.1. Database Load - Perform the database load"
+- name:                                "5.1 Database Load  - Perform the database load"
   block:
 
-    - name:                            "5.1. Database Load - Get the list of Central Services servers"
+    - name:                            "5.1 Database Load  - Get the list of Central Services servers"
       ansible.builtin.set_fact:
         scs_server_temp:               "{{ scs_server_temp | default([]) + [item] }}"
       with_items:
         - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
         - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
-    - name:                            "5.1. Database Load - Get the list of database servers"
+    - name:                            "5.1 Database Load  - Get the list of database servers"
       ansible.builtin.set_fact:
         db_server:                     "{{ db_server | default([]) + [item] }}"
       with_items:
         - "{{ query('inventory_hostnames', '{{ sid_to_be_deployed.sid | upper }}_DB') }}"
 
-    - name:                            "5.1. Database Load - Calculate the virtual host name when running HANA scale-out"
+    - name:                            "5.1 Database Load  - Calculate the virtual host name when running HANA scale-out"
       ansible.builtin.set_fact:
         db_virtualhost_temp:  >-
                                        {%- set _host_name = hostvars[db_server | first]['virtual_host'] -%}
@@ -156,20 +156,20 @@
                                        {%- endif -%}
                                        {{- _host_name -}}
 
-    - name:                            "5.1. Database Load - Show temporary database virtual host name"
+    - name:                            "5.1 Database Load  - Show temporary database virtual host name"
       ansible.builtin.debug:
         msg:                           "DB Virtual Host: {{ db_virtualhost_temp }}"
 
-    - name:                            "5.1. Database Load - Set the server facts"
+    - name:                            "5.1 Database Load  - Set the server facts"
       ansible.builtin.set_fact:
         scs_server:                    "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
         db_virtual_hostname:           "{{ db_virtualhost_temp | default(hostvars[db_server | first]['virtual_host'], true) }}"
 
-    - name:                            "5.1. Database Load - Show database virtual host name"
+    - name:                            "5.1 Database Load  - Show database virtual host name"
       ansible.builtin.debug:
         msg:                           "DB Virtual Host: {{ db_virtual_hostname }}"
 
-    - name:                            "5.1. Database Load - Check if installation media exists"
+    - name:                            "5.1 Database Load  - Check if installation media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"
       register:                        sapinst_found
@@ -179,7 +179,7 @@
         msg:                           "INSTALL:0005:Unable to find sapinst, please check that the installation media is mounted"
       when: not sapinst_found.stat.exists
 
-    - name:                            "5.1. Database Load - Check if the backup disk exists on DB Server"
+    - name:                            "5.1 Database Load  - Check if the backup disk exists on DB Server"
       ansible.builtin.set_fact:
         backupdisks_count: >-
                                        {{ disks | selectattr('host', 'defined') |
@@ -188,11 +188,11 @@
                                            map(attribute='type') | sort | unique |
                                            list | length | int }}
 
-    - name:                            "5.1. Database Load - Set backup paths for different deployment scenarios"
+    - name:                            "5.1 Database Load  - Set backup paths for different deployment scenarios"
       when:
         - platform == "HANA"
       block:
-        - name:                        "5.1. Database Load - Set backup path for HSR scale-out high availability configuration"
+        - name:                        "5.1 Database Load  - Set backup path for HSR scale-out high availability configuration"
           when:
                                        - database_scale_out | default(false)
                                        - database_high_availability | default(false)
@@ -201,7 +201,7 @@
           ansible.builtin.set_fact:
             backup_path:               "/hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/backup/data/DB_{{ db_sid | upper }}{{ db_instance_number }}"
 
-        - name:                        "5.1. Database Load - Set backup path for standard scale-out configuration"
+        - name:                        "5.1 Database Load  - Set backup path for standard scale-out configuration"
           when:
                                        - database_scale_out | default(false)
                                        - not (database_high_availability | default(false))
@@ -209,7 +209,7 @@
           ansible.builtin.set_fact:
             backup_path:               "/hana/shared/{{ db_sid | upper }}/HDB{{ db_instance_number }}/backup/data/DB_{{ db_sid | upper }}{{ db_instance_number }}"
 
-        - name:                        "5.1. Database Load - Set backup path for single-node configuration"
+        - name:                        "5.1 Database Load  - Set backup path for single-node configuration"
           when:
                                        - not (database_scale_out | default(false))
           ansible.builtin.set_fact:
@@ -226,7 +226,7 @@
           - "Backup path:              {{ backup_path }}"
 
 
-    - name:                            "5.1. Database Load - Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
+    - name:                            "5.1 Database Load  - Template processing - Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
       ansible.builtin.template:
         src:                           "{{ sap_inifile_template }}"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
@@ -242,17 +242,17 @@
         sap_sid:                       "{{ sid_to_be_deployed.sid }}"
         sidadm_uid:                    "{{ sid_to_be_deployed.sidadm_uid }}"
 
-    - name:                            "5.1. Database Load - Read the ini file"
+    - name:                            "5.1 Database Load  - Read the ini file"
       ansible.builtin.slurp:
         src:                           "{{ dir_params }}/{{ sap_inifile }}"
       register:                        profilefile
 
-    - name:                            "5.1. Database Load - Inifile"
+    - name:                            "5.1 Database Load  - Inifile"
       ansible.builtin.debug:
         msg:                           "{{ profilefile['content'] | b64decode }}"
         verbosity:                     4
 
-    - name:                            "5.1. Database Load - Show installation variables"
+    - name:                            "5.1 Database Load  - Show installation variables"
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ dbload_installed.stat.exists }}"
@@ -264,16 +264,16 @@
           - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
         # Import this task only if the tier is ora.
-    - name:                            "5.1. Database Load - Import Oracle specific tasks"
+    - name:                            "5.1 Database Load  - Import Oracle specific tasks"
       ansible.builtin.import_tasks:    oracle.yaml
       when:
         - node_tier == "oracle-multi-sid"
 
-    - name:                            "5.1. Database Load - Show progress message"
+    - name:                            "5.1 Database Load  - Show progress message"
       ansible.builtin.debug:
         msg:                           "Starting DBLoad for {{ sid_to_be_deployed.sid | upper }}. Please wait"
 
-    - name:                            "5.1. Database Load - run SAPInst"
+    - name:                            "5.1 Database Load  - run SAPInst"
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
@@ -291,9 +291,9 @@
       async:                           7200
       poll:                            0
 
-    - name:                            "5.1. Database Load - Wait for asynchronous job to end"
+    - name:                            "5.1 Database Load  - Wait for asynchronous job to end"
       block:
-        - name:                        "5.1. Database Load - Wait for asynchronous job to end"
+        - name:                        "5.1 Database Load  - Wait for asynchronous job to end"
           ansible.builtin.async_status:
             jid:                       "{{ dbload_results.ansible_job_id }}"
           register:                    job_result
@@ -303,30 +303,30 @@
           when:                        dbload_results.ansible_job_id is defined
 
       rescue:
-        - name:                        "5.1. Database Load - Capturing the modified message for message server being offline"
+        - name:                        "5.1 Database Load  - Capturing the modified message for message server being offline"
           ansible.builtin.set_fact:
             modified_error_message:    "{{ job_result.stdout | try_get_error_code(task_tag='dbload', failure='messageserver_offline') }}"
 
-        - name:                        "5.1. Database Load - Capturing the modified message for database being offline"
+        - name:                        "5.1 Database Load  - Capturing the modified message for database being offline"
           ansible.builtin.set_fact:
             modified_error_message:    "{{ modified_error_message | try_get_error_code(task_tag='dbload', failure='db_offline') }}"
 
-        - name:                        "5.1. Database Load - Debug: Modified error message"
+        - name:                        "5.1 Database Load  - Debug: Modified error message"
           ansible.builtin.debug:
             msg:                       "Modified error message: {{ modified_error_message }}"
           when:                         modified_error_message != job_result.stdout
 
-        - name:                        "5.1. Database Load - Error Handling: Fail with the modified error message "
+        - name:                        "5.1 Database Load  - Error Handling: Fail with the modified error message "
           ansible.builtin.fail:
             msg:                       "{{ modified_error_message }}"
 
-    - name:                            "5.1. Database Load - Show results"
+    - name:                            "5.1 Database Load  - Show results"
       ansible.builtin.debug:
         msg:
           - "DBLoad: {{ dbload_results.failed }}"
           - "Job result: {{ job_result.rc }}"
 
-    - name:                            "5.1. Database Load - Show results"
+    - name:                            "5.1 Database Load  - Show results"
       ansible.builtin.debug:
         var:                           dbload_results
         verbosity:                     2
@@ -334,12 +334,12 @@
         - job_result is defined
         - job_result.rc > 0
 
-    - name:                            "5.1. Database Load - Cleanup ini file {{ ansible_hostname }}"
+    - name:                            "5.1 Database Load  - Cleanup ini file {{ ansible_hostname }}"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
         state:                         absent
 
-    - name:                            "5.1. Database Load - Set completion flag"
+    - name:                            "5.1 Database Load  - Set completion flag"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_dbload.txt"
         state:                         touch
@@ -348,21 +348,21 @@
         - job_result.rc is defined
         - job_result.rc == 0
 
-    - name:                            "5.1. Database Load - Show the results"
+    - name:                            "5.1 Database Load  - Show the results"
       ansible.builtin.debug:
         msg:                           "Database load succeeded"
       when:
         - job_result.rc is defined
         - job_result.rc == 0
 
-    - name:                            "5.1. Database Load - Set Schema Name"
+    - name:                            "5.1 Database Load  - Set Schema Name"
       when:
         - platform == "HANA"
       ansible.builtin.include_role:
         name:                          "roles-db/4.0.4-hdb-schema"
         public:                        true
 
-    - name:                            "5.1. Database Load - Get hdbuserstore path"
+    - name:                            "5.1 Database Load  - Get hdbuserstore path"
       become:                          true
       become_user:                     "root"
       when:
@@ -379,7 +379,7 @@
       vars:
         allow_world_readable_tmpfiles:     true
 
-    - name:                            "5.1. Database Load - Set hdbuserstore path"
+    - name:                            "5.1 Database Load  - Set hdbuserstore path"
       when:
         - database_high_availability
         - platform == 'HANA'
@@ -389,7 +389,7 @@
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
         db_lb_virtual_host:            "{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}"
 
-    - name:                            "5.1. Database Load - Show hdbuserstore path"
+    - name:                            "5.1 Database Load  - Show hdbuserstore path"
       when:
         - database_high_availability
         - platform == 'HANA'
@@ -397,7 +397,7 @@
         var:                           hdbuserstore_path
         verbosity:                     2
 
-    - name:                            "5.1. Database Load - Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
+    - name:                            "5.1 Database Load  - Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
       become:                          true
       become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
       when:
@@ -414,7 +414,7 @@
       vars:
         allow_world_readable_tmpfiles: true
 
-    - name:                            "5.1. Database Load - Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
+    - name:                            "5.1 Database Load  - Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
       become:                          true
       become_user:                     "root"
       when:
@@ -435,23 +435,23 @@
     - not dbload_installed.stat.exists
 
 # Import this task only if the tier is ora.
-- name:                                "5.1. Database Load - Oracle post processing"
+- name:                                "5.1 Database Load  - Oracle post processing"
   ansible.builtin.import_tasks:        "oracle-postprocessing.yaml"
   when:
     - node_tier in ["oracle","oracle-asm"]
 
-- name:                                "5.1. Database Load - Status - DBLoad already performed"
+- name:                                "5.1 Database Load  - Status - DBLoad already performed"
   when: dbload_installed.stat.exists
   block:
-    - name:                            "5.1. Database Load - Show message DBLoad already performed"
+    - name:                            "5.1 Database Load  - Show message DBLoad already performed"
       ansible.builtin.debug:
         msg:                           "Databse Load is already performed ({{ sid_to_be_deployed.sid | upper }})"
 
-    - name:                            "5.1. Database Load - return value"
+    - name:                            "5.1 Database Load  - return value"
       ansible.builtin.set_fact:
         dbload_already_performed:      true
 
-    - name:                            "5.1. Database Load - Get hdbuserstore path"
+    - name:                            "5.1 Database Load  - Get hdbuserstore path"
       become:                          true
       become_user:                     "root"
       when:
@@ -466,7 +466,7 @@
       environment:
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
 
-    - name:                            "5.1. Database Load - Set hdbuserstore path"
+    - name:                            "5.1 Database Load  - Set hdbuserstore path"
       when:
         - database_high_availability
         - platform == 'HANA'
@@ -476,7 +476,7 @@
         hdbuserstore_path:             "{{ hdbuserstore_file.files[0].path }}"
         db_lb_virtual_host:            "{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}"
 
-    - name:                            "5.1. Database Load - Show hdbuserstore path"
+    - name:                            "5.1 Database Load  - Show hdbuserstore path"
       when:
         - database_high_availability
         - platform == 'HANA'
@@ -484,7 +484,7 @@
         var:                           hdbuserstore_path
         verbosity:                     2
 
-    - name:                            "5.1. Database Load - Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
+    - name:                            "5.1 Database Load  - Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
       become:                          true
       become_user:                     "root"
       when:
