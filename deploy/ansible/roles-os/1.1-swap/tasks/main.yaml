@@ -69,6 +69,7 @@
 - name:                                "1.1 Swap - Show SWAP size"
   ansible.builtin.debug:
     msg:                               "Swap size: {{ swap_size }}"
+    verbosity:                         2
 
 - name:                                "1.1 Swap - Check for (waagent_conf)"
   ansible.builtin.stat:
@@ -96,7 +97,7 @@
   register:                            waagent_conf_copy
 
 
-- name:                                "1.1 Swap - Force systemd to reread configs {{ distro_name }}"
+- name:                                "1.1 Swap - Force systemd to reread configuration {{ distro_name }}"
   ansible.builtin.service:
     name:                              systemd
     state:                             reloaded
@@ -112,7 +113,7 @@
     - waagent_conf_copy is defined
     - waagent_conf_copy.changed
 
-- name:                                "1.1 Swap - Ensure waagent file is configured with proper parameters"
+- name:                                "1.1 Swap - Ensure waagent file is configured with correct parameters"
   ansible.builtin.lineinfile:
     dest:                              /etc/waagent.conf
     state:                             "{{ item.state }}"
