@@ -19,7 +19,7 @@
 
 ---
 
-- name:                                "4.1.1. ORACLE Grid Setup - Register BoM"
+- name:                                "4.1.1 ORACLE Grid Setup - Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
@@ -30,7 +30,7 @@
   when:
                                        - bom is undefined
 
-- name:                                "4.1.1. ORACLE Grid Setup - Validate ORACLE parameters"
+- name:                                "4.1.1 ORACLE Grid Setup - Validate ORACLE parameters"
   ansible.builtin.assert:
     that:
       - item_to_check.parameter is defined                    # Has the variable been defined
@@ -44,16 +44,16 @@
   loop_control:
     loop_var: item_to_check
 
-- name:                                "4.1.1. ORACLE Grid Setup - Set variables from BoM"
+- name:                                "4.1.1 ORACLE Grid Setup - Set variables from BoM"
   ansible.builtin.set_fact:
     ora_release:                       "{{ bom.patch_information.ora_release }}"
     ora_version:                       "{{ bom.patch_information.ora_version }}"
     oracle_sbp_patch:                  "{{ bom.patch_information.oracle_sbp_patch }}"
 
-- name:                                "4.1.1. ORACLE Grid Setup - Load the disk configuration settings"
+- name:                                "4.1.1 ORACLE Grid Setup - Load the disk configuration settings"
   ansible.builtin.include_vars:        disks_config_asm.yml
 
-- name:                                "4.1.1. ORACLE Grid Setup - Create directories"
+- name:                                "4.1.1 ORACLE Grid Setup - Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -70,7 +70,7 @@
     - { state: 'directory', mode: '0775', recurse: false, path: "/oracle/GRID" }
     - { state: 'directory', mode: '0775', recurse: false, path: "/oracle/GRID/{{ ora_version }}" }
 
-- name:                                "4.1.1. ORACLE Grid Setup - Check if installed"
+- name:                                "4.1.1 ORACLE Grid Setup - Check if installed"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/grid/grid_setup_completed.txt"
   register:                            grid_installed
@@ -84,43 +84,43 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "4.1.1. ORACLE Grid Setup - Install status"
+- name:                                "4.1.1 ORACLE Grid Setup - Install status"
   when:
     - not grid_installed.stat.exists
   block:
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Get the List of Data disks"
+    - name:                            "4.1.1 ORACLE Grid Setup - Get the List of Data disks"
       become:                          true
       become_user:                     root
       ansible.builtin.shell:           "set -o pipefail && oracleasm listdisks | grep DATA"
       register:                        asm_disk_list
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Get the List of ARCH disks"
+    - name:                            "4.1.1 ORACLE Grid Setup - Get the List of ARCH disks"
       become:                          true
       become_user:                     root
       ansible.builtin.shell:           "set -o pipefail && oracleasm listdisks | grep ARCH"
       register:                        asm_archive_disk_list
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Get the List of RECO disks"
+    - name:                            "4.1.1 ORACLE Grid Setup - Get the List of RECO disks"
       become:                          true
       become_user:                     root
       ansible.builtin.shell:           "set -o pipefail && oracleasm listdisks |grep RECO"
       register:                        asm_recovery_disk_list
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Prepare the Data disk list"
+    - name:                            "4.1.1 ORACLE Grid Setup - Prepare the Data disk list"
       ansible.builtin.set_fact:
         asm_disk_list:                "{{ asm_disk_list.stdout_lines | list }}"
         asm_archive_disk_list:        "{{ asm_archive_disk_list.stdout_lines | list }}"
         asm_recovery_disk_list:       "{{ asm_recovery_disk_list.stdout_lines | list }}"
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Display disk lists"
+    - name:                            "4.1.1 ORACLE Grid Setup - Display disk lists"
       ansible.builtin.debug:
         msg:
           - "Data:     {{ asm_disk_list }}"
           - "Archive:  {{ asm_archive_disk_list }}"
           - "Recovery: {{ asm_recovery_disk_list }}"
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Prepend /dev/oracleasm/disk to each of of the disk"
+    - name:                            "4.1.1 ORACLE Grid Setup - Prepend /dev/oracleasm/disk to each of of the disk"
       ansible.builtin.set_fact:
         asm_data_disk_list:            "{{ asm_disk_list | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
         asm_archive_disk_list:         "{{ asm_archive_disk_list | map('regex_replace', '^(.*)$', '/dev/oracleasm/disks/\\1') | join(',') }}"
@@ -128,7 +128,7 @@
       when:
         - is_UEK6
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Prepend ORCL: to each of of the disk"
+    - name:                            "4.1.1 ORACLE Grid Setup - Prepend ORCL: to each of of the disk"
       ansible.builtin.set_fact:
         asm_data_disk_list:            "{{ asm_disk_list | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
         asm_archive_disk_list:         "{{ asm_archive_disk_list | map('regex_replace', '^(.*)$', 'ORCL:\\1') | join(',') }}"
@@ -136,20 +136,20 @@
       when:
         - not is_UEK6
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Store the disk lists as arrays"
+    - name:                            "4.1.1 ORACLE Grid Setup - Store the disk lists as arrays"
       ansible.builtin.set_fact:
         data_disk_list:                "{{ asm_data_disk_list | split(',') | list }}"
         arch_disk_list:                "{{ asm_archive_disk_list | split(',') | list }}"
         recovery_disk_list:            "{{ asm_recovery_disk_list | split(',') | list }}"
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Display Oracle lists with prefix"
+    - name:                            "4.1.1 ORACLE Grid Setup - Display Oracle lists with prefix"
       ansible.builtin.debug:
         msg:
           - "Data:     {{ data_disk_list }}"
           - "Archive:  {{ arch_disk_list }}"
           - "Recovery: {{ recovery_disk_list }}"
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Create Grid install response file"
+    - name:                            "4.1.1 ORACLE Grid Setup - Create Grid install response file"
       become:                          true
       become_user:                     "{{ grid_user_name }}"
       ansible.builtin.template:
@@ -167,7 +167,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Unzip the Grid software"
+    - name:                            "4.1.1 ORACLE Grid Setup - Unzip the Grid software"
       become:                          true
       become_user:                     root
       ansible.builtin.unarchive:
@@ -178,7 +178,7 @@
         group:                         oinstall
         remote_src:                    true
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Install RPM Packages"
+    - name:                            "4.1.1 ORACLE Grid Setup - Install RPM Packages"
       ansible.builtin.dnf:
         name:                          "/oracle/GRID/{{ ora_version }}/cv/rpm/cvuqdisk-1.0.10-1.rpm"
         state:                         present
@@ -190,7 +190,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Find Patch ID for Database Release Update"
+    - name:                            "4.1.1 ORACLE Grid Setup - Find Patch ID for Database Release Update"
       become:                          true
       become_user:                     root
       ansible.builtin.find:
@@ -200,49 +200,49 @@
         recurse:                       true
       register:                        patch_grid_id_directory
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Find Patch ID for Database Release Update"
+    - name:                            "4.1.1 ORACLE Grid Setup - Find Patch ID for Database Release Update"
       ansible.builtin.fail:
         msg:                           "No Database Release Update found"
       when:                            patch_grid_id_directory.matched != 1
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Save OPatch ID"
+    - name:                            "4.1.1 ORACLE Grid Setup - Save OPatch ID"
       ansible.builtin.set_fact:
         patch_grid_path:               "{{ patch_grid_id_directory.files[0].path | dirname }}"
       when:                            patch_grid_id_directory.matched == 1
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Show OPatch ID"
+    - name:                            "4.1.1 ORACLE Grid Setup - Show OPatch ID"
       ansible.builtin.debug:
         msg:                           "Patch GRID path {{ patch_grid_path }}"
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Set STAGE_SBP_DBRU"
+    - name:                            "4.1.1 ORACLE Grid Setup - Set STAGE_SBP_DBRU"
       ansible.builtin.set_fact:
         STAGE_SBP_DBRU:                "{{ patch_grid_path }}/{{ bom.patch_information.SBP_DBRU }}"
       when:                            patch_grid_path is defined and bom.patch_information.SBP_DBRU is defined
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Set STAGE_SBP_OCWRU"
+    - name:                            "4.1.1 ORACLE Grid Setup - Set STAGE_SBP_OCWRU"
       ansible.builtin.set_fact:
         STAGE_SBP_OCWRU:               "{{ patch_grid_path }}/{{ bom.patch_information.SBP_OCWRU }}"
       when:                            patch_grid_path is defined and bom.patch_information.SBP_OCWRU is defined
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Set STAGE_SBP_ACFSRU"
+    - name:                            "4.1.1 ORACLE Grid Setup - Set STAGE_SBP_ACFSRU"
       ansible.builtin.set_fact:
         STAGE_SBP_ACFSRU:              "{{ patch_grid_path }}/{{ bom.patch_information.SBP_ACFSRU }}"
       when:                            patch_grid_path is defined and bom.patch_information.SBP_ACFSRU is defined
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Set OneOffs"
+    - name:                            "4.1.1 ORACLE Grid Setup - Set OneOffs"
       ansible.builtin.set_fact:
         OneOffs:                       "{{ STAGE_SBP_OCWRU }},{{ STAGE_SBP_ACFSRU }}"
       when:
                                       - STAGE_SBP_OCWRU is defined
                                       - STAGE_SBP_ACFSRU is defined
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Set ApplyRU and OPatchPath"
+    - name:                            "4.1.1 ORACLE Grid Setup - Set ApplyRU and OPatchPath"
       ansible.builtin.set_fact:
         OPatchPath:                    "{{ target_media_location }}/SBP/OPATCH/OPatch"
         ApplyRU:                       "{{ STAGE_SBP_DBRU }}"
         OHGRID:                        "/oracle/GRID/{{ ora_version }}"
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Installation parameters"
+    - name:                            "4.1.1 ORACLE Grid Setup - Installation parameters"
       ansible.builtin.debug:
         msg:
           - "STAGE_SBP_DBRU :  {{ STAGE_SBP_DBRU }}"
@@ -254,16 +254,16 @@
 
     # Backup the existing OPatch and then copy the new Patch from the downloads folder
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Create unique name for OPatch backup"
+    - name:                            "4.1.1 ORACLE Grid Setup - Create unique name for OPatch backup"
       ansible.builtin.set_fact:
         patch_copy_name:               "/oracle/GRID/{{ ora_version }}/OPatch.{{ '%Y%m%d' | strftime(0) }}"
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Check if backup exists for GRID"
+    - name:                            "4.1.1 ORACLE Grid Setup - Check if backup exists for GRID"
       ansible.builtin.stat:
         path:                          "{{ patch_copy_name }}"
       register:                        opatchgrid_stat
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Backup OPatch"
+    - name:                            "4.1.1 ORACLE Grid Setup - Backup OPatch"
       ansible.builtin.copy:
         src:                           "/oracle/GRID/{{ ora_version }}/OPatch"
         dest:                          "{{ patch_copy_name }}"
@@ -274,12 +274,12 @@
       when:
         - not opatchgrid_stat.stat.exists
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Remove old OPatch"
+    - name:                            "4.1.1 ORACLE Grid Setup - Remove old OPatch"
       ansible.builtin.file:
         path:                          "/oracle/GRID/{{ ora_version }}/OPatch"
         state:                         absent
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Copy OPatch for GRID from downloads"
+    - name:                            "4.1.1 ORACLE Grid Setup - Copy OPatch for GRID from downloads"
       ansible.builtin.copy:
         src:                           "{{ target_media_location }}/SBP/OPATCH/OPatch"
         dest:                          "/oracle/GRID/{{ ora_version }}"
@@ -288,7 +288,7 @@
         owner:                         "{{ grid_user_name }}"
         group:                         oinstall
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Find MOPatch"
+    - name:                            "4.1.1 ORACLE Grid Setup - Find MOPatch"
       ansible.builtin.find:
         paths:                          "{{ target_media_location }}/SBP/SGR19P"
         patterns:                       ["MOPatch"]
@@ -296,22 +296,22 @@
         recurse:                        true
       register:                         mopatch_directory
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Too many MOPatches found"
+    - name:                            "4.1.1 ORACLE Grid Setup - Too many MOPatches found"
       ansible.builtin.fail:
         msg:                           "Too many MOPatches found"
       when:                            mopatch_directory.matched > 1
 
-    - name:                            "4.1.1. ORACLE Grid Setup - No MOPatch found"
+    - name:                            "4.1.1 ORACLE Grid Setup - No MOPatch found"
       ansible.builtin.fail:
         msg:                           "No MOPatches found"
       when:                            mopatch_directory.matched == 0
 
-    - name:                            "4.1.1. ORACLE Grid Setup - MOPatch path"
+    - name:                            "4.1.1 ORACLE Grid Setup - MOPatch path"
       ansible.builtin.set_fact:
         mopatch_path:                  "{{ mopatch_directory.files[0].path }}"
       when:                            mopatch_directory.matched == 1
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Copy MOPatch for GRID"
+    - name:                            "4.1.1 ORACLE Grid Setup - Copy MOPatch for GRID"
       ansible.builtin.copy:
         src:                           "{{ mopatch_path }}"
         dest:                          "/oracle/GRID/{{ ora_version }}"
@@ -326,11 +326,11 @@
     # |                                                                            |
     # +--------------------------------4------------------------------------------*/
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Show gridSetup command"
+    - name:                            "4.1.1 ORACLE Grid Setup - Show gridSetup command"
       ansible.builtin.debug:
         msg:                           "Running ./gridSetup.sh -silent -applyRU {{ ApplyRU }} -applyOneOffs {{ OneOffs }} -opatchlocation /oracle/GRID/{{ ora_version }}/OPatch -skipOpatchVersionCheck -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Execute gridSetup.sh"
+    - name:                            "4.1.1 ORACLE Grid Setup - Execute gridSetup.sh"
       become:                          true
       become_user:                     "{{ grid_user_name }}"
       ansible.builtin.shell: |
@@ -346,14 +346,14 @@
         chdir:                         "/oracle/GRID/{{ ora_version }}"
         creates:                       /etc/sap_deployment_automation/grid/grid_install.txt
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Save gridSetup.sh output"
+    - name:                            "4.1.1 ORACLE Grid Setup - Save gridSetup.sh output"
       ansible.builtin.copy:
         dest:                          "/etc/sap_deployment_automation/grid/grid_install.log"
         content:                       "{{ gridinstaller_results.stdout }}"
         mode:                          0777
       when:                            gridinstaller_results.stdout is defined
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Create after a successful GRID install"
+    - name:                            "4.1.1 ORACLE Grid Setup - Create after a successful GRID install"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/grid/grid_install.txt"
         state:                         touch
@@ -365,7 +365,7 @@
     # |                                                                            |
     # +--------------------------------4------------------------------------------*/
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Oracle Post Processing - Run root.sh"
+    - name:                            "4.1.1 ORACLE Grid Setup - Oracle Post Processing - Run root.sh"
       become:                          true
       become_user:                     root
       ansible.builtin.shell: |
@@ -375,20 +375,20 @@
         executable:                    /bin/csh
         creates:                       /etc/sap_deployment_automation/grid/orainstRoot_rootscript.txt
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Debug: orainstRoot.sh output"
+    - name:                            "4.1.1 ORACLE Grid Setup - Debug: orainstRoot.sh output"
       ansible.builtin.copy:
         dest:                          "/etc/sap_deployment_automation/grid/orainstRoot.log"
         content:                       "{{ orainstRoot_results.stdout }}"
         mode:                          0777
       when:                            orainstRoot_results.stdout is defined
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Create after a successful post processing oraInstRoot script execution"
+    - name:                            "4.1.1 ORACLE Grid Setup - Create after a successful post processing oraInstRoot script execution"
       ansible.builtin.file:
         path:                          /etc/sap_deployment_automation/grid/orainstRoot_rootscript.txt
         state:                         touch
         mode:                          '0755'
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Oracle Post Processing - Run GRID root.sh"
+    - name:                            "4.1.1 ORACLE Grid Setup - Oracle Post Processing - Run GRID root.sh"
       become:                          true
       become_user:                     root
       ansible.builtin.shell: |
@@ -398,14 +398,14 @@
         executable:                    /bin/csh
         creates:                       "/etc/sap_deployment_automation/grid/gridinstall_rootscript.txt"
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Debug: GRID root.sh output"
+    - name:                            "4.1.1 ORACLE Grid Setup - Debug: GRID root.sh output"
       ansible.builtin.copy:
         dest:                          "/etc/sap_deployment_automation/grid/gridroot.log"
         content:                       "{{ grid_rootscript_results.stdout }}"
         mode:                          0777
       when:                            grid_rootscript_results.stdout is defined
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Create after a successful root script execution"
+    - name:                            "4.1.1 ORACLE Grid Setup - Create after a successful root script execution"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/grid/gridinstall_rootscript.txt"
         state:                         touch
@@ -417,11 +417,11 @@
     # |                                                                            |
     # +--------------------------------4------------------------------------------*/
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Show gridSetup ASM Config command"
+    - name:                            "4.1.1 ORACLE Grid Setup - Show gridSetup ASM Config command"
       ansible.builtin.debug:
         msg:                           "Running ./gridSetup.sh -executeConfigTools -silent -responseFile ./{{ ansible_hostname }}_{{ db_sid }}_install.rsp"
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Execute ASM Config tools"
+    - name:                            "4.1.1 ORACLE Grid Setup - Execute ASM Config tools"
       become:                          true
       become_user:                     "{{ grid_user_name }}"
       ansible.builtin.shell: |
@@ -439,14 +439,14 @@
         chdir:                         /oracle/GRID/{{ ora_version }}/
         creates:                       /etc/sap_deployment_automation/grid/asm_tools_install.txt
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Debug: gridSetup.sh executeConfigTools output"
+    - name:                            "4.1.1 ORACLE Grid Setup - Debug: gridSetup.sh executeConfigTools output"
       ansible.builtin.copy:
         dest:                          "/etc/sap_deployment_automation/grid/asm_tools_install.log"
         content:                       "{{ tools_installer_results.stdout }}"
         mode:                          0755
       when:                            tools_installer_results.stdout is defined
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Create after a successful Config tool execution"
+    - name:                            "4.1.1 ORACLE Grid Setup - Create after a successful Config tool execution"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/grid/asm_tools_install.txt"
         state:                         touch
@@ -462,7 +462,7 @@
     # |                                                                            |
     # +--------------------------------4------------------------------------------*/
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Create ASM Disk groups ARCH"
+    - name:                            "4.1.1 ORACLE Grid Setup - Create ASM Disk groups ARCH"
       become:                          true
       become_user:                     "{{ grid_user_name }}"
       ansible.builtin.shell: |
@@ -478,7 +478,7 @@
         chdir:                         "/oracle/GRID/{{ ora_version }}/bin"
         creates:                       /etc/sap_deployment_automation/grid/diskgroups_created.txt
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Create ASM Disk groups RECO"
+    - name:                            "4.1.1 ORACLE Grid Setup - Create ASM Disk groups RECO"
       become:                          true
       become_user:                     "{{ grid_user_name }}"
       ansible.builtin.shell: |
@@ -494,28 +494,28 @@
         chdir:                         "/oracle/GRID/{{ ora_version }}/bin"
         creates:                       /etc/sap_deployment_automation/grid/diskgroups_created.txt
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Created after a successful disk group creation"
+    - name:                            "4.1.1 ORACLE Grid Setup - Created after a successful disk group creation"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/grid/diskgroups_created.txt"
         state:                         touch
         mode:                          '0755'
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Create after a successful grid deployment"
+    - name:                            "4.1.1 ORACLE Grid Setup - Create after a successful grid deployment"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/grid/grid_setup_completed.txt"
         state:                         touch
         mode:                          '0755'
 
-- name:                                "4.1.1. ORACLE Grid Setup - Install status"
+- name:                                "4.1.1 ORACLE Grid Setup - Install status"
   when:
     - grid_installed.stat.exists
   block:
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Install status"
+    - name:                            "4.1.1 ORACLE Grid Setup - Install status"
       ansible.builtin.debug:
-        msg:                           "4.1.1. ORACLE Grid Setup - is already installed"
+        msg:                           "4.1.1 ORACLE Grid Setup - is already installed"
 
-    - name:                            "4.1.1. ORACLE Grid Setup - Set return value"
+    - name:                            "4.1.1 ORACLE Grid Setup - Set return value"
       ansible.builtin.set_fact:
         oracle_grid_already_installed:      true
 

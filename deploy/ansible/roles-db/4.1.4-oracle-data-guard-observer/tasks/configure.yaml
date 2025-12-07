@@ -14,7 +14,7 @@
   when:
                                        - bom is undefined
 
-- name:                                "4.1.1. 4.1.4 Oracle Data Guard - Observer -   - Validate ORACLE parameters"
+- name:                                "4.1.4 Oracle Data Guard - Observer - Validate ORACLE parameters"
   ansible.builtin.assert:
     that:
       - item_to_check.parameter is defined                    # Has the variable been defined
@@ -55,7 +55,7 @@
     - { owner: "root",                   state: 'directory', mode: '0750', path: '/opt/oracle/admin/observer/scripts' }
     - { owner: "{{ oracle_user_name }}", state: 'directory', mode: '0750', path: '/opt/oracle/admin/observer/logs' }
 
-- name:                                "4.1.3 Oracle Data Guard - Observer: - Add environment variables to the Bash profile"
+- name:                                "4.1.4 Oracle Data Guard - Observer - Add environment variables to the Bash profile"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
@@ -72,7 +72,7 @@
         PATH="$PATH:$ORACLE_HOME/bin"
         export PATH
 
-- name:                                "4.1.3 Oracle Data Guard - Observer: - Add environment variables to the .cshrc profile"
+- name:                                "4.1.4 Oracle Data Guard - Observer - Add environment variables to the .cshrc profile"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
@@ -143,7 +143,7 @@
         var:                           orainstaller_results.stdout
         verbosity:                     2
 
-    - name:                            "4.1.4 Oracle Data Guard - Observer - Debug installer output log"
+    - name:                            "4.1.4 Oracle Data Guard - Observer - Copy installer output log to orainstaller.log"
       ansible.builtin.copy:
         dest:                          "/etc/sap_deployment_automation/observer/orainstaller.log"
         content   :                    "{{ orainstaller_results.stdout }}"
@@ -182,12 +182,12 @@
       register:                        orainstRoot_results
       environment:                     "{{ oracle_env }}"
 
-    - name:                            "4.1.4 Oracle Data Guard - Observer - Debug: orainstRoot output"
+    - name:                            "4.1.4 Oracle Data Guard - Observer - Show orainstRoot output"
       ansible.builtin.debug:
         var:                           orainstRoot_results.stdout
         verbosity:                     2
 
-    - name:                            "4.1.4 Oracle Data Guard - Observer - Debug installer output log"
+    - name:                            "4.1.4 Oracle Data Guard - Observer - Copy orainstRoot output to orainstRoot.log"
       ansible.builtin.copy:
         dest:                          "/etc/sap_deployment_automation/observer/orainstRoot.log"
         content:                       "{{ orainstRoot_results.stdout }}"
@@ -197,12 +197,12 @@
       when:                            orainstRoot_results.stdout is defined
 # /*---------------------------------------------------------------------------8
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Run root.sh exists"
+- name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Check if root.sh exists"
   ansible.builtin.stat:
     path:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}/root.sh
   register:                            root_exists
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Run orainstRoot.sh"
+- name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Run root.sh"
   when:                                root_exists.stat.exists
   block:
     - name:                            "4.1.4 Oracle Data Guard - Observer - Post Processing - Run Root.sh"
@@ -212,12 +212,12 @@
       register:                        rootscript_results
       environment:                     "{{ oracle_env }}"
 
-    - name:                            "4.1.4 Oracle Data Guard - Observer - Debug: rootscript output"
-      ansible.builtin.debug:
+    - name:                            "4.1.4 Oracle Data Guard - Observer - Show root.sh script output"
+      ansible.builtin.debug:  
         var:                           rootscript_results.stdout
         verbosity:                     2
 
-    - name:                            "4.1.4 Oracle Data Guard - Observer - Debug rootscript output log"
+    - name:                            "4.1.4 Oracle Data Guard - Observer - Copy root.sh script output log to rootscript.log"
       ansible.builtin.copy:
         dest:                          "/etc/sap_deployment_automation/observer/rootscript.log"
         content:                       "{{ rootscript_results.stdout }}"
