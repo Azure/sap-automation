@@ -3,7 +3,7 @@
 
 ---
 
-# SLES Clustering - Deploy DB2 clustering Resources
+# SUSE Clustering - Deploy DB2 clustering Resources
 # Ref: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/dbms-guide-ha-ibm
 
 - name:                                "5.7.3.0 DB2 - SUSE - Pacemaker - Configuration - Find if the databases are active"

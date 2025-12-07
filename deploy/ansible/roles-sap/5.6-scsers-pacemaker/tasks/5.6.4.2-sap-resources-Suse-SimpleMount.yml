@@ -4,7 +4,7 @@
 ---
 
 # We currently support the usage of NFS v4.1 only. NFS v3 is not supported.
-# SLES Clustering - Deploy ASCS/ERS SAP clustering Resources
+# SUSE Clustering - Deploy ASCS/ERS SAP clustering Resources
 # Ref: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/high-availability-guide-rhel-netapp-files
 
 
@@ -210,7 +210,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - SUSE - ENSA2 - SLES - Systemd-Based SAP Startup Framework"
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - SUSE - ENSA2 - SUSE - Systemd-Based SAP Startup Framework"
   ansible.builtin.include_tasks:
     file:                              "5.6.7-config-systemd-sap-start.yml"
     apply:

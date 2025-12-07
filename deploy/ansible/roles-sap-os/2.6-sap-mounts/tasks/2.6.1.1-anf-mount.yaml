@@ -176,7 +176,7 @@
         - not database_scale_out
 
 # https://www.suse.com/support/kb/doc/?id=000019904
-# - name:                                "2.6.1 1 ANF Mount - SLES DB high availability configuration"
+# - name:                                "2.6.1 1 ANF Mount - SUSE DB high availability configuration"
 #   when:                                ansible_os_family | upper == "SUSE" and db_high_availability
 #   block:
 #     - name:                            "2.6.1 1 ANF Mount - remove entry in fstab for {{ item.path }} when DB high availability"

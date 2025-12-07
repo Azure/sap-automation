@@ -253,7 +253,7 @@
         var:                           saphanasr_verification
         verbosity:                     2
 
-- name:                                "5.5.3 HANA Pacemaker - Implement the SAPHanaSR-angi Python system replication hook on SLES 15 SP4 and greater"
+- name:                                "5.5.3 HANA Pacemaker - Implement the SAPHanaSR-angi Python system replication hook on SUSE 15 SP4 and greater"
   when:
                                        - hana_version_ok
                                        - basic_hook_check is success

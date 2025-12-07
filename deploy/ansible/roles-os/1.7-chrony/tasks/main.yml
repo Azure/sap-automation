@@ -208,7 +208,7 @@
 #
 # -------------------------------------+---------------------------------------8
 
-# On SLES systems the service is installed in a disabled state
+# On SUSE systems the service is installed in a disabled state
 - name:                                "1.7 chrony - Ensure chronyd service is enabled"
   ansible.builtin.service:
     name:                              chronyd

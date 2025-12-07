@@ -3,7 +3,7 @@
 
 ---
 
-# SLES Clustering - Deploy HANA clustering Resources
+# SUSE Clustering - Deploy HANA clustering Resources
 # Ref: https://documentation.suse.com/sle-ha/12-SP4/html/SLE-HA-install-quick/index.html
 # Ref: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability
 # Ref: https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-netapp-files-suse#create-file-system-resources

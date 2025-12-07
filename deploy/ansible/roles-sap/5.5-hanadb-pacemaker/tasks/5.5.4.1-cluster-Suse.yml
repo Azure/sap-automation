@@ -3,12 +3,12 @@
 
 ---
 
-# SLES Clustering - Deploy HANA clustering Resources
+# SUSE Clustering - Deploy HANA clustering Resources
 # Ref: https://documentation.suse.com/sle-ha/12-SP4/html/SLE-HA-install-quick/index.html
 # Ref: https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability
 
 # Summary:
-# This Ansible target-role configures SLES Pacemaker clustering for SAP HANA high availability.
+# This Ansible target-role configures SUSE Pacemaker clustering for SAP HANA high availability.
 # The code caters to both SAPHanaSR and SAPHanaSR-angi configurations.
 # It performs the following high level tasks:
 # - Configures the cluster STONITH settings and sets up SAP HANA Pacemaker

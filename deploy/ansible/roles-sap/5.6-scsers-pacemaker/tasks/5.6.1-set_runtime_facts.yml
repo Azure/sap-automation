@@ -159,7 +159,7 @@
     is_rhel_82_or_newer:               "{{ ansible_distribution_version is version('8.2', '>=') | default(false) }}"
   when:                                ansible_os_family | upper == 'REDHAT'
 
-- name:                                "5.6.1 SCS/ERS Pacemaker- Check if the OS version is SLES 15 or newer"
+- name:                                "5.6.1 SCS/ERS Pacemaker- Check if the OS version is SUSE 15 or newer"
   ansible.builtin.set_fact:
     is_sles_15_or_newer:               "{{ ansible_distribution_version is version('15', '>=') | default(false) }}"
   when:                                ansible_os_family | upper == 'SUSE'

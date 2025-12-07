@@ -22,7 +22,7 @@
 # -------------------------------------+---------------------------------------8
 #
 # Task: 2.10.0    - SAP Note 2205917 - SAP HANA DB Recommended OS settings for
-#                   SLES 12 / SLES for SAP Applications 12
+#                   SUSE 12 / SUSE for SAP Applications 12
 #
 # TODO: 20210128 review the RHEL stuff and the SAP Note
 # RHEL-3.10 Disable Transparent Hugepages (THP)
@@ -157,7 +157,7 @@
 # ToDo RHEL7 and also the other SAP nodes
 # -------------------------------------+---------------------------------------8
 
-- name:                                "2.10.3 - saptune for SLES 12 and SLES 15"
+- name:                                "2.10.3 - saptune for SUSE 12 and SUSE 15"
   ansible.builtin.include_tasks:       2.10.3.yaml
   when:
     - distribution_id in ['suse12', 'suse15', 'sles_sap12', 'sles_sap15']

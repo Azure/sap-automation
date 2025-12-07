@@ -170,7 +170,7 @@
     fail_msg: |
                                        SAPHanaSR-angi Python hook requirements not met:
                                          - Required: HANA 2.0 SPS 05 or higher (Current: {{ hana_major_version }}.0 SPS {{ hana_sps_level }})
-                                         - Required: SLES for SAP Applications 15 SP4, SP5, or SP6 (Current: {{ distribution_full_id }})
+                                         - Required: SUSE for SAP Applications 15 SP4, SP5, or SP6 (Current: {{ distribution_full_id }})
                                          - Required: SAPHanaSR-angi, should be installed
   register:                            angi_hook_check
 
