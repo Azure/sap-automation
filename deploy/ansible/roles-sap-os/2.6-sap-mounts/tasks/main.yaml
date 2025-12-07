@@ -229,7 +229,7 @@
     path:                              /sapmnt/{{ sap_sid | upper }}
     state:                             directory
   when:
-    - node_tier not in ['oracle-asm', 'hana', 'observer']
+    - node_tier not in ['hana', 'observer']
 
 - name:                                "2.6 SAP Mounts - sapmnt"
   block:
@@ -242,7 +242,7 @@
         state:                         mounted
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2', 'sybase']
+        - node_tier in ['pas', 'app', 'ers', 'oracle', 'oracle-asm', 'db2', 'sybase']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server != ansible_hostname
@@ -259,7 +259,7 @@
         state:                         remounted
       when:
         - tier == 'sapos'
-        - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2', 'sybase']
+        - node_tier in ['pas', 'app', 'ers', 'oracle', 'oracle-asm', 'db2', 'sybase']
         - sap_mnt is undefined
         - MULTI_SIDS is undefined
         - nfs_server !=  ansible_hostname
