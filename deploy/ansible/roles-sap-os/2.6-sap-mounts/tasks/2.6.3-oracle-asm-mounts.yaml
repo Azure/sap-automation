@@ -23,11 +23,11 @@
     nfs_server:                        "{{ nfs_server_temp | first }}"
   when:                                NFS_provider == "NONE"
 
-- name:                                "2.6.3 ORACLE ASM - Mounts -  Check if  logical volumes exist."
+- name:                                "2.6.3 ORACLE ASM - Mounts - Check if logical volumes exist."
   ansible.builtin.stat:
     path:                              "{{ dev_path_from_lv_item }}"
   loop:                                "{{ logical_volumes }}"
-  register:                            oravgstat
+  register:                            oracle_logical_volumes
 
 - name:                                "2.6.3 ORACLE ASM - Mounts - Mount SAP Filesystems on Database for installation when using Shared File systems"
   ansible.posix.mount:
@@ -42,18 +42,18 @@
   when:
     - NFS_provider != "NONE"
 
-- name:                                "2.6.3 ORACLE ASM - Mounts -  Print oravgstat"
+- name:                                "2.6.3 ORACLE ASM - Mounts -  Print oracle_logical_volumes"
   ansible.builtin.debug:
-    var:                               oravgstat
+    var:                               oracle_logical_volumes
     verbosity:                         2
 
-- name:                                "2.6.3 ORACLE ASM - Mounts -  Gather existing Logical Volumes"
+- name:                                "2.6.3 ORACLE ASM - Mounts - Gather existing Logical Volumes"
   ansible.builtin.set_fact:
-    lvexists:                          "{{ oravgstat.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item.lv') | list }}"
+    oracle_logical_volume_exists:      "{{ oracle_logical_volumes.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item.lv') | list }}"
 
-- name:                                "2.6.3 ORACLE ASM - Mounts -  Print lvexists"
+- name:                                "2.6.3 ORACLE ASM - Mounts - Show existing Logical Volumes"
   ansible.builtin.debug:
-    var:                               lvexists
+    msg:                               "Existing logical volumes: {{ oracle_logical_volume_exists }}"
     verbosity:                         2
 
 # - fail: msg="here"
