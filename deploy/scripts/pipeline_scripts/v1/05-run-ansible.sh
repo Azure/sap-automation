@@ -125,7 +125,6 @@ if [ ! -f "$SSH_KEY_NAME" ]; then
 else
 	echo "##[section]SSH key already exists, skipping retrieval."
 	sudo chmod 600 "$SSH_KEY_NAME"
-	ls -lart
 fi
 
 password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv)
