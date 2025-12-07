@@ -14,9 +14,9 @@
 ---
 
 
-- name:                                "SYBASE Install"
+- name:                                "4.3.0.5 - SYBASE Installation"
   block:
-    - name:                            "SYBASE Install - Include 3.3.1-bom-utility role"
+    - name:                            "4.3.0.5 - SYBASE Installation - Include 3.3.1-bom-utility role"
       ansible.builtin.include_role:
         name:                          roles-sap/3.3.1-bom-utility
         tasks_from:                    bom-register
@@ -24,7 +24,7 @@
         bom_name:                      "{{ bom_base_name }}"
         task_prefix:                   "SYBASE Install: "
 
-    - name:                            "SYBASE Install - Template processing: Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
+    - name:                            "4.3.0.5 - SYBASE Installation - Template processing: Create ini file {{ sap_inifile }} from {{ sap_inifile_template }}"
       ansible.builtin.template:
         src:                           "{{ sap_inifile_template }}"
         dest:                          "{{ dir_params }}/{{ sap_inifile }}"
@@ -39,7 +39,7 @@
     # +--------------------------------4--------------------------------------*/
     #
     # - name:                            "SAP SYBASE install: variables"
-    - name:                            "SYBASE Install: install variables"
+    - name:                            "4.3.0.5 - SYBASE Installation - install variables"
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ sybase_installed.stat.exists }}"
@@ -47,15 +47,15 @@
           - "PRODUCT ID: {{ bom.product_ids.dbl }}"
           - "MEDIA:      {{ target_media_location }}"
 
-    - name:                            "SYBASE Install: Create directory for installation log files"
+    - name:                            "4.3.0.5 - SYBASE Installation - Create directory for installation log files"
       ansible.builtin.file:
         path:                          "{{ tmp_directory }}/{{ sap_sid | upper }}"
         state:                         directory
         mode:                          0755
 
-    - name:                            "SYBASE Install"
+    - name:                            "4.3.0.5 - SYBASE Installation"
       block:
-        - name:                        "SYBASE Install: Progress"
+        - name:                        "4.3.0.5 - SYBASE Installation - Progress"
           ansible.builtin.debug:
             msg:                       "Start SYBASE Installation"
 
@@ -64,7 +64,7 @@
         #   2230669 - System Provisioning Using a Parameter Input File
         #
 
-        - name:                        "SYBASE Install - SAPINST SYBASE Install"
+        - name:                        "4.3.0.5 - SYBASE Installation - SAPINST SYBASE Install"
           ansible.builtin.shell: |
                                       umask {{ custom_umask | default('022') }};
                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}      \
@@ -82,7 +82,7 @@
             TMPDIR:                    "{{ tmp_directory }}/{{ sap_sid | upper }}"
             SAPINST_USE_HOSTNAME:      "{{ virtual_host }}"
       rescue:
-        - name:                        "SYBASE Install: Progress"
+        - name:                        "4.3.0.5 - SYBASE Installation - Progress"
           ansible.builtin.debug:
             msg:                       "Start SYBASE Installation (rescue)"
 
@@ -91,14 +91,14 @@
         #   2230669 - System Provisioning Using a Parameter Input File
         #
 
-        - name:                        "SYBASE Install - SAPINST SYBASE Install"
+        - name:                        "4.3.0.5 - SYBASE Installation - SAPINST SYBASE Install"
           ansible.builtin.shell: |
                                       umask {{ custom_umask | default('022') }};
                                       ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}      \
                                                 SAPINST_EXECUTE_PRODUCT_ID={{ bom.product_ids.dbl }}                 \
                                                 SAPINST_USE_HOSTNAME={{ virtual_host }}                              \
                                                 SAPINST_SKIP_DIALOGS=true                                            \
-                                                SAPINST_START_GUISERVER=false                                        \
+                                                SAPINST_START_GUISERVER =false                                        \
                                                 SAPINST_ENFORCE_CRL={{ sapinst_enforce_crl }}                        \
                                                 SAPINST_SKIP_ERRORSTEP=true
           args:
@@ -110,12 +110,12 @@
             TMPDIR:                    "{{ tmp_directory }}/{{ sap_sid | upper }}"
             SAPINST_USE_HOSTNAME:      "{{ virtual_host }}"
 
-    - name:                            "SYBASE Install: Installation results"
+    - name:                            "4.3.0.5 - SYBASE Installation - Installation results"
       ansible.builtin.debug:
         msg:                           "SYBASE Installation succeeded"
       when:                            sybase_installation.rc == 0
 
-    - name:                            "SYBASE Install: Installation failure"
+    - name:                            "4.3.0.5 - SYBASE Installation - Installation failure"
       ansible.builtin.debug:
         var:                           sybase_installation
       when:                            sybase_installation.rc > 0
@@ -128,14 +128,14 @@
       when:
         - sybase_installation.rc == 0
 
-    - name:                            "SYBASE Install: check if ARM Deployment done"
+    - name:                            "4.3.0.5 - SYBASE Installation - check if ARM Deployment done"
       ansible.builtin.stat:
         path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_db_arm.txt"
       register:                        db_arm_deployment_done
 
-    - name:                            "SYBASE: Successful installation"
+    - name:                            "4.3.0.5 - SYBASE Installation - Successful installation"
       block:
-        - name:                        "Retrieve Subscription ID and Resource Group Name"
+        - name:                        "4.3.0.5 - SYBASE Installation - Retrieve Subscription ID and Resource Group Name"
           ansible.builtin.uri:
             url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
             use_proxy:                 false
@@ -143,12 +143,12 @@
               Metadata:                true
           register: azure_metadata
 
-        - name:                        "SYBASE Install: Extract Subscription ID and Resource Group Name"
+        - name:                        "4.3.0.5 - SYBASE Installation - Extract Subscription ID and Resource Group Name"
           ansible.builtin.set_fact:
             subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
             resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
 
-        - name:                        "SYBASE Install: Show the subscription and resource group"
+        - name:                        "4.3.0.5 - SYBASE Installation - Show the subscription and resource group"
           ansible.builtin.debug:
             msg:
               - "Subscription ID: {{ subscription_id }}"
@@ -165,14 +165,14 @@
         - not db_arm_deployment_done.stat.exists
         - sybase_installation.rc == 0
 
-    - name:                            "SYBASE Install: Show errors if they exist"
+    - name:                            "4.3.0.5 - SYBASE Installation - Show errors if they exist"
       ansible.builtin.debug:
         msg:                           "{{ sybase_installation.stdout_lines }}"
       when: sybase_installation is defined and sybase_installation.rc != 0
 
-    - name:                            "SYBASE Install: Abort execution when there are installation errors"
+    - name:                            "4.3.0.5 - SYBASE Installation - Abort execution when there are installation errors"
       ansible.builtin.fail:
-        msg:                           "SYBASE Install: Execution interrupted due to errors"
+        msg:                           "4.3.0.5 - SYBASE Installation - Execution interrupted due to errors"
       when: sybase_installation is defined and sybase_installation.rc != 0
 
   when:
@@ -180,14 +180,14 @@
 
   # *==================================4=======================================8
 
-- name:                                "Sybase Install status"
+- name:                                "4.3.0.5 - SYBASE Installation - Sybase Install status"
   block:
 
-    - name:                            "Sybase Install status"
+    - name:                            "4.3.0.5 - SYBASE Installation - Sybase Install status"
       ansible.builtin.debug:
         msg:                           "Sybase is already installed"
 
-    - name:                            "Sybase Install: - return value"
+    - name:                            "4.3.0.5 - SYBASE Installation - return value"
       ansible.builtin.set_fact:
         sybase_already_installed:        true
   when:

@@ -209,7 +209,7 @@
             owner:                     "{{ db_sid | lower }}adm"
             mode:                      0755
 
-        - name:                        "Retrieve Subscription ID and Resource Group Name"
+        - name:                        "4.0.0 SAP HANA - Installation - Retrieve Subscription ID and Resource Group Name"
           ansible.builtin.uri:
             url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
             use_proxy:                 false
@@ -217,12 +217,12 @@
               Metadata:                true
           register: azure_metadata
 
-        - name:                        "Extract details"
+        - name:                        "4.0.0 SAP HANA - Installation - Extract Azure details"
           ansible.builtin.set_fact:
             subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
             resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
 
-        - name:                        "Show the subscription and resource group"
+        - name:                        "4.0.0 SAP HANA - Installation - Show the subscription and resource group"
           ansible.builtin.debug:
             msg:
               - "Subscription ID: {{ subscription_id }}"
@@ -241,12 +241,6 @@
             state:                     touch
             mode:                      0755
 
-        # - name:                        "4.0.0 SAP HANA - Installation -  remove install response file"
-        #   ansible.builtin.file:
-        #     path:                      "{{ dir_params }}/{{ sap_inifile }}"
-        #     state:                     absent
-
-
       when:
         - hana_installation.rc is defined
         - hana_installation.rc < 1
@@ -254,14 +248,16 @@
   when:
     - not hana_installed.stat.exists
 
-- name:                                "HANA Install status"
+- name:                                "4.0.0 SAP HANA - Installation - HANA Install status"
+  when:
+    - hana_installed.stat.exists
   block:
 
-    - name:                            "HANA Install status"
+    - name:                            "4.0.0 SAP HANA - Installation - HANA Install status"
       ansible.builtin.debug:
         msg:                           "HANA is already installed"
 
-    - name:                            "HANA: - return value"
+    - name:                            "4.0.0 SAP HANA - Installation - return value"
       ansible.builtin.set_fact:
         hana_already_installed:         true
 
@@ -277,45 +273,6 @@
       ansible.builtin.stat:
         path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb_arm.txt"
       register:                        hana_arm_deployment_done
-
-    - name:                            "4.0.0 SAP HANA - Installation - Successful installation"
-      block:
-        - name:                        "Retrieve Subscription ID and Resource Group Name"
-          ansible.builtin.uri:
-            url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
-            use_proxy:                 false
-            headers:
-              Metadata:                true
-          register: azure_metadata
-
-        - name:                        "Extract details"
-          ansible.builtin.set_fact:
-            subscription_id_tmp:       "{{ azure_metadata.json.compute.subscriptionId }}"
-            resource_group_name_tmp:   "{{ azure_metadata.json.compute.resourceGroupName }}"
-
-        - name:                        "Show the subscription and resource group"
-          ansible.builtin.debug:
-            msg:
-              - "Subscription ID: {{ subscription_id_tmp }}"
-              - "Resource Group Name: {{ resource_group_name_tmp }}"
-
-        - name:                        "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
-          ansible.builtin.include_role:
-            name:                      roles-misc/0.6-ARM-Deployment
-          vars:
-            subscription_id:           "{{ subscription_id_tmp }}"
-            resource_group_name:       "{{ resource_group_name_tmp }}"
-
-        - name:                        "4.0.0 SAP HANA - Installation -  ARM Deployment flag"
-          ansible.builtin.file:
-            path:                      "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_hdb_arm.txt"
-            state:                     touch
-            mode:                      0755
-      when:
-        - not hana_arm_deployment_done.stat.exists
-
-  when:
-    - hana_installed.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8
