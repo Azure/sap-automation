@@ -120,13 +120,13 @@ SYB.NW_DB.folderDiagDevice                                              = /sybas
 SYB.NW_DB.folderSAPTempdbDevice                                         = /sybase/{{ db_sid | upper }}/saptemp
 
 # Path to sybsecurity device
-SYB.NW_DB.folderSecurityDevices                                         = /sybase/{{ db_sid | upper }}/sybsecurity
+SYB.NW_DB.folderSecurityDevices                                         = /sybase/{{ sap_sid | upper }}/sybsecurity
 
 # Path to data server 'system' devices
 SYB.NW_DB.folderSystemDevices                                           = /sybase/{{ sap_sid | upper }}/sybsystem
 
 # Path to data server 'temp' device
-SYB.NW_DB.folderTempdbDevice                                            = /sybase/{{ db_sid | upper }}/sybtemp
+SYB.NW_DB.folderTempdbDevice                                            = /sybase/{{ sap_sid | upper }}/sybtemp
 
 # Number of consumers used by the 'create index with consumers' command
 SYB.NW_DB.indexConsumers                                                = 3
