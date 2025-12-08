@@ -52,11 +52,11 @@
   register:                            waagent_conf_copy
 
 
-- name:                                "1.4 Packages - Force systemd to reread configs {{ distro_name }}"
+- name:                                "1.4 Packages - Force systemd to reread configs {{ distribution_id }}"
   ansible.builtin.systemd:
     daemon_reload:                     true
 
-- name:                                "1.4 Packages - Restart WAAgent on {{ distro_name }}"
+- name:                                "1.4 Packages - Restart WAAgent on {{ distribution_id }}"
   ansible.builtin.service:
     name:                              waagent
     state:                             restarted

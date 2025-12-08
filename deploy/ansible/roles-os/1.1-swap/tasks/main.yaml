@@ -43,7 +43,7 @@
 #   tags:
 #     - skip_ansible_lint
 
-- name:                                "1.1 Swap - Restart WAAgent on {{ distro_name }}"
+- name:                                "1.1 Swap - Restart WAAgent on {{ distribution_id }}"
   ansible.builtin.service:
     name:                              waagent
     state:                             restarted
@@ -97,7 +97,7 @@
   register:                            waagent_conf_copy
 
 
-- name:                                "1.1 Swap - Force systemd to reread configuration {{ distro_name }}"
+- name:                                "1.1 Swap - Force systemd to reread configuration {{ distribution_id }}"
   ansible.builtin.service:
     name:                              systemd
     state:                             reloaded
@@ -105,7 +105,7 @@
     - waagent_conf_copy is defined
     - waagent_conf_copy.changed
 
-- name:                                "1.1 Swap - Restart WAAgent on {{ distro_name }}"
+- name:                                "1.1 Swap - Restart WAAgent on {{ distribution_id }}"
   ansible.builtin.service:
     name:                              waagent
     state:                             restarted
