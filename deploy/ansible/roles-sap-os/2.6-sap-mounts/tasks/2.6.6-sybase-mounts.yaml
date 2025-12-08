@@ -11,31 +11,31 @@
 
 # Mount Filesystems
 
-- name:                                "SYBASE: Get Logical volumes created in 1.5"
+- name:                                "2.6.4 SAP Mount - SYBASE - Get Logical volumes created in 1.5"
   ansible.builtin.include_vars:        disks_config.yml
 
-- name:                                "SYBASE: Check if  logical volumes exist."
+- name:                                "2.6.4 SAP Mount - SYBASE - Check if  logical volumes exist."
   ansible.builtin.stat:
     path:                              "{{ dev_path_from_lv_item }}"
   loop:                                "{{ logical_volumes }}"
   register:                            sybasevolstat
 
-- name:                                "SYBASE: Debug - Show volume information"
+- name:                                "2.6.4 SAP Mount - SYBASE - Debug - Show volume information"
   ansible.builtin.debug:
-    var:                               sybasevolstat
+    msg:                               "Logical volumes status: {{ sybasevolstat }}"
     verbosity:                         2
 
-- name:                                "SYBASE: Gather existing Logical Volumes"
+- name:                                "2.6.4 SAP Mount - SYBASE - Gather existing Logical Volumes"
   ansible.builtin.set_fact:
     lvexists:                          "{{ sybasevolstat.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item.lv') | list }}"
 
-- name:                                "SYBASE: Show lvexists"
+- name:                                "2.6.4 SAP Mount - SYBASE - Show Current logical volumes"
   ansible.builtin.debug:
-    var:                               lvexists
+    msg:                               "Existing logical volumes: {{ lvexists }}"
     verbosity:                         2
 
 # Mount Filesystems
-- name:                                "SYBASE: Mount Filesystems for SYBASE"
+- name:                                "2.6.4 SAP Mount - SYBASE - Mount Filesystems for SYBASE"
   ansible.posix.mount:
     src:                               "{{ dev_path_from_lv_item }}"
     path: >-
@@ -91,7 +91,7 @@
     path:                              /etc/sap_deployment_automation/filepermission.txt
   register:                            sybase_permissions_set
 
-- name:                                "SYBASE: Make syb<sid>:sapsys as owners for SYBASE directories"
+- name:                                "2.6.4 SAP Mount - SYBASE - Make syb<sid>:sapsys as owners for SYBASE directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -104,7 +104,7 @@
   when:
     - not sybase_permissions_set.stat.exists
 
-- name:                                "SYBASE: Create sap_deployment_automation
+- name:                                "2.6.4 SAP Mount - SYBASE - Create sap_deployment_automation
                                         folder"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
@@ -119,7 +119,7 @@
     mode:                              0644
     state:                             touch
 
-- name:                                "SYBASE: Set NFS Server variable"
+- name:                                "2.6.4 SAP Mount - SYBASE - Set NFS Server variable"
   ansible.builtin.set_fact:
     nfs_server:                        "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}"
   when:
@@ -128,14 +128,14 @@
     - node_tier != 'scs'
     - node_tier in ['pas', 'app', 'ers', 'oracle', 'db2', 'sybase']
 
-- name:                                "SYBASE: Set NFS Mount variable"
+- name:                                "2.6.4 SAP Mount - SYBASE - Set NFS Mount variable"
   ansible.builtin.set_fact:
     sapmnt_nfs_mount: >-
                                         {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}{{ sap_mnt }}{% else %}{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}{% endif %}
   when:
     - (nfs_server is defined and nfs_server != ansible_hostname) or nfs_server is not defined
 
-- name:                                "SYBASE: Debug NFS Mount variable"
+- name:                                "2.6.4 SAP Mount - SYBASE - Debug NFS Mount variable"
   ansible.builtin.debug:
     var:  sapmnt_nfs_mount
   when:
@@ -146,12 +146,12 @@
     sapmnt_nfs_opts: >-
                                         {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp{% else %}defaults{% endif %}
 
-- name:                                "SYBASE: Set NFS Server options"
+- name:                                "2.6.4 SAP Mount - SYBASE - Set NFS Server options"
   ansible.builtin.debug:
     var:  sapmnt_nfs_opts
 
 # Mount Filesystems
-- name:                                "Mount SAP Filesystems on Database for installation"
+- name:                                "2.6.4 SAP Mount - SYBASE - Mount SAP Filesystems on Database for installation"
   ansible.posix.mount:
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
@@ -171,9 +171,9 @@
     - sapmnt_nfs_mount is defined
 
 # Debug for testing
-- name:                                "SYBASE: Print filesystems"
+- name:                                "2.6.4 SAP Mount - SYBASE - Print filesystems"
   ansible.builtin.debug:
-    var:                               sybasefsmounts
+    msg:                               "SYBASE file systems mounted : {{ sybasefsmounts }}"
     verbosity:                         2
 
 ...

@@ -111,7 +111,7 @@ SYB.NW_DB.enableGranularPermissions                                     = true
 SYB.NW_DB.enableStrongCipherSuitesForSSL                                = false
 
 # Path to ASE database software
-SYB.NW_DB.folderDatabaseSoftware                                        = /sybase/{{ db_sid | upper }}
+SYB.NW_DB.folderDatabaseSoftware                                        = /sybase/{{ sap_sid | upper }}
 
 # Path to diagnostic database devices
 SYB.NW_DB.folderDiagDevice                                              = /sybase/{{ db_sid | upper }}/sapdiag
