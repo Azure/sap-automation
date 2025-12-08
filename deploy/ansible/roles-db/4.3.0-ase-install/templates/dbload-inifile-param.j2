@@ -123,7 +123,7 @@ SYB.NW_DB.folderSAPTempdbDevice                                         = /sybas
 SYB.NW_DB.folderSecurityDevices                                         = /sybase/{{ db_sid | upper }}/sybsecurity
 
 # Path to data server 'system' devices
-SYB.NW_DB.folderSystemDevices                                           = /sybase/{{ db_sid | upper }}/sybsystem
+SYB.NW_DB.folderSystemDevices                                           = /sybase/{{ sap_sid | upper }}/sybsystem
 
 # Path to data server 'temp' device
 SYB.NW_DB.folderTempdbDevice                                            = /sybase/{{ db_sid | upper }}/sybtemp
@@ -186,10 +186,10 @@ SYB.NW_DB.sqlServerMemory                                               = {{ syb
 SYB.NW_DB.sslPassword                                                   = {{ main_password }}
 
 # Path to folder for sybmgmtdb database data device
-SYB.NW_DB.sybmgmtdbDataDeviceFolder                                     = /sybase/{{ db_sid | upper }}/sybsystem
+SYB.NW_DB.sybmgmtdbDataDeviceFolder                                     = /sybase/{{ sap_sid | upper }}/sybsystem
 
 # Path to folder for sybmgmtdb database log device
-SYB.NW_DB.sybmgmtdbLogDeviceFolder                                      = /sybase/{{ db_sid | upper }}/sybsystem
+SYB.NW_DB.sybmgmtdbLogDeviceFolder                                      = /sybase/{{ sap_sid | upper }}/sybsystem
 
 # Host name in the SAP ASE user store location path
 SYB.NW_DB.userstore_hostname                                            = {{ sap_db_hostname }}
