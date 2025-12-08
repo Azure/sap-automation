@@ -93,7 +93,7 @@
     mode:                              0755
   when:
     - scs_installed_according_to_sapinst is defined
-    - scs_installed_according_to_sapinst | length > 0
+    - scs_installed_according_to_sapinst.matched > 0
     - not reinstall
 
 - name:                                "5.0.0 SAP Central Services Installation - Reset the installation flag file if reinstall is requested"
