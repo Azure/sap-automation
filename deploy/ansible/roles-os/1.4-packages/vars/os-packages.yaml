@@ -262,6 +262,7 @@ packages:
     # --------------------------- End - Packages required for SYBASE ----------------------------------------8
     # --------------------------- Begin - Packages required for HANA ----------------------------------------8
     - { tier: 'sapos',  package: 'chkconfig',                                    node_tier: 'hana',           state: 'present' }
+    - { tier: 'sapos',  package: 'tuned',                                        node_tier: 'db2',            state: 'present' }
     - { tier: 'sapos',  package: 'tuned',                                        node_tier: 'hana',           state: 'present' }
     - { tier: 'sapos',  package: 'tuned-profiles-sap-hana',                      node_tier: 'hana',           state: 'present' }
     # --------------------------- End - Packages required for HANA ------------------------------------------8
