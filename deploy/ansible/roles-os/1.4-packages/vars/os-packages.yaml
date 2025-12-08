@@ -256,13 +256,13 @@ packages:
     - { tier: 'os',     package: 'unzip',                                        node_tier: 'db2',            state: 'present' }
     - { tier: 'os',     package: 'libpam.so.0',                                  node_tier: 'db2',            state: 'present' }
     - { tier: 'db2',    package: 'acl',                                          node_tier: 'db2',            state: 'present' }
+    - { tier: 'sapos',  package: 'tuned',                                        node_tier: 'db2' ,           state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
     # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
     - { tier: 'os',     package: 'glibc.i686',                                   node_tier: 'sybase',         state: 'present' }
     # --------------------------- End - Packages required for SYBASE ----------------------------------------8
     # --------------------------- Begin - Packages required for HANA ----------------------------------------8
     - { tier: 'sapos',  package: 'chkconfig',                                    node_tier: 'hana',           state: 'present' }
-    - { tier: 'sapos',  package: 'tuned',                                        node_tier: 'db2',            state: 'present' }
     - { tier: 'sapos',  package: 'tuned',                                        node_tier: 'hana',           state: 'present' }
     - { tier: 'sapos',  package: 'tuned-profiles-sap-hana',                      node_tier: 'hana',           state: 'present' }
     # --------------------------- End - Packages required for HANA ------------------------------------------8
