@@ -32,9 +32,9 @@
     - { mode: '0755', path: '{{ dir_params }}' }
     - { mode: '0777', path: '{{ tmp_directory }}/{{ sap_sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sap_sid | upper }}' }
-    - { mode: '0755', path: '/sybase/{{ db_sid | upper }}/sybtemp' }
-    - { mode: '0755', path: '/sybase/{{ db_sid | upper }}/sybtemp/data' }
-    - { mode: '0755', path: '/sybase/{{ db_sid | upper }}/sybsystem' }
+    - { mode: '0755', path: '/sybase/{{ sap_sid | upper }}/sybtemp' }
+    - { mode: '0755', path: '/sybase/{{ sap_sid | upper }}/sybtemp/data' }
+    - { mode: '0755', path: '/sybase/{{ sap_sid | upper }}/sybsystem' }
 
 
 ...
