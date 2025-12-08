@@ -77,11 +77,13 @@
   ansible.builtin.shell: >-
                                    Update-AzConfig -EnableLoginByWam $false
 
-                                   $modules = @("Az", "Az.NetAppFiles", "Posh-SSH")
+                                   $modules = @("Az", "Az.NetAppFiles", "Posh-SSH", "Az.Compute")
 
                                    foreach ($module in $modules) {
                                      if (-not (Get-Module -ListAvailable -Name $module)) {
                                        Install-Module $module -Force -Scope AllUsers -Confirm:$false
+                                     } else { 
+                                       Update-Module -Name $module -Force -Scope AllUsers -Confirm:$false
                                      }
                                    }
   register:                        qc_modules_result
