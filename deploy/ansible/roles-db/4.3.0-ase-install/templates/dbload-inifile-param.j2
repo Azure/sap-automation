@@ -93,7 +93,7 @@ SYB.NW_DB.autoExpandSaptoolsThresholdDefault                            = 2
 SYB.NW_DB.autoExpandSaptoolsThresholdLog                                = 2
 
 # Database device information like 'type','folder','size','maxsize','growsize','name'
-SYB.NW_DB.databaseDevices = data device for SAP,/sybase/{{ db_sid | upper }}/sapdata_1,64,,10,{{ db_sid | upper }}_data_001,log device for SAP,/sybase/{{ db_sid | upper }}/saplog_1,32,,5,{{ db_sid | upper }}_log_001,data device for saptools,/sybase/{{ db_sid | upper }}/sapdiag,14,,2,saptools_data_001,log device for saptools,/sybase/{{ db_sid | upper }}/sapdiag,8,,2,saptools_log_001,data device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,8,,,sybsecurity_data_001,data device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,8,,,sybsecurity_data_002,log device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,4,,,sybsecurity_log_001,temp device for SAP,/sybase/{{ db_sid | upper }}/saptemp,8,,,saptempdb_data_001
+SYB.NW_DB.databaseDevices = data device for SAP,/sybase/{{ sap_sid | upper }}/sapdata_1,64,,10,{{ sap_sid | upper }}_data_001,log device for SAP,/sybase/{{ sap_sid | upper }}/saplog_1,32,,5,{{ sap_sid | upper }}_log_001,data device for saptools,/sybase/{{ sap_sid | upper }}/sapdiag,14,,2,saptools_data_001,log device for saptools,/sybase/{{ sap_sid | upper }}/sapdiag,8,,2,saptools_log_001,data device for sybsecurity,/sybase/{{ sap_sid | upper }}/sybsecurity,8,,,sybsecurity_data_001,data device for sybsecurity,/sybase/{{ sap_sid | upper }}/sybsecurity,8,,,sybsecurity_data_002,log device for sybsecurity,/sybase/{{ sap_sid | upper }}/sybsecurity,4,,,sybsecurity_log_001,temp device for SAP,/sybase/{{ sap_sid | upper }}/saptemp,8,,,saptempdb_data_001
 
 
 # Type of SAP ASE
@@ -114,10 +114,10 @@ SYB.NW_DB.enableStrongCipherSuitesForSSL                                = false
 SYB.NW_DB.folderDatabaseSoftware                                        = /sybase/{{ sap_sid | upper }}
 
 # Path to diagnostic database devices
-SYB.NW_DB.folderDiagDevice                                              = /sybase/{{ db_sid | upper }}/sapdiag
+SYB.NW_DB.folderDiagDevice                                              = /sybase/{{ sap_sid | upper }}/sapdiag
 
 # Path to SAP tempdb device
-SYB.NW_DB.folderSAPTempdbDevice                                         = /sybase/{{ db_sid | upper }}/saptemp
+SYB.NW_DB.folderSAPTempdbDevice                                         = /sybase/{{ sap_sid | upper }}/saptemp
 
 # Path to sybsecurity device
 SYB.NW_DB.folderSecurityDevices                                         = /sybase/{{ sap_sid | upper }}/sybsecurity
