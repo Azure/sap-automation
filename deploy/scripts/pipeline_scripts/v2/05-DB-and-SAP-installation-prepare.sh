@@ -72,21 +72,6 @@ SID=$(basename "${SAP_SYSTEM_CONFIGURATION_NAME}" | cut -d'-' -f4)
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
-if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
-	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-	export APPLICATION_CONFIGURATION_ID
-fi
-
-if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-
-	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultResourceId" "${WORKLOAD_ZONE_NAME}")
-	key_vault=$(echo "$key_vault_id" | cut -d'/' -f9)
-	key_vault_subscription_id=$(echo "$key_vault_id" | cut -d'/' -f3)
-
-	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-	tfstate_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
-fi
-
 cd "$CONFIG_REPO_PATH" || exit
 
 parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml"
@@ -129,6 +114,22 @@ if [ "$PLATFORM" == "devops" ]; then
 		exit $return_code
 	fi
 fi
+
+if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	export APPLICATION_CONFIGURATION_ID
+fi
+
+if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+
+	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultResourceId" "${WORKLOAD_ZONE_NAME}")
+	key_vault=$(echo "$key_vault_id" | cut -d'/' -f9)
+	key_vault_subscription_id=$(echo "$key_vault_id" | cut -d'/' -f3)
+
+	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+	tfstate_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
+fi
+
 
 az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
 
