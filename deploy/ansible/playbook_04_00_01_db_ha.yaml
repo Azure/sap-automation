@@ -250,7 +250,7 @@
     oracle_sid:                        "{{ db_sid | upper }}"
     oracle_user:                       "{{ oracle_user_name }}"
     grid_sid:                          "GRID"
-    grid_user:                         "{{ grid_user_name | default(oracle_user_name) }}"
+    grid_user:                         "{% if platform in ['ORACLE-ASM'] %}{{ grid_user_name | default(oracle_user_name) }}{% else %}{{ oracle_user_name }}{% endif %}"
     grid_home:                         "/oracle/GRID/{{ ora_version }}"
     asm_sid:                           +ASM
 
@@ -274,10 +274,10 @@
       LD_LIBRARY_PATH:                 "{{ oracle_home }}/lib"
 
     grid_env:
-      ORACLE_HOME:                     "{{ grid_home }}"
-      ORACLE_SID:                      "{{ asm_sid }}"
-      PATH:                            "{{ grid_home }}/bin:{{ ansible_env.PATH }}"
-      LD_LIBRARY_PATH:                 "{{ grid_home }}/lib"
+      ORACLE_HOME:                     "{% if platform in ['ORACLE-ASM'] %}{{ grid_home }}{% else %}{{ oracle_home }}{% endif %}"
+      ORACLE_SID:                      "{% if platform in ['ORACLE-ASM'] %}{{ asm_sid }}{% else %}{{ oracle_sid }}{% endif %}"
+      PATH:                            "{% if platform in ['ORACLE-ASM'] %}{{ grid_home }}/bin:{{ ansible_env.PATH }}{% else %}{{ oracle_home }}/bin:{{ ansible_env.PATH }}{% endif %}"
+      LD_LIBRARY_PATH:                 "{% if platform in ['ORACLE-ASM'] %}{{ grid_home }}/lib{% else %}{{ oracle_home }}/lib{% endif %}"
 
   tasks:
     - name:                            "Database High Availability Configuration Playbook - ORACLE : Backward Compatibility - Check required Database HA variables"
