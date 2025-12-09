@@ -47,7 +47,7 @@
       ansible.builtin.shell:           pcs property set maintenance-mode=true
 
     - name:                            "5.7.3.0 DB2 - REDHAT - Pacemaker - configuration - Check if the pacemaker package version is greater than pacemaker-2.0.4"
-      when:                            ansible_distribution_major_version in ["8", "9", "10"]
+      when:                            ansible_distribution_major_version is version('8', '>=')
       ansible.builtin.set_fact:
         is_pcmk_ver_gt_204:            "{{ ansible_facts.packages['pacemaker'][0].version is version('2.0.4', '>') | default(false) }}"
 
@@ -65,7 +65,7 @@
                                        meta resource-stickiness=5000 promotable notify=true
       register:                        sap_db2
       failed_when:                     sap_db2.rc > 1
-      when:                            ansible_distribution_major_version in ["8", "9", "10"]
+      when:                            ansible_distribution_major_version is version('8', '>=')
 
     - name:                            "5.7.3.0 DB2 - REDHAT - Pacemaker - configuration - Ensure the Virtual IP resource for the Load Balancer Front End IP is created"
       ansible.builtin.shell:           pcs resource create vip_db2{{ db_sid | lower }}_{{ db_sid | upper }} IPaddr2 ip='{{ database_loadbalancer_ip }}'
@@ -92,7 +92,7 @@
       ansible.builtin.shell:           pcs constraint colocation add g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }} with master Db2_HADR_{{ db_sid | upper }}-clone
       register:                        constraint
       failed_when:                     constraint.rc > 1
-      when:                            ansible_distribution_major_version in ["8", "9", "10"]
+      when:                            ansible_distribution_major_version is version('8', '>=')
 
     - name:                            "5.7.3.0 DB2 - REDHAT - Pacemaker - configuration - Ensure the order constraint for the SAP DB2 is configured - RHEL7"
       ansible.builtin.shell:           pcs constraint order promote Db2_HADR_{{ db_sid | upper }}-master then g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }}
@@ -104,7 +104,7 @@
       ansible.builtin.shell:           pcs constraint order promote Db2_HADR_{{ db_sid | upper }}-clone then g_ipnc_db2{{ db_sid | lower }}_{{ db_sid | upper }}
       register:                        constraint
       failed_when:                     constraint.rc > 1
-      when:                            ansible_distribution_major_version in ["8", "9", "10"]
+      when:                            ansible_distribution_major_version is version('8', '>=')
 
     # for two node clusters set properties
     - name:                            "5.7.3.0 DB2 - REDHAT - Pacemaker - configuration - Set the cluster properties for two node clusters"
@@ -133,7 +133,7 @@
       retries:                         12
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
-      when:                            ansible_distribution_major_version != "8" and ansible_distribution_major_version != "9" and ansible_distribution_major_version != "10"
+      when:                            ansible_distribution_major_version is version('8', '<')
 
     # '*' is a special character in regexp and needs to be escaped for literal matching
     # if we are worried about character spacing across distros we can match for '\* Online:'
@@ -143,7 +143,7 @@
       retries:                         12
       delay:                           10
       until:                           "'{{ primary_instance_name }} {{ secondary_instance_name }}' in cluster_stable_check.stdout or '{{ secondary_instance_name }} {{ primary_instance_name }}' in cluster_stable_check.stdout"
-      when:                            ansible_distribution_major_version in ["8", "9", "10"]
+      when:                            ansible_distribution_major_version is version('8', '>=')
 
     - name:                            "5.7.3.0 DB2 - REDHAT - Pacemaker - configuration - Ensure Cluster resources are started - RHEL7"
       ansible.builtin.shell:           set -o pipefail && pcs resource show | grep '    Started:'
@@ -159,6 +159,6 @@
       retries:                         12
       delay:                           10
       until:                           "'{{ primary_instance_name }}' in db2_cluster_resource_check.stdout or '{{ secondary_instance_name }}' in db2_cluster_resource_check.stdout"
-      when:                            ansible_distribution_major_version in ["8", "9", "10"]
+      when:                            ansible_distribution_major_version is version('8', '>=')
 
 # End of DB2 clustering resources
