@@ -9,7 +9,7 @@
 
 # For systemd services the SAP ASCS/SCS and ERS resources are created as systemd services
 # the path for the service file is /etc/systemd/system/SAP<SID>_<InstanceNumber>.service
-- name:                                "5.6 SCSERS - check if the SAP ASCS/SCS and ERS resources are created as systemd services"
+- name:                                "5.6.7 SCS/ERS Pacemaker - Configure systemd - Check if the SAP ASCS/SCS and ERS resources are created as systemd services"
   ansible.builtin.stat:
     path:                              "/etc/systemd/system/SAP{{ sap_sid | upper }}_{{ sap_instance_number }}.service"
   register:                            systemd_service_file_path
@@ -19,12 +19,12 @@
   loop_control:
     loop_var:                          sap_instance_number
 
-- name:                                "5.6 SCSERS - Set fact for the systemd services existance"
+- name:                                "5.6.7 SCS/ERS Pacemaker - Configure systemd - Set fact for the systemd services existance"
   ansible.builtin.debug:
     var:                               systemd_service_file_path
     verbosity:                         2
 
-- name:                                "5.6 SCSERS - Set facts for the systemd services and files"
+- name:                                "5.6.7 SCS/ERS Pacemaker - Configure systemd - Set facts for the systemd services and files"
   ansible.builtin.set_fact:
     systemd_service_names:             "{{
                                            systemd_service_file_path.results
@@ -39,18 +39,18 @@
       - { file: "SAP{{ sap_sid | upper }}_{{ ers_instance_number }}.service", directory: /etc/systemd/system }
       - { file: "10-SAP{{ sap_sid | upper }}-{{ ers_instance_number }}.rules", directory: /etc/polkit-1/rules.d }
 
-- name:                                "5.6 SCSERS - Show fact for the systemd services existance"
+- name:                                "5.6.7 SCS/ERS Pacemaker - Configure systemd - Show fact for the systemd services existance"
   ansible.builtin.debug:
     var:                               systemd_service_names
     verbosity:                         2
 
-- name:                                "5.6 SCSERS - Disable the services and stop auto-restart if they exist"
+- name:                                "5.6.7 SCS/ERS Pacemaker - Configure systemd - Disable the services and stop auto-restart if they exist"
   when:
     - systemd_service_names is defined
     - systemd_service_names | length > 0
   block:
 
-    - name:                            "5.6 SCSERS - Fetch systemd files from (A)SCS node"
+    - name:                            "5.6.7 SCS/ERS Pacemaker - Configure systemd - Fetch systemd files from (A)SCS node"
       when: node_tier == 'scs'
       ansible.builtin.fetch:
         src:                           "{{ item.directory }}/{{ item.file }}"
@@ -58,7 +58,7 @@
         flat:                          true
       loop: "{{ scs_systemd_files }}"
 
-    - name:                            "5.6 SCSERS - Fetch systemd files from ERS node"
+    - name:                            "5.6.7 SCS/ERS Pacemaker - Configure systemd - Fetch systemd files from ERS node"
       when: node_tier == 'ers'
       ansible.builtin.fetch:
         src:                           "{{ item.directory }}/{{ item.file }}"
@@ -66,7 +66,7 @@
         flat:                          true
       loop: "{{ ers_systemd_files }}"
 
-    - name:                            "5.6 SCSERS - Copy ERS systemd files on (A)SCS node"
+    - name:                            "5.6.7 SCS/ERS Pacemaker - Configure systemd - Copy ERS systemd files on (A)SCS node"
       when: node_tier == 'scs'
       ansible.builtin.copy:
         src:                           /tmp/{{ sap_sid }}/{{ item.file }}
@@ -76,7 +76,7 @@
         group:                         sapinst
       loop: "{{ ers_systemd_files }}"
 
-    - name:                            "5.6 SCSERS - Copy (A)SCS systemd files on ERS node"
+    - name:                            "5.6.7 SCS/ERS Pacemaker - Configure systemd - Copy (A)SCS systemd files on ERS node"
       when: node_tier == 'ers'
       ansible.builtin.copy:
         src:                           /tmp/{{ sap_sid }}/{{ item.file }}
@@ -86,7 +86,7 @@
         group:                         sapinst
       loop: "{{ scs_systemd_files }}"
 
-    - name:                            "5.6 SCSERS Pacemaker - Create systemd service override directory"
+    - name:                            "5.6.7 SCS/ERS Pacemaker - Configure systemd - Create systemd service override directory"
       ansible.builtin.file:
         path:                          "{{ override_dir }}"
         state:                          directory
@@ -99,7 +99,7 @@
       loop_control:
         loop_var:                      override_dir
 
-    - name:                            "5.6 SCSERS Pacemaker - Create systemd HA override files"
+    - name:                            "5.6.7 SCS/ERS Pacemaker - Configure systemd - Create systemd HA override files"
       ansible.builtin.copy:
         content: |-
           [Service]
@@ -114,7 +114,7 @@
       loop_control:
         loop_var:                      dropfile
 
-    - name:                            "5.6 SCSERS - Disable and Stop services"
+    - name:                            "5.6.7 SCS/ERS Pacemaker - Configure systemd - Disable and Stop services"
       ansible.builtin.systemd:
         name:                          "{{ service_name }}"
         daemon_reload:                 true

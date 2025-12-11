@@ -35,6 +35,9 @@ function save_config_vars() {
 
 	for var_name; do # iterate over function params
 		sed -i -e "" -e /"${var_name}"/d "${var_file}"
+		if [[ -z "${!var_name}" ]]; then
+			continue
+		fi
 		echo "${var_name}=${!var_name}" >>"${var_file}"
 
 	done
@@ -625,15 +628,15 @@ function get_configuration_file {
 	local region_code=$3
 	local logical_network_name=$4
 
-	local configurationFile="${directory}${environment}${region_code}${logical_network_name}"
+	local configurationFile="${directory}/${environment}${region_code}${logical_network_name}"
 
 	if [ ! -f "${configurationFile}" ]; then
-		configurationFile="${directory}${environment}${region_code}"
+		configurationFile="${directory}/${environment}${region_code}"
 		if [ ! -f "${configurationFile}" ]; then
-			configurationFile="${directory}${environment}${region_code}${logical_network_name}"
+			configurationFile="${directory}/${environment}${region_code}${logical_network_name}"
 		else
-			sudo mv "${configurationFile}" "${directory}${environment}${region_code}${logical_network_name}" 2>/dev/null || true
-			configurationFile="${directory}${environment}${region_code}${logical_network_name}"
+			sudo mv "${configurationFile}" "${directory}/${environment}${region_code}${logical_network_name}" 2>/dev/null || true
+			configurationFile="${directory}/${environment}${region_code}${logical_network_name}"
 		fi
 	fi
 

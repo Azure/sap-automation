@@ -9,7 +9,7 @@
 # [1] Create the SAP cluster resources
 # If using enqueue server 1 architecture (ENSA1), define the resources as follows:
 
-- name:                                "5.6 SCSERS - RHEL - Debug ENSA variables"
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - Debug ENSA variables"
   ansible.builtin.debug:
     msg:
       - "ENSA1: {{ ensa1 | default('ENSA1 NOT DEFINED') }}"
@@ -17,15 +17,15 @@
       - "Primary instance: {{ primary_instance_name }}"
       - "Current host: {{ inventory_hostname }}"
 
-- name:                                "5.6 SCSERS - RHEL - ENSA1 - SAP Resources - Cluster Configuration after Install"
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - ENSA1 - SAP Resources - Cluster Configuration after Install"
   when:
     - inventory_hostname == primary_instance_name
     - ensa1 | default(false)
   block:
-    - name:                            "5.6 SCSERS - RHEL - ENSA1 - Enable Maintenance mode for the cluster"
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - ENSA1 - Enable Maintenance mode for the cluster"
       ansible.builtin.shell:           pcs property set maintenance-mode=true
 
-    - name:                            "5.6 SCSERS - RHEL - ENSA1 - Configure SAP ASCS/SCS resources"
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - ENSA1 - Configure SAP ASCS/SCS resources"
       ansible.builtin.shell:   >
                                        pcs resource create rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
                                        InstanceName={{ instance_name }} START_PROFILE="{{ start_profile_path }}" \
@@ -37,10 +37,10 @@
       register:                        ascs_rsc_sap
       failed_when:                     ascs_rsc_sap.rc > 1
 
-    - name:                            "5.6 SCSERS - RHEL - ENSA1 - Set the ASCS resource stickiness"
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - ENSA1 - Set the ASCS resource stickiness"
       ansible.builtin.shell:           pcs resource meta g-{{ sap_sid | upper }}_{{ instance_type | upper }} resource-stickiness=3000
 
-    - name:                            "5.6 SCSERS - RHEL - ENSA1 - Configure SAP ERS resources"
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - ENSA1 - Configure SAP ERS resources"
       ansible.builtin.shell:   >
                                        pcs resource create rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} SAPInstance \
                                        InstanceName={{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} START_PROFILE="/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
@@ -52,7 +52,7 @@
       register:                        ers_rsc_sap
       failed_when:                     ers_rsc_sap.rc > 1
 
-    - name:                            "5.6 SCSERS - RHEL - ENSA1 - Configure Co-location Constraints"
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - ENSA1 - Configure Co-location Constraints"
       ansible.builtin.shell: |
                                        pcs constraint colocation add g-{{ sap_sid | upper }}_ERS with g-{{ sap_sid | upper }}_{{ instance_type | upper }} -5000
                                        pcs constraint location rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} rule score=2000 runs_ers_{{ sap_sid }} eq 1
@@ -60,26 +60,26 @@
       register:                        co_location
       failed_when :                    co_location.rc > 1
 
-    - name:                            "5.6 SCSERS - RHEL - ENSA1 - Bring Primary node online"
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - ENSA1 - Bring Primary node online"
       ansible.builtin.shell:           pcs node unstandby {{ primary_instance_name }}
 
-    # - name:                            "5.6 SCSERS - RHEL - ENSA1 - Set the Cluster out of maintenance mode"
+    # - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - ENSA1 - Set the Cluster out of maintenance mode"
     #   ansible.builtin.shell:           pcs property set maintenance-mode=false
 
-    # - name:                            "5.6 SCSERS - RHEL - ENSA2 - pause the execution for 2 minutes"
+    # - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - ENSA2 - pause the execution for 2 minutes"
     #   ansible.builtin.wait_for:
     #     timeout:                       120
 
 # Use the following if using ENSA2
-- name:                                "5.6 SCSERS - RHEL - SAP Resources - Cluster Configuration after Install"
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - SAP Resources - Cluster Configuration after Install"
   when:
     - inventory_hostname == primary_instance_name
     - ensa2 | default(false)
   block:
-    - name:                            "5.6 SCSERS - RHEL - ENSA2 - Enable Maintenance mode for the cluster"
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - ENSA2 - Enable Maintenance mode for the cluster"
       ansible.builtin.shell:           pcs property set maintenance-mode=true
 
-    - name:                            "5.6 SCSERS - RHEL - ENSA2 - Configure SAP ASCS/SCS resources"
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - ENSA2 - Configure SAP ASCS/SCS resources"
       ansible.builtin.shell:   >
                                        pcs resource create rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} SAPInstance \
                                        InstanceName={{ instance_name }} START_PROFILE="{{ start_profile_path }}" \
@@ -91,10 +91,10 @@
       register:                        ascs_rsc_sap
       failed_when:                     ascs_rsc_sap.rc > 1
 
-    - name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the ASCS resource stickiness"
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - ENSA2 - Set the ASCS resource stickiness"
       ansible.builtin.shell:           pcs resource meta g-{{ sap_sid | upper }}_{{ instance_type | upper }} resource-stickiness=3000
 
-    - name:                            "5.6 SCSERS - RHEL - ENSA2 - Configure SAP ERS resources"
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - ENSA2 - Configure SAP ERS resources"
       ansible.builtin.shell:   >
                                        pcs resource create rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} SAPInstance \
                                        InstanceName={{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} START_PROFILE="/sapmnt/{{ sap_sid }}/profile/{{ sap_sid }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
@@ -106,36 +106,36 @@
       register:                        ers_rsc_sap
       failed_when:                     ers_rsc_sap.rc > 1
 
-    - name:                            "5.6 SCSERS - RHEL - ENSA2 - Set the ERS resource stickiness"
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - ENSA2 - Set the ERS resource stickiness"
       ansible.builtin.shell:           pcs resource meta rsc_sap_{{ sap_sid }}_ERS{{ ers_instance_number }} resource-stickiness=3000
 
-    - name:                            "5.6 SCSERS - RHEL - ENSA2 - Configure Co-location Constraints"
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - ENSA2 - Configure Co-location Constraints"
       ansible.builtin.shell: |
                                        pcs constraint colocation add g-{{ sap_sid | upper }}_ERS with g-{{ sap_sid | upper }}_{{ instance_type | upper }} -5000
                                        pcs constraint order start g-{{ sap_sid | upper }}_{{ instance_type | upper }} then stop g-{{ sap_sid | upper }}_ERS kind=Optional symmetrical=false
       register:                        co_location
       failed_when:                     co_location.rc > 1
 
-- name:                                "5.6 SCSERS - RHEL - Check if the pacemaker package version is greater than pacemaker-2.0.4"
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - Check if the pacemaker package version is greater than pacemaker-2.0.4"
   when:                                ansible_distribution_major_version in ["8", "9", "10"]
   ansible.builtin.set_fact:
     is_pcmk_ver_gt_204:                "{{ ansible_facts.packages['pacemaker'][0].version is version('2.0.4', '>') | default(false) }}"
 
-- name:                                "5.6 SCSERS - RHEL - Set properties for two node clusters"
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - Set properties for two node clusters"
   when:
     - inventory_hostname == primary_instance_name
     - is_pcmk_ver_gt_204 | default(false)
   block:
-    - name:                            "5.6 SCSERS - RHEL - set resource defaults 'priority'"
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - set resource defaults 'priority'"
       ansible.builtin.shell:           pcs resource defaults update priority=1
       register:                        update_priority
       failed_when:                     update_priority.rc > 1
 
-    - name:                            "5.6 SCSERS - RHEL - set ASCS/SCS default 'priority' to 10"
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - set ASCS/SCS default 'priority' to 10"
       ansible.builtin.shell:           pcs resource update rsc_sap_{{ sap_sid }}_{{ instance_type | upper }}{{ scs_instance_number }} meta priority=10
       register:                        update_priority_sapinstance
 
-    - name:                            "5.6 SCSERS - RHEL - set priority-fencing-delay"
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - set priority-fencing-delay"
       ansible.builtin.shell:           pcs property set priority-fencing-delay=15s
       register:                        constraint
       failed_when:                     constraint.rc > 1
@@ -146,7 +146,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "5.6 SCSERS - RHEL - Systemd-Based SAP Startup Framework"
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - Systemd-Based SAP Startup Framework"
   ansible.builtin.include_tasks:
     file:                              "5.6.7-config-systemd-sap-start.yml"
     apply:
@@ -181,11 +181,11 @@
 # | These are common tasks                                                      |
 # +------------------------------------+---------------------------------------*|
 
-- name:                                "5.6 SCSERS - RHEL - Reboot and wait 5 minutes"
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - Reboot and wait 3 minutes"
   ansible.builtin.debug:
-    msg:                               "Reboot and wait 5 minutes"
+    msg:                               "Reboot and wait 3 minutes"
 
-- name:                                "5.6 SCSERS - RHEL - Reboot the primary/secondary instance"
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - Reboot the primary/secondary instance"
   become:                              true
   become_user:                         root
   ansible.builtin.reboot:
@@ -193,22 +193,22 @@
     post_reboot_delay:                 180
   failed_when:                         false
 
-- name:                                "5.6 SCSERS - RHEL - Set the Cluster out of maintenance mode"
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - Set the Cluster out of maintenance mode"
   ansible.builtin.shell:               pcs property set maintenance-mode=false
   run_once:                            true
 
-- name:                                "5.6 SCSERS - RHEL - Wait for 120 seconds for the cluster to stabilize"
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - Wait for 180 seconds for the cluster to stabilize"
   ansible.builtin.wait_for:
-    timeout:                           120
+    timeout:                           180
   register:                            wait_for_connection_results
 
 # SCS node has been put on standby and resources have moved. The resource move constraints need to be cleared
 # Warning: Following resources have been moved and their move constraints are still in place: 'g-SID_ASCS'
-- name:                                "5.6 SCSERS - RHEL - Clear move constraints"
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - Clear move constraints"
   ansible.builtin.shell:               pcs resource clear g-{{ sap_sid | upper }}_{{ instance_type | upper }}
   when: inventory_hostname == primary_instance_name
 
-- name:                                "5.6 SCSERS - RHEL ensure SAPInstance resources are started"
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - Ensure SAPInstance resources are started"
   ansible.builtin.shell: |
                                        set -o pipefail
                                        pcs status --full | grep SAPInstance | grep Started | wc -l
@@ -219,7 +219,7 @@
   run_once:                            true
   failed_when:                         false
 
-- name:                                "5.6 SCSERS - RHEL - SCS cluster group validation"
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - SCS cluster group validation"
   ansible.builtin.include_tasks:
     file:                              "5.6.6-validate.yml"
     apply:
@@ -229,7 +229,7 @@
         - "5.6.6-validate"
   when: inventory_hostname == primary_instance_name
 
-- name:                                "5.6 SCSERS: Set Resources Flag"
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources  - REDHAT - Set Resources Flag"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_resources_deployment.txt"
     state:                             touch

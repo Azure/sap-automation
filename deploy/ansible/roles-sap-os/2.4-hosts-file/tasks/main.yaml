@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 # Tasks:
-#   OS: hosts file, Entries - /etc/hosts
+#   OS - hosts file, Entries - /etc/hosts
 #
 # TODO:
 
@@ -13,12 +13,12 @@
 #
 # Description:  Validation for Prerequisites
 #
-- name:                                "2.4 Hosts: - import pre_checks"
+- name:                                "2.4 Hosts - import pre_checks"
   ansible.builtin.import_tasks:        pre_checks.yaml
 # -------------------------------------+---------------------------------------8
 
-#   OS: hosts file, Entries - /etc/hosts
-- name:                                "2.4 Hosts: - OS: Common, Entries - /etc/hosts"
+#   OS - hosts file, Entries - /etc/hosts
+- name:                                "2.4 Hosts - OS - Common, Entries - /etc/hosts"
   ansible.builtin.blockinfile:
     path:                              /etc/hosts
     mode:                              0644
@@ -29,7 +29,7 @@
     marker:                            "# {mark} ANSIBLE MANAGED BLOCK - COMMON"
 
 
-- name:                                "2.4 Hosts: - OS: SID, Entries - /etc/hosts"
+- name:                                "2.4 Hosts - OS - SID, Entries - /etc/hosts"
   ansible.builtin.blockinfile:
     path:                              /etc/hosts
     mode:                              0644
@@ -58,19 +58,19 @@
     - db_high_availability is defined
     - database_high_availability is not defined
 
-- name:                                "2.4 Hosts: - Set the DB Virtual Instance hostname"
+- name:                                "2.4 Hosts - Set the DB Virtual Instance hostname"
   ansible.builtin.set_fact:
     db_virtual_hostname:               "{{ custom_db_virtual_hostname | default(sap_sid | lower ~ db_sid | lower ~ 'db' ~ db_instance_number ~ 'cl', true) }}"
   when:
     - database_high_availability
 
-- name:                                "2.4 Hosts: - Get the Server name list"
+- name:                                "2.4 Hosts - Get the Server name list"
   ansible.builtin.set_fact:
     scs_server_list:                   "{{ scs_server_list | default([]) + [item] }}"
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
 
-- name:                                "2.4 Hosts: - Setup Virtual host name resolution - SCS & ERS"
+- name:                                "2.4 Hosts - Setup Virtual host name resolution - SCS & ERS"
   ansible.builtin.blockinfile:
     path:                              /etc/hosts
     mode:                              0644
@@ -84,7 +84,7 @@
     - scs_high_availability
     - scs_server_list | length > 0
 
-- name:                                "2.4 Hosts: - Setup Virtual host name resolution - DB"
+- name:                                "2.4 Hosts - Setup Virtual host name resolution - DB"
   ansible.builtin.blockinfile:
     path:                              /etc/hosts
     mode:                              0644
@@ -98,24 +98,24 @@
     - platform == 'HANA'
 
 # we only need the first DB VMs IP that belogs to subnet_cidr_client
-- name:                                "2.4 Hosts: - Set the DB Virtual Instance name resolution - scale out"
+- name:                                "2.4 Hosts - Set the DB Virtual Instance name resolution - scale out"
   when:
     - platform == 'HANA'
     - not database_high_availability
     - database_scale_out
   block:
 
-    - name:                            "2.4 Hosts: - Set the DB Virtual Instance hostname - scale out"
+    - name:                            "2.4 Hosts - Set the DB Virtual Instance hostname - scale out"
       ansible.builtin.set_fact:
         db_so_virtual_hostname:        "{{ custom_db_virtual_hostname | default(sap_sid | lower ~ db_sid | lower ~ 'db' ~ db_instance_number ~ 'so', true) }}"
 
-    - name:                            "2.4 Hosts: - Calculate host name - DB - Scale Out - Standby"
+    - name:                            "2.4 Hosts - Calculate host name - DB - Scale Out - Standby"
       ansible.builtin.set_fact:
         db_so_virtualhost_ip:          "{{ hostvars[item].ansible_all_ipv4_addresses | ansible.utils.ipaddr(hostvars[item]['subnet_cidr_client']) | first | default(hostvars[item].ansible_host) }}"
       with_items:
         - "{{ groups[(sap_sid | upper)~'_DB' ][0] }}"
 
-    - name:                            "2.4 Hosts: - Setup Virtual host name resolution - DB - Scale Out - Standby"
+    - name:                            "2.4 Hosts - Setup Virtual host name resolution - DB - Scale Out - Standby"
       ansible.builtin.blockinfile:
         path:                          /etc/hosts
         mode:                          0644
@@ -125,7 +125,7 @@
           {{ '%-19s' | format(db_so_virtualhost_ip) }} {{ '%-80s' | format(db_so_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_so_virtual_hostname) }}
         marker:                        "# {mark} DB Entries {{ db_virtual_hostname | default(ansible_host) }}"
 
-- name:                                "2.4 Hosts: - Setup Virtual host name resolution - DB"
+- name:                                "2.4 Hosts - Setup Virtual host name resolution - DB"
   ansible.builtin.blockinfile:
     path:                              /etc/hosts
     mode:                              0644
@@ -151,14 +151,14 @@
       when:
                                        - "'pas' in hostvars[item]['supported_tiers']"
 
-    - name:                            "2.4 Hosts: - Set fact for the PAS if pas_hostname is defined"
+    - name:                            "2.4 Hosts - Set fact for the PAS if pas_hostname is defined"
       ansible.builtin.set_fact:
         pas_virtualhost_from_inventory: "{{ pas_server_temp | first }}"
         pas_virtual_hostname:           "{{ custom_pas_virtual_hostname | default( pas_server_temp | first , true) }}"
       when:
         - pas_server_temp | default([]) | length > 0
 
-    - name:                            "2.4 Hosts: - Display the variables being used"
+    - name:                            "2.4 Hosts - Display the variables being used"
       ansible.builtin.debug:
         msg:
           - "pas_virtual_hostname:     {{ pas_virtual_hostname }} "
@@ -167,18 +167,18 @@
       when:
         - pas_server_temp | default([]) | length > 0
 
-    - name:                            "2.4 Hosts: - Get the line from /etc/hosts with virtual_host"
+    - name:                            "2.4 Hosts - Get the line from /etc/hosts with virtual_host"
       ansible.builtin.slurp:
         src:                           /etc/hosts
       register: hosts_content
 
-    - name:                            "2.4 Hosts: - Extract the line with virtual_host"
+    - name:                            "2.4 Hosts - Extract the line with virtual_host"
       ansible.builtin.set_fact:
         virtual_host_line:             "{{ (hosts_content['content'] | b64decode).split('\n') | select('search', pas_virtualhost_from_inventory) | first }}"
       when:
         - pas_virtualhost_from_inventory is defined
 
-    - name:                            "2.4 Hosts: - Duplicate the line with virtual_host and replace with pas_virtual_hostname in /etc/hosts"
+    - name:                            "2.4 Hosts - Duplicate the line with virtual_host and replace with pas_virtual_hostname in /etc/hosts"
       when:
         - virtual_host_line is defined
         - pas_virtual_hostname is defined
@@ -187,7 +187,7 @@
         line:                          "{{ virtual_host_line | replace(pas_virtualhost_from_inventory, pas_virtual_hostname) }}"
         insertbefore:                  "{{ virtual_host_line }}"
 
-- name:                                "2.4 Hosts: - Setup iSCSI host name resolution"
+- name:                                "2.4 Hosts - Setup iSCSI host name resolution"
   ansible.builtin.lineinfile:
     path:                              /etc/hosts
     line:
@@ -197,18 +197,18 @@
     loop_var:                          iscsi_server
   when:                                iscsi_servers is defined
 
-- name:                                "2.4 Hosts: - Remove duplicate lines from /etc/hosts"
+- name:                                "2.4 Hosts - Remove duplicate lines from /etc/hosts"
   block:
-    - name:                            "2.4 Hosts: - Get the line from /etc/hosts with virtual_host"
+    - name:                            "2.4 Hosts - Get the line from /etc/hosts with virtual_host"
       ansible.builtin.slurp:
         src:                           /etc/hosts
       register:                        hosts_content_after
 
-    - name:                            "2.4 Hosts: - Get unique lines from /etc/hosts"
+    - name:                            "2.4 Hosts - Get unique lines from /etc/hosts"
       ansible.builtin.set_fact:
         unique_lines:                  "{{ (hosts_content_after['content'] | b64decode).split('\n') | unique }}"
 
-    - name:                            "2.4 Hosts: - Write unique lines back to /etc/hosts"
+    - name:                            "2.4 Hosts - Write unique lines back to /etc/hosts"
       ansible.builtin.copy:
         dest:                          /etc/hosts
         content:                       "{{ unique_lines | join('\n') }}"

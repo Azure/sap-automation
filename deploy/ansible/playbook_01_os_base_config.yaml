@@ -8,14 +8,14 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 - hosts:                               localhost
-  name:                                "OS configuration playbook: - Initialization"
+  name:                                "Operating system configuration playbook - Initialization"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
 
   tasks:
 
-    - name:                            "OS configuration playbook: - Create Progress folder"
+    - name:                            "Operating system configuration playbook - Create Progress folder"
       ansible.builtin.file:
         path: "{{ _workspace_directory }}/.progress"
         state: directory
@@ -23,14 +23,14 @@
       tags:
         - always
 
-    - name:                            "OS configuration playbook: - Remove os-install-done flag"
+    - name:                            "Operating system configuration playbook - Remove os-install-done flag"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/os-configuration-done"
         state:                          absent
       tags:
         - always
 
-    - name:                            "OS configuration playbook: - Read password"
+    - name:                            "Operating system configuration playbook - Read password"
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         tasks_from:                    windows.yaml
@@ -62,6 +62,12 @@
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
 
+  vars:
+    distro_name:                       "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+    distribution_id:                   "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+    distribution_full_id:              "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+    distro_family:                     "{{ ansible_os_family | upper }}"
+
   # -----------------------------------+---------------------------------------8
   #
   # Build the list of tasks to be executed in order here.
@@ -70,17 +76,17 @@
 
 
   tasks:
-    - name:                            "OS Configuration - Linux based systems"
+    - name:                            "Operating system configuration playbook - Linux based systems"
       become:                          true
       become_user:                     "root"
       block:
-        - name:                        "OS configuration playbook: - Set os fact"
+        - name:                        "Operating system configuration playbook - Set os fact"
           ansible.builtin.set_fact:
             tier: os
           tags:
             - always
 
-        - name:                        "OS configuration playbook: - Retrieve Subscription ID, Resource Group Name and Virtual Machine name"
+        - name:                        "Operating system configuration playbook - Retrieve Subscription ID, Resource Group Name and Virtual Machine name"
           ansible.builtin.uri:
             url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
             use_proxy:                 false
@@ -91,7 +97,7 @@
           tags:
             - always
 
-        - name:                        "SAP OS configuration playbook: - Extract Subscription ID, Resource Group Name and Virtual Machine name"
+        - name:                        "Operating system configuration playbook - Extract Subscription ID, Resource Group Name and Virtual Machine name"
           ansible.builtin.set_fact:
             subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
             resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
@@ -99,7 +105,7 @@
           tags:
             - always
 
-        - name:                        "OS configuration playbook: - Create directories"
+        - name:                        "Operating system configuration playbook - Create directories"
           become:                      true
           ansible.builtin.file:
             path:                      '/etc/sap_deployment_automation/{{ sap_sid | upper }}'
@@ -108,76 +114,76 @@
           tags:
             - always
 
-        - name:                        "OS configuration playbook: - Set sudoers"
+        - name:                        "Operating system configuration playbook - Set sudoers"
           ansible.builtin.include_role:
             name:                      roles-os/1.0-sudoers
           tags:
             - 1.0-sudoers
 
-        - name:                        "OS configuration playbook: - Set swap"
+        - name:                        "Operating system configuration playbook - Set swap"
           ansible.builtin.include_role:
             name:                      roles-os/1.1-swap
           tags:
             - 1.1-swap
 
-        - name:                        "OS configuration playbook: - Set hostname"
+        - name:                        "Operating system configuration playbook - Set hostname"
           ansible.builtin.include_role:
             name:                      roles-os/1.2-hostname
           tags:
             - 1.2-hostname
 
-        - name:                        "OS configuration playbook: - Ensure the repositories are registered"
+        - name:                        "Operating system configuration playbook - Ensure repositories are registered"
           ansible.builtin.include_role:
             name:                      roles-os/1.3-repository
           tags:
             - 1.3-repository
 
-        - name:                        "OS configuration playbook: - Ensure the packages are registered"
+        - name:                        "Operating system configuration playbook - Ensure packages are registered"
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
           tags:
             - 1.4-packages
 
-        - name:                        "OS configuration playbook: - Configure volume groups and logical volumes"
+        - name:                        "Operating system configuration playbook - Configure volume groups and logical volumes"
           when: node_tier not in ["oracle-multi-sid", "oracle-asm"]
           ansible.builtin.include_role:
             name:                      roles-os/1.5-disk-setup
           tags:
             - 1.5-disk-setup
 
-        - name:                        "OS configuration playbook: - Configure volume groups and logical volumes (sharedHome)"
+        - name:                        "Operating system configuration playbook - Configure volume groups and logical volumes (sharedHome)"
           when: node_tier == "oracle-multi-sid"
           ansible.builtin.include_role:
             name:                      roles-os/1.5.2-disk-setup-ora-multi-sid
           tags:
             - 1.5.2-disk-setup-ora-multi-sid
 
-        - name:                        "OS configuration playbook: - Chrony role"
+        - name:                        "Operating system configuration playbook - Chrony role"
           ansible.builtin.include_role:
             name:                      roles-os/1.7-chrony
           tags:
             - 1.7-chrony
 
-        - name:                        "OS configuration playbook: - Ensure the kernel parameters are set"
+        - name:                        "Operating system configuration playbook - Ensure kernel parameters are set"
           ansible.builtin.include_role:
             name:                      roles-os/1.9-kernelparameters
           tags:
             - 1.9-kernelparameters
 
-        - name:                        "OS configuration playbook: - Configure networking"
+        - name:                        "Operating system configuration playbook - Configure networking"
           when: ansible_os_family | upper == "REDHAT"
           ansible.builtin.include_role:
             name:                      roles-os/1.10-networking
           tags:
             - 1.10-networking
 
-        - name:                        "OS configuration playbook: - Configure accounts"
+        - name:                        "Operating system configuration playbook - Configure accounts"
           ansible.builtin.include_role:
             name:                      roles-os/1.11-accounts
           tags:
             - 1.11-accounts
 
-        - name:                        "OS configuration playbook: - Configure accounts (Oracle)"
+        - name:                        "Operating system configuration playbook - Configure accounts (Oracle)"
           when:
             - node_tier in ["oracle", "observer"]
             - platform == 'ORACLE'
@@ -186,19 +192,19 @@
           vars:
             tier: ora
 
-        - name:                        "OS configuration playbook: - Configure MOTD"
+        - name:                        "Operating system configuration playbook - Configure MOTD"
           ansible.builtin.include_role:
             name:                      roles-os/1.13-MOTD
           tags:
             - 1.13-MOTD
 
-        - name:                        "OS configuration playbook: - Ensure the needed services are started"
+        - name:                        "Operating system configuration playbook - Ensure the needed services are started"
           ansible.builtin.include_role:
             name:                      roles-os/1.16-services
           tags:
             - 1.16-services
 
-        - name:                        "OS configuration playbook: - Configure Prometheus"
+        - name:                        "Operating system configuration playbook - Configure Prometheus"
           when:
             - prometheus
             - ansible_os_family | upper == "SUSE" or ansible_os_family | upper == "REDHAT"
@@ -209,52 +215,52 @@
       when:
         - ansible_os_family != "Windows"
 
-    - name:                            OS Configuration - Windows based systems
+    - name:                            "Operating system configuration playbook - Windows based systems"
       when:
         - ansible_os_family == "Windows"
       block:
-        - name:                        "OS configuration playbook: - Set os fact"
+        - name:                        "Operating system configuration playbook - Set os fact"
           ansible.builtin.set_fact:
             tier: os
           tags:
             - always
 
-        - name:                        "OS configuration playbook: - Debug"
+        - name:                        "Operating system configuration playbook - Debug"
           ansible.builtin.debug:
             var:                       hostvars.localhost
             verbosity:                 4
 
-        - name:                        "OS configuration playbook: - Add Needed packages"
+        - name:                        "Operating system configuration playbook - Add Needed packages"
           ansible.builtin.include_role:
             name:                      roles-os/windows/1.4-packages
           tags:
             - 1.4-packages
 
-        - name:                        "OS configuration playbook: - Set swap"
+        - name:                        "Operating system configuration playbook - Set swap"
           ansible.builtin.include_role:
             name:                      roles-os/windows/1.1-swap
           tags:
             - 1.1-swap
 
-        - name:                        "OS configuration playbook: - Memory Dump"
+        - name:                        "Operating system configuration playbook - Memory Dump"
           ansible.builtin.include_role:
             name:                      roles-os/windows/1.2-memory-dump
           tags:
             - 1.2-memory-dump
 
-        - name:                        "OS configuration playbook: - Configure Disks"
+        - name:                        "Operating system configuration playbook - Configure Disks"
           ansible.builtin.include_role:
             name:                      roles-os/windows/1.5-disk-setup
           tags:
             - 1.5-disk-setup
 
-        - name:                        "OS configuration playbook: - Disable the Firewall"
+        - name:                        "Operating system configuration playbook - Disable the Firewall"
           ansible.builtin.include_role:
             name:                      roles-os/windows/1.10-firewall
           tags:
             - 1.10-firewall
 
-        - name:                        "OS configuration playbook: - Join Domain"
+        - name:                        "Operating system configuration playbook - Join Domain"
           ansible.builtin.include_role:
             name: roles-os/windows/1.11-domain-join
           vars:
@@ -264,16 +270,16 @@
           tags:
             - 1.11-domain-join
 
-        - name:                        "OS configuration playbook: - Checks"
+        - name:                        "Operating system configuration playbook - Checks"
           when:
             - scs_high_availability
           block:
-            - name:                    "OS configuration playbook: - Check if required DNS entries are made"
+            - name:                    "Operating system configuration playbook - Check if required DNS entries are made"
               ansible.windows.win_shell:     "[System.Net.DNS]::Resolve('{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1').AddressList.IPAddressToString"
               register:                dns_check_results
               failed_when:             dns_check_results.rc > 0
 
-            - name:                    "OS configuration playbook: - Check if required DNS entries are made"
+            - name:                    "Operating system configuration playbook - Check if required DNS entries are made"
               ansible.builtin.set_fact:
                 dns_in_AD:              "{{ dns_check_results.stdout_lines[0] }}"
               when:
@@ -281,14 +287,14 @@
               tags:
                 - always
 
-            - name:                    "OS configuration playbook: - Check if required DNS entries match"
+            - name:                    "Operating system configuration playbook - Check if required DNS entries match"
               ansible.builtin.assert:
                 that:                   "dns_in_AD == scs_lb_ip"
                 fail_msg:               "The DNS entry for the SCS cluster is not correct in Active Directory"
               when:
                 - dns_in_AD is defined
 
-            - name:                    "OS configuration playbook: - Check if required DNS entries are made - show results"
+            - name:                    "Operating system configuration playbook - Check if required DNS entries are made - show results"
               ansible.builtin.debug:
                 msg:                   "DNS query results: {{ dns_check_results.stdout }}"
                 verbosity:             2
@@ -309,6 +315,11 @@
   any_errors_fatal:                    true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
+  vars:
+    distro_name:                       "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+    distribution_id:                   "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+    distribution_full_id:              "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+    distro_family:                     "{{ ansible_os_family | upper }}"
 
   # -----------------------------------+---------------------------------------8
   #
@@ -318,18 +329,18 @@
 
 
   tasks:
-    - name:                            "OS Configuration - Linux based systems"
+    - name:                            "Operating system configuration for iSCSI - Linux based systems"
       become:                          true
       become_user:                     "root"
       block:
 
-        - name:                        "OS configuration playbook: - Set os fact"
+        - name:                        "Operating system configuration playbook for iSCSI - Set os fact"
           ansible.builtin.set_fact:
             tier:                      issci
           tags:
             - always
 
-        - name:                        "OS configuration playbook: Determine if OS version is supported for SBD"
+        - name:                        "Operating system configuration playbook for iSCSI - Check if OS version is supported for SBD"
           ansible.builtin.set_fact:
             os_version_supported_for_sbd: >-
                                        {% if scs_cluster_type in ['ASD', 'ISCSI'] or database_cluster_type in ['ASD', 'ISCSI'] %}
@@ -361,21 +372,21 @@
           tags:
             - always
 
-        - name:                        "OS configuration playbook: - Ensure the packages are registered"
+        - name:                        "Operating system configuration playbook for iSCSI - Ensure the packages are registered"
           when:                        os_version_supported_for_sbd
           ansible.builtin.include_role:
             name:                      roles-os/1.4-packages
           tags:
             - 1.4-packages
 
-        - name:                        "OS configuration playbook: - Ensure the needed services are started"
+        - name:                        "Operating system configuration playbook for iSCSI - Ensure the needed services are started"
           when:                        os_version_supported_for_sbd
           ansible.builtin.include_role:
             name:                      roles-os/1.16-services
           tags:
             - 1.16-services
 
-        - name:                        "OS configuration playbook: - Ensure the needed services are started"
+        - name:                        "Operating system configuration playbook for iSCSI - Ensure the needed services are started"
           when:                        os_version_supported_for_sbd
           ansible.builtin.include_role:
             name:                      roles-sap-os/2.11-iscsi-server
@@ -383,13 +394,13 @@
             - 2.11-iSCSI-server
 
 - hosts:                               localhost
-  name:                                "OS configuration playbook: - Initialization"
+  name:                                "Operating system configuration playbook for iSCSI - Initialization"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
 
   tasks:
-    - name:                            "OS configuration playbook: - Create os-configuration-done flag"
+    - name:                            "Operating system configuration playbook for iSCSI - Create os-configuration-done flag"
       ansible.builtin.file:
         path: "{{ _workspace_directory }}/.progress/os-configuration-done"
         state: touch

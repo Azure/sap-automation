@@ -21,7 +21,7 @@ output "hdb_sid"                       {
 output "dns_info_vms"                  {
                                          description = "Database server DNS information"
                                          value       = local.enable_deployment ? (
-                                                         var.database_dual_network_interfaces ? (
+                                                         var.database.dual_network_interfaces ? (
                                                            zipmap(
                                                              compact(
                                                                concat(
@@ -124,7 +124,7 @@ output "database_loadbalancer_id"      {
 
 output "db_admin_ips"                  {
                                          description = "Database Admin IP information"
-                                         value       = local.enable_deployment && var.database_dual_network_interfaces ? (
+                                         value       = local.enable_deployment && var.database.dual_network_interfaces ? (
                                                          azurerm_network_interface.nics_dbnodes_admin[*].private_ip_address) : (
                                                          []
                                                        )

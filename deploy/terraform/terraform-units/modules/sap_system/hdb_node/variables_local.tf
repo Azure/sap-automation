@@ -179,7 +179,7 @@ locals {
                                               var.naming.separator,
                                               local.resource_suffixes.db_alb_feip
                                             )
-                                            subnet_id = var.database.scale_out && var.database_dual_network_interfaces && var.database.high_availability ? (
+                                            subnet_id = var.database.scale_out && var.database.dual_network_interfaces && var.database.high_availability ? (
                                               try(
                                                 var.admin_subnet.id,
                                                 var.landscape_tfstate.admin_subnet_id
@@ -191,7 +191,7 @@ locals {
                                               var.database.use_DHCP ? (
                                                 null) : (
                                                 cidrhost(
-                                                  var.database.scale_out && var.database_dual_network_interfaces && var.database.high_availability ? var.admin_subnet.address_prefixes[0] : var.db_subnet.address_prefixes[0],
+                                                  var.database.scale_out && var.database.dual_network_interfaces && var.database.high_availability ? var.admin_subnet.address_prefixes[0] : var.db_subnet.address_prefixes[0],
                                                   local.hdb_ip_offsets.hdb_lb
                                               ))
                                             )
@@ -204,7 +204,7 @@ locals {
                                               var.naming.separator,
                                               try(local.resource_suffixes.db_rlb_feip, "dbRlb-feip")
                                             )
-                                            subnet_id = var.database.scale_out && var.database_dual_network_interfaces  ? (
+                                            subnet_id = var.database.scale_out && var.database.dual_network_interfaces  ? (
                                               try(
                                                 var.admin_subnet.id,
                                                 var.landscape_tfstate.admin_subnet_id
@@ -216,7 +216,7 @@ locals {
                                               var.database.use_DHCP ? (
                                                 null) : (
                                                 cidrhost(
-                                                  var.database.scale_out && var.database_dual_network_interfaces ? var.admin_subnet.address_prefixes[0] :  var.db_subnet.address_prefixes[0],
+                                                  var.database.scale_out && var.database.dual_network_interfaces ? var.admin_subnet.address_prefixes[0] :  var.db_subnet.address_prefixes[0],
                                                   local.hdb_ip_offsets.hdb_lb + 1
                                               ))
                                             )
@@ -521,7 +521,7 @@ locals {
   // For scale-out scenario admin nic is the primary IP configuration on the VM
   // and is used for cluster creation. We use the admin nic for LB if dual nic
   // is enabled and HA is enabled, otherwise we use the db nic.
-  use_admin_nic_for_lb                = var.database.scale_out && var.database_dual_network_interfaces && var.database.high_availability
+  use_admin_nic_for_lb                = var.database.scale_out && var.database.dual_network_interfaces && var.database.high_availability
 
   db_lb_network_interface_ids         = local.use_admin_nic_for_lb ? (
                                           azurerm_network_interface.nics_dbnodes_admin[*].id

@@ -68,11 +68,11 @@ sbdMap: []
 # RHEL 9.0 and newer: resource-agents-cloud-4.10.0-34.2
 # RHEL 10.0 and newer resource-agents-cloud-4.16.0
 # SLES
-# SLES 12 SP5: resource-agents-4.3.018.a7fb5035-3.98.1
-# SLES 15 SP1: resource-agents-4.3.0184.6ee15eb2-150100.4.72.1
-# SLES 15 SP2: resource-agents-4.4.0+git57.70549516-150200.3.56.1
-# SLES 15 SP3: resource-agents-4.8.0+git30.d0077df0-150300.8.31.1
-# SLES 15 SP4 and newer: resource-agents-4.10.0+git40.0f4de473-150400.3.19.1
+# SUSE 12 SP5: resource-agents-4.3.018.a7fb5035-3.98.1
+# SUSE 15 SP1: resource-agents-4.3.0184.6ee15eb2-150100.4.72.1
+# SUSE 15 SP2: resource-agents-4.4.0+git57.70549516-150200.3.56.1
+# SUSE 15 SP3: resource-agents-4.8.0+git30.d0077df0-150300.8.31.1
+# SUSE 15 SP4 and newer: resource-agents-4.10.0+git40.0f4de473-150400.3.19.1
 # todo: Figure out a way to get the release information from the package manager
 package_versions:
   redhat8.4:

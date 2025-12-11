@@ -116,7 +116,7 @@ if [ "$param_dirname" != '.' ]; then
 	exit 3
 fi
 
-if [ "$DEBUG" == True ]; then
+if [ "${DEBUG:-false}" == true ]; then
 	echo -e "${cyan}Enabling debug mode$reset_formatting"
 	set -x
 	set -o errexit
@@ -515,18 +515,18 @@ if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
 fi
 
 APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
-	if [ -n "${APP_SERVICE_NAME}" ]; then
-		printf -v val %-.20s "$APP_SERVICE_NAME"
-		print_banner "$banner_title" "Application Configuration: $val" "info"
-		save_config_var "APP_SERVICE_NAME" "${deployer_environment_file_name}"
-		export APP_SERVICE_NAME
-	fi
+if [ -n "${APP_SERVICE_NAME}" ]; then
+	printf -v val %-.20s "$APP_SERVICE_NAME"
+	print_banner "$banner_title" "Application Configuration: $val" "info"
+	save_config_var "APP_SERVICE_NAME" "${deployer_environment_file_name}"
+	export APP_SERVICE_NAME
+fi
 
-	APP_SERVICE_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
-	if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
-		save_config_var "APP_SERVICE_DEPLOYMENT" "${deployer_environment_file_name}"
-		export APP_SERVICE_DEPLOYMENT
-	fi
+APP_SERVICE_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
+if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
+	save_config_var "APP_SERVICE_DEPLOYMENT" "${deployer_environment_file_name}"
+	export APP_SERVICE_DEPLOYMENT
+fi
 
 deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 if [ -n "${deployer_random_id}" ]; then

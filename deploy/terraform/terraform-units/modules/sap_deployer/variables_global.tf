@@ -93,8 +93,11 @@ variable "deployer_vm_count"           {
                                          default     = 1
                                        }
 variable "arm_client_id"               { description = "ARM client id" }
-
-
+variable "platform"                    {
+                                         description = "Type of agent to be used"
+                                         type        = string
+                                         default     = "devops"
+                                       }
 
 #########################################################################################
 #                                                                                       #
@@ -113,6 +116,8 @@ variable "spn_id"                      { description = "SPN ID to be used for th
 #######################################4#######################################8
 
 variable "app_service"                 { description = "Details of the Application Service" }
+
+variable "app_config_service"          { description = "Details of the Application Configuration Service" }
 
 variable "additional_network_id"       { description = "Additional network ID" }
 

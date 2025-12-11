@@ -10,11 +10,11 @@
 
 module "sap_namegenerator" {
   source                                        = "../../terraform-units/modules/sap_namegenerator"
-  environment                                   = local.infrastructure.environment
-  location                                      = local.infrastructure.region
-  codename                                      = lower(try(local.infrastructure.codename, ""))
-  random_id                                     = coalesce(var.custom_random_id, module.common_infrastructure.random_id)
-  sap_vnet_name                                 = local.vnet_logical_name
+  environment                                   = var.environment
+  location                                      = var.location
+  codename                                      = lower(var.codename)
+  random_id                                     = length(var.custom_random_id) > 0 ? var.custom_random_id : module.common_infrastructure.random_id
+  sap_vnet_name                                 = var.network_logical_name
   sap_sid                                       = local.sap_sid
   db_sid                                        = local.db_sid
   web_sid                                       = local.web_sid
@@ -67,7 +67,6 @@ module "common_infrastructure" {
   custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   custom_prefix                                 = var.use_prefix ? var.custom_prefix : " "
   database                                      = local.database
-  database_dual_network_interfaces              = var.database_dual_nics
   deploy_application_security_groups            = var.deploy_application_security_groups
   deployer_tfstate                              = length(var.deployer_tfstate_key) > 0 ? data.terraform_remote_state.deployer[0].outputs : null
   deployment                                    = var.deployment
@@ -104,8 +103,6 @@ module "common_infrastructure" {
 #  HANA Infrastructure                                                         #
 #                                                                              #
 #--------------------------------------+---------------------------------------8
-
-
 module "hdb_node" {
   source                                        = "../../terraform-units/modules/sap_system/hdb_node"
   depends_on                                    = [module.common_infrastructure]
@@ -116,15 +113,13 @@ module "hdb_node" {
                                                     azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                                   }
 
-  Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
-  NFS_provider                                  = var.NFS_provider
   admin_subnet                                  = module.common_infrastructure.admin_subnet
+  Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
   anchor_vm                                     = module.common_infrastructure.anchor_vm // Workaround to create dependency from anchor to db to app
   cloudinit_growpart_config                     = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   database                                      = local.database
   database_active_active                        = var.database_active_active
-  database_dual_network_interfaces              = var.database_dual_nics
   database_server_count                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
                                                     local.database.high_availability ? (
                                                       2 * (var.database_server_count + var.stand_by_node_count)) : (
@@ -153,6 +148,7 @@ module "hdb_node" {
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   license_type                                  = var.license_type
   naming                                        = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
+  NFS_provider                                  = var.NFS_provider
   observer_vm_size                              = var.observer_vm_size
   observer_vm_tags                              = var.observer_vm_tags
   observer_vm_zones                             = var.observer_vm_zones
@@ -170,8 +166,8 @@ module "hdb_node" {
   storage_subnet_id                             = module.common_infrastructure.storage_subnet_id
   tags                                          = var.tags
   terraform_template_version                    = var.terraform_template_version
-  use_admin_nic_for_asg                         = var.use_admin_nic_for_asg
   use_admin_nic_suffix_for_observer             = var.use_admin_nic_suffix_for_observer
+  use_admin_nic_for_asg                         = var.use_admin_nic_for_asg
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_observer                                  = var.database_HANA_use_scaleout_scenario && local.database.high_availability && var.use_observer

@@ -149,7 +149,7 @@
 # | Fencing Specific - Kdump RHEL only                                         |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-- name:                                "1.17 Generic Pacemaker - RHEL - Configure optional fence_kdump stonith device"
+- name:                                "1.17 Generic Pacemaker - REDHAT - Configure optional fence_kdump stonith device"
   when:
                                        - ansible_os_family | upper == "REDHAT"
                                        - use_fence_kdump
@@ -161,7 +161,7 @@
         state:                         started
 
     # Todo: Use ansible.builtin.service_facts to get the status of the kdump service
-    - name:                            "1.17 Generic Pacemaker  - RHEL - Check if kdump is enabled"
+    - name:                            "1.17 Generic Pacemaker  - REDHAT - Check if kdump is enabled"
       ansible.builtin.command:         "systemctl is-enabled kdump"
       register:                        kdump_enabled_check_result
       changed_when:                    false
@@ -169,7 +169,7 @@
       tags:
                                        - skip_ansible_lint
 
-    - name:                            "1.17 Generic Pacemaker  - RHEL -  Save kdump facts"
+    - name:                            "1.17 Generic Pacemaker  - REDHAT -  Save kdump facts"
       when:
                                        - kdump_enabled_check_result.rc == 0
       ansible.builtin.set_fact:
@@ -178,14 +178,14 @@
 
 
     # kdump_enabled_check_result.stdout == "enabled"
-    - name:                            "1.17 Generic Pacemaker - RHEL - show if kdump is enabled"
+    - name:                            "1.17 Generic Pacemaker - REDHAT - show if kdump is enabled"
       ansible.builtin.debug:
         msg:
                                        - "Kdump is enabled: {{ kdump_enabled | default('false') }}"
         verbosity:                     2
 
     # Install the fence_kdump fence agent. This is required for fencing to work with kdump.
-    - name:                            "1.17 Generic Pacemaker - RHEL - Install fence-agents-kdump"
+    - name:                            "1.17 Generic Pacemaker - REDHAT - Install fence-agents-kdump"
       when:
                                        - kdump_enabled_check == 0
                                        - kdump_enabled == "enabled"
@@ -194,7 +194,7 @@
         state:                         present
 
     # Allow the required ports for fence_kdump through the firewall.
-    - name:                            "1.17 Generic Pacemaker - RHEL - Allow ports for fence_kdump through the firewall"
+    - name:                            "1.17 Generic Pacemaker - REDHAT - Allow ports for fence_kdump through the firewall"
       ansible.posix.firewalld:
         port:                          "7410/udp"
         permanent:                     true

@@ -7,10 +7,10 @@ locals {
   enable_app_tier_deployment           = var.enable_app_tier_deployment && try(var.application_tier.enable_deployment, true)
 
   temp_infrastructure                  = {
-                                            environment                        = coalesce(var.environment, try(var.infrastructure.environment, ""))
-                                            region                             = lower(coalesce(var.location, try(var.infrastructure.region, "")))
-                                            codename                           = try(var.codename, try(var.infrastructure.codename, ""))
-                                            tags                               = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
+                                            environment                        = var.environment
+                                            region                             = var.location
+                                            codename                           = var.codename
+                                            tags                               = var.resourcegroup_tags
                                             use_app_proximityplacementgroups   = var.use_app_proximityplacementgroups
                                             deploy_monitoring_extension        = var.deploy_monitoring_extension
                                             deploy_defender_extension          = var.deploy_defender_extension
@@ -23,6 +23,9 @@ locals {
                                             disk_controller_type_database_tier = var.disk_controller_type_database_tier
                                             encryption_at_host_enabled         = var.encryption_at_host_enabled
                                             storage_account_replication_type   = var.storage_account_replication_type
+                                            application_configuration_id       = var.application_configuration_id
+                                            use_application_configuration      = length(var.application_configuration_id) > 0 ? true : false
+                                            workload_zone_name                 = local.workload_zone_name
                                          }
 
 
@@ -122,6 +125,7 @@ locals {
                                                                               }
 
                                            observer_vm_ips                 = var.observer_nic_ips
+
                                            platform                        = var.database_platform
                                            use_ANF                         = var.database_HANA_use_scaleout_scenario || try(var.databases[0].use_ANF, false)
                                            use_avset                       = var.database_server_count == 0 || var.use_scalesets_for_deployment || length(var.database_vm_zones) > 0 || var.database_platform == "NONE" ? (
@@ -137,6 +141,17 @@ locals {
                                            scale_out                       = var.database_HANA_use_scaleout_scenario
                                            stand_by_node_count             = var.stand_by_node_count
                                            zones                           = var.database_vm_zones
+                                           database_hana_use_saphanasr_angi =  upper(var.database_platform) == "HANA" ? (
+                                                                                 var.database_high_availability ? (
+                                                                                     var.use_sles_saphanasr_angi
+                                                                                     ) : (
+                                                                                       false
+                                                                                     )
+                                                                                 ) : (
+                                                                                   false
+                                                                                 )
+
+                                           disk_controller_type_database_tier   = var.disk_controller_type_database_tier
                                          }
 
   db_os                             = {
@@ -176,6 +191,14 @@ locals {
   db_os_specified                   = (length(local.db_os.source_image_id) + length(local.db_os.publisher)) > 0
   db_sid_specified                  = (length(var.database_sid) + length(try(var.databases[0].sid, ""))) > 0
 
+  instance                          = {
+                                        sid = local.db_sid
+                                        number = upper(local.databases_temp.platform) == "HANA" ? (
+                                           var.database_instance_number
+                                           ) : (
+                                           "00"
+                                          )
+                                       }
 
   app_authentication                = {
                                         type     = var.app_tier_authentication_type
@@ -508,8 +531,8 @@ locals {
                                            length(local.web_tags) > 0                             ? { web_tags = local.web_tags } : { web_tags = local.web_tags }), (
                                            var.use_fence_kdump && var.scs_high_availability       ? { fence_kdump_disk_size = var.use_fence_kdump_size_gb_scs } : { fence_kdump_disk_size = 0 } ), (
                                            var.use_fence_kdump && var.scs_high_availability       ? { fence_kdump_lun_number = var.use_fence_kdump_lun_scs } : { fence_kdump_lun_number = -1 }
-
                                            )
+
                                          )
 
   database                             = merge(
@@ -519,6 +542,7 @@ locals {
                                            (local.db_avset_arm_ids_defined                        ? { avset_arm_ids  = local.avset_arm_ids }                   : null),
                                            (length(local.frontend_ips)      > 0                   ? { loadbalancer   = { frontend_ips = local.frontend_ips } } : { loadbalancer = { frontend_ips = [] } }),
                                            (length(local.db_tags)           > 0                   ? { tags           = local.db_tags }                         : null),
+                                           (local.db_sid_specified                                ? { instance       = local.instance }                        : null),
                                            ( var.use_fence_kdump &&
                                              var.database_high_availability )                     ? { fence_kdump_disk_size = var.use_fence_kdump_size_gb_db } : { fence_kdump_disk_size = 0 } ,
                                              ( var.use_fence_kdump &&
@@ -537,12 +561,26 @@ locals {
 
   key_vault                            = {
                                            user                                   = {
-                                                                                      id     = coalesce(data.terraform_remote_state.landscape.outputs.landscape_key_vault_user_arm_id, var.user_keyvault_id)
-                                                                                      exists = length(coalesce(data.terraform_remote_state.landscape.outputs.landscape_key_vault_user_arm_id, var.user_keyvault_id)) > 0
+                                                                                      id     = coalesce(
+                                                                                                 local.infrastructure.use_application_configuration ? data.azurerm_app_configuration_key.workload_credentials_vault[0].value : "",
+                                                                                                 contains(keys(data.terraform_remote_state.landscape.outputs),"user_credential_vault_id") ? data.terraform_remote_state.landscape.outputs.user_credential_vault_id : "",
+                                                                                                 var.user_keyvault_id)
+                                                                                      exists = length(coalesce(
+                                                                                                 local.infrastructure.use_application_configuration ? data.azurerm_app_configuration_key.workload_credentials_vault[0].value : "",
+                                                                                                 contains(keys(data.terraform_remote_state.landscape.outputs),"user_credential_vault_id") ? data.terraform_remote_state.landscape.outputs.user_credential_vault_id : "",
+                                                                                                 var.user_keyvault_id)) > 0
                                                                                     }
                                            spn                                    = {
-                                                                                      id     = coalesce(data.terraform_remote_state.landscape.outputs.spn_kv_id, var.spn_keyvault_id)
-                                                                                      exists = length(coalesce(data.terraform_remote_state.landscape.outputs.spn_kv_id, var.spn_keyvault_id)) > 0
+                                                                                      id     = coalesce(
+                                                                                        local.infrastructure.use_application_configuration ? data.azurerm_app_configuration_key.credentials_vault[0].value : "",
+                                                                                        contains(keys(data.terraform_remote_state.landscape.outputs),"spn_credential_vault_id") ? data.terraform_remote_state.landscape.outputs.spn_credential_vault_id : "",
+                                                                                        contains(keys(data.terraform_remote_state.landscape.outputs),"spn_kv_id") ? data.terraform_remote_state.landscape.outputs.spn_kv_id : "",
+                                                                                        var.spn_keyvault_id)
+                                                                                      exists = length(coalesce(
+                                                                                        local.infrastructure.use_application_configuration ? data.azurerm_app_configuration_key.credentials_vault[0].value : "",
+                                                                                        contains(keys(data.terraform_remote_state.landscape.outputs),"spn_credential_vault_id") ? data.terraform_remote_state.landscape.outputs.spn_credential_vault_id : "",
+                                                                                        contains(keys(data.terraform_remote_state.landscape.outputs),"spn_kv_id") ? data.terraform_remote_state.landscape.outputs.spn_kv_id : "",
+                                                                                        var.spn_keyvault_id)) > 0
                                                                                     }
                                           #  private_key_secret_name                = var.workload_zone_private_key_secret_name
                                           #  public_key_secret_name                 = var.workload_zone_public_key_secret_name

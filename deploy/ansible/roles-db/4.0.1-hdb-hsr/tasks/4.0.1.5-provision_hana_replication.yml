@@ -10,7 +10,7 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- name:                                "HANA HSR: - Ensure HANA 1.0 is configured for System Replication"
+- name:                                "4.0.1.5 Hana System Replication - Ensure HANA 1.0 is configured for System Replication"
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
   when:
@@ -20,14 +20,14 @@
   block:
 
     # https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/sap-hana-high-availability#configure-sap-hana-10-system-replication
-    - name:                            "HANA HSR: - Ensure replication user exists"
+    - name:                            "4.0.1.5 Hana System Replication - Ensure replication user exists"
       ansible.builtin.shell: |
         {{ hdbsql_systemdb_command }} 'CREATE USER {{ hana_1_hsr_user }} PASSWORD "{{ hana_1_hsr_password }}"'
         {{ hdbsql_systemdb_command }} 'GRANT DATA ADMIN TO {{ hana_1_hsr_user }}'
         {{ hdbsql_systemdb_command }} 'ALTER USER {{ hana_1_hsr_user }} DISABLE PASSWORD LIFETIME'
       changed_when:                    false
 
-    - name:                            "HANA HSR: - Ensure keystore entry exists"
+    - name:                            "4.0.1.5 Hana System Replication - Ensure keystore entry exists"
       ansible.builtin.shell: |
                                        hdbuserstore SET hdbhaloc localhost:3{{ db_instance_number }}15 {{ hana_1_hsr_user }} {{ hana_1_hsr_password }}
       changed_when:                    false
@@ -38,18 +38,18 @@
         DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
-- name:                                "HANA HSR: - Perform pre-flight backup checks"
+- name:                                "4.0.1.5 Hana System Replication - Perform pre-flight backup checks"
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
   when:                                ansible_hostname == primary_instance_name
   block:
-    - name:                            "HANA HSR: - Check backup file exists for SYSTEMDB database for System Identifier {{ db_sid }}"
+    - name:                            "4.0.1.5 Hana System Replication - Check backup file exists for SYSTEMDB database for System Identifier {{ db_sid }}"
       ansible.builtin.stat:
         path:                          "{{ db_sid_backup_dir }}/INITIAL_SYSTEMDB_BACKUP_databackup_0_1"
       register:                        systemdb_backup_file
       changed_when:                    false
 
-    - name:                            "HANA HSR: - Check backup file exists for tenant {{ hana_tenant_database_name }} database for System Identifier {{ db_sid }}"
+    - name:                            "4.0.1.5 Hana System Replication - Check backup file exists for tenant {{ hana_tenant_database_name }} database for System Identifier {{ db_sid }}"
       ansible.builtin.stat:
         path:                          "{{ db_sid_backup_dir }}/INITIAL_{{ hana_tenant_database_name }}_BACKUP_databackup_0_1"
       register:                        tenant_backup_file
@@ -58,10 +58,10 @@
         - hana_has_tenant_db is defined
         - hana_has_tenant_db
 
-- name:                                "HANA HSR: - Ensure HANA is configured for System Replication"
+- name:                                "4.0.1.5 Hana System Replication - Ensure HANA is configured for System Replication"
   when:                                ansible_hostname == primary_instance_name
   block:
-    - name:                            "HANA HSR: - Check whether replication has already been set up"
+    - name:                            "4.0.1.5 Hana System Replication - Check whether replication has already been set up"
       become_user:                     "{{ db_sid_admin_user }}"
       become:                          true
       ansible.builtin.shell: |
@@ -80,12 +80,11 @@
         SAP_RETRIEVAL_PATH:            "/usr/sap/{{ DB }}/{{ virtual_host }}"
         SECUDIR:                       "/usr/sap/{{ DB }}/{{ virtual_host }}/sec"
 
-    - name:                            "HANA HSR: - Debug replication status"
+    - name:                            "4.0.1.5 Hana System Replication - Show replication status"
       ansible.builtin.debug:
-        var:                           hana_replication_status
-        verbosity:                     0
+        msg:                           "HANA replication status: {{ hana_replication_status.stdout | default('No status returned') }}"
 
-    - name:                            "HANA HSR: - Ensure Primary node is configured for System Replication"
+    - name:                            "4.0.1.5 Hana System Replication - Ensure Primary node is configured for System Replication"
       become_user:                     "{{ db_sid_admin_user }}"
       become:                          true
       ansible.builtin.shell: |
@@ -104,49 +103,42 @@
         SECUDIR:                       "/usr/sap/{{ DB }}/{{ virtual_host }}/sec"
 
 
-    - name:                            "HANA HSR: - Check replication state on primary"
+    - name:                            "4.0.1.5 Hana System Replication - Check replication state on primary"
       ansible.builtin.set_fact:
         primary_replication_enabled:   "{{ ('mode: primary' in hana_replication_status.stdout_lines) | bool }}"
-      vars:
-        allow_world_readable_tmpfiles: true
-      environment:
-        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
-- name:                                "HANA HSR: - Set INI File values"
+- name:                                "4.0.1.5 Hana System Replication - Set INI File values"
   ansible.builtin.import_tasks:        4.0.1.5.0-set_global_ini_values.yml
 
-- name:                                "HANA HSR: - Restart HANA"
+- name:                                "4.0.1.5 Hana System Replication - Restart HANA"
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
   when:                                ansible_hostname == primary_instance_name
   block:
 
-    - name:                            "HANA HSR: - Stop HANA on {{ virtual_host }}"
+    - name:                            "4.0.1.5 Hana System Replication - Stop HANA on {{ virtual_host }}"
       ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
 
-    - name:                            "HANA HSR: - Start HANA on {{ virtual_host }}"
+    - name:                            "4.0.1.5 Hana System Replication - Start HANA on {{ virtual_host }}"
       ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
 
-- name:                                "HANA HSR: - Ensure System Replication is configured command on secondary"
+- name:                                "4.0.1.5 Hana System Replication - Ensure System Replication is configured command on secondary"
   ansible.builtin.debug:
     msg:                               "{{ hdbnsutil_command }} -sr_register --remoteHost={{ hostvars[primary_instance_name]['virtual_host'] }} --remoteInstance={{ db_instance_number }}
                                         --replicationMode={{ hana_replication_mode }} --operationMode={{ hana_operation_mode }} --name=SITEB"
     verbosity:                         4
 
-- name:                                "HANA HSR: - Ensure System Replication is configured on secondary"
+- name:                                "4.0.1.5 Hana System Replication - Ensure System Replication is configured on secondary"
   when:
     - ansible_hostname == secondary_instance_name
     - hana_system_replication_needed
   block:
 
-    - name:                            "HANA HSR: - Stop HANA on {{ virtual_host }}"
+    - name:                            "4.0.1.5 Hana System Replication - Stop HANA on {{ virtual_host }}"
       ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
 
-    - name:                            "HANA HSR: - Ensure Secondary node is registered as secondary in replication"
+    - name:                            "4.0.1.5 Hana System Replication - Ensure Secondary node is registered as secondary in replication"
       become_user:                     "{{ db_sid_admin_user }}"
       become:                          true
       ansible.builtin.shell: >
@@ -167,7 +159,7 @@
         SECUDIR:                       "/usr/sap/{{ DB }}/{{ virtual_host }}/sec"
 
 
-    - name:                            "HANA HSR: - Configure HANA active/read-enabled system replication"
+    - name:                            "4.0.1.5 Hana System Replication - Configure HANA active/read-enabled system replication"
       become_user:                     "{{ db_sid_admin_user }}"
       become:                          true
       when:                            database_active_active | default(false)
@@ -189,7 +181,7 @@
         SECUDIR:                       "/usr/sap/{{ DB }}/{{ virtual_host }}/sec"
 
 
-    - name:                            "HANA HSR: - Start HANA on {{ virtual_host }}"
+    - name:                            "4.0.1.5 Hana System Replication - Start HANA on {{ virtual_host }}"
       ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
       vars:
         allow_world_readable_tmpfiles: true

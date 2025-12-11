@@ -2,53 +2,62 @@
 # Licensed under the MIT License.
 
 parameters:
-  azureClientId: ''
-  azureClientSecret: ''
-  azureTenantId: ''
-  azureSubscriptionId: ''
+  ARM_CLIENT_ID: ''
+  ARM_CLIENT_SECRET: ''
+  ARM_SUBSCRIPTION_ID: ''
+  ARM_TENANT_ID: ''
+  BOM_BASE_NAME: ''
+  SAP_SYSTEM_CONFIGURATION_NAME: ''
   USE_MSI: ''
-  displayName: ''
-  ansibleFilePath: ''
   ansibleConfigPath: ''
-  sidHosts:  ''
-  secretName: ''
-  vaultName: ''
-  parametersFolder: ''
-  extraParams: ''
-  sapParams: ''
-  passwordSecretName: ''
-  userNameSecretName: ''
-  terraformStateStorageAccount: ''
+  ansibleFilePath: ''
+  controlPlaneName: ''
   controlPlaneSubscriptionId: ''
+  displayName: ''
+  extraParams: ''
+  parametersFolder: ''
+  passwordSecretName: ''
+  sapParams: ''
+  secretName: ''
+  sidHosts:  ''
+  terraformStateStorageAccount: ''
+  userNameSecretName: ''
+  vaultName: ''
+  workloadZoneName: ''
 
 steps:
-- task:                             Bash@3
-  name:                             ${{ parameters.name }}
-  displayName:                      ${{ parameters.displayName }}
+- task:                              Bash@3
+  name:                              ${{ parameters.name }}
+  displayName:                       ${{ parameters.displayName }}
   inputs:
-    targetType:                     'filePath'
-    filePath:                       "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/05-run-ansible.sh"
-    failOnStderr:                   false
-    workingDirectory:               "$(System.DefaultWorkingDirectory)"
+    targetType:                      'filePath'
+    filePath:                        "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/05-run-ansible.sh"
+    failOnStderr:                    false
+    workingDirectory:                "$(System.DefaultWorkingDirectory)"
   env:
-    AZURE_CLIENT_ID:                ${{ parameters.azureClientId }}
-    AZURE_CLIENT_SECRET:            ${{ parameters.azureClientSecret }}
-    AZURE_TENANT_ID:                ${{ parameters.azureTenantId }}
-    AZURE_SUBSCRIPTION_ID:          ${{ parameters.azureSubscriptionId }}
-    USE_MSI:                        ${{ parameters.USE_MSI }}
-    ANSIBLE_COLLECTIONS_PATH:       ~/.ansible/collections:/opt/ansible/collections
-    ANSIBLE_PYTHON_INTERPRETER:     auto_silent
-    ANSIBLE_DISPLAY_SKIPPED_HOSTS:  false
-    ANSIBLE_HOST_KEY_CHECKING:      false
-    ANSIBLE_FILE_PATH:              ${{ parameters.ansibleFilePath }}
-    ANSIBLE_CONFIG:                 ${{ parameters.ansibleConfigPath }}
-    PARAMETERS_FOLDER:              ${{ parameters.parametersFolder }}
-    EXTRA_PARAMS:                   ${{ parameters.extraParams }}
-    SAP_PARAMS:                     ${{ parameters.sapParams }}
-    INVENTORY:                      ${{ parameters.parametersFolder }}/${{ parameters.sidHosts }}
-    SSH_KEY_NAME:                   ${{ parameters.secretName }}
-    VAULT_NAME:                     ${{ parameters.vaultName }}
-    PASSWORD_KEY_NAME:              ${{ parameters.passwordSecretName }}
-    USERNAME_KEY_NAME:              ${{ parameters.userNameSecretName }}
-    TERRAFORM_STATE_STORAGE_ACCOUNT: ${{ parameters.terraformStateStorageAccount }}
+    ANSIBLE_COLLECTIONS_PATH:        ~/.ansible/collections:/opt/ansible/collections
+    ANSIBLE_CONFIG:                  ${{ parameters.ansibleConfigPath }}
+    ANSIBLE_DISPLAY_SKIPPED_HOSTS:   false
+    ANSIBLE_FILE_PATH:               ${{ parameters.ansibleFilePath }}
+    ANSIBLE_HOST_KEY_CHECKING:       false
+    ANSIBLE_PYTHON_INTERPRETER:      auto_silent
+    ARM_CLIENT_ID:                   ${{ parameters.ARM_CLIENT_ID }}
+    ARM_CLIENT_SECRET:               ${{ parameters.ARM_CLIENT_SECRET }}
+    ARM_SUBSCRIPTION_ID:             ${{ parameters.ARM_SUBSCRIPTION_ID }}
+    ARM_TENANT_ID:                   ${{ parameters.ARM_TENANT_ID }}
+    ARM_USE_MSI:                     ${{ parameters.USE_MSI }}
+    BOM_BASE_NAME:                   ${{ parameters.BOM_BASE_NAME }}
+    CONTROL_PLANE_NAME:              ${{ parameters.controlPlaneName }}
     CONTROL_PLANE_SUBSCRIPTION_ID:   ${{ parameters.controlPlaneSubscriptionId }}
+    EXTRA_PARAMS:                    ${{ parameters.extraParams }}
+    INVENTORY:                       ${{ parameters.parametersFolder }}/${{ parameters.sidHosts }}
+    PARAMETERS_FOLDER:               ${{ parameters.parametersFolder }}
+    PASSWORD_KEY_NAME:               ${{ parameters.passwordSecretName }}
+    SAP_PARAMS:                      ${{ parameters.sapParams }}
+    SAP_SYSTEM_CONFIGURATION_NAME:   ${{ parameters.SAP_SYSTEM_CONFIGURATION_NAME }}
+    SSH_KEY_NAME:                    ${{ parameters.secretName }}
+    TERRAFORM_STATE_STORAGE_ACCOUNT: ${{ parameters.terraformStateStorageAccount }}
+    USERNAME_KEY_NAME:               ${{ parameters.userNameSecretName }}
+    USE_MSI:                         ${{ parameters.USE_MSI }}
+    VAULT_NAME:                      ${{ parameters.vaultName }}
+    WORKLOAD_ZONE_NAME:              ${{ parameters.workloadZoneName }}
