@@ -9,7 +9,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "HANA HSR: - Define SSFS file locations"
+- name:                                "4.0.1.3 Hana System Replication - Define SSFS file locations"
   ansible.builtin.set_fact:
     ssfs_files:
       - { file: "SSFS_{{ hana_tenant_database_name }}.DAT", folder: "/usr/sap/{{ hana_tenant_database_name }}/SYS/global/security/rsecssfs/data/", mode: '640' }
@@ -22,7 +22,7 @@
 # Primary: Fetch all SSFS files to Controller
 # ----------------------------------------
 
-- name:                                "HANA HSR: - Fetch required SSFS files from Primary to Controller"
+- name:                                "4.0.1.3 Hana System Replication - Fetch required SSFS files from Primary to Controller"
   when:                                ansible_hostname == primary_instance_name
   ansible.builtin.fetch:
     src:                               "{{ item.folder }}{{ item.file }}"
@@ -30,7 +30,7 @@
     flat:                              true
   loop:                                "{{ ssfs_files }}"
 
-- name:                                "HANA HSR: - Fetch optional XSA SSFS files from Primary to Controller (if present)"
+- name:                                "4.0.1.3 Hana System Replication - Fetch optional XSA SSFS files from Primary to Controller (if present)"
   when:                                ansible_hostname == primary_instance_name
   ansible.builtin.fetch:
     src:                               "{{ item.folder }}{{ item.file }}"
@@ -43,7 +43,7 @@
 # Controller: Check which files were fetched
 # ----------------------------------------
 
-- name:                                "HANA HSR: - Check which SSFS files exist on Controller"
+- name:                                "4.0.1.3 Hana System Replication - Check which SSFS files exist on Controller"
   delegate_to:                         localhost
   become:                              false
   ansible.builtin.stat:
@@ -51,7 +51,7 @@
   register:                            ssfs_controller_check
   loop:                                "{{ ssfs_files + xsa_ssfs_files }}"
 
-- name:                                "HANA HSR: - Display SSFS files available on Controller"
+- name:                                "4.0.1.3 Hana System Replication - Display SSFS files available on Controller"
   ansible.builtin.debug:
     msg:                               "File {{ item.item.file }}: {{ 'available' if item.stat.exists else 'not available' }}"
     verbosity:                         2
@@ -63,7 +63,7 @@
 # Secondary: Wait for and copy files from Controller
 # ----------------------------------------
 
-- name:                                "HANA HSR: - Wait for required SSFS files to be available on Controller"
+- name:                                "4.0.1.3 Hana System Replication - Wait for required SSFS files to be available on Controller"
   when:                                ansible_hostname == secondary_instance_name
   delegate_to:                         localhost
   become:                              false
@@ -72,7 +72,7 @@
     timeout:                           300
   loop:                                "{{ ssfs_files }}"
 
-- name:                                "HANA HSR: - Copy required SSFS files from Controller to Secondary"
+- name:                                "4.0.1.3 Hana System Replication - Copy required SSFS files from Controller to Secondary"
   when:                                ansible_hostname == secondary_instance_name
   ansible.builtin.copy:
     src:                               /tmp/hana_ssfs/{{ item.file }}
@@ -82,7 +82,7 @@
     group:                             "{{ hana_group }}"
   loop:                                "{{ ssfs_files }}"
 
-- name:                                "HANA HSR: - Copy optional XSA SSFS files from Controller to Secondary (if available)"
+- name:                                "4.0.1.3 Hana System Replication - Copy optional XSA SSFS files from Controller to Secondary (if available)"
   when:
                                        - ansible_hostname == secondary_instance_name
                                        - item.stat.exists
@@ -100,7 +100,7 @@
 # Cleanup: Remove temporary files from Controller
 # ----------------------------------------
 
-- name:                                "HANA HSR: - Cleanup SSFS files from Controller"
+- name:                                "4.0.1.3 Hana System Replication - Cleanup SSFS files from Controller"
   delegate_to:                         localhost
   become:                              false
   ansible.builtin.file:

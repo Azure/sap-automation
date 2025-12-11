@@ -22,7 +22,7 @@
 #     state:                             absent
 #   when:                                reinstall
 
-- name:                                "DBLoad: - check if {{ sid_to_be_deployed.sid | upper }} is installed"
+- name:                                "DBLoad:- Check if {{ sid_to_be_deployed.sid | upper }} is installed"
   ansible.windows.win_stat:
     path:                              '{{ sap_deployment_automation }}\{{ sid_to_be_deployed.sid | upper }}\sap_deployment_dbload.txt'
   register:                            dbload_installed
@@ -67,7 +67,7 @@
     path:                              "{{ dir_params }}"
     state:                             directory
 
-- name:                                "DBLoad: Create temp directory for sid"
+- name:                                "DBLoad: Create directory for installation log files"
   ansible.windows.win_file:
     path:                              '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | upper }}'
     state:                             directory

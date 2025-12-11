@@ -28,7 +28,7 @@
     path:                              "{{ dir_params }}"
     state:                             directory
 
-- name:                                "PAS Install: Create temp directory for sid"
+- name:                                "PAS Install: Create directory for installation log files"
   ansible.windows.win_file:
     path:                              '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | upper }}'
     state:                             directory

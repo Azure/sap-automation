@@ -9,7 +9,7 @@
 # +------------------------------------4--------------------------------------*/
 ---
 
-- name:                                "SYBASE Install: Cleanup ini file {{ ansible_hostname }}"
+- name:                                "4.3.0.6 - SYBASE Installation - Cleanup ini file {{ ansible_hostname }}"
   ansible.builtin.file:
     path:                              "{{ dir_params }}/{{ sap_inifile }}"
     state:                             absent

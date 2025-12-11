@@ -102,12 +102,12 @@ locals {
                                            length(var.infrastructure.virtual_network.management.subnet_agent.name) > 0 ? (
                                              var.infrastructure.virtual_network.management.subnet_agent.name) : (
                                              format("%s%s%s",
-                                               var.naming.resource_prefixes.agent_subnet,
+                                               try(var.naming.resource_prefixes.agent_subnet, ""),
                                                length(local.prefix) > 0 ? (
                                                  local.prefix) : (
                                                  var.infrastructure.environment
                                                ),
-                                               var.naming.resource_suffixes.agent_subnet
+                                               try(var.naming.resource_suffixes.agent_subnet, "_agent-subnet")
                                              )
                                          ))
 
@@ -213,5 +213,10 @@ locals {
 
   // Tags
   tags                                 = merge(var.infrastructure.tags,try(var.deployer.tags, { "Role" = "Deployer" }))
+
+  parsed_id                            = var.app_config_service.exists ? try(provider::azurerm::parse_resource_id(var.app_config_service.id), "") : null
+  app_config_name                      = var.app_config_service.exists ? local.parsed_id["resource_name"] : var.app_config_service.name
+  app_config_resource_group_name       = var.app_config_service.exists ? local.parsed_id["resource_group_name"] : ""
+
 
 }

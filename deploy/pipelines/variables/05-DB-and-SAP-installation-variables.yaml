@@ -1,11 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#--------------------------------------+---------------------------------------8
+# --------------------------------------+--------------------------------------8
 #                                                                              |
 # Defines the parameters and variables for the SAP Software Install            |
 #                                                                              |
-#--------------------------------------+---------------------------------------8
+# --------------------------------------+--------------------------------------8
 
 parameters:
   environment: ""
@@ -23,3 +23,6 @@ variables:
 
   - name:                              variable_group
     value:                             SDAF-${{ parameters.environment }}
+
+  - name:                              workload_zone_name
+    value:                             ${{ parameters.environment }}

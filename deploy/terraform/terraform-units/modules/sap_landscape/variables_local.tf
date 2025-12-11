@@ -664,4 +664,6 @@ locals {
 
   deploy_monitoring_extension                    = var.infrastructure.deploy_monitoring_extension && length(try(var.infrastructure.user_assigned_identity_id,"")) > 0
 
+  use_local_credentials                          = length(var.authentication) > 0
+
 }

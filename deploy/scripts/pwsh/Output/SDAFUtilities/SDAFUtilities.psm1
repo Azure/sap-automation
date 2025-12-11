@@ -566,6 +566,7 @@ function New-SDAFADOProject {
       "Role Based Access Control Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
+      "Key Vault Secret Officer",
       "App Configuration Data Owner"
     )
 
@@ -1016,7 +1017,7 @@ resources:
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $ControlPlaneSubscriptionIdInternal = $ControlPlaneSubscriptionId
-      $VersionLabel = "v3.17.0.1"
+      $VersionLabel = "v3.18.0.0"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS
@@ -1302,7 +1303,7 @@ resources:
 
       $GeneralGroupId = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
       if ($GeneralGroupId.Length -eq 0) {
-        az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.13.3" ansible_core_version="2.16.15" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
+        az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.14.1" ansible_core_version="2.16.15" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
         $GeneralGroupId = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
         az pipelines variable-group variable update --group-id $GeneralGroupId --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
       }
@@ -1922,6 +1923,7 @@ function New-SDAFADOWorkloadZone {
       "Role Based Access Control Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
+      "Key Vault Secret Officer",
       "App Configuration Data Owner"
     )
 
@@ -2036,7 +2038,7 @@ function New-SDAFADOWorkloadZone {
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $WorkloadZoneSubscriptionIdInternal = $WorkloadZoneSubscriptionId
-      $VersionLabel = "v3.17.0.1"
+      $VersionLabel = "v3.18.0.0"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS
@@ -2574,7 +2576,7 @@ function Remove-SDAFADOProject {
 
       #region Initialize variables
       Write-Verbose "Initializing variables from parameters"
-      $VersionLabel = "v3.17.0.1"
+      $VersionLabel = "v3.18.0.0"
       Write-Verbose "Version label set to: $VersionLabel"
       #endregion
 
@@ -2873,7 +2875,7 @@ function Remove-SDAFADOWorkloadZone {
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $WorkloadZoneSubscriptionIdInternal = $WorkloadZoneSubscriptionId
-      $VersionLabel = "v3.17.0.1"
+      $VersionLabel = "v3.18.0.0"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS

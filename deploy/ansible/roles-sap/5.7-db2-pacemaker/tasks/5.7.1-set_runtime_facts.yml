@@ -5,7 +5,7 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |      Set Runtime Paramters - e.g Sub ID , Resource group name              |
+# |      Set Runtime Parameters - e.g Sub ID , Resource group name             |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -14,7 +14,7 @@
 # ----------------------------------------
 
 
-- name:                                Retrieve Subscription ID and Resource Group Name
+- name:                                "5.7.1 DB2 Pacemaker - Retrieve Subscription ID and Resource Group Name"
   ansible.builtin.uri:
     url:                               http://169.254.169.254/metadata/instance?api-version=2021-02-01
     use_proxy:                         false
@@ -23,35 +23,35 @@
   register: db2vmmetadata
 
 
-- name:                                Show Azure Instance Metadata results
+- name:                                "5.7.1 DB2 Pacemaker - Show Azure Instance Metadata results"
   ansible.builtin.debug:
     var:                               db2vmmetadata.json
     verbosity:                         2
 
-- name:                                Extract Subscription ID
+- name:                                "5.7.1 DB2 Pacemaker - Extract Subscription ID"
   ansible.builtin.set_fact:
     sap_hana_fencing_spn_subscription_id: "{{ db2vmmetadata.json.compute.subscriptionId }}"
   no_log:                              true
 
-- name:                                "Extract ResourceGroup Name "
+- name:                                "5.7.1 DB2 Pacemaker - Extract ResourceGroup Name "
   ansible.builtin.set_fact:
     resource_group_name:               "{{ db2vmmetadata.json.compute.resourceGroupName }}"
   no_log:                              true
 
-- name:                                Set the primary intance db nic and admin nic IP
+- name:                                "5.7.1 DB2 Pacemaker - Set the primary intance db nic and admin nic IP"
   ansible.builtin.set_fact:
     primary_instance_ip_db:            "{{ hostvars[primary_instance_name]['ansible_eth0']['ipv4']['address'] }}"
 
-- name:                                Set the secondary intance db nic and admin nic IP
+- name:                                "5.7.1 DB2 Pacemaker - Set the secondary intance db nic and admin nic IP"
   ansible.builtin.set_fact:
     secondary_instance_ip_db:          "{{ hostvars[secondary_instance_name]['ansible_eth0']['ipv4']['address'] }}"
 
-- name:                                Show Subscription ID
+- name:                                "5.7.1 DB2 Pacemaker - Show Subscription ID"
   ansible.builtin.debug:
     var:                               sap_hana_fencing_spn_subscription_id
     verbosity:                         2
 
-- name:                                Show Resource Group Name
+- name:                                "5.7.1 DB2 Pacemaker - Show Resource Group Name"
   ansible.builtin.debug:
     var:                               resource_group_name
     verbosity:                         2

@@ -5,7 +5,7 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |      Set Runtime Paramters - e.g Sub ID , Resource group name              |
+# |      Set Runtime Parameters - e.g Sub ID , Resource group name             |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -14,35 +14,35 @@
 # ----------------------------------------
 
 
-- name:                                "5.5 HANA Pacemaker - Retrieve Subscription ID and Resource Group Name"
+- name:                                "5.5.1 HANA Pacemaker - Retrieve Subscription ID and Resource Group Name"
   ansible.builtin.uri:
     url:                               http://169.254.169.254/metadata/instance?api-version=2021-02-01
     use_proxy:                         false
     headers:
       Metadata:                        true
-  register:                            hanavmmetadata
+  register:                            azure_instance_metadata
 
-- name:                                "5.5 HANA Pacemaker - Show Azure Instance Metadata results"
+- name:                                "5.5.1 HANA Pacemaker - Show Azure Instance Metadata results"
   ansible.builtin.debug:
-    var:                               hanavmmetadata.json
+    var:                               azure_instance_metadata.json
     verbosity:                         2
 
-- name:                                "5.5 HANA Pacemaker - Extract Subscription ID"
+- name:                                "5.5.1 HANA Pacemaker - Extract Subscription ID"
   ansible.builtin.set_fact:
-    fencing_spn_subscription_id:       "{{ hanavmmetadata.json.compute.subscriptionId }}"
+    fencing_spn_subscription_id:       "{{ azure_instance_metadata.json.compute.subscriptionId }}"
   no_log:                              true
 
-- name:                                "5.5 HANA Pacemaker - Extract ResourceGroup Name"
+- name:                                "5.5.1 HANA Pacemaker - Extract ResourceGroup Name"
   ansible.builtin.set_fact:
-    resource_group_name:               "{{ hanavmmetadata.json.compute.resourceGroupName }}"
+    resource_group_name:               "{{ azure_instance_metadata.json.compute.resourceGroupName }}"
   no_log:                              true
 
-- name:                                "5.5 HANA Pacemaker - Set the primary intance nic and secondary instance nic IP"
+- name:                                "5.5.1 HANA Pacemaker - Get the primary and secondary network interface cards IP addresses"
   ansible.builtin.set_fact:
-    primary_ip:                        "{{ hanavmmetadata.json.network.interface[0].ipv4.ipAddress[0].privateIpAddress }}"
-    subnet_prefix:                     "{{ hanavmmetadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
+    primary_ip:                        "{{ azure_instance_metadata.json.network.interface[0].ipv4.ipAddress[0].privateIpAddress }}"
+    subnet_prefix:                     "{{ azure_instance_metadata.json.network.interface[0].ipv4.subnet[0].prefix }}"
 
-- name:                                "5.5 HANA Pacemaker - Extract NIC IPs"
+- name:                                "5.5.1 HANA Pacemaker - Extract network interface IP addresses"
   ansible.builtin.set_fact:
     primary_instance_ip_db:            "{{ hostvars[primary_instance_name]['primary_ip'] | string }}"
     secondary_instance_ip_db:          "{{ hostvars[secondary_instance_name]['primary_ip'] | string }}"
@@ -55,17 +55,17 @@
 #   ansible.builtin.set_fact:
 #     secondary_instance_ip_db:          "{{ hostvars[secondary_instance_name]['ansible_eth0']['ipv4'][0]['address'] }}"
 
-- name:                                "5.5 HANA Pacemaker - Show Subscription ID"
+- name:                                "5.5.1 HANA Pacemaker - Show Subscription ID"
   ansible.builtin.debug:
     var:                               fencing_spn_subscription_id
     verbosity:                         2
 
-- name:                                "5.5 HANA Pacemaker - Show Resource Group Name"
+- name:                                "5.5.1 HANA Pacemaker - Show Resource Group Name"
   ansible.builtin.debug:
     var:                               resource_group_name
     verbosity:                         2
 
-- name:                                "5.5 HANA Pacemaker - Ensure HANA DB version is checked and captured"
+- name:                                "5.5.1 HANA Pacemaker - Ensure HANA DB version is checked and captured"
   block:
     - name:                            "Check HANA DB Version and register"
       become_user:                     "{{ db_sid | lower }}adm"
@@ -74,23 +74,23 @@
       register:                        hdbversion
       changed_when:                    false
 
-    - name:                            "5.5 HANA Pacemaker - Extract version components"
+    - name:                            "5.5.1 HANA Pacemaker - Extract version components"
       when:                            hdbversion.rc == 0
       ansible.builtin.set_fact:
         version_string:                "{{ hdbversion.stdout | regex_search('version:\\s+([0-9.]+)', '\\1') | first }}"
 
-    - name:                            "5.5 HANA Pacemaker - Parse version numbers"
+    - name:                            "5.5.1 HANA Pacemaker - Parse version numbers"
       ansible.builtin.set_fact:
         hana_major_version:            "{{ version_string.split('.')[0] | int }}"
         hana_minor_version:            "{{ version_string.split('.')[1] | int }}"
         hana_sps_level:                "{{ version_string.split('.')[2] | int }}"
 
     # Get SAPHanaSR Version using package_facts
-    - name:                            "5.5 HANA Pacemaker - Get installed package facts"
+    - name:                            "5.5.1 HANA Pacemaker - Get installed package facts"
       ansible.builtin.package_facts:
         manager:                       rpm
 
-    - name:                            "5.5 HANA Pacemaker - Get SAPHanaSR package version"
+    - name:                            "5.5.1 HANA Pacemaker - Get SAPHanaSR package version"
       ansible.builtin.set_fact:
         saphanaSR_version:             "{{
                                          ansible_facts.packages['SAPHanaSR'][0].version if ansible_os_family | upper == 'SUSE' and 'SAPHanaSR' in ansible_facts.packages
@@ -98,7 +98,7 @@
                                          else '0.0.0'
                                        }}"
 
-    - name:                            "5.5 HANA Pacemaker - Get SAPHanaSR-angi package version"
+    - name:                            "5.5.1 HANA Pacemaker - Get SAPHanaSR-angi package version"
       ansible.builtin.set_fact:
         saphanaSR_angi_version:        "{{
                                          ansible_facts.packages['SAPHanaSR-angi'][0].version
@@ -106,7 +106,7 @@
                                          else '0.0.0'
                                        }}"
 
-    - name:                            "5.5 HANA Pacemaker - Install SAPHanaSR package if not installed - [SUSE]"
+    - name:                            "5.5.1 HANA Pacemaker - Install SAPHanaSR package if not installed - [SUSE]"
       when:
         - saphanaSR_version == '0.0.0'
         - not use_hanasr_angi
@@ -115,7 +115,7 @@
         name:                          "SAPHanaSR>=0.161.1_BF"
         state:                         present
 
-    - name:                            "5.5 HANA Pacemaker - Install SAPHanaSR package if not installed - [RHEL]"
+    - name:                            "5.5.1 HANA Pacemaker - Install SAPHanaSR package if not installed - [RHEL]"
       when:
         - saphanaSR_version == '0.0.0'
         - not use_hanasr_angi
@@ -124,13 +124,13 @@
         name:                          "resource-agents-sap-hana"
         state:                         present
 
-    - name:                            "5.5 HANA Pacemaker - Uninstall the old-style packages before we install SAPHanaSR-angi"
+    - name:                            "5.5.1 HANA Pacemaker - Uninstall the old-style packages before we install SAPHanaSR-angi"
       when:
         - saphanaSR_angi_version == '0.0.0'
         - use_hanasr_angi
         - distribution_full_id in ['sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6', 'sles_sap15.7']
       block:
-        - name:                        "5.5 HANA Pacemaker - Uninstall the old-style SAPHanaSR package"
+        - name:                        "5.5.1 HANA Pacemaker - Uninstall the old-style SAPHanaSR package"
           community.general.zypper:
             name:
                                        - SAPHanaSR
@@ -138,34 +138,31 @@
             state:                     absent
             disable_recommends:        true
 
-        - name:                        "5.5 HANA Pacemaker - Install SAPHanaSR-angi package if not installed"
+        - name:                        "5.5.1 HANA Pacemaker - Install SAPHanaSR-angi package if not installed"
           community.general.zypper:
             name:                      SAPHanaSR-angi
             state:                     present
             update_cache:              true
 
         # update package facts and recheck the version for SAPHanaSR-angi and SAPHanaSR
-        - name:                        "5.5 HANA Pacemaker - Get installed package facts"
+        - name:                        "5.5.1 HANA Pacemaker - Get installed package facts"
           ansible.builtin.package_facts:
             manager:                   rpm
 
-        - name:                        "5.5 HANA Pacemaker - Get SAPHanaSR package version"
+        - name:                        "5.5.1 HANA Pacemaker - Get SAPHanaSR package version"
           ansible.builtin.set_fact:
             saphanaSR_version:         "{{ ansible_facts.packages['SAPHanaSR'][0].version if 'SAPHanaSR' in ansible_facts.packages else '0.0.0' }}"
             saphanaSR_angi_version:    "{{ ansible_facts.packages['SAPHanaSR-angi'][0].version if 'SAPHanaSR-angi' in ansible_facts.packages else '0.0.0' }}"
 
-    - name:                            "5.5 HANA Pacemaker - Capture the Hana DB version"
+    - name:                            "5.5.1 HANA Pacemaker - Capture the Hana DB version"
       ansible.builtin.set_fact:
         hdb_version:                   "{{ hdbversion.stdout_lines.1.split().1 }}"
 
-    - name:                            "5.5 HANA Pacemaker - Show the HDB version"
+    - name:                            "5.5.1 HANA Pacemaker - Show the HDB version"
       ansible.builtin.debug:
-        var:                           hdb_version
-
-    - name:                            "5.5 HANA Pacemaker - Show the HDB version prefix"
-      ansible.builtin.debug:
-        var:                           hdb_version[0:2]
-
+        msg:
+          - "HANA version:        {{ hdb_version }}"
+          - "HANA version prefix: {{ hdb_version[0:2] }}"
 # /*---------------------------------------------------------------------------8
 # |                                   END                                     |
 # +------------------------------------4--------------------------------------*/

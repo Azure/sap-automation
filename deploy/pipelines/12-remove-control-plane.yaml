@@ -9,139 +9,139 @@
 # +------------------------------------4--------------------------------------*/
 
 parameters:
-  - name:                              deployer
-    displayName:                       "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type:                              string
-    default:                           MGMT-WEEU-DEP01-INFRASTRUCTURE
+  - name:                                         deployer
+    displayName:                                  "Deployer configuration name, use this format: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                                         string
+    default:                                      MGMT-WEEU-DEP01-INFRASTRUCTURE
 
-  - name:                              library
-    displayName:                       "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
-    type:                              string
-    default:                           MGMT-WEEU-SAP_LIBRARY
+  - name:                                         library
+    displayName:                                  "Library configuration name, use this format: ENV-LOCA-SAP_LIBRARY"
+    type:                                         string
+    default:                                      MGMT-WEEU-SAP_LIBRARY
 
-  - name:                              deployer_environment
-    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
-    type:                              string
-    default:                           MGMT
+  - name:                                         deployer_environment
+    displayName:                                  Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type:                                         string
+    default:                                      MGMT
 
-  - name:                              use_deployer
-    displayName:                       Run removal on self hosted agent
-    type:                              boolean
-    default:                           false
+  - name:                                         use_deployer
+    displayName:                                  Run removal on self hosted agent
+    type:                                         boolean
+    default:                                      false
 
-  - name:                              sap_automation_repo_path
-    displayName:                       The local path on the agent where the sap_automation repo can be found
-    type:                              string
+  - name:                                         sap_automation_repo_path
+    displayName:                                  The local path on the agent where the sap_automation repo can be found
+    type:                                         string
 
-  - name:                              config_repo_path
-    displayName:                       The local path on the agent where the config repo can be found
-    type:                              string
+  - name:                                         config_repo_path
+    displayName:                                  The local path on the agent where the config repo can be found
+    type:                                         string
 
-  - name:                              connection_name
-    displayName:                       Service Connection Name
-    type:                              string
+  - name:                                         connection_name
+    displayName:                                  Service Connection Name
+    type:                                         string
 
 stages:
-  - stage:                             Remove_control_plane_remote
-    displayName:                       "Control plane removal (on agent)"
+  - stage:                                        Remove_control_plane_remote
+    displayName:                                  "Control plane removal (on agent)"
     variables:
-      - template:                      variables/12-remove-control-plane-variables.yaml
+      - template:                                 variables/12-remove-control-plane-variables.yaml
         parameters:
-          deployer:                    ${{ parameters.deployer }}
-          deployer_environment:        ${{ parameters.deployer_environment }}
-          library:                     ${{ parameters.library }}
-          use_deployer:                ${{ parameters.use_deployer }}
+          deployer:                               ${{ parameters.deployer }}
+          deployer_environment:                   ${{ parameters.deployer_environment }}
+          library:                                ${{ parameters.library }}
+          use_deployer:                           ${{ parameters.use_deployer }}
     pool:
-      name:                            $(POOL)
+      name:                                       $(POOL)
     jobs:
-      - job:                           Remove_control_plane_remote
-        displayName:                   "Start control plane removal"
+      - job:                                      Remove_control_plane_remote
+        displayName:                              "Start control plane removal"
         variables:
-          - group:                     SDAF-${{ parameters.deployer_environment }}
+          - group:                                SDAF-${{ parameters.deployer_environment }}
         workspace:
-          clean:                       all
+          clean:                                  all
         steps:
-          - template:                  templates\download.yaml
-          - task:                      PostBuildCleanup@4
-          - task:                      TerraformInstaller@1
-            displayName:               Install Terraform
+          - template:                             templates\download.yaml
+          - task:                                 PostBuildCleanup@4
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
+            displayName:                          Install Terraform
             inputs:
-              terraformVersion:        latest
-          - task:                      Bash@3
+              terraformVersion:                   $(tf_version)
+          - task:                                 Bash@3
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/12-remove-control-plane.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            displayName:               Remove control plane
+              targetType:                         'filePath'
+              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/12-remove-control-plane.sh"
+              failOnStderr:                       false
+              workingDirectory:                   "$(System.DefaultWorkingDirectory)"
+            displayName:                          Remove control plane
             env:
-              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:            $(ARM_TENANT_ID)
-              ARM_USE_MSI:              $(Use_MSI)
-              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
-              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              TF_IN_AUTOMATION:         true
-              TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
-              TF_LOG:                   $(TF_LOG)
-              USE_MSI:                  $(Use_MSI)
-              key_vault:                $(DEPLOYER_KEYVAULT)
-  - stage:                              Remove_control_plane
-    displayName:                        "Finalize control plane removal"
+              ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              ARM_USE_MSI:                        $(Use_MSI)
+              AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
+              CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
+              TF_IN_AUTOMATION:                   true
+              TF_VAR_app_registration_app_id:     $(APP_REGISTRATION_APP_ID)
+              TF_LOG:                             $(TF_LOG)
+              USE_MSI:                            $(Use_MSI)
+              key_vault:                          $(DEPLOYER_KEYVAULT)
+  - stage:                                        Remove_control_plane
+    displayName:                                  "Finalize control plane removal"
     variables:
-      - template:                       variables/12-remove-control-plane-variables.yaml
+      - template:                                 variables/12-remove-control-plane-variables.yaml
         parameters:
-          deployer:                     ${{ parameters.deployer }}
-          deployer_environment:         ${{ parameters.deployer_environment }}
-          library:                      ${{ parameters.library }}
-          use_deployer:                 ${{ parameters.use_deployer }}
+          deployer:                               ${{ parameters.deployer }}
+          deployer_environment:                   ${{ parameters.deployer_environment }}
+          library:                                ${{ parameters.library }}
+          use_deployer:                           ${{ parameters.use_deployer }}
     pool:
-      name:                             $(Agent)
+      name:                                       $(Agent)
     dependsOn:
       - Remove_control_plane_remote
-    condition:                          in(dependencies.Remove_control_plane_remote.result, 'Succeeded', 'Skipped')
+    condition:                                    in(dependencies.Remove_control_plane_remote.result, 'Succeeded', 'Skipped')
     jobs:
-      - job:                            Remove_control_plane
-        displayName:                    "Finalize control plane removal"
+      - job:                                      Remove_control_plane
+        displayName:                              "Finalize control plane removal"
         variables:
-          - group:                     SDAF-${{ parameters.deployer_environment }}
+          - group:                                SDAF-${{ parameters.deployer_environment }}
         workspace:
-          clean:                       all
+          clean:                                  all
         steps:
-          - template:                  templates\download.yaml
+          - template:                             templates\download.yaml
             parameters:
-              getLatestFromBranch:     true
-          - task:                      TerraformInstaller@1
-            displayName:               Install Terraform
+              getLatestFromBranch:                true
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
+            displayName:                          Install Terraform
             inputs:
-              terraformVersion:        latest
-          - task:                      PostBuildCleanup@4
-          - task:                      AzureCLI@2
-            continueOnError:           false
+              terraformVersion:                   $(tf_version)
+          - task:                                 PostBuildCleanup@4
+          - task:                                 AzureCLI@2
+            continueOnError:                      false
             inputs:
-              azureSubscription:       ${{parameters.connection_name}}
-              scriptType:              bash
-              scriptLocation:          'scriptPath'
-              scriptPath:              $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/12-remove-control-plane-finalize.sh
-              addSpnToEnvironment:     true
-              visibleAzLogin:          false
-              failOnStandardError:     false
+              azureSubscription:                  ${{parameters.connection_name}}
+              scriptType:                         bash
+              scriptLocation:                     'scriptPath'
+              scriptPath:                         $(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/12-remove-control-plane-finalize.sh
+              addSpnToEnvironment:                true
+              visibleAzLogin:                     false
+              failOnStandardError:                false
 
-            displayName:               Remove control plane
+            displayName:                          Remove control plane
             env:
-              ARM_CLIENT_ID:            $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:        $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID:      $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:            $(ARM_TENANT_ID)
-              AZURE_DEVOPS_EXT_PAT:     $(System.AccessToken)
-              CONFIG_REPO_PATH:         ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              SYSTEM_ACCESSTOKEN:       $(System.AccessToken)
-              TF_IN_AUTOMATION:         true
-              TF_VAR_app_registration_app_id: $(APP_REGISTRATION_APP_ID)
-              TF_LOG:                   $(TF_LOG)
-              USE_MSI:                  $(Use_MSI)
-              key_vault:                $(DEPLOYER_KEYVAULT)
+              ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
+              CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
+              TF_IN_AUTOMATION:                   true
+              TF_VAR_app_registration_app_id:     $(APP_REGISTRATION_APP_ID)
+              TF_LOG:                             $(TF_LOG)
+              USE_MSI:                            $(Use_MSI)
+              key_vault:                          $(DEPLOYER_KEYVAULT)

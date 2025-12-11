@@ -231,13 +231,11 @@ function retrieve_parameters() {
 		if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 			print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
 
-			TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-			TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+			TF_VAR_spn_keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
 
 			management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
 			TF_VAR_management_subscription_id=${management_subscription_id}
 
-			export TF_VAR_deployer_kv_user_arm_id
 			export TF_VAR_management_subscription_id
 			export TF_VAR_spn_keyvault_id
 
@@ -315,7 +313,9 @@ function install_library() {
 	else
 		if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
 			sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
-			sudo chown -R "$USER" /opt/terraform
+			sudo chown -R "$USER" /opt/terraform/.terraform.d
+		else
+			sudo chown -R "$USER" /opt/terraform/.terraform.d
 		fi
 		export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 	fi
@@ -475,7 +475,7 @@ function install_library() {
 
 	return_value=0
 
-	if [ "${TEST_ONLY}" == "True" ]; then
+	if [ "${TEST_ONLY:-false}" == "true" ]; then
 		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 		exit 10
 	fi

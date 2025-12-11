@@ -3,7 +3,7 @@
 
 ---
 
-# SLES Clustering
+# SUSE Clustering
 # Ref: https://documentation.suse.com/sle-ha/12-SP4/html/SLE-HA-install-quick/index.html
 
 - name:                                "1.17 Generic Pacemaker - Ensure a list of package version is available for checking the cloud-netconfig-azure version"
@@ -75,7 +75,7 @@
       failed_when:                     crm_init_result.rc > 1
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (hdb_{{ db_sid | upper }}) is configured"
-      # ha-cluster-init is not supported in SLES 15 SP4 anymore, crm syntax required
+      # ha-cluster-init is not supported in SUSE 15 SP4 anymore, crm syntax required
       # ansible.builtin.shell:         "ha-cluster-init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
       ansible.builtin.shell:           "crm cluster init -y --name 'hdb_{{ db_sid | upper }}' --interface eth0 --no-overwrite-sshkey"
       register:                        crm_init_result
@@ -137,7 +137,7 @@
     # - name:                            Ensure the configuration files are synchronised
     #   ansible.builtin.shell:           "crm cluster join -y -c {{ primary_instance_name }} csync2"
     - name:                            "1.17 Generic Pacemaker - Ensure Secondary node joins the Cluster"
-      # ha-cluster-join is not supported in SLES 15 SP4 anymore, crm syntax required
+      # ha-cluster-join is not supported in SUSE 15 SP4 anymore, crm syntax required
       # ansible.builtin.shell:         "ha-cluster-join  -y -c {{ primary_instance_name }} --interface eth0"
       ansible.builtin.shell:           "crm cluster join -y -c {{ primary_instance_name }} --interface eth0"
       register:                        crm_init_result

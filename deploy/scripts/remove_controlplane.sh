@@ -488,7 +488,8 @@ if [ 1 -eq $keep_agent ]; then
 	if [ -z "$keyvault" ]; then
 		load_config_vars "${deployer_environment_file_name}" "keyvault"
 		if valid_kv_name "$keyvault"; then
-			az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$keyvault"
+			az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$keyvault" --output none
+			az keyvault update --name "$keyvault" --public-network-access Enabled --output none
 		fi
 
 	fi

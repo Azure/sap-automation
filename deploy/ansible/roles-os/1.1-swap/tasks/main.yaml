@@ -20,7 +20,7 @@
     state:                             directory
     mode:                              "0755"
   notify:
-    - Restart waagent
+    - "1.1 Swap - Restart waagent"
 
 # - name:                                "1.1 Swap - Update WAAgent on {{ ansible_os_family }}"
 #   ansible.builtin.dnf:
@@ -43,32 +43,33 @@
 #   tags:
 #     - skip_ansible_lint
 
-- name:                                "1.1 Swap - Restart WAAgent on {{ distro_name }}"
+- name:                                "1.1 Swap - Restart WAAgent on {{ distribution_id }}"
   ansible.builtin.service:
     name:                              waagent
     state:                             restarted
 
 # Check the current swap size
-- name:                                "check swap size"
+- name:                                "1.1 Swap - Check swap size"
   ansible.builtin.shell:               set -o pipefail && cat /proc/meminfo | grep SwapTotal
   register:                            swap_space
 
-- name:                                "SWAP space from /proc/meminfo"
+- name:                                "1.1 Swap - Show SWAP space from /proc/meminfo"
   ansible.builtin.debug:
     msg:                               "SWAP size from procinfo: {{ swap_space }}"
     verbosity:                         2
 
-- name:                                "Trim Swap space"
+- name:                                "1.1 Swap - Store SWAP space value"
   ansible.builtin.set_fact:
     swap_value:                        "{{ swap_space.stdout_lines[0] | regex_search('([0-9]+)') }}"
 
-- name:                                "Swap space in Integer"
+- name:                                "1.1 Swap - Swap space in Integer"
   ansible.builtin.set_fact:
     swap_size:                         "{{ swap_value | int }}"
 
-- name:                                "SWAP size"
+- name:                                "1.1 Swap - Show SWAP size"
   ansible.builtin.debug:
     msg:                               "Swap size: {{ swap_size }}"
+    verbosity:                         2
 
 - name:                                "1.1 Swap - Check for (waagent_conf)"
   ansible.builtin.stat:
@@ -96,7 +97,7 @@
   register:                            waagent_conf_copy
 
 
-- name:                                "1.1 Swap - Force systemd to reread configs {{ distro_name }}"
+- name:                                "1.1 Swap - Force systemd to reread configuration {{ distribution_id }}"
   ansible.builtin.service:
     name:                              systemd
     state:                             reloaded
@@ -104,7 +105,7 @@
     - waagent_conf_copy is defined
     - waagent_conf_copy.changed
 
-- name:                                "1.1 Swap - Restart WAAgent on {{ distro_name }}"
+- name:                                "1.1 Swap - Restart WAAgent on {{ distribution_id }}"
   ansible.builtin.service:
     name:                              waagent
     state:                             restarted
@@ -112,7 +113,7 @@
     - waagent_conf_copy is defined
     - waagent_conf_copy.changed
 
-- name:                                "1.1 Swap - Ensure waagent file is configured with proper parameters"
+- name:                                "1.1 Swap - Ensure waagent file is configured with correct parameters"
   ansible.builtin.lineinfile:
     dest:                              /etc/waagent.conf
     state:                             "{{ item.state }}"

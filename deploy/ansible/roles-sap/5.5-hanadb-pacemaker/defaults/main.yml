@@ -3,10 +3,6 @@
 
 ---
 
-distro_name:                           "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
-distribution_id:                       "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
-distribution_full_id:                  "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
-
 iscsi_object:                          iqn.2006-04
 
 iscsi_port:                            3260
@@ -19,6 +15,15 @@ min_hana_minor_version:                0
 min_hana_sps_level:                    50
 min_saphanaSR_version:                 "0.153"
 min_saphanaSR_version_suschk:          "0.161.1_BF"
+
+cluster_status_cmd:
+  RedHat: "pcs status --full"
+  Suse: "crm status full"
+
+cluster_cleanup_cmd:
+  RedHat: "pcs resource cleanup"
+  Suse: "crm resource cleanup"
+
 
 # RHEL: Check maintenance mode command based on OS version
 pcs_check_maintenance_mode: >-
