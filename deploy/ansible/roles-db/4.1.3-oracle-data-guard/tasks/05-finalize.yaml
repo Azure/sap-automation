@@ -346,6 +346,12 @@
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        mount_standby
 
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Set Flag File"
+      ansible.builtin.file:
+        path:                          "/etc/sap_deployment_automation/dataguard_scripts/dg_configured.txt"
+        owner:                         "{{ oracle_user_name }}"
+        state:                         touch
+        mode:                          0755
 
     # Update the tnsnames.ora for SAP application servers
     - name:                            "4.1.3 Oracle Data Guard - Finalize - Update tnsnames.ora for SAP application servers"
