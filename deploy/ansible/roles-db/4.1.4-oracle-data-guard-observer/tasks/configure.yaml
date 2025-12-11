@@ -49,6 +49,8 @@
     - { owner: "{{ oracle_user_name }}", state: 'directory', mode: '0755', path: '/oracle/media' }
     - { owner: "{{ oracle_user_name }}", state: 'directory', mode: '0755', path: '/oracle/observer' }
     - { owner: "{{ oracle_user_name }}", state: 'directory', mode: '0755', path: '/oracle/observer/wallet' }
+    - { owner: "{{ oracle_user_name }}", state: 'directory', mode: '0755', path: "/oracle/{{ db_sid | upper }}" }
+    - { owner: "{{ oracle_user_name }}", state: 'directory', mode: '0755', path: "/oracle/{{ db_sid | upper }}/{{ ora_version }}" }
     - { owner: "root",                   state: 'directory', mode: '0750', path: '/opt/oracle' }
     - { owner: "root",                   state: 'directory', mode: '0750', path: '/opt/oracle/admin' }
     - { owner: "root",                   state: 'directory', mode: '0750', path: '/opt/oracle/admin/observer' }
@@ -128,9 +130,6 @@
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       setenv CV_ASSUME_DISTID {{ CV_ASSUME_DISTID }}
-                                       setenv  ORACLE_SID  {{ db_sid | upper }}
-
                                        /oracle/media/client/runInstaller -silent -responseFile /oracle/media/{{ ansible_hostname }}_{{ db_sid | upper }}_install.rsp -ignoreSysPrereqs -waitForCompletion
       register:                        orainstaller_results
       failed_when:                     "'Successfully Setup Software' not in orainstaller_results.stdout"
@@ -213,7 +212,7 @@
       environment:                     "{{ oracle_env }}"
 
     - name:                            "4.1.4 Oracle Data Guard - Observer - Show root.sh script output"
-      ansible.builtin.debug:  
+      ansible.builtin.debug:
         var:                           rootscript_results.stdout
         verbosity:                     2
 
