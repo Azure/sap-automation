@@ -3,7 +3,7 @@
 
 ---
 
-- name:                                "2.10.3 sap-notes: saptune - Register BoM"
+- name:                                "2.10.3 SAP Note - Register BoM"
   when:
                                        - bom is not defined
                                        - not is_run_with_infraCreate_only
@@ -17,20 +17,20 @@
     task_prefix:                       "2.10.3 sap-notes : "
 
 
-- name:                                "2.10.3 sap-notes : - Check if saptune package is installed"
+- name:                                "2.10.3 SAP Note - Check if saptune package is installed"
   ansible.builtin.package:
     name:                              saptune>=3.0
     state:                             present
 
 # version 3 of saptune does not use tuned anymore
-- name:                                "2.10.3 sap-notes : - Perform saptune service takeover"
+- name:                                "2.10.3 SAP Note - Perform saptune service takeover"
   ansible.builtin.shell:               saptune service takeover
   register:                            saptune_service_takeover
   ignore_errors:                       true
 
 
 # use ansible.builtin.service to stop and disable services
-- name:                                "2.10.3 sap-notes : - Disable services like tuned and sapconf if they exist"
+- name:                                "2.10.3 SAP Note - Disable services like tuned and sapconf if they exist"
   when:
     - saptune_service_takeover.rc != 0
   ansible.builtin.service:
@@ -44,30 +44,30 @@
 
 # check if saptune_check can run successfully
 # this does not enable saptune but validates if there are any errors.
-- name:                                "2.10.3 sap-notes : - Run saptune_check"
+- name:                                "2.10.3 SAP Note - Run saptune_check"
   ansible.builtin.shell:               saptune_check
   register:                            saptune_check_result
   changed_when:                        false
 
-- name:                                "2.10.3 sap-notes : - Interrogate active saptune solution"
+- name:                                "2.10.3 SAP Note - Interrogate active saptune solution"
   ansible.builtin.shell:               saptune solution enabled
   register:                            active_saptune_solution
   changed_when:                        false
 
 # We need to capture the first block of non-whitespace characters
 # output from saptune solution enabled command has an empty line followed by solution name
-- name:                                "2.10.3 sap-notes : - Set fact for active saptune solution"
+- name:                                "2.10.3 SAP Note - Set fact for active saptune solution"
   ansible.builtin.set_fact:
     saptune_solution_enabled:          "{{ (active_saptune_solution.stdout_lines)[1] }}"
   when:
     - active_saptune_solution.stdout_lines is defined
     - active_saptune_solution.stdout_lines | length > 0
 
-- name:                                "2.10.3 sap-notes : - Show active saptune solution"
+- name:                                "2.10.3 SAP Note - Show active saptune solution"
   ansible.builtin.debug:
     var:                               saptune_solution_enabled
 
-- name:                                "2.10.3 sap-notes : - Backward Compatibility - Check required Database HA variables "
+- name:                                "2.10.3 SAP Note - Backward Compatibility - Check required Database HA variables "
   when:
                                        - db_high_availability is defined
                                        - database_high_availability is not defined
@@ -76,7 +76,7 @@
   tags:
                                        - always
 
-- name:                                "2.10.3 sap-notes : - Set fact for high availability"
+- name:                                "2.10.3 SAP Note - Set fact for high availability"
   ansible.builtin.set_fact:
     is_high_availability: >-
                                        {%- if node_tier in ['scs', 'ers'] and scs_high_availability -%}
@@ -90,14 +90,14 @@
 # For HA deployments on Azure, we need to override to disable tcp timestamps, reuse and recycle.
 # This can be done by copying the sapnote file 2382421 from /usr/share/saptune/notes to /etc/saptune/override
 # since this file does not exist by default, we need to create it and add the required values.
-- name:                                "2.10.3 sap-notes : - Override sap note 2382421 for saptune when high availability"
+- name:                                "2.10.3 SAP Note - Override sap note 2382421 for saptune when high availability"
   when:
                                        - is_high_availability
                                        - node_tier in ['scs', 'ers', 'hana', 'db2', 'sybase']
                                        - saptune_solution_enabled is defined
                                        - saptune_solution_enabled == 'NONE'
   block:
-    - name:                            "2.10.3 sap-notes : - Copy sapnote 2382421 to /etc/saptune/override"
+    - name:                            "2.10.3 SAP Note - Copy sapnote 2382421 to /etc/saptune/override"
       ansible.builtin.blockinfile:
         path:                          /etc/saptune/override/2382421
         create:                        true
@@ -112,7 +112,7 @@
                                        net.ipv4.tcp_tw_reuse = 0
                                        net.ipv4.tcp_tw_recycle = 0
 # /usr/lib/sysctl.d/99-sysctl.conf
-- name:                                "2.10.3 sap-notes : - Set fact for saptune solution to use"
+- name:                                "2.10.3 SAP Note - Set fact for saptune solution to use"
   ansible.builtin.set_fact:
     saptune_solution_to_apply: >-
                                        {%- if 'scs' in supported_tiers and 'hana' in supported_tiers and platform == 'HANA' -%}
@@ -153,13 +153,13 @@
                                          'NETWEAVER'
                                        {%- endif -%}
 
-- name:                                "2.10.3 sap-notes : - Run saptune solution verify against {{ saptune_solution_to_apply }}"
+- name:                                "2.10.3 SAP Note - Run saptune solution verify against {{ saptune_solution_to_apply }}"
   ansible.builtin.shell:               saptune solution verify {{ saptune_solution_to_apply }}
   register:                            saptune_solution_verify
   changed_when:                        false
   failed_when:                         false
 
-- name:                                "2.10.3 sap-notes : - Run saptune solution revert if verify fails"
+- name:                                "2.10.3 SAP Note - Run saptune solution revert if verify fails"
   when:
                                        - saptune_solution_enabled is defined
                                        - saptune_solution_enabled != 'NONE'
@@ -168,20 +168,20 @@
   register:                            saptune_solution_revert
 
 
-- name:                                "2.10.3 sap-notes : - Run saptune solution apply {{ saptune_solution_to_apply }}"
+- name:                                "2.10.3 SAP Note - Run saptune solution apply {{ saptune_solution_to_apply }}"
   when:
                                        - saptune_solution_verify.rc != 0
   ansible.builtin.command:             "saptune solution apply {{ saptune_solution_to_apply }}"
   register:                            saptune_solution_apply
 
-- name:                                "2.10.3 sap-notes : - Run saptune apply note 2382421"
+- name:                                "2.10.3 SAP Note - Run saptune apply note 2382421"
   when:
                                        - is_high_availability
                                        - node_tier in ['scs', 'ers']
   ansible.builtin.command:             "saptune note apply 2382421"
   register:                            saptune_note_apply
 
-- name:                                "2.10.3 sap-notes : - Run saptune solution verify"
+- name:                                "2.10.3 SAP Note - Run saptune solution verify"
   ansible.builtin.command:             "saptune solution verify {{ saptune_solution_to_apply }}"
   changed_when:                        false
   failed_when:                         false

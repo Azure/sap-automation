@@ -23,7 +23,7 @@
   become:                              true
   block:
 
-    - name:                            "Determine if HANA is stopped on {{ ansible_hostname }}"
+    - name:                            "04.02 Stop HANA - Determine if HANA is stopped on {{ ansible_hostname }}"
       ansible.builtin.shell:           "{{ sapcontrol_command }} -function GetProcessList"
       failed_when:                     false
       changed_when:                    false
@@ -36,7 +36,7 @@
         LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         SAPSYSTEMNAME:             "{{ db_sid | upper }}"
 
-    - name:                            "Ensure HANA is stopped {{ ansible_hostname }}"
+    - name:                            "04.02 Stop HANA - Ensure HANA is stopped {{ ansible_hostname }}"
       when:                            hana_stopped.rc != 4
       ansible.builtin.shell:           "{{ sapcontrol_command }} -function StopWait {{ hana_stop_start_timeout_in_seconds }} {{ hana_stop_start_delay_in_seconds }}"
       vars:
@@ -47,7 +47,7 @@
         LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         SAPSYSTEMNAME:             "{{ db_sid | upper }}"
 
-    - name:                            "Verify HANA is stopped on {{ ansible_hostname }}"
+    - name:                            "04.02 Stop HANA - Verify HANA is stopped on {{ ansible_hostname }}"
       ansible.builtin.shell:           "{{ sapcontrol_command }} -function GetProcessList"
       changed_when:                    false
       register:                        hana_stopped

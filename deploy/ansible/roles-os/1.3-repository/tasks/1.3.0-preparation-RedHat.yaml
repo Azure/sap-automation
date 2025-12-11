@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-- name:                                "1.3 Repository - RHEL- Ensure yum repos are configured on Redhat VMs"
+- name:                                "1.3.0 Repository - RHEL- Ensure yum repos are configured on Redhat VMs"
   block:
-    - name:                            "1.3 Repository - RHEL - Check that yum repos are registered"
+    - name:                            "1.3.0 Repository - REDHAT - Check that yum repos are registered"
       ansible.builtin.command:         yum repolist # noqa: command-instead-of-module

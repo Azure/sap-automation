@@ -48,6 +48,7 @@
     DIR_LIBRARY:                       /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
     LD_LIBRARY_PATH:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
     SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
+
 - name:                                "HANA HSR: - Provision replication"
   ansible.builtin.import_tasks:        4.0.1.5-provision_hana_replication.yml
   when:                                hana_system_replication_needed

@@ -10,10 +10,6 @@ source "${SCRIPT_DIR}/set-colors.sh"
 
 SCRIPT_NAME="$(basename "$0")"
 
-# Set platform-specific output
-if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Deploying the SAP Workload zone defined in $WORKLOAD_ZONE_FOLDERNAME"
-fi
 
 # External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -164,7 +160,7 @@ fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.13.3}"
+	configureNonDeployer "${tf_version:-1.14.1}"
 fi
 echo -e "$green--- az login ---$reset"
 # Set logon variables
@@ -321,6 +317,11 @@ added=0
 
 if [ -f .terraform/terraform.tfstate ]; then
 	git add -f .terraform/terraform.tfstate
+	added=1
+fi
+
+if [ -f readme.md ]; then
+	git add -f "readme.md"
 	added=1
 fi
 

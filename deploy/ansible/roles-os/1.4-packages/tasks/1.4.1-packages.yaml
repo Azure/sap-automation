@@ -48,9 +48,9 @@
                                        - "Packages for {{ distribution_full_id }} : {{ packages_for_specific_tier }}"
     verbosity:                         2
 
-- name:                                "1.4 Packages - Update OS packages: {{ distro_name }}"
+- name:                                "1.4 Packages - Update OS packages: {{ distribution_id }}"
   block:
-    - name:                            "1.4 Packages - Update OS packages RHEL: {{ distro_name }}"
+    - name:                            "1.4 Packages - Update OS packages RHEL {{ distribution_id }}"
       when:                            ansible_os_family | upper == "REDHAT"
       ansible.builtin.dnf:
         name:                          "{{ packages_for_tier |
@@ -67,7 +67,7 @@
                                        - { state: 'present' }  # Install required packages
                                        - { state: 'absent'  }  # Then remove packages that we don't want
 
-    - name:                            "1.4 Packages - Update OS packages SLES: {{ distro_name }}"
+    - name:                            "1.4 Packages - Update OS packages SUSE {{ distribution_id }}"
       when:                            ansible_os_family | upper == "SUSE"
       ansible.builtin.package:
         name:                          "{{ packages_for_tier |
@@ -93,9 +93,9 @@
       ansible.builtin.pause:
         seconds:                       60
 
-    - name:                            "1.4 Packages - Update OS packages: {{ distro_name }} and rescue"
+    - name:                            "1.4 Packages - Update OS packages: {{ distribution_id }} and rescue"
       block:
-        - name:                        "1.4 Packages - Update OS packages RHEL: {{ distro_name }}"
+        - name:                        "1.4 Packages - Update OS packages RHEL: {{ distribution_id }}"
           ansible.builtin.dnf:
             name:                      "{{ packages_for_tier |
                                           selectattr('state', 'equalto', item.state) |
@@ -112,7 +112,7 @@
             - { state: 'absent' }   # Then remove packages that we don't want
           when:                        ansible_os_family | upper == "REDHAT"
 
-        - name:                        "1.4 Packages - Update OS packages SLES: {{ distro_name }}"
+        - name:                        "1.4 Packages - Update OS packages SLES: {{ distribution_id }}"
           ansible.builtin.package:
             name:                      "{{ packages_for_tier |
                                           selectattr('state', 'equalto', item.state) |
@@ -133,7 +133,7 @@
           ansible.builtin.debug:
             msg:                       "debug statement: {{ package_result }}"
 
-        - name:                        "1.4 Packages - Error handling for Packages: - Update OS packages: {{ distro_name }}"
+        - name:                        "1.4 Packages - Error handling for Packages: - Update OS packages: {{ distribution_id }}"
           ansible.builtin.debug:
             msg:                       "{{ package_result | try_get_error_code_results(task_tag='update_os_packages') }}"
 

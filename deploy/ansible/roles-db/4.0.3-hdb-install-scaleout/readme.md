@@ -54,7 +54,7 @@ This project is licensed under the [MIT License](LICENSE).
 To call the task `4.0.3-HDB-install-scaleout` with the correct parameters, follow these steps:
 
 1. Open the terminal or command prompt.
-2. Navigate to the directory where the task code is located: `/D:/github/shsorot/sap-automation/deploy/ansible/roles-db/4.0.3-hdb-install-scaleout`.
+2. Navigate to the directory where the task code is located: `sap-automation/deploy/ansible/roles-db/4.0.3-hdb-install-scaleout`.
 3. Make sure you have Ansible installed on your system.
 4. Ensure that you have access to the SAP HANA installation media and a valid SAP HANA license key.
 5. Verify that you have a properly configured inventory file for your SAP HANA scale-out landscape.

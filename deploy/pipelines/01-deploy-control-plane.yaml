@@ -206,7 +206,7 @@ stages:
           - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName:                          Install Terraform
             inputs:
-              terraformVersion:                   latest
+              terraformVersion:                   $(tf_version)
           - task:                                 Bash@3
             inputs:
               targetType:                         'filePath'
@@ -216,6 +216,7 @@ stages:
             displayName:                          Deploy control plane Part 2
             env:
               APP_REGISTRATION_APP_ID:            $(APP_REGISTRATION_APP_ID)
+              APP_REGISTRATION_OBJECTID:          $(APP_REGISTRATION_OBJECTID)
               APPLICATION_CONFIGURATION_NAME:     $(APPLICATION_CONFIGURATION_NAME)
               ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
@@ -238,6 +239,7 @@ stages:
               TF_VAR_agent_pat:                   $(System.AccessToken)
               TF_VAR_agent_pool:                  $(POOL)
               TF_VAR_ansible_core_version:        $(ansible_core_version)
+              TF_VAR_app_registration_app_id:     $(APP_REGISTRATION_APP_ID)
               TF_VAR_spn_id:                      $(ARM_OBJECT_ID)
               TF_VAR_tf_version:                  $(tf_version)
               TF_VAR_use_webapp:                  ${{ parameters.use_webapp_param }}

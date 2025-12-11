@@ -596,3 +596,94 @@ output "ng_resource_id"                        {
                                                   description = "Azure resource identifier for the NAT Gateway"
                                                   value       = local.create_nat_gateway ? azurerm_nat_gateway.ng[0].id : ""
                                                 }
+
+
+resource "local_file" "resource_group_md" {
+  content = templatefile(format("%s/templates/workload_zone.tmpl", path.module), {
+              resource_group_name         = local.resource_group_exists ? (
+                                              data.azurerm_resource_group.resource_group[0].name) : (
+                                              azurerm_resource_group.resource_group[0].name
+                                            )
+              subscription_id             = local.resource_group_exists ? (
+                                              split("/", data.azurerm_resource_group.resource_group[0].id))[2] : (
+                                              split("/", azurerm_resource_group.resource_group[0].id)[2]
+                                            )
+              url                         = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/overview",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    local.resource_group_exists ? (
+                                                      split("/", data.azurerm_resource_group.resource_group[0].id))[2] : (
+                                                      split("/", azurerm_resource_group.resource_group[0].id)[2]),
+                                                    local.resource_group_exists ? (
+                                                      data.azurerm_resource_group.resource_group[0].name) : (
+                                                      azurerm_resource_group.resource_group[0].name)
+                                                  )
+              key_vault_url               = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/overview",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    local.resource_group_exists ? (
+                                                      split("/", data.azurerm_resource_group.resource_group[0].id))[2] : (
+                                                      split("/", azurerm_resource_group.resource_group[0].id)[2]),
+                                                    local.resource_group_exists ? (
+                                                      data.azurerm_resource_group.resource_group[0].name) : (
+                                                      azurerm_resource_group.resource_group[0].name),
+                                                    var.key_vault.exists ?
+                                                      data.azurerm_key_vault.kv_user[0].name :
+                                                      azurerm_key_vault.kv_user[0].name
+                                                    )
+              key_vault_name              = var.key_vault.exists ? (
+                                                    data.azurerm_key_vault.kv_user[0].name) : (
+                                                    azurerm_key_vault.kv_user[0].name
+                                                  )
+
+              password_secret_name        = local.sid_password_secret_name
+              username_secret_name        = local.sid_username_secret_name
+              ssh_secret_name             = local.sid_public_key_secret_name
+
+              key_vault_url               = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/overview",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    var.key_vault.exists ? (
+                                                      split( "/", data.azurerm_key_vault.kv_user[0].id)[2]) : (
+                                                      split( "/", azurerm_key_vault.kv_user[0].id)[2]
+                                                    ),
+                                                    var.key_vault.exists ? (
+                                                      split("/", data.azurerm_key_vault.kv_user[0].id)[4]) : (
+                                                      split("/", azurerm_key_vault.kv_user[0].id)[4]
+                                                    ),
+                                                    var.key_vault.exists ? (
+                                                      data.azurerm_key_vault.kv_user[0].name) : (
+                                                      azurerm_key_vault.kv_user[0].name
+                                                    )
+                                                    )
+              username_secret_url         = format("https://portal.azure.com/#@%s/asset/Microsoft_Azure_KeyVault/Secret/https://%s.vault.azure.net/secrets/%s",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    var.key_vault.exists ? (
+                                                      data.azurerm_key_vault.kv_user[0].name) : (
+                                                      azurerm_key_vault.kv_user[0].name
+                                                    ),
+                                                    local.sid_username_secret_name
+                                                    )
+              password_secret_url         = format("https://portal.azure.com/#@%s/asset/Microsoft_Azure_KeyVault/Secret/https://%s.vault.azure.net/secrets/%s",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    var.key_vault.exists ? (
+                                                      data.azurerm_key_vault.kv_user[0].name) : (
+                                                      azurerm_key_vault.kv_user[0].name
+                                                    ),
+                                                    local.sid_password_secret_name
+                                                    )
+              ssh_secret_url              = format("https://portal.azure.com/#@%s/asset/Microsoft_Azure_KeyVault/Secret/https://%s.vault.azure.net/secrets/%s",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    var.key_vault.exists ? (
+                                                      data.azurerm_key_vault.kv_user[0].name) : (
+                                                      azurerm_key_vault.kv_user[0].name
+                                                    ),
+                                                    local.sid_public_key_secret_name
+                                                    )
+
+
+
+              }
+            )
+  filename             = format("%s/readme.md", path.cwd)
+  file_permission      = "0660"
+  directory_permission = "0770"
+}
+

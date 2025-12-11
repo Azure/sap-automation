@@ -404,6 +404,16 @@ function bootstrap_library {
 		export APPLICATION_CONFIGURATION_ID
 	fi
 
+	if [ -f "/etc/profile.d/deploy_server.sh" ]; then
+		if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
+			sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
+			sudo chown -R "$USER" /opt/terraform/.terraform.d
+		else
+			sudo chown -R "$USER" /opt/terraform/.terraform.d
+		fi
+		export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
+	fi
+
 	if [ 2 -eq $step ]; then
 		print_banner "$banner_title" "Bootstrapping the library..." "info"
 		if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then

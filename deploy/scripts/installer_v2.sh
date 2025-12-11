@@ -612,11 +612,15 @@ function sdaf_installer() {
 		mkdir -p "${HOME}/.terraform.d/plugin-cache"
 		export TF_PLUGIN_CACHE_DIR="${HOME}/.terraform.d/plugin-cache"
 	else
-		if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
-			sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
-			sudo chown -R "$USER" /opt/terraform
+		if [ -f "/etc/profile.d/deploy_server.sh" ]; then
+		  if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]; then
+			  sudo mkdir -p /opt/terraform/.terraform.d/plugin-cache
+			  sudo chown -R "$USER" /opt/terraform/.terraform.d
+			else
+			  sudo chown -R "$USER" /opt/terraform/.terraform.d
+		  fi
+  		export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 		fi
-		export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 	fi
 
 	param_dirname=$(pwd)
@@ -1047,55 +1051,55 @@ function sdaf_installer() {
 				if [ -n "${approve}" ]; then
 
 					# shellcheck disable=SC2086
-					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-						return_value=$?
-					else
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 						return_value=0
+					else
+						return_value=$?
 					fi
 
 					sleep 10
 
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=$?
-						else
+						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 							return_value=0
+						else
+							return_value=$?
 						fi
 					fi
 
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=$?
-						else
+						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 							return_value=0
+						else
+							return_value=$?
 						fi
 
 					fi
 
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=$?
-						else
+						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 							return_value=0
+						else
+							return_value=$?
 						fi
 					fi
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=$?
-						else
+						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 							return_value=0
+						else
+							return_value=$?
 						fi
 					fi
 					if [ -f apply_output.json ]; then
 						# shellcheck disable=SC2086
-						if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=$?
-						else
+						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 							return_value=0
+						else
+							return_value=$?
 						fi
 					fi
 				else
@@ -1111,7 +1115,7 @@ function sdaf_installer() {
 
 	persist_files
 
-	if [ ${DEBUG:-False} == True ]; then
+	if [ ${DEBUG:-false} == true ]; then
 		echo "Terraform state file:"
 		terraform -chdir="${terraform_module_directory}" output -json
 	fi
@@ -1250,7 +1254,7 @@ EOF
 	unset TF_DATA_DIR
 	print_banner "$banner_title" "Deployment completed." "success" "Exiting $SCRIPT_NAME"
 
-	exit $return_value
+	return $return_value
 }
 
 ###############################################################################
