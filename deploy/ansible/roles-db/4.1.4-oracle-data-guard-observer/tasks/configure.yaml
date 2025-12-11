@@ -240,6 +240,14 @@
     group:                             oinstall
     mode:                              '0655'
 
+- name:                                "4.1.4 Oracle Data Guard - Observer - Set folder permissions for OPatch"
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+    recurse:                           true
+    mode:                              '0755'
+
 - name:                                "4.1.4 Oracle Data Guard - Observer - Find Patch ID for SBP_DBRU"
   become:                              true
   become_user:                         root
