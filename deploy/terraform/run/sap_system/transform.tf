@@ -198,7 +198,7 @@ locals {
                                            upper(var.database_platform) == "HANA" ? (
                                              "HDB"
                                              ) : (
-                                           substr(var.database_platform, 0, 3))
+                                           coalesce(var.sid,substr(var.database_platform, 0, 3)))
                                         ))
                                         number = upper(local.databases_temp.platform) == "HANA" ? (
                                            var.database_instance_number
