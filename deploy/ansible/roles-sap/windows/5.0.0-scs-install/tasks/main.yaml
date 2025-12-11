@@ -122,7 +122,7 @@
         path:                          "{{ dir_params }}"
         state:                         directory
 
-    - name:                            "SCS Install: Create temp directory for sid"
+    - name:                            "SCS Install: Create directory for installation log files"
       ansible.windows.win_file:
         path:                          '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | upper }}\'
         state:                         directory
@@ -433,7 +433,7 @@
         path:                          "{{ dir_params }}"
         state:                         directory
 
-    - name:                            "ERS Install: Create temp directory for sid"
+    - name:                            "ERS Install: Create directory for installation log files"
       ansible.windows.win_file:
         path:                          '{{ tmp_directory_windows }}\{{ sid_to_be_deployed.sid | upper }}'
         state:                         directory

@@ -48,7 +48,7 @@
 # Ensure cluster determining parameters are present
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "Validation Playbook - Backward Compatibility - Check required Database HA variables "
+    - name:                            "Validation Playbook - Backward Compatibility - Check required Database High Availability variables "
       ansible.builtin.set_fact:
         database_high_availability:    "{{ db_high_availability | default(false) }}"
       when:
@@ -164,7 +164,7 @@
       tags:
                                        - always
 
-    - name:                            "Validation Playbook - Check required SCS HA variables are present and not empty"
+    - name:                            "Validation Playbook - Check required SAP Central Services High Availability variables are present and not empty"
       ansible.builtin.assert:
         that:
           - item_to_check.parameter is defined # Has the variable been defined
@@ -174,19 +174,19 @@
       loop:
         - {
           parameter:                 "NFS_provider",
-          error:                     "A highly available SCS deployment requires that NFS_Provider provided",
+          error:                     "A highly available SAP Central Services deployment requires that NFS_Provider provided",
         }
         - {
           parameter:                 "sap_mnt",
-          error:                     "A highly available SCS deployment requires a shared sap_mnt is provided",
+          error:                     "A highly available SAP Central Services deployment requires a shared sap_mnt is provided",
         }
         - {
           parameter:                 "scs_lb_ip",
-          error:                     "A highly available SCS deployment requires that scs_lb_ip is provided",
+          error:                     "A highly available SAP Central Services deployment requires that scs_lb_ip is provided",
         }
         - {
           parameter:                 "ecs_lb_ip",
-          error:                     "A highly available SCS deployment requires  that ers_lb_ip is provided",
+          error:                     "A highly available SAP Central Services deployment requires  that ers_lb_ip is provided",
         }
       loop_control:
         loop_var:                      item_to_check
@@ -196,7 +196,7 @@
       tags:
                                        - always
 
-    - name:                            "Validation Playbook - Check required SCS HA fencing variables are present and not empty"
+    - name:                            "Validation Playbook - Check required SAP Central Services High Availability fencing variables are present and not empty"
       ansible.builtin.assert:
         that:
           - item_to_check.parameter is defined # Has the variable been defined
@@ -206,19 +206,19 @@
       loop:
         - {
           parameter:                   "fencing_spn_client_id",
-          error:                       "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
+          error:                       "A highly available SAP Central Services deployment requires that an SPN is defined for the fencing agent",
         }
         - {
           parameter:                   "fencing_spn_client_pwd",
-          error:                       "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
+          error:                       "A highly available SAP Central Services deployment requires that an SPN is defined for the fencing agent",
         }
         - {
           parameter:                   "fencing_spn_subscription_id",
-          error:                       "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
+          error:                       "A highly available SAP Central Services deployment requires that an SPN is defined for the fencing agent",
         }
         - {
           parameter:                   "fencing_spn_tenant_id",
-          error:                       "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
+          error:                       "A highly available SAP Central Services deployment requires that an SPN is defined for the fencing agent",
         }
       loop_control:
         loop_var:                      item_to_check
@@ -229,7 +229,7 @@
       tags:
                                        - always
 
-    - name:                            "Validation Playbook - Check required Database HA variables are present and not empty"
+    - name:                            "Validation Playbook - Check required Database High Availability variables are present and not empty"
       ansible.builtin.assert:
         that:
           - item_to_check.parameter is defined # Has the variable been defined
@@ -239,23 +239,23 @@
       loop:
         - {
           parameter:                   "database_loadbalancer_ip",
-          error:                       "A highly available SCS deployment requires that scs_lb_ip is provided",
+          error:                       "A highly available SAP Central Services deployment requires that scs_lb_ip is provided",
         }
         - {
           parameter:                   "fencing_spn_client_id",
-          error:                       "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
+          error:                       "A highly available SAP Central Services deployment requires that an SPN is defined for the fencing agent",
         }
         - {
           parameter:                   "fencing_spn_client_pwd",
-          error:                       "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
+          error:                       "A highly available SAP Central Services deployment requires that an SPN is defined for the fencing agent",
         }
         - {
           parameter:                   "fencing_spn_subscription_id",
-          error:                       "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
+          error:                       "A highly available SAP Central Services deployment requires that an SPN is defined for the fencing agent",
         }
         - {
           parameter:                   "fencing_spn_tenant_id",
-          error:                       "A highly available SCS deployment requires that an SPN is defined for the fencing agent",
+          error:                       "A highly available SAP Central Services deployment requires that an SPN is defined for the fencing agent",
         }
       loop_control:
         loop_var:                      item_to_check
@@ -412,21 +412,27 @@
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
+
+  vars:
+    distro_name:                       "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+    distribution_id:                   "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+    distribution_full_id:              "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+    distro_family:                     "{{ ansible_os_family | upper }}"
   tasks:
 
-    - name:                            "Validation Playbook: - Wait for system to become reachable"
+    - name:                            "Validation playbook - Wait for system to become reachable"
       ansible.builtin.wait_for_connection:
         timeout:                       120
       register:                        wait_for_connection_results
       tags:
                                        - always
 
-    - name:                            "Validation Playbook: - Gather facts for first time"
+    - name:                            "Validation playbook - Gather facts for first time"
       ansible.builtin.setup:
       tags:
                                        - always
 
-    - name:                            "Validation Playbook: - Set distribution facts"
+    - name:                            "Validation playbook - Set distribution facts"
       ansible.builtin.set_fact:
         distro_family:                 "{{ ansible_os_family | upper }}"
         distribution_id:               "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
@@ -434,7 +440,7 @@
       tags:
                                        - always
 
-    - name:                            "Validation Playbook: - Show distribution facts"
+    - name:                            "Validation playbook - Show distribution facts"
       ansible.builtin.debug:
         msg:
           - "Distribution family:  {{ distro_family }}"
@@ -443,7 +449,7 @@
       tags:
                                        - always
 
-    - name:                            "Validation Playbook: - Set Python version {{ distribution_id }}"
+    - name:                            "Validation playbook - Set Python version {{ distribution_id }}"
       when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
       ansible.builtin.set_fact:
         python_version: "python2"
@@ -475,7 +481,7 @@
           - "Virtual Host Name: {{ virtual_host }}"
           - "DNS:               {{ ansible_domain }}"
 
-    - name:                            "Validation Playbook - Validate SCS and HDB instance numbers"
+    - name:                            "Validation Playbook - Validate SAP Central Services and HDB instance numbers"
       ansible.builtin.assert:
         that:
           - "scs_instance_number != db_instance_number"
@@ -487,7 +493,7 @@
                                        - always
                                        - 0.0-scs-db-instance-single
 
-    - name:                            "Validation Playbook - Validate SCS and HDB SIDs"
+    - name:                            "Validation Playbook - Validate SAP Central Services and HDB SIDs"
       when:
         - single_server
         - platform != "ORACLE"
@@ -498,7 +504,7 @@
       tags:
                                        - always
 
-    - name: Validate SCS and PAS instance numbers
+    - name: Validate SAP Central Services and PAS instance numbers
       ansible.builtin.assert:
         that:
           - scs_instance_number != pas_instance_number
@@ -508,7 +514,7 @@
                                        - always
                                        - 0.0-scs-pas
 
-    - name:                            "Validation Playbook - Validate SCS and PAS instance numbers"
+    - name:                            "Validation Playbook - Validate SAP Central Services and PAS instance numbers"
       ansible.builtin.assert:
         that:
           - scs_instance_number != pas_instance_number
@@ -647,7 +653,7 @@
               tags:
                                        - always
 
-            - name:                    "Validation Playbook - SCS /usr/sap disk space requirements"
+            - name:                    "Validation Playbook - SAP Central Services /usr/sap disk space requirements"
               ansible.builtin.set_fact:
                 scs_free_diskspace:    10
               when:
@@ -655,13 +661,13 @@
               tags:
                                        - always
 
-            - name:                    "Validation Playbook - Show SCS disk space"
+            - name:                    "Validation Playbook - Show SAP Central Services disk space"
               ansible.builtin.debug:
                 msg:
                   - "Free disk space: {{ free_diskspace | first | int / (1024 * 1024 * 1024) | int }}"
                 verbosity:             2
 
-            - name:                    "Validation Playbook - Show SCS disk space required"
+            - name:                    "Validation Playbook - Show SAP Central Services disk space required"
               ansible.builtin.debug:
                 msg:
                   - "Free disk space required: {{ scs_free_diskspace }}"
@@ -671,7 +677,7 @@
               ansible.builtin.assert:
                 that:
                   - (free_diskspace | first | int / (1024 * 1024 * 1024) | int) > (scs_free_diskspace | int)
-                fail_msg: "The SCS server needs at least {{ scs_free_diskspace }} GB of free disk space in /mnt"
+                fail_msg: "The SAP Central Services server needs at least {{ scs_free_diskspace }} GB of free disk space in /mnt"
               tags:
                                        - 0.0-scs-diskspace
           tags:

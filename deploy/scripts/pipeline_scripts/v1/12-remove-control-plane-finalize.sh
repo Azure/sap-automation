@@ -221,6 +221,11 @@ if [ 0 == $return_code ]; then
 		changed=1
 	fi
 
+	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/readme.md" ]; then
+		git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/readme.md"
+		changed=1
+	fi
+
 	environment=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f1)
 	region_code=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f2)
 

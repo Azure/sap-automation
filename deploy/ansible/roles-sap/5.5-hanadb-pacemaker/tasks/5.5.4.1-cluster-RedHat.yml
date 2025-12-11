@@ -15,31 +15,31 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- name:                                "5.5.4.1 HANA Cluster configuration - Optimise the Pacemaker cluster for SAP HANA"
+- name:                                "5.5.4.1 HANA Cluster configuration - REDHAT - Optimize the Pacemaker cluster for SAP HANA"
   when:                                ansible_hostname == primary_instance_name
   block:
 
     # pcs_check_maintenance_mode defined in defaults/main.yml
-    - name:                            "5.5.4.1 HANA Cluster configuration - Get the cluster maintenance mode status"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Get the cluster maintenance mode status"
       ansible.builtin.shell: >-
                                        {{ pcs_check_maintenance_mode }}
       register:                        get_status_maintenance_mode
       changed_when:                    false
       ignore_errors:                   true
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - Set the cluster maintenance mode if not already in maintenance mode"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Set the cluster maintenance mode if not already in maintenance mode"
       when: >-
                                        get_status_maintenance_mode.stdout is not search('maintenance-mode') or
                                        get_status_maintenance_mode.stdout is search('maintenance-mode: false') or
                                        get_status_maintenance_mode.stdout is search('maintenance-mode=false')
       ansible.builtin.shell:           pcs property set maintenance-mode=true
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - Check if the pacemaker package version is greater than pacemaker-2.0.4"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Check if the pacemaker package version is greater than pacemaker-2.0.4"
       when:                            ansible_distribution_major_version is version('8', '>=')
       ansible.builtin.set_fact:
         is_pcmk_ver_gt_204:            "{{ ansible_facts.packages['pacemaker'][0].version is version('2.0.4', '>') | default(false) }}"
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA Topology resource is created"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Configure the SAP HANA Topology resource is created"
       ansible.builtin.shell: >
                                        pcs resource create SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }} SAPHanaTopology
                                        SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }}
@@ -52,10 +52,10 @@
 
 
     # RHEL 7 specific cluster configuration
-    - name:                            "5.5.4.1 HANA Cluster configuration - Configure cluster resources for RHEL 7"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Configure cluster resources for RHEL 7"
       when:                            ansible_distribution_major_version is version('8', '<')
       block:
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA resource is created on RHEL 7"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Configure the SAP HANA resource is created on RHEL 7"
           ansible.builtin.shell: >
                                        pcs resource create SAPHana_{{ db_sid | upper }}_{{ db_instance_number }} SAPHana
                                        SID={{ db_sid | upper }} InstanceNumber={{ db_instance_number }}
@@ -71,22 +71,22 @@
           register:                    sap_hana
           failed_when:                 sap_hana.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the order constraint for the SAP HANA Topology is configured on RHEL 7"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Configure the order constraint for the SAP HANA Topology on RHEL 7"
           ansible.builtin.shell:       pcs constraint order SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone then SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-master symmetrical=false
           register:                    constraint
           failed_when:                 constraint.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Virtual IP group is configured to the Master node on RHEL 7"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Configure the Virtual IP group to the Master node on RHEL 7"
           ansible.builtin.shell:       pcs constraint colocation add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} with master SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-master 4000
           register:                    constraint
           failed_when:                 constraint.rc > 1
 
 
     # RHEL 8, 9, 10 specific cluster configuration
-    - name:                            "5.5.4.1 HANA Cluster configuration - Configure cluster resources for RHEL 8, 9, 10"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Configure cluster resources for RHEL 8, 9, 10"
       when:                            ansible_distribution_major_version is version('8', '>=')
       block:
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA resource is created on RHEL 8, 9, 10"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Configure the SAP HANA resource is created on RHEL 8, 9, 10"
           when:
                                        - is_pcmk_ver_gt_204 | default(false)
                                        - ansible_distribution_major_version is version('10', '<')
@@ -111,7 +111,7 @@
         # Specify --future to switch to the future behavior.
         # Warning: Validating resource options using the resource agent itself is enabled by default and produces warnings.
         # In a future version, this might be changed to errors. Specify --agent-validation to switch to the future behavior.
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the SAP HANA resource is created on RHEL 8, 9, 10"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Configure the SAP HANA resource is created on RHEL 8, 9, 10"
           when:
                                        - is_pcmk_ver_gt_204
                                        - ansible_distribution_major_version is version('10', '>=')
@@ -130,37 +130,37 @@
           register:                    sap_hana
           failed_when:                 sap_hana.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the order constraint for the SAP HANA Topology is configured on RHEL 8, 9, 10"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Configure the order constraint for the SAP HANA Topology on RHEL 8, 9, 10"
           ansible.builtin.shell:       pcs constraint order SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone then SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone symmetrical=false
           register:                    constraint
           failed_when:                 constraint.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Virtual IP group is configured to the Master node on RHEL 8, 9, 10"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Add the Virtual IP group to the Master node on RHEL 8, 9, 10"
           ansible.builtin.shell:       pcs constraint colocation add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} with master SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone 4000
           register:                    constraint
           failed_when:                 constraint.rc > 1
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure the netcat resource for the Load Balancer Healthprobe is created"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Add the netcat resource for the Load Balancer Healthprobe"
       ansible.builtin.shell:           pcs resource create nc_{{ db_sid | upper }}_{{ db_instance_number }} azure-lb port=625{{ db_instance_number }}
       register:                        netcat
       failed_when:                     netcat.rc > 1
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure the Virtual IP resource for the Load Balancer Front End IP is created"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Add the Virtual IP resource for the Load Balancer Front End IP"
       ansible.builtin.shell:           pcs resource create vip_{{ db_sid | upper }}_{{ db_instance_number }} IPaddr2 ip="{{ database_loadbalancer_ip }}"
       register:                        vip
       failed_when:                     vip.rc > 1
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure the Virtual IP group resource is created"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Add the Virtual IP group resource"
       ansible.builtin.shell:           pcs resource group add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} nc_{{ db_sid | upper }}_{{ db_instance_number }} vip_{{ db_sid | upper }}_{{ db_instance_number }}
       register:                        vip_g
       failed_when:                     vip_g.rc > 1
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - Add resource defaults resource-stickiness=1000"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Add resource defaults resource-stickiness=1000"
       ansible.builtin.shell:           pcs resource defaults resource-stickiness=1000
       register:                        resource_defaults
       failed_when:                     resource_defaults.rc > 1
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - Add resource defaults migration-threshold=5000"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Add resource defaults migration-threshold=5000"
       ansible.builtin.shell:           pcs resource defaults migration-threshold=5000
       register:                        resource_defaults
       failed_when:                     resource_defaults.rc > 1
@@ -174,28 +174,28 @@
 
 
     # for two node clusters set properties
-    - name:                            "5.5.4.1 HANA Cluster configuration - Set the cluster properties for two node clusters"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Set the cluster properties for two node clusters"
       when:
                                        - database_high_availability
                                        - not database_scale_out
                                        - is_pcmk_ver_gt_204
       block:
-        - name:                        "5.5.4.1 HANA Cluster configuration - set resource defaults 'priority'"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Set resource defaults 'priority'"
           ansible.builtin.shell:       pcs resource defaults update priority=1
           register:                    update_priority
           failed_when:                 update_priority.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - set SAPHana defaults 'priority' to 10"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT -set SAPHana defaults 'priority' to 10"
           ansible.builtin.shell:       pcs resource update SAPHana_{{ db_sid | upper }}_{{ db_instance_number }} meta priority=10
           register:                    update_priority_saphana
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - set priority-fencing-delay"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Set 'priority-fencing-delay' property to 15 seconds"
           ansible.builtin.shell:       pcs property set priority-fencing-delay=15s
           register:                    constraint
           failed_when:                 constraint.rc > 1
 
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - Configure cluster constraints for SAP HANA and ANF"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Configure cluster constraints for SAP HANA and ANF"
       when:
                                        - database_high_availability
                                        - NFS_provider == "ANF"
@@ -206,33 +206,33 @@
                                        - hana_shared_mountpoint is defined
                                        - hana_shared_mountpoint | length > 1
       block:
-        - name:                        "5.5.4.1 HANA Cluster configuration - configure constraints between SAP HANA resources and NFS mounts"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Configure constraints between SAP HANA resources and NFS mounts"
           ansible.builtin.shell:       pcs constraint location SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone rule score=-INFINITY attr_hana_{{ db_sid | upper }}_NFS_1_active ne true and attr_hana_{{ db_sid | upper }}_NFS_2_active ne true
           register:                    constraint
           failed_when:                 constraint.rc > 1
 
 
         # RHEL 7 specific ANF constraints
-        - name:                        "5.5.4.1 HANA Cluster configuration - configure ANF constraints on RHEL 7"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Configure ANF constraints on RHEL 7"
           when:                        ansible_distribution_major_version is version('8', '<')
           block:
-            - name:                    "5.5.4.1 HANA Cluster configuration - configure location constraints on RHEL 7"
+            - name:                    "5.5.4.1 HANA Cluster configuration - REDHAT - Configure location constraints on RHEL 7"
               ansible.builtin.shell:   pcs constraint location SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-master rule score=-INFINITY attr_hana_{{ db_sid | upper }}_NFS_1_active ne true and attr_hana_{{ db_sid | upper }}_NFS_2_active ne true
               register:                constraint
               failed_when:             constraint.rc > 1
 
 
         # RHEL 8, 9, 10 specific ANF constraints
-        - name:                        "5.5.4.1 HANA Cluster configuration - configure ANF constraints on RHEL 8, 9, 10"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Configure ANF constraints on RHEL 8, 9, 10"
           when:                        ansible_distribution_major_version is version('8', '>=')
           block:
-            - name:                    "5.5.4.1 HANA Cluster configuration - configure location constraints on RHEL 8, 9, 10"
+            - name:                    "5.5.4.1 HANA Cluster configuration - REDHAT - Configure location constraints on RHEL 8, 9, 10"
               ansible.builtin.shell: >
                                        pcs constraint location SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone rule score=-INFINITY attr_hana_{{ db_sid | upper }}_NFS_1_active ne true and attr_hana_{{ db_sid | upper }}_NFS_2_active ne true
               register:                constraint
               failed_when:             constraint.rc > 1
 
-            - name:                    "5.5.4.1 HANA Cluster configuration - configure ordering constraints for SAPHana clone RHEL 8, 9, 10"
+            - name:                    "5.5.4.1 HANA Cluster configuration - REDHAT - Configure ordering constraints for SAPHana clone RHEL 8, 9, 10"
               ansible.builtin.shell: >
                                        pcs constraint order stop SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone then stop {{ item.group_name }} symmetrical=false
               register:                constraint
@@ -243,7 +243,7 @@
                 loop_var:              item
               failed_when:             constraint.rc > 1
 
-            - name:                    "5.5.4.1 HANA Cluster configuration - configure ordering constraints for SAPHANA topology clone RHEL 8, 9, 10"
+            - name:                    "5.5.4.1 HANA Cluster configuration - REDHAT - Configure ordering constraints for SAP HANA topology clone RHEL 8, 9, 10"
               ansible.builtin.shell: >
                                        pcs constraint order stop SAPHanaTopology_{{ db_sid | upper }}_{{ db_instance_number }}-clone then stop {{ item.group_name }} symmetrical=false
               register:                constraint
@@ -256,32 +256,32 @@
 
 
     # HANA active/active
-    - name:                            "5.5.4.1 HANA Cluster configuration - Configure HANA active/read-enabled system replication"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Configure HANA active/read-enabled system replication"
       when:
                                        - database_active_active | default(false)
                                        - not (db_scale_out | default(false))
       block:
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active netcat resource for the Load Balancer Healthprobe is created"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Configure the Active/Active netcat resource for the Load Balancer health probe"
           ansible.builtin.shell:       pcs resource create secnc_{{ db_sid | upper }}_{{ db_instance_number }} azure-lb port=626{{ db_instance_number }}
           register:                    sec_netcat
           failed_when:                 sec_netcat.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active Virtual IP resource for the Load Balancer Front End IP is created"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Configure the Active/Active Virtual IP resource for the Load Balancer Front End IP"
           ansible.builtin.shell:       pcs resource create secvip_{{ db_sid | upper }}_{{ db_instance_number }} IPaddr2 ip="{{ database_active_active_loadbalancer_ip }}"
           register:                    sec_vip
           failed_when:                 sec_vip.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - Ensure the Active/Active Virtual IP group resource is created"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Configure the Active/Active Virtual IP group resource"
           ansible.builtin.shell:       pcs resource group add g_secip_{{ db_sid | upper }}_{{ db_instance_number }} secnc_{{ db_sid | upper }}_{{ db_instance_number }} secvip_{{ db_sid | upper }}_{{ db_instance_number }}
           register:                    sec_vip_g
           failed_when:                 sec_vip_g.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - Configure constraints between g_secip_SID_XX"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Configure constraints between g_secip_SID_XX"
           ansible.builtin.shell:       pcs constraint location  g_secip_{{ db_sid | upper }}_{{ db_instance_number }} rule score=INFINITY hana_{{ db_sid | lower }}_sync_state eq SOK and hana_{{ db_sid | lower }}_roles eq 4:S:master1:master:worker:master
           register:                    sec_constraint
           failed_when:                 sec_constraint.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - Configure constraints between g_secip_SID_XX"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Configure constraints between g_secip_SID_XX"
           ansible.builtin.shell:       pcs constraint location  g_secip_{{ db_sid | upper }}_{{ db_instance_number }} rule score=4000 hana_{{ db_sid | lower }}_sync_state eq PRIM and hana_{{ db_sid | lower }}_roles eq 4:P:master1:master:worker:master
           register:                    sec_constraint
           failed_when:                 sec_constraint.rc > 1
@@ -289,27 +289,27 @@
 
         # https://learn.microsoft.com/en-us/azure/sap/workloads/sap-hana-high-availability-rhel?tabs=lb-portal#add-a-secondary-virtual-ip-address-resource-for-an-activeread-enabled-setup
         # Set the priority to primary IPaddr2 and azure-lb resource if priority-fencing-delay is configured
-        - name:                        "5.5.4.1 HANA Cluster configuration - Set priority for the Virtual IP and azure-lb resources"
+        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Set priority for the Virtual IP and azure-lb resources"
           when:
                                        - database_active_active | default(false)
                                        - not (db_scale_out | default(false))
                                        - is_pcmk_ver_gt_204
           block:
-            - name:                    "5.5.4.1 HANA Cluster configuration - Set priority for the Virtual IP resource"
+            - name:                    "5.5.4.1 HANA Cluster configuration - REDHAT - Set priority for the Virtual IP resource"
               ansible.builtin.shell:   pcs resource update vip_{{ db_sid | upper }}_{{ db_instance_number }} meta priority=5
               register:                update_priority_vip
               failed_when:             update_priority_vip.rc > 1
 
-            - name:                    "5.5.4.1 HANA Cluster configuration - Set priority for the azure-lb resource"
+            - name:                    "5.5.4.1 HANA Cluster configuration - REDHAT - Set priority for the azure-lb resource"
               ansible.builtin.shell:   pcs resource update nc_{{ db_sid | upper }}_{{ db_instance_number }} meta priority=5
               register:                update_priority_nc
               failed_when:             update_priority_nc.rc > 1
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - Disable Maintenance mode for the cluster"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Disable Maintenance mode for the cluster"
       ansible.builtin.shell:           pcs property set maintenance-mode=false
 
     # RHEL 7 - Wait for cluster stabilization
-    - name:                            "5.5.4.1 HANA Cluster configuration - Wait until cluster has stabilized on RHEL 7"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT -Wait until cluster has stabilized on RHEL 7"
       when:                            ansible_distribution_major_version is version('8', '<')
       ansible.builtin.shell:           set -o pipefail && pcs status | grep '^Online:'
       register:                        cluster_stable_check
@@ -320,7 +320,7 @@
     # RHEL 8, 9, 10 - Wait for cluster stabilization
     # '*' is a special character in regexp and needs to be escaped for literal matching
     # if we are worried about character spacing across distros we can match for '\* Online:'
-    - name:                            "5.5.4.1 HANA Cluster configuration - Wait until cluster has stabilized on RHEL 8, 9, 10"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Wait until cluster has stabilized on RHEL 8, 9, 10"
       when:                            ansible_distribution_major_version is version('8', '>=')
       ansible.builtin.shell:           set -o pipefail && pcs status | grep '^  \* Online:'
       register:                        cluster_stable_check
@@ -328,9 +328,9 @@
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
 
-    # RHEL 7 - Ensure cluster resources are started
+    # RHEL 7 - Configure  cluster resources are started
     # the leading spaces are irrelevant here as we are looking for *<space>Started:
-    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure Cluster resources are started on RHEL 7"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Configure  Cluster resources are started on RHEL 7"
       when:                            ansible_distribution_major_version is version('8', '<')
       ansible.builtin.shell:           set -o pipefail && pcs resource show | grep '    Started:'
       register:                        hana_cluster_resource_check
@@ -338,8 +338,8 @@
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
 
-    # RHEL 8, 9, 10 - Ensure cluster resources are started
-    - name:                            "5.5.4.1 HANA Cluster configuration - Ensure Cluster resources are started on RHEL 8, 9, 10"
+    # RHEL 8, 9, 10 - Configure  cluster resources are started
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Configure  Cluster resources are started on RHEL 8, 9, 10"
       when:                            ansible_distribution_major_version is version('8', '>=')
       ansible.builtin.shell:           set -o pipefail && pcs resource status | grep '\* Started:'
       register:                        hana_cluster_resource_check
@@ -356,17 +356,17 @@
 # +------------------------------------4--------------------------------------*/
 # Follow steps described in https://access.redhat.com/solutions/7029705
 
-- name:                                "5.5.4.1 HANA Cluster configuration - check if the OS version is RHEL 8.2 or newer"
+- name:                                "5.5.4.1 HANA Cluster configuration - REDHAT - Check if the OS version is RHEL 8.2 or newer"
   ansible.builtin.set_fact:
     is_rhel_82_or_newer:               "{{ ansible_distribution_version is version('8.2', '>=') | default(false) }}"
 
-- name:                                "5.5.4.1 HANA Cluster configuration - (systemd) Creating drop-in file"
+- name:                                "5.5.4.1 HANA Cluster configuration - REDHAT - Creating drop-in file (systemd)"
   become:                              true
   when:
                                        - is_rhel_82_or_newer is defined
                                        - is_rhel_82_or_newer
   block:
-    - name:                            "5.5.4.1 HANA Cluster configuration - (systemd) Create override directory"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Create override directory (systemd)"
       ansible.builtin.file:
         path:                          /etc/systemd/system/pacemaker.service.d
         state:                         directory
@@ -374,7 +374,7 @@
         group:                         root
         mode:                          '0755'
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - (systemd) Create drop-in file"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Create drop-in file (systemd)"
       ansible.builtin.copy:
         content: |-
           [Unit]
@@ -387,7 +387,7 @@
         mode:                          '0644'
       register:                        dropinfile
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - systemd reload"
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - systemd reload"
       when:                            dropinfile.changed
       ansible.builtin.systemd:
         daemon_reload:                 true

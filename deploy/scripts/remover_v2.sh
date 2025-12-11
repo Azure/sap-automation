@@ -2,11 +2,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#colors for terminal
-bold_red="\e[1;31m"
 green="\e[1;32m"
+bold_red="\e[1;31m"
 cyan="\e[1;36m"
+bold_red_underscore="\e[1;4;31m"
 reset_formatting="\e[0m"
+reset="\e[0m"
 
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
@@ -81,7 +82,7 @@ function source_helper_scripts() {
 function parse_arguments() {
 	local input_opts
 	approve=""
-	input_opts=$(getopt -n remover_v2 -o p:t:o:d:l:s:n:c:w:ahif --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help -- "$@")
+	input_opts=$(getopt -n remover_v2 -o p:t:o:d:l:s:n:c:w:ahifg --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help,github -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -99,6 +100,13 @@ function parse_arguments() {
 			export TF_IN_AUTOMATION
 			shift
 			;;
+		-g | --github)
+			called_from_ado=1
+			approve="--auto-approve"
+			TF_IN_AUTOMATION=true
+			export TF_IN_AUTOMATION
+			shift
+			;;
 		-d | --deployer_tfstate_key)
 			deployer_tfstate_key="$2"
 			shift 2
@@ -109,9 +117,10 @@ function parse_arguments() {
 			;;
 		-n | --application_configuration_name)
 			APPLICATION_CONFIGURATION_NAME="$2"
-			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-			export APPLICATION_CONFIGURATION_ID
-			export APPLICATION_CONFIGURATION_NAME
+			if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+				APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+				export APPLICATION_CONFIGURATION_ID
+			fi
 			TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
 			export TF_VAR_application_configuration_id
 			shift 2
@@ -138,6 +147,8 @@ function parse_arguments() {
 			;;
 		-w | --workload_zone_name)
 			WORKLOAD_ZONE_NAME="$2"
+			TF_VAR_workload_zone_name="$WORKLOAD_ZONE_NAME"
+			export TF_VAR_workload_zone_name
 			shift 2
 			;;
 		-f | --force)
@@ -197,11 +208,10 @@ function parse_arguments() {
 			landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 		else
 			WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
-
-			if [ -z $WORKLOAD_ZONE_NAME ] && [ -n "$landscape_tfstate_key" ]; then
-				WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
-			fi
 		fi
+		TF_VAR_workload_zone_name="$WORKLOAD_ZONE_NAME"
+		export TF_VAR_workload_zone_name
+
 	fi
 
 	if [ "${deployment_system}" == sap_system ]; then
@@ -217,7 +227,6 @@ function parse_arguments() {
 		else
 			TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
 			export TF_VAR_landscape_tfstate_key
-			landscape_tfstate_key_exists=true
 		fi
 	fi
 
@@ -266,6 +275,8 @@ function parse_arguments() {
 		network_logical_name=$(echo "$deployer_tfstate_	key" | awk -F'-' '{print $3}' | xargs)
 	fi
 
+	automation_config_directory="${CONFIG_DIR}"
+
 	system_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${environment}" "${region_code}" "${network_logical_name}")
 	region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 	if valid_region_name "${region}"; then
@@ -299,6 +310,12 @@ function retrieve_parameters() {
 
 	TF_VAR_control_plane_name="${CONTROL_PLANE_NAME}"
 	export TF_VAR_control_plane_name
+	if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+		if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+			export APPLICATION_CONFIGURATION_ID
+		fi
+	fi
 
 	if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
 		app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
@@ -378,6 +395,14 @@ function retrieve_parameters() {
 		fi
 
 	fi
+
+  if [ "${USE_MSI:-ARM_USE_MSI}" == "true" ]; then
+		unset ARM_CLIENT_SECRET
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+
+	fi
+
 }
 
 ############################################################################################
@@ -390,10 +415,7 @@ function retrieve_parameters() {
 #   sdaf_remover                                                                           #
 ############################################################################################
 function sdaf_remover() {
-	landscape_tfstate_key=""
-	called_from_ado=0
 	extra_vars=""
-	WORKLOAD_ZONE_NAME=""
 
 	# Define an array of helper scripts
 	helper_scripts=(
@@ -439,13 +461,13 @@ function sdaf_remover() {
 	echo "Deployment region code:              $region_code"
 	echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
-	if [ "${DEBUG:-False}" = True ]; then
+	if [ "${DEBUG:-false}" = true ]; then
 		print_banner "$banner_title - $deployment_system" "Enabling debug mode" "info"
 		set -x
 		set -o errexit
 	fi
 
-	if [ 1 == $called_from_ado ]; then
+	if [ 1 == ${called_from_ado:-0} ]; then
 		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 		export TF_VAR_Agent_IP=$this_ip
 		echo "Agent IP:                            $this_ip"
@@ -511,7 +533,6 @@ function sdaf_remover() {
 	fi
 
 	#setting the user environment variables
-	set_executing_user_environment_variables "none"
 
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH/deploy/terraform/run/${deployment_system}"
 	cd "${param_dirname}" || exit
@@ -563,7 +584,7 @@ function sdaf_remover() {
 		else
 			return_value=$?
 			print_banner "$banner_title - $deployment_system" "Terraform init failed" "error"
-			return $return_value
+			return 100
 		fi
 	else
 		echo "Terraform state:                     remote"
@@ -656,7 +677,7 @@ function sdaf_remover() {
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
+			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee destroy_output.json; then
 				return_value=$?
 				print_banner "$banner_title - $deployment_system" "Terraform destroy succeeded" "success"
 			else

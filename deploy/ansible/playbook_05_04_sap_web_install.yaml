@@ -17,36 +17,36 @@
 ---
 
 - hosts:                               localhost
-  name:                                "WEB Installation Playbook: - Initialization"
+  name:                                "Web Dispatcher installation playbook - Initialization"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
 
-    - name:                            "WEB Installation Playbook: - Create Progress folder"
+    - name:                            "Web Dispatcher installation playbook - Create Progress folder"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
         state:                         directory
         mode:                          0755
 
-    - name:                            "WEB Installation Playbook: - Remove web-install-done flag"
+    - name:                            "Web Dispatcher installation playbook - Remove web-install-done flag"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/web-install-done"
         state:                          absent
 
-    - name:                            "WEB Installation Playbook: - Set pas fact"
+    - name:                            "Web Dispatcher installation playbook - Set pas fact"
       ansible.builtin.set_fact:
         tier:                          pas
 
-    - name:                            "WEB Installation Playbook: - Read/Create passwords"
+    - name:                            "Web Dispatcher installation playbook - Read/Create passwords"
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
       tags:
         - 0.1-passwords
 
-    - name:                            "WEB Installation Playbook: - Read storage account details"
+    - name:                            "Web Dispatcher installation playbook - Read storage account details"
       ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
@@ -70,6 +70,11 @@
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
+  vars:
+    distro_name:                       "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+    distribution_id:                   "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+    distribution_full_id:              "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+    distro_family:                     "{{ ansible_os_family | upper }}"
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -77,7 +82,7 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "WEB Installation Playbook: - Set 'web' tier facts"
+    - name:                            "Web Dispatcher installation playbook - Set 'web' tier facts"
       ansible.builtin.set_fact:
         tier:                          web
         main_password:                 "{{ hostvars.localhost.sap_password }}"
@@ -113,14 +118,14 @@
         - ansible_os_family != "Windows"
         - "'web' in supported_tiers"
       block:
-        - name:                        "WEB Installation Playbook: - run SAPInst"
+        - name:                        "Web Dispatcher installation playbook - run SAPInst"
           ansible.builtin.include_role:
             name:                      roles-sap/5.4-web-install
           loop:                        "{{ all_sids }}"
           loop_control:
             loop_var:                  sid_to_be_deployed
       always:
-        - name:                        "WEB Installation Playbook: - Get the Error lines from installation output"
+        - name:                        "Web Dispatcher installation playbook - Get the Error lines from installation output"
           ansible.builtin.set_fact:
             error_lines:               "{{ error_lines | default([]) + [item] }}"
           with_items:                  "{{ web_installation.stdout_lines }}"
@@ -141,14 +146,14 @@
           loop_control:
             loop_var:                  sid_to_be_deployed
 
-        - name:                        "WEB Installation Playbook: - Show from WEB installation"
+        - name:                        "Web Dispatcher installation playbook - Show from WEB installation"
           ansible.builtin.debug:
             msg:                       "{{ error_lines }}"
           when:
             - error_lines is defined
 
 
-    - name:                            "WEB Installation Playbook: - Create web-install-done flag"
+    - name:                            "Web Dispatcher installation playbook - Create web-install-done flag"
       delegate_to:                     localhost
       become:                          false
       ansible.builtin.file:

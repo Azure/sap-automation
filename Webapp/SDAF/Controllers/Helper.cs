@@ -57,6 +57,7 @@ namespace SDAFWebApp.Controllers
                 {"norwayeast", "noea"},
                 {"norwaywest", "nowe"},
                 {"qatarcentral", "qace"},
+                {"polandcentral", "plce"},
                 {"southafricanorth", "sano"},
                 {"southafricawest", "sawe"},
                 {"southcentralus", "scus"},

@@ -16,7 +16,7 @@ az account list-locations  --query "[?metadata.regionType=='Physical'].name -o T
 
 ```
 
-To list the availability zone couints for each region, run the following command:
+To list the availability zone counts for each region, run the following command:
 
 ```bash
  az vm list-skus --zone --resource-type virtualMachines \
@@ -34,38 +34,40 @@ To list the availability zone couints for each region, run the following command
 #   Location            Count  Zones
 -   --------            -----  -----
 0   australiaeast       3      1 2 3
-1   brazilsouth         3      1 2 3
-2   CanadaCentral       3      1 2 3
-3   CentralIndia        3      1 2 3
-4   centralus           3      1 2 3
-5   ChileCentral        3      1 2 3
-6   eastasia            3      1 2 3
-7   eastus              3      1 2 3
-8   eastus2             3      1 2 3
-9   EastUS2EUAP         4      1 2 3 4
-10  FranceCentral       3      1 2 3
-11  GermanyWestCentral  3      1 2 3
-12  IndonesiaCentral    3      1 2 3
-13  IsraelCentral       3      1 2 3
-14  ItalyNorth          3      1 2 3
-15  japaneast           3      1 2 3
-16  japanwest           3      1 2 3
-17  KoreaCentral        3      1 2 3
-18  MalaysiaWest        3      1 2 3
-19  MexicoCentral       3      1 2 3
-20  NewZealandNorth     3      1 2 3
-21  northeurope         3      1 2 3
-22  NorwayEast          3      1 2 3
-23  PolandCentral       3      1 2 3
-24  QatarCentral        3      1 2 3
-25  SouthAfricaNorth    3      1 2 3
-26  southcentralus      3      1 2 3
-27  southeastasia       3      1 2 3
-28  SpainCentral        3      1 2 3
-29  SwedenCentral       3      1 2 3
-30  SwitzerlandNorth    3      1 2 3
-31  UAENorth            3      1 2 3
-32  uksouth             3      1 2 3
-33  westeurope          3      1 2 3
-34  westus2             3      1 2 3
-35  WestUS3             3      1 2 3
+1   austriaeast         3      1 2 3
+2   belgiumcentral      3      1 2 3
+3   brazilsouth         3      1 2 3
+4   canadacentral       3      1 2 3
+5   centralindia        3      1 2 3
+6   centralus           3      1 2 3
+7   chilecentral        3      1 2 3
+8   eastasia            3      1 2 3
+9   eastus              3      1 2 3
+10  eastus2             3      1 2 3
+11  eastus2euap         4      1 2 3 4
+12  francecentral       3      1 2 3
+13  germanywestcentral  3      1 2 3
+14  indonesiacentral    3      1 2 3
+15  israelcentral       3      1 2 3
+16  italynorth          3      1 2 3
+17  japaneast           3      1 2 3
+18  japanwest           3      1 2 3
+19  koreacentral        3      1 2 3
+20  malaysiawest        3      1 2 3
+21  mexicocentral       3      1 2 3
+22  newzealandnorth     3      1 2 3
+23  northeurope         3      1 2 3
+24  norwayeast          3      1 2 3
+25  polandcentral       3      1 2 3
+26  qatarcentral        3      1 2 3
+27  southafricanorth    3      1 2 3
+28  southcentralus      3      1 2 3
+29  southeastasia       3      1 2 3
+30  spaincentral        3      1 2 3
+31  swedencentral       3      1 2 3
+32  switzerlandnorth    3      1 2 3
+33  uaenorth            3      1 2 3
+34  uksouth             3      1 2 3
+35  westeurope          3      1 2 3
+36  westus2             3      1 2 3
+37  westus3             3      1 2 3

@@ -432,6 +432,12 @@ resource "azurerm_managed_disk" "disks" {
                                             null
                                           )
 
+  logical_sector_size                 = contains(["UltraSSD_LRS", "PremiumV2_LRS"], local.anydb_disks[count.index].storage_account_type) ? (
+                                            local.anydb_disks[count.index].logical_sector_size) : (
+                                            null
+                                          )
+
+
   zone                                 = local.is_anydb_backup_disk_with_zrs[count.index] ? null : (
                                            local.zonal_deployment && !var.database.use_avset ? (
                                              upper(local.anydb_ostype) == "LINUX" ? (

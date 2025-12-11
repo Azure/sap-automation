@@ -3,7 +3,7 @@
 
 ---
 
-# SLES Clustering
+# SUSE Clustering
 # Ref: https://documentation.suse.com/sle-ha/12-SP4/html/SLE-HA-install-quick/index.html
 
 - name:                                "1.18.2.0 Generic Pacemaker - Ensure a list of package version is available for checking the cloud-netconfig-azure version"
@@ -88,7 +88,7 @@
                                        - ansible_hostname != primary_instance_name
   block:
     - name:                            "1.18.2.0 Generic Pacemaker - Ensure Secondary nodes joins the Cluster"
-      # ha-cluster-join is not supported in SLES 15 SP4 anymore, crm syntax required
+      # ha-cluster-join is not supported in SUSE 15 SP4 anymore, crm syntax required
       ansible.builtin.shell:           "sudo crm cluster join -y -c {{ primary_instance_name }} --interface eth0"
 
 

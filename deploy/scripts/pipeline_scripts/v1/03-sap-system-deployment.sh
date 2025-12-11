@@ -46,7 +46,7 @@ configure_devops
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.13.3}"
+	configureNonDeployer "${tf_version:-1.14.1}"
 fi
 configure_devops
 
@@ -56,7 +56,6 @@ if [ $USE_MSI == "true" ]; then
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
 fi
-
 
 if az account show --query name; then
 	echo -e "$green--- Already logged in to Azure ---$reset"
@@ -260,14 +259,13 @@ else
 	return_code=1
 fi
 
-if [ -f "${SID}_hosts.yaml" ]; then
-	git add -f "${SID}_hosts.yaml"
+if [ -f readme.md ]; then
+	git add readme.md
 	added=1
 fi
 
-if [ -f "${SID}.md" ]; then
-	git add "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDERNAME/${SID}.md"
-	# echo "##vso[task.uploadsummary]./${SID}.md)"
+if [ -f "${SID}_hosts.yaml" ]; then
+	git add -f "${SID}_hosts.yaml"
 	added=1
 fi
 
@@ -289,6 +287,11 @@ fi
 if [ -f "${SID}_virtual_machines.json" ]; then
 	git add "${SID}_virtual_machines.json"
 	added=1
+fi
+
+if [ -f "readme.md" ]; then
+	sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/${SID}.md"
+	echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${SID}.md;]$AGENT_TEMPDIRECTORY/${SID}.md"
 fi
 
 if [ 1 == $added ]; then

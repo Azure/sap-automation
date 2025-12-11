@@ -284,20 +284,30 @@
     # If you're setting up priority-fencing-delay on an existing cluster, make sure to unset the
     # pcmk_delay_max option in the fencing device.
     # @TODO: Add ansible code to create the stonith resource without the pcmk_delay_max option.
-    - name:                            "1.17 Generic Pacemaker - set priority-fencing-delay"
+    - name:                            "1.17 Generic Pacemaker - Set 'priority-fencing-delay' property to 15 seconds"
       when:
         - ansible_distribution_major_version in ["8", "9", "10"]
         - is_pcmk_ver_gt_204
       ansible.builtin.command:         pcs property set priority-fencing-delay=15
 
     - name:                            "1.17 Generic Pacemaker - Update Monitor interval"
+      when:
+        - ansible_distribution_major_version in ["10"]
+        - is_pcmk_ver_gt_204
       ansible.builtin.shell: |
-                                       if [ "{{ ansible_distribution_major_version }}" -eq 10 ]; then
-                                         pcs stonith update rsc_st_azure op monitor interval=3600 || \
-                                         pcs resource update rsc_st_azure op monitor interval=3600
-                                       else
-                                         pcs resource update rsc_st_azure op monitor interval=3600
-                                       fi
+                                       pcs stonith update rsc_st_azure op monitor interval=3600
+      register:                        update_monitor
+      failed_when:
+                                       - update_monitor.rc not in [0, 2]
+                                       - "'Error:' in update_monitor.stderr"
+      changed_when:                    "'interval' in update_monitor.stderr or 'interval' in update_monitor.stdout"
+
+    - name:                            "1.17 Generic Pacemaker - Update Monitor interval"
+      when:
+        - ansible_distribution_major_version in ["8", "9"]
+        - is_pcmk_ver_gt_204
+      ansible.builtin.shell: |
+                                       pcs resource update rsc_st_azure op monitor interval=3600
       register:                        update_monitor
       failed_when:
                                        - update_monitor.rc not in [0, 2]
@@ -456,10 +466,9 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "1.17 Generic Pacemaker - check if the OS version is RHEL 8.4 or newer"
+- name:                                "1.17 Generic Pacemaker - Check if the OS version is RHEL 8.4 or newer"
   ansible.builtin.set_fact:
     is_rhel_84_or_newer:               "{{ ansible_distribution_version is version('8.4', '>=') }}"
-  when:                                ansible_distribution_major_version in ["8", "9", "10"]
 
 - name:                                "1.17 Generic Pacemaker - Ensure Azure scheduled events is configured"
   when:
