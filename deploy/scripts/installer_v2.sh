@@ -1064,7 +1064,7 @@ function sdaf_installer() {
 						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 							return_value=0
 						else
-							return_value$?
+							return_value=$?
 						fi
 					fi
 
@@ -1073,7 +1073,7 @@ function sdaf_installer() {
 						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 							return_value=0
 						else
-							return_value$?
+							return_value=$?
 						fi
 
 					fi
@@ -1083,7 +1083,7 @@ function sdaf_installer() {
 						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 							return_value=0
 						else
-							return_value$?
+							return_value=$?
 						fi
 					fi
 					if [ -f apply_output.json ]; then
@@ -1091,7 +1091,7 @@ function sdaf_installer() {
 						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 							return_value=0
 						else
-							return_value$?
+							return_value=$?
 						fi
 					fi
 					if [ -f apply_output.json ]; then
@@ -1099,7 +1099,7 @@ function sdaf_installer() {
 						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 							return_value=0
 						else
-							return_value$?
+							return_value=$?
 						fi
 					fi
 				else
