@@ -59,7 +59,7 @@ fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.13.3}"
+	configureNonDeployer "${tf_version:-1.14.1}"
 	echo -e "$green--- az login ---$reset"
 fi
 LogonToAzure $USE_MSI
@@ -228,8 +228,13 @@ if [ 0 -eq $return_code ]; then
 
 	fi
 
-	if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
-		git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
+		git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+		changed=1
+	fi
+
+	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/readme.md" ]; then
+		git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/readme.md"
 		changed=1
 	fi
 

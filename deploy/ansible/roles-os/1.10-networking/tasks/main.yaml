@@ -175,7 +175,7 @@
     - definition_made.changed
     - distribution_id == 'redhat7'
 
-- name:                                "1.10 Networking - Add routes and restart VM for HANA scaleout"
+- name:                                "1.10 Networking - Add routes and restart VM for HANA Scale-out"
   when:
     - database_scale_out
     - node_tier == 'hana'

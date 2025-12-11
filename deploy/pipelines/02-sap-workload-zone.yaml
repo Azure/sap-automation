@@ -9,46 +9,49 @@
 # +------------------------------------4--------------------------------------*/
 
 parameters:
-  - name:                              workload_zone
-    displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
-    type:                              string
-    default:                           DEV-WEEU-SAP01-INFRASTRUCTURE
+  - name:                                         workload_zone
+    displayName:                                  "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET-INFRASTRUCTURE"
+    type:                                         string
+    default:                                      DEV-WEEU-SAP01-INFRASTRUCTURE
 
-  - name:                              workload_environment
-    displayName:                       "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET"
-    type:                              string
-    default:                           DEV-WEEU-SAP01
+  - name:                                         workload_environment
+    displayName:                                  "Workload zone configuration name, use the following syntax: ENV-LOCA-VNET"
+    type:                                         string
+    default:                                      DEV-WEEU-SAP01
 
-  - name:                              deployer_environment
-    displayName:                       Deployer Environment name (MGMT, DEV, QA, PRD, ...)
-    type:                              string
-    default:                           MGMT
+  - name:                                         deployer_environment
+    displayName:                                  Deployer Environment name (MGMT, DEV, QA, PRD, ...)
+    type:                                         string
+    default:                                      MGMT
 
-  - name:                              deployer_region
-    displayName:                       Deployer region name code (MGMT, DEV, QA, PRD, ...)
-    type:                              string
-    default:                           WEEU
+  - name:                                         deployer_region
+    displayName:                                  Deployer region name code (MGMT, DEV, QA, PRD, ...)
+    type:                                         string
+    default:                                      WEEU
     values:
-      - AUCE
       - AUC2
+      - AUCE
       - AUEA
       - AUSE
-      - BRSO
       - BRSE
+      - BRSO
       - BRUS
       - CACE
       - CAEA
       - CEIN
-      - CEUS
       - CEUA
+      - CEUS
       - EAAS
       - EAUS
-      - EUSA
       - EUS2
+      - EUSA
+      - EUSG
       - FRCE
       - FRSO
       - GENO
       - GEWC
+      - ISCE
+      - ITNO
       - JAEA
       - JAWE
       - JINC
@@ -56,17 +59,20 @@ parameters:
       - KOCE
       - KOSO
       - NCUS
-      - NOEU
       - NOEA
+      - NOEU
       - NOWE
       - NZNO
+      - PLCE
+      - QACE
       - SANO
       - SAWE
-      - SCUS
       - SCUG
+      - SCUS
+      - SECE
+      - SESO
       - SOEA
       - SOIN
-      - SECE
       - SWNO
       - SWWE
       - UACE
@@ -79,120 +85,122 @@ parameters:
       - WEUS
       - WUS2
       - WUS3
+  - name:                                         inherit_settings
+    displayName:                                  Inherit Terraform state file information from control plane
+    type:                                         boolean
+    default:                                      true
 
-  - name:                              inherit_settings
-    displayName:                       Inherit Terraform state file information from control plane
-    type:                              boolean
-    default:                           true
+  - name:                                         sap_automation_repo_path
+    displayName:                                  The local path on the agent where the sap_automation repo can be found
+    type:                                         string
 
-  - name:                              sap_automation_repo_path
-    displayName:                       The local path on the agent where the sap_automation repo can be found
-    type:                              string
+  - name:                                         config_repo_path
+    displayName:                                  The local path on the agent where the config repo can be found
+    type:                                         string
 
-  - name:                              config_repo_path
-    displayName:                       The local path on the agent where the config repo can be found
-    type:                              string
-
-  - name:                              test
-    type:                              boolean
-    default:                           false
+  - name:                                         test
+    type:                                         boolean
+    default:                                      false
 
 stages:
-  - stage:                             PopulateKeyVault
-    pool:                              $(this_agent)
-    displayName:                       Save the Deployment Credentials in Azure Keyvault
+  - stage:                                        PopulateKeyVault
+    pool:                                         $(this_agent)
+    displayName:                                  Save the Deployment Credentials in Azure Keyvault
     variables:
-      - template:                      variables/02-sap-workload-zone-variables.yaml
+      - template:                                 variables/02-sap-workload-zone-variables.yaml
         parameters:
-          workload_zone:               ${{ parameters.workload_zone }}
-          workload_environment:        ${{ parameters.workload_environment }}
-          deployer_environment:        ${{ parameters.deployer_environment }}
-          deployer_region:             ${{ parameters.deployer_region }}
-          inherit_settings:            ${{ parameters.inherit_settings }}
+          workload_zone:                          ${{ parameters.workload_zone }}
+          workload_environment:                   ${{ parameters.workload_environment }}
+          deployer_environment:                   ${{ parameters.deployer_environment }}
+          deployer_region:                        ${{ parameters.deployer_region }}
+          inherit_settings:                       ${{ parameters.inherit_settings }}
     jobs:
-      - job:                           SaveDeploymentCredentials
-        displayName:                   Save the Deployment Credentials
+      - job:                                      SaveDeploymentCredentials
+        displayName:                              Save the Deployment Credentials
         workspace:
-          clean:                       all
+          clean:                                  all
         steps:
-          - task:                      PostBuildCleanup@4
-          - task:                      TerraformInstaller@1
-            displayName:               Install Terraform
+          - task:                                 PostBuildCleanup@4
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
+            displayName:                          Install Terraform
             inputs:
-              terraformVersion:        latest
-          - template:                  templates\download.yaml
+              terraformVersion:                   $(tf_version)
+          - template:                             templates\download.yaml
             parameters:
-              getLatestFromBranch: true
+              getLatestFromBranch:                true
 
-          - task:                      Bash@3
+          - task:                                 Bash@3
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            name:                      StoreSecrets
-            displayName:               Store deployment credentials in Key Vault
+              targetType:                         'filePath'
+              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
+              failOnStderr:                       false
+              workingDirectory:                   "$(System.DefaultWorkingDirectory)"
+            name:                                 StoreSecrets
+            displayName:                          Store deployment credentials in Key Vault
             env:
-              ARM_CLIENT_ID:                $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:            $(ARM_CLIENT_SECRET)
-              ARM_OBJECT_ID:                $(ARM_OBJECT_ID)
-              ARM_SUBSCRIPTION_ID:          $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:                $(ARM_TENANT_ID)
-              AZURE_DEVOPS_EXT_PAT:         $(System.AccessToken)
-              CONFIG_REPO_PATH:             ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              SAP_AUTOMATION_REPO_PATH:     ${{ parameters.sap_automation_repo_path }}
-              SYSTEM_ACCESSTOKEN:           $(System.AccessToken)
-              USE_MSI:                      $(Use_MSI)
-              ZONE:                         ${{ upper(parameters.workload_environment) }}
+              ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
+              ARM_OBJECT_ID:                      $(ARM_OBJECT_ID)
+              ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
+              CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONTROL_PLANE_NAME:                 $(CONTROL_PLANE_NAME)
+              KEYVAULT:                           $(DEPLOYER_KEYVAULT)
+              SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
+              USE_MSI:                            $(Use_MSI)
+              ZONE:                               ${{ upper(parameters.workload_environment) }}
 
-
-  - stage:                             Deploy_SAP_workload_zone
+  - stage:                                        Deploy_SAP_workload_zone
     dependsOn:
                                        - PopulateKeyVault
-    condition:                         eq(dependencies.PopulateKeyVault.result, 'Succeeded')
-    displayName: Deploy SAP workload zone
+    condition:                                    eq(dependencies.PopulateKeyVault.result, 'Succeeded')
+    displayName:                                  Deploy SAP workload zone
     variables:
-      - template:                      variables/02-sap-workload-zone-variables.yaml
+      - template:                                 variables/02-sap-workload-zone-variables.yaml
         parameters:
-          workload_zone:          ${{ parameters.workload_zone }}
-          workload_environment:        ${{ parameters.workload_zone }}
-          deployer_environment:        ${{ parameters.deployer_environment }}
-          deployer_region:             ${{ parameters.deployer_region }}
-          inherit_settings:            ${{ parameters.inherit_settings }}
+          workload_zone:                          ${{ parameters.workload_zone }}
+          workload_environment:                   ${{ parameters.workload_zone }}
+          deployer_environment:                   ${{ parameters.deployer_environment }}
+          deployer_region:                        ${{ parameters.deployer_region }}
+          inherit_settings:                       ${{ parameters.inherit_settings }}
     jobs:
-      - job:                           Deploy_SAP_workload_zone
-        displayName:                   Deploy SAP workload zone
+      - job:                                      Deploy_SAP_workload_zone
+        displayName:                              Deploy SAP workload zone
         workspace:
-          clean:                       all
+          clean:                                  all
         steps:
-          - template:                  templates\download.yaml
-          - task:                      PostBuildCleanup@4
-          - task:                      TerraformInstaller@1
-            displayName:               Install Terraform
+          - template:                             templates\download.yaml
+          - task:                                 PostBuildCleanup@4
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
+            displayName:                          Install Terraform
             inputs:
-              terraformVersion:        latest
-          - task:                      Bash@3
+              terraformVersion:                   $(tf_version)
+          - task:                                 Bash@3
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/02-sap-workload-zone.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            displayName:               Deploy SAP Workload Zone
+              targetType:                         'filePath'
+              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/02-sap-workload-zone.sh"
+              failOnStderr:                       false
+              workingDirectory:                   "$(System.DefaultWorkingDirectory)"
+            displayName:                          Deploy SAP Workload Zone
             env:
-              ARM_CLIENT_ID:           $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:       $(ARM_CLIENT_SECRET)
-              ARM_OBJECT_ID:           $(ARM_OBJECT_ID)
-              ARM_SUBSCRIPTION_ID:     $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:           $(ARM_TENANT_ID)
-              ARM_USE_MSI:             $(Use_MSI)
-              AZURE_DEVOPS_EXT_PAT:    $(System.AccessToken)
-              CONFIG_REPO_PATH:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              DEPLOYER_KEYVAULT:       $(DEPLOYER_KEYVAULT)
-              FENCING_SPN_PWD:         $(FENCING_SPN_PWD)
-              SAP_AUTOMATION_REPO_PATH: ${{ parameters.sap_automation_repo_path }}
-              SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
-              TEST_ONLY:               ${{ parameters.test }}
-              TF_IN_AUTOMATION:        true
-              TF_LOG:                  $(TF_LOG)
-              TF_VAR_subscription_id:  $(ARM_SUBSCRIPTION_ID)
-              USE_MSI:                 $(Use_MSI)
+              APPLICATION_CONFIGURATION_NAME:     $(APPLICATION_CONFIGURATION_NAME)
+              ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
+              ARM_OBJECT_ID:                      $(ARM_OBJECT_ID)
+              ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              ARM_USE_MSI:                        $(Use_MSI)
+              AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
+              CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              CONTROL_PLANE_NAME:                 $(CONTROL_PLANE_NAME)
+              DEPLOYER_KEYVAULT:                  $(DEPLOYER_KEYVAULT)
+              FENCING_SPN_PWD:                    $(FENCING_SPN_PWD)
+              SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
+              TEST_ONLY:                          ${{ parameters.test }}
+              TF_IN_AUTOMATION:                   true
+              TF_LOG:                             $(TF_LOG)
+              TF_VAR_subscription_id:             $(ARM_SUBSCRIPTION_ID)
+              USE_MSI:                            $(Use_MSI)

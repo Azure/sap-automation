@@ -7,6 +7,8 @@
 #                                                                              #
 #######################################4#######################################8
 
+data "azurerm_client_config" "current" {}
+
 resource "local_file" "ansible_inventory_new_yml" {
   content       = templatefile(format("%s%s", path.module, "/ansible_inventory.tmpl"), {
                     ips_dbnodes         = var.scale_out ? var.database_admin_ips : var.database_server_ips
@@ -222,7 +224,7 @@ resource "local_file" "sap-parameters_yml" {
               is_use_fence_kdump          = var.is_use_fence_kdump
               is_use_sles_hanasr_angi     = var.database.database_hana_use_saphanasr_angi
               iscsi_server_list           = concat(local.iscsi_scs_servers, local.iscsi_db_servers)
-              kv_name                     = lower(local.kv_name),
+              kv_name                     = lower(local.key_vault_name),
               NFS_provider                = var.NFS_provider
               pas_instance_number         = var.pas_instance_number
               platform                    = var.platform
@@ -291,15 +293,50 @@ resource "local_file" "sap-parameters_yml" {
 
 resource "local_file" "sap_inventory_md" {
   content = templatefile(format("%s/sap_application.tmpl", path.module), {
-              sid                         = var.sap_sid,
+
+              application_servers         = join(",", var.naming.virtualmachine_names.APP_COMPUTERNAME)
+              database_high_availability  = var.database_high_availability ? "Yes" : "No"
+              db_servers                  = var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",", var.naming.virtualmachine_names.ANYDB_COMPUTERNAME)
               db_sid                      = var.db_sid
-              kv_name                     = local.kv_name,
-              scs_server_loadbalancer_ip  = length(var.scs_server_loadbalancer_ip) > 0 ? var.scs_server_loadbalancer_ip : try(var.scs_server_ips[0], "")
+              key_vault_name              = local.key_vault_name,
+              pas_server                  = try(var.naming.virtualmachine_names.APP_COMPUTERNAME[0], "")
+              password_secret_name        = local.use_local_credentials ? format("%s-%s-sid-password", local.secret_prefix, var.sap_sid) : format("%s-sid-password", local.secret_prefix)
               platform                    = lower(var.platform)
-              kv_pwd_secret               = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
+              resource_group_name         = var.created_resource_group_name
+              scs_high_availability       = var.scs_high_availability ? "Yes" : "No"
+              scs_server_loadbalancer_ip  = length(var.scs_server_loadbalancer_ip) > 0 ? var.scs_server_loadbalancer_ip : try(var.scs_server_ips[0], "")
+              scs_servers                 = join(",", var.naming.virtualmachine_names.SCS_COMPUTERNAME)
+              sid                         = var.sap_sid,
+              ssh_secret_name             = local.use_local_credentials ? format("%s-%s-sid-sshkey", local.secret_prefix, var.sap_sid) : format("%s-sid-sshkey", local.secret_prefix)
+              subscription_id             = var.created_resource_group_subscription_id
+              url                         = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/overview", data.azurerm_client_config.current.tenant_id, var.created_resource_group_subscription_id, var.created_resource_group_name)
+              username_secret_name        = local.use_local_credentials ? format("%s-%s-sid-username", local.secret_prefix, var.sap_sid) : format("%s-sid-username", local.secret_prefix)
+              webdisp_servers             = length(var.naming.virtualmachine_names.WEB_COMPUTERNAME) > 0 ? join(",", var.naming.virtualmachine_names.WEB_COMPUTERNAME) : ""
+              key_vault_url               = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/vaults/%s/overview",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    local.key_vault_subscription_id,
+                                                    local.key_vault_resource_group,
+                                                    local.key_vault_name
+                                                    )
+              username_secret_url         = format("https://portal.azure.com/#@%s/asset/Microsoft_Azure_KeyVault/Secret/https://%s.vault.azure.net/secrets/%s",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    local.key_vault_name,
+                                                    local.use_local_credentials ? format("%s-%s-sid-username", local.secret_prefix, var.sap_sid) : format("%s-sid-username", local.secret_prefix)
+                                                    )
+              password_secret_url         = format("https://portal.azure.com/#@%s/asset/Microsoft_Azure_KeyVault/Secret/https://%s.vault.azure.net/secrets/%s",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    local.key_vault_name,
+                                                    local.use_local_credentials ? format("%s-%s-sid-password", local.secret_prefix, var.sap_sid) : format("%s-sid-password", local.secret_prefix)
+                                                    )
+              ssh_secret_url              = format("https://portal.azure.com/#@%s/asset/Microsoft_Azure_KeyVault/Secret/https://%s.vault.azure.net/secrets/%s",
+                                                    data.azurerm_client_config.current.tenant_id,
+                                                    local.key_vault_name,
+                                                    local.use_local_credentials ? format("%s-%s-sid-sshkey", local.secret_prefix, var.sap_sid) : format("%s-sid-sshkey", local.secret_prefix)
+                                                    )
+
               }
             )
-  filename             = format("%s/%s.md", path.cwd, var.sap_sid)
+  filename             = format("%s/readme.md", path.cwd)
   file_permission      = "0660"
   directory_permission = "0770"
 }
@@ -352,7 +389,7 @@ resource "local_file" "sap_inventory_for_wiki_md" {
   content = templatefile(format("%s/sid-description.tmpl", path.module), {
     sid                 = var.sap_sid,
     db_sid              = var.db_sid
-    kv_name             = local.kv_name,
+    kv_name             = local.key_vault_name ,
     scs_server_loadbalancer_ip           = length(var.scs_server_loadbalancer_ip) > 0 ? var.scs_server_loadbalancer_ip : try(var.scs_server_ips[0], "")
     platform            = upper(var.platform)
     kv_pwd_secret       = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)

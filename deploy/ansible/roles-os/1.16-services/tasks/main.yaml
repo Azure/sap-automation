@@ -26,7 +26,7 @@
     var:                               services_to_process
     verbosity:                         2
 
-- name:                                "1.16 Services - Populate service facts {{ distro_name }}"
+- name:                                "1.16 Services - Populate service facts {{ distribution_id }}"
   ansible.builtin.service_facts:
 
 - name:                                "[DEBUG] 1.16 Services - Show services"
@@ -38,7 +38,7 @@
 # pass them as the argument to the name parameter; this is the recommended
 # approach as it only calls the underlying distro specific service manager
 # once per state value.
-- name:                                "1.16 Services - Start Services {{ distro_name }}"
+- name:                                "1.16 Services - Start Services {{ distribution_id }}"
   ansible.builtin.service:
     name:                              "{{ item.service }}"
     state:                             started
@@ -47,7 +47,7 @@
                                          list }}"
 #  when:                                item.service in ansible_facts.services
 
-- name:                                "1.16 Services - Restart Services {{ distro_name }}"
+- name:                                "1.16 Services - Restart Services {{ distribution_id }}"
   ansible.builtin.service:
     name:                              "{{ item.service }}"
     state:                             restarted
@@ -56,7 +56,7 @@
                                          list }}"
 #  when:                                item.service in ansible_facts.services
 
-- name:                                "1.16 Services - Reload Services {{ distro_name }}"
+- name:                                "1.16 Services - Reload Services {{ distribution_id }}"
   ansible.builtin.service:
     name:                              "{{ item.service }}"
     state:                             restarted
@@ -65,7 +65,7 @@
                                          list }}"
 #  when:                                item.service in ansible_facts.services
 
-- name:                                "1.16 Services - Enable Services {{ distro_name }}"
+- name:                                "1.16 Services - Enable Services {{ distribution_id }}"
   ansible.builtin.service:
     name:                              "{{ item.service }}"
     enabled:                            true
@@ -74,7 +74,7 @@
                                          list }}"
 #  when:                                item.service in ansible_facts.services
 
-- name:                                "1.16 Services - Stop Services {{ distro_name }}"
+- name:                                "1.16 Services - Stop Services {{ distribution_id }}"
   ansible.builtin.service:
     name:                              "{{ item.service }}"
     state:                             stopped
@@ -83,7 +83,7 @@
                                            list }}"
 #  when:                                item.service in ansible_facts.services
 
-- name:                                "1.16 Services - Disable Services {{ distro_name }}"
+- name:                                "1.16 Services - Disable Services {{ distribution_id }}"
   ansible.builtin.service:
     name:                              "{{ item.service }}"
     enabled:                           false
@@ -96,10 +96,10 @@
 # |                             Custom services                                 |
 # +------------------------------------4---------------------------------------*/
 
-- name:                                "1.16 Services - Populate service facts {{ distro_name }}"
+- name:                                "1.16 Services - Populate service facts {{ distribution_id }}"
   ansible.builtin.service_facts:
 
-# Analyse the service list for this distribution selecting only those
+# Analyze the service list for this distribution selecting only those
 # services assigned to the active tier or 'all'.
 - name:                                "1.16 Services - Determine custom defined services appropriate for tier"
   ansible.builtin.set_fact:
@@ -117,7 +117,7 @@
         var:                           custom_services_to_process
         verbosity:                     2
 
-    - name:                            "1.16 Services - Start custom defined services {{ distro_name }}"
+    - name:                            "1.16 Services - Start custom defined services {{ distribution_id }}"
       ansible.builtin.service:
         name:                          "{{ item.service }}"
         state:                         started
@@ -125,7 +125,7 @@
                                             selectattr('state', 'equalto', 'started') |
                                             list }}"
 
-    - name:                            "1.16 Services - Restart custom defined services {{ distro_name }}"
+    - name:                            "1.16 Services - Restart custom defined services {{ distribution_id }}"
       ansible.builtin.service:
         name:                          "{{ item.service }}"
         state:                         restarted
@@ -133,7 +133,7 @@
                                             selectattr('state', 'equalto', 'restarted') |
                                             list }}"
 
-    - name:                            "1.16 Services - Reload custom defined services {{ distro_name }}"
+    - name:                            "1.16 Services - Reload custom defined services {{ distribution_id }}"
       ansible.builtin.service:
         name:                          "{{ item.service }}"
         state:                         restarted
@@ -141,7 +141,7 @@
                                             selectattr('state', 'equalto', 'reloded') |
                                             list }}"
 
-    - name:                            "1.16 Services - Enable custom defined services {{ distro_name }}"
+    - name:                            "1.16 Services - Enable custom defined services {{ distribution_id }}"
       ansible.builtin.service:
         name:                          "{{ item.service }}"
         enabled:                       true
@@ -149,7 +149,7 @@
                                           selectattr('state', 'equalto', 'enabled') |
                                           list }}"
 
-    - name:                            "1.16 Services - Stop custom defined services {{ distro_name }}"
+    - name:                            "1.16 Services - Stop custom defined services {{ distribution_id }}"
       ansible.builtin.service:
         name:                          "{{ item.service }}"
         state:                         stopped
@@ -157,7 +157,7 @@
                                             selectattr('state', 'equalto', 'stopped') |
                                             list }}"
 
-    - name:                            "1.16 Services - Disable custom defined services {{ distro_name }}"
+    - name:                            "1.16 Services - Disable custom defined services {{ distribution_id }}"
       ansible.builtin.service:
         name:                          "{{ item.service }}"
         enabled:                       false

@@ -47,7 +47,7 @@
       failed_when:                     db2startstatus.rc > 1
 
     - name:                            "DB2 Primary DB - HA Config - SLES"
-      # SLES - Setttings - When you use an Azure Pacemaker fencing agent, set the following parameters:
+      # SUSE - Setttings - When you use an Azure Pacemaker fencing agent, set the following parameters:
       # HADR peer window duration (seconds) (HADR_PEER_WINDOW) = 900
       # HADR timeout value (HADR_TIMEOUT) = 60
       # Ref - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/dbms-guide-ha-ibm
@@ -144,7 +144,7 @@
       failed_when:                     secdb2status_start.rc > 1
 
     - name:                            "DB2 Secondary DB - HA Config - SLES"
-      # SLES - Setttings - When you use an Azure Pacemaker fencing agent, set the following parameters:
+      # SUSE - Setttings - When you use an Azure Pacemaker fencing agent, set the following parameters:
       # HADR peer window duration (seconds) (HADR_PEER_WINDOW) = 900
       # HADR timeout value (HADR_TIMEOUT) = 60
       # Ref - https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/dbms-guide-ha-ibm

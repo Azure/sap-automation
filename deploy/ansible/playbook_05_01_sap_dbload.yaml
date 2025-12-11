@@ -9,7 +9,7 @@
 # +------------------------------------4--------------------------------------*/
 
 - hosts:                               localhost
-  name:                                "Database Load Playbook: - Initialization"
+  name:                                "Database load playbook - Initialization"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml
@@ -17,29 +17,29 @@
 
   tasks:
 
-    - name:                            "Database Load Playbook: - Create Progress folder"
+    - name:                            "Database load playbook - Create Progress folder"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
         state:                          directory
         mode:                          0755
 
-    - name:                            "Database Load Playbook: - Remove db-load-done flag"
+    - name:                            "Database load playbook - Remove db-load-done flag"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/db-load-done"
         state:                          absent
 
-    - name:                            "Database Load Playbook: - Initialize tier"
+    - name:                            "Database load playbook - Initialize tier"
       ansible.builtin.set_fact:
         tier:                          dbload
 
-    - name:                            "Database Load Playbook: - Read/Create passwords"
+    - name:                            "Database load playbook - Read/Create passwords"
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
       tags:
         - 0.1-passwords
 
-    - name:                            "Database Load Playbook: - Read/Create Windows password"
+    - name:                            "Database load playbook - Read/Create Windows password"
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         tasks_from:                    windows.yaml
@@ -48,7 +48,7 @@
       tags:
         - 0.1-win-passwords
 
-    - name:                            "Database Load Playbook: - Read storage account details"
+    - name:                            "Database load playbook - Read storage account details"
       ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
@@ -70,6 +70,11 @@
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
+  vars:
+    distro_name:                       "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+    distribution_id:                   "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+    distribution_full_id:              "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+    distro_family:                     "{{ ansible_os_family | upper }}"
 
   tasks:
 
@@ -78,7 +83,7 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "Database Load Playbook: - Perform DB Load on HANA"
+    - name:                            "Database load playbook - Perform DB Load on HANA"
       become:                          true
       become_user:                     root
       when:
@@ -86,7 +91,7 @@
         - "'pas' in supported_tiers"
         - ansible_os_family != "Windows"
       block:
-        - name:                        "Database Load Playbook: - Setting the dbload facts"
+        - name:                        "Database load playbook - Setting the dbload facts"
           ansible.builtin.set_fact:
             tier:                      dbload                                                          # SAP Install phase: DBLOAD
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -99,14 +104,14 @@
             - always
 
 
-        - name:                        "Database Load Playbook: - Set deployment type"
+        - name:                        "Database load playbook - Set deployment type"
           ansible.builtin.set_fact:
             single_server:              "{{ (ansible_play_hosts_all | length) == 1 }}"
           tags:
             - always
 
 
-        - name:                        "Database Load Playbook: - Define this SID"
+        - name:                        "Database load playbook - Define this SID"
           ansible.builtin.set_fact:
             this_sid:
               {
@@ -118,11 +123,11 @@
                 'app_inst_no': '{{ app_instance_number }}'
               }
 
-        - name:                        "Database Load Playbook: - Define list of SIDs"
+        - name:                        "Database load playbook - Define list of SIDs"
           ansible.builtin.set_fact:
             all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
-        - name:                    "Database Load Playbook: - Mounting"
+        - name:                    "Database load playbook - Mounting"
           ansible.builtin.include_role:
             name:                  roles-sap-os/2.6-sap-mounts
           tags:
@@ -130,7 +135,7 @@
 
         - name:                        Run the DBLoad Playbook
           block:
-            - name:                    "Database Load Playbook: - Run DBLoad"
+            - name:                    "Database load playbook - Run DBLoad"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.1-dbload
               vars:
@@ -140,7 +145,7 @@
               loop_control:
                 loop_var:              sid_to_be_deployed
 
-            - name:                    "Database Load Playbook: - Create db-load-done flag"
+            - name:                    "Database load playbook - Create db-load-done flag"
               delegate_to:             localhost
               become:                  false
               ansible.builtin.file:
@@ -151,7 +156,7 @@
                 - dbload_already_performed is defined or (dbload_results.rc is defined and dbload_results.rc == 0)
 
           always:
-            - name:                    "Database Load Playbook: - Run post installation tasks"
+            - name:                    "Database load playbook - Run post installation tasks"
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
               vars:
@@ -160,7 +165,7 @@
                 path:                  '/INSTALL/DISTRIBUTED/{{ dbl_bom_instance_type }}/DB'
                 tier:                  'dbload'
 
-            - name:                    "Database Load Playbook: - Show errors from DBLoad"
+            - name:                    "Database load playbook - Show errors from DBLoad"
               ansible.builtin.debug:
                 msg:                   "{{ dbload_results.stdout_lines | select('search', 'ERROR') }}"
               when:
@@ -183,6 +188,11 @@
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
+  vars:
+    distro_name:                       "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+    distribution_id:                   "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+    distribution_full_id:              "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+    distro_family:                     "{{ ansible_os_family | upper }}"
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -190,14 +200,14 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "Database Load Playbook: - Perform DB Load on ORACLE"
+    - name:                            "Database load playbook - Perform DB Load on ORACLE"
       when:
         - platform in ['ORACLE', 'ORACLE-ASM']
         - ansible_os_family != "Windows"
       become:                          true
       become_user:                     root
       block:
-        - name:                        "Database Load Playbook: - Setting the dbload facts"
+        - name:                        "Database load playbook - Setting the dbload facts"
           ansible.builtin.set_fact:
             tier:                      dbload                                                          # SAP Install phase: DBLOAD
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -206,7 +216,7 @@
             always_upload_jinja_templates: false
           tags:
             - always
-        - name:                        "Database Load Playbook: Define this SID"
+        - name:                        "Database load playbook - Define this SID"
           ansible.builtin.set_fact:
             this_sid:
               {
@@ -218,24 +228,24 @@
                 'app_inst_no': '{{ app_instance_number }}'
               }
 
-        - name:                        "Database Load Playbook: Define list of SIDs"
+        - name:                        "Database load playbook - Define list of SIDs"
           ansible.builtin.set_fact:
             all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
         - name:                        Run the DBLoad Playbook
           block:
 
-            - name:                         "Database Load Playbook: - Oracle ASM - Register repositories"
+            - name:                         "Database load playbook - Oracle ASM - Register repositories"
               ansible.builtin.import_tasks: roles-os/1.3-repository/tasks/1.3.3-repositories-from-BOM.yaml
 
-            - name:                    "Database Load Playbook: - Run DBLoad (shared home)"
+            - name:                    "Database load playbook - Run DBLoad"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.1-dbload
               loop:                    "{{ all_sids }}"
               loop_control:
                 loop_var:              sid_to_be_deployed
 
-            - name:                    "Database Load Playbook: - Create db-load-done flag"
+            - name:                    "Database load playbook - Create db-load-done flag"
               delegate_to:             localhost
               become:                  false
               ansible.builtin.file:
@@ -247,7 +257,7 @@
 
           always:
 
-            - name:                    "Database Load Playbook: - Run post installation tasks"
+            - name:                    "Database load playbook - Run post installation tasks"
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
               vars:
@@ -260,7 +270,7 @@
               loop_control:
                 loop_var:              sid_to_be_deployed
 
-            - name:                    "Database Load Playbook: - Show errors from DBLoad"
+            - name:                    "Database load playbook - Show errors from DBLoad"
               ansible.builtin.debug:
                 msg:                   "{{ dbload_results.stdout_lines | select('search', 'ERROR') }}"
               when:
@@ -283,6 +293,11 @@
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
+  vars:
+    distro_name:                       "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+    distribution_id:                   "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+    distribution_full_id:              "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+    distro_family:                     "{{ ansible_os_family | upper }}"
 
   tasks:
 # -------------------------------------+---------------------------------------8
@@ -290,9 +305,9 @@
 # Build the list of tasks to be executed in order here.
 #
 # -------------------------------------+---------------------------------------8
-    - name:                            "Database Load Playbook: - Perform DB Load on SQLSERVER"
+    - name:                            "Database load playbook - Perform DB Load on SQLSERVER"
       block:
-        - name:                        "Database Load Playbook: - Setting the dbload facts"
+        - name:                        "Database load playbook - Setting the dbload facts"
           ansible.builtin.set_fact:
             tier:                      dbload                                  # SAP Install phase: DBLOAD
             main_password:             "{{ hostvars.localhost.sap_password }}"
@@ -305,11 +320,11 @@
           tags:
             - always
 
-        - name:                    "Database Load Playbook: - Ensure Sharing Data Folder"
+        - name:                    "Database load playbook - Ensure Sharing Data Folder"
           ansible.builtin.include_role:
             name:                      roles-sap-os/windows/2.3-sap-exports
 
-        - name:                        "Database Load Playbook: Define this SID"
+        - name:                        "Database load playbook - Define this SID"
           ansible.builtin.set_fact:
             this_sid:
               {
@@ -321,13 +336,13 @@
                 'app_inst_no': '{{ app_instance_number }}'
               }
 
-        - name:                        "Database Load Playbook:  - Define list of SIDs"
+        - name:                        "Database load playbook -  - Define list of SIDs"
           ansible.builtin.set_fact:
             all_sids:                  "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
         - name:                        Run the DBLoad Playbook
           block:
-            - name:                    "Database Load Playbook: - Run DBLoad"
+            - name:                    "Database load playbook - Run DBLoad"
               ansible.builtin.include_role:
                 name:                  roles-sap/windows/5.1-dbload
               vars:
@@ -337,7 +352,7 @@
               loop_control:
                 loop_var:              sid_to_be_deployed
 
-            - name:                    "Database Load Playbook: - Create db-load-done flag"
+            - name:                    "Database load playbook - Create db-load-done flag"
               delegate_to:             localhost
               become:                  false
               ansible.builtin.file:
@@ -349,7 +364,7 @@
 
           always:
 
-            - name:                    "Database Load Playbook: - Run post installation tasks"
+            - name:                    "Database load playbook - Run post installation tasks"
               ansible.builtin.include_role:
                 name:                  roles-sap/windows/7.0.0-post-install
               vars:
@@ -358,7 +373,7 @@
                 # path:                  '/INSTALL/DISTRIBUTED/ABAP/DB'
                 tier:                  'dbload'
 
-            - name:                    "Database Load Playbook: - Show errors from DBLoad"
+            - name:                    "Database load playbook - Show errors from DBLoad"
               ansible.builtin.debug:
                 msg:                   "{{ dbload_results.stdout_lines | select('search', 'ERROR') }}"
               when:
@@ -366,7 +381,7 @@
                 - dbload_results.stdout_lines is defined
                 - dbload_results.rc > 0
 
-            - name:                    "Database Load Playbook: Rename sapinst_logs Folder with TimeStamp"
+            - name:                    "Database load playbook - Rename sapinst_logs Folder with TimeStamp"
               ansible.windows.win_shell: |
                                         Rename-Item -Path .\sapinst_logs -NewName "sapinst_logs_$(get-date -f yyyy_MM_dd_HH_mm_ss)"
               args:

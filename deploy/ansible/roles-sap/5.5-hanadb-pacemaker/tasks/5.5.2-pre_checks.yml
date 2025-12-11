@@ -11,7 +11,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "5.5 HANA Pacemaker - Check the fencing agent configuration variables are set"
+- name:                                "5.5.2 HANA Pacemaker - Check the fencing agent configuration variables are set"
   ansible.builtin.assert:
     that:
       - "fencing_spn_subscription_id is defined"
@@ -25,43 +25,154 @@
     fail_msg:                          Fencing SPN details are missing
   when:                                not use_msi_for_clusters
 
-- name:                                "5.5 HANA Pacemaker - Check the required cluster password is set"
+- name:                                "5.5.2 HANA Pacemaker - Check the required cluster password is set"
   ansible.builtin.assert:
     that:
       - "password_ha_db_cluster is defined"
       - "password_ha_db_cluster | trim | length > 0"
     fail_msg:                          The cluster password is not defined
 
-- name:                                "5.5 HANA Pacemaker - Check the required Clustering scripts are available"
+- name:                                "5.5.2 HANA Pacemaker - Check that the required Clustering scripts are available"
   ansible.builtin.stat:
     path:                              "/usr/sbin/crm"
   register:                            cluster_scripts_status_results
   failed_when:                         not cluster_scripts_status_results.stat.exists
   when: ansible_os_family == 'Suse'
 
-- name:                                "5.5 HANA Pacemaker - HANA PCM Install: Create run flag directory"
+- name:                                "5.5.2 HANA Pacemaker - HANA PCM Install: Create run flag directory"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
     state:                             directory
     mode:                              0755
 
-- name:                                "5.5 HANA Pacemaker - HANA PCM Install: reset"
+- name:                                "5.5.2 HANA Pacemaker - HANA PCM Install: reset"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
     state:                             absent
   when:                                reinstall
 
-- name:                                "5.5 HANA Pacemaker - HANA PCM Install: check if deployed"
+- name:                                "5.5.2 HANA Pacemaker - HANA PCM Install: check if deployed"
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
   register:                            hana_pacemaker
 
-- name:                                "5.5 HANA Pacemaker - Check if a cluster has already been prepared (save)"
+- name:                                "5.5.2 HANA Pacemaker - Check if a cluster has already been prepared (save)"
   ansible.builtin.set_fact:
     hana_cluster_existence_check:      "{{ hana_pacemaker.stat.exists }}"
 
-- name:                                "5.5 HANA Pacemaker - Check if a cluster has already been prepared (show)"
+- name:                                "5.5.2 HANA Pacemaker - Check if a cluster has already been prepared (show)"
   ansible.builtin.debug:
-    msg:                               "Cluster check return value: {{ hana_cluster_existence_check }}"
+    msg:                               "Is HANA cluster already prepared: {{ hana_cluster_existence_check }}"
+
+- name:                                "5.5.2 HANA Pacemaker - Display version numbers and package facts"
+  ansible.builtin.debug:
+    msg: |
+                                       - "HANA major version:                 {{ hana_major_version }}"
+                                       - "HANA minor version:                 {{ hana_minor_version }}"
+                                       - "HANA SPS level:                     {{ hana_sps_level }}"
+                                       - "SAPHanaSR version:                  {{ saphanaSR_version }}"
+
+- name:                                "5.5.2 HANA Pacemaker - Display version numbers and package facts for SAPHanaSR-ANGI"
+  when:
+                                       - use_hanasr_angi | default(false)
+                                       - ansible_os_family | upper == 'SUSE'
+
+  ansible.builtin.debug:
+    msg: |
+                                       - "saphanaSR_angi_version:             {{ saphanaSR_angi_version }}"
+
+- name:                                "5.5.2 HANA Pacemaker - Can the SUSE distribution be used with SAPHanaSR-angi"
+  when:
+                                       - ansible_os_family | upper == "SUSE"
+                                       - use_hanasr_angi | default(false)
+  ansible.builtin.set_fact:
+    is_certified_for_hanasr_angi: >-
+                                       {{ (ansible_distribution == 'SLES_SAP' and
+                                           (ansible_distribution_version is version('15.4', '>='))) | default(false)
+                                       }}
+
+- name:                                "5.5.2 HANA Pacemaker - Check SAP HANA version requirements"
+  ansible.builtin.assert:
+    that:
+                                       - "hana_major_version is version(min_hana_major_version, '>=')"
+                                       - "hana_sps_level is version(min_hana_sps_level, '>=')"
+    success_msg: |
+                                       HANA version {{ hana_major_version }}.{{ hana_minor_version }} SPS{{ hana_sps_level }}
+                                       meets minimum requirement of {{ min_hana_major_version }}.{{ min_hana_minor_version }} SPS{{ min_hana_sps_level }}
+
+    fail_msg: |
+                                       HANA version {{ hana_major_version }}.{{ hana_minor_version }} SPS{{ hana_sps_level }}
+                                       does not meet minimum requirement of {{ min_hana_major_version }}.{{ min_hana_minor_version }} SPS{{ min_hana_sps_level }}
+
+  register: version_check
+
+- name:                                "5.5.2 HANA Pacemaker - Set fact for SAP HANA version status"
+  ansible.builtin.set_fact:
+    hana_version_ok:                   "{{ version_check is success }}"
+
+# For testing/debugging
+- name:                                "5.5.2 HANA Pacemaker - Display parsed SAP HANA version information"
+  ansible.builtin.debug:
+    msg: |
+                                       Parsed version details:
+                                         - HANA Major version: {{ hana_major_version }}
+                                         - HANA SPS level: {{ hana_sps_level }}
+                                         - Meets requirements: {{ hana_version_ok }}
+
+# Basic SAPHanaSR Python Hook Check
+- name:                                "5.5.2 HANA Pacemaker - Validate SAPHanaSR Python hook requirements"
+  when:
+                                       - hana_version_ok
+                                       - not is_certified_for_hanasr_angi | default(false)
+                                       - ansible_os_family | upper == 'SUSE'
+  ansible.builtin.assert:
+    that:
+                                       - "hana_major_version is version(min_hana_major_version, '>=')"
+                                       - "saphanaSR_version is version(min_saphanaSR_version, '>=')"
+    success_msg:                       "Basic SAPHanaSR Python hook requirements met"
+    fail_msg: |
+                                       Basic SAPHanaSR Python hook requirements not met:
+                                         - Required: HANA 2.0 or higher (Current: {{ hana_major_version }}.0)
+                                         - Required: SAPHanaSR {{ min_saphanaSR_version }} or higher (Current: {{ saphanaSR_version }})
+  register:                            basic_hook_check
+
+# susChkSrv Python Hook Check
+- name:                                "5.5.2 HANA Pacemaker - Validate susChkSrv Python hook requirements"
+  when:
+                                       - hana_version_ok
+                                       - not is_certified_for_hanasr_angi | default(false)
+                                       - ansible_os_family | upper == 'SUSE'
+  ansible.builtin.assert:
+    that:
+                                       - "hana_major_version is version(min_hana_major_version, '>=')"
+                                       - "hana_sps_level is version(min_hana_sps_level, '>=')"
+                                       - "saphanaSR_version is version(min_saphanaSR_version_suschk, '>=')"
+    success_msg:                       "susChkSrv Python hook requirements met"
+    fail_msg: |
+                                       susChkSrv Python hook requirements not met:
+                                       - Required: HANA 2.0 SPS 05 or higher (Current: {{ hana_major_version }}.0 SPS {{ hana_sps_level }})
+                                       - Required: SAPHanaSR {{ min_saphanaSR_version_suschk }} or higher (Current: {{ saphanaSR_version }})
+  register:                            suschk_hook_check
+
+# SAPHanaSR-angi Python Hook Check
+# currently we do not have any version requirements for SAPHanaSR-angi
+- name:                                "5.5.2 HANA Pacemaker - Validate SAPHanaSR-angi Python hook requirements"
+  when:
+                                       - ansible_os_family | upper == 'SUSE'
+                                       - is_certified_for_hanasr_angi | default(false)
+                                       - use_hanasr_angi | default(false)
+  ansible.builtin.assert:
+    that:
+                                       - "hana_major_version is version(min_hana_major_version, '>=')"
+                                       - "hana_sps_level is version(min_hana_sps_level, '>=')"
+                                       - "saphanaSR_angi_version is version('0.0.0', '>')"
+    success_msg:                       "SAPHanaSR-angi Python hook requirements met"
+    fail_msg: |
+                                       SAPHanaSR-angi Python hook requirements not met:
+                                         - Required: HANA 2.0 SPS 05 or higher (Current: {{ hana_major_version }}.0 SPS {{ hana_sps_level }})
+                                         - Required: SUSE for SAP Applications 15 SP4, SP5, or SP6 (Current: {{ distribution_full_id }})
+                                         - Required: SAPHanaSR-angi, should be installed
+  register:                            angi_hook_check
+
 
 # /*---------------------------------------------------------------------------8

@@ -3,12 +3,12 @@
 
 # ---
 
-- name:                                Restart waagent
+- name:                                "1.1 Swap - Restart waagent"
   ansible.builtin.service:
     name:                              waagent
     state:                             restarted
 
-- name:                                "Swap reboot"
+- name:                                "1.1 Swap - Reboot"
   become:                              true
   become_user:                         root
   ansible.builtin.reboot:

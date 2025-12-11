@@ -118,14 +118,8 @@ variable "key_vault"                                    {
 
 variable "additional_users_to_add_to_keyvault_policies" { description = "Additional users to add to the key vault policies" }
 
-variable "enable_purge_control_for_keyvaults"           { description = "Disables the purge protection for Azure keyvaults." }
-
-
-variable "enable_rbac_authorization_for_keyvault"       { description = "Enables RBAC authorization for Azure keyvault" }
-
 variable "keyvault_private_endpoint_id"                 { description = "Existing private endpoint for key vault" }
 
-variable "soft_delete_retention_days"                   { description = "The number of days that items should be retained in the soft delete period" }
 
 
 #########################################################################################
