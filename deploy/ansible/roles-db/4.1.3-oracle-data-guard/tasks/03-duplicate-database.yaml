@@ -41,24 +41,29 @@
 
 - name:                                "4.1.3 Oracle Data Guard - Duplicate - Determine if RMAN duplicate is required"
   ansible.builtin.set_fact:
-    rman_duplication_required:         "{%if not datafile_count.stdout is defined %}true | bool {% else %} {{ ((datafile_count.stdout | trim | int == 0) or (datafile_count.stderr is search('ORA-01507')) | bool) }} {% endif %}"
+    rman_duplication_required:         "{%if not datafile_count.stdout is defined %}True{% else %} {{ ((datafile_count.stdout | trim | int == 0) or (datafile_count.stderr is search('ORA-01507')) | bool) }} {% endif %}"
 
 - name:                                "4.1.3 Oracle Data Guard - Duplicate - Show if rman run is required"
   ansible.builtin.debug:
     msg:
      - "Database duplication required: {{ rman_duplication_required }}"
 
+- name:                                "4.1.3 Oracle Data Guard - Duplicate - Startup standby if not 'Running'"
+  when:
+    - datafile_count.stdout is defined
+    - datafile_count.stdout is search('ORA-01034')
+  block:
+
+    - name:                            "4.1.3 Oracle Data Guard: - Restart Secondary"
+      ansible.builtin.include_tasks:   "00-restart-instance.yaml"
+      vars:
+        current_sid:                   "{{ db_sid | upper }}_STDBY"
+        use_pfile_on_startup:           true
+
 - name:                                "4.1.3 Oracle Data Guard - Configure Data Guard"
   when:
     - rman_duplication_required | bool
   block:
-
-    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Startup standby if not 'Running'"
-
-      ansible.builtin.include_tasks:   "00-restart-instance.yaml"
-      vars:
-        current_sid:                   "{{ db_sid | upper }}_STDBY"
-        use_pfile_on_startup:          true
 
     - name:                            "4.1.3 Oracle Data Guard - Duplicate database using RMAN (ASM)"
       when:                            node_tier == "oracle-asm"
