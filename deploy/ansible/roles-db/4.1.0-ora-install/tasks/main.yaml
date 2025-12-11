@@ -107,7 +107,7 @@
   ansible.builtin.stat:
     path:                              "{{ target_media_location }}/SAP/SAP/RUNINSTALLER"
   register:                            oracle_media_installed
-  
+
 - name:                                "4.1.0 Oracle Installation - Check oradism exists"
   ansible.builtin.assert:
     that:
