@@ -13,7 +13,15 @@ locals {
   vnet_sap_exists                      = length(local.vnet_sap_arm_id) > 0 ? true : false
 
 
-  db_sid                              = upper(try(local.database.instance.sid, "HDB"))
+  db_sid                              =  coalesce(
+                                           var.database_sid,
+
+                                           upper(var.database_platform) == "HANA" ? (
+                                             "HDB"
+                                             ) : (
+                                           coalesce(var.sid,substr(var.database_platform, 0, 3)))
+                                         )
+
   sap_sid                             = upper(try(local.application_tier.sid, local.db_sid))
   web_sid                             = upper(try(var.web_sid, local.sap_sid))
 

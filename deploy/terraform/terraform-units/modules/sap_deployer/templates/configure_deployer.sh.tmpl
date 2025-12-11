@@ -168,7 +168,7 @@ rg_name="${rg_name}"
 terraform_version="${terraform_version}"
 
 if [ -z "$${terraform_version}" ]; then
-  terraform_version="1.14.0"
+  terraform_version="1.14.1"
 fi
 ARM_CLIENT_ID="${client_id}"
 ARM_SUBSCRIPTION_ID="${subscription_id}"
@@ -484,7 +484,7 @@ ubuntu)
   fi
   ;;
 sles)
-  echo "we are inside SLES block"
+  echo "we are inside SUSE block"
   ansible_version="2.11"
   ansible_major="$${ansible_version%%.*}"
   ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)

@@ -115,7 +115,7 @@
       failed_when:                     db2_installation.rc > 0
       # 2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912
 
-    - name:                            "4.2.0. DB2 Installation - check if ARM Deployment done"
+    - name:                            "4.2.0. DB2 Installation - Check if ARM Deployment done"
       ansible.builtin.stat:
         path:                          "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_db_arm.txt"
       register:                        db_arm_deployment_done

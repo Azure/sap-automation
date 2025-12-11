@@ -96,7 +96,7 @@ fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.13.3}"
+	configureNonDeployer "${tf_version:-1.14.1}"
 fi
 echo -e "$green--- az login ---$reset"
 # Set logon variables
@@ -344,12 +344,6 @@ if [ -f "${SID}_hosts.yaml" ]; then
 	added=1
 fi
 
-if [ -f "${SID}.md" ]; then
-	git add "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDERNAME/${SID}.md"
-	# echo "##vso[task.uploadsummary]./${SID}.md)"
-	added=1
-fi
-
 if [ -f "${SID}_inventory.md" ]; then
 	git add "${SID}_inventory.md"
 	added=1
@@ -370,8 +364,7 @@ if [ -f "${SID}_virtual_machines.json" ]; then
 	added=1
 fi
 
-if [ -f "${SID}.md" ]; then
-	sudo cp "${SID}.md" "readme.md"
+if [ -f "readme.md" ]; then
 	git add "readme.md"
 	added=1
 fi
@@ -379,18 +372,17 @@ fi
 
 # Commit changes based on platform
 if [ 1 = $added ]; then
+	commit_message="Added updates from SAP System Infrastructure Deployment of $SAP_SYSTEM_FOLDERNAME [skip ci]"
 	if [ "$PLATFORM" == "devops" ]; then
 		git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 		git config --global user.name "$BUILD_REQUESTEDFOR"
-		commit_message="Added updates from SAP System Infrastructure Deployment of $SAP_SYSTEM_FOLDERNAME [skip ci]"
+
 	elif [ "$PLATFORM" == "github" ]; then
 		git config --global user.email "github-actions@github.com"
 		git config --global user.name "GitHub Actions"
-		commit_message="Added updates from SAP System Infrastructure Deployment of $SAP_SYSTEM_FOLDERNAME [skip ci]"
 	else
 		git config --global user.email "local@example.com"
 		git config --global user.name "Local User"
-		commit_message="Added updates from SAP System Infrastructure Deployment of $SAP_SYSTEM_FOLDERNAME [skip ci]"
 	fi
 
 	if [ "$DEBUG" = True ]; then
@@ -424,11 +416,10 @@ fi
 # Platform-specific summary handling
 if [ -f "${SID}.md" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-	  cat "${SID}.md"
-	  sudo cp "${SID}.md" "$AGENT_TEMPDIRECTORY/${SID}.md"
+	  sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/${SID}.md"
 		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${SID}.md;]$AGENT_TEMPDIRECTORY/${SID}.md"
 	elif [ "$PLATFORM" == "github" ]; then
-		cat "${SID}.md" >>$GITHUB_STEP_SUMMARY
+		cat "readme.md" >>$GITHUB_STEP_SUMMARY
 	fi
 fi
 

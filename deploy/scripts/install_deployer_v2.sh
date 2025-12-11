@@ -281,6 +281,61 @@ function install_deployer() {
 				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -force-copy -backend-config "path=${param_dirname}/terraform.tfstate"; then
 					return_value=$?
 					print_banner "$banner_title" "Terraform init succeeded. State migrated" "success"
+
+					moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_state_file_name"
+					if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+							echo "Setting 'deployer_state_file_name' removed from state"
+						fi
+					fi
+
+					moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_keyvault_name"
+					if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+							echo "Setting 'deployer_keyvault_name' removed from state"
+						fi
+					fi
+
+					moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_keyvault_id"
+					if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+							echo "Setting 'deployer_keyvault_id' removed from state"
+						fi
+					fi
+					moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_resourcegroup_name"
+					if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+							echo "Setting 'deployer_resourcegroup_name' removed from state"
+						fi
+					fi
+					moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_subscription_id"
+					if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+							echo "Setting 'deployer_subscription_id' removed from state"
+						fi
+					fi
+
+					moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_network_id"
+					if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+							echo "Setting 'deployer_network_id' removed from state"
+						fi
+					fi
+
+					moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_msi_id"
+					if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+							echo "Setting 'deployer_msi_id' removed from state"
+						fi
+					fi
+
+					moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_subnet_id"
+					if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
+						if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
+							echo "Setting 'deployer_subnet_id' removed from state"
+						fi
+					fi
+
 				else
 					return_value=$?
 					print_banner "$banner_title" "Terraform init failed. State not migrated." "error"

@@ -37,7 +37,7 @@
         - { dest: '/db2/{{ db_sid }}/saptmp3' }
         - { dest: '/db2/{{ db_sid }}/saptmp4' }
 
-    - name:                            "DB2 - check if database is already started"
+    - name:                            "DB2- Check if database is already started"
       ansible.builtin.shell:           ps -eaf | grep -i {{ db_sid | upper }} | grep db2sysc | grep -v grep | wc -l
       register:                        db2_started
       ignore_errors: true

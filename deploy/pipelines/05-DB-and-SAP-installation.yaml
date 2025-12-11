@@ -144,6 +144,10 @@ stages:
             parameters:
               getLatestFromBranch:                true
           - task:                                 PostBuildCleanup@4
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
+            displayName:                          Install Terraform
+            inputs:
+              terraformVersion:                   $(tf_version)
           - task:                                 Bash@3
             inputs:
               targetType:                         'filePath'
@@ -158,7 +162,7 @@ stages:
           - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName:                          Install Terraform
             inputs:
-              terraformVersion:                   latest
+              terraformVersion:                   $(tf_version)
 
           - task:                                 Bash@3
             inputs:
@@ -196,6 +200,7 @@ stages:
               ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              BOM_BASE_NAME:                      ${{ parameters.bom_base_name }}
               SAP_SYSTEM_CONFIGURATION_NAME:      ${{ parameters.sap_system_configuration_name }}
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
               USE_MSI:                            $(Use_MSI)
@@ -218,6 +223,7 @@ stages:
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
                   USE_MSI:                        $(Use_MSI)
@@ -240,6 +246,7 @@ stages:
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
                   USE_MSI:                        $(Use_MSI)
@@ -262,6 +269,7 @@ stages:
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
                   USE_MSI:                        $(Use_MSI)
@@ -284,6 +292,7 @@ stages:
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
                   USE_MSI:                        $(Use_MSI)
@@ -306,6 +315,7 @@ stages:
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
                   USE_MSI:                        $(Use_MSI)
@@ -328,6 +338,7 @@ stages:
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
                   USE_MSI:                        $(Use_MSI)
@@ -350,6 +361,7 @@ stages:
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
                   USE_MSI:                        $(Use_MSI)
@@ -372,6 +384,7 @@ stages:
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
                   USE_MSI:                        $(Use_MSI)
@@ -394,6 +407,7 @@ stages:
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
                   USE_MSI:                        $(Use_MSI)
@@ -416,6 +430,7 @@ stages:
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
                   USE_MSI:                        $(Use_MSI)
@@ -438,6 +453,7 @@ stages:
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -455,6 +471,7 @@ stages:
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -470,46 +487,48 @@ stages:
                 parameters:
                   displayName:                    "ACSS Registration"
                   ansibleFilePath:                ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_00_acss_registration.yaml
-                  ansibleConfigPath:              ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                     $(Preparation.SSH_KEY_NAME)
-                  passwordSecretName:             $(Preparation.PASSWORD_KEY_NAME)
-                  userNameSecretName:             $(Preparation.USERNAME_KEY_NAME)
-                  vaultName:                      $(KEYVAULT)
-                  parametersFolder:               $(Preparation.FOLDER)
-                  sapParams:                      ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
-                  sidHosts:                       $(Preparation.HOSTS)
-                  extraParams:                    $(Preparation.NEW_PARAMETERS)
                   ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
-                  ARM_TENANT_ID:                  $(ARM_TENANT_ID)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
+                  ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
+                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
+                  USE_MSI:                        $(Use_MSI)
                   acssEnvironment:                ${{ parameters.acss_environment }}
                   acssSapProduct:                 ${{ parameters.acss_sap_product }}
-                  USE_MSI:                        $(Use_MSI)
-                  SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  remoteStateStorageAccount:      $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  ansibleConfigPath:              ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
+                  extraParams:                    $(Preparation.NEW_PARAMETERS)
+                  parametersFolder:               $(Preparation.FOLDER)
+                  passwordSecretName:             $(Preparation.PASSWORD_KEY_NAME)
+                  remoteStateStorageAccount:      $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  sapParams:                      ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+                  secretName:                     $(Preparation.SSH_KEY_NAME)
+                  sidHosts:                       $(Preparation.HOSTS)
+                  userNameSecretName:             $(Preparation.USERNAME_KEY_NAME)
+                  vaultName:                      $(KEYVAULT)
           - ${{ if eq(parameters.ams_provider, true) }}:
               - template:                         templates\run-ansible.yaml
                 parameters:
                   displayName:                    "AMS Provider Creation"
                   ansibleFilePath:                ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_01_ams_monitoring.yaml
                   ansibleConfigPath:              ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
-                  secretName:                     $(Preparation.SSH_KEY_NAME)
-                  passwordSecretName:             $(Preparation.PASSWORD_KEY_NAME)
-                  userNameSecretName:             $(Preparation.USERNAME_KEY_NAME)
-                  vaultName:                      $(KEYVAULT)
-                  parametersFolder:               $(Preparation.FOLDER)
-                  sapParams:                      ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
-                  sidHosts:                       $(Preparation.HOSTS)
-                  extraParams:                    ${{ parameters.extra_params }}
                   ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
-                  ARM_TENANT_ID:                  $(ARM_TENANT_ID)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
+                  ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  remoteStateStorageAccount:      $(TERRAFORM_STATE_STORAGE_ACCOUNT)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
+                  extraParams:                    ${{ parameters.extra_params }}
+                  parametersFolder:               $(Preparation.FOLDER)
+                  passwordSecretName:             $(Preparation.PASSWORD_KEY_NAME)
+                  remoteStateStorageAccount:      $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+                  sapParams:                      ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+                  secretName:                     $(Preparation.SSH_KEY_NAME)
+                  sidHosts:                       $(Preparation.HOSTS)
+                  userNameSecretName:             $(Preparation.USERNAME_KEY_NAME)
+                  vaultName:                      $(KEYVAULT)
           - template:                             templates\collect-log-files.yaml
             parameters:
               logPath:                            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs

@@ -13,6 +13,13 @@
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
+
+  vars:
+    distro_name:                       "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+    distribution_id:                   "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+    distribution_full_id:              "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+    distro_family:                     "{{ ansible_os_family | upper }}"
+
   tasks:
 
     - name:                            "Database High Availability Configuration Playbook: Backward Compatibility - Check required Database HA variables"
@@ -204,7 +211,6 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/5.5-hanadb-pacemaker
               when:
-                                       - database_high_availability
                                        - not database_scale_out
               tags:
                                        - 5.5-hanadb-pacemaker
@@ -213,7 +219,6 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/5.8-hanadb-scaleout-pacemaker
               when:
-                                       - database_high_availability
                                        - database_scale_out
               tags:
                                        - 5.8-hanadb-scaleout-pacemaker
@@ -245,7 +250,7 @@
     oracle_sid:                        "{{ db_sid | upper }}"
     oracle_user:                       "{{ oracle_user_name }}"
     grid_sid:                          "GRID"
-    grid_user:                         "{{ grid_user_name | default(oracle_user_name) }}"
+    grid_user:                         "{% if platform in ['ORACLE-ASM'] %}{{ grid_user_name | default(oracle_user_name) }}{% else %}{{ oracle_user_name }}{% endif %}"
     grid_home:                         "/oracle/GRID/{{ ora_version }}"
     asm_sid:                           +ASM
 
@@ -269,10 +274,10 @@
       LD_LIBRARY_PATH:                 "{{ oracle_home }}/lib"
 
     grid_env:
-      ORACLE_HOME:                     "{{ grid_home }}"
-      ORACLE_SID:                      "{{ asm_sid }}"
-      PATH:                            "{{ grid_home }}/bin:{{ ansible_env.PATH }}"
-      LD_LIBRARY_PATH:                 "{{ grid_home }}/lib"
+      ORACLE_HOME:                     "{% if platform in ['ORACLE-ASM'] %}{{ grid_home }}{% else %}{{ oracle_home }}{% endif %}"
+      ORACLE_SID:                      "{% if platform in ['ORACLE-ASM'] %}{{ asm_sid }}{% else %}{{ oracle_sid }}{% endif %}"
+      PATH:                            "{% if platform in ['ORACLE-ASM'] %}{{ grid_home }}/bin:{{ ansible_env.PATH }}{% else %}{{ oracle_home }}/bin:{{ ansible_env.PATH }}{% endif %}"
+      LD_LIBRARY_PATH:                 "{% if platform in ['ORACLE-ASM'] %}{{ grid_home }}/lib{% else %}{{ oracle_home }}/lib{% endif %}"
 
   tasks:
     - name:                            "Database High Availability Configuration Playbook - ORACLE : Backward Compatibility - Check required Database HA variables"
@@ -371,56 +376,58 @@
       ORACLE_SID:                      "{{ oracle_sid }}_STDBY"
 
   tasks:
-    - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Backward Compatibility - Check required Database HA variables"
-      ansible.builtin.set_fact:
-        database_high_availability:    "{{ db_high_availability | default(false) }}"
-      when:
-        - db_high_availability is defined
-        - database_high_availability is not defined
-
-    - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Get Instance names"
-      ansible.builtin.set_fact:
-        primary_observer_name :        "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
-        secondary_observer_name:       "{{ ansible_play_hosts_all[1] | default('N/A') }}"         # Setting up Secondary Instance Name
-        tertiary_observer_name:        "{{ ansible_play_hosts_all[2] | default('N/A') }}"         # Setting up Tertiary Instance Name
-
     - name:                            "Database High Availability Configuration Playbook - ORACLE Observer :  Observer setup"
       become:                          true
       when:
         - database_high_availability
         - platform in ['ORACLE', 'ORACLE-ASM']
       block:
-        - name:                          "Database High Availability Configuration Playbook - ORACLE Observer : Setting the DB facts"
+
+        - name:                        "Database High Availability Configuration Playbook - ORACLE Observer : Backward Compatibility - Check required Database HA variables"
           ansible.builtin.set_fact:
-            node_tier:                   observer
-            action:                      'Setup_Observer'
-            main_password:               "{{ hostvars.localhost.sap_password }}"
+            database_high_availability: "{{ db_high_availability | default(false) }}"
+          when:
+            - db_high_availability is defined
+            - database_high_availability is not defined
+
+        - name:                        "Database High Availability Configuration Playbook - ORACLE Observer : Get Instance names"
+          ansible.builtin.set_fact:
+            primary_observer_name :    "{{ ansible_play_hosts_all[0] }}"        # Setting up Primary Instance Name
+            secondary_observer_name:   "{{ ansible_play_hosts_all[1] | default('N/A') }}"         # Setting up Secondary Instance Name
+            tertiary_observer_name:    "{{ ansible_play_hosts_all[2] | default('N/A') }}"         # Setting up Tertiary Instance Name
+
+
+        - name:                        "Database High Availability Configuration Playbook - ORACLE Observer : Setting the DB facts"
+          ansible.builtin.set_fact:
+            node_tier:                 observer
+            action:                    'Setup_Observer'
+            main_password:             "{{ hostvars.localhost.sap_password }}"
             sapbits_location_base_path:  "{{ hostvars.localhost.sapbits_location_base_path }}"
-            sapbits_sas_token:           "{{ hostvars.localhost.sapbits_sas_token }}"
+            sapbits_sas_token:         "{{ hostvars.localhost.sapbits_sas_token }}"
 
           tags:
             - always
 
         # Specify the active tier for this playbook run
 
-        - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Check if the mounts are made"
+        - name:                        "Database High Availability Configuration Playbook - ORACLE Observer : Check if the mounts are made"
           ansible.builtin.include_role:
-            name:                          roles-sap-os/2.6-sap-mounts
+            name:                      roles-sap-os/2.6-sap-mounts
           vars:
-            tier:                          sapos
+            tier:                      sapos
 
-        - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Oracle Observer setup"
+        - name:                        "Database High Availability Configuration Playbook - ORACLE Observer : Oracle Observer setup"
           ansible.builtin.include_role:
-            name:                          roles-db/4.1.4-oracle-data-guard-observer
+            name:                      roles-db/4.1.4-oracle-data-guard-observer
           vars:
-            tier:                          observer
+            tier:                      observer
 
-        - name:                            "Database High Availability Configuration Playbook - ORACLE Observer : Run post installation routines"
+        - name:                        "Database High Availability Configuration Playbook - ORACLE Observer : Run post installation routines"
           ansible.builtin.include_role:
-            name:                          roles-sap/7.0.0-post-install
+            name:                      roles-sap/7.0.0-post-install
           vars:
-            suffix:                        "_OBSERVER"
-            tier:                          'oracle'
+            suffix:                    "_OBSERVER"
+            tier:                      'oracle'
 
 # # /*-------------------------------------------------------------------------8
 # # |                                                                          |
@@ -447,6 +454,12 @@
   gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml             # API Input template with defaults
+
+  vars:
+    distro_name:                       "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+    distribution_id:                   "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+    distribution_full_id:              "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+    distro_family:                     "{{ ansible_os_family | upper }}"
 
   # -----------------------------------+---------------------------------------8
   #
@@ -627,7 +640,7 @@
             path:                              '{{ sap_deployment_automation }}\{{ sap_sid | upper }}'
             state:                             directory
 
-        - name:                                "Database High Availability Configuration Playbook - SQL Server - check if SQL Server service is started"
+        - name:                                "Database High Availability Configuration Playbook - SQL Server - Check if SQL Server service is started"
           ansible.windows.win_service_info:
             name:                              MSSQLServer
           register:                            sql_service

@@ -9,7 +9,9 @@ locals {
   tfstate_storage_account_name         = local.parsed_tfstate_id["resource_name"]
   ansible_container_name               = try(var.naming.resource_suffixes.ansible, "ansible")
 
-  kv_name                              = split("/", var.sid_keyvault_user_id)[8]
+  key_vault_name                       = split("/", var.sid_keyvault_user_id)[8]
+  key_vault_resource_group             = split("/", var.sid_keyvault_user_id)[4]
+  key_vault_subscription_id            = split("/", var.sid_keyvault_user_id)[2]
 
   landscape_tfstate                    = var.landscape_tfstate
   ips_dbnodes_admin                    = var.database_admin_ips
@@ -67,5 +69,7 @@ locals {
                                            distinct(flatten([for idx, vm in var.iSCSI_server_names : [
                                               format("{ host: '%s', ip : %s, iqn: %s, type: 'db' }", vm, var.iSCSI_server_ips[idx], local.db_iqn)]]))) : (
                                           [])
+
+  use_local_credentials                = length(var.authentication) > 0
 
 }

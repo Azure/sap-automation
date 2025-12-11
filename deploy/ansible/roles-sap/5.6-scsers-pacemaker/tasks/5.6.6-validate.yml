@@ -5,12 +5,12 @@
 
 # Validate that the SCS cluster is working as expected
 
-- name:                                "5.6 SCS/ERS Validation: - Set Python version {{ distribution_id }}"
+- name:                                "5.6.6 SCS/ERS Pacemaker - Validation - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version: "python2"
   when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
 
-- name:                                "5.6 SCS/ERS Validation: Get sapcontrol path"
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - Validation - Get sapcontrol path"
   become_user:                         "root"
   become:                              true
   ansible.builtin.find:
@@ -21,12 +21,12 @@
     follow:                            true
   register:                            sapcontrol_file
 
-- name:                                "5.6 SCS/ERS Validation: Set sapcontrol path"
+- name:                                "5.6.4.3 SCS/ERS Pacemaker - Validation - Set sapcontrol path"
   ansible.builtin.set_fact:
     sapcontrol_path:                   "{{ sapcontrol_file.files[0].path }}"
   when: sapcontrol_file | length > 0
 
-- name:                                "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"
+- name:                                "5.6.4.4 SCS/ERS Pacemaker - Validation - Determine if SCS is running on {{ ansible_hostname }}"
   become_user:                         "root"
   become:                              true
   when:
@@ -34,7 +34,7 @@
   block:
 
     # {{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
-    - name:                            "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"
+    - name:                            "5.6.4.4 SCS/ERS Pacemaker - Validation - Determine if SCS is running on {{ ansible_hostname }}"
       ansible.builtin.shell:           "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList"
       changed_when:                    false
       failed_when:                     false
@@ -52,7 +52,7 @@
         LD_LIBRARY_PATH:               /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
         SAPSYSTEMNAME:                 "{{ sap_sid | upper }}"
 
-    - name:                            "5.6 SCS/ERS Validation: Show if SCS is running on {{ ansible_hostname }}"
+    - name:                            "5.6.6 SCS/ERS Pacemaker - Validation - Show if SCS is running on {{ ansible_hostname }}"
       ansible.builtin.debug:
         msg:                           "SCS status: {{ is_running.stdout_lines }}"
       when:                            is_running.stdout_lines is defined
@@ -60,14 +60,14 @@
     # when the rc is 3, the SCS is running on ansible_hostname.
     # if the ansible_hostname is not the primary_instance_name, then failover cluster resources for ASCS/SCS
     # start the SAP instance on primary_instance_name. This is a failover scenario.
-    - name:                            "5.6 SCS/ERS Validation: Validate that SCS is running on {{ ansible_hostname }}"
+    - name:                            "5.6.6 SCS/ERS Pacemaker - Validation - Validate that SCS is running on {{ ansible_hostname }}"
       ansible.builtin.set_fact:
         scs_running_on:               "{{ ansible_hostname }}"
       when:
         - is_running.rc == 3
         - is_running.stdout | regex_search('MessageServer')
 
-    - name:                            "Check where the cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is running"
+    - name:                            "5.6.6 SCS/ERS Pacemaker - Validation - Check where the cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} is running"
       vars:
         allow_world_readable_tmpfiles: true
         ansible_python_interpreter:    "{{ python_version }}"
@@ -79,7 +79,7 @@
       failed_when:                     false
       register:                        cluster_group_location
 
-    - name:                            "5.6 SCS/ERS Validation: Cluster variables"
+    - name:                            "5.6.6 SCS/ERS Pacemaker - Validation - Cluster variables"
       ansible.builtin.debug:
         msg:
           - "Cluster group location: {{ cluster_group_location.stdout_lines }}"
@@ -88,14 +88,14 @@
       when:
         - cluster_group_location.stdout_lines is defined
 
-    - name:                            "5.6 SCS/ERS Validation: Move cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} to {{ primary_instance_name }}"
+    - name:                            "5.6.6 SCS/ERS Pacemaker - Validation - Move cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} to {{ primary_instance_name }}"
       when:
         - primary_instance_name not in cluster_group_location.stdout_lines
         - scs_running_on is not defined
       block:
 
             # move cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} to primary_instance_name
-        - name:                        "5.6 SCS/ERS Validation: Move cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} to {{ primary_instance_name }}"
+        - name:                        "5.6.6 SCS/ERS Pacemaker - Validation - Move cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} to {{ primary_instance_name }}"
           ansible.builtin.shell:       "crm resource move g-{{ sap_sid | upper }}_{{ instance_type | upper }} {{ primary_instance_name }}"
           vars:
             allow_world_readable_tmpfiles: true
@@ -107,7 +107,7 @@
           register:                    cluster_group_moved
 
         # move cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} to primary_instance_name
-        - name:                        "5.6 SCS/ERS Validation: Move cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} to {{ primary_instance_name }}"
+        - name:                        "5.6.6 SCS/ERS Pacemaker - Validation - Move cluster group g-{{ sap_sid | upper }}_{{ instance_type | upper }} to {{ primary_instance_name }}"
           ansible.builtin.shell:       "pcs resource move g-{{ sap_sid | upper }}_{{ instance_type | upper }} {{ primary_instance_name }}"
           vars:
             allow_world_readable_tmpfiles: true
@@ -118,15 +118,15 @@
           failed_when:                 false
           changed_when:                false
 
-        - name:                        "5.6 SCS/ERS Validation: Wait {{ scs_wait_for_start_in_sec }} seconds for the StartService {{ sap_sid | upper }} to finish"
+        - name:                        "5.6.6 SCS/ERS Pacemaker - Validation - Wait {{ scs_wait_for_start_in_sec }} seconds for the StartService {{ sap_sid | upper }} to finish"
           ansible.builtin.debug:
             msg:                       "Wait for {{ scs_wait_for_start_in_sec }} seconds for the StartService {{ sap_sid | upper }} to finish"
 
-        - name:                        "5.6 SCS/ERS Validation: Wait {{ scs_wait_for_start_in_sec }} seconds for the StartService {{ sap_sid | upper }} to finish"
+        - name:                        "5.6.6 SCS/ERS Pacemaker - Validation - Wait {{ scs_wait_for_start_in_sec }} seconds for the StartService {{ sap_sid | upper }} to finish"
           ansible.builtin.wait_for:
             timeout:                   "{{ scs_wait_for_start_in_sec }}"
 
-    - name:                            "5.6 SCS/ERS Validation: Validate Cluster resource move and SAP start when the group g-{{ sap_sid | upper }}_{{ instance_type | upper }} has moved"
+    - name:                            "5.6.6 SCS/ERS Pacemaker - Validation - Validate Cluster resource move and SAP start when the group g-{{ sap_sid | upper }}_{{ instance_type | upper }} has moved"
       when:
         - scs_running_on is not defined
         - ansible_hostname == primary_instance_name
@@ -143,7 +143,7 @@
           failed_when:                 false
           changed_when:                false
 
-        - name:                        "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"
+        - name:                        "5.6.6 SCS/ERS Pacemaker - Validation - Determine if SCS is running on {{ ansible_hostname }}"
           ansible.builtin.shell:       "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function StartService {{ sap_sid | upper }}"
           changed_when:                false
           failed_when:                 false
@@ -161,12 +161,12 @@
             LD_LIBRARY_PATH:           /usr/sap/{{ sap_sid | upper }}/SYS/exe/run:/usr/sap/{ sap_sid | upper }}/SYS/exe/uc/linuxx86_64
             SAPSYSTEMNAME:             "{{ sap_sid | upper }}"
 
-        - name:                        "5.6 SCS/ERS Validation: Wait 60 secs for the StartService {{ sap_sid | upper }} to finish"
+        - name:                        "5.6.6 SCS/ERS Pacemaker - Validation - Wait 60 secs for the StartService {{ sap_sid | upper }} to finish"
           ansible.builtin.wait_for:
             timeout:                   60
 
         # {{ sapcontrol_path }} -nr {{ scs_instance_number }} -function GetProcessList | grep MessageServer | awk '{split($0,result,", "); print result[1],result[3] }'
-        - name:                        "5.6 SCS/ERS Validation: Determine if SCS is running on {{ ansible_hostname }}"
+        - name:                        "5.6.6 SCS/ERS Pacemaker - Validation - Determine if SCS is running on {{ ansible_hostname }}"
           ansible.builtin.shell:       "{{ sapcontrol_path }} -nr {{ scs_instance_number }} -function StartSystem ALL"
           changed_when:                false
           failed_when:                 false

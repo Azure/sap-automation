@@ -12,7 +12,7 @@ SCRIPT_NAME="$(basename "$0")"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]SAP Configuration and Installation of ${SAP_SYSTEM_CONFIGURATION_NAME:-}"
+	echo "##vso[build.updatebuildnumber]SAP Configuration and Installation of $SAP_SYSTEM_CONFIGURATION_NAME using BoM $BOM_BASE_NAME"
 fi
 
 # External helper functions
@@ -74,7 +74,7 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
 
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.13.3}"
+	configureNonDeployer "${tf_version:-1.14.1}"
 fi
 if [ "$PLATFORM" == "devops" ]; then
 	# Set logon variables
@@ -162,7 +162,6 @@ if [ ! -f "$SSH_KEY_NAME" ]; then
 else
 	echo "##[section]SSH key already exists, skipping retrieval."
 	sudo chmod 600 "$SSH_KEY_NAME"
-	ls -lart
 fi
 
 password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv)

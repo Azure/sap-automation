@@ -86,7 +86,7 @@ fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.13.3}"
+	configureNonDeployer "${tf_version:-1.14.1}"
 fi
 echo -e "$green--- az login ---$reset"
 # Set logon variables
@@ -303,7 +303,7 @@ else
 		git clean -d -f -X
 
 		if [ -f ".terraform/terraform.tfstate" ]; then
-			git rm --ignore-unmatch -q --ignore-unmatch ".terraform/terraform.tfstate"
+			git rm -f --ignore-unmatch -q --ignore-unmatch ".terraform/terraform.tfstate"
 			changed=1
 		fi
 
@@ -318,17 +318,17 @@ else
 		fi
 
 		if [ -f "sap-parameters.yaml" ]; then
-			git rm --ignore-unmatch -q "sap-parameters.yaml"
+			git rm -f --ignore-unmatch -q "sap-parameters.yaml"
 			changed=1
 		fi
 
 		if [ -f "${SID}_hosts.yaml" ]; then
-			git rm --ignore-unmatch -q "${SID}_hosts.yaml"
+			git rm -f --ignore-unmatch -q "${SID}_hosts.yaml"
 			changed=1
 		fi
 
 		if [ -f "${SID}.md" ]; then
-			git rm --ignore-unmatch -q "${SID}.md"
+			git rm -f --ignore-unmatch -q "${SID}.md"
 			changed=1
 		fi
 
@@ -354,18 +354,17 @@ else
 
 		# Commit changes based on platform
 		if [ 1 == $changed ]; then
+			commit_message="Added updates from SAP System Infrastructure Removal of $SAP_SYSTEM_FOLDERNAME [skip ci]"
 			if [ "$PLATFORM" == "devops" ]; then
 				git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
 				git config --global user.name "$BUILD_REQUESTEDFOR"
-				commit_message="Added updates from SAP System Infrastructure Removal of $SAP_SYSTEM_FOLDERNAME [skip ci]"
+
 			elif [ "$PLATFORM" == "github" ]; then
 				git config --global user.email "github-actions@github.com"
 				git config --global user.name "GitHub Actions"
-				commit_message="Added updates from SAP System Infrastructure Removal of $SAP_SYSTEM_FOLDERNAME [skip ci]"
 			else
 				git config --global user.email "local@example.com"
 				git config --global user.name "Local User"
-				commit_message="Added updates from SAP System Infrastructure Removal of $SAP_SYSTEM_FOLDERNAME [skip ci]"
 			fi
 
 			if [ "$DEBUG" = True ]; then

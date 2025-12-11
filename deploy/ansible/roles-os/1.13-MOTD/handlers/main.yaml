@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-- name:                 "restart sshd service"
+- name:                 "1.13 MOTD - Restart sshd service"
   become:               true
   ansible.builtin.service:
     name:               sshd

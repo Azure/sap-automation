@@ -11,31 +11,31 @@
 
 # Mount Filesystems
 
-- name:                                "DB2: Get Logical volumes created in 1.5"
+- name:                                "2.6.4 SAP Mount - DB2 - Get Logical volumes created in 1.5"
   ansible.builtin.include_vars:        disks_config.yml
 
-- name:                                "DB2: Check if LVs exists."
+- name:                                "2.6.4 SAP Mount - DB2 - Check if  logical volumes exist."
   ansible.builtin.stat:
     path:                              "{{ dev_path_from_lv_item }}"
   loop:                                "{{ logical_volumes }}"
   register:                            db2volstat
 
-- name:                                "DB2: Debug - Show volume information"
+- name:                                "2.6.4 SAP Mount - DB2 - Debug - Show volume information"
   ansible.builtin.debug:
     var:                               db2volstat
     verbosity:                         2
 
-- name:                                "DB2: Gather existing LVs"
+- name:                                "2.6.4 SAP Mount - DB2 - Gather existing Logical Volumes"
   ansible.builtin.set_fact:
     lvexists:                          "{{ db2volstat.results | selectattr('stat.exists', 'equalto', true) | map(attribute='item.lv') | list }}"
 
-- name:                                "DB2: Show lvexists"
+- name:                                "2.6.4 SAP Mount - DB2 - Show existing Logical Volumes"
   ansible.builtin.debug:
-    var:                               lvexists
+    msg:                               "Existing Logical Volumes: {{ lvexists }}"
     verbosity:                         2
 
 # Mount Filesystems
-- name:                                "DB2: Mount Filesystems for DB2"
+- name:                                "2.6.4 SAP Mount - DB2 - Mount Filesystems for DB2"
   ansible.posix.mount:
     src:                               "{{ dev_path_from_lv_item }}"
     path: >-
@@ -63,7 +63,7 @@
     - item.node_tier == "db2"
     - item.lv in  lvexists
 
-- name:                                "DB2: Create sap_deployment_automation
+- name:                                "2.6.4 SAP Mount - DB2 - Create sap_deployment_automation
                                         folder"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
@@ -71,17 +71,17 @@
     state:                             directory
 
 # Debug - Fail
-# - name:                                "DB2: fail here"
+# - name:                                "2.6.4 SAP Mount - DB2 - fail here"
 #   ansible.builtin.fail:
 #     msg:                               "Fail after printing lv details"
 
-- name:                                "DB2: Make db2sid:dba as owners for DB2
+- name:                                "2.6.4 SAP Mount - DB2 - Make db2sid:dba as owners for DB2
                                         directories - check flag file"
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/filepermission.txt
   register:                            db2_permissions_set
 
-- name:                                "DB2: Make db2sid:dba as owners for DB2 directories"
+- name:                                "2.6.4 SAP Mount - DB2 - Make db2sid:dba as owners for DB2 directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -93,14 +93,14 @@
   when:
     - not db2_permissions_set.stat.exists
 
-- name:                                "DB2: Create sap_deployment_automation
+- name:                                "2.6.4 SAP Mount - DB2 - Create sap_deployment_automation
                                         folder"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
     mode:                              0755
     state:                             directory
 
-- name:                                "DB2: Create filepermission.txt"
+- name:                                "2.6.4 SAP Mount - DB2 - Create filepermission.txt"
   become:                              true
   become_user:                         root
   ansible.builtin.file:
@@ -108,21 +108,21 @@
     mode:                              0644
     state:                             touch
 
-- name:                                "DB2: Set NFS Server variable"
+- name:                                "2.6.4 SAP Mount - DB2 - Set NFS Server variable"
   ansible.builtin.set_fact:
     sapmnt_nfs_mount: >-
                                         {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}{{ sap_mnt }}{% else %}{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') | first }}:/sapmnt/{{ sap_sid | upper }}{% endif %}
 
-- name:                                "DB2: Set NFS Server variable"
+- name:                                "2.6.4 SAP Mount - DB2 - Set NFS Server variable"
   ansible.builtin.debug:
     var:  sapmnt_nfs_mount
 
-- name:                                "DB2: Set NFS Server options"
+- name:                                "2.6.4 SAP Mount - DB2 - Set NFS Server options"
   ansible.builtin.set_fact:
     sapmnt_nfs_opts: >-
                                         {% if (NFS_provider == 'AFS' or NFS_provider == 'ANF') and (sap_mnt is defined) %}rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp{% else %}defaults{% endif %}
 
-- name:                                "DB2: Set NFS Server options"
+- name:                                "2.6.4 SAP Mount - DB2 - Set NFS Server options"
   ansible.builtin.debug:
     var:  sapmnt_nfs_opts
 
@@ -146,9 +146,9 @@
     - sap_mnt is undefined
 
 # Debug for testing
-- name:                                "DB2: Print filesystems"
+- name:                                "2.6.4 SAP Mount - DB2 - Show file systems"
   ansible.builtin.debug:
-    var:                               db2fsmounts
+    msg:                               "DB2 Filesystems: {{ db2fsmounts }}"
     verbosity:                         2
 
 ...

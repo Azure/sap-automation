@@ -18,14 +18,15 @@ source "${parent_directory}/helper.sh"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in ${DEPLOYER_FOLDERNAME}"
-	DEBUG=false
-	if [ "${SYSTEM_DEBUG:-False}" == True ]; then
+	if [ "${SYSTEM_DEBUG:-false}" == true ]; then
 		set -x
 		DEBUG=true
 		echo "Environment variables:"
 		printenv | sort
+	else
+		DEBUG=false
 	fi
+
 fi
 
 export DEBUG
@@ -93,6 +94,9 @@ if [ "$PLATFORM" == "devops" ]; then
 	else
 		echo "##vso[task.logissue type=warning]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
 	fi
+
+	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
+	DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT")
 
 elif [ "$PLATFORM" == "github" ]; then
 	echo "Configuring for GitHub Actions"
@@ -238,12 +242,18 @@ if printenv ARM_SUBSCRIPTION_ID; then
 	echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 fi
 
+if [ -v APPLICATION_CONFIGURATION_NAME ]; then
+  APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | where type == 'microsoft.appconfiguration/configurationstores' | where name == '${APPLICATION_CONFIGURATION_NAME}' | project id" --query "data[0].id" -o tsv 2>/dev/null || true)
+
+	export APPLICATION_CONFIGURATION_ID
+fi
+
 if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 	TF_VAR_management_subscription_id=$ARM_SUBSCRIPTION_ID
 	export TF_VAR_management_subscription_id
-else
-	unset APPLICATION_CONFIGURATION_NAME
 fi
+
+APPLICATION_CONFIGURATION_SUBSCRIPTION_ID=$(echo "${APPLICATION_CONFIGURATION_ID:-}" | cut -d'/' -f3 || true)
 
 # Force reset handling across platforms
 if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" ]; then
@@ -257,10 +267,16 @@ if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" 
 	sed -i 's/step=2/step=0/' "$deployer_environment_file_name"
 	sed -i 's/step=3/step=0/' "$deployer_environment_file_name"
 
-	tfstate_resource_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+	if [ -v TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME ]; then
+		tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	else
+		tfstate_resource_id=""
+	fi
+
 	if [ -z "$tfstate_resource_id" ]; then
+	  tfstate_resource_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
 		if [ "$PLATFORM" == "devops" ]; then
-			echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$application_configuration_name' )."
+			echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
 		else
 			echo "WARNING: Key '${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId' was not found in the application configuration."
 		fi
@@ -280,7 +296,13 @@ if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" 
 	if [ -n "${tfstate_resource_id}" ]; then
 		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 		az storage account network-rule add --account-name "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" --resource-group "$TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME" --ip-address "${this_ip}" --only-show-errors --output none
+		az storage account update --name "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" --resource-group "$TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME" --subscription "$ARM_SUBSCRIPTION_ID" --public-network-access Enabled --only-show-errors --output none
 	fi
+
+	if [ -n "${DEPLOYER_KEYVAULT:-}" ]; then
+		az keyvault update --name "$keyvault"  --subscription "$ARM_SUBSCRIPTION_ID" --public-network-access Enabled --only-show-errors --output none
+	fi
+
 
 	REINSTALL_ACCOUNTNAME=$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME
 	export REINSTALL_ACCOUNTNAME
@@ -514,6 +536,11 @@ fi
 
 if [ -f "{$deployer_tfvars_file_name}" ]; then
 	git add -f "{$deployer_tfvars_file_name}"
+	added=1
+fi
+
+if [ -f DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md ]; then
+	git add -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md"
 	added=1
 fi
 

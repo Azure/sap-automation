@@ -10,12 +10,12 @@
 # - SAP Note 2800357 infile_checker not able to Replicate Parameters although "replicate" is set to True
 # -------------------------------------+---------------------------------------8
 
-- name:                                "HANA HSR: - path to global.ini."
+- name:                                "4.0.1.5.0 HANA System Replication - Show path to global.ini."
   ansible.builtin.debug:
     msg:                               "{{ path_global_ini }}"
     verbosity:                         2
 
-- name:                                "HANA HSR: - Ensure options set in section [inifile_checker] of global.ini."
+- name:                                "4.0.1.5.0 HANA System Replication - Ensure options set in section [inifile_checker] of global.ini."
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
   community.general.ini_file:

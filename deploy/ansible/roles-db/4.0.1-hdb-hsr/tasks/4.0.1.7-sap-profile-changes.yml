@@ -8,14 +8,14 @@
 # To connect to the primary instance of the HSR configuration, the SAP application layer needs to use the    #
 # virtual IP address that you defined and configured for the Azure Load Balancer                             #
 ##############################################################################################################
-- name:                            "Backward Compatibility - Check required Database HA variables"
+- name:                                "4.0.1.7 Hana System Replication - Backward Compatibility - Check required Database HA variables"
   ansible.builtin.set_fact:
-    database_high_availability:    "{{ db_high_availability | default(false) }}"
+    database_high_availability:        "{{ db_high_availability | default(false) }}"
   when:
     - db_high_availability is defined
     - database_high_availability is not defined
 
-- name:                                "HSR 4.0.1.7 - SAP Profile changes - HANA Installations"
+- name:                                "4.0.1.7 Hana System Replication - SAP Profile changes - HANA Installations"
   when:
     - platform == 'HANA'
     - database_high_availability
@@ -29,7 +29,7 @@
       when:
         - database_high_availability
 
-    - name:                            "HSR 4.0.1.7 - SAP Profile changes - Set the DB virtual_host name"
+    - name:                            "4.0.1.7 Hana System Replication - SAP Profile changes - Set the DB virtual_host name"
       ansible.builtin.set_fact:
         db_lb_virtual_host:            "{% if database_high_availability %}{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
       when:
@@ -37,7 +37,7 @@
         - db_server_temp is defined
         - db_server_temp | length > 0
 
-    - name:                            "HSR: 4.0.1.7 - Check if SAP DEFAULT.PFL changes are needed"
+    - name:                            "4.0.1.7 Hana System Replication - Check if SAP DEFAULT.PFL changes are needed"
       ansible.builtin.lineinfile:
         path:                          "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
         regexp:                        "^SAPDBHOST = {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
@@ -48,7 +48,7 @@
       when:
         - database_high_availability
 
-    - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes "
+    - name:                            "4.0.1.7 Hana System Replication - SAP DEFAULT.PFL changes "
       ansible.builtin.replace:
         path:                          /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
         backup:                        true
@@ -71,14 +71,14 @@
       tags:
         - dbhostpara
 
-    - name:                            "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes for JAVA"
+    - name:                            "4.0.1.7 Hana System Replication - SAP DEFAULT.PFL changes for JAVA"
       when:
         - platform == 'HANA'
         - database_high_availability
         - instance_type is defined
         - instance_type == 'JAVA'
       block:
-        - name:                        "HSR: 4.0.1.7 - Check if SAP DEFAULT.PFL changes are needed for JAVA"
+        - name:                        "4.0.1.7 Hana System Replication - Check if SAP DEFAULT.PFL changes are needed for JAVA"
           ansible.builtin.lineinfile:
             path:                      "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
             regexp:                    "^j2ee/dbhost = {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}"
@@ -89,7 +89,7 @@
           when:
             - database_high_availability
 
-        - name:                        "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes for JAVA"
+        - name:                        "4.0.1.7 Hana System Replication - SAP DEFAULT.PFL changes for JAVA"
           ansible.builtin.replace:
             path:                      /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
             backup:                    true
@@ -101,7 +101,7 @@
           tags:
             - dbhostcomment
 
-        - name:                        "HSR: 4.0.1.7 - SAP DEFAULT.PFL changes - add db virtual hostname for JAVA"
+        - name:                        "4.0.1.7 Hana System Replication - SAP DEFAULT.PFL changes - add db virtual hostname for JAVA"
           ansible.builtin.lineinfile:
             path:                      /sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL
             line:                      j2ee/dbhost = {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}
@@ -112,7 +112,7 @@
           tags:
             - dbhostpara
 
-- name:                                "4.0.1.7 - Check if SAP DEFAULT.PFL changes are needed for rsdb/ssfs_connect"
+- name:                                "4.0.1.7 Hana System Replication - Check if SAP DEFAULT.PFL changes are needed for rsdb/ssfs_connect"
   ansible.builtin.lineinfile:
     path:                              "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
     regexp:                            "^rsdb/ssfs_connect = "

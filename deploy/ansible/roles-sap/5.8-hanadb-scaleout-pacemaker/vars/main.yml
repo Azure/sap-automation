@@ -28,6 +28,11 @@ cluster_status_cmd:
   RedHat: "pcs status --full"
   Suse: "crm status full"
 
+cluster_cleanup_cmd:
+  RedHat: "pcs resource cleanup"
+  Suse: "crm resource cleanup"
+
+
 cluster_status_report_wait_in_s:       60
 hsr_status_report_wait_in_s:           60
 rescue_hsr_status_report_wait_in_s:    120
