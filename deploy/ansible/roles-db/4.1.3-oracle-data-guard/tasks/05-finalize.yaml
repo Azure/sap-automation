@@ -174,6 +174,14 @@
       ansible.builtin.debug:
         msg:                           "Data Guard Configuration: {{ dgconfig_show_results.stdout }}"
 
+    - name:                            "4.1.3 Oracle Data Guard - Finalize - Set Flag File"
+      when:
+        - "'Physical standby database' in dgconfig_show_results.stdout"
+      ansible.builtin.file:
+        path:                          "/etc/sap_deployment_automation/dataguard_scripts/dg_configured.txt"
+        owner:                         "{{ oracle_user_name }}"
+        state:                         touch
+        mode:                          0755
 
     - name:                            "4.1.3 Oracle Data Guard - Finalize - Create HA Service on Primary"
       become:                          true
