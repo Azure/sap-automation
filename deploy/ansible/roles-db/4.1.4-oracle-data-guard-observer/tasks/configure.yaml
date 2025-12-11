@@ -386,7 +386,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               tnsping {{ db_sid | upper }}_STDBY
   register:                            tnsping_secondary_results
-  environment:                         "{{ oracle_standby_env }}"
+  environment:                         "{{ oracle_env }}"
   args:
     chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin
 
