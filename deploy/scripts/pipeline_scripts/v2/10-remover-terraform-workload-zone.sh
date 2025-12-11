@@ -87,7 +87,7 @@ fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.1.14.1}"
+	configureNonDeployer "${tf_version:-1.14.1}"
 fi
 echo -e "$green--- az login ---$reset"
 # Set logon variables
