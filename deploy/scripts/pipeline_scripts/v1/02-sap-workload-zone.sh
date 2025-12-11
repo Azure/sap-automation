@@ -147,6 +147,8 @@ fi
 echo "Workload Zone Environment File:      $workload_environment_file_name"
 touch "$workload_environment_file_name"
 
+
+
 deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "${deployer_environment_file_name}" "deployer_tfstate_key")
 if [ -z "$deployer_tfstate_key" ]; then
 	deployer_tfstate_key=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "Deployer_State_FileName" "${deployer_environment_file_name}" "deployer_tfstate_key")
@@ -171,21 +173,6 @@ saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYE
 
 landscape_tfstate_key=$WORKLOAD_ZONE_FOLDERNAME.terraform.tfstate
 export landscape_tfstate_key
-
-echo -e "${green}Deployment details:"
-echo -e "-------------------------------------------------------------------------${reset}"
-
-echo "Control plane environment file:      $deployer_environment_file_name"
-echo "Workload Zone Environment file:      $workload_environment_file_name"
-echo "Workload zone TFvars:                $WORKLOAD_ZONE_TFVARS_FILENAME"
-echo ""
-
-echo "Environment:                         $ENVIRONMENT"
-echo "Environment in file:                 $ENVIRONMENT_IN_FILENAME"
-echo "Location:                            $LOCATION"
-echo "Location in file:                    $LOCATION_IN_FILENAME"
-echo "Network:                             $NETWORK"
-echo "Network in file:                     $NETWORK_IN_FILENAME"
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
 	print_banner "$banner_title" "Environment mismatch" "error" "The environment setting in the tfvars file is not a part of the $WORKLOAD_ZONE_TFVARS_FILENAME file name" "Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
@@ -215,15 +202,23 @@ export TF_VAR_spn_keyvault_id
 TF_VAR_management_subscription_id=$(echo "$TF_VAR_spn_keyvault_id" | cut -d '/' -f 3)
 export TF_VAR_management_subscription_id
 
-terraform_storage_account_name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
-if [ -z "$terraform_storage_account_name" ]; then
-	terraform_storage_account_name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_STATE_STORAGE_ACCOUNT" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
-	if [ -z "$terraform_storage_account_name" ]; then
-		terraform_storage_account_name=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "Terraform_Remote_Storage_Account_Name" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
-	fi
+TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
+if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" "$TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION"; then
+	echo "Variable TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION was added to the $VARIABLE_GROUP variable group."
+else
+	echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION was not added to the $VARIABLE_GROUP variable group."
+	echo "Variable TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION was not added to the $VARIABLE_GROUP variable group."
 fi
 
-tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$terraform_storage_account_name' and type=='microsoft.storage/storageaccounts' | project id, name, subscription" --query data[0].id --output tsv)
+TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${deployer_environment_file_name}" "ARM_SUBSCRIPTION_ID")
+if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME"; then
+	echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was added to the $VARIABLE_GROUP variable group."
+else
+	echo "##vso[task.logissue type=error]Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
+	echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
+fi
+
+tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' and type=='microsoft.storage/storageaccounts' | project id, name, subscription" --query data[0].id --output tsv)
 
 TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 export TF_VAR_tfstate_resource_id
@@ -233,19 +228,23 @@ if [ -z "$tfstate_resource_id" ]; then
 	exit 2
 fi
 
+terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9)
 terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" "$terraform_storage_account_subscription_id"
+
+
+if [ -z "$tfstate_resource_id" ]; then
+	tfstate_resource_id=$(az resource list --name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
+	export tfstate_resource_id
+fi
 
 export terraform_storage_account_name
 export terraform_storage_account_resource_group_name
 export terraform_storage_account_subscription_id
 export tfstate_resource_id
 
-if [ -z "$tfstate_resource_id" ]; then
-	tfstate_resource_id=$(az resource list --name "${terraform_storage_account_name}" --subscription "$terraform_storage_account_subscription_id" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-	export tfstate_resource_id
-fi
+
 saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$terraform_storage_account_name"
 
 print_banner "$banner_title" "Starting the deployment" "info"

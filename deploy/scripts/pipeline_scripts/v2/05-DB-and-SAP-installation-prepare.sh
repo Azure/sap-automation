@@ -2,60 +2,80 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
-green="\e[1;32m"
-reset="\e[0m"
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
+# Source the shared platform configuration
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+source "${SCRIPT_DIR}/shared_platform_config.sh"
+source "${SCRIPT_DIR}/shared_functions.sh"
+source "${SCRIPT_DIR}/set-colors.sh"
 
+SCRIPT_NAME="$(basename "$0")"
+
+# Set platform-specific output
+if [ "$PLATFORM" == "devops" ]; then
+	echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"
+fi
+banner_title="SAP Configuration and Installation Preparation"
 # External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
-
-SCRIPT_NAME="$(basename "$0")"
-
-banner_title="SAP Configuration and Installation"
-
 #call stack has full script name when using source
 # shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
-
-#call stack has full script name when using source
 source "${parent_directory}/helper.sh"
 
-DEBUG=False
-
-if [ "$SYSTEM_DEBUG" = True ]; then
-	set -x
-	DEBUG=True
-	echo "Environment variables:"
-	printenv | sort
-
-fi
-export DEBUG
-set -eu
+SCRIPT_NAME="$(basename "$0")"
 
 # Print the execution environment details
 print_header
+echo ""
 
-# Configure DevOps
-configure_devops
+# Platform-specific configuration
+if [ "$PLATFORM" == "devops" ]; then
+	DEBUG=false
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
+	if [ "${SYSTEM_DEBUG:-False}" = True ]; then
+		set -x
+		DEBUG=True
+		echo "Environment variables:"
+		printenv | sort
+
+	fi
+	export DEBUG
+	set -eu
+	# Configure DevOps
+	configure_devops
+
+	platform_flag="--ado"
+
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
+elif [ "$PLATFORM" == "github" ]; then
+	# No specific variable group setup for GitHub Actions
+	# Values will be stored in GitHub Environment variables
+	echo "Configuring for GitHub Actions"
+	export VARIABLE_GROUP_ID="${WORKLOAD_ZONE_NAME}"
+	git config --global --add safe.directory "$CONFIG_REPO_PATH"
+	platform_flag="--github"
+else
+	platform_flag=""
 fi
-export VARIABLE_GROUP_ID
 
 WORKLOAD_ZONE_NAME=$(basename "${SAP_SYSTEM_CONFIGURATION_NAME}" | cut -d'-' -f1-3)
 SID=$(basename "${SAP_SYSTEM_CONFIGURATION_NAME}" | cut -d'-' -f4)
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
+
+if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	export APPLICATION_CONFIGURATION_ID
+fi
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
@@ -73,8 +93,8 @@ parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/s
 
 echo -e "$green--- Validations ---$reset"
 
-if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
-	echo "##vso[task.logissue type=error]Variable AZURE_SUBSCRIPTION_ID was not defined."
+if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
+	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
 	exit 2
 fi
 
@@ -85,16 +105,32 @@ fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "$(tf_version)"
-	echo -e "$green--- az login ---$reset"
-	if ! LogonToAzure false; then
-		print_banner "$banner_title" "Login to Azure failed" "error"
+	configureNonDeployer "${tf_version:-1.13.3}"
+fi
+
+if [ "$PLATFORM" == "devops" ]; then
+	if [ "$USE_MSI" != "true" ]; then
+
+		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+		export ARM_TENANT_ID
+		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+		export ARM_SUBSCRIPTION_ID
+	else
+		unset ARM_CLIENT_SECRET
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+	fi
+
+	LogonToAzure "${USE_MSI:-true}"
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
 		echo "##vso[task.logissue type=error]az login failed."
-		exit 2
+		exit $return_code
 	fi
 fi
 
-echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"
+az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
 
 echo "SID:                                 ${SID}"
 echo "Workload Zone Name:                  $WORKLOAD_ZONE_NAME"
@@ -114,30 +150,30 @@ mkdir -p artifacts
 
 echo "Workload Key Vault:                  ${key_vault}"
 
-if [ $EXTRA_PARAMETERS = '$(EXTRA_PARAMETERS)' ]; then
+if [ ${EXTRA_PARAMETERS:-''} = '$(EXTRA_PARAMETERS)' ]; then
 	new_parameters=$PIPELINE_EXTRA_PARAMETERS
 else
-	echo "##vso[task.logissue type=warning]Extra parameters were provided - '$EXTRA_PARAMETERS'"
-	new_parameters="$EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS"
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=warning]Extra parameters were provided - ${EXTRA_PARAMETERS:-''}"
+	fi
+	new_parameters="${EXTRA_PARAMETERS:-''} $PIPELINE_EXTRA_PARAMETERS"
 fi
 
 az account set --subscription "$tfstate_subscription_id" --output none --only-show-errors
 
-echo "##vso[task.setvariable variable=CP_SUBSCRIPTION;isOutput=true]${tfstate_subscription_id}"
 echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
 echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"
-echo "##vso[task.setvariable variable=KV_NAME;isOutput=true]$key_vault"
 echo "##vso[task.setvariable variable=NEW_PARAMETERS;isOutput=true]${new_parameters}"
 echo "##vso[task.setvariable variable=PASSWORD_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-password"
 echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]sap-parameters.yaml"
 echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
 echo "##vso[task.setvariable variable=SSH_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-sshkey"
 echo "##vso[task.setvariable variable=USERNAME_KEY_NAME;isOutput=true]${WORKLOAD_ZONE_NAME}-sid-username"
-echo "##vso[task.setvariable variable=VAULT_NAME;isOutput=true]$key_vault"
 
 az keyvault secret show --name "${WORKLOAD_ZONE_NAME}-sid-sshkey" --vault-name "$key_vault" --subscription "$key_vault_subscription_id" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
 cp sap-parameters.yaml artifacts/.
 cp "${SID}_hosts.yaml" artifacts/.
+chmod 600 artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey
 
 2> >(while read line; do (echo >&2 "STDERROR: $line"); done)
 

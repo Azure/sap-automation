@@ -634,7 +634,7 @@ resources:
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $ControlPlaneSubscriptionIdInternal = $ControlPlaneSubscriptionId
-      $VersionLabel = "v3.17.0.1"
+      $VersionLabel = "v3.18.0.0"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS

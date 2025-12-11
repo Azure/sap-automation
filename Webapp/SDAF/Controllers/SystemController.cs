@@ -15,7 +15,6 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.TeamFoundation.Common;
 
 namespace SDAFWebApp.Controllers
 {
@@ -290,16 +289,16 @@ namespace SDAFWebApp.Controllers
 
                 string path = $"/SYSTEM/{id}/{id}.tfvars";
 
-                if (!system.subscription.IsNullOrEmpty())
+                if (!string.IsNullOrEmpty(system.subscription))
                 {
                     system.subscription_id = system.subscription.Replace("/subscriptions/", "");
                 }
 
-                if (system.environment.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
                 {
                     system.environment = system.workload_zone.Split('-')[0];
                 }
-                if (system.network_logical_name.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                if (string.IsNullOrEmpty(system.network_logical_name) && !string.IsNullOrEmpty(system.workload_zone))
                 {
                     system.network_logical_name = system.workload_zone.Split('-')[2];
                 }
@@ -427,16 +426,16 @@ namespace SDAFWebApp.Controllers
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
-                if (!system.subscription.IsNullOrEmpty())
+                if (!string.IsNullOrEmpty(system.subscription))
                 {
                     system.subscription_id = system.subscription.Replace("/subscriptions/", "");
                 }
 
-                if (system.environment.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
                 {
                     system.environment = system.workload_zone.Split('-')[0];
                 }
-                if (system.network_logical_name.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                if (string.IsNullOrEmpty(system.network_logical_name) && !string.IsNullOrEmpty(system.workload_zone))
                 {
                     system.network_logical_name = system.workload_zone.Split('-')[2];
                 }
@@ -479,16 +478,16 @@ namespace SDAFWebApp.Controllers
                                 system.Description = system.database_platform + " distributed system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
                             }
                         }
-                        if (!system.subscription.IsNullOrEmpty())
+                        if (!string.IsNullOrEmpty(system.subscription))
                         {
                             system.subscription_id = system.subscription.Replace("/subscriptions/", "");
                         }
 
-                        if (system.environment.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                        if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
                         {
                             system.environment = system.workload_zone.Split('-')[0];
                         }
-                        if (system.network_logical_name.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                        if (string.IsNullOrEmpty(system.network_logical_name) && !string.IsNullOrEmpty(system.workload_zone))
                         {
                             system.network_logical_name = system.workload_zone.Split('-')[2];
                         }
@@ -530,16 +529,16 @@ namespace SDAFWebApp.Controllers
                                 system.Description = system.database_platform + " distributed system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
                             }
                         }
-                        if (!system.subscription.IsNullOrEmpty())
+                        if (!string.IsNullOrEmpty(system.subscription))
                         {
                             system.subscription_id = system.subscription.Replace("/subscriptions/", "");
                         }
 
-                        if (system.environment.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                        if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
                         {
                             system.environment = system.workload_zone.Split('-')[0];
                         }
-                        if (system.network_logical_name.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                        if (string.IsNullOrEmpty(system.network_logical_name) && !string.IsNullOrEmpty(system.workload_zone))
                         {
                             system.network_logical_name = system.workload_zone.Split('-')[2];
                         }
@@ -597,16 +596,16 @@ namespace SDAFWebApp.Controllers
                     system.Id = Helper.GenerateId(system);
                     DateTime currentDateAndTime = DateTime.Now;
                     system.LastModified = currentDateAndTime.ToShortDateString();
-                    if (!system.subscription.IsNullOrEmpty())
+                    if (!string.IsNullOrEmpty(system.subscription))
                     {
                         system.subscription_id = system.subscription.Replace("/subscriptions/", "");
                     }
 
-                    if (system.environment.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                    if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
                     {
                         system.environment = system.workload_zone.Split('-')[0];
                     }
-                    if (system.network_logical_name.IsNullOrEmpty() && !system.workload_zone.IsNullOrEmpty())
+                    if (string.IsNullOrEmpty(system.network_logical_name) && !string.IsNullOrEmpty(system.workload_zone))
                     {
                         system.network_logical_name = system.workload_zone.Split('-')[2];
                     }

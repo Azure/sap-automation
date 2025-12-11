@@ -10,30 +10,30 @@
 # +------------------------------------4--------------------------------------*/
 
 - hosts:                               localhost
-  name:                                "PAS Installation Playbook: - Initialization"
+  name:                                "Primary application server installation playbook - Initialization"
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
 
   tasks:
 
-    - name:                            "PAS Installation Playbook: - Create Progress folder"
+    - name:                            "Primary application server installation playbook - Create Progress folder"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress"
         state:                         directory
         mode:                          0755
 
-    - name:                            "PAS Installation Playbook: - Remove pas-install-done flag"
+    - name:                            "Primary application server installation playbook - Remove pas-install-done flag"
       ansible.builtin.file:
         path:                          "{{ _workspace_directory }}/.progress/pas-install-done"
         state:                          absent
 
 
-    - name:                            "PAS Installation Playbook: - Set pas fact"
+    - name:                            "Primary application server installation playbook - Set pas fact"
       ansible.builtin.set_fact:
         tier:                          pas
 
-    - name:                            "PAS Installation Playbook: - Read/Create passwords"
+    - name:                            "Primary application server installation playbook - Read/Create passwords"
       ansible.builtin.include_role:
         name:                          roles-misc/0.1-passwords
         public:                        true
@@ -49,7 +49,7 @@
       tags:
         - 0.1-win-passwords
 
-    - name:                            "PAS Installation Playbook: - Read/Create key vault secrets"
+    - name:                            "Primary application server installation playbook - Read/Create key vault secrets"
       ansible.builtin.include_role:
         name:                          roles-misc/0.2-kv-secrets
         public:                        true
@@ -58,7 +58,7 @@
       tags:
                                        - 0.2-kv-secrets
 
-    - name:                            "PAS Installation Playbook: - Read storage account details"
+    - name:                            "Primary application server installation playbook - Read storage account details"
       ansible.builtin.include_role:
         name:                          roles-misc/0.3.sap-installation-media-storage-details
         public:                        true
@@ -81,9 +81,14 @@
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
+  vars:
+    distro_name:                       "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+    distribution_id:                   "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+    distribution_full_id:              "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+    distro_family:                     "{{ ansible_os_family | upper }}"
 
   tasks:
-    - name:                            "PAS Installation Playbook: Define this SID"
+    - name:                            "Primary application server installation playbook -Define this SID"
       ansible.builtin.set_fact:
         this_sid:
           {
@@ -95,7 +100,7 @@
               'app_inst_no':  '{{ app_instance_number }}'
           }
 
-    - name:                            "PAS Installation Playbook: - Set 'pas' tier facts"
+    - name:                            "Primary application server installation playbook - Set 'pas' tier facts"
       ansible.builtin.set_fact:
         all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
 
@@ -139,6 +144,12 @@
   gather_facts:                        true                                    # Important to collect hostvars information
   vars_files:
     - vars/ansible-input-api.yaml                                              # API Input template with defaults
+  vars:
+    distro_name:                       "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+    distribution_id:                   "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+    distribution_full_id:              "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+    distro_family:                     "{{ ansible_os_family | upper }}"
+
 # -------------------------------------+---------------------------------------8
 #
 # Build the list of tasks to be executed in order here.
@@ -147,7 +158,7 @@
 
   tasks:
 
-    - name:                            "PAS Installation Playbook: - Set 'pas' tier facts"
+    - name:                            "Primary application server installation playbook - Set 'pas' tier facts"
       ansible.builtin.set_fact:
         tier:                          pas
         main_password:                 "{{ hostvars.localhost.sap_password }}"
@@ -159,7 +170,7 @@
       tags:
         - always
 
-    - name:                            "PAS Installation Playbook: Define this SID"
+    - name:                            "Primary application server installation playbook - Define this SID"
       ansible.builtin.set_fact:
         this_sid:
           {
@@ -171,7 +182,7 @@
                 'app_inst_no':  '{{ app_instance_number }}'
           }
 
-    - name:                            "PAS Installation Playbook: Define list of SIDs"
+    - name:                            "Primary application server installation playbook - Define list of SIDs"
       ansible.builtin.set_fact:
         all_sids:                      "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sids | default([]) + [this_sid] }}{% endif %}"
       when:
@@ -184,22 +195,22 @@
 #
 # -------------------------------------+---------------------------------------8
 
-    - name:                            "PAS Installation Playbook: - Run PAS Installation on Linux"
+    - name:                            "Primary application server installation playbook - Run PAS Installation on Linux"
       when:
         - "'pas' in supported_tiers"
         - ansible_os_family != "Windows"
       become:                          true
       block:
 
-        - name:                        "PAS Installation Playbook: - Assertions"
+        - name:                        "Primary application server installation playbook - Assertions"
           block:
-            - name:                    "PAS Installation Playbook: - Show instance numbers"
+            - name:                    "Primary application server installation playbook - Show instance numbers"
               ansible.builtin.debug:
                 msg:
                   - "pas_instance_number: {{ pas_instance_number }}"
                   - "scs_instance_number: {{ scs_instance_number }}"
 
-            - name:                    "PAS Installation Playbook: - Assert instance numbers"
+            - name:                    "Primary application server installation playbook - Assert instance numbers"
               ansible.builtin.assert:
                 that:
                   - "pas_instance_number is defined"
@@ -235,7 +246,7 @@
               tags:
                 - 2.6-sap-mounts
 
-            - name:                    "PAS Installation Playbook: - Install SAPInst"
+            - name:                    "Primary application server installation playbook - Install SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/5.2-pas-install
               vars:
@@ -244,7 +255,7 @@
               loop_control:
                 loop_var:              sid_to_be_deployed
 
-            - name:                    "PAS Installation Playbook: - Create pas-install-done flag"
+            - name:                    "Primary application server installation playbook - Create pas-install-done flag"
               delegate_to:             localhost
               become:                  false
               ansible.builtin.file:
@@ -254,7 +265,7 @@
               when:
                 - pas_already_installed is defined or (pas_installation.rc is defined and pas_installation.rc == 0)
           always:
-            - name:                    "PAS Installation Playbook: - Run post installation routines"
+            - name:                    "Primary application server installation playbook - Run post installation routines"
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
               vars:
@@ -268,7 +279,7 @@
               loop_control:
                 loop_var:              sid_to_be_deployed
 
-            - name:                    "PAS Installation Playbook: - Show errors from PAS installation"
+            - name:                    "Primary application server installation playbook - Show errors from PAS installation"
               ansible.builtin.debug:
                 msg:                   "{{ pas_installation.stdout_lines | select('search', 'ERROR') }}"
               when:
@@ -277,22 +288,22 @@
 
           tags:
             - 5.2-pas-install
-    - name:                            "PAS Installation Playbook: - Run PAS Installation on Windows"
+    - name:                            "Primary application server installation playbook - Run PAS Installation on Windows"
       when:
         - "'pas' in supported_tiers"
         - ansible_os_family == "Windows"
       block:
 
-        - name:                        "PAS Installation Playbook: - Assertions"
+        - name:                        "Primary application server installation playbook - Assertions"
           block:
-            - name:                    "PAS Installation Playbook: - Show instance numbers"
+            - name:                    "Primary application server installation playbook - Show instance numbers"
               ansible.builtin.debug:
                 msg:
                   - "pas_instance_number: {{ pas_instance_number }}"
                   - "scs_instance_number: {{ scs_instance_number }}"
                   - "{{ ansible_play_hosts_all | length }} hosts in inventory"
 
-            - name:                    "PAS Installation Playbook: - Assert instance numbers"
+            - name:                    "Primary application server installation playbook - Assert instance numbers"
               ansible.builtin.assert:
                 that:
                   - "pas_instance_number is defined"
@@ -301,7 +312,7 @@
 
           when:                        (ansible_play_hosts_all | length) <= 2
 
-        - name:                        "PAS Installation Playbook: - Ensure Sharing Data Folder"
+        - name:                        "Primary application server installation playbook - Ensure Sharing Data Folder"
           ansible.builtin.include_role:
             name:                      roles-sap-os/windows/2.3-sap-exports
           tags:
@@ -328,7 +339,7 @@
                 domain_user_password:      "{{ hostvars.localhost.winadm_password }}"
                 tier:                      app_tier
 
-            - name:                    "PAS Installation Playbook: - Install using SAPInst"
+            - name:                    "Primary application server installation playbook - Install using SAPInst"
               ansible.builtin.include_role:
                 name:                  roles-sap/windows/5.2-pas-install
               vars:
@@ -339,7 +350,7 @@
               loop_control:
                 loop_var:              sid_to_be_deployed
 
-            - name:                    "PAS Installation Playbook: - Create pas-install-done flag"
+            - name:                    "Primary application server installation playbook - Create pas-install-done flag"
               delegate_to:             localhost
               become:                  false
               ansible.builtin.file:
@@ -350,14 +361,14 @@
                 - pas_already_installed is defined or (pas_installation.rc is defined and pas_installation.rc == 0)
 
           always:
-            - name:                    "PAS Installation Playbook: - Run post installation routines"
+            - name:                    "Primary application server installation playbook - Run post installation routines"
               ansible.builtin.include_role:
                 name:                  roles-sap/windows/7.0.0-post-install
               vars:
                 suffix:                "_PAS"
                 tier:                  'pas'
 
-            - name:                    "PAS Installation Playbook: - Show errors from PAS installation"
+            - name:                    "Primary application server installation playbook - Show errors from PAS installation"
               ansible.builtin.debug:
                 msg:                   "{{ pas_installation.stdout_lines | select('search', 'ERROR') }}"
               when:
@@ -386,11 +397,16 @@
 # +------------------------------------4--------------------------------------*/
 - hosts:                               "{{ sap_sid | upper }}_DB"
 
-  name:                                "Resetting the DB2 LOCK escalationparameters"
+  name:                                "Resetting the DB2 LOCK escalation parameters"
   serial:                              1
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                               # API Input template with defaults
+  vars:
+    distro_name:                       "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
+    distribution_id:                   "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
+    distribution_full_id:              "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+    distro_family:                     "{{ ansible_os_family | upper }}"
 
   tasks:
     # 2570458 - DB6: Depooling report RUTPOADAPT fails with SQL -912

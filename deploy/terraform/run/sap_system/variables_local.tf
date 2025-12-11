@@ -45,5 +45,5 @@ locals {
                                         jsondecode(file(format("%s/%s", path.cwd, var.name_override_file)))) : (
                                         null
                                       )
-
+  workload_zone_name                 = coalesce(var.workload_zone_name, upper(format("%s-%s-%s", var.environment, module.sap_namegenerator.naming_new.location_short, var.network_logical_name)))
 }

@@ -2,51 +2,51 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-green="\e[1;32m"
-reset="\e[0m"
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
-
-# External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+#External helper functions
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 grand_parent_directory="$(dirname "$parent_directory")"
 
-SCRIPT_NAME="$(basename "$0")"
-
-
-banner_title="Deploy Workload Zone"
-
-#call stack has full script name when using source
-# shellcheck disable=SC1091
+# Source the shared platform configuration
+source "${script_directory}/shared_platform_config.sh"
+source "${script_directory}/shared_functions.sh"
+source "${script_directory}/set-colors.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 
-#call stack has full script name when using source
 source "${parent_directory}/helper.sh"
 
-DEBUG=False
-
-if [ "$SYSTEM_DEBUG" = True ]; then
-	set -x
-	DEBUG=True
-	echo "Environment variables:"
-	printenv | sort
-
+# Set platform-specific output
+if [ "$PLATFORM" == "devops" ]; then
+	echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the Key Vault defined in $ZONE"
+	DEBUG=false
+	if [ "${SYSTEM_DEBUG:-false}" == "true" ]; then
+		set -x
+		DEBUG=true
+		echo "Environment variables:"
+		printenv | sort
+	fi
 fi
+
 export DEBUG
 set -eu
 
+banner_title="Store Secrets in Key Vault"
+SCRIPT_NAME="$(basename "$0")"
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
-echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the Key Vault defined in $ZONE"
 return_code=0
 
-echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset"
-
 cd "${CONFIG_REPO_PATH}" || exit
-git checkout -q "$BUILD_SOURCEBRANCHNAME"
+echo -e "$green--- Pushing the changes to the repository ---$reset"
+# Pull changes if there are other deployment jobs
+# Pull changes if there are other deployment jobs
+if [ "$PLATFORM" == "devops" ]; then
+	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+	git checkout -q "$BUILD_SOURCEBRANCHNAME"
+elif [ "$PLATFORM" == "github" ]; then
+	git pull -q origin "$GITHUB_REF_NAME"
+fi
 
 echo -e "$green--- Validations ---$reset"
 if [ "$USE_MSI" != "true" ]; then
@@ -57,17 +57,17 @@ if [ "$USE_MSI" != "true" ]; then
 		exit 2
 	fi
 
-	if ! printenv CLIENT_ID; then
+	if ! printenv ARM_CLIENT_ID; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if ! printenv CLIENT_SECRET; then
+	if ! printenv ARM_CLIENT_SECRET; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
 
-	if ! printenv TENANT_ID; then
+	if ! printenv ARM_TENANT_ID; then
 		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
@@ -78,34 +78,86 @@ fi
 # Print the execution environment details
 print_header
 
-# Configure DevOps
-configure_devops
-
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID" ;
-then
-	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-	exit 2
+# Check if running on deployer
+if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+	configureNonDeployer "${tf_version:-1.13.3}"
 fi
-export VARIABLE_GROUP_ID
+echo -e "$green--- az login ---$reset"
+# Set logon variables
+if [ "$USE_MSI" == "true" ]; then
+	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
+fi
 
+if [ "$PLATFORM" == "devops" ]; then
+	if [ "$USE_MSI" != "true" ]; then
+
+		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+		export ARM_TENANT_ID
+		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+		export ARM_SUBSCRIPTION_ID
+	else
+		unset ARM_CLIENT_SECRET
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+	fi
+	LogonToAzure "${USE_MSI:-false}"
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
+fi
+
+if [ "$PLATFORM" == "devops" ]; then
+	# Configure DevOps
+	configure_devops
+
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
+
+fi
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
+
+CONTROL_PLANE_ENVIRONMENT=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $1}')
+CONTROL_PLANE_LOCATION_CODE=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $2}')
+CONTROL_PLANE_NETWORK=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $3}')
+
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${CONTROL_PLANE_ENVIRONMENT}" "${CONTROL_PLANE_LOCATION_CODE}" "${CONTROL_PLANE_NETWORK}")
 
 echo -e "$green--- Read parameter values ---$reset"
 
-deployer_tfstate_key=$CONTROL_PLANE_NAME.terraform.tfstate
-export deployer_tfstate_key
+if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	export APPLICATION_CONFIGURATION_ID
+fi
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-
+  echo "Sourcing Key Vault Id from Application Configuration ($APPLICATION_CONFIGURATION_NAME)"
 	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
-	if [ -z "$key_vault_id" ]; then
-		echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
-	fi
 else
-	load_config_vars "${workload_environment_file_name}" "keyvault"
-	key_vault="$keyvault"
-	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+	if [ -n "$KEYVAULT" ]; then
+		key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
+		if [ -z "$key_vault_id" ]; then
+			if [ "$PLATFORM" == "devops" ]; then
+				echo "##vso[task.logissue type=warning]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
+			else
+				echo "'${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
+			fi
+		fi
+	else
+		echo "Sourcing Key Vault from ($deployer_environment_file_name)"
+		load_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT"
+		key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
+
+	fi
 
 fi
 
@@ -113,13 +165,25 @@ keyvault_subscription_id=$(echo "$key_vault_id" | cut -d '/' -f 3)
 key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
 
 if [ -z "$key_vault" ]; then
-	echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$application_configuration_name')."
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultResourceId) was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME')."
+	else
+		echo "Key vault name (${CONTROL_PLANE_NAME}_KeyVaultResourceId) was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME')."
+	fi
 	exit 2
 fi
 
+# Enable case-insensitive matching
+shopt -s nocasematch
+
 if [ "$USE_MSI" != "true" ]; then
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "$ZONE" --key_vault "${key_vault}" --keyvault_subscription "$keyvault_subscription_id" \
-		--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$CLIENT_ID" --client_secret "$CLIENT_SECRET" --client_tenant_id "$TENANT_ID" --ado; then
+	set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_secret" "$ARM_CLIENT_SECRET" "--client_tenant_id" "$ARM_TENANT_ID" --ado)
+
+	if [ "$PLATFORM" == "github" ] && [ -n "${GH_PAT:-}" ]; then
+		set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_secret" "$ARM_CLIENT_SECRET" "--client_tenant_id" "$ARM_TENANT_ID" "--gh_pat" "$GH_PAT" --ado)
+	fi
+
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" "${set_secrets_args[@]}"; then
 		return_code=$?
 	else
 		return_code=$?
@@ -127,8 +191,13 @@ if [ "$USE_MSI" != "true" ]; then
 		exit $return_code
 	fi
 else
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "$ZONE" --key_vault "${key_vault}" --keyvault_subscription "$keyvault_subscription_id" \
-		--subscription "$ARM_SUBSCRIPTION_ID" --msi --ado; then
+	set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_tenant_id" "$ARM_TENANT_ID" --msi --ado)
+
+	if [ "$PLATFORM" == "github" ] && [ -n "${GH_PAT:-}" ]; then
+		set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_tenant_id" "$ARM_TENANT_ID" "--gh_pat" "$GH_PAT" --msi --ado)
+	fi
+
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" "${set_secrets_args[@]}"; then
 		return_code=$?
 	else
 		return_code=$?
@@ -136,6 +205,9 @@ else
 		exit $return_code
 	fi
 fi
+
+# Disable case-insensitive matching to restore default behavior
+shopt -u nocasematch
 
 print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 

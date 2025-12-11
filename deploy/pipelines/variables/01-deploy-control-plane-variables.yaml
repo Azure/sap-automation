@@ -87,3 +87,6 @@ variables:
 
   - name:                              force_reset
     value:                             ${{ parameters.force_reset }}
+
+  - name:                              control_plane_name
+    value:                             ${{ replace(parameters.deployer, '-INFRASTRUCTURE', '') }}

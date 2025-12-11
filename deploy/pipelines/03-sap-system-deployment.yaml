@@ -8,72 +8,73 @@
 # +------------------------------------4--------------------------------------*/
 
 parameters:
-  - name:                              sap_system
-    displayName:                       "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
-    type:                              string
-    default:                           DEV-WEEU-SAP01-X00
+  - name:                                         sap_system
+    displayName:                                  "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
+    type:                                         string
+    default:                                      DEV-WEEU-SAP01-X00
 
-  - name:                              workload_zone_name
-    displayName:                       Workload Zone Name (DEV-WEEU-SAP01-X00)
-    type:                              string
-    default:                           DEV
+  - name:                                         workload_zone_name
+    displayName:                                  Workload Zone Name (DEV-WEEU-SAP01-X00)
+    type:                                         string
+    default:                                      DEV
 
-  - name:                              sap_automation_repo_path
-    displayName:                       The local path on the agent where the sap_automation repo can be found
-    type:                              string
+  - name:                                         sap_automation_repo_path
+    displayName:                                  The local path on the agent where the sap_automation repo can be found
+    type:                                         string
 
-  - name:                              config_repo_path
-    displayName:                       The local path on the agent where the config repo can be found
-    type:                              string
+  - name:                                         config_repo_path
+    displayName:                                  The local path on the agent where the config repo can be found
+    type:                                         string
 
-  - name:                              test
-    displayName:                       Test deployment without applying the changes
-    type:                              boolean
+  - name:                                         test
+    displayName:                                  Test deployment without applying the changes
+    type:                                         boolean
 
 stages:
-  - stage:                             Deploy_SAP_infrastructure
-    condition:                         and(not(failed()), not(canceled()))
+  - stage:                                        Deploy_SAP_infrastructure
+    condition:                                    and(not(failed()), not(canceled()))
     variables:
-      - template:                      variables/03-sap-system-deployment-variables.yaml
+      - template:                                 variables/03-sap-system-deployment-variables.yaml
         parameters:
-          sap_system:                  ${{ parameters.sap_system }}
-          workload_zone_name:          ${{ parameters.workload_zone_name }}
-          test:                        ${{ parameters.test }}
-    displayName:                       Deploy SAP infrastructure
+          sap_system:                             ${{ parameters.sap_system }}
+          workload_zone_name:                     ${{ parameters.workload_zone_name }}
+          test:                                   ${{ parameters.test }}
+    displayName:                                  Deploy SAP infrastructure
     jobs:
-      - job:                           Deploy_SAP_infrastructure
-        displayName:                   Deploy SAP infrastructure
+      - job:                                      Deploy_SAP_infrastructure
+        displayName:                              Deploy SAP infrastructure
         workspace:
-          clean:                       all
+          clean:                                  all
         steps:
-          - template:                  templates\download.yaml
-          - task:                      PostBuildCleanup@4
-          - task:                      TerraformInstaller@1
-            displayName:               Install Terraform
+          - template:                             templates\download.yaml
+          - task:                                 PostBuildCleanup@4
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
+            displayName:                          Install Terraform
             inputs:
-              terraformVersion:        latest
-          - task:                      Bash@3
+              terraformVersion:                   latest
+          - task:                                 Bash@3
             inputs:
-              targetType:              'filePath'
-              filePath:                "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/03-sap-system-deployment.sh"
-              failOnStderr:            false
-              workingDirectory:        "$(System.DefaultWorkingDirectory)"
-            displayName:               Deploy_SAP_infrastructure
+              targetType:                         'filePath'
+              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/03-sap-system-deployment.sh"
+              failOnStderr:                       false
+              workingDirectory:                   "$(System.DefaultWorkingDirectory)"
+            displayName:                          Deploy_SAP_infrastructure
             env:
-              ARM_CLIENT_ID:                   $(ARM_CLIENT_ID)
-              ARM_CLIENT_SECRET:               $(ARM_CLIENT_SECRET)
-              ARM_SUBSCRIPTION_ID:             $(ARM_SUBSCRIPTION_ID)
-              ARM_TENANT_ID:                   $(ARM_TENANT_ID)
-              ARM_USE_MSI:                     $(ARM_USE_MSI)
-              AZURE_DEVOPS_EXT_PAT:            $(System.AccessToken)
-              CONFIG_REPO_PATH:                ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-              DEPLOYER_KEYVAULT:               $(DEPLOYER_KEYVAULT)
-              KEYVAULT:                        $(KEYVAULT)
-              TERRAFORM_STATE_STORAGE_ACCOUNT: $(TERRAFORM_STATE_STORAGE_ACCOUNT)
-              LOGON_USING_SPN:                 $(Logon_Using_SPN)
-              SAP_AUTOMATION_REPO_PATH:        ${{ parameters.sap_automation_repo_path }}
-              SYSTEM_ACCESSTOKEN:              $(System.AccessToken)
-              TEST_ONLY:                       ${{ parameters.test }}
-              TF_IN_AUTOMATION:                true
-              TF_LOG:                          $(TF_LOG)
-              USE_MSI:                         $(Use_MSI)
+              APPLICATION_CONFIGURATION_NAME:     $(APPLICATION_CONFIGURATION_NAME)
+              ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              ARM_USE_MSI:                        $(ARM_USE_MSI)
+              AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
+              CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              DEPLOYER_KEYVAULT:                  $(DEPLOYER_KEYVAULT)
+              KEYVAULT:                           $(KEYVAULT)
+              TERRAFORM_STATE_STORAGE_ACCOUNT:    $(TERRAFORM_STATE_STORAGE_ACCOUNT)
+              LOGON_USING_SPN:                    $(Logon_Using_SPN)
+              SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
+              TEST_ONLY:                          ${{ parameters.test }}
+              TF_IN_AUTOMATION:                   true
+              TF_LOG:                             $(TF_LOG)
+              USE_MSI:                            $(Use_MSI)

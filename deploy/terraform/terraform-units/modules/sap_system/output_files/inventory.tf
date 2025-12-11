@@ -7,6 +7,8 @@
 #                                                                              #
 #######################################4#######################################8
 
+data "azurerm_client_config" "current" {}
+
 resource "local_file" "ansible_inventory_new_yml" {
   content       = templatefile(format("%s%s", path.module, "/ansible_inventory.tmpl"), {
                     ips_dbnodes         = var.scale_out ? var.database_admin_ips : var.database_server_ips
@@ -293,10 +295,22 @@ resource "local_file" "sap_inventory_md" {
   content = templatefile(format("%s/sap_application.tmpl", path.module), {
               sid                         = var.sap_sid,
               db_sid                      = var.db_sid
-              kv_name                     = local.kv_name,
+              keyvault_name               = local.kv_name,
               scs_server_loadbalancer_ip  = length(var.scs_server_loadbalancer_ip) > 0 ? var.scs_server_loadbalancer_ip : try(var.scs_server_ips[0], "")
               platform                    = lower(var.platform)
-              kv_pwd_secret               = format("%s-%s-sap-password", local.secret_prefix, var.sap_sid)
+              password_secret_name        = format("%s-%s-sid-password", local.secret_prefix, var.sap_sid)
+              username_secret_name        = format("%s-%s-sid-username", local.secret_prefix, var.sap_sid)
+              ssh_secret_name             = format("%s-%s-sid-sshkey", local.secret_prefix, var.sap_sid)
+              resource_group_name         = var.created_resource_group_name
+              subscription_id             = var.created_resource_group_subscription_id
+              db_servers                  = var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",", var.naming.virtualmachine_names.ANYDB_COMPUTERNAME)
+              scs_servers                 = join(",", var.naming.virtualmachine_names.SCS_COMPUTERNAME)
+              pas_server                  = try(var.naming.virtualmachine_names.APP_COMPUTERNAME[0], "")
+              application_servers         = join(",", var.naming.virtualmachine_names.APP_COMPUTERNAME)
+              webdisp_servers             = length(var.naming.virtualmachine_names.WEB_COMPUTERNAME) > 0 ? join(",", var.naming.virtualmachine_names.WEB_COMPUTERNAME) : ""
+              scs_high_availability       = var.scs_high_availability ? "Yes" : "No"
+              database_high_availability  = var.database_high_availability ? "Yes" : "No"
+              url                         = format("https://portal.azure.com/#@%s/resource/subscriptions/%s/resourceGroups/%s/overview", data.azurerm_client_config.current.tenant_id, var.created_resource_group_subscription_id, var.created_resource_group_name)
               }
             )
   filename             = format("%s/%s.md", path.cwd, var.sap_sid)

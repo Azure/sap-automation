@@ -56,7 +56,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
   tags                                 = var.infrastructure.tags
 }
 
-data "azuread_client_config" "current" {}
+data "azurerm_client_config" "current" {}
 
 // Imports existing storage account to use for tfstate
 data "azurerm_storage_account" "storage_tfstate" {

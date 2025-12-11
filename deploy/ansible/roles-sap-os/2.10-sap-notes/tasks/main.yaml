@@ -80,34 +80,39 @@
 # Disable SELinux
 # WILL NOT DISABLE SELINUX ON RHEL10
 - name:                                "2.10.1 sap-notes: - Disable SELinux"
-  ansible.posix.selinux:
-    state:                             disabled
-  notify:                              "2.10-sap-notes: Reboot after the selinux is configured"
-  tags: ansible_skip_lint
   when:
     - distribution_id in ['redhat7', 'redhat8', 'redhat9']
-
-# only for debugging purposes
-- name:                                "2.10.1 sap-notes: - Save SELinux status"
-  ansible.builtin.command:             getenforce
-  register:                            selinux_status
-
-# only for debugging purposes
-- name:                               "2.10.1 sap-notes: - Display SELinux status"
-  ansible.builtin.debug:
-    msg:                               "SELinux status: {{ selinux_status.stdout }}"
-  tags: ansible_skip_lint
-
-- name:                                "2.10.1 sap-notes: Check VM Agent Status"
-  when:
-    - selinux_disabled.changed
-    - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
-    - distribution_id in ['redhat7', 'redhat8', 'redhat9', 'redhat10']
   block:
+    - name:                            "2.10.1 sap-notes: - Disable SELinux"
+      ansible.posix.selinux:
+        state:                         disabled
+      register:                        selinux_disabled
+      notify:                          "2.10-sap-notes: Reboot after the selinux is configured"
+      tags:                            ansible_skip_lint
+
+    # only for debugging purposes
+    - name:                            "2.10.1 sap-notes: - Save SELinux status"
+      ansible.builtin.command:         getenforce
+      register:                        selinux_status
+
+    # only for debugging purposes
+    - name:                            "2.10.1 sap-notes: - Display SELinux status"
+      ansible.builtin.debug:
+        msg:                           "SELinux status: {{ selinux_status.stdout }}"
+        verbosity:                     2
+      tags:                            ansible_skip_lint
+
+
     - name:                            "2.10.1 sap-notes: Clear the failed state of hosts"
+      when:
+        - selinux_disabled.changed
+        - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
       ansible.builtin.meta:            clear_host_errors
 
     - name:                            "2.10.1 sap-notes: Including Task for VM Agent Actions"
+      when:
+        - selinux_disabled.changed
+        - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
       ansible.builtin.include_tasks:   roles-misc/0.7-VmAgentActions/tasks/main.yaml
       vars:
         subscriptionId:                "{{ subscription_id }}"
@@ -115,6 +120,9 @@
         vmName:                        "{{ vm_name }}"
 
     - name:                            "2.10.1 sap-notes: Wait for system to become reachable"
+      when:
+        - selinux_disabled.changed
+        - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
       ansible.builtin.wait_for_connection:
         timeout:                       300
       register:                        wait_for_connection_results

@@ -153,8 +153,6 @@ stages:
                   echo -e "$boldred--- $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml was not found ---$reset"
                   echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml was not found."
                   exit 2
-                else
-                  dos2unix -q $HOME/SYSTEM/$(sap_system_folder)/sap-parameters.yaml
                 fi
 
                 if [ ! -f $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml ]; then
@@ -162,7 +160,6 @@ stages:
                   echo "##vso[task.logissue type=error]File $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml was not found."
                   exit 2
                 fi
-                dos2unix -q $HOME/SYSTEM/$(sap_system_folder)/${SID}_hosts.yaml
 
                 echo "##vso[build.updatebuildnumber]Running Post Installation on $(sap_system_folder) using BoM ${bom_file}"
 

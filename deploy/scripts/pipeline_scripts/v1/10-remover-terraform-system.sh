@@ -196,11 +196,6 @@ if [ "$SID" != "$SID_IN_FILENAME" ]; then
 	exit 2
 fi
 
-if [ -z "$DEPLOYER_KEYVAULT" ]; then
-	echo "##vso[task.logissue type=error]Key vault was not defined in ${workload_environment_file_name})."
-	exit 2
-fi
-
 if [ -z "$tfstate_resource_id" ]; then
 	echo "##vso[task.logissue type=error]Terraform state storage account resource id was not found in ${workload_environment_file_name})."
 	exit 2
@@ -223,7 +218,6 @@ echo -e "-----------------------------------------------------------------------
 echo "System TFvars:                       $SAP_SYSTEM_TFVARS_FILENAME"
 echo "Deployer statefile:                  $deployer_tfstate_key"
 echo "Workload statefile:                  $landscape_tfstate_key"
-echo "Deployer Key vault:                  $DEPLOYER_KEYVAULT"
 echo "Statefile subscription:              $terraform_storage_account_subscription_id"
 echo "Statefile storage account:           $terraform_storage_account_name"
 echo ""
@@ -289,6 +283,11 @@ else
 
 		if [ -f "${SID}.md" ]; then
 			git rm --ignore-unmatch -q "${SID}.md"
+			changed=1
+		fi
+
+		if [ -f "readme.md" ]; then
+			git rm --ignore-unmatch -q "readme.md"
 			changed=1
 		fi
 
