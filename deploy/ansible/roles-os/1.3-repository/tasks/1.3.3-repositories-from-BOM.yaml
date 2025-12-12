@@ -19,11 +19,10 @@
   ansible.builtin.yum_repository:
     name:                              "{{ target_media_location }}/RPM/{{ item.archive }}"
     state:                             "present"
-    disable_gpg_check:                 true
+    gpgcheck:                          false
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - bom is defined
     - ( item.type is defined          and (item.type | lower) == 'rpm' )
     - ( item.archive is defined       and (item.archive | trim | length) > 0 )
     - ( item.distributions is defined and (distribution_id in item.distributions) )
-
