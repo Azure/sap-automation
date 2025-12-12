@@ -649,6 +649,7 @@ packages:
     - { tier: 'os',     package: 'bind-utils',                                   node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'cifs-utils',                                   node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'compat-sap-c++-*',                             node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'compat-libpthread-nonshared',                  node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'csh',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'elfutils-libelf',                              node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'elfutils-libelf-devel',                        node_tier: 'all',            state: 'present' }
