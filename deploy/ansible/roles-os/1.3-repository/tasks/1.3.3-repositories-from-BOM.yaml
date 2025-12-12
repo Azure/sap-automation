@@ -16,8 +16,8 @@
 - name:                                "1.3.3 Repositories from BOM - Add the repositories"
   become:                              true
   become_user:                         root
-  ansible.builtin.yum:
-    name:                              "{{ target_media_location }}/download_basket/{{ item.archive }}"
+  ansible.builtin.dnf:
+    name:                              "{{ target_media_location }}/RPM/{{ item.archive }}"
     state:                             "present"
     disable_gpg_check:                 true
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
