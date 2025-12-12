@@ -14,6 +14,28 @@
                                        - bom is undefined
 
 - name:                                "1.3.3 Repositories from BOM - Add the repositories"
+  when:
+                                       - bom is defined
+                                       - item.url is defined
+                                       - ( item.type is defined          and (item.type | lower) == 'rpm' )
+                                       - ( item.archive is defined       and (item.archive | trim | length) > 0 )
+                                       - ( item.distributions is defined and (distribution_id in item.distributions) )
+  become:                              true
+  become_user:                         root
+  ansible.builtin.yum_repository:
+    name:                              "{{ target_media_location }}/RPM/{{ item.archive }}"
+    state:                             "present"
+    gpgcheck:                          false
+    baseurl:                           "{{ item.url }}"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+
+- name:                                "1.3.3 Repositories from BOM - Add the repositories"
+  when:
+                                       - bom is defined
+                                       - item.url is undefined
+                                       - ( item.type is defined          and (item.type | lower) == 'rpm' )
+                                       - ( item.archive is defined       and (item.archive | trim | length) > 0 )
+                                       - ( item.distributions is defined and (distribution_id in item.distributions) )
   become:                              true
   become_user:                         root
   ansible.builtin.dnf:
@@ -21,8 +43,3 @@
     state:                             "present"
     disable_gpg_check:                 true
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
-  when:
-    - bom is defined
-    - ( item.type is defined          and (item.type | lower) == 'rpm' )
-    - ( item.archive is defined       and (item.archive | trim | length) > 0 )
-    - ( item.distributions is defined and (distribution_id in item.distributions) )
