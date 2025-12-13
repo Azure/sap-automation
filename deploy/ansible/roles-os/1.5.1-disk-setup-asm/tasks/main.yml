@@ -165,15 +165,15 @@
 
     - name:                            "1.5.1 Disk Setup - ORACLE ASM - Check for v2 RPMs"
       ansible.builtin.stat:
-        path:                          "{{ target_media_location }}/downloads/oracleasmlib-2.0.17-1.el8.x86_64.rpm"
+        path:                          "{{ target_media_location }}/RPM/oracleasmlib-2.0.17-1.el8.x86_64.rpm"
       register:                        oracle_asm_v2
 
     - name:                            "1.5.1 Disk Setup - ORACLE ASM - Install RPM Packages v2"
       when:                            oracle_asm_v2.stat.exists
       ansible.builtin.dnf:
         name:
-                                       - "{{ target_media_location }}/downloads/oracleasmlib-2.0.17-1.el8.x86_64.rpm"
-                                       - "{{ target_media_location }}/downloads/oracleasm-support-2.1.12-1.el8.x86_64.rpm"
+                                       - "{{ target_media_location }}/RPM/oracleasmlib-2.0.17-1.el8.x86_64.rpm"
+                                       - "{{ target_media_location }}/RPM/oracleasm-support-2.1.12-1.el8.x86_64.rpm"
         state:                         present
         disable_gpg_check:             true
 
@@ -181,8 +181,8 @@
       when:                            distribution_id in ['redhat7', 'oraclelinux7']
       ansible.builtin.dnf:
         name:
-                                       - "{{ target_media_location }}/downloads/compat-libcap1-1.10-7.el7.x86_64.rpm"
-                                       - "{{ target_media_location }}/downloads/compat-libstdc++-33-3.2.3-72.el7.x86_64.rpm"
+                                       - "{{ target_media_location }}/RPM/compat-libcap1-1.10-7.el7.x86_64.rpm"
+                                       - "{{ target_media_location }}/RPM/compat-libstdc++-33-3.2.3-72.el7.x86_64.rpm"
         state:                         present
         disable_gpg_check:             true
 
