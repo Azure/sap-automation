@@ -675,7 +675,6 @@ packages:
     - { tier: 'os',     package: 'libgcc',                                       node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libnsl',                                       node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libnsl2',                                      node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libnsl2-devel',                                node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libstdc++',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libstdc++-devel',                              node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libstdc++.so.6',                               node_tier: 'all',            state: 'present' }
@@ -740,7 +739,6 @@ packages:
     - { tier: 'os',     package: 'liblsan',                                      node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libnsl',                                       node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libnsl2',                                      node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libnsl2-devel',                                node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'librdmacm',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libstdc++',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libvirt-libs',                                 node_tier: 'all',            state: 'present' }
