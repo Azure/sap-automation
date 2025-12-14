@@ -32,18 +32,18 @@
     pesize:                            4M
     state:                             present
   loop:                                "{{ volume_groups }}"
-  register:                            vgscreated
+  register:                            created_volume_groups
 
-- name:                                "1.5.1 Disk Setup - ORACLE ASM - Filter the vg name from vgscreated results"
+- name:                                "1.5.1 Disk Setup - ORACLE ASM - Filter the volume group name from created_volume_groups results"
   ansible.builtin.set_fact:
-    vgcreatedlist:                     "{{ vgscreated | json_query('results[*].item.vg') }}" # noqa: jinja[invalid]
+    list_of_created_volume_groups:     "{{ created_volume_groups | json_query('results[*].item.vg') }}" # noqa: jinja[invalid]
 
 - name:                                "1.5.1 Disk Setup - ORACLE ASM - Print vgcreated details"
   ansible.builtin.debug:
-    var:
-                                       - vgcreatedlist
-                                       - logical_volumes
-                                       - vgscreated.results
+    msg:
+      - "List of created volume groups: {{ list_of_created_volume_groups }}"
+      - "logical_volumes: {{ logical_volumes }}"
+      - "created_volume_groups.results: {{ created_volume_groups.results }}"
     verbosity:                         2
 
 # CREATE LOGICAL VOLUMES BASED ON VGCREATEDLIST
@@ -53,7 +53,7 @@
   when:
                                        - tier == "ora"
                                        - item.node_tier == "oracle-asm"
-                                       - item.vg in vgcreatedlist
+                                       - item.vg in list_of_created_volume_groups
   community.general.lvol:
     lv:                                "{{ item.lv }}"
     vg:                                "{{ item.vg }}"
@@ -64,16 +64,16 @@
     shrink:                            false
     resizefs:                          false
   loop:                                "{{ logical_volumes }}"
-  register:                            lvscreated
+  register:                            created_logical_volumes
 
-- name:                                "1.5.1 Disk Setup - ORACLE ASM - Print lvscreated details"
+- name:                                "1.5.1 Disk Setup - ORACLE ASM - Print created_logical_volumes details"
   ansible.builtin.debug:
-    var:                               lvscreated
+    var:                               created_logical_volumes
     verbosity:                         2
 
 - name:                                "1.5.1 Disk Setup - ORACLE ASM - Filter the logical volumes created results"
   ansible.builtin.set_fact:
-    lvcreatedlist_tmp:                 "{{ lvscreated.results | rejectattr('skipped', 'defined') | list }}"
+    lvcreatedlist_tmp:                 "{{ created_logical_volumes.results | rejectattr('skipped', 'defined') | list }}"
 
 - name:                                "1.5.1 Disk Setup - ORACLE ASM - Print vgcreated filtered details"
   ansible.builtin.debug:
