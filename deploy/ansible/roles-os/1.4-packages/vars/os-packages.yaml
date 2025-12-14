@@ -648,14 +648,15 @@ packages:
     - { tier: 'ha',     package: 'jq',                                           node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'bind-utils',                                   node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'cifs-utils',                                   node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'compat-sap-c++-*',                             node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'compat-libpthread-nonshared',                  node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'compat-sap-c++-*',                             node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'csh',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'elfutils-libelf',                              node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'elfutils-libelf-devel',                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'fontconfig-devel',                             node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'glibc',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'glibc-devel',                                  node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'kmod-redhat-oracleasm',                        node_tier: 'oracle-asm',     state: 'present' }
     - { tier: 'os',     package: 'ksh',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libICE-devel',                                 node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libSM-devel',                                  node_tier: 'all',            state: 'present' }
@@ -684,7 +685,9 @@ packages:
     - { tier: 'os',     package: 'net-tools',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'nfs-utils',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'openssl',                                      node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'oracleasm',                                    node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'oracleasm',                                    node_tier: 'oracle-asm',     state: 'present' }
+    - { tier: 'os',     package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
     - { tier: 'os',     package: 'rsyslog',                                      node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'smartmontools',                                node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'sudo',                                         node_tier: 'all',            state: 'present' }
@@ -711,6 +714,7 @@ packages:
     - { tier: 'os',     package: 'chrony',                                       node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'cifs-utils',                                   node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'compat-openssl11',                             node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'compat-sap-c++-*',                             node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'csh',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'elfutils-libelf',                              node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'expect',                                       node_tier: 'all',            state: 'present' }
@@ -720,6 +724,7 @@ packages:
     - { tier: 'os',     package: 'glibc',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'glibc-devel',                                  node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'gtk2',                                         node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'kmod-redhat-oracleasm',                        node_tier: 'oracle-asm',     state: 'present' }
     - { tier: 'os',     package: 'krb5-libs',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'ksh',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libX11',                                       node_tier: 'all',            state: 'present' }
@@ -748,6 +753,8 @@ packages:
     - { tier: 'os',     package: 'nfs-utils',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'numad',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'openssl',                                      node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
     - { tier: 'os',     package: 'policycoreutils',                              node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'policycoreutils-python-utils',                 node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'rsyslog',                                      node_tier: 'all',            state: 'present' }
@@ -762,58 +769,13 @@ packages:
   oraclelinux8.2:
   oraclelinux8.3:
   oraclelinux8.4:
-    - { tier: 'os',     package: 'binutils',                                     node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libX11-xcb',                                   node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libXcomposite',                                node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libXinerama',                                  node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libXrandr',                                    node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libXv',                                        node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libXxf86dga',                                  node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libXxf86misc',                                 node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libXxf86vm',                                   node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libdmx',                                       node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libxcrypt-devel',                              node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'lm_sensors-libs',                              node_tier: 'all',            state: 'present' }
   oraclelinux8.5:
-    - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
   oraclelinux8.6:
-    - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
-    - { tier: 'ora',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
-    - { tier: 'ora',    package: 'kmod-redhat-oracleasm',                        node_tier: 'oracle-asm',     state: 'present' }
-    - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
   oraclelinux8.7:
-    - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
-    - { tier: 'ora',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
-    - { tier: 'ora',    package: 'kmod-redhat-oracleasm',                        node_tier: 'oracle-asm',     state: 'present' }
-    - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
   oraclelinux8.8:
-    - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
-    - { tier: 'ora',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
-    - { tier: 'ora',    package: 'kmod-redhat-oracleasm',                        node_tier: 'oracle-asm',     state: 'present' }
-    - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
   oraclelinux8.9:
-    - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
-    # - { tier: 'os',     package: 'kmod-oracleasm',                               node_tier: 'oracle-asm',     state: 'present' }
-    # - { tier: 'os',     package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
   oraclelinux8.10:
-    - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
-    - { tier: 'ora',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
-    - { tier: 'ora',    package: 'kmod-redhat-oracleasm',                        node_tier: 'oracle-asm',     state: 'present' }
   oraclelinux9.0:
-    - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
-    - { tier: 'ora',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
   oraclelinux9.2:
-    - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
-    - { tier: 'ora',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
   oraclelinux9.4:
-    - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
-    - { tier: 'ora',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
   oraclelinux9.6:
-    - { tier: 'os',     package: 'oracle-database-preinstall-19c',               node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
-    - { tier: 'ora',    package: 'oracleasm-support',                            node_tier: 'oracle-asm',     state: 'present' }
