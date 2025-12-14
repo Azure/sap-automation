@@ -56,19 +56,14 @@ repos:
   # Adding the entries for Oracle-Linux for testing. cat /etc/oracle-release is the command to get the os version info in Oracle linux.
   oraclelinux8.1:
   oraclelinux8.2:
-    - { tier:   'os', repo: 'AlmaLinux SAPHana', url: 'https://repo.almalinux.org/almalinux/8/SAPHANA/x86_64/os', state: 'present' }
   oraclelinux8.3:
   oraclelinux8.4:
-    - { tier:   'os', repo: 'AlmaLinux SAPHana', url: 'https://repo.almalinux.org/almalinux/8/SAPHANA/x86_64/os', state: 'present' }
   oraclelinux8.5:
   oraclelinux8.6:
-    - { tier:   'os', repo: 'AlmaLinux SAPHana', url: 'https://repo.almalinux.org/almalinux/8/SAPHANA/x86_64/os', state: 'present' }
   oraclelinux8.7:
   oraclelinux8.8:
-    - { tier:   'os', repo: 'AlmaLinux SAPHana', url: 'https://repo.almalinux.org/almalinux/8/SAPHANA/x86_64/os', state: 'present' }
   oraclelinux8.9:
   oraclelinux8.10:
-    - { tier:   'os', repo: 'AlmaLinux SAPHana', url: 'https://repo.almalinux.org/almalinux/8/SAPHANA/x86_64/os', state: 'present' }
   oraclelinux9.0:
   oraclelinux9.2:
   oraclelinux9.4:
