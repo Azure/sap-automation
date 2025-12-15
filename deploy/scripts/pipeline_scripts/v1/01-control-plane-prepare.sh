@@ -24,7 +24,7 @@ source "${grand_parent_directory}/deploy_utils.sh"
 #call stack has full script name when using source
 source "${parent_directory}/helper.sh"
 
-echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the SAP Workload zone defined in $ZONE"
+echo "##vso[build.updatebuildnumber]Deploying the Control Plane"
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 DEBUG=False
