@@ -46,8 +46,6 @@ This script helps to automate the setup of a GitHub App, repository secrets, env
 
 4. **Install Dependencies**: Install the required Python libraries.
 
-    cd SDAF-GitHub-Actions
-
     `pip install -r requirements.txt`
 
 5. Running the Script
