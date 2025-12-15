@@ -50,11 +50,11 @@
 - name:                                "2.10 SAP Note - Disable SELinux and Reboot"
   when:
                                        - node_tier in ['scs', 'ers', 'pas', 'app', 'web']
-                                       - distribution_id in ['redhat7', 'redhat8', 'redhat9']
+                                       - distribution_id in ['redhat7', 'redhat8', 'redhat9', 'oraclelinux8', 'oraclelinux9']
   block:
     - name:                            "2.10 SAP Note - Disable SELinux"
       ansible.posix.selinux:
-        state:                         disabled
+        state:                         "{%if distribution_id in ['redhat7', 'redhat8', 'redhat9']%}disabled{%elif distribution_id in ['oraclelinux8', 'oraclelinux9']%}permissive{%endif%}"
       register:                        selinux_disabled
 
     - name:                            "2.10.1 SAP Note Reboot app VMs after selinux is configured"
@@ -71,7 +71,7 @@
     - name:                            "2.10 SAP Note - Clear the failed state of hosts"
       ansible.builtin.meta:            clear_host_errors
 
-  # Wait for Connection after reboot
+    # Wait for Connection after reboot
     - name:                            "2.10 SAP Note - Wait for system to become reachable"
       ansible.builtin.wait_for_connection:
         delay:                         10
