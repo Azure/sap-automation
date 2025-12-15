@@ -61,7 +61,7 @@
     state:                             absent
   when:                                reinstall
 
-- name:                                "5.2 Primary Application Server Installation - check if {{ sid_to_be_deployed.sid | upper }} is installed"
+- name:                                "5.2 Primary Application Server Installation - Check if {{ sid_to_be_deployed.sid | upper }} is installed"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_pas.txt"
   register:                            pas_installed

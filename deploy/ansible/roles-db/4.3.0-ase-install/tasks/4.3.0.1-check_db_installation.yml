@@ -12,26 +12,26 @@
 ---
 
 
-- name:                                "SAP Sybase: Install reset"
+- name:                                "4.3.0.1 - SYBASE Installation - Reset installation flag if reinstalling"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_sybase.txt"
     state:                             absent
   when: reinstall
 
-- name:                                "SAP Sybase: Check if Sybase already installed"
+- name:                                "4.3.0.1 - SYBASE Installation - Check if Sybase already installed"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_sybase.txt"
   register:                            "sybase_installed"
   when:                                node_tier == 'sybase'
 
-- name:                                "SYBASE Install status"
+- name:                                "4.3.0.1 - SYBASE Installation - SYBASE Install status"
   block:
 
-    - name:                            "SYBASE Install status"
+    - name:                            "4.3.0.1 - SYBASE Installation - 4.3.0.1 - SYBASE Installation - SYBASE Install status"
       ansible.builtin.debug:
         msg:                           "SYBASE is already installed"
 
-    - name:                            "SYBASE Install: - return value"
+    - name:                            "4.3.0.1 - SYBASE Installation - return value"
       ansible.builtin.set_fact:
         sybase_already_installed:      true
   when:

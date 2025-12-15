@@ -9,18 +9,18 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- name:                                "1.4 Packages - RHEL - Check if /etc/init.d exists"
+- name:                                "1.4 Packages - REDHAT - Check if /etc/init.d exists"
   ansible.builtin.stat:
     path:                              /etc/init.d
   register:                            initd_dir
 
-- name:                                "1.4 Packages - RHEL - Check if the OS version is RHEL 9.0 or newer and if init.d exists"
+- name:                                "1.4 Packages - REDHAT - Check if the OS version is RHEL 9.0 or newer and if init.d exists"
   ansible.builtin.set_fact:
     is_rhel_90_or_newer:               "{{ ansible_distribution_version is version('9.0', '>=') | default(false) }}"
     init_d_exists:                     "{{ initd_dir.stat.exists }}"
   when:                                ansible_os_family | upper == 'REDHAT'
 
-- name:                                "1.4 Packages - RHEL - Copy /etc/init.d"
+- name:                                "1.4 Packages - REDHAT - Copy /etc/init.d"
   ansible.builtin.copy:
     remote_src:                        true
     src:                               /etc/init.d
@@ -32,7 +32,7 @@
     - is_rhel_90_or_newer
     - init_d_exists
 
-- name:                                "1.4 Packages - RHEL - Remove /etc/init.d"
+- name:                                "1.4 Packages - REDHAT - Remove /etc/init.d"
   ansible.builtin.file:
     path:                              /etc/init.d
     state:                             absent

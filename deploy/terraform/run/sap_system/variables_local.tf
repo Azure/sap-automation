@@ -13,7 +13,15 @@ locals {
   vnet_sap_exists                      = length(local.vnet_sap_arm_id) > 0 ? true : false
 
 
-  db_sid                              = upper(try(local.database.instance.sid, "HDB"))
+  db_sid                              =  coalesce(
+                                           var.database_sid,
+
+                                           upper(var.database_platform) == "HANA" ? (
+                                             "HDB"
+                                             ) : (
+                                           coalesce(var.sid,substr(var.database_platform, 0, 3)))
+                                         )
+
   sap_sid                             = upper(try(local.application_tier.sid, local.db_sid))
   web_sid                             = upper(try(var.web_sid, local.sap_sid))
 
@@ -45,5 +53,5 @@ locals {
                                         jsondecode(file(format("%s/%s", path.cwd, var.name_override_file)))) : (
                                         null
                                       )
-
+  workload_zone_name                 = coalesce(var.workload_zone_name, upper(format("%s-%s-%s", var.environment, module.sap_namegenerator.naming_new.location_short, var.network_logical_name)))
 }

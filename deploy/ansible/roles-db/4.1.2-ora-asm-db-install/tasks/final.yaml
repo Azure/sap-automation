@@ -14,7 +14,7 @@
 
 ---
 
-- name:                                "4.1.2. ORACLE ASM Database Update - Validate ORACLE parameters"
+- name:                                "4.1.2 ORACLE ASM Database Update - Validate ORACLE parameters"
   ansible.builtin.assert:
     that:
       - item_to_check.parameter is defined                    # Has the variable been defined
@@ -27,7 +27,7 @@
   loop_control:
     loop_var: item_to_check
 
-- name:                                "4.1.2. ORACLE ASM Database Update - Set DB SID"
+- name:                                "4.1.2 ORACLE ASM Database Update - Set DB SID"
   ansible.builtin.debug:
     msg:
                                        - "DB SID: {{ db_sid | upper }}"
@@ -35,12 +35,12 @@
                                        - "Oracle Release: {{ ora_release }}"
                                        - "Oracle SBP Patch: {{ oracle_sbp_patch }}"
 
-- name:                                "4.1.2. ORACLE ASM Database Update - Set Runtime Variables"
+- name:                                "4.1.2 ORACLE ASM Database Update - Set Runtime Variables"
   ansible.builtin.set_fact:
     is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
     CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OL8 {% endif %}"
 
-- name:                                "4.1.2. ORACLE ASM Database Update - Ensure Oracle is running"
+- name:                                "4.1.2 ORACLE ASM Database Update - Ensure Oracle is running"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
@@ -55,17 +55,17 @@
   args:
     executable:                        /bin/csh
 
-- name:                                "5.1. Database Load - ORACLE: Check if catsbp exists"
+- name:                                "5.1 Database Load  - ORACLE: Check if catsbp exists"
   ansible.builtin.stat:
     path:                               "/oracle/{{ db_sid | upper }}/{{ ora_version }}/sapbundle/catsbp"
   register:                            catsbp_stat
 
 # Step 17
-- name:                                "4.1.2. ORACLE ASM Database Update - Run the post-installation script catsbp"
+- name:                                "4.1.2 ORACLE ASM Database Update - Run the post-installation script catsbp"
   when:                                catsbp_stat.stat.exists
   block:
 
-    - name:                            "4.1.2. ORACLE ASM Database Update - Run run the post-installation script catsbp"
+    - name:                            "4.1.2 ORACLE ASM Database Update - Run run the post-installation script catsbp"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -83,14 +83,14 @@
         executable:                    /bin/csh
         creates:                       "/etc/sap_deployment_automation/oracle/update_catsbp.txt"
 
-    - name:                            "4.1.2. ORACLE ASM Database Update - Debug: GRID prepatch output"
+    - name:                            "4.1.2 ORACLE ASM Database Update - Debug: GRID prepatch output"
       ansible.builtin.copy:
         dest:                          "/etc/sap_deployment_automation/oracle/catsbp.log"
         content:                       "{{ catsbp_results.stdout }}"
         mode:                          0777
       when:                            catsbp_results.stdout is defined
 
-    - name:                            "4.1.2. ORACLE ASM Database Update - creates update_catsbp.txt after a successful post processing script execution"
+    - name:                            "4.1.2 ORACLE ASM Database Update - creates update_catsbp.txt after a successful post processing script execution"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/oracle/update_catsbp.txt"
         state:                         touch

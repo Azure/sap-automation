@@ -84,7 +84,7 @@
     line:                              'PrintMotd yes'
   become:                              true
   notify:
-    - restart sshd service
+    - "1.13 MOTD - Restart sshd service"
 
 - name:                                "1.13 MOTD - Update default Banner path"
   ansible.builtin.lineinfile:
@@ -94,6 +94,6 @@
     line:                              'Banner /etc/issue.net'
   become:                              true
   notify:
-    - restart sshd service
+    - "1.13 MOTD - Restart sshd service"
 
 ...

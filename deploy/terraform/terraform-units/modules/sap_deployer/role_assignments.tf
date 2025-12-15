@@ -141,31 +141,31 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
   provider                             = azurerm.main
   count                                = var.options.assign_resource_permissions && !local.run_as_msi ? 1 : 0
   scope                                = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
-  role_definition_name                 = "User Access Administrator"
+  role_definition_name                 = "Role Based Access Control Administrator"
   principal_type                       = "ServicePrincipal"
   principal_id                         = data.azurerm_client_config.current.object_id
-   # condition_version                    = "2.0"
-  # condition                            = <<-EOT
-  #                                           (
-  #                                            (
-  #                                             !(ActionMatches{'Microsoft.Authorization/roleAssignments/write'})
-  #                                            )
-  #                                            OR
-  #                                            (
-  #                                             @Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9, f58310d9-a9f6-439a-9e8d-f62e7b41a168}
-  #                                            )
-  #                                           )
-  #                                           AND
-  #                                           (
-  #                                            (
-  #                                             !(ActionMatches{'Microsoft.Authorization/roleAssignments/delete'})
-  #                                            )
-  #                                            OR
-  #                                            (
-  #                                             @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9, f58310d9-a9f6-439a-9e8d-f62e7b41a168}
-  #                                            )
-  #                                           )
-  #                                           EOT
+  condition_version                    = "2.0"
+  condition                            = <<-EOT
+                                            (
+                                             (
+                                              !(ActionMatches{'Microsoft.Authorization/roleAssignments/write'})
+                                             )
+                                             OR
+                                             (
+                                              @Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidNotEquals {ba92f5b4-2d11-453d-a403-e96b0029c9fe, 4633458b-17de-408a-b874-0445c86b69e6}
+                                             )
+                                            )
+                                            AND
+                                            (
+                                             (
+                                              !(ActionMatches{'Microsoft.Authorization/roleAssignments/delete'})
+                                             )
+                                             OR
+                                             (
+                                              @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidNotEquals {ba92f5b4-2d11-453d-a403-e96b0029c9fe}
+                                             )
+                                            )
+                                            EOT
 }
 
 resource "azurerm_role_assignment" "role_assignment_spn" {
@@ -189,14 +189,6 @@ resource "azurerm_role_assignment" "role_assignment_additional_users" {
   principal_id                         = var.additional_users_to_add_to_keyvault_policies[count.index]
 }
 
-# resource "azurerm_role_assignment" "role_assignment_webapp" {
-#   provider                             = azurerm.main
-#   count                                = var.options.assign_resource_permissions && var.key_vault.enable_rbac_authorization && !var.key_vault.exists  && var.app_service.use ? 1 : 0
-#   scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
-#   role_definition_name                 = "Key Vault Secrets User"
-#   principal_id                         = azurerm_windows_web_app.webapp[0].identity[0].principal_id
-# }
-
 #######################################4#######################################8
 #                                                                              #
 #                              Managed DevOps Pool                             #
@@ -216,6 +208,35 @@ resource "azurerm_role_assignment" "dev_center_network_contributor" {
   scope                                         = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
   role_definition_name                          = "Network Contributor"
   principal_id                                  = var.infrastructure.devops.DevOpsInfrastructure_object_id
+}
+
+#########################################################################################
+#                                                                                       #
+#  Application configuration variables                                                  #
+#                                                                                       #
+#########################################################################################
+
+resource "azurerm_role_assignment" "appconfig_data_owner_msi" {
+  provider                             = azurerm.main
+  count                                = var.options.assign_resource_permissions && var.app_config_service.deploy ? 1 : 0
+  scope                                = var.app_config_service.deploy ? (
+                                          length(var.app_config_service.id) == 0 ? (
+                                            azurerm_app_configuration.app_config[0].id) : (
+                                            data.azurerm_app_configuration.app_config[0].id)) : (
+                                          0
+                                          )
+  role_definition_name                 = "App Configuration Data Owner"
+  principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
+}
+
+resource "azurerm_role_assignment" "appconfig_data_owner_spn" {
+  provider                             = azurerm.main
+  count                                = var.options.assign_resource_permissions && var.app_config_service.deploy && !local.run_as_msi ?  1 : 0
+  scope                                = length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
+  role_definition_name                 = "App Configuration Data Owner"
+  principal_type                       = "ServicePrincipal"
+  principal_id                         = data.azurerm_client_config.current.object_id
+
 }
 
 locals {

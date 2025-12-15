@@ -14,10 +14,6 @@ variable "custom_disk_sizes_filename"                   {
                                                         }
 variable "database"                                     {}
 
-variable "database_dual_network_interfaces"             {
-                                                          description = "Defines if the HANA DB uses dual network interfaces"
-                                                          type        = bool
-                                                        }
 variable "enable_storage_nic"                           {
                                                           description = "Boolean to determine if a storage nic should be used when scale out is enabled"
                                                           type        = bool

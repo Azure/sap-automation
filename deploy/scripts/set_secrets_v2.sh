@@ -21,8 +21,6 @@ fi
 export DEBUG
 set -eu
 
-deploy_using_msi_only=0
-keyvault=""
 
 function addKeyVaultNetworkRule {
 	local keyvault=$1
@@ -165,7 +163,7 @@ function secretExists {
 
 	set +e
 
-	if [ "$DEBUG" == True ]; then
+	if [ "${DEBUG:-false}" == true ]; then
 		echo "DEBUG: Current az account: $(az account show --query user --output yaml)" >&2
 		echo "DEBUG: About to run az command with params: keyvault='$keyvault', subscription='$subscription', secret_name='$secret_name'" >&2
 	fi
@@ -175,19 +173,19 @@ function secretExists {
 		--query "[?name=='${secret_name}'].name | [0]" \
 		--output tsv >&2
 	kvSecretExitsCode=$?
-	if [ "$DEBUG" == True ]; then
+	if [ "${DEBUG:-false}" == true ]; then
 		echo "DEBUG: Command completed. exit_code=$kvSecretExitsCode" >&2
 	fi
 
 	set -e
 
 	if [ $kvSecretExitsCode -eq 0 ]; then
-		if [ "$DEBUG" == True ]; then
+		if [ "${DEBUG:-false}" == true ]; then
 			echo "DEBUG: Secret ${secret_name} exists in Key Vault ${keyvault}" >&2
 		fi
 	else
 		# If the secret does not exist, we return 1
-		if [ "$DEBUG" == True ]; then
+		if [ "${DEBUG:-false}" == true ]; then
 			echo "DEBUG: Secret ${secret_name} does not exist in Key Vault ${keyvault} - Return code: ${kvSecretExitsCode}" >&2
 		fi
 	fi
@@ -302,6 +300,7 @@ function show_help {
 	echo "#      -c or --spn_id                          SPN application id                       #"
 	echo "#      -p or --spn_secret                      SPN password                             #"
 	echo "#      -t or --tenant_id                       SPN Tenant id                            #"
+	echo "#      -g or --gh_pat                          GitHub Personal Access Token             #"
 	echo "#      -h or --help                            Show help                                #"
 	echo "#                                                                                       #"
 	echo "#   Example:                                                                            #"
@@ -355,7 +354,7 @@ function source_helper_scripts() {
 
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:hwma --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,workload,help,msi,ado -- "$@")
+	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:g:hwma --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,gh_pat:,workload,help,msi,ado -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -405,6 +404,10 @@ function parse_arguments() {
 			STATE_SUBSCRIPTION="$2"
 			shift 2
 			;;
+		-g | --gh_pat)
+			gh_pat="$2"
+			shift 2
+			;;
 		-w | --workload)
 			workload=1
 			shift
@@ -440,7 +443,7 @@ function parse_arguments() {
 		return 10
 	}
 
-	if [ 0 -eq "$deploy_using_msi_only" ]; then
+  if [ "$USE_MSI" != "true" ]; then
 
 		if [ -z "$client_id" ]; then
 			print_banner "$banner_title" "client_id is required" "error"
@@ -501,6 +504,7 @@ function retrieve_parameters() {
 				export keyvault
 			fi
 		fi
+
 		[[ -z "$keyvault" ]] && {
 			print_banner "$banner_title" "key_vault is required" "error"
 			return 10
@@ -560,27 +564,36 @@ function set_all_secrets() {
 		return 20
 	fi
 
-	if [ 0 = "${deploy_using_msi_only:-}" ]; then
-
-		#turn off output, we do not want to show the details being uploaded to keyvault
-		secret_name="${prefix}"-client-id
-		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_id}" "configuration" >/dev/null; then
+	if [ "${PLATFORM:-devops}" == "github" ] && [ -n "${gh_pat:-}" ]; then
+		secret_name="${prefix}"-GH-PAT
+		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${gh_pat}" "secret" >/dev/null; then
 			print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
 		else
 			print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
 			return 20
 		fi
+	fi
 
-		secret_name="${prefix}"-tenant-id
-		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${tenant_id}" "configuration" >/dev/null; then
-			print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
-		else
-			print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
-			return 20
-		fi
+	#turn off output, we do not want to show the details being uploaded to keyvault
+	secret_name="${prefix}"-client-id
+	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "$ARM_CLIENT_ID" "configuration" >/dev/null; then
+		print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
+	else
+		print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
+		return 20
+	fi
 
+	secret_name="${prefix}"-tenant-id
+	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "$ARM_TENANT_ID" "configuration" >/dev/null; then
+		print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
+	else
+		print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"
+		return 20
+	fi
+
+  if [ "$USE_MSI" != "true" ]; then
 		secret_name="${prefix}"-client-secret
-		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_secret}" "secret" >/dev/null; then
+		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "$ARM_CLIENT_SECRET" "secret" >/dev/null; then
 			print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"
 		else
 			print_banner "$banner_title" "Failed to set secret ${secret_name} in keyvault ${keyvault}" "error"

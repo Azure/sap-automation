@@ -4,24 +4,15 @@
 #   SAP: Register BOM
 #   SAP WEB: deploy Web Dispatcher Parameter file install template
 #   SAP WEB: Install
-
-# TODO: Considerations
-#         20G+ swap space
-#         Livecache: None, HANA Internal, MaxDB External
-#         message server acl
-#         certificates
-#         secure storage key
-#
-
 ---
 
-- name:                                "SAP Web Dispatcher Install: Set BOM facts"
+- name:                                "5.4 SAP Web Dispatcher Install - Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-web-{{ sid_to_be_deployed.web_sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "web-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.web_sid | lower }}-params"
 
-- name:                                "SAP Web Dispatcher Install: Create directories"
+- name:                                "5.4 SAP Web Dispatcher Install - Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -31,50 +22,66 @@
     - { mode: '0755', path: '{{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}' }
 
-- name:                                "SAP Web Dispatcher Install: reset"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}/sap_deployment_web.txt"
-    state:                             absent
-  when:                                reinstall
-
-- name:                                "SAP Web Dispatcher Install: check if {{ sid_to_be_deployed.web_sid | upper }} is installed"
-  ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}/sap_deployment_web.txt"
-  register:                            web_installed
-
 # Returns bom object
-- name:                                "SAP Web Dispatcher Install: Register BoM"
+- name:                                "5.4 SAP Web Dispatcher Install - Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    task_prefix:                       "SAP Web Dispatcher Install: "
+    task_prefix:                       "5.4 SAP Web Dispatcher Install - "
     sa_enabled:                        true
 
-- name:                                "Web install: register variables"
+- name:                                "5.4 SAP Web Dispatcher Install - Register product Id"
   ansible.builtin.set_fact:
     web_bom_id:                        "{{ bom.product_ids.web }}"
 
-- name:                                "Web Install"
+- name:                                "5.4 SAP Web Dispatcher Install - Find the installationSuccesfullyFinished.dat (SAPINST)"
+  ansible.builtin.find:
+    paths:                             "{{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}/sapinst_instdir/GENERIC/AS/WI_UC"
+    file_type:                         file
+    patterns:                          'installationSuccesfullyFinished.dat'
+    recurse:                           true
+  register:                            web_installed_according_to_sapinst
+
+- name:                                "5.4 SAP Web Dispatcher Install - flag"
+  when:
+                                       - web_installed_according_to_sapinst.matched > 0
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}/sap_deployment_web.txt"
+    state:                             touch
+    mode:                              0755
+
+- name:                                "5.4 SAP Web Dispatcher Install - reset"
+  ansible.builtin.file:
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}/sap_deployment_web.txt"
+    state:                             absent
+  when:                                reinstall
+
+- name:                                "5.4 SAP Web Dispatcher Install - check if {{ sid_to_be_deployed.web_sid | upper }} is installed"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.web_sid | upper }}/sap_deployment_web.txt"
+  register:                            web_installed
+
+- name:                                "5.4 SAP Web Dispatcher Install"
   become:                              true
   become_user:                         root
   when:
                                        - not web_installed.stat.exists
   block:
 
-    - name:                            "SAP Web Dispatcher Install: Get the SCS Server name list"
+    - name:                            "5.4 SAP Web Dispatcher Install - Get the SCS Server name list"
       ansible.builtin.set_fact:
         scs_server_temp:               "{{ scs_server_temp | default([]) + [item] }}"
       with_items:
         - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
         - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
-    - name:                            "SAP Web Dispatcher Install: Set the SCS Server name"
+    - name:                            "5.4 SAP Web Dispatcher Install - Set the SCS Server name"
       ansible.builtin.set_fact:
         scs_server:                     "{% if scs_high_availability %}{{ sap_sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ scs_server_temp | first }}{% endif %}"
 
-    - name:                            "SAP Web Dispatcher Install: check media exists"
+    - name:                            "5.4 SAP Web Dispatcher Install - check media exists"
       ansible.builtin.stat:
         path:                          "{{ target_media_location }}/SWPM/sapinst"
       register:                        sapinst_found
@@ -92,7 +99,7 @@
         mode:                          0644
         force:                         true
       vars:
-        task_prefix:                   "SAP Web Dispatcher Install: "
+        task_prefix:                   "5.4 SAP Web Dispatcher Install - "
         sap_cd_package_hdbclient:      "{{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT"
         sap_cd_package_cd1:            "{{ target_media_location }}/CD_EXPORT"
         web_instance_number:           "{{ wd_instance_number }}"
@@ -104,7 +111,7 @@
         web_sid:                       "{{ sid_to_be_deployed.web_sid | upper }}"
         sap_sid:                       "{{ sid_to_be_deployed.sid | upper }}"
 
-    - name:                            "SAP Web Dispatcher Install: install variables"
+    - name:                            "5.4 SAP Web Dispatcher Install - install variables"
       ansible.builtin.debug:
         msg:
           - "INSTALLED:  {{ web_installed.stat.exists }}"
@@ -121,17 +128,11 @@
     # 2230669 - System Provisioning Using a Parameter Input File
     #
 
-    - name:                            "SAP Web Dispatcher Install: Create temp directory for sid"
-      ansible.builtin.file:
-        path:                          "{{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}"
-        state:                         directory
-        mode:                          0755
-
-    - name:                            "SAP Web Dispatcher Install: progress"
+    - name:                            "5.4 SAP Web Dispatcher Install - Information"
       ansible.builtin.debug:
         msg:                           "Starting Web Install ({{ sid_to_be_deployed.web_sid | upper }})"
 
-    - name:                            "SAP Web Dispatcher Install"
+    - name:                            "5.4 SAP Web Dispatcher Install"
       ansible.builtin.shell: |
                                        umask {{ custom_umask | default('022') }} ;
                                        ./sapinst SAPINST_INPUT_PARAMETERS_URL={{ dir_params }}/{{ sap_inifile }}     \
@@ -150,14 +151,14 @@
       failed_when:                     web_installation.rc > 0
       when:                            "'web' in supported_tiers"
 
-    - name:                            "SAP Web Dispatcher Install: Installation results"
+    - name:                            "5.4 SAP Web Dispatcher Install - Installation results"
       when:
                                        - web_installation is defined | default(false)
                                        - web_installation.rc > 0
       ansible.builtin.debug:
         var:                           web_installation
 
-    - name:                            "SAP WebDispatcher Install: Find the installationSuccesfullyFinished.dat (SAPINST)"
+    - name:                            "5.4 SAP Web Dispatcher Install - Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
         paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.web_sid | upper }}/sapinst_instdir/GENERIC/AS/WI_UC"
         file_type:                     file
@@ -165,14 +166,14 @@
         recurse:                       true
       register:                        web_installed_according_to_sapinst
 
-    - name:                            "SAP Web Dispatcher Install: Installation results"
+    - name:                            "5.4 SAP Web Dispatcher Install - Installation results"
       when:
                                        - web_installation is defined | default(false)
                                        - web_installation.rc == 0
       ansible.builtin.debug:
-        msg:                           "Web Dispatcher Installation succeeded"
+        msg:                           "5.4 SAP Web Dispatcher Install - Installation succeeded"
 
-    - name:                            "SAP Web Dispatcher Install: flag"
+    - name:                            "5.4 SAP Web Dispatcher Install - flag"
       when:
                                        - web_installation is defined | default(false)
                                        - web_installation.rc == 0
@@ -182,7 +183,14 @@
         state:                         touch
         mode:                          0755
 
+
 # *====================================4=======================================8
+
+- name:                                "5.4 SAP Web Dispatcher Install"
+  when:
+                                       - web_installed.stat.exists
+  ansible.builtin.debug:
+    msg:                               "Web Dispatcher already installed, skipping installation"
 
 ...
 # /*---------------------------------------------------------------------------8

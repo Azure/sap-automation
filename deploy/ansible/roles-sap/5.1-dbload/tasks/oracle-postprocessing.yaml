@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-- name:                                "5.1. Database Load - ORACLE - Create directories"
+- name:                                "5.1 Database Load  - ORACLE - Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -12,12 +12,12 @@
     - { mode: '0755', path: '/etc/sap_deployment_automation/oracle' }
     - { mode: '0755', path: '/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}' }
 
-- name:                                "5.1. Database Load - ORACLE: Set Runtime Variables"
+- name:                                "5.1 Database Load  - ORACLE: Set Runtime Variables"
   ansible.builtin.set_fact:
     is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
     CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OL8 {% endif %}"
 
-- name:                                "5.1. Database Load - ORACLE - Ensure Oracle is running"
+- name:                                "5.1 Database Load  - ORACLE - Ensure Oracle is running"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
@@ -32,7 +32,7 @@
     executable:                        /bin/csh
 
     # Disable the automatic restart for database on Primary.
-- name:                                "5.1. Database Load - ORACLE - Check if database registered with restart on Primary"
+- name:                                "5.1 Database Load  - ORACLE - Check if database registered with restart on Primary"
   when :
                                        - node_tier == 'oracle-asm'
   become:                              true
@@ -49,7 +49,7 @@
   failed_when:                         false
   changed_when:                        false
 
-- name:                                "5.1. Database Load - ORACLE - Disable automatic restart for database on Primary"
+- name:                                "5.1 Database Load  - ORACLE - Disable automatic restart for database on Primary"
   when :
                                        - node_tier == 'oracle-asm'
                                        - srvctl_check.rc == 0
@@ -74,19 +74,19 @@
                                        - disable_restart_primary.rc == 0
 
 # Step 17
-- name:                                "5.1. Database Load - ORACLE: Show Status message"
+- name:                                "5.1 Database Load  - ORACLE: Show Status message"
   ansible.builtin.debug:
-    msg:                               "5.1. Database Load - ORACLE: Run the post-installation script catsbp"
+    msg:                               "5.1 Database Load  - ORACLE: Run the post-installation script catsbp"
 
-- name:                                "5.1. Database Load - ORACLE: Check if catsbp exists"
+- name:                                "5.1 Database Load  - ORACLE: Check if catsbp exists"
   ansible.builtin.stat:
     path:                               "/oracle/{{ db_sid | upper }}/{{ ora_version }}/sapbundle/catsbp"
   register:                            catsbp_stat
 
-- name:                                "5.1. Database Load - ORACLE: Run run the post-installation script catsbp"
+- name:                                "5.1 Database Load  - ORACLE: Run run the post-installation script catsbp"
   when:                                catsbp_stat.stat.exists
   block:
-    - name:                            "5.1. Database Load - ORACLE: Run run the post-installation script catsbp"
+    - name:                            "5.1 Database Load  - ORACLE: Run run the post-installation script catsbp"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -101,7 +101,7 @@
       args:
         executable:                    /bin/csh
 
-    - name:                            "5.1. Database Load - ORACLE: Debug: GRID prepatch output"
+    - name:                            "5.1 Database Load  - ORACLE: Debug: GRID prepatch output"
       ansible.builtin.copy:
         dest:                          "/etc/sap_deployment_automation/oracle/catsbp.log"
         content:                       "{{ catsbp_results.stdout }}"
@@ -110,7 +110,7 @@
 
   rescue:
 
-    - name:                            "5.1. Database Load - ORACLE - Ensure Oracle is running"
+    - name:                            "5.1 Database Load  - ORACLE - Ensure Oracle is running"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -126,7 +126,7 @@
       args:
         executable:                    /bin/csh
 
-    - name:                            "5.1. Database Load - ORACLE: Run run the post-installation script catsbp"
+    - name:                            "5.1 Database Load  - ORACLE: Run run the post-installation script catsbp"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
@@ -141,14 +141,14 @@
       args:
         executable:                    /bin/csh
 
-    - name:                            "5.1. Database Load - ORACLE: Debug: GRID prepatch output"
+    - name:                            "5.1 Database Load  - ORACLE: Debug: GRID prepatch output"
       ansible.builtin.copy:
         dest:                          "/etc/sap_deployment_automation/oracle/catsbp.log"
         content:                       "{{ catsbp_results.stdout }}"
         mode:                          0777
       when:                            catsbp_results.stdout is defined
 
-- name:                                "5.1. Database Load - ORACLE: Set Variables"
+- name:                                "5.1 Database Load  - ORACLE: Set Variables"
   ansible.builtin.set_fact:
     PAS:                               'pas'
     pga_temp_l4tb_std:                 "{{ ((ansible_memory_mb.real.total * 0.60 ) * 0.2) | round | int }}"
@@ -156,7 +156,7 @@
     # pga_temp_g4tb:                       "{{ ((ansible_memory_mb.real.total*0.85)*0.2) |round |int }}"
 
 # PGA & SGA for RAM < 4TB
-- name:                                "5.1. Database Load - ORACLE: Set the SGA and PGA Sizes for RAM < 4TB"
+- name:                                "5.1 Database Load  - ORACLE: Set the SGA and PGA Sizes for RAM < 4TB"
   ansible.builtin.set_fact:
     main_mem1:                         "{{ ansible_memory_mb.real.total }}"
     ora_sga:                           "{{ (ansible_memory_mb.real.total * 0.60) | round | int }}"
@@ -165,7 +165,7 @@
   when:
     - ansible_memory_mb.real.total < 4194304
     - "'pas' not in supported_tiers"
-- name:                                "5.1. Database Load - ORACLE: Set the SGA and PGA Sizes for RAM < 4TB Single Node Deployments"
+- name:                                "5.1 Database Load  - ORACLE: Set the SGA and PGA Sizes for RAM < 4TB Single Node Deployments"
   ansible.builtin.set_fact:
     main_mem1:                         "{{ ansible_memory_mb.real.total }}"
     ora_sga:                           "{{ (ansible_memory_mb.real.total * 0.75) | round | int }}"
@@ -174,14 +174,14 @@
     - ansible_memory_mb.real.total < 4194304
     - "'pas' in supported_tiers"
 
-- name:                                "5.1. Database Load - ORACLE: Show Main Memory"
+- name:                                "5.1 Database Load  - ORACLE: Show Main Memory"
   ansible.builtin.debug:
     msg:
       - "Total memory:         {{ main_mem1 }}"
       - "sga_max_size:         {{ ora_sga }}"
       - "pga_aggregate_target: {{ ora_pga }}"
 
-- name:                                "5.1. Database Load - ORACLE: Set the SGA and PGA Sizes for RAM > 4TB"
+- name:                                "5.1 Database Load  - ORACLE: Set the SGA and PGA Sizes for RAM > 4TB"
   ansible.builtin.set_fact:
     ora_sga:                           "{{ (ansible_memory_mb.real.total * 0.65) | round | int }}"
     ora_pga:                           "{{ ((ansible_memory_mb.real.total*0.65)*0.2) | round | int }}"
@@ -191,12 +191,12 @@
     - supported_tiers == "scs"
 
 # Block to check if a reboot has been performed already after updating SGA & PGS
-- name:                                "5.1. Database Load - ORACLE: DBLoad - check if DBLoad is performed for {{ sid_to_be_deployed.sid | upper }}"
+- name:                                "5.1 Database Load  - ORACLE: DBLoad- Check if DBLoad is performed for {{ sid_to_be_deployed.sid | upper }}"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/ora_sga_updated.txt"
   register:                            sga_update_status
 
-- name:                                "5.1. Database Load - ORACLE: Oracle SGA Change Execution"
+- name:                                "5.1 Database Load  - ORACLE: Oracle SGA Change Execution"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
@@ -215,14 +215,14 @@
   args:
     executable:                        /bin/csh
 
-- name:                               "5.1. Database Load - ORACLE - Debug: SGA Change Output"
+- name:                               "5.1 Database Load  - ORACLE - Debug: SGA Change Output"
   ansible.builtin.copy:
     dest:                             "/etc/sap_deployment_automation/oracle/updatesga_results.log"
     content:                          "{{ updatesga_results.stdout }}"
     mode:                              0755
   when:                                updatesga_results.stdout is defined
 
-- name:                                "5.1. Database Load - ORACLE - Create ora_sga_updated.txt"
+- name:                                "5.1 Database Load  - ORACLE - Create ora_sga_updated.txt"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/ora_sga_updated.txt"
     state:                             touch
@@ -231,7 +231,7 @@
     - updatesga_results.stdout is defined
     - updatesga_results.rc == 0
 
-- name:                                "5.1. Database Load - ORACLE - Check for zombie standby processes"
+- name:                                "5.1 Database Load  - ORACLE - Check for zombie standby processes"
   become_user:                         "root"
   become:                              true
   ansible.builtin.shell: |
@@ -240,7 +240,7 @@
   register:                            standby_pmon
   changed_when:                        false
 
-- name:                                "5.1. Database Load - ORACLE - Kill zombie standby processes"
+- name:                                "5.1 Database Load  - ORACLE - Kill zombie standby processes"
   become:                              true
   become_user:                         root
   ansible.builtin.shell:               kill -9 {{ item.split()[1] }}
@@ -248,7 +248,7 @@
   when:                                standby_pmon.stdout | length > 0
   failed_when:                         false
 
-- name:                                "5.1. Database Load - ORACLE - Clean orphaned shared memory segments"
+- name:                                "5.1 Database Load  - ORACLE - Clean orphaned shared memory segments"
   become:                              true
   become_user:                         root
   ansible.builtin.shell: |
@@ -259,7 +259,7 @@
   failed_when:                         false
   when:                                standby_pmon.stdout | length > 0
 
-- name:                                "5.1. Database Load - ORACLE - Start Oracle after SGA Change"
+- name:                                "5.1 Database Load  - ORACLE - Start Oracle after SGA Change"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
@@ -274,7 +274,7 @@
   args:
     executable:                        /bin/csh
 
-- name:                                "5.1. Database Load - ORACLE - Start lsnrctl on Primary"
+- name:                                "5.1 Database Load  - ORACLE - Start lsnrctl on Primary"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:
