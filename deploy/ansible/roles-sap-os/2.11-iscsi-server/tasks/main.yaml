@@ -3,7 +3,7 @@
 
 ---
 
-- name:                                "2.11: Ensure targetcli is installed on RHEL"
+- name:                                "2.11 iSCSI Server - Ensure targetcli is installed on RHEL"
   become_user:                         root
   become:                              true
   when:
@@ -14,7 +14,7 @@
   tags:
                                        - "iscsi-targetcli"
 
-- name:                                "2.11: Ensure targetcli is installed on SLES"
+- name:                                "2.11 iSCSI Server - Ensure targetcli is installed on SLES"
   become_user:                         root
   become:                              true
   when:
@@ -27,7 +27,7 @@
   tags:
                                        - "iscsi-targetcli"
 
-- name:                                "2.11: Ensure that the firewall rules are set on RHEL"
+- name:                                "2.11 iSCSI Server - Ensure that the firewall rules are set on RHEL"
   when:
                                        - ansible_os_family | upper == "REDHAT"
   ansible.posix.firewalld:
@@ -38,7 +38,7 @@
   tags:
                                        - "iscsi-firewall"
 
-- name:                                "2.11: SBD - Create Directory"
+- name:                                "2.11 iSCSI Server - SBD - Create Directory"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -46,7 +46,7 @@
   loop:
                                        - { path: '/sbd' }
 
-- name:                                "2.11: SBD create sbdnfs SCS"
+- name:                                "2.11 iSCSI Server - SBD create sbdnfs SCS"
   become_user:                         root
   become:                              true
   ansible.builtin.command:             "targetcli backstores/fileio create sbdascs{{ sap_sid }} /sbd/sbdascs{{ sap_sid }} 50M write_back=false"
@@ -54,7 +54,7 @@
   failed_when:                         sbd_create_scs.rc not in [0,1]
   changed_when:                        sbd_create_scs.rc == 0
 
-- name:                                "2.11: SBD create iscsi SCS"
+- name:                                "2.11 iSCSI Server - SBD create iscsi SCS"
   become_user:                         root
   become:                              true
   when:
@@ -68,7 +68,7 @@
   loop:                                "{{ iscsi_servers }}"
 
 
-- name:                                "2.11: SBD create iscsi/iqn SCS"
+- name:                                "2.11 iSCSI Server - SBD create iscsi/iqn SCS"
   become_user:                         root
   become:                              true
   when:
@@ -82,7 +82,7 @@
   loop:                                "{{ iscsi_servers }}"
 
 
-- name:                                "2.11: SBD create iscsi/iqn SCS"
+- name:                                "2.11 iSCSI Server - SBD create iscsi/iqn SCS"
   become_user:                         root
   become:                              true
   when:
@@ -96,7 +96,7 @@
   loop:                                "{{ iscsi_servers }}"
 
 
-- name:                                "2.11: SBD create iscsi/iqn SCS"
+- name:                                "2.11 iSCSI Server - SBD create iscsi/iqn SCS"
   become_user:                         root
   become:                              true
   when:
@@ -110,7 +110,7 @@
   loop:                                "{{ iscsi_servers }}"
 
 
-- name:                                "2.11: SBD create sbdnfs DB"
+- name:                                "2.11 iSCSI Server - SBD create sbdnfs DB"
   become_user:                         root
   become:                              true
   ansible.builtin.command:             "targetcli backstores/fileio create sbddb{{ sap_sid }} /sbd/sbddb{{ sap_sid }} 50M write_back=false"
@@ -118,7 +118,7 @@
   failed_when:                         sbd_create_db.rc not in [0,1]
   changed_when:                        sbd_create_db.rc == 0
 
-- name:                                "2.11: SBD create iscsi DB"
+- name:                                "2.11 iSCSI Server - SBD create iscsi DB"
   become_user:                         root
   become:                              true
   when:
@@ -132,7 +132,7 @@
   loop:                                "{{ iscsi_servers }}"
 
 
-- name:                                "2.11: SBD create iscsi/iqn DB"
+- name:                                "2.11 iSCSI Server - SBD create iscsi/iqn DB"
   become_user:                         root
   become:                              true
   when:
@@ -146,7 +146,7 @@
   loop:                                "{{ iscsi_servers }}"
 
 
-- name:                                "2.11: SBD create iscsi/iqn DB"
+- name:                                "2.11 iSCSI Server - SBD create iscsi/iqn DB"
   become_user:                         root
   become:                              true
   when:
@@ -159,7 +159,7 @@
   changed_when:                        iscsi_create3_db.rc == 0
   loop:                                "{{ iscsi_servers }}"
 
-- name:                                "2.11: SBD create iscsi/iqn DB"
+- name:                                "2.11 iSCSI Server - SBD create iscsi/iqn DB"
   become_user:                         root
   become:                              true
   when:
@@ -172,19 +172,19 @@
   changed_when:                        iscsi_create4_db.rc == 0
   loop:                                "{{ iscsi_servers }}"
 
-- name:                                "2.11: Save CLI"
+- name:                                "2.11 iSCSI Server - Save CLI"
   become_user:                         root
   become:                              true
   ansible.builtin.command:             "targetcli saveconfig"
   register:                            cli_save
 
-- name:                                "2.11: Show CLI"
+- name:                                "2.11 iSCSI Server - Show CLI"
   become_user:                         root
   become:                              true
   ansible.builtin.command:             "targetcli ls"
   register:                            cli_ls
 
-- name:                                "2.11: Show CLI results"
+- name:                                "2.11 iSCSI Server - Show CLI results"
   ansible.builtin.debug:
     msg:                               "{{ cli_ls.stdout_lines }}"
   when:

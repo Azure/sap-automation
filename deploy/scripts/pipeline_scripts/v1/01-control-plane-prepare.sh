@@ -3,6 +3,7 @@
 # Licensed under the MIT License.
 
 green="\e[1;32m"
+cyan="\e[1;36m"
 reset="\e[0m"
 bold_red="\e[1;31m"
 
@@ -42,11 +43,12 @@ set -eu
 print_header
 
 # Configure DevOps
+
 configure_devops
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.13.3}"
+	configureNonDeployer "${tf_version:-1.14.1}"
 else
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$PATH:$path
@@ -319,20 +321,12 @@ fi
 set -eu
 
 if [ -f "${deployer_environment_file_name}" ]; then
-
-	# check if DEPLOYER_KEYVAULT is already available as an export
-	if checkforEnvVar "DEPLOYER_KEYVAULT"; then
-		echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
-	else
-		# if not, try to read it from the environment file
-		DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-		# if the variable is not set, fallback to old variable name
-		if [ -z "${DEPLOYER_KEYVAULT}" ]; then
-			DEPLOYER_KEYVAULT=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-		fi
-		echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
+	DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	# if the variable is not set, fallback to old variable name
+	if [ -z "${DEPLOYER_KEYVAULT}" ]; then
+		DEPLOYER_KEYVAULT=$(grep -m1 "^keyvault=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	fi
-
+	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
 	# if DEPLOYER_KEYVAULT is still not set, exit with an error
 	if [ -z "${DEPLOYER_KEYVAULT}" ]; then
 		echo "##vso[task.logissue type=error]Deployer Key Vault is not defined in the environment file."
@@ -347,6 +341,16 @@ if [ -f "${deployer_environment_file_name}" ]; then
 			echo "##vso[task.logissue type=warning]Failed to save DEPLOYER_KEYVAULT in variable group."
 		fi
 	fi
+
+	APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
+	if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"; then
+			echo "Saved APPLICATION_CONFIGURATION_NAME in variable group."
+		else
+			echo "##vso[task.logissue type=warning]Failed to save APPLICATION_CONFIGURATION_NAME in variable group."
+		fi
+	fi
+
 
 fi
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
@@ -363,6 +367,8 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	added=1
 fi
 
+
+
 if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
 	git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
 	added=1
@@ -370,6 +376,11 @@ fi
 
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name" ]; then
 	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name"
+	added=1
+fi
+
+if [ -f DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md ]; then
+	git add -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md"
 	added=1
 fi
 

@@ -261,6 +261,33 @@ output "Agent_IP"                                {
 
 ###############################################################################
 #                                                                             #
+#                                App Config                                   #
+#                                                                             #
+###############################################################################
+
+
+output "application_configuration_name"                {
+                                                    description = "Application Configuration Name"
+                                                    value       = module.sap_deployer.application_configuration_name
+                                                 }
+output "application_configuration_id"                  {
+                                                    description = "Application Configuration Azure Resource Id"
+                                                    value       = module.sap_deployer.application_configuration_id
+                                                 }
+
+output "control_plane_name"                      {
+                                                    description = "Control plane name"
+                                                    value       = module.sap_namegenerator.naming.prefix.DEPLOYER
+                                                 }
+
+output "app_config_deployment"                 {
+                                                   description = "Is the App Configuration deployed"
+                                                   value       = var.application_configuration_deployment
+                                                 }
+
+
+###############################################################################
+#                                                                             #
 #                                Dev Center                                   #
 #                                                                             #
 ###############################################################################

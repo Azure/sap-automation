@@ -11,7 +11,7 @@
 
 # Search for Kernel executables and DB software media
 
-- name:                                "SAP Sybase: Search for Kernel files"
+- name:                                "4.3.0.4 - SYBASE Installation - Search for Kernel files"
   ansible.builtin.find:
     paths:                             "{{ kernel_media_folder }}"
     patterns:                          'SAPEXE_*SAR'
@@ -31,22 +31,22 @@
     recurse:                           true
   register:                            sybase_media_exist
 
-- name:                                "SAP Sybase: Show path"
+- name:                                "4.3.0.4 - SYBASE Installation - Show path"
   ansible.builtin.debug:
     var:                               sybase_media_exist
 
-- name:                                "SAP Sybase: Store SAP ASE software folder full path"
+- name:                                "4.3.0.4 - SYBASE Installation - Store SAP ASE software folder full path"
   ansible.builtin.set_fact:
     db_install_media_path:             "{{ sybase_media_exist.files[0].path | regex_replace('/SYBASE_LINUX_X86_64', '') }}"
   when:                                sybase_media_exist.matched >= 1
 
-- name:                                "SAP Sybase: Show all facts"
+- name:                                "4.3.0.4 - SYBASE Installation - Show all facts"
   ansible.builtin.debug:
     var:                               ansible_facts
     verbosity:                         4
 
 # "{{ (ansible_facts.memory_mb.real.total | int / 1024 * 0.8) | int }}"
-- name:                                "SAP ASE Install: Set BOM facts"
+- name:                                "4.3.0.4 - SYBASE Installation - Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-dbload-{{ ansible_hostname }}.params"
     sap_inifile_template:              "dbload-inifile-param.j2"

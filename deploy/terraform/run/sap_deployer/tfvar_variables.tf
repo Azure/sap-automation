@@ -11,7 +11,10 @@
 variable "environment"                           {
                                                    description = "This is the environment name of the deployer"
                                                    type        = string
-                                                   default     = ""
+                                                   validation {
+                                                     condition     = length(var.environment) <= 5 && length(var.environment) > 0
+                                                     error_message = "The 'environment' variable must be specified and at most 5 characters long."
+                                                   }
                                                  }
 
 variable "codename"                              {
@@ -304,7 +307,7 @@ variable "deployer_disk_type"                   {
 
 variable "deployer_use_DHCP"                    {
                                                   description = "If true, the deployers will use Azure Provided IP addresses"
-                                                  default     = false
+                                                  default     = true
                                                 }
 
 variable "deployer_image"                       {
@@ -393,6 +396,15 @@ variable "deployer_authentication_path_to_private_key" {
 #                                                                              #
 #######################################4#######################################8
 
+variable "spn_keyvault_id"                      {
+                                                  description = "Azure resource identifier for the keyvault where the spn will be stored"
+                                                  default     = ""
+                                                  validation {
+                                                    condition     = length(var.spn_keyvault_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.spn_keyvault_id))
+                                                    error_message = "If specified the 'spn_keyvault_id' variable must be a correct Azure resource identifier."
+                                                  }
+
+                                                }
 variable "user_keyvault_id"                           {
                                                         description = "Azure resource identifier for the Azure Key Vault containing the deployment credentials"
                                                         default     = ""
@@ -664,6 +676,27 @@ variable "DevOpsInfrastructure_object_id"             {
                                                         default     = ""
                                                       }
 
+variable "devops_platform"                            {
+                                                        description = "Type of agent to be used"
+                                                        type        = string
+                                                        default     = ""
+                                                      }
+variable "github_app_token"                           {
+                                                        description = "If provided, contains token to access github"
+                                                        default     = ""
+                                                      }
+variable "github_server_url"                          {
+                                                        description = "If provided, contains the Server Url of the GitHub instance"
+                                                        default     = "https://github.com"
+                                                      }
+variable "github_api_url"                             {
+                                                        description = "If provided, contains the API Url of the GitHub instance"
+                                                        default     = "https://api.github.com"
+                                                      }
+variable "github_repository"                          {
+                                                        description = "If provided, contains the Reference to the repositry (e.g. owner/repository)"
+                                                        default     = ""
+                                                      }
 
 #######################################4#######################################8
 #                                                                              #
@@ -800,6 +833,11 @@ variable "deploy_defender_extension"            {
 #  Application configuration variables                                                  #
 #                                                                                       #
 #########################################################################################
+
+variable "control_plane_name"                   {
+                                                  description = "The name of the control plane"
+                                                  default     = ""
+                                                }
 
 variable "application_configuration_id"          {
                                                     description = "Defines the Azure application configuration Resource id"

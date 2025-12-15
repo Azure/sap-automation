@@ -3,7 +3,7 @@
 
 ---
 
-- name:                                'Create temporary extract directory {{ item.archive }}'
+- name:                                '3.3 BoM Processing - Create temporary extract directory {{ item.archive }}'
   ansible.builtin.tempfile:
     path:                              "/mnt"
     state:                             directory
@@ -16,7 +16,7 @@
       - "Extract directory: {{ tempdir.path }}"
       - "Extract command: {% if (ansible_os_family | upper) == 'REDHAT' %}unar -s -D{% else %}unrar x{% endif %} {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
 
-- name:                                 "Install unar on RHEL"
+- name:                                 "3.3 BoM Processing - Install unar on RHEL"
   ansible.builtin.dnf:
     name:                               unar
     state:                              present
@@ -30,7 +30,7 @@
     creates:                           '{{ tempdir.path }}{% if item.tempDir is defined %}/{{ item.tempDir }}{% endif %}/{{ item.creates }}'
   register:                            extract_result
 
-- name:                                Show extract result
+- name:                                "3.3 BoM Processing - Show extract result"
   ansible.builtin.debug:
     var:                               extract_result
 
@@ -38,14 +38,14 @@
 #   ansible.builtin.wait_for:
 #     path:                              '{{ tempdir.path }}{% if item.tempDir is defined %}/{{ item.tempDir }}{% endif %}/{{ item.creates }}'
 
-- name:                                Copy the folder
+- name:                                "3.3 BoM Processing - Copy the folder"
   ansible.builtin.copy:
     src:                               '{{ tempdir.path }}{% if item.tempDir is defined %}/{{ item.tempDir }}{% endif %}/'
     dest:                              '{{ target_media_location }}/{{ item.extractDir }}'
     remote_src:                        true
     mode:                              0755
 
-- name:                                Remove extract directory
+- name:                                "3.3 BoM Processing - Remove extract directory"
   ansible.builtin.file:
     path:                              '{{ tempdir.path }}'
     state:                             absent

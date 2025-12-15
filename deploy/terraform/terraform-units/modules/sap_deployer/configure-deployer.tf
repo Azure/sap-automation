@@ -33,8 +33,13 @@ resource "null_resource" "prepare-deployer" {
                                              rg_name              = local.resourcegroup_name,
                                              subscription_id      = data.azurerm_subscription.primary.subscription_id,
                                              tenant_id            = data.azurerm_subscription.primary.tenant_id,
-                                             terraform_version    = var.infrastructure.devops.tf_version
-                                             use_webapp           = var.app_service.use
+                                             terraform_version    = var.infrastructure.devops.tf_version,
+                                             use_webapp           = var.app_service.use,
+                                             api_url              = var.infrastructure.devops.api_url,
+                                             app_token            = var.infrastructure.devops.app_token,
+                                             platform             = var.infrastructure.devops.platform,
+                                             repository           = var.infrastructure.devops.repository,
+                                             server_url           = var.infrastructure.devops.server_url
                                              }
                                            )
 
@@ -72,8 +77,13 @@ resource "local_file" "configure_deployer" {
                                            pool                 = var.infrastructure.devops.agent_pool,
                                            pat                  = var.infrastructure.devops.agent_pat,
                                            ado_repo             = var.infrastructure.devops.agent_ado_url,
-                                           use_webapp           = var.infrastructure.devops.app_service.use
-                                           ansible_core_version = var.infrastructure.devops.ansible_core_version
+                                           use_webapp           = var.infrastructure.devops.app_service.use,
+                                           ansible_core_version = var.infrastructure.devops.ansible_core_version,
+                                           api_url              = var.infrastructure.devops.api_url,
+                                           app_token            = var.infrastructure.devops.app_token,
+                                           platform             = var.infrastructure.devops.platform,
+                                           repository           = var.infrastructure.devops.repository,
+                                           server_url           = var.infrastructure.devops.server_url
                                            }
                                          )
   filename                             = format("%s/configure_deployer.sh", path.cwd)

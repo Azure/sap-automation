@@ -16,6 +16,11 @@ resource "azurerm_resource_group" "resource_group" {
   location                             = local.region
   tags                                 = merge(var.infrastructure.tags, var.tags)
 
+  timeouts {
+             create = "10m"
+             delete = "10m"
+           }
+
 }
 
 // Imports data of existing resource group

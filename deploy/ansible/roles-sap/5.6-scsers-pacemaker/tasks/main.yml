@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 ---
-- name:                                "5.6 SCSERS Pacemaker - set_runtime_facts"
+- name:                                "5.6 SCS/ERS Pacemaker - Gather and set facts"
   ansible.builtin.include_tasks:
     file:                              5.6.1-set_runtime_facts.yml
     apply:
@@ -11,7 +11,7 @@
       become:                          true
       become_user:                     root
 
-- name:                                "5.6 SCSERS Pacemaker - pre_checks"
+- name:                                "5.6 SCS/ERS Pacemaker - Run Pre Checks"
   ansible.builtin.include_tasks:
     file:                              5.6.2-pre_checks.yml
     apply:
@@ -20,7 +20,7 @@
       become:                          true
       become_user:                     root
 
-- name:                                "5.6 SCSERS Pacemaker - prep_steps"
+- name:                                "5.6 SCS/ERS Pacemaker - Prepare the Installation"
   ansible.builtin.include_tasks:
     file:                              5.6.3-prep_steps.yml
     apply:
@@ -29,46 +29,46 @@
       become:                          true
       become_user:                     root
 
-- name:                                "Pre SCS HA Install: check if SCS is installed"
+- name:                                "5.6 SCS/ERS Pacemaker -  Check if SCS is installed"
   become:                              true
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
   register:                            pre_scs_install
   when:                                ansible_hostname == primary_instance_name
 
-- name:                                "Pre SCS HA Install: set fact if SCS installed"
+- name:                                "5.6 SCS/ERS Pacemaker - Set fact if SCS installed"
   ansible.builtin.set_fact:
     scs_installed:                     "{{ pre_scs_install.stat.exists | default(false) }}"
   when:                                ansible_hostname == primary_instance_name
 
-- name:                                "Pre HA Install: check if SAP resources are installed"
+- name:                                "5.6 SCS/ERS Pacemaker - Check if SAP resources are installed"
   become:                              true
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_resources_deployment.txt"
   register:                            pre_sap_install
 
-- name:                                "Pre HA Install: set fact if SAP resources are installed"
+- name:                                "5.6 SCS/ERS Pacemaker - Set fact if SAP resources are installed"
   ansible.builtin.set_fact:
     sap_resources_installed:           "{{ pre_sap_install.stat.exists | default(false) }}"
   when:                                ansible_hostname == primary_instance_name
 
-- name:                                "Pre ERS Install: check if ERS is installed"
+- name:                                "5.6 SCS/ERS Pacemaker - Check if ERS is installed"
   become:                              true
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
   register:                            pre_ers_install
   when:                                ansible_hostname == secondary_instance_name
 
-- name:                                "Pre ERS Install: set fact if ERS is installed"
+- name:                                "5.6 SCS/ERS Pacemaker - Set fact if ERS is installed"
   ansible.builtin.set_fact:
     ers_installed:                     "{{ pre_ers_install.stat.exists | default(false) }}"
   when:                                ansible_hostname == secondary_instance_name
 
-- name:                                "Check if all SAP components are installed"
+- name:                                "5.6 SCS/ERS Pacemaker - Check if all SAP components are installed"
   ansible.builtin.set_fact:
     SAP_installed:                     "{{ hostvars[primary_instance_name]['scs_installed'] | default(false) and hostvars[secondary_instance_name]['ers_installed'] | default(false) and hostvars[primary_instance_name]['sap_resources_installed'] | default(false) }}"
 
-- name:                                "Show if SAP components are installed"
+- name:                                "5.6 SCS/ERS Pacemaker - Show if SAP components are installed"
   ansible.builtin.debug:
     msg:
       - "SAP components installed on the cluster: {{ SAP_installed }}"
@@ -76,7 +76,7 @@
       - "ERS installed on the cluster: {{ hostvars[secondary_instance_name]['ers_installed'] | default(false) }}"
       - "SAP resources installed on the cluster: {{ hostvars[primary_instance_name]['sap_resources_installed'] | default(false) }}"
 
-- name:                                "5.6 SCSERS Pacemaker - provision"
+- name:                                "5.6 SCS/ERS Pacemaker - provision"
   ansible.builtin.include_tasks:
     file:                              5.6.4-provision.yml
     apply:
@@ -87,7 +87,7 @@
   when:
     - not SAP_installed
 
-- name:                                "Post SCS HA Install: check if installed"
+- name:                                "5.6 SCS/ERS Pacemaker - Check if SCS is installed"
   become:                              true
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_scs.txt"
@@ -95,7 +95,7 @@
   failed_when:                         not post_scs_install.stat.exists
   when:                                ansible_hostname == primary_instance_name
 
-- name:                                "Post ERS Install: check if installed"
+- name:                                "5.6 SCS/ERS Pacemaker - Check if ERS is installed"
   become:                              true
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sap_deployment_ers.txt"
@@ -103,7 +103,7 @@
   failed_when:                         not post_ers_install.stat.exists
   when:                                ansible_hostname == secondary_instance_name
 
-- name:                                "5.6 SCSERS Pacemaker - post_provision_report"
+- name:                                "5.6 SCSERS Pacemaker - Run Post Provision Report"
   ansible.builtin.include_tasks:
     file:                              5.6.5-post_provision_report.yml
     apply:

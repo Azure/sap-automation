@@ -14,7 +14,7 @@
 
 ---
 
-- name:                                "4.1.2. Oracle ASM Database - Update - Register BoM"
+- name:                                "4.1.2 Oracle ASM Database - Update - Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
@@ -25,7 +25,7 @@
   when:
                                        - bom is undefined
 
-- name:                                "4.1.2. Oracle ASM Database - Update - Validate ORACLE parameters"
+- name:                                "4.1.2 Oracle ASM Database - Update - Validate ORACLE parameters"
   ansible.builtin.assert:
     that:
       - item_to_check.parameter is defined                    # Has the variable been defined
@@ -39,13 +39,13 @@
   loop_control:
     loop_var: item_to_check
 
-- name:                                "4.1.2. Oracle ASM Database - Update - Set variables from BoM"
+- name:                                "4.1.2 Oracle ASM Database - Update - Set variables from BoM"
   ansible.builtin.set_fact:
     ora_release:                       "{{ bom.patch_information.ora_release }}"
     ora_version:                       "{{ bom.patch_information.ora_version }}"
     oracle_sbp_patch:                  "{{ bom.patch_information.oracle_sbp_patch }}"
 
-- name:                                "4.1.2. Oracle ASM Database - Update - Set DB SID"
+- name:                                "4.1.2 Oracle ASM Database - Update - Set DB SID"
   ansible.builtin.debug:
     msg:
                                        - "DB SID: {{ sap_sid | upper }}"
@@ -53,13 +53,13 @@
                                        - "Oracle Release: {{ ora_release }}"
                                        - "Oracle SBP Patch: {{ oracle_sbp_patch }}"
 
-- name:                                "4.1.2. Oracle ASM Database - Update - Set Runtime Variables"
+- name:                                "4.1.2 Oracle ASM Database - Update - Set Runtime Variables"
   ansible.builtin.set_fact:
     is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
     CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OL8 {% endif %}"
 
 # Step 4
-- name:                                "4.1.2. Oracle ASM Database - Pre processing reset permissions"
+- name:                                "4.1.2 Oracle ASM Database - Pre processing reset permissions"
   when:                                oradism_stat.stat.exists
   ansible.builtin.file:
     path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
@@ -69,11 +69,11 @@
     group:                             oinstall
 
 # Step 5
-- name:                                "4.1.2. Oracle ASM Database - Post Processing - DB SBP Patching - progress"
+- name:                                "4.1.2 Oracle ASM Database - Post Processing - DB SBP Patching - progress"
   ansible.builtin.debug:
     msg:                               "Running SBP Patching, env ORACLE_HOME=$IHRDBMS  $IHRDBMS /MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}, please wait"
 
-- name:                                "4.1.2. Oracle ASM Database - Post Processing - SBP Patching"
+- name:                                "4.1.2 Oracle ASM Database - Post Processing - SBP Patching"
   become:                              true
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               "env ORACLE_HOME=$IHRDBMS $IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ bom.patch_information.oracle_sbp_patch }} -F mopatch_patchgen"
@@ -87,19 +87,19 @@
     chdir:                             "{{ target_media_location }}/SBP"
     executable:                        /bin/csh
 
-- name:                                "4.1.2. Oracle ASM Database - Post processing installer output"
+- name:                                "4.1.2 Oracle ASM Database - Post processing installer output"
   ansible.builtin.debug:
     var:                               sbpscriptdb_results.stdout_lines
     verbosity:                         2
 
-- name:                                "4.1.2. Oracle ASM Database - Post processing installer output"
+- name:                                "4.1.2 Oracle ASM Database - Post processing installer output"
   ansible.builtin.copy:
     dest:                              "/etc/sap_deployment_automation/oracle/grid_mopatch_db.log"
     content:                           "{{ sbpscriptdb_results.stdout }}"
     mode:                              '0777'
   when:                                sbpscriptdb_results.stdout is defined
 
-- name:                                "4.1.2. Oracle ASM Database - Create grid_mopatch_db_installed.txt"
+- name:                                "4.1.2 Oracle ASM Database - Create grid_mopatch_db_installed.txt"
   ansible.builtin.file:
     path:                              "/etc/sap_deployment_automation/oracle/grid_mopatch_db_installed.txt"
     state:                             touch
@@ -108,7 +108,7 @@
     group:                             oinstall
 
 # Step 6
-- name:                                "4.1.2. Oracle ASM Database - pre processing reset permissions"
+- name:                                "4.1.2 Oracle ASM Database - pre processing reset permissions"
   when:                                oradism_stat.stat.exists
   ansible.builtin.file:
     path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"

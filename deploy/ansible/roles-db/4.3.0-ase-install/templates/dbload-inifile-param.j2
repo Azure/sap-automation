@@ -93,7 +93,7 @@ SYB.NW_DB.autoExpandSaptoolsThresholdDefault                            = 2
 SYB.NW_DB.autoExpandSaptoolsThresholdLog                                = 2
 
 # Database device information like 'type','folder','size','maxsize','growsize','name'
-SYB.NW_DB.databaseDevices = data device for SAP,/sybase/{{ db_sid | upper }}/sapdata_1,64,,10,{{ db_sid | upper }}_data_001,log device for SAP,/sybase/{{ db_sid | upper }}/saplog_1,32,,5,{{ db_sid | upper }}_log_001,data device for saptools,/sybase/{{ db_sid | upper }}/sapdiag,14,,2,saptools_data_001,log device for saptools,/sybase/{{ db_sid | upper }}/sapdiag,8,,2,saptools_log_001,data device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,8,,,sybsecurity_data_001,data device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,8,,,sybsecurity_data_002,log device for sybsecurity,/sybase/{{ db_sid | upper }}/sybsecurity,4,,,sybsecurity_log_001,temp device for SAP,/sybase/{{ db_sid | upper }}/saptemp,8,,,saptempdb_data_001
+SYB.NW_DB.databaseDevices = data device for SAP,/sybase/{{ sap_sid | upper }}/sapdata_1,64,,10,{{ sap_sid | upper }}_data_001,log device for SAP,/sybase/{{ sap_sid | upper }}/saplog_1,32,,5,{{ sap_sid | upper }}_log_001,data device for saptools,/sybase/{{ sap_sid | upper }}/sapdiag,14,,2,saptools_data_001,log device for saptools,/sybase/{{ sap_sid | upper }}/sapdiag,8,,2,saptools_log_001,data device for sybsecurity,/sybase/{{ sap_sid | upper }}/sybsecurity,8,,,sybsecurity_data_001,data device for sybsecurity,/sybase/{{ sap_sid | upper }}/sybsecurity,8,,,sybsecurity_data_002,log device for sybsecurity,/sybase/{{ sap_sid | upper }}/sybsecurity,4,,,sybsecurity_log_001,temp device for SAP,/sybase/{{ sap_sid | upper }}/saptemp,8,,,saptempdb_data_001
 
 
 # Type of SAP ASE
@@ -111,22 +111,22 @@ SYB.NW_DB.enableGranularPermissions                                     = true
 SYB.NW_DB.enableStrongCipherSuitesForSSL                                = false
 
 # Path to ASE database software
-SYB.NW_DB.folderDatabaseSoftware                                        = /sybase/{{ db_sid | upper }}
+SYB.NW_DB.folderDatabaseSoftware                                        = /sybase/{{ sap_sid | upper }}
 
 # Path to diagnostic database devices
-SYB.NW_DB.folderDiagDevice                                              = /sybase/{{ db_sid | upper }}/sapdiag
+SYB.NW_DB.folderDiagDevice                                              = /sybase/{{ sap_sid | upper }}/sapdiag
 
 # Path to SAP tempdb device
-SYB.NW_DB.folderSAPTempdbDevice                                         = /sybase/{{ db_sid | upper }}/saptemp
+SYB.NW_DB.folderSAPTempdbDevice                                         = /sybase/{{ sap_sid | upper }}/saptemp
 
 # Path to sybsecurity device
-SYB.NW_DB.folderSecurityDevices                                         = /sybase/{{ db_sid | upper }}/sybsecurity
+SYB.NW_DB.folderSecurityDevices                                         = /sybase/{{ sap_sid | upper }}/sybsecurity
 
 # Path to data server 'system' devices
-SYB.NW_DB.folderSystemDevices                                           = /sybase/{{ db_sid | upper }}/sybsystem
+SYB.NW_DB.folderSystemDevices                                           = /sybase/{{ sap_sid | upper }}/sybsystem
 
 # Path to data server 'temp' device
-SYB.NW_DB.folderTempdbDevice                                            = /sybase/{{ db_sid | upper }}/sybtemp
+SYB.NW_DB.folderTempdbDevice                                            = /sybase/{{ sap_sid | upper }}/sybtemp
 
 # Number of consumers used by the 'create index with consumers' command
 SYB.NW_DB.indexConsumers                                                = 3
@@ -186,10 +186,10 @@ SYB.NW_DB.sqlServerMemory                                               = {{ syb
 SYB.NW_DB.sslPassword                                                   = {{ main_password }}
 
 # Path to folder for sybmgmtdb database data device
-SYB.NW_DB.sybmgmtdbDataDeviceFolder                                     = /sybase/{{ db_sid | upper }}/sybsystem
+SYB.NW_DB.sybmgmtdbDataDeviceFolder                                     = /sybase/{{ sap_sid | upper }}/sybsystem
 
 # Path to folder for sybmgmtdb database log device
-SYB.NW_DB.sybmgmtdbLogDeviceFolder                                      = /sybase/{{ db_sid | upper }}/sybsystem
+SYB.NW_DB.sybmgmtdbLogDeviceFolder                                      = /sybase/{{ sap_sid | upper }}/sybsystem
 
 # Host name in the SAP ASE user store location path
 SYB.NW_DB.userstore_hostname                                            = {{ sap_db_hostname }}

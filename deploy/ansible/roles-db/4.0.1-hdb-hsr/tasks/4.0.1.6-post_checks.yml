@@ -3,12 +3,12 @@
 
 ---
 
-- name:                                "HANA HSR: - Ensure replication status is active"
+- name:                                "4.0.1.6 Hana System Replication - Ensure replication status is active"
   become_user:                         "{{ db_sid_admin_user }}"
   become:                              true
   block:
 
-    - name:                            "HANA HSR: - Ensure replication status is active"
+    - name:                            "4.0.1.6 Hana System Replication - Ensure replication status is active"
       when:                            ansible_hostname == primary_instance_name
       # Note: ideally we should be using set -o pipefail here (see for example https://xanmanning.co.uk/2019/03/21/ansible-lint-rule-306.html).
       # However, the python script returns a status of 15 (!), which breaks the pipeline. Consequently,
@@ -30,7 +30,7 @@
         LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
-    - name:                            "HANA HSR: - Debug replication"
+    - name:                            "4.0.1.6 Hana System Replication - Debug replication"
       ansible.builtin.debug:
         var:                           grep_result
         verbosity:                     2

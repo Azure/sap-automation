@@ -58,14 +58,14 @@
 # Step: 03
 # Description:  Check Storage Account for BOM when SA is enabled
 #
-- name:                                 "Check Storage Account for BOM block"
+- name:                                 "3.3.1 BoM Processing - Check Storage Account for BOM block"
   block:
 
 # -------------------------------------+---------------------------------------8
 # Step: 03-01
 # Description:
 #
-    - name:                             "3.3.1 BoM Processing - Download: {{ new_bom_name }} from the storage account"
+    - name:                             "3.3.1 BoM Processing - Download {{ new_bom_name }} from the storage account"
       ansible.builtin.get_url:
         url:                            "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}/{{ new_bom_name }}.yaml\
                                         {% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
