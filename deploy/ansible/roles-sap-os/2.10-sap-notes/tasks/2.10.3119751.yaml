@@ -49,7 +49,7 @@
     path:                              /opt/rh/SAP/lib64/compat-sap-c++-12.so
   register:                            compat_sap_c12_version
 
-- name:                                "2.10 SAP Note - 3119751 - Create symlink  for compat-sap-c++-12"
+- name:                                "2.10 SAP Note - 3119751 - Create symlink for compat-sap-c++-12"
   become:                              true
   ansible.builtin.file:
     src:                               /opt/rh/SAP/lib64/compat-sap-c++-12.so

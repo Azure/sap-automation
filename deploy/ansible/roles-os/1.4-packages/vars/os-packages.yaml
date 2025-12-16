@@ -223,7 +223,6 @@ packages:
     - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat9:
-
     # - { tier: 'os',     package: 'unar',                                         node_tier: 'scs',            state: 'present' }
     - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'os',     package: '@base',                                        node_tier: 'all',            state: 'present' }
@@ -255,7 +254,7 @@ packages:
     - { tier: 'os',     package: 'libicu',                                       node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'liblsan',                                      node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libnsl',                                       node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'libnsl',                                       node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'libnsl2',                                      node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'librdmacm',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libstdc++',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libvirt-libs',                                 node_tier: 'all',            state: 'present' }
@@ -719,7 +718,6 @@ packages:
     - { tier: 'os',     package: 'expect',                                       node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'fontconfig',                                   node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'glibc',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'glibc',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'glibc-devel',                                  node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'gtk2',                                         node_tier: 'all',            state: 'present' }
