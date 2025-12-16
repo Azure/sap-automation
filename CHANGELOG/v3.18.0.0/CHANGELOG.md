@@ -119,7 +119,7 @@ This release includes multiple dependency version bumps:
 
 ### Contributor Recognition
 This release includes contributions from:
-- Kimmo Forss (@kimforss, @kimmo.forss)
+- Kimmo Forss (@kimforss)
 - Nadeen Noaman (@nnoaman)
 - Copilot (code review and suggestions)
 - hdamecharla (@hdamecharla)
