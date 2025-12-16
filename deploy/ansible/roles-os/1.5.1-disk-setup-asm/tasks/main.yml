@@ -32,18 +32,18 @@
     pesize:                            4M
     state:                             present
   loop:                                "{{ volume_groups }}"
-  register:                            vgscreated
+  register:                            created_volume_groups
 
-- name:                                "1.5.1 Disk Setup - ORACLE ASM - Filter the vg name from vgscreated results"
+- name:                                "1.5.1 Disk Setup - ORACLE ASM - Filter the volume group name from created_volume_groups results"
   ansible.builtin.set_fact:
-    vgcreatedlist:                     "{{ vgscreated | json_query('results[*].item.vg') }}" # noqa: jinja[invalid]
+    list_of_created_volume_groups:     "{{ created_volume_groups | json_query('results[*].item.vg') }}" # noqa: jinja[invalid]
 
 - name:                                "1.5.1 Disk Setup - ORACLE ASM - Print vgcreated details"
   ansible.builtin.debug:
-    var:
-                                       - vgcreatedlist
-                                       - logical_volumes
-                                       - vgscreated.results
+    msg:
+      - "List of created volume groups: {{ list_of_created_volume_groups }}"
+      - "logical_volumes: {{ logical_volumes }}"
+      - "created_volume_groups.results: {{ created_volume_groups.results }}"
     verbosity:                         2
 
 # CREATE LOGICAL VOLUMES BASED ON VGCREATEDLIST
@@ -53,7 +53,7 @@
   when:
                                        - tier == "ora"
                                        - item.node_tier == "oracle-asm"
-                                       - item.vg in vgcreatedlist
+                                       - item.vg in list_of_created_volume_groups
   community.general.lvol:
     lv:                                "{{ item.lv }}"
     vg:                                "{{ item.vg }}"
@@ -64,16 +64,16 @@
     shrink:                            false
     resizefs:                          false
   loop:                                "{{ logical_volumes }}"
-  register:                            lvscreated
+  register:                            created_logical_volumes
 
-- name:                                "1.5.1 Disk Setup - ORACLE ASM - Print lvscreated details"
+- name:                                "1.5.1 Disk Setup - ORACLE ASM - Print created_logical_volumes details"
   ansible.builtin.debug:
-    var:                               lvscreated
+    var:                               created_logical_volumes
     verbosity:                         2
 
 - name:                                "1.5.1 Disk Setup - ORACLE ASM - Filter the logical volumes created results"
   ansible.builtin.set_fact:
-    lvcreatedlist_tmp:                 "{{ lvscreated.results | rejectattr('skipped', 'defined') | list }}"
+    lvcreatedlist_tmp:                 "{{ created_logical_volumes.results | rejectattr('skipped', 'defined') | list }}"
 
 - name:                                "1.5.1 Disk Setup - ORACLE ASM - Print vgcreated filtered details"
   ansible.builtin.debug:
@@ -156,49 +156,63 @@
   when:                                oracleasm_check.rc != 0
   block:
 
-    - name:                            "1.5.1 Disk Setup - ORACLE ASM - Install libbpf package"
-      ansible.builtin.dnf:
-        name:
-                                       - "{{ target_media_location }}/RPM/libbpf-0.6.0-6.el8.x86_64.rpm"
-        state:                         present
-        disable_gpg_check:             true
+    # - name:                            "1.5.1 Disk Setup - ORACLE ASM - Install libbpf package"
+    #   ansible.builtin.dnf:
+    #     name:
+    #                                    - "{{ target_media_location }}/RPM/libbpf-0.6.0-6.el8.x86_64.rpm"
+    #     state:                         present
+    #     disable_gpg_check:             true
 
-    - name:                            "1.5.1 Disk Setup - ORACLE ASM - Install compat packages for RHEL7/OL7"
-      when:                            distribution_id in ['redhat7', 'oraclelinux7']
-      ansible.builtin.dnf:
-        name:
-                                       - "{{ target_media_location }}/downloads/compat-libcap1-1.10-7.el7.x86_64.rpm"
-                                       - "{{ target_media_location }}/downloads/compat-libstdc++-33-3.2.3-72.el7.x86_64.rpm"
-        state:                         present
-        disable_gpg_check:             true
+    # - name:                            "1.5.1 Disk Setup - ORACLE ASM - Check for v2 RPMs"
+    #   ansible.builtin.stat:
+    #     path:                          "{{ target_media_location }}/RPM/oracleasmlib-2.0.17-1.el8.x86_64.rpm"
+    #   register:                        oracle_asm_v2
 
-    - name:                            "1.5.1 Disk Setup - ORACLE ASM - Check for v3 RPMs"
-      ansible.builtin.stat:
-        path:                          "{{ target_media_location }}/RPM/oracleasmlib-3.0.0-13.el8.x86_64.rpm"
-      register:                        oracle_asm_v3
+    # - name:                            "1.5.1 Disk Setup - ORACLE ASM - Install RPM Packages v2"
+    #   when:                            oracle_asm_v2.stat.exists
+    #   ansible.builtin.dnf:
+    #     name:
+    #                                    - "{{ target_media_location }}/RPM/oracleasmlib-2.0.17-1.el8.x86_64.rpm"
+    #                                    - "{{ target_media_location }}/RPM/oracleasm-support-2.1.12-1.el8.x86_64.rpm"
+    #     state:                         present
+    #     disable_gpg_check:             true
 
-    - name:                            "1.5.1 Disk Setup - ORACLE ASM - Install RPM Packages v3"
-      when:                            oracle_asm_v3.stat.exists
-      ansible.builtin.dnf:
-        name:
-                                       - "{{ target_media_location }}/RPM/oracleasmlib-3.0.0-13.el8.x86_64.rpm"
-                                       - "{{ target_media_location }}/RPM/oracleasm-support-3.0.0-6.el8.x86_64.rpm"
-        state:                         present
-        disable_gpg_check:             true
+    # - name:                            "1.5.1 Disk Setup - ORACLE ASM - Install compat packages for RHEL7/OL7"
+    #   when:                            distribution_id in ['redhat7', 'oraclelinux7']
+    #   ansible.builtin.dnf:
+    #     name:
+    #                                    - "{{ target_media_location }}/RPM/compat-libcap1-1.10-7.el7.x86_64.rpm"
+    #                                    - "{{ target_media_location }}/RPM/compat-libstdc++-33-3.2.3-72.el7.x86_64.rpm"
+    #     state:                         present
+    #     disable_gpg_check:             true
 
-    - name:                            "1.5.1 Disk Setup - ORACLE ASM - Check for v2 RPMs"
-      ansible.builtin.stat:
-        path:                          "{{ target_media_location }}/downloads/oracleasmlib-2.0.17-1.el8.x86_64.rpm"
-      register:                        oracle_asm_v2
+    # - name:                            "1.5.1 Disk Setup - ORACLE ASM - Check for el8 RPMs"
+    #   ansible.builtin.stat:
+    #     path:                          "{{ target_media_location }}/RPM/oracleasmlib-3.0.0-13.el8.x86_64.rpm"
+    #   register:                        oracle_asm_v3
 
-    - name:                            "1.5.1 Disk Setup - ORACLE ASM - Install RPM Packages v2"
-      when:                            oracle_asm_v2.stat.exists
-      ansible.builtin.dnf:
-        name:
-                                       - "{{ target_media_location }}/downloads/oracleasmlib-2.0.17-1.el8.x86_64.rpm"
-                                       - "{{ target_media_location }}/downloads/oracleasm-support-2.1.12-1.el8.x86_64.rpm"
-        state:                         present
-        disable_gpg_check:             true
+    # - name:                            "1.5.1 Disk Setup - ORACLE ASM - Install RPM Packages el8"
+    #   when:                            oracle_asm_v3.stat.exists
+    #   ansible.builtin.dnf:
+    #     name:
+    #                                    - "{{ target_media_location }}/RPM/oracleasmlib-3.0.0-13.el8.x86_64.rpm"
+    #                                    - "{{ target_media_location }}/RPM/oracleasm-support-3.0.0-6.el8.x86_64.rpm"
+    #     state:                         present
+    #     disable_gpg_check:             true
+
+    # - name:                            "1.5.1 Disk Setup - ORACLE ASM - Check for el9 RPMs"
+    #   ansible.builtin.stat:
+    #     path:                          "{{ target_media_location }}/RPM/oracleasmlib-3.1.1-1.el9.x86_64.rpm"
+    #   register:                        oracle_asm_v3
+
+    # - name:                            "1.5.1 Disk Setup - ORACLE ASM - Install RPM Packages el9"
+    #   when:                            oracle_asm_v3.stat.exists
+    #   ansible.builtin.dnf:
+    #     name:
+    #                                    - "{{ target_media_location }}/RPM/oracleasmlib-3.1.1-1.el9.x86_64.rpm"
+    #                                    - "{{ target_media_location }}/RPM/oracleasm-support-3.1.1-4.el9.x86_64.rpm"
+    #     state:                         present
+    #     disable_gpg_check:             true
 
     - name:                            "1.5.1 Disk Setup - ORACLE ASM - Configure Oracle ASM"
       ansible.builtin.shell: |

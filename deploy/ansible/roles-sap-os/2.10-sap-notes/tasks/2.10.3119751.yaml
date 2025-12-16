@@ -20,7 +20,7 @@
     path:                              /opt/rh/SAP/lib64/compat-sap-c++-11.so
   register:                            compat_sap_c11_version
 
-- name:                                "2.10 SAP Note - 3119751 - Create symlink"
+- name:                                "2.10 SAP Note - 3119751 - Create symlink for compat-sap-c++-10"
   become:                              true
   ansible.builtin.file:
     src:                               /opt/rh/SAP/lib64/compat-sap-c++-10.so
@@ -32,7 +32,7 @@
     group:                             sapsys
   when:                                compat_sap_c10_version.stat.exists
 
-- name:                                "2.10 SAP Note - 3119751 - Create symlink"
+- name:                                "2.10 SAP Note - 3119751 - Create symlink for compat-sap-c++-11"
   become:                              true
   ansible.builtin.file:
     src:                               /opt/rh/SAP/lib64/compat-sap-c++-11.so
@@ -49,7 +49,7 @@
     path:                              /opt/rh/SAP/lib64/compat-sap-c++-12.so
   register:                            compat_sap_c12_version
 
-- name:                                "2.10 SAP Note - 3119751 - Create symlink"
+- name:                                "2.10 SAP Note - 3119751 - Create symlink for compat-sap-c++-12"
   become:                              true
   ansible.builtin.file:
     src:                               /opt/rh/SAP/lib64/compat-sap-c++-12.so
@@ -66,7 +66,7 @@
     path:                              /opt/rh/SAP/lib64/compat-sap-c++-13.so
   register:                            compat_sap_c13_version
 
-- name:                                "2.10 SAP Note - 3449186 - Create symlink"
+- name:                                "2.10 SAP Note - 3449186 - Create symlink for compat-sap-c++-13"
   become:                              true
   ansible.builtin.file:
     src:                               /opt/rh/SAP/lib64/compat-sap-c++-13.so

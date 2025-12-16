@@ -536,18 +536,19 @@ export DOTNET_ROOT=${DOTNET_INSTALL_DIR}
 # Install dotNet
 case "$(get_distro_name)" in
 ubuntu)
-	sudo snap install dotnet-sdk --classic --channel=8.0
-	sudo snap alias dotnet-sdk.dotnet dotnet
+	sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
+	sudo chmod +x "/home/${local_user}/dotnet-install.sh"
+	sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 9.0
 	;;
 sles)
 	sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
 	sudo chmod +x "/home/${local_user}/dotnet-install.sh"
-	sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 8.0
+	sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 9.0
 	;;
 rhel*)
 	sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
 	sudo chmod +x "/home/${local_user}/dotnet-install.sh"
-	sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 8.0
+	sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 9.0
 	;;
 esac
 
@@ -618,7 +619,7 @@ sudo "${ansible_venv_bin}"/pip3 install \
 # Create symlinks for all relevant commands that were installed in the Ansible
 # venv's bin so that they are available in the /opt/ansible/bin directory, which
 # will be added to the system PATH. This ensures that we expose only those tools
-# that we need from the Ansible venv bin directory without superceding standard
+# that we need from the Ansible venv bin directory without superseding standard
 # system versions of the commands that are also found there, e.g. python3.
 ansible_venv_commands=(
 	# Ansible 2.9 command set
