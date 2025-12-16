@@ -352,7 +352,7 @@ def main():
         if user_data.get("use_existing_identity", False):
             print(f"- Using existing User-Assigned Managed Identity: {user_data['identity_name']}")
         else:
-            print(f"- User-Assigned Managed Identity has been created: {identity_name}")
+            print(f"- User-Assigned Managed Identity has been created: {user_data['identity_name']}")
 
         # Also show SPN info (since it's needed for initial GitHub Actions authentication)
         # Use the actual SPN name from spn_for_github_auth or user data
