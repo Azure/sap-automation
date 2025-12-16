@@ -87,8 +87,8 @@ function install_deps_mariner() {
   tdnf install -y \
     ca-certificates \
     curl \
-    dotnet-runtime-8.0 \
-    dotnet-runtime-deps-8.0 \
+    dotnet-runtime-9.0 \
+    dotnet-runtime-deps-9.0 \
     krb5-libs \
     libicu \
     lttng-ust \
@@ -995,8 +995,9 @@ fi
 # Install dotNet
 case "$(get_distro_name)" in
 ubuntu)
-  sudo snap install dotnet-sdk --classic
-  sudo snap alias dotnet-sdk.dotnet dotnet
+  sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
+  sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
+  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 9.0
   ;;
 sles)
   # sudo rpm -Uvh https://packages.microsoft.com/config/sles/15/packages-microsoft-prod.rpm
@@ -1004,11 +1005,11 @@ sles)
   # sudo zypper install dotnet-sdk-7.0
   sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
   sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
-  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 8.0
+  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 9.0
   ;;
 rhel*)
   sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
   sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
-  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 8.0
+  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 9.0
   ;;
 esac
