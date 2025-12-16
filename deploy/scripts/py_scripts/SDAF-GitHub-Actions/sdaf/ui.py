@@ -33,7 +33,8 @@ def check_prerequisites():
         print("Azure CLI found. Checking version...")
         cmd = [exe, "--version"]
         version_result = subprocess.run(cmd, capture_output=True, check=True, universal_newlines=True)
-        print("Azure CLI is installed.")
+        print("Azure CLI is installed. Version info:")
+        print(version_result.stdout.strip())
     except (FileNotFoundError, subprocess.CalledProcessError):
         print("Azure CLI not found. Please install it:")
         instructions = {
