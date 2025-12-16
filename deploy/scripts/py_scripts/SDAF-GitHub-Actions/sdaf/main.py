@@ -380,8 +380,6 @@ def main():
         print(f"   - Service Principal Object ID: {spn_data['object_id']}")
 
     print(f"   - Subscription ID: {user_data['subscription_id']}")
-    print("3. The script has continued, but deployment may fail if permissions are not")
-    print("   properly assigned before running workflows.")
 
     # Trigger the environment creation workflow
     workflow_id = "00-create-environment.yml"
