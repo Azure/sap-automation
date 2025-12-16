@@ -201,7 +201,7 @@ variable "ANF_settings"                                 {
                                                                       transport_volume_name         = ""
                                                                       transport_volume_size         = 32
                                                                       transport_volume_throughput   = 32
-
+                                                                      export_policy_client_access_list = []
                                                                       use_existing_install_volume   = false
                                                                       install_volume_name           = ""
                                                                       install_volume_size           = 128
