@@ -69,6 +69,7 @@
     - { state: 'directory', mode: '0775', recurse: true,  path: "/oracle/oraInventory" }
     - { state: 'directory', mode: '0775', recurse: false, path: "/oracle/GRID" }
     - { state: 'directory', mode: '0775', recurse: false, path: "/oracle/GRID/{{ ora_version }}" }
+    - { state: 'directory', mode: '0775', recurse: true, path: "/usr/sap/install/SBP" }
 
 - name:                                "4.1.1 ORACLE Grid Setup - Check if installed"
   ansible.builtin.stat:

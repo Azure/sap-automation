@@ -220,31 +220,34 @@
 
         - name:                        Run the PAS installation Playbook
           block:
-            - name:                            "Backward Compatibility - Check required Database HA variables"
+            - name:                    "Backward Compatibility - Check required Database HA variables"
               ansible.builtin.set_fact:
                 database_high_availability:    "{{ db_high_availability | default(false) }}"
               when:
                 - db_high_availability is defined
                 - database_high_availability is not defined
 
-            - name:                        "PAS Installation playbook: - Determine if part of high availablity deployment"
+            - name:                    "Primary application server installation playbook - Determine if part of high availability deployment"
               ansible.builtin.set_fact:
                 is_ha:                      "{{ database_high_availability | default(false) }}"
               tags:
                 - always
 
-            - name:                        "PAS Installation playbook: - Ensure the kernel parameters are set"
+            - name:                    "Primary application server installation playbook - Ensure the kernel parameters are set"
               ansible.builtin.include_role:
                 name:                      roles-os/1.9-kernelparameters
               when:                        is_ha
               tags:
                 - 1.9-kernelparameters
 
-            - name:                    "PAS Installation Playbook - Install: Include 2.6-sap-mounts role"
+            - name:                    "Primary application server installation playbook - Install: Include 2.6-sap-mounts role"
               ansible.builtin.include_role:
                 name:                  roles-sap-os/2.6-sap-mounts
               tags:
                 - 2.6-sap-mounts
+
+            - name:                         "Primary application server installation playbook - Register repositories"
+              ansible.builtin.import_tasks: roles-os/1.3-repository/tasks/1.3.3-repositories-from-BOM.yaml
 
             - name:                    "Primary application server installation playbook - Install SAPInst"
               ansible.builtin.include_role:

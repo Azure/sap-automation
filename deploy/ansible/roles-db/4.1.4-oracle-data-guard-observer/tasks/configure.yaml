@@ -56,6 +56,7 @@
     - { owner: "root",                   state: 'directory', mode: '0750', path: '/opt/oracle/admin/observer' }
     - { owner: "root",                   state: 'directory', mode: '0750', path: '/opt/oracle/admin/observer/scripts' }
     - { owner: "{{ oracle_user_name }}", state: 'directory', mode: '0750', path: '/opt/oracle/admin/observer/logs' }
+    - { owner: "{{ oracle_user_name }}", state: 'directory', mode: '0750', path: "{{ target_media_location }}/SBP/" }
 
 - name:                                "4.1.4 Oracle Data Guard - Observer - Add environment variables to the Bash profile"
   become:                              true
@@ -239,6 +240,14 @@
     group:                             oinstall
     mode:                              '0655'
 
+- name:                                "4.1.4 Oracle Data Guard - Observer - Set folder permissions for OPatch"
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+    recurse:                           true
+    mode:                              '0755'
+
 - name:                                "4.1.4 Oracle Data Guard - Observer - Find Patch ID for SBP_DBRU"
   become:                              true
   become_user:                         root
@@ -377,7 +386,7 @@
   become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell:               tnsping {{ db_sid | upper }}_STDBY
   register:                            tnsping_secondary_results
-  environment:                         "{{ oracle_standby_env }}"
+  environment:                         "{{ oracle_env }}"
   args:
     chdir:                             /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin
 
