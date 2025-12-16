@@ -283,7 +283,7 @@ def main():
             "TF_IN_AUTOMATION": "true",
             "TF_LOG": "ERROR",
             "ANSIBLE_CORE_VERSION": "2.16",
-            "TF_VERSION": "1.11.3"
+            "TF_VERSION": "1.14.1"
         }
         print("\nAdding variables to repository level...")
         github_ops.add_repository_variables(github_client, user_data["repo_name"], repository_variables)
