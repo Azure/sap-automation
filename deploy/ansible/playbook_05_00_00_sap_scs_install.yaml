@@ -300,7 +300,7 @@
                     name:              roles-sap/7.0.0-post-install
                   vars:
                     suffix:            "_SCS"
-                    prefix:            "{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').replace('/JAVA', '').split(':')[1] }}"
+                    prefix:            "{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').replace('/PD', '').replace('/JAVA', '').split(':')[1] }}"
                     path:              'INSTALL/DISTRIBUTED/{{ scs_bom_instance_type }}/{{ instance_type }}'
                     tier:              'scs'
                     this_sid:          "{{ sid_to_be_deployed.sid | upper }}"
