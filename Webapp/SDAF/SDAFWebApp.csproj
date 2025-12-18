@@ -25,8 +25,8 @@
     <PackageReference Include="Azure.ResourceManager.Storage" Version="1.6.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.26.0" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.13.1" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="4.1.1" />
-    <PackageReference Include="Microsoft.Identity.Web.UI" Version="4.1.1" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="4.2.0" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="4.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="NuGet.Packaging" Version="7.0.1" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
