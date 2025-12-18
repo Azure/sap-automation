@@ -9,9 +9,9 @@ name: Build image
 on:
   push:
     branches:
-      - "**"
+      - "main"
     tags:
-      - "v*.*.*"
+      - "v*.*.*.*"
   pull_request:
     branches:
       - "main"
