@@ -171,6 +171,8 @@ if [ "$USE_MSI" == "true" ]; then
 else
 	ARM_USE_MSI=false
 	export ARM_USE_MSI
+	TF_VAR_use_spn=true
+	export TF_VAR_use_spn
 fi
 
 if [ "$PLATFORM" == "devops" ]; then

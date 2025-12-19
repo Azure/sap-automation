@@ -104,6 +104,11 @@ if [ "$USE_MSI" == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
+else
+	ARM_USE_MSI=false
+	export ARM_USE_MSI
+	TF_VAR_use_spn=true
+	export TF_VAR_use_spn
 fi
 
 
