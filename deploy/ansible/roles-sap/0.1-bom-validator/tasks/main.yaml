@@ -149,12 +149,25 @@
 # Description:  Call BOM processor, passing BOM name.
 #               account and container vars are never used if sa_enabled is False
 #
+
+- name:                                 "Initialize names"
+  ansible.builtin.set_fact:
+    application_bom_name:               "{{ bom_base_name.split('-')[0] }}"
+    database_bom_name:                  "{{ bom_base_name.split('-')[1] | default('')}}"
+    bom_dependencies:                   "{{ bom.materials.dependencies | default([] }}"
+
+- name:                                 "Append database BoM to Application BoM dependencies"
+  ansible.builtin.set_fact:
+    bom_dependencies:                   "{{ bom_dependencies | default([]) + [ database_bom_name ] }}"
+  when:
+    - database_bom_name != ''
+
 - name:                                "0.1 BoM Validator: - Process main BOM"
   ansible.builtin.include_tasks:       bom_validator.yaml
   vars:
     account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
-    bom_name:                          "{{ bom_base_name }}"
+    bom_name:                          "{{ application_bom_name }}"
     upload:                            true
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
@@ -185,12 +198,12 @@
     bom_name:                          "{{ bom_dependency.name }}"
     upload:                            false
   register:                            dependent_bom_collection
-  loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
+  loop:                                "{{ bom_dependencies | flatten(levels=1) }}"
   loop_control:
     loop_var:                          bom_dependency
   when:
-    - bom.materials.dependencies is defined
-    - bom.materials.dependencies | length>0
+    - bom_dependencies is defined
+    - bom_dependencies | length > 0
 # Step: 06 - END
 # -------------------------------------+---------------------------------------8
 
