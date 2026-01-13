@@ -166,7 +166,7 @@
   vars:
     swap_size_mb:                      "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"
   when:
-    - swap_size == '0'
+    - swap_size | int == 0
 
 - name:                                "1.1 Swap - Reboot"
   when:
