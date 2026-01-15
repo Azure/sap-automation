@@ -1665,27 +1665,6 @@ variable "hanashared_volume_size"               {
                                                   default     = 128
                                                 }
 
-
-#########################################################################################
-#                                                                                       #
-#  SAP CAL Integration variables                                                        #
-#                                                                                       #
-#########################################################################################
-
-variable "enable_sap_cal"                       {
-                                                  description = "If true, will enable the SAP CAL integration"
-                                                  default = false
-                                                }
-variable "calapi_kv"                            {
-                                                  description = "The SAP CAL API Key Vault"
-                                                  default     = ""
-                                                }
-variable "sap_cal_product_name"                 {
-                                                  description = "If defined, will use SAP CAL for system installation"
-                                                  default     = ""
-                                                }
-
-
 ###############################################################################
 #                                                                             #
 #                            Application  configuration                       #

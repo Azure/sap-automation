@@ -289,15 +289,12 @@ enable_os_monitoring:                   false
 enable_ha_monitoring:                   false
 # ------------------- End - Azure Monitor for SAP (AMS) variables --------------8
 
-# ------------------- Begin - SAP CAL Integration variables --------------------8
-enable_sap_cal:                         false
-calapi_kv:                              ""
-sap_cal_product_name:                   ""
+# ------------------- Begin - LVM Configuration variables ----------------------8
 vg_root:                                "rootvg"
 lv_root_size:                           10g
 lv_root_size_db:                        20g
 lv_tmp_size:                            10g
-# ------------------- End - SAP CAL Integration variables ----------------------8
+# ------------------- End - LVM Configuration variables ------------------------8
 
 python_version:                        "python3"
 

@@ -17,7 +17,6 @@
       when:
         - bom is not defined
         - not is_run_with_infraCreate_only
-        - enable_sap_cal is not defined or not enable_sap_cal
 
     # default to ASCS instance when BOM is not defined or instance type in BOM is not defined
     - name:                            "2.6 Mount - SAP Central Services High availability installation - Default instance type"
