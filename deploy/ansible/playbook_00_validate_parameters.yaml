@@ -383,17 +383,6 @@
       tags:
                                        - 0.0-agent-diskspace
 
-    - name:                            "Validation Playbook - Check SAP CAL variables are present and not empty"
-      when:                            enable_sap_cal is defined and enable_sap_cal
-      ansible.builtin.assert:
-        that:
-          - calapi_kv is defined
-          - calapi_kv | type_debug != 'NoneType'
-          - calapi_kv | trim | length > 1
-        fail_msg: "Please provide the SAP CAL API key vault name in calapi_kv parameter"
-      tags:
-                                       - always
-
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                  Validate the server side parameters                       |

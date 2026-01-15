@@ -43,7 +43,7 @@
 - name:                                   "0.2 Key Vault: - Import S User tasks"
   ansible.builtin.import_tasks:           "s_user.yaml"
   when:
-                                          - operation == "SoftwareAcquisition" or operation == "sapcal"
+                                          - operation == "SoftwareAcquisition"
 
 
 # -------------------------------------+---------------------------------------8

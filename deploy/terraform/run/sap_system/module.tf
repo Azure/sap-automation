@@ -491,12 +491,5 @@ module "output_files" {
   enable_ha_monitoring                          = var.enable_ha_monitoring
   enable_os_monitoring                          = var.enable_os_monitoring
 
-  #########################################################################################
-  #  SAP CAL                                                                              #
-  #########################################################################################
-  enable_sap_cal                                = var.enable_sap_cal
-  calapi_kv                                     = var.calapi_kv
-  sap_cal_product_name                          = var.sap_cal_product_name
-
   site_information                              = module.hdb_node.site_information
 }

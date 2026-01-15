@@ -572,18 +572,6 @@ $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Proj
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
 Add-Content -Path $fname -Value $log
 
-$pipeline_name = 'SAP installation using SAP-CAL'
-$sapcal_installation_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
-if ($sapcal_installation_pipeline_id.Length -eq 0) {
-  az pipelines create --name $pipeline_name --branch main --description 'Configures the Operating System and installs the SAP application using SAP CAL' --skip-run --yaml-path "/pipelines/07-sap-cal-installation.yml" --repository $repo_id --repository-type tfsgit --output none --only-show-errors
-  $sapcal_installation_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
-}
-$pipelines.Add($sapcal_installation_pipeline_id)
-
-$this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $sapcal_installation_pipeline_id
-$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
-Add-Content -Path $fname -Value $log
-
 $pipeline_name = 'Remove System or Workload Zone'
 $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 if ($pipeline_id.Length -eq 0) {

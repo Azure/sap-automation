@@ -266,9 +266,6 @@ resource "local_file" "sap-parameters_yml" {
               ams_resource_id             = var.ams_resource_id
               enable_os_monitoring        = var.enable_os_monitoring
               enable_ha_monitoring        = var.enable_ha_monitoring
-              enable_sap_cal              = var.enable_sap_cal
-              calapi_kv                   = var.calapi_kv
-              sap_cal_product_name        = var.sap_cal_product_name
               single_server               = length(var.webdispatcher_server_ips) + length(var.application_server_ips) + length(var.scs_server_ips) + length(var.database_server_ips) == 1 ? (
                                             true) : (
                                             false
