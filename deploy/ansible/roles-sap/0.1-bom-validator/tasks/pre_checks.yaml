@@ -206,7 +206,7 @@
 # Step: 07
 # Description:  Create BOM download directories".
 #
-# TODO: allow for concurrancy by using unique tmp directory dtructure.
+# TODO: allow for concurrency by using unique tmp directory structure.
 #
 - name:                                 "(pre_checks.yaml) - Prepare download directory"
   block:
