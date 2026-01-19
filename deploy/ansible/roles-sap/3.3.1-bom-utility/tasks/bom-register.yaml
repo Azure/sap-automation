@@ -45,9 +45,13 @@
 # Step: 02 - END
 # -------------------------------------+---------------------------------------8
 
-- name:                                "3.3.1 BoM Processing - Set the new name"
+- name:                                "3.3.1 BoM Processing - Initialize names"
   ansible.builtin.set_fact:
-    new_bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
+    application_bom_name:              "{{ bom_base_name.split('-')[0] }}"
+    database_bom_name:                 "{{ bom_base_name.split('-')[1] | default('')}}"
+    kernel_bom_name:                   "{{ bom_base_name.split('-')[2] | default('')}}"
+    new_bom_name:                      "{{ bom_base_name.split('-')[3] | default(bom_base_name.split('-')[0]) }}{{ bom_suffix }}"
+    bom_dependencies:                  "{{ bom.materials.dependencies | default([]) }}"
 
 - name:                                "3.3.1 BoM Processing - Show new name"
   ansible.builtin.debug:
