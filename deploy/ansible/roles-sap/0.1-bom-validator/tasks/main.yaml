@@ -154,7 +154,8 @@
   ansible.builtin.set_fact:
     application_bom_name:               "{{ bom_base_name.split('-')[0] }}"
     database_bom_name:                  "{{ bom_base_name.split('-')[1] | default('')}}"
-    new_bom_name:                       "{{ bom_base_name.split('-')[2] | default(bom_base_name.split('-')[0]) }}{{ bom_suffix }}"
+    kernel_bom_name:                    "{{ bom_base_name.split('-')[2] | default('')}}"
+    new_bom_name:                       "{{ bom_base_name.split('-')[3] | default(bom_base_name.split('-')[0]) }}{{ bom_suffix }}"
     bom_dependencies:                   "{{ bom.materials.dependencies | default([]) }}"
 
 - name:                                 "0.1 BoM Validator - Append database BoM to Application BoM dependencies"
@@ -162,7 +163,23 @@
     bom_dependencies:                   "{{ bom_dependencies | default([]) + [ database_bom_name ] }}"
   when:
     - database_bom_name != ''
-  
+
+- name:                                 "0.1 BoM Validator - Append kernel_bom_name BoM to Application BoM dependencies"
+  ansible.builtin.set_fact:
+    bom_dependencies:                   "{{ bom_dependencies | default([]) + [ kernel_bom_name ] }}"
+  when:
+    - kernel_bom_name != ''
+
+- name:                                "0.1 BoM Validator - Informational"
+  ansible.builtin.debug:
+    msg:
+      - "BOM Base Name:          {{ bom_base_name }}"
+      - "Application BOM Name:   {{ application_bom_name }}"
+      - "Database BOM Name:      {{ database_bom_name }}"
+      - "Kernel BOM Name:        {{ kernel_bom_name }}"
+      - "New BOM Name:           {{ new_bom_name }}"
+      - "BOM Dependencies:       {{ bom_dependencies }}"
+
 - name:                                "0.1 BoM Validator - Process main BOM"
   ansible.builtin.include_tasks:       bom_validator.yaml
   vars:
