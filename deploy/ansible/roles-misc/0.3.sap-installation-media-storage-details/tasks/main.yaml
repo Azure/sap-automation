@@ -95,7 +95,7 @@
     container_name:                    "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}"
   when:                                sapbits_location_base_path is defined
 
-- name:                                "0.3 Installation Media - Extract Shared Key Access token flag"
+- name:                                "0.3 Installation Media - Set Shared Key Access flag to false"
   ansible.builtin.set_fact:
     allowSharedKeyAccess:             false
 
@@ -111,12 +111,14 @@
   changed_when:                        false
   register:                            az_allowSharedKeyAccess
 
-- name:                                "0.3 Installation Media - Extract Shared Key Access token flag"
+- name:                                "0.3 Installation Media - Set Shared Key Access flag"
   ansible.builtin.set_fact:
     allowSharedKeyAccess:             "{{ az_allowSharedKeyAccess.stdout | bool }}"
-  when: az_allowSharedKeyAccess.stdout is defined and az_allowSharedKeyAccess.stdout | length > 0
+  when:
+    - az_allowSharedKeyAccess.stdout is defined
+    - az_allowSharedKeyAccess.stdout | length > 0
 
-- name:                                "0.3 Installation Media - Parameter review..."
+- name:                                "0.3 Installation Media - Binaries Storage account information ..."
   ansible.builtin.debug:
     msg:                               # Best method for formatting output with Azure Devops Logs
                                        - "Storage account_name:            {{ account_name }}"
