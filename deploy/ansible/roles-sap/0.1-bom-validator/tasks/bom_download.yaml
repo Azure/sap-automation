@@ -414,10 +414,7 @@
           delegate_to:                     localhost
           register:                        blobUpload
           ignore_errors:                   true
-          failed_when:
-            - blobUpload.rc != 0
-            - blobUpload.stderr is defined
-            - blobUpload.stderr.find("BlobAlreadyExists") == -1
+          failed_when:                     false
 
         - name:                            "BOM: {{ bom_name }} Upload File {{ bom_media_entry.archive }}"
           when:
@@ -435,11 +432,15 @@
           delegate_to:                     localhost
           register:                        blobUpload
           ignore_errors:                   true
-          failed_when:
+          failed_when:                     false
+
+        - name:                            "BOM: {{ bom_name }} Upload File {{ bom_media_entry.archive }} failed"
+          ansible.builtin.fail:
+            msg:                           "Authentication error, please check the SAS token"
+          when:
             - blobUpload.rc != 0
             - blobUpload.stderr is defined
             - blobUpload.stderr.find("BlobAlreadyExists") == -1
-
       # Step: 05-04-01 - END
       # -------------------------------+---------------------------------------------8
 
