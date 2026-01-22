@@ -392,12 +392,14 @@
 - name:                                 "{{ task_prefix }} Merge Application, Database, and Kernel BOMs into main BOM"
   ansible.builtin.set_fact:
     bom:                                "{{ application_bom }}"
+    merged_yaml:                        "{{ merged_yaml | combine({'materials': {'media': application_bom.materials.media + database_bom.materials.media +kernel_bom.materials.media }}, recursive=true) }}"
 
 
 - name:                                 "{{ task_prefix }} Show Application, Database, and Kernel BOMs"
   ansible.builtin.debug:
     msg:
-      - "Merged Materials: {{ application_bom.materials + database_bom.materials | default({}) + kernel_bom.materials | default({}) }}"
+      - "Merged Materials: {{ merged_yaml }}"
+
 
 
 # -------------------------------------+---------------------------------------8
