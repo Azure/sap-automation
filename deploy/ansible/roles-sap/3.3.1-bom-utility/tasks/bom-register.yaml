@@ -391,15 +391,7 @@
 
 - name:                                 "{{ task_prefix }} Merge Application, Database, and Kernel BOMs into main BOM"
   ansible.builtin.set_fact:
-    bom:                                "{{ application_bom  }}"
-
-- name:                                 "{{ task_prefix }} Merge Application, Database, and Kernel BOMs into main BOM"
-  ansible.builtin.set_fact:
-    bom.materials:                      "{{ application_bom.materials
-                                          | combine( database_bom.materials | default({}) )
-                                          | combine( kernel_bom.materials | default({}) )
-                                        }}"
-
+    bom:                                "{{ application_bom | combine({'materials': application_bom.materials | combine(database_bom.materials | default({})) | combine(kernel_bom.materials | default({}))}) }}"
 
 # -------------------------------------+---------------------------------------8
 # Step: 06
