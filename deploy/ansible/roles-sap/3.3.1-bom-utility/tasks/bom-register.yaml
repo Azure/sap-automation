@@ -393,6 +393,12 @@
   ansible.builtin.set_fact:
     bom:                                "{{ application_bom | combine({'materials': application_bom.materials | combine(database_bom.materials | default({})) | combine(kernel_bom.materials | default({}))}) }}"
 
+- name:                                 "{{ task_prefix }} Show Application, Database, and Kernel BOMs"
+  ansible.builtin.debug:
+    msg:
+      - "Merged Materials: {{ application_bom.materials + database_bom.materials | default({}) + kernel_bom.materials | default({}) }}"
+
+
 # -------------------------------------+---------------------------------------8
 # Step: 06
 # Description:  Validate that BoM was found
