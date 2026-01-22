@@ -199,7 +199,7 @@
 #
     - name:                             "{{ task_prefix }} Register Microsoft Supplied Application BOM ({{ application_bom_name }}) facts"
       ansible.builtin.set_fact:
-        bom:                            "{{ application_bom_temp }}"
+        application_bom:                "{{ application_bom_temp }}"
         bom_file:                       "{{ microsoft_supplied_application_bom.stat.path }}"
         aggregated_bom_directories:     "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'local'}] }}"
       vars:
@@ -334,23 +334,23 @@
 # Step: 05-04-03 - END
 # -------------------------------------+---------------------------------------8
 
-- name:                                 "{{ task_prefix }} Merge Application, Database, and Kernel BOMs into main BOM"
-  ansible.builtin.debug:
-    msg:
-      - "Application BoM: {{ bom }}"
-      - "Database BoM:    {{ database_bom | default('Not defined') }}"
-      - "Kernel BoM:      {{ kernel_bom | default('Not defined') }}"
+    - name:                                 "{{ task_prefix }} Show Application, Database, and Kernel BOMs"
+      ansible.builtin.debug:
+        msg:
+          - "Application BoM: {{ bom }}"
+          - "Database BoM:    {{ database_bom | default('Not defined') }}"
+          - "Kernel BoM:      {{ kernel_bom | default('Not defined') }}"
 
+    - name:                                 "{{ task_prefix }} Merge Application, Database, and Kernel BOMs into main BOM"
+      ansible.builtin.set_fact:
+        bom:                                "{{ application_bom  }}"
 
-- name:                                 "{{ task_prefix }} Merge Application, Database, and Kernel BOMs into main BOM"
-  ansible.builtin.set_fact:
-    bom:                                "{{ bom | combine({'materials': bom.materials | combine({'applications': application_bom.materials.applications | default([]), 'databases': database_bom.materials.databases | default([]), 'kernels': kernel_bom.materials.kernels | default([]) }) }) }}"
-  when:
-    - application_bom is defined
-    - database_bom is defined
-    - kernel_bom is defined
-
-
+    - name:                                 "{{ task_prefix }} Merge Application, Database, and Kernel BOMs into main BOM"
+      ansible.builtin.set_fact:
+        bom.materials:                      "{{ application_bom.materials
+                                              | combine( database_bom.materials | default({}) )
+                                              | combine( kernel_bom.materials | default({}) )
+                                            }}"
 
 # -------------------------------------+---------------------------------------8
 # Step: 05-05
