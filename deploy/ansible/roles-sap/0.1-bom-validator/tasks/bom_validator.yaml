@@ -94,6 +94,9 @@
 # Description:  Generate SAS token block
 #
 - name:                                 "Generate SAS token block"
+  when:
+    - sa_enabled
+    - allowSharedKeyAccess
   block:
 
   # -----------------------------------+---------------------------------------8
@@ -149,9 +152,6 @@
 
   vars:
     task_prefix:                        Generate SAS token block
-  when:
-    - sa_enabled
-    - allowSharedKeyAccess
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
 
@@ -162,7 +162,7 @@
 #
 - name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Check and Download Files"
   ansible.builtin.include_tasks:       bom_download.yaml
-  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
+  loop:                                "{{ merged_media | default(bom.materials.media) | flatten(levels=1)) }}"
   loop_control:
     loop_var:                           bom_media_entry
     index_var:                          bom_media_index
