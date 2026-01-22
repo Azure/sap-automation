@@ -385,7 +385,7 @@
 - name:                                 "{{ task_prefix }} Show Application, Database, and Kernel BOMs"
   ansible.builtin.debug:
     msg:
-      - "Application Platform                {{ bom.platform | default('Not defined') }}"
+      - "Application Platform                {{ application_bom.platform | default('Not defined') }}"
       - "Application supported SPS Versions: {{ application_bom.supportedSPSVersions | default('Not defined') }}"
       - "Application supported Kernels:      {{ application_bom.supportedKernels | default('Not defined') }}"
       - "Database Platform:                  {{ database_bom.platform | default('Not defined') }}"
@@ -398,12 +398,12 @@
       - "Incompatible combination of Application BOM (platform: {{ bom.platform }}) and Database BOM (platform: {{ database_bom.platform }}, version: {{ database_bom.version }})."
   when:
     - database_bom is defined
-    - bom.platform != database_bom.platform or database_bom.version is not in application_bom.supportedSPSVersions
+    - application_bom.platform != database_bom.platform or database_bom.version is not in application_bom.supportedSPSVersions
 
 - name:                                 "{{ task_prefix }} Incompatible Application and Kernel BOM"
   ansible.builtin.fail:
     msg:
-      - "Incompatible combination of Application BOM (Supported Kernels: {{ bom.supportedKernels }}) and Kernel BOM (kernel: {{ kernel_bom.kernel }})."
+      - "Incompatible combination of Application BOM (Supported Kernels: {{ application_bom.supportedKernels }}) and Kernel BOM (kernel: {{ kernel_bom.kernel }})."
   when:
     - kernel_bom is defined
     - kernel_bom.kernel is not in application_bom.supportedKernels
