@@ -209,6 +209,8 @@
 # TODO: allow for concurrency by using unique tmp directory structure.
 #
 - name:                                 "0.1 BoM Validator - Pre Check - Prepare download directory"
+  when:
+    - download_directory
   block:
 
 # -------------------------------------+---------------------------------------8
@@ -250,8 +252,6 @@
 
   vars:
     task_prefix:                        Prepare download directory block
-  when:
-    - download_directory
 # Step: 07 - END
 # -------------------------------------+---------------------------------------8
 
