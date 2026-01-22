@@ -269,7 +269,7 @@
           ansible.builtin.debug:
             msg:
               - "fs_check:         {{ fs_check }}"
-              - "create_checksums: {{ create_checksums }}"
+              - "create_checksums: {{ create_checksums | default(false) }}"
             verbosity:                 1
 
       # Step: 05-03-01 - END
