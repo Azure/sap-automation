@@ -2,20 +2,21 @@
 #
 # Downloaded on {{ ansible_date_time.date }} at {{ ansible_date_time.time }}
 
-name:          {{ root_bom.name }}
-filename:      {% if root_bom.filename is defined %}{{ root_bom.filename }}{% endif %}
+name:                 {{ root_bom.name }}
 
-target:        {{ root_bom.target }}
+filename:             {% if root_bom.filename is defined %}{{ root_bom.filename }}{% endif %}
 
-version:       {{ root_bom.version }}
+target:               {{ root_bom.target }}
 
-platform:      {% if root_bom.platform is defined %}{{ root_bom.platform }}{% endif %}
+version:              {{ root_bom.version }}
 
-InstanceType:  {% if root_bom.InstanceType is defined %}{{ root_bom.InstanceType }}{% else %}ABAP{% endif %}
+platform:             {% if root_bom.platform is defined %}{{ root_bom.platform }}{% endif %}
 
-supportedSPSVersions: {% if root_bom.supportedSPSVersions is defined %}{{ root_bom.supportedSPSVersions }}{% else %}omit{% endif %}
+InstanceType:         {% if root_bom.InstanceType is defined %}{{ root_bom.InstanceType }}{% else %}ABAP{% endif %}
 
-supportedKernels: {% if root_bom.supportedKernels is defined %}{{ root_bom.supportedKernels }}{% else %}omit{% endif %}
+supportedSPSVersions: {% if root_bom.supportedSPSVersions is defined %}{{ root_bom.supportedSPSVersions }}{% endif %}
+
+supportedKernels:     {% if root_bom.supportedKernels is defined %}{{ root_bom.supportedKernels }}{% endif %}
 
 
 product_ids:
