@@ -385,9 +385,19 @@
 - name:                                 "{{ task_prefix }} Show Application, Database, and Kernel BOMs"
   ansible.builtin.debug:
     msg:
-      - "Application BoM: {{ bom }}"
-      - "Database BoM:    {{ database_bom | default('Not defined') }}"
-      - "Kernel BoM:      {{ kernel_bom | default('Not defined') }}"
+      - "Application Platform                {{ bom.platform | default('Not defined') }}"
+      - "Application supported SPS Versions: {{ application_bom.supportedSPSVersions | default('Not defined') }}"
+      - "Application supported Kernels:      {{ application_bom.supportedKernels | default('Not defined') }}"
+      - "Database Platform:                  {{ database_bom.platform | default('Not defined') }}"
+      - "Database Version:                   {{ database_bom.version | default('Not defined') }}"
+      - "Kernel Version:                     {{ kernel_bom.kernel | default('Not defined') }}"
+
+- name:                                 "{{ task_prefix }} Show Application, Database, and Kernel BOMs"
+  ansible.builtin.fail:
+    msg:
+      - "Incompatible combination of Application BOM (platform: {{ bom.platform }}) and Database BOM (platform: {{ database_bom.platform }}, version: {{ database_bom.version }})."
+  when:
+    - bom.platform != database_bom.platform or database_bom.version is not in application_bom.supportedSPSVersions
 
 - name:                                 "{{ task_prefix }} Merge Application, Database, and Kernel BOMs into main BOM"
   ansible.builtin.set_fact:
@@ -403,8 +413,6 @@
     msg:
       - "Merged Materials: {{ merged_media }}"
     verbosity:                          2
-
-
 
 # -------------------------------------+---------------------------------------8
 # Step: 06
