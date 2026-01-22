@@ -395,7 +395,7 @@
 - name:                                 "{{ task_prefix }} Incompatible Application and Database BOM"
   ansible.builtin.fail:
     msg:
-      - "Incompatible combination of Application BOM (platform: {{ bom.platform }}) and Database BOM (platform: {{ database_bom.platform }}, version: {{ database_bom.version }})."
+      - "Incompatible combination of Application BOM (platform: {{ application_bom.platform }}) and Database BOM (platform: {{ database_bom.platform }}, version: {{ database_bom.version }})."
   when:
     - database_bom is defined
     - application_bom.platform != database_bom.platform or database_bom.version is not in application_bom.supportedSPSVersions
@@ -412,12 +412,12 @@
   ansible.builtin.set_fact:
     merged_yaml:                        "{{ application_bom | combine(database_bom, recursive=true) | combine(kernel_bom, recursive=true) }}"
 
-- name:                                 "{{ task_prefix }} Merge Application, Database, and Kernel BOMs into main BOM"
+- name:                                 "{{ task_prefix }} Merge installation media listings into main BOM"
   ansible.builtin.set_fact:
     bom:                                "{{ application_bom }}"
     merged_media:                       "{{ merged_yaml | combine({'materials': {'media': application_bom.materials.media | default({}) + database_bom.materials.media | default({}) + kernel_bom.materials.media | default({}) }}, recursive=true) }}"
 
-- name:                                 "{{ task_prefix }} Show Application, Database, and Kernel BOMs"
+- name:                                 "{{ task_prefix }} Show medial listings merged from Application, Database, and Kernel BOMs"
   ansible.builtin.debug:
     msg:
       - "Merged Materials: {{ merged_media }}"
@@ -431,7 +431,7 @@
 - name:                                 "{{ task_prefix }} Show BOM object"
   ansible.builtin.debug:
     var:                                bom
-    verbosity:                          0
+    verbosity:                          2
 
 - name:                                 "{{ task_prefix }} Validate that a BOM object is created"
   ansible.builtin.fail:
