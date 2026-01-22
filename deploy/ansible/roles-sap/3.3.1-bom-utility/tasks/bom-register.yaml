@@ -333,7 +333,7 @@
 # Description:
 #
 - name:                             "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }}) in archives"
-  when:                             not microsoft_supplied_bom.stat.exists
+  when:                             not microsoft_supplied_application_bom.stat.exists
   block:
 
     # -------------------------------------+---------------------------------------8
