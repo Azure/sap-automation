@@ -160,9 +160,9 @@
 # Step: 05
 # Description:  Check and download files
 #
-- name:                                "0.1 BoM Validator: - BOM: {{ bom_name }} Check and Download Files"
+- name:                                "0.1 BoM Validator - BOM {{ bom_name }} Check and Download Files"
   ansible.builtin.include_tasks:       bom_download.yaml
-  loop:                                "{{ merged_media | default(bom.materials.media) | flatten(levels=1)) }}"
+  loop:                                "{{ merged_media | default(bom.materials.media) | flatten(levels=1) }}"
   loop_control:
     loop_var:                           bom_media_entry
     index_var:                          bom_media_index
