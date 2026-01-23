@@ -53,6 +53,13 @@
     database_bom_name:                 "{{ bom_base_name.split('-')[1] | default('')}}"
     kernel_bom_name:                   "{{ bom_base_name.split('-')[2] | default('')}}"
     new_bom_name:                      "{{ bom_base_name.split('-')[3] | default(bom_base_name.split('-')[0]) }}{{ bom_suffix }}"
+    first_pass:                        true
+
+- name:                                "3.3.1 BoM Processing - Initialize names - second run"
+  when:
+    - application_bom_name is defined
+  ansible.builtin.set_fact:
+    first_pass:                        false
 
 - name:                                "3.3.1 BoM Processing - Show new name"
   ansible.builtin.debug:
@@ -341,7 +348,7 @@
 #
 - name:                                 "{{ task_prefix }} Check for Microsoft Supplied dependent BOM ({{ new_bom_name }})"
   when:
-    - new_bom_name != ''
+    - new_bom_name != application_bom_name
   block:
       # ---------------------------------+-------------------------------------------8
       # Step: 05-04-01
@@ -450,7 +457,7 @@
 # -------------------------------------+---------------------------------------8
 - name:                                 "{{ task_prefix }} Main BoM processing block"
   when:
-    - new_bom_name == application_bom
+    - first_pass | default(false)
   block:
 
     - name:                                 "{{ task_prefix }} Show Application, Database, and Kernel BOMs"
