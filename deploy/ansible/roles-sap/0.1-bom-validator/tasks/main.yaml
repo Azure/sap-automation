@@ -185,7 +185,7 @@
 - name:                                "0.1 BoM Validator - Save BOM {{ application_bom_name }} as Dictionary"
   ansible.builtin.set_fact:
     root_bom:                          "{{ bom }}"
-    root_media_list:                   "{{ merged_media | flatten(levels=1) }}"
+    root_media_list:                   "{{ root_media_list | flatten(levels=1) }}"
 # Step: 05 - END
 # -------------------------------------+---------------------------------------8
 
