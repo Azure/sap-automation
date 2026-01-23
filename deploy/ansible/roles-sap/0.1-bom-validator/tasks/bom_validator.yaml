@@ -167,6 +167,9 @@
     loop_var:                           bom_media_entry
     index_var:                          bom_media_index
   no_log:                              false
+  when:
+    - bom_media_entry.archive is defined
+    - bom_media_entry.archive != ''
 # Step: 05 - END
 # -------------------------------------+---------------------------------------8
 
