@@ -525,12 +525,6 @@
           - "Files to download: {{ root_media_list }}"
         verbosity:                          2
 
-- name:                                 "{{ task_prefix }} Main BoM processing block"
-  when:
-    - new_bom_name != application_bom
-  block:
-
-
 # -------------------------------------+---------------------------------------8
 # Step: 06
 # Description:  Validate that BoM was found
