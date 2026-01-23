@@ -414,6 +414,7 @@
     - root_media_list is not defined
   ansible.builtin.set_fact:
     bom:                                "{{ application_bom }}"
+    bom_dependencies:                    "{% if application_bom.materials.dependencies is defined %}{{ application_bom.materials.dependencies }}{% endif %}"
     root_media_list:                    "{{ application_bom.materials.media | flatten(levels=1) }}"
 
 - name:                                 "{{ task_prefix }} Append installation media listings from main BOM"
@@ -433,12 +434,14 @@
   when:
     - database_bom is defined
   ansible.builtin.set_fact:
+    bom_dependencies:                    "{% if database_bom.materials.dependencies is defined %}{{ bom_dependencies + database_bom.materials.dependencies }}{% else %}{{ bom_dependencies }}{% endif %}"
     root_media_list:                    "{{ root_media_list + database_bom.materials.media | flatten(levels=1) }}"
 
 - name:                                 "{{ task_prefix }} Append Kernel media to merged media listings"
   when:
     - kernel_bom is defined
   ansible.builtin.set_fact:
+    bom_dependencies:                    "{% if kernel_bom.materials.dependencies is defined %}{{ bom_dependencies + kernel_bom.materials.dependencies }}{% else %}{{ bom_dependencies }}{% endif %}"
     root_media_list:                    "{{ root_media_list + kernel_bom.materials.media | flatten(levels=1) }}"
 
 - name:                                 "{{ task_prefix }} Filter duplicated media entries from merged media listings"
