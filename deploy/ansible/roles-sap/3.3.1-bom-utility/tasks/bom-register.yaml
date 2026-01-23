@@ -408,6 +408,22 @@
     - kernel_bom is defined
     - kernel_bom.kernel is not in application_bom.supportedKernels
 
+- name:                                 "{{ task_prefix }} Add installation media listings from main BOM"
+  when:
+    - application_bom is defined
+    - root_media_list is not defined
+  ansible.builtin.set_fact:
+    bom:                                "{{ application_bom }}"
+    root_media_list:                    "{{ application_bom.materials.media | flatten(levels=1) }}"
+
+- name:                                 "{{ task_prefix }} Append installation media listings from main BOM"
+  when:
+    - application_bom is defined
+    - root_media_list is defined
+  ansible.builtin.set_fact:
+    bom:                                "{{ application_bom }}"
+    root_media_list:                    "{{ root_media_list + application_bom.materials.media | flatten(levels=1) }}"
+
 - name:                                 "{{ task_prefix }} Merge installation media listings into main BOM"
   ansible.builtin.set_fact:
     bom:                                "{{ application_bom }}"
