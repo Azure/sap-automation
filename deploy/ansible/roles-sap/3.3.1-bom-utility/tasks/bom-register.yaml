@@ -408,14 +408,22 @@
     - kernel_bom is defined
     - kernel_bom.kernel is not in application_bom.supportedKernels
 
-- name:                                 "{{ task_prefix }} Merge Application, Database, and Kernel BOMs into main BOM"
-  ansible.builtin.set_fact:
-    merged_yaml:                        "{{ application_bom | combine(database_bom, recursive=true) | combine(kernel_bom, recursive=true) }}"
-
 - name:                                 "{{ task_prefix }} Merge installation media listings into main BOM"
   ansible.builtin.set_fact:
     bom:                                "{{ application_bom }}"
-    merged_media:                       "{{ merged_yaml | combine({'materials': {'media': application_bom.materials.media | default({}) + database_bom.materials.media | default({}) + kernel_bom.materials.media | default({}) }}, recursive=true) }}"
+    merged_media:                       "{{ application_bom.materials.media }}"
+
+- name:                                 "{{ task_prefix }} Append database media to merged media listings"
+  when:
+    - database_bom is defined
+  ansible.builtin.set_fact:
+    merged_media:                       "{{ merged_media + database_bom.materials.media }}"
+
+- name:                                 "{{ task_prefix }} Append Kernel media to merged media listings"
+  when:
+    - kernel_bom is defined
+  ansible.builtin.set_fact:
+    merged_media:                       "{{ merged_media + kernel_bom.materials.media }}"
 
 - name:                                 "{{ task_prefix }} Show medial listings merged from Application, Database, and Kernel BOMs"
   ansible.builtin.debug:
