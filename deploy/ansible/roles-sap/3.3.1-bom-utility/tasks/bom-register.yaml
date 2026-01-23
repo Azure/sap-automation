@@ -51,7 +51,7 @@
     database_bom_name:                 "{{ bom_base_name.split('-')[1] | default('')}}"
     kernel_bom_name:                   "{{ bom_base_name.split('-')[2] | default('')}}"
     new_bom_name:                      "{{ bom_base_name.split('-')[3] | default(bom_base_name.split('-')[0]) }}{{ bom_suffix }}"
-    bom_dependencies:                  "{{ bom.materials.dependencies | default([]) }}"
+    bom_dependencies:                  "{% if bom.materials.dependencies is defined %}{{ bom_dependencies | default([]) + bom.materials.dependencies }}{% else %}{{ bom_dependencies }}{% endif %}"
 
 - name:                                "3.3.1 BoM Processing - Show new name"
   ansible.builtin.debug:
@@ -411,24 +411,28 @@
 - name:                                 "{{ task_prefix }} Merge installation media listings into main BOM"
   ansible.builtin.set_fact:
     bom:                                "{{ application_bom }}"
-    merged_media:                       "{{ application_bom.materials.media }}"
+    root_media_list:                    "{{ root_media_list + application_bom.materials.media | flatten(levels=1) }}"
 
 - name:                                 "{{ task_prefix }} Append database media to merged media listings"
   when:
     - database_bom is defined
   ansible.builtin.set_fact:
-    merged_media:                       "{{ merged_media + database_bom.materials.media }}"
+    root_media_list:                    "{{ root_media_list + database_bom.materials.media | flatten(levels=1) }}"
 
 - name:                                 "{{ task_prefix }} Append Kernel media to merged media listings"
   when:
     - kernel_bom is defined
   ansible.builtin.set_fact:
-    merged_media:                       "{{ merged_media + kernel_bom.materials.media }}"
+    root_media_list:                    "{{ root_media_list + kernel_bom.materials.media | flatten(levels=1) }}"
+
+- name:                                 "{{ task_prefix }} Filter duplicated media entries from merged media listings"
+  ansible.builtin.set_fact:
+    root_media_list:                    "{{ root_media_list | unique(attribute='archive') }}"
 
 - name:                                 "{{ task_prefix }} Show medial listings merged from Application, Database, and Kernel BOMs"
   ansible.builtin.debug:
     msg:
-      - "Merged Materials: {{ merged_media }}"
+      - "Files to download: {{ root_media_list }}"
     verbosity:                          2
 
 # -------------------------------------+---------------------------------------8
