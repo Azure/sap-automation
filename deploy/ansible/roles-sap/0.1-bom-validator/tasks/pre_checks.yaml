@@ -93,7 +93,7 @@
 # Step: 02-03
 # Description:
 #
-    - name:                             "0.1 BoM Validator - Pre Check - {{ task_prefix }} - Set kv_enabled: true"
+    - name:                             "0.1 BoM Validator - Pre Check - Set kv_enabled: true"
       ansible.builtin.set_fact:
         kv_enabled:                     true
       when:
