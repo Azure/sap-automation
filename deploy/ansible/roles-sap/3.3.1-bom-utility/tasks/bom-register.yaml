@@ -47,7 +47,7 @@
 
 - name:                                "3.3.1 BoM Processing - Initialize names"
   when:
-    - application_bom_name is not defined
+    - bom is not defined
   ansible.builtin.set_fact:
     application_bom_name:              "{{ bom_base_name.split('-')[0] }}"
     database_bom_name:                 "{{ bom_base_name.split('-')[1] | default('')}}"
@@ -125,7 +125,7 @@
     # Step: 04-01
     # Description:
     #
-    - name:                             "{{ task_prefix }} Register downloaded BOM ({{ bom_name }})"
+    - name:                             "3.3.1 BoM Processing - Register downloaded BOM ({{ bom_name }})"
       ansible.builtin.include_vars:
         file:                           "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
         name:                           bom
@@ -136,7 +136,7 @@
     # Step: 04-02
     # Description:
     #
-    - name:                             "{{ task_prefix }} Register downloaded BOM ({{ bom_name }}) file name"
+    - name:                             "3.3.1 BoM Processing - Register downloaded BOM ({{ bom_name }}) file name"
       ansible.builtin.set_fact:
         bom_file:                       "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
         aggregated_bom_directories:     "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'sa'}] }}"
@@ -152,7 +152,7 @@
 # Step: 05-01
 # Description:  Check for Microsoft provided Application BOM from the samples repository
 #
-- name:                                 "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ application_bom_name }})"
+- name:                                 "3.3.1 BoM Processing - Check for Microsoft Supplied BOM ({{ application_bom_name }})"
   when:
     - application_bom_name != ''
     - application_bom is not defined
@@ -162,7 +162,7 @@
     # Step: 05-01-01
     # Description:
     #
-    - name:                             "{{ task_prefix }} Check for Microsoft Supplied Application BOM ({{ application_bom_name }})"
+    - name:                             "3.3.1 BoM Processing - Check for Microsoft Supplied Application BOM ({{ application_bom_name }})"
       ansible.builtin.stat:
         path:                           "{{ BOM_directory }}/{{ application_bom_name }}/{{ application_bom_name }}.yaml"
       register:                         microsoft_supplied_application_bom
@@ -176,11 +176,12 @@
     # Step: 05-02-01
     # Description:
     #
-    - name:                             "{{ task_prefix }} Show Microsoft Supplied BOM Application BOM ({{ application_bom_name }}) result"
+    - name:                             "3.3.1 BoM Processing - Show Microsoft Supplied BOM Application BOM ({{ application_bom_name }}) result"
       ansible.builtin.debug:
-        msg: |-
-                                        BOM PATH:   {{ BOM_directory }}/{{ application_bom_name }}/{{ application_bom_name }}.yaml
-                                        BOM Exists: {{ microsoft_supplied_application_bom.stat.exists }}
+        msg:
+          - "BoM Name:   {{ application_bom_name }}"
+          - "BoM Exists: {{ microsoft_supplied_application_bom.stat.exists }}"
+          - "BoM PATH:   {{ BOM_directory }}/{{ application_bom_name }}/{{ application_bom_name }}.yaml"
         verbosity:                      0
     # Step: 05-02-01 - END
     # ---------------------------------+-------------------------------------------8
@@ -189,7 +190,7 @@
     # Step: 05-03-01
     # Description:
     #
-    - name:                             "{{ task_prefix }} Register Microsoft Supplied Application BOM {{ application_bom_name }}"
+    - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied Application BOM {{ application_bom_name }}"
       ansible.builtin.include_vars:
         file:                           "{{ microsoft_supplied_application_bom.stat.path }}"
         name:                           application_bom_temp
@@ -201,7 +202,7 @@
     # Step: 05-04-01
     # Description:
     #
-    - name:                             "{{ task_prefix }} Register Microsoft Supplied Application BOM ({{ application_bom_name }}) facts"
+    - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied Application BOM ({{ application_bom_name }}) facts"
       ansible.builtin.set_fact:
         application_bom:                "{{ application_bom_temp }}"
         bom_file:                       "{{ microsoft_supplied_application_bom.stat.path }}"
@@ -218,7 +219,7 @@
 # Step: 05-02
 # Description:  Check for Microsoft provided database BOM from the samples repository
 #
-- name:                                 "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ database_bom_name }})"
+- name:                                 "3.3.1 BoM Processing - Check for Microsoft Supplied BOM ({{ database_bom_name }})"
   when:
     - database_bom_name != ''
     - database_bom is not defined
@@ -228,7 +229,7 @@
     # Step: 05-02-01
     # Description:
     #
-    - name:                             "{{ task_prefix }} Check for Microsoft Supplied Database BOM ({{ database_bom_name }})"
+    - name:                             "3.3.1 BoM Processing - Check for Microsoft Supplied Database BOM ({{ database_bom_name }})"
       ansible.builtin.stat:
         path:                           "{{ BOM_directory }}/{{ database_bom_name }}/{{ database_bom_name }}.yaml"
       register:                         microsoft_supplied_database_bom
@@ -242,11 +243,12 @@
     # Step: 05-02-02
     # Description:
     #
-    - name:                             "{{ task_prefix }} Show Microsoft Supplied BOM Database BOM ({{ database_bom_name }}) result"
+    - name:                             "3.3.1 BoM Processing - Show Microsoft Supplied BOM Database BOM ({{ database_bom_name }}) result"
       ansible.builtin.debug:
-        msg: |-
-                                        BOM PATH:   {{ BOM_directory }}/{{ database_bom_name }}/{{ database_bom_name }}.yaml
-                                        BOM Exists: {{ microsoft_supplied_database_bom.stat.exists }}
+        msg:
+          - "BoM Name:   {{ database_bom_name }}"
+          - "BoM Exists: {{ microsoft_supplied_database_bom.stat.exists }}"
+          - "BoM Exists: {{ microsoft_supplied_database_bom.stat.exists }}"
         verbosity:                      0
     # Step: 05-02-02 - END
     # ---------------------------------+-------------------------------------------8
@@ -255,7 +257,7 @@
     # Step: 05-02-03
     # Description:
     #
-    - name:                             "{{ task_prefix }} Register Microsoft Supplied Database BOM {{ database_bom_name }}"
+    - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied Database BOM {{ database_bom_name }}"
       ansible.builtin.include_vars:
         file:                           "{{ microsoft_supplied_database_bom.stat.path }}"
         name:                           database_bom_temp
@@ -267,7 +269,7 @@
     # Step: 05-02-04
     # Description:
     #
-    - name:                             "{{ task_prefix }} Register Microsoft Supplied Database BOM ({{ database_bom_name }}) facts"
+    - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied Database BOM ({{ database_bom_name }}) facts"
       ansible.builtin.set_fact:
         database_bom:                   "{{ database_bom_temp }}"
         bom_file:                       "{{ microsoft_supplied_database_bom.stat.path }}"
@@ -283,7 +285,7 @@
 # Step: 05-03
 # Description:  Check for Microsoft provided kernel BOM from the samples repository
 #
-- name:                                 "{{ task_prefix }} Check for Microsoft Supplied Kernel BOM ({{ kernel_bom_name }})"
+- name:                                 "3.3.1 BoM Processing - Check for Microsoft Supplied Kernel BOM ({{ kernel_bom_name }})"
   when:
     - kernel_bom_name != ''
     - kernel_bom is not defined
@@ -292,7 +294,7 @@
       # Step: 05-03-01
       # Description:
       #
-    - name:                             "{{ task_prefix }} Check for Microsoft Supplied kernel BOM ({{ kernel_bom_name }})"
+    - name:                             "3.3.1 BoM Processing - Check for Microsoft Supplied kernel BOM ({{ kernel_bom_name }})"
       ansible.builtin.stat:
         path:                           "{{ BOM_directory }}/{{ kernel_bom_name }}/{{ kernel_bom_name }}.yaml"
       register:                         microsoft_supplied_kernel_bom
@@ -306,11 +308,12 @@
     # Step: 05-03-02
     # Description:
     #
-    - name:                             "{{ task_prefix }} Show Microsoft Supplied BOM Kernel BOM ({{ kernel_bom_name }}) result"
+    - name:                             "3.3.1 BoM Processing - Show Microsoft Supplied BOM Kernel BOM ({{ kernel_bom_name }}) result"
       ansible.builtin.debug:
-        msg: |-
-                                        BOM PATH:   {{ BOM_directory }}/{{ kernel_bom_name }}/{{ kernel_bom_name }}.yaml
-                                        BOM Exists: {{ microsoft_supplied_kernel_bom.stat.exists }}
+        msg:
+          - "BoM Name:   {{ kernel_bom_name }}"
+          - "BoM Path:   {{ BOM_directory }}/{{ kernel_bom_name }}/{{ kernel_bom_name }}.yaml"
+          - "BoM Exists: {{ microsoft_supplied_kernel_bom.stat.exists }}"
         verbosity:                      0
     # Step: 05-03-02 - END
     # ---------------------------------+-------------------------------------------8
@@ -319,7 +322,7 @@
     # Step: 05-03-03
     # Description:
     #
-    - name:                             "{{ task_prefix }} Register Microsoft Supplied Kernel BOM {{ kernel_bom_name }}"
+    - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied Kernel BOM {{ kernel_bom_name }}"
       ansible.builtin.include_vars:
         file:                           "{{ microsoft_supplied_kernel_bom.stat.path }}"
         name:                           kernel_bom_temp
@@ -331,7 +334,7 @@
     # Step: 05-04-03
     # Description:
     #
-    - name:                             "{{ task_prefix }} Register Microsoft Supplied Kernel BOM ({{ kernel_bom_name }}) facts"
+    - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied Kernel BOM ({{ kernel_bom_name }}) facts"
       ansible.builtin.set_fact:
         kernel_bom:                     "{{ kernel_bom_temp }}"
         kernel_bom_file:                "{{ microsoft_supplied_kernel_bom.stat.path }}"
@@ -347,15 +350,15 @@
 # Step: 05-04
 # Description:  Check for Microsoft provided dependent BOM from the samples repository
 #
-- name:                                 "{{ task_prefix }} Check for Microsoft Supplied dependent BOM ({{ new_bom_name }})"
+- name:                                 "3.3.1 BoM Processing - Check for Microsoft Supplied dependent BOM ({{ new_bom_name }})"
   when:
-    - new_bom_name != application_bom_name
+    - not first_pass
   block:
       # ---------------------------------+-------------------------------------------8
       # Step: 05-04-01
       # Description:
       #
-    - name:                             "{{ task_prefix }} Check for Microsoft Supplied dependent BOM ({{ new_bom_name }})"
+    - name:                             "3.3.1 BoM Processing - Check for Microsoft Supplied dependent BOM ({{ new_bom_name }})"
       ansible.builtin.stat:
         path:                           "{{ BOM_directory }}/{{ new_bom_name }}/{{ new_bom_name }}.yaml"
       register:                         microsoft_supplied_dependent_bom
@@ -369,7 +372,7 @@
     # Step: 05-04-02
     # Description:
     #
-    - name:                             "{{ task_prefix }} Show Microsoft Supplied BOM dependent BOM ({{ new_bom_name }}) result"
+    - name:                             "3.3.1 BoM Processing - Show Microsoft Supplied BOM dependent BOM ({{ new_bom_name }}) result"
       ansible.builtin.debug:
         msg: |-
                                         BOM PATH:   {{ BOM_directory }}/{{ new_bom_name }}/{{ new_bom_name }}.yaml
@@ -382,7 +385,7 @@
     # Step: 05-04-03
     # Description:
     #
-    - name:                             "{{ task_prefix }} Register Microsoft Supplied dependent BOM {{ new_bom_name }}"
+    - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied dependent BOM {{ new_bom_name }}"
       ansible.builtin.include_vars:
         file:                           "{{ microsoft_supplied_dependent_bom.stat.path }}"
         name:                           dependent_bom_temp
@@ -394,7 +397,7 @@
     # Step: 05-04-03
     # Description:
     #
-    - name:                             "{{ task_prefix }} Register Microsoft Supplied dependent BOM ({{ new_bom_name }}) facts"
+    - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied dependent BOM ({{ new_bom_name }}) facts"
       ansible.builtin.set_fact:
         root_media_list:                "{{ root_media_list + dependent_bom_temp.materials.media | flatten(levels=1) }}"
       when:                             microsoft_supplied_dependent_bom.stat.exists
@@ -407,7 +410,7 @@
 # Step: 05-05
 # Description:
 #
-- name:                             "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }}) in archives"
+- name:                             "3.3.1 BoM Processing - Check for Microsoft Supplied BOM ({{ bom_name }}) in archives"
   when:                             not microsoft_supplied_application_bom.stat.exists
   block:
 
@@ -415,7 +418,7 @@
     # Step: 05-05-01
     # Description:
     #
-    - name:                         "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_name }}) in archives"
+    - name:                         "3.3.1 BoM Processing - Check for Microsoft Supplied BOM ({{ bom_name }}) in archives"
       ansible.builtin.stat:
         path:                       "{{ BOM_directory }}/archives/{{ bom_name }}/{{ bom_name }}.yaml"
       register:                     microsoft_supplied_bom_archive
@@ -428,7 +431,7 @@
     # Step: 05-05-02
     # Description:
     #
-    - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM {{ bom_name }} from archives"
+    - name:                         "3.3.1 BoM Processing - Register Microsoft Supplied BOM {{ bom_name }} from archives"
       ansible.builtin.include_vars:
         file:                       "{{ microsoft_supplied_bom_archive.stat.path }}"
         name:                       bom_temp
@@ -440,7 +443,7 @@
 # Step: 05-05-03
 # Description:
 #
-    - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM ({{ bom_name }}) facts"
+    - name:                         "3.3.1 BoM Processing - Register Microsoft Supplied BOM ({{ bom_name }}) facts"
       ansible.builtin.set_fact:
         bom:                        "{{ bom_temp }}"
         bom_file:                   "{{ microsoft_supplied_bom_archive.stat.path }}"
@@ -456,12 +459,12 @@
 
 # Step: 05 - END
 # -------------------------------------+---------------------------------------8
-- name:                                 "{{ task_prefix }} Main BoM processing block"
+- name:                                 "3.3.1 BoM Processing - Main BoM processing block"
   when:
     - first_pass | default(false)
   block:
 
-    - name:                                 "{{ task_prefix }} Show Application, Database, and Kernel BOMs"
+    - name:                                 "3.3.1 BoM Processing - Show Application, Database, and Kernel BOMs"
       ansible.builtin.debug:
         msg:
           - "Application Platform                {{ application_bom.platform | default('Not defined') }}"
@@ -471,7 +474,7 @@
           - "Database Version:                   {{ database_bom.version | default('Not defined') }}"
           - "Kernel Version:                     {{ kernel_bom.kernel | default('Not defined') }}"
 
-    - name:                                 "{{ task_prefix }} Incompatible Application and Database BOM"
+    - name:                                 "3.3.1 BoM Processing - Incompatible Application and Database BOM"
       ansible.builtin.fail:
         msg:
           - "Incompatible combination of Application BOM (platform: {{ application_bom.platform }}) and Database BOM (platform: {{ database_bom.platform }}, version: {{ database_bom.version }})."
@@ -479,7 +482,7 @@
         - database_bom is defined
         - application_bom.platform != database_bom.platform or database_bom.version is not in application_bom.supportedSPSVersions
 
-    - name:                                 "{{ task_prefix }} Incompatible Application and Kernel BOM"
+    - name:                                 "3.3.1 BoM Processing - Incompatible Application and Kernel BOM"
       ansible.builtin.fail:
         msg:
           - "Incompatible combination of Application BOM (Supported Kernels: {{ application_bom.supportedKernels }}) and Kernel BOM (kernel: {{ kernel_bom.kernel }})."
@@ -487,7 +490,7 @@
         - kernel_bom is defined
         - kernel_bom.kernel is not in application_bom.supportedKernels
 
-    - name:                                 "{{ task_prefix }} Add installation media listings from main BOM"
+    - name:                                 "3.3.1 BoM Processing - Add installation media listings from main BOM"
       when:
         - application_bom is defined
         - root_media_list is not defined
@@ -496,7 +499,7 @@
         bom_dependencies:                    "{% if application_bom.materials.dependencies is defined %}{{ application_bom.materials.dependencies }}{% endif %}"
         root_media_list:                    "{{ application_bom.materials.media | flatten(levels=1) }}"
 
-    - name:                                 "{{ task_prefix }} Append installation media listings from main BOM"
+    - name:                                 "3.3.1 BoM Processing - Append installation media listings from main BOM"
       when:
         - application_bom is defined
         - root_media_list is defined
@@ -504,30 +507,30 @@
         bom:                                "{{ application_bom }}"
         root_media_list:                    "{{ root_media_list + application_bom.materials.media | flatten(levels=1) }}"
 
-    - name:                                 "{{ task_prefix }} Merge installation media listings into main BOM"
+    - name:                                 "3.3.1 BoM Processing - Merge installation media listings into main BOM"
       ansible.builtin.set_fact:
         bom:                                "{{ application_bom }}"
         root_media_list:                    "{{ root_media_list + application_bom.materials.media | flatten(levels=1) }}"
 
-    - name:                                 "{{ task_prefix }} Append database media to merged media listings"
+    - name:                                 "3.3.1 BoM Processing - Append database media to merged media listings"
       when:
         - database_bom is defined
       ansible.builtin.set_fact:
         bom_dependencies:                    "{% if database_bom.materials.dependencies is defined %}{{ bom_dependencies + database_bom.materials.dependencies }}{% else %}{{ bom_dependencies }}{% endif %}"
         root_media_list:                    "{{ root_media_list + database_bom.materials.media | flatten(levels=1) }}"
 
-    - name:                                 "{{ task_prefix }} Append Kernel media to merged media listings"
+    - name:                                 "3.3.1 BoM Processing - Append Kernel media to merged media listings"
       when:
         - kernel_bom is defined
       ansible.builtin.set_fact:
         bom_dependencies:                    "{% if kernel_bom.materials.dependencies is defined %}{{ bom_dependencies + kernel_bom.materials.dependencies }}{% else %}{{ bom_dependencies }}{% endif %}"
         root_media_list:                    "{{ root_media_list + kernel_bom.materials.media | flatten(levels=1) }}"
 
-    - name:                                 "{{ task_prefix }} Filter duplicated media entries from merged media listings"
+    - name:                                 "3.3.1 BoM Processing - Filter duplicated media entries from merged media listings"
       ansible.builtin.set_fact:
         root_media_list:                    "{{ root_media_list | unique(attribute='archive') }}"
 
-    - name:                                 "{{ task_prefix }} Show medial listings merged from Application, Database, and Kernel BOMs"
+    - name:                                 "3.3.1 BoM Processing - Show medial listings merged from Application, Database, and Kernel BOMs"
       ansible.builtin.debug:
         msg:
           - "Files to download: {{ root_media_list }}"
@@ -538,12 +541,12 @@
 # Description:  Validate that BoM was found
 #
 
-- name:                                 "{{ task_prefix }} Show BOM object"
+- name:                                 "3.3.1 BoM Processing - Show BOM object"
   ansible.builtin.debug:
     var:                                bom
     verbosity:                          2
 
-- name:                                 "{{ task_prefix }} Validate that a BOM object is created"
+- name:                                 "3.3.1 BoM Processing - Validate that a BOM object is created"
   ansible.builtin.fail:
     msg:                                "Unable to find the Bill of materials file for {{ bom_name }}."
   when:                                 bom is not defined
@@ -555,7 +558,7 @@
 # Step: 07
 # Description:  Show BOM detail
 #
-- name:                                 "{{ task_prefix }} Show BOM details"
+- name:                                 "3.3.1 BoM Processing - Show BOM details"
   ansible.builtin.debug:
     msg:
       - "BoM name:        {{ bom.name }}"
@@ -575,7 +578,7 @@
 # Description:  Validate that BoM was found
 #
 # ToDo Add this back later, Kimmo Jan 25
-# - name:                                 "{{ task_prefix }} Ensure that a BoM platform is defined"
+# - name:                                 "3.3.1 BoM Processing - Ensure that a BoM platform is defined"
 #   ansible.builtin.assert:
 #     that:
 #       - bom.platform is defined                                                 # Has the variable been defined
