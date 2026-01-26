@@ -411,7 +411,7 @@
 # Description:
 #
 - name:                             "3.3.1 BoM Processing - Check for Microsoft Supplied BOM ({{ bom_name }}) in archives"
-  when:                             not microsoft_supplied_application_bom.stat.exists
+  when:                             not microsoft_supplied_dependent_bom.stat.exists
   block:
 
     # -------------------------------------+---------------------------------------8
