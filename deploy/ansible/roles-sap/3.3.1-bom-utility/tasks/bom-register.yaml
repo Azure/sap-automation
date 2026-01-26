@@ -206,6 +206,7 @@
         application_bom:                "{{ application_bom_temp }}"
         bom_file:                       "{{ microsoft_supplied_application_bom.stat.path }}"
         aggregated_bom_directories:     "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'local'}] }}"
+        bom_dependencies:               "{{ application_bom.materials.dependencies | default([]) }}"
       vars:
         path:                           "{{ microsoft_supplied_application_bom.stat.path | dirname }}"
       when:                             microsoft_supplied_application_bom.stat.exists
