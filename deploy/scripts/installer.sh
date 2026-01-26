@@ -795,41 +795,37 @@ if [ 1 != $return_value ]; then
 				save_config_var "keyvault" "${system_config_information}"
 			fi
 		fi
-
-		if [ "${deployment_system}" == sap_landscape ]; then
-			state_path="LANDSCAPE"
-			if [ $landscape_tfstate_key_exists == false ]; then
-				save_config_vars "${system_environment_file_name}" \
-					landscape_tfstate_key
-			fi
+	elif [ "${deployment_system}" == sap_landscape ]; then
+		state_path="LANDSCAPE"
+		if [ $landscape_tfstate_key_exists == false ]; then
+			save_config_vars "${system_environment_file_name}" \
+				landscape_tfstate_key
 		fi
+	elif [ "${deployment_system}" == sap_library ]; then
+		if [ -z "${REMOTE_STATE_SA}" ]; then
+			print_banner "$banner_title" "The SAP Library storage account is not defined" "error"
+			echo "##vso[task.logissue type=error]The SAP Library storage account is not defined"
+			exit 1
+		fi
+		state_path="LIBRARY"
+		if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+			tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id | tr -d \")
+			STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
 
-		if [ "${deployment_system}" == sap_library ]; then
-			if [ -z "${REMOTE_STATE_SA}" ]; then
-				print_banner "$banner_title" "The SAP Library storage account is not defined" "error"
-				echo "##vso[task.logissue type=error]The SAP Library storage account is not defined"
-				exit 1
-			fi
-			state_path="LIBRARY"
-			if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-				tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id | tr -d \")
-				STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d/ -f3 | tr -d \" | xargs)
+			az account set --sub "${STATE_SUBSCRIPTION}"
 
-				az account set --sub "${STATE_SUBSCRIPTION}"
+			REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 
-				REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
+			getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
 
-				getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
-
-				if [ 1 == "$called_from_ado" ]; then
-					SAPBITS=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
-					if [ -n "${SAPBITS}" ]; then
-						az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "INSTALLATION_MEDIA_ACCOUNT.value")
-						if [ -z "${az_var}" ]; then
-							az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "$SAPBITS" --output none --only-show-errors
-						else
-							az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "$SAPBITS" --output none --only-show-errors
-						fi
+			if [ 1 == "$called_from_ado" ]; then
+				SAPBITS=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
+				if [ -n "${SAPBITS}" ]; then
+					az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "INSTALLATION_MEDIA_ACCOUNT.value")
+					if [ -z "${az_var}" ]; then
+						az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "$SAPBITS" --output none --only-show-errors
+					else
+						az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "$SAPBITS" --output none --only-show-errors
 					fi
 				fi
 			fi
