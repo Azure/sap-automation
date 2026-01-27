@@ -215,7 +215,7 @@
         - name:                        "5.8 HANA Pacemaker Scale-out - Ensure the order constraint for the SAP HANA Topology is configured"
           ansible.builtin.shell: >
                                        pcs constraint order SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone \
-                                       then SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone
+                                       then SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone --force
           when:                        "'SAPHanaTopology_' + (db_sid | upper) + '_HDB' + db_instance_number + '-clone then start resource SAPHana_' + (db_sid | upper) + '_HDB' + db_instance_number + '-clone' not in existing_constraints.stdout"
           register:                    order
           failed_when:                 order.rc > 0
@@ -223,7 +223,7 @@
         - name:                        "5.8 HANA Pacemaker Scale-out - Ensure the Virtual IP group colocation constraint is configured"
           ansible.builtin.shell: >
                                        pcs constraint colocation add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} \
-                                       with {{ pcs_sap_hana_role_prim }} SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone score=4000
+                                       with {{ pcs_sap_hana_role_prim }} SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone score=4000 --force
           when:                        "'g_ip_' + (db_sid | upper) + '_' + db_instance_number not in existing_constraints.stdout or 'SAPHana_' + (db_sid | upper) + '_HDB' + db_instance_number + '-clone' not in existing_constraints.stdout"
           register:                    colocation
           failed_when:                 colocation.rc > 0
@@ -232,7 +232,7 @@
         - name:                        "5.8 HANA Pacemaker Scale-out - Ensure that SAP HANA resources avoids running on the majority maker node"
           ansible.builtin.shell: >
                                        pcs constraint location SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone \
-                                       avoids {{ majority_maker }}
+                                       avoids {{ majority_maker }} --force
           when:
             - majority_maker | length > 0
             - "'SAPHana_' + (db_sid | upper) + '_HDB' + db_instance_number + '-clone' not in existing_constraints.stdout or 'avoids node ' + majority_maker not in existing_constraints.stdout"
@@ -242,7 +242,7 @@
         - name:                        "5.8 HANA Pacemaker Scale-out - Ensure that HANA Resource topology avoids running on the majority maker node"
           ansible.builtin.shell: >
                                        pcs constraint location SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone \
-                                       avoids {{ majority_maker }}
+                                       avoids {{ majority_maker }} --force
           when:
             - majority_maker | length > 0
             - "'SAPHanaTopology_' + (db_sid | upper) + '_HDB' + db_instance_number + '-clone' not in existing_constraints.stdout or 'avoids node ' + majority_maker not in existing_constraints.stdout"
@@ -252,7 +252,7 @@
         - name:                        "5.8 HANA Pacemaker Scale-out - Ensure that IP Resource avoids running on the majority maker node"
           ansible.builtin.shell: >
                                        pcs constraint location g_ip_{{ db_sid | upper }}_{{ db_instance_number }} \
-                                       avoids {{ majority_maker }}
+                                       avoids {{ majority_maker }} --force
           when:
             - majority_maker | length > 0
             - "'g_ip_' + (db_sid | upper) + '_' + db_instance_number not in existing_constraints.stdout or 'avoids node ' + majority_maker not in existing_constraints.stdout"
@@ -263,7 +263,7 @@
         - name:                        "5.8 HANA Pacemaker Scale-out - Ensure the HANA resources and NFS filesystem constraint is configured"
           ansible.builtin.shell: >
                                        pcs constraint location SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone \
-                                       rule resource-discovery=never score=-INFINITY hana_nfs_s1_active ne true and hana_nfs_s2_active ne true
+                                       rule resource-discovery=never score=-INFINITY hana_nfs_s1_active ne true and hana_nfs_s2_active ne true --force
           when:                        "'hana_nfs_s1_active ne true' not in existing_constraints.stdout and 'hana_nfs_s2_active ne true' not in existing_constraints.stdout"
           register:                    nfs_constraint
           failed_when:                 nfs_constraint.rc > 0
