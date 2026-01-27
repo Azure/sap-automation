@@ -244,6 +244,8 @@ sapbits_sas_token_secret:               "sapbits-sas-token"                     
 NFS_provider:                           "NONE"
 NFS_version:                            "NFSv4.1"
 use_simple_mount:                       false
+# Indicate if Encryption in Transit is to be used for AFS shares
+use_eit_for_afs:                        false
 
 # Cluster - Defaults
 # database_high_availability:            false
