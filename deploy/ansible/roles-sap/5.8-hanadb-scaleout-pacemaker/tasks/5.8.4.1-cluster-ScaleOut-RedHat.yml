@@ -40,7 +40,7 @@
         - ansible_distribution_major_version == "7"
       block:
         - name:                        "5.8 HANA Pacemaker Scale-out - Get existing cluster resources and constraints"
-          ansible.builtin.shell:       pcs resource show --full
+          ansible.builtin.shell:       pcs resource show
           register:                    existing_resources
           changed_when:                false
           failed_when:                 false
@@ -145,13 +145,13 @@
                                        - ansible_distribution_major_version in ["8", "9", "10"]
       block:
         - name:                        "5.8 HANA Pacemaker Scale-out - Get existing cluster resources and constraints"
-          ansible.builtin.shell:       pcs resource show --full
+          ansible.builtin.shell:       pcs resource config --output-format json
           register:                    existing_resources
           changed_when:                false
           failed_when:                 false
 
         - name:                        "5.8 HANA Pacemaker Scale-out - Get existing cluster constraints"
-          ansible.builtin.shell:       pcs constraint show --full
+          ansible.builtin.shell:       pcs constraint config --full
           register:                    existing_constraints
           changed_when:                false
           failed_when:                 false
