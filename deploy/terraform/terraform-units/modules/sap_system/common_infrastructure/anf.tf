@@ -41,7 +41,7 @@ resource "azurerm_netapp_volume" "sapmnt" {
   protocols                            = ["NFSv4.1"]
 
   export_policy_rule {
-                       allowed_clients     = ["0.0.0.0/0"]
+                       allowed_clients     = var.infrastructure.virtual_networks.sap.address_space
                        protocol            = ["NFSv4.1"]
                        rule_index          = 1
                        unix_read_only      = false
@@ -89,7 +89,7 @@ resource "azurerm_netapp_volume" "sapmnt_secondary" {
 
   tags                                 = var.tags
   export_policy_rule {
-                       allowed_clients     = ["0.0.0.0/0"]
+                       allowed_clients     = var.infrastructure.virtual_networks.sap.address_space
                        protocol            = ["NFSv4.1"]
                        rule_index          = 1
                        unix_read_only      = false
@@ -169,7 +169,7 @@ resource "azurerm_netapp_volume" "usrsap" {
   tags                                 = var.tags
 
   export_policy_rule {
-                       allowed_clients     = ["0.0.0.0/0"]
+                       allowed_clients     = var.infrastructure.virtual_networks.sap.address_space
                        protocol            = ["NFSv4.1"]
                        rule_index          = 1
                        unix_read_only      = false
