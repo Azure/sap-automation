@@ -33,7 +33,7 @@ locals {
 
   app_tier                             = (local.app_server_count + local.scs_server_count) > 0
 
-  single_server                          = length(var.webdispatcher_server_ips) + length(var.application_server_ips) + length(var.scs_server_ips) + length(var.database_server_ips) == 1 ? (
+  single_server                        = length(var.webdispatcher_server_ips) + length(var.application_server_ips) + length(var.scs_server_ips) + length(var.database_server_ips) == 1 ? (
                                                        true) : (
                                                        false
                                                      )
@@ -71,5 +71,6 @@ locals {
                                           [])
 
   use_local_credentials                = length(var.authentication) > 0
+  use_eit_for_afs                      = var.use_AFS_encryption_in_transit
 
 }
