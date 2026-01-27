@@ -216,7 +216,7 @@
           ansible.builtin.shell: >
                                        pcs constraint order SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone \
                                        then SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone
-          when:                        "'SAPHanaTopology_' + (db_sid | upper) + '_HDB' + db_instance_number + '-clone then SAPHana_' + (db_sid | upper) + '_HDB' + db_instance_number + '-clone' not in existing_constraints.stdout"
+          when:                        "'SAPHanaTopology_' + (db_sid | upper) + '_HDB' + db_instance_number + '-clone then start resource SAPHana_' + (db_sid | upper) + '_HDB' + db_instance_number + '-clone' not in existing_constraints.stdout"
           register:                    order
           failed_when:                 order.rc > 0
 
@@ -235,7 +235,7 @@
                                        avoids {{ majority_maker }}
           when:
             - majority_maker | length > 0
-            - "'SAPHana_' + (db_sid | upper) + '_HDB' + db_instance_number + '-clone' not in existing_constraints.stdout or 'avoids: ' + majority_maker not in existing_constraints.stdout"
+            - "'SAPHana_' + (db_sid | upper) + '_HDB' + db_instance_number + '-clone' not in existing_constraints.stdout or 'avoids node ' + majority_maker not in existing_constraints.stdout"
           register:                    msl_mm_location
           failed_when:                 msl_mm_location.rc > 0
 
@@ -245,7 +245,7 @@
                                        avoids {{ majority_maker }}
           when:
             - majority_maker | length > 0
-            - "'SAPHanaTopology_' + (db_sid | upper) + '_HDB' + db_instance_number + '-clone' not in existing_constraints.stdout or 'avoids: ' + majority_maker not in existing_constraints.stdout"
+            - "'SAPHanaTopology_' + (db_sid | upper) + '_HDB' + db_instance_number + '-clone' not in existing_constraints.stdout or 'avoids node ' + majority_maker not in existing_constraints.stdout"
           register:                    hana_mm_location
           failed_when:                 hana_mm_location.rc > 0
 
@@ -255,7 +255,7 @@
                                        avoids {{ majority_maker }}
           when:
             - majority_maker | length > 0
-            - "'g_ip_' + (db_sid | upper) + '_' + db_instance_number not in existing_constraints.stdout or 'avoids: ' + majority_maker not in existing_constraints.stdout"
+            - "'g_ip_' + (db_sid | upper) + '_' + db_instance_number not in existing_constraints.stdout or 'avoids node ' + majority_maker not in existing_constraints.stdout"
           register:                    vip_mm_location
           failed_when:                 vip_mm_location.rc > 0
 
@@ -264,7 +264,7 @@
           ansible.builtin.shell: >
                                        pcs constraint location SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}-clone \
                                        rule resource-discovery=never score=-INFINITY hana_nfs_s1_active ne true and hana_nfs_s2_active ne true
-          when:                        "'hana_nfs_s1_active ne true and hana_nfs_s2_active ne true' not in existing_constraints.stdout"
+          when:                        "'hana_nfs_s1_active ne true' not in existing_constraints.stdout and 'hana_nfs_s2_active ne true' not in existing_constraints.stdout"
           register:                    nfs_constraint
           failed_when:                 nfs_constraint.rc > 0
 
