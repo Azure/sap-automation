@@ -4,33 +4,33 @@
 ---
 
 cluster_totem:
-  token: 30000
-  retransmits: 10
-  join: 60
-  consensus: 36000
-  max_messages: 20
+  token:                               30000
+  retransmits:                         10
+  join:                                60
+  consensus:                           36000
+  max_messages:                        20
 
 cluster_quorum:
-  expected_votes: 2
-  two_node: 1
+  expected_votes:                      2
+  two_node:                            1
 
 # These are the default timeouts used for the SAP HANA OS clustering. Depending on the
 # SAP HANA System, these may need to be adjusted if the operation takes longer than expected.
 cluster_sap_hana_timeouts:
-  start: 3600
-  stop: 3600
-  monitor_master: 700
-  monitor_slave: 700
-  promote: 3600
-  demote: 3600
+  start:                               3600
+  stop:                                3600
+  monitor_master:                      700
+  monitor_slave:                       700
+  promote:                             3600
+  demote:                              3600
 
 cluster_status_cmd:
-  RedHat: "pcs status --full"
-  Suse: "crm status full"
+  RedHat:                              "pcs status --full"
+  Suse:                                "crm status full"
 
 cluster_cleanup_cmd:
-  RedHat: "pcs resource cleanup"
-  Suse: "crm resource cleanup"
+  RedHat:                              "pcs resource cleanup"
+  Suse:                                "crm resource cleanup"
 
 
 cluster_status_report_wait_in_s:       60
@@ -46,10 +46,32 @@ cluster_name:                          db{{ sid | lower }}
 
 # HANA utility commands
 sapcontrol_command:                    "/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe/sapcontrol -nr {{ db_instance_number }}"
-storage_object: sbd{{ cluster_name }}
-target: "{{ iscsi_object }}.{{ cluster_name }}.local:{{ cluster_name }}"
+storage_object:                        sbd{{ cluster_name }}
+target:                                "{{ iscsi_object }}.{{ cluster_name }}.local:{{ cluster_name }}"
 
 
 hana_stop_start_timeout_in_seconds:    600
 hana_stop_start_delay_in_seconds:      10
+
+# RHEL: Check maintenance mode command based on OS version
+pcs_check_maintenance_mode: >-
+                                       {% if ansible_distribution_major_version is version ('10','<') %}
+                                       pcs property show maintenance-mode
+                                       {% else %}
+                                       pcs property config maintenance-mode
+                                       {% endif %}
+
+pcs_sap_hana_role_prim: >-
+                                       {% if ansible_distribution_major_version is version ('10','<') %}
+                                       Master
+                                       {% else %}
+                                       Promoted
+                                       {% endif %}
+
+pcs_sap_hana_role_sec: >-
+                                       {% if ansible_distribution_major_version is version ('10','<') %}
+                                       Slave
+                                       {% else %}
+                                       Unpromoted
+                                       {% endif %}
 ...
