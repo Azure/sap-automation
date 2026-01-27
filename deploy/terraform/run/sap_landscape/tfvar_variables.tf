@@ -940,7 +940,14 @@ variable "ANF_install_volume_zone"                 {
 
 variable "use_AFS_for_shared_storage"              {
                                                      description = "If true, will use AFS for all shared storage."
-                                                     default = false
+                                                     type        = bool
+                                                     default     = false
+                                                   }
+
+variable AFS_enable_encryption_in_transit          {
+                                                     description = "Enable encryption in transit for Azure Files"
+                                                     type        = bool
+                                                     default     = false
                                                    }
 
 #########################################################################################

@@ -265,7 +265,14 @@ variable "public_network_access_enabled"                 { description = "Define
 
 variable "use_AFS_for_shared_storage"                    {
                                                            description = "If true, will use AFS for installation media."
-                                                           default = false
+                                                           type        = bool
+                                                           default     = false
+                                                         }
+
+variable "AFS_enable_encryption_in_transit"              {
+                                                           description = "Enable encryption in transit for Azure Files"
+                                                           type        = bool
+                                                           default     = false
                                                          }
 
 variable "tags"                                          { description = "List of tags to associate to all resources" }

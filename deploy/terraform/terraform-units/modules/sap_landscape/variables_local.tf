@@ -661,6 +661,7 @@ locals {
 
   use_AFS_for_shared                             = (var.NFS_provider == "ANF" && var.use_AFS_for_shared_storage) || var.NFS_provider == "AFS"
 
+  use_AFS_encryption_in_transit                  = var.NFS_provider == "AFS" && var.AFS_enable_encryption_in_transit
 
   deploy_monitoring_extension                    = var.infrastructure.deploy_monitoring_extension && length(try(var.infrastructure.user_assigned_identity_id,"")) > 0
 
