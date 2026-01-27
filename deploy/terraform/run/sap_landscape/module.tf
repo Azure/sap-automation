@@ -25,6 +25,8 @@ module "sap_landscape" {
   deployer_tfstate                             = try(data.terraform_remote_state.deployer[0].outputs, [])
   diagnostics_storage_account                  = local.diagnostics_storage_account
   enable_firewall_for_keyvaults_and_storage    = var.enable_firewall_for_keyvaults_and_storage
+  enable_purge_control_for_keyvaults           = var.enable_purge_control_for_keyvaults
+  enable_rbac_authorization_for_keyvault       = var.enable_rbac_authorization_for_keyvault
   infrastructure                               = local.infrastructure
   install_always_create_fileshares             = var.install_always_create_fileshares
   install_create_smb_shares                    = var.install_create_smb_shares
@@ -42,6 +44,7 @@ module "sap_landscape" {
   peer_with_control_plane_vnet                 = var.use_deployer ? var.peer_with_control_plane_vnet : false
   place_delete_lock_on_resources               = var.place_delete_lock_on_resources
   public_network_access_enabled                = var.public_network_access_enabled
+  soft_delete_retention_days                   = var.soft_delete_retention_days
   storage_account_replication_type             = var.storage_account_replication_type
   tags                                         = var.tags
   terraform_template_version                   = local.version_label
