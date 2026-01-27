@@ -1,40 +1,40 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-variable "application_tier"             {
-                                          description = "Details of the Application layer"
-                                                                                  default = {
-                                                          enable_deployment        = true
-                                                          use_DHCP                 = false
-                                                          application_server_count = 0
-                                                          dual_nics                = false
-                                                        }
+variable "application_tier"            {
+                                         description = "Details of the Application layer"
+                                         default = {
+                                                      enable_deployment        = true
+                                                      use_DHCP                 = false
+                                                      application_server_count = 0
+                                                      dual_nics                = false
+                                                   }
 
-                                        }
+                                       }
 
-variable "databases" {
-                                          description = "Details of the database node"
-                                          default = [
-                                            {
-                                              use_DHCP = false
+variable "databases"                   {
+                                         description = "Details of the database node"
+                                         default = [
+                                           {
+                                             use_DHCP = false
 
-                                            }
-                                          ]
-                                        }
+                                           }
+                                         ]
+                                       }
 
-variable "infrastructure"               {
-                                          description = "Details of the Azure infrastructure to deploy the SAP landscape into"
-                                          default = {}
-                                        }
+variable "infrastructure"              {
+                                         description = "Details of the Azure infrastructure to deploy the SAP landscape into"
+                                         default = {}
+                                       }
 
-variable "options"                      {
-                                          description = "Configuration options"
-                                          default     = {
-                                                          resource_offset   = 0
-                                                          nsg_asg_with_vnet = false
-                                                          legacy_nic_order  = false
-                                                        }
-}
+variable "options"                     {
+                                         description = "Configuration options"
+                                         default     = {
+                                                        resource_offset   = 0
+                                                        nsg_asg_with_vnet = false
+                                                        legacy_nic_order  = false
+                                                      }
+                                       }
 
 variable "ssh-timeout"                 {
                                           description = "Timeout for connection that is used by provisioner"
@@ -75,35 +75,36 @@ variable "tfstate_resource_id"         {
 
                                        }
 
-variable "deployer_tfstate_key"       {
-                                          description = "The key of deployer's remote tfstate file"
-                                          default      =  ""
-                                      }
+variable "deployer_tfstate_key"        {
+                                           description = "The key of deployer's remote tfstate file"
+                                           default      =  ""
+                                       }
 
-variable "landscape_tfstate_key"      {
+variable "landscape_tfstate_key"       {
                                           description = "The key of sap landscape's remote tfstate file"
                                           validation {
                                                        condition = (length(trimspace(try(var.landscape_tfstate_key, ""))) != 0)
                                                        error_message = "The Landscape state file name must be specified."
                                                      }
-                                      }
+                                       }
 
-variable "deployment" {
+variable "deployment"                  {
                                           description = "The type of deployment"
                                           default     = "update"
-                                      }
+                                       }
 
-variable "terraform_template_version" {
+variable "terraform_template_version"  {
                                           description = "The version of Terraform templates that were identified in the state file"
                                           default     = ""
-                                      }
+                                       }
 
-variable "license_type"               {
+variable "license_type"                {
                                           description = "Specifies the license type for the OS"
                                           default     = ""
-                                      }
+                                       }
 
-variable "use_zonal_markers"          {
-                                         type         = bool
-                                         default      = true
-                                      }
+variable "use_zonal_markers"           {
+                                          description = "If true, will use zonal markers for all resources that support them."
+                                          type         = bool
+                                          default      = true
+                                       }

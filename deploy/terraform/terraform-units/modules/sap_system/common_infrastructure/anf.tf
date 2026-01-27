@@ -9,7 +9,7 @@
 
 resource "azurerm_netapp_volume" "sapmnt" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "ANF" ? (
+  count                                = var.NFS_provider == "ANF" && !local.use_AFS_for_shared ? (
                                            var.hana_ANF_volumes.use_existing_sapmnt_volume ? (
                                              0
                                              ) : (
@@ -60,7 +60,7 @@ resource "azurerm_netapp_volume" "sapmnt" {
 
 resource "azurerm_netapp_volume" "sapmnt_secondary" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "ANF" ? (
+  count                                = var.NFS_provider == "ANF" && !local.use_AFS_for_shared ? (
                                            var.hana_ANF_volumes.sapmnt_use_clone_in_secondary_zone ? (
                                              1
                                              ) : (
@@ -112,7 +112,7 @@ resource "azurerm_netapp_volume" "sapmnt_secondary" {
 
 data "azurerm_netapp_volume" "sapmnt" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "ANF" ? (
+  count                                = var.NFS_provider == "ANF" && !local.use_AFS_for_shared ? (
                                            var.hana_ANF_volumes.use_existing_sapmnt_volume ? (
                                              1
                                              ) : (

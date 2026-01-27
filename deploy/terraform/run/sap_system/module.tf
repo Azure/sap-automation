@@ -95,6 +95,7 @@ module "common_infrastructure" {
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   dns_settings                                  = local.dns_settings
   enable_firewall_for_keyvaults_and_storage     = var.enable_firewall_for_keyvaults_and_storage
+  AFS_enable_encryption_in_transit              = var.AFS_enable_encryption_in_transit
 
 }
 
