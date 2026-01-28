@@ -49,6 +49,7 @@ parameters:
       - FRSO
       - GENO
       - GEWC
+      - IDCE
       - ISCE
       - ITNO
       - JAEA
