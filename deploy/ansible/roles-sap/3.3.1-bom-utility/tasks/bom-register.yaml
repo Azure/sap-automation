@@ -195,6 +195,27 @@
         file:                           "{{ microsoft_supplied_application_bom.stat.path }}"
         name:                           application_bom_temp
       when:                            microsoft_supplied_application_bom.stat.exists
+
+    - name:                             "3.3.1 BoM Processing - Create directory for new BoM {{ new_bom_name }}"
+      ansible.builtin.file:
+        path:                           "{{ BOM_directory }}/{{ new_bom_name }}"
+        state:                          directory
+        mode:                           0644
+      delegate_to:                    localhost
+      when:
+       - microsoft_supplied_application_bom.stat.exists
+       - new_bom_name != application_bom_name
+
+    - name:                             "3.3.1 BoM Processing - Copy new BoM {{ new_bom_name }} as placeholder"
+      ansible.builtin.copy:
+        src:                            "{{ BOM_directory }}/{{ application_bom_name }}/{{ application_bom_name }}.yaml"
+        dest:                           "{{ BOM_directory }}/{{ new_bom_name }}/{{ new_bom_name }}.yaml"
+        force:                          true
+      delegate_to:                    localhost
+      when:
+       - microsoft_supplied_application_bom.stat.exists
+       - new_bom_name != application_bom_name
+
     # Step: 05-03-01 - END
     # ---------------------------------+-------------------------------------------8
 
