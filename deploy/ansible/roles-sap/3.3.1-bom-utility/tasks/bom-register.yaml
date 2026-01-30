@@ -376,7 +376,7 @@
 #
 - name:                                 "3.3.1 BoM Processing - Check for Microsoft Supplied dependent BOM ({{ new_bom_name }})"
   when:
-    - not first_pass
+    - application_bom is defined
   block:
       # ---------------------------------+-------------------------------------------8
       # Step: 05-04-01
@@ -424,7 +424,9 @@
     - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied dependent BOM ({{ new_bom_name }}) facts"
       ansible.builtin.set_fact:
         root_media_list:                "{{ root_media_list + dependent_bom_temp.materials.media | flatten(levels=1) }}"
-      when:                             microsoft_supplied_dependent_bom.stat.exists
+      when:
+        - microsoft_supplied_dependent_bom.stat.exists
+        - root_media_list is defined
 
     # Step: 05-03-03 - END
     # ---------------------------------+-------------------------------------------8
