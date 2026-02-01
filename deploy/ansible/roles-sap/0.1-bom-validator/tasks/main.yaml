@@ -256,17 +256,18 @@
   loop_control:
     loop_var:                          bom_dir
 
-# - name:                                "0.1 BOM Validator: - remove BoM"
-#   # become:                              true
-#   # become_user:                         root
-#   delegate_to:                         localhost
-#   ansible.builtin.file:
-#     path:                              "{{ download_directory }}/bom/{{ new_bom_name }}/{{ new_bom_name }}{{ bom_suffix }}.yaml"
-#     state:                             absent
+- name:                                "0.1 BOM Validator: - Create BoM Directory"
+  become:                              true
+  become_user:                         "{{ orchestration_ansible_user }}"
+  delegate_to:                         localhost
+  ansible.builtin.file:
+    path:                              "{{ download_directory }}/bom/{{ new_bom_name }}"
+    state:                             directory
+    mode:                              0755
 
 - name:                                "0.1 BOM Validator: - write combined BoM"
-  # become:                              true
-  # become_user:                         root
+  become:                              true
+  become_user:                         "{{ orchestration_ansible_user }}"
   delegate_to:                         localhost
   ansible.builtin.copy:
     content:                           "{{ new_bom }}"
