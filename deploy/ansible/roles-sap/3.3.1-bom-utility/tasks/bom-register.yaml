@@ -119,6 +119,7 @@
   when:
     - result is succeeded or result is skipped
     - sa_enabled | default(false)
+    - check_storage_account | default(false)
   block:
 
     # ---------------------------------+-------------------------------------------8
@@ -362,7 +363,6 @@
       ansible.builtin.set_fact:
         kernel_bom:                     "{{ kernel_bom_temp }}"
         kernel_bom_file:                "{{ microsoft_supplied_kernel_bom.stat.path }}"
-        aggregated_bom_directories:     "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'local'}] }}"
       vars:
         path:                           "{{ microsoft_supplied_kernel_bom.stat.path | dirname }}"
       when:                             microsoft_supplied_kernel_bom.stat.exists
@@ -423,7 +423,7 @@
     #
     - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied dependent BOM ({{ new_bom_name }}) facts"
       ansible.builtin.set_fact:
-        root_media_list:                "{{ root_media_list + dependent_bom_temp.materials.media | flatten(levels=1) }}"
+        root_media_list:               "{% if root_media_list is defined %}{{ root_media_list + dependent_bom_temp.materials.media | flatten(levels=1) }}{% else %}{{ root_media_list }}{% endif %}"
       when:
         - microsoft_supplied_dependent_bom.stat.exists
         - root_media_list is defined
@@ -436,7 +436,7 @@
 # Step: 05-05
 # Description:
 #
-- name:                             "3.3.1 BoM Processing - Check for Microsoft Supplied BOM ({{ bom_name }}) in archives"
+- name:                             "3.3.1 BoM Processing - Check for Microsoft Supplied BOM ({{ new_bom_name }}) in archives"
   when:                             not microsoft_supplied_dependent_bom.stat.exists
   block:
 
@@ -444,9 +444,9 @@
     # Step: 05-05-01
     # Description:
     #
-    - name:                         "3.3.1 BoM Processing - Check for Microsoft Supplied BOM ({{ bom_name }}) in archives"
+    - name:                         "3.3.1 BoM Processing - Check for Microsoft Supplied BOM ({{ new_bom_name }}) in archives"
       ansible.builtin.stat:
-        path:                       "{{ BOM_directory }}/archives/{{ bom_name }}/{{ bom_name }}.yaml"
+        path:                       "{{ BOM_directory }}/archives/{{ new_bom_name }}/{{ new_bom_name }}.yaml"
       register:                     microsoft_supplied_bom_archive
       delegate_to:                  localhost
       become:                       "{{ bom_processing_become }}"
@@ -457,10 +457,10 @@
     # Step: 05-05-02
     # Description:
     #
-    - name:                         "3.3.1 BoM Processing - Register Microsoft Supplied BOM {{ bom_name }} from archives"
+    - name:                         "3.3.1 BoM Processing - Register Microsoft Supplied BOM {{ new_bom_name }} from archives"
       ansible.builtin.include_vars:
         file:                       "{{ microsoft_supplied_bom_archive.stat.path }}"
-        name:                       bom_temp
+        name:                       bom_supplied_temp
       when:                         microsoft_supplied_bom_archive.stat.exists
     # Step: 05-05-02 - END
 # -------------------------------------+---------------------------------------8
@@ -471,7 +471,7 @@
 #
     - name:                         "3.3.1 BoM Processing - Register Microsoft Supplied BOM ({{ bom_name }}) facts"
       ansible.builtin.set_fact:
-        bom:                        "{{ bom_temp }}"
+        supplied_bom:               "{{ bom_supplied_temp }}"
         bom_file:                   "{{ microsoft_supplied_bom_archive.stat.path }}"
         aggregated_bom_directories: "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'local'}] }}"
       vars:

@@ -254,6 +254,8 @@
   # Description:  Checksum block
   #
     - name:                            "BOM: Create checksums"
+      when:
+        - bom_media_entry.checksum is not defined
       block:
       # -------------------------------+---------------------------------------------8
       # Step: 05-03-01
@@ -307,7 +309,7 @@
             #     - create_checksums is defined
             #     - bom_file is defined
 
-            - name:                        "BOM: Add checksum lengthine"
+            - name:                        "BOM: Add checksum length"
               when:
                 - fs_check is defined
                 - create_checksums is defined
@@ -376,8 +378,6 @@
       # Step: 05-03-03 - END
       # -------------------------------+---------------------------------------------8
 
-      when:
-        - bom_media_entry.checksum is not defined
   # Step: 05-03 - END
   # -----------------------------------+-----------------------------------------8
 
