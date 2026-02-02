@@ -231,8 +231,6 @@
         - "{{ download_directory }}/tmp"
         - "{{ download_directory }}/files"
         - "{{ download_directory }}/bom"
-        - "{{ download_directory }}/bom/{{ new_bom_name | default('')}}"
-
 
 # Step: 07-01 - END
 # -------------------------------------+---------------------------------------8
