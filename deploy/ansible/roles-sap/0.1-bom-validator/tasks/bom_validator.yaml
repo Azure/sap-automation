@@ -43,7 +43,7 @@
 #
 - name:                             "Informational"
   ansible.builtin.debug:
-    var:                            bom_name
+    msg:                            "Processing BoM: {{ current_bom_name }}"
     verbosity:                      1
 # Step: 01 - END
 # -------------------------------------+---------------------------------------8
