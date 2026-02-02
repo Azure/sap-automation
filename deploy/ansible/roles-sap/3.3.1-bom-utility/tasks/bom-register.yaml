@@ -196,6 +196,7 @@
       ansible.builtin.set_fact:
         bom:                            "{{ bom_temp }}"
         bom_file:                       "{{ microsoft_supplied_bom.stat.path }}"
+        root_media_list:                "{{ root_media_list + bom_temp.materials.media | flatten(levels=1) }}"
         aggregated_bom_directories:     "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'local'}] }}"
       vars:
         path:                           "{{ microsoft_supplied_bom.stat.path | dirname }}"
@@ -242,6 +243,7 @@
         - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM ({{  current_bom_name }}) facts"
           ansible.builtin.set_fact:
             bom:                        "{{ bom_temp }}"
+            root_media_list:            "{{ root_media_list + bom_temp.materials.media | flatten(levels=1) }}"
             bom_file:                   "{{ microsoft_supplied_bom_archive.stat.path }}"
             aggregated_bom_directories: "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'local'}] }}"
           vars:
