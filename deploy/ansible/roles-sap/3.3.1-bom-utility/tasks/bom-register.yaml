@@ -57,7 +57,7 @@
 
 - name:                                "3.3.1 BoM Processing - Initialize names - second run"
   when:
-    - application_bom_name is defined
+    - bom is defined
   ansible.builtin.set_fact:
     first_pass:                        false
 
@@ -488,7 +488,7 @@
 # -------------------------------------+---------------------------------------8
 - name:                                "3.3.1 BoM Processing - Main BoM processing block"
   when:
-    - bom is not defined
+    - bom is not defined or first_pass
   block:
 
     - name:                            "3.3.1 BoM Processing - Show Application, Database, and Kernel BOMs"
