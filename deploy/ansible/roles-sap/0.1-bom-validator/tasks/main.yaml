@@ -160,7 +160,7 @@
 
 - name:                                 "0.1 BoM Validator - Initialize names with kernel and database"
   ansible.builtin.set_fact:
-    bom_dependencies:                   "{{ bom.materials.dependencies | + [{{ database_bom_name }},{{ kernel_bom_name }}] }}"
+    bom_dependencies:                   "{{ bom.materials.dependencies + [{{ database_bom_name }},{{ kernel_bom_name }}] }}"
 
 - name:                                "0.1 BoM Validator - Informational"
   ansible.builtin.debug:
@@ -170,6 +170,7 @@
       - "Database BOM Name:      {{ database_bom_name }}"
       - "Kernel BOM Name:        {{ kernel_bom_name }}"
       - "New BOM Name:           {{ new_bom_name }}"
+      - "BOM Dependencies:       {{ bom_dependencies }}"
 
 - name:                                "0.1 BoM Validator - Process main BOM"
   ansible.builtin.include_tasks:       bom_validator.yaml
