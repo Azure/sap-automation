@@ -150,17 +150,17 @@
 #               account and container vars are never used if sa_enabled is False
 #
 
-- name:                                 "0.1 BoM Validator - Initialize names"
+- name:                                "0.1 BoM Validator - Initialize names"
   ansible.builtin.set_fact:
-    root_bom_name:                      "{{ bom_base_name.split('-')[0] }}"
-    database_bom_name:                  "{{ bom_base_name.split('-')[1] | default('')}}"
-    kernel_bom_name:                    "{{ bom_base_name.split('-')[2] | default('')}}"
-    new_bom_name:                       "{{ bom_base_name.split('-')[3] | default(bom_base_name.split('-')[0]) }}{{ bom_suffix }}"
-    bom_dependencies:                   "{{ bom.materials.dependencies | default([]) }}"
+    root_bom_name:                     "{{ bom_base_name.split('-')[0] }}"
+    database_bom_name:                 "{{ bom_base_name.split('-')[1] | default('')}}"
+    kernel_bom_name:                   "{{ bom_base_name.split('-')[2] | default('')}}"
+    new_bom_name:                      "{{ bom_base_name.split('-')[3] | default(bom_base_name.split('-')[0]) }}{{ bom_suffix }}"
+    bom_dependencies:                  "{{ bom.materials.dependencies | default([]) }}"
 
-- name:                                 "0.1 BoM Validator - Initialize names with kernel and database"
+- name:                                "0.1 BoM Validator - Initialize names with kernel and database"
   ansible.builtin.set_fact:
-    bom_dependencies:                   "{{ bom.materials.dependencies + [{{ database_bom_name }},{{ kernel_bom_name }}] }}"
+    bom_dependencies:                  "{{ bom.materials.dependencies + [database_bom_name,kernel_bom_name] }}"
 
 - name:                                "0.1 BoM Validator - Informational"
   ansible.builtin.debug:
