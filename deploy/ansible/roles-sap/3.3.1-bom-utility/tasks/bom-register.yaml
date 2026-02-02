@@ -485,12 +485,12 @@
 
 # Step: 05 - END
 # -------------------------------------+---------------------------------------8
-- name:                                 "3.3.1 BoM Processing - Main BoM processing block"
+- name:                                "3.3.1 BoM Processing - Main BoM processing block"
   when:
     - bom is not defined
   block:
 
-    - name:                                 "3.3.1 BoM Processing - Show Application, Database, and Kernel BOMs"
+    - name:                            "3.3.1 BoM Processing - Show Application, Database, and Kernel BOMs"
       ansible.builtin.debug:
         msg:
           - "Application Platform                {{ application_bom.platform | default('Not defined') }}"
@@ -500,7 +500,7 @@
           - "Database Version:                   {{ database_bom.version | default('Not defined') }}"
           - "Kernel Version:                     {{ kernel_bom.kernel | default('Not defined') }}"
 
-    - name:                                 "3.3.1 BoM Processing - Incompatible Application and Database BOM"
+    - name:                            "3.3.1 BoM Processing - Incompatible Application and Database BOM"
       ansible.builtin.fail:
         msg:
           - "Incompatible combination of Application BOM (platform: {{ application_bom.platform }}) and Database BOM (platform: {{ database_bom.platform }}, version: {{ database_bom.version }})."
@@ -508,7 +508,7 @@
         - database_bom is defined
         - application_bom.platform != database_bom.platform or database_bom.version is not in application_bom.supportedSPSVersions
 
-    - name:                                 "3.3.1 BoM Processing - Incompatible Application and Kernel BOM"
+    - name:                            "3.3.1 BoM Processing - Incompatible Application and Kernel BOM"
       ansible.builtin.fail:
         msg:
           - "Incompatible combination of Application BOM (Supported Kernels: {{ application_bom.supportedKernels }}) and Kernel BOM (kernel: {{ kernel_bom.kernel }})."
@@ -516,51 +516,37 @@
         - kernel_bom is defined
         - kernel_bom.kernel is not in application_bom.supportedKernels
 
-    - name:                                 "3.3.1 BoM Processing - Add installation media listings from main BOM"
+    - name:                            "3.3.1 BoM Processing - Add installation media listings from main BOM"
       when:
         - application_bom is defined
-        - root_media_list is not defined
       ansible.builtin.set_fact:
-        bom:                                "{{ application_bom }}"
-        bom_dependencies:                    "{% if application_bom.materials.dependencies is defined %}{{ application_bom.materials.dependencies }}{% endif %}"
-        root_media_list:                    "{{ application_bom.materials.media | flatten(levels=1) }}"
+        bom:                           "{{ application_bom }}"
+        bom_dependencies:              "{% if application_bom.materials.dependencies is defined %}{{ application_bom.materials.dependencies }}{% endif %}"
+        root_media_list:               "{% if root_media_list is defined %}{{ root_media_list + application_bom.materials.media | flatten(levels=1) }}{% else %}{{ root_media_list }}{% endif %}"
 
-    - name:                                 "3.3.1 BoM Processing - Append installation media listings from main BOM"
-      when:
-        - application_bom is defined
-        - root_media_list is defined
-      ansible.builtin.set_fact:
-        bom:                                "{{ application_bom }}"
-        root_media_list:                    "{{ root_media_list + application_bom.materials.media | flatten(levels=1) }}"
-
-    - name:                                 "3.3.1 BoM Processing - Merge installation media listings into main BOM"
-      ansible.builtin.set_fact:
-        bom:                                "{{ application_bom }}"
-        root_media_list:                    "{{ root_media_list + application_bom.materials.media | flatten(levels=1) }}"
-
-    - name:                                 "3.3.1 BoM Processing - Append database media to merged media listings"
+    - name:                            "3.3.1 BoM Processing - Append database media to merged media listings"
       when:
         - database_bom is defined
       ansible.builtin.set_fact:
-        bom_dependencies:                    "{% if database_bom.materials.dependencies is defined %}{{ bom_dependencies + database_bom.materials.dependencies }}{% else %}{{ bom_dependencies }}{% endif %}"
-        root_media_list:                    "{{ root_media_list + database_bom.materials.media | flatten(levels=1) }}"
+        bom_dependencies:              "{% if database_bom.materials.dependencies is defined %}{{ bom_dependencies + database_bom.materials.dependencies }}{% else %}{{ bom_dependencies }}{% endif %}"
+        root_media_list:               "{% if root_media_list is defined %}{{ root_media_list + database_bom.materials.media | flatten(levels=1) }}{% else %}{{ root_media_list }}{% endif %}"
 
-    - name:                                 "3.3.1 BoM Processing - Append Kernel media to merged media listings"
+    - name:                            "3.3.1 BoM Processing - Append Kernel media to merged media listings"
       when:
         - kernel_bom is defined
       ansible.builtin.set_fact:
-        bom_dependencies:                    "{% if kernel_bom.materials.dependencies is defined %}{{ bom_dependencies + kernel_bom.materials.dependencies }}{% else %}{{ bom_dependencies }}{% endif %}"
-        root_media_list:                    "{{ root_media_list + kernel_bom.materials.media | flatten(levels=1) }}"
+        bom_dependencies:              "{% if kernel_bom.materials.dependencies is defined %}{{ bom_dependencies + kernel_bom.materials.dependencies }}{% else %}{{ bom_dependencies }}{% endif %}"
+        root_media_list:               "{% if root_media_list is defined %}{{ root_media_list + kernel_bom.materials.media | flatten(levels=1) }}{% else %}{{ root_media_list }}{% endif %}"
 
-    - name:                                 "3.3.1 BoM Processing - Filter duplicated media entries from merged media listings"
+    - name:                            "3.3.1 BoM Processing - Filter duplicated media entries from merged media listings"
       ansible.builtin.set_fact:
-        root_media_list:                    "{{ root_media_list | unique(attribute='archive') }}"
+        root_media_list:               "{{ root_media_list | unique(attribute='archive') }}"
 
-    - name:                                 "3.3.1 BoM Processing - Show medial listings merged from Application, Database, and Kernel BOMs"
+    - name:                            "3.3.1 BoM Processing - Show medial listings merged from Application, Database, and Kernel BOMs"
       ansible.builtin.debug:
         msg:
           - "Files to download: {{ root_media_list }}"
-        verbosity:                          2
+        verbosity:                     2
 
 # -------------------------------------+---------------------------------------8
 # Step: 06
