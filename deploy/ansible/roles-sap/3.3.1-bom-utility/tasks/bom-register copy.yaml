@@ -1,0 +1,618 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# Inputs:
+#   bom_name              - Name of BOM (ex: S41909SPS03_v0001ms)
+#
+#
+# Outputs:
+#   bom                   - object
+#
+
+---
+# -------------------------------------+---------------------------------------8
+#
+# Description:  Check if BOM is Microsoft supplied and register BOM as an object.
+#               If not, download from storage account location.
+#
+
+# -------------------------------------+---------------------------------------8
+# Step: 01
+# Description:  Create download directory structure
+#
+- name:                                 "3.3.1 BoM Processing - Create BOM download directories"
+  ansible.builtin.file:
+    path:                               "{{ item }}"
+    state:                              directory
+    mode:                               0755
+    owner:                              "{{ orchestration_ansible_user if bom_processing_become else omit }}"
+  delegate_to:                          localhost
+  become:                               "{{ bom_processing_become }}"
+  become_user:                          root
+  loop:
+    - "{{ download_directory }}"
+    - "{{ download_directory }}/tmp"
+    - "{{ download_directory }}/bom"
+    - "{{ download_directory }}/files"
+# Step: 01 - END
+# -------------------------------------+---------------------------------------8
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 02
+# Description:  Set Python version
+#
+# Step: 02 - END
+# -------------------------------------+---------------------------------------8
+
+- name:                                "3.3.1 BoM Processing - Initialize names"
+  when:
+    - bom is not defined
+  ansible.builtin.set_fact:
+    application_bom_name:              "{{ bom_base_name.split('-')[0] }}"
+    database_bom_name:                 "{{ bom_base_name.split('-')[1] | default('')}}"
+    kernel_bom_name:                   "{{ bom_base_name.split('-')[2] | default('')}}"
+    new_bom_name:                      "{{ bom_base_name.split('-')[3] | default(bom_base_name.split('-')[0]) }}{{ bom_suffix }}"
+    first_pass:                        true
+
+- name:                                "3.3.1 BoM Processing - Initialize names - second run"
+  when:
+    - bom is defined
+  ansible.builtin.set_fact:
+    first_pass:                        false
+
+- name:                                "3.3.1 BoM Processing - Show new name"
+  ansible.builtin.debug:
+    msg:
+      - "BoM Name:   {{ new_bom_name }}"
+
+# -------------------------------------+---------------------------------------8
+# Step: 03
+# Description:  Check Storage Account for BOM when SA is enabled
+#
+- name:                                 "3.3.1 BoM Processing - Check Storage Account for BOM block"
+  when:
+    - sa_enabled | default(true)                                                 # when true; if not defined, then value is false
+    - check_storage_account
+  block:
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 03-01
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Download {{ new_bom_name }} from the storage account"
+      ansible.builtin.get_url:
+        url:                            "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}/{{ new_bom_name }}.yaml\
+                                        {% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
+        dest:                           "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
+        mode:                           0644
+        validate_certs:                 false
+      delegate_to:                      localhost
+      become:                           "{{ bom_processing_become }}"
+      ignore_errors:                    true
+      register:                         result
+    # Step: 03-01 - END
+    # ---------------------------------+-------------------------------------------8
+
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 03-03
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Show BoM download status"
+      ansible.builtin.debug:
+        msg:
+          - "URL:    {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}/{{ new_bom_name }}.yaml{% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
+          - "Result: {{ result }}"
+        verbosity:                      2
+    # Step: 03-03 - END
+    # ---------------------------------+-------------------------------------------8
+
+    # Step: 03 - END
+    # ---------------------------------+-------------------------------------------8
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 04
+# Description:  Register BOM if found in Storage Account
+#
+- name:                                 "3.3.1 BoM Processing - Retrieve BOM ({{ bom_name }}) from Storage Account"
+  when:
+    - result is succeeded or result is skipped
+    - sa_enabled | default(false)
+    - check_storage_account | default(false)
+  block:
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 04-01
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Register downloaded BOM ({{ bom_name }})"
+      ansible.builtin.include_vars:
+        file:                           "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
+        name:                           bom
+    # Step: 04-01 - END
+    # ---------------------------------+-------------------------------------------8
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 04-02
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Register downloaded BOM ({{ bom_name }}) file name"
+      ansible.builtin.set_fact:
+        bom_file:                       "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
+        aggregated_bom_directories:     "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'sa'}] }}"
+      vars:
+        path:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}"
+    # Step: 04-02 - END
+    # ---------------------------------+-------------------------------------------8
+
+    # Step: 04 - END
+    # ---------------------------------+-------------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 05-01
+# Description:  Check for Microsoft provided Application BOM from the samples repository
+#
+- name:                                 "3.3.1 BoM Processing - Check for Microsoft Supplied BOM ({{ application_bom_name }})"
+  when:
+    - application_bom_name != ''
+    - application_bom is not defined
+  block:
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 05-01-01
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Check for Microsoft Supplied Application BOM ({{ application_bom_name }})"
+      ansible.builtin.stat:
+        path:                           "{{ BOM_directory }}/{{ application_bom_name }}/{{ application_bom_name }}.yaml"
+      register:                         microsoft_supplied_application_bom
+      delegate_to:                      localhost
+      become:                          "{{ bom_processing_become }}"
+
+    # Step: 05-01-01 - END
+    # ---------------------------------+-------------------------------------------8
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 05-02-01
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Show Microsoft Supplied BOM Application BOM ({{ application_bom_name }}) result"
+      ansible.builtin.debug:
+        msg:
+          - "BoM Name:   {{ application_bom_name }}"
+          - "BoM Exists: {{ microsoft_supplied_application_bom.stat.exists }}"
+          - "BoM PATH:   {{ BOM_directory }}/{{ application_bom_name }}/{{ application_bom_name }}.yaml"
+        verbosity:                      0
+    # Step: 05-02-01 - END
+    # ---------------------------------+-------------------------------------------8
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 05-03-01
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied Application BOM {{ application_bom_name }}"
+      ansible.builtin.include_vars:
+        file:                           "{{ microsoft_supplied_application_bom.stat.path }}"
+        name:                           application_bom_temp
+      when:                            microsoft_supplied_application_bom.stat.exists
+
+    - name:                             "3.3.1 BoM Processing - Create directory for new BoM {{ new_bom_name }}"
+      ansible.builtin.file:
+        path:                           "{{ BOM_directory }}/{{ new_bom_name }}"
+        state:                          directory
+        mode:                           0744
+      delegate_to:                     localhost
+      become:                          "{{ bom_processing_become }}"
+      when:
+       - microsoft_supplied_application_bom.stat.exists
+       - new_bom_name != application_bom_name
+
+    - name:                             "3.3.1 BoM Processing - Copy new BoM {{ new_bom_name }} as placeholder"
+      ansible.builtin.copy:
+        src:                            "{{ BOM_directory }}/{{ application_bom_name }}/{{ application_bom_name }}.yaml"
+        dest:                           "{{ BOM_directory }}/{{ new_bom_name }}/{{ new_bom_name }}.yaml"
+        force:                          true
+        mode:                           0644
+      delegate_to:                     localhost
+      become:                          "{{ bom_processing_become }}"
+      when:
+       - microsoft_supplied_application_bom.stat.exists
+       - new_bom_name != application_bom_name
+
+    # Step: 05-03-01 - END
+    # ---------------------------------+-------------------------------------------8
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 05-04-01
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied Application BOM ({{ application_bom_name }}) facts"
+      ansible.builtin.set_fact:
+        application_bom:                "{{ application_bom_temp }}"
+        bom_file:                       "{{ microsoft_supplied_application_bom.stat.path }}"
+        aggregated_bom_directories:     "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'local'}] }}"
+        bom_dependencies:               "{{ application_bom.materials.dependencies | default([]) }}"
+      vars:
+        path:                           "{{ microsoft_supplied_application_bom.stat.path | dirname }}"
+      when:                             microsoft_supplied_application_bom.stat.exists
+    # Step: 05-04-01 - END
+    # ---------------------------------+-------------------------------------------8
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 05-02
+# Description:  Check for Microsoft provided database BOM from the samples repository
+#
+- name:                                 "3.3.1 BoM Processing - Check for Microsoft Supplied BOM ({{ database_bom_name }})"
+  when:
+    - database_bom_name != ''
+    - database_bom is not defined
+  block:
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 05-02-01
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Check for Microsoft Supplied Database BOM ({{ database_bom_name }})"
+      ansible.builtin.stat:
+        path:                           "{{ BOM_directory }}/{{ database_bom_name }}/{{ database_bom_name }}.yaml"
+      register:                         microsoft_supplied_database_bom
+      delegate_to:                      localhost
+      become:                          "{{ bom_processing_become }}"
+
+    # Step: 05-02-01 - END
+    # ---------------------------------+-------------------------------------------8
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 05-02-02
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Show Microsoft Supplied BOM Database BOM ({{ database_bom_name }}) result"
+      ansible.builtin.debug:
+        msg:
+          - "BoM Name:   {{ database_bom_name }}"
+          - "BoM Exists: {{ microsoft_supplied_database_bom.stat.exists }}"
+          - "BoM Exists: {{ microsoft_supplied_database_bom.stat.exists }}"
+        verbosity:                      0
+    # Step: 05-02-02 - END
+    # ---------------------------------+-------------------------------------------8
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 05-02-03
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied Database BOM {{ database_bom_name }}"
+      ansible.builtin.include_vars:
+        file:                           "{{ microsoft_supplied_database_bom.stat.path }}"
+        name:                           database_bom_temp
+      when:                             microsoft_supplied_database_bom.stat.exists
+    # Step: 05-02-03 - END
+    # ---------------------------------+-------------------------------------------8
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 05-02-04
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied Database BOM ({{ database_bom_name }}) facts"
+      ansible.builtin.set_fact:
+        database_bom:                   "{{ database_bom_temp }}"
+        bom_file:                       "{{ microsoft_supplied_database_bom.stat.path }}"
+        aggregated_bom_directories:     "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'local'}] }}"
+      vars:
+        path:                           "{{ microsoft_supplied_database_bom.stat.path | dirname }}"
+      when:                             microsoft_supplied_database_bom.stat.exists
+    # Step: 05-02-04 - END
+    # ---------------------------------+-------------------------------------------8
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 05-03
+# Description:  Check for Microsoft provided kernel BOM from the samples repository
+#
+- name:                                 "3.3.1 BoM Processing - Check for Microsoft Supplied Kernel BOM ({{ kernel_bom_name }})"
+  when:
+    - kernel_bom_name != ''
+    - kernel_bom is not defined
+  block:
+      # ---------------------------------+-------------------------------------------8
+      # Step: 05-03-01
+      # Description:
+      #
+    - name:                             "3.3.1 BoM Processing - Check for Microsoft Supplied kernel BOM ({{ kernel_bom_name }})"
+      ansible.builtin.stat:
+        path:                           "{{ BOM_directory }}/{{ kernel_bom_name }}/{{ kernel_bom_name }}.yaml"
+      register:                         microsoft_supplied_kernel_bom
+      delegate_to:                      localhost
+      become:                          "{{ bom_processing_become }}"
+
+    # Step: 05-03-01 - END
+    # ---------------------------------+-------------------------------------------8
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 05-03-02
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Show Microsoft Supplied BOM Kernel BOM ({{ kernel_bom_name }}) result"
+      ansible.builtin.debug:
+        msg:
+          - "BoM Name:   {{ kernel_bom_name }}"
+          - "BoM Path:   {{ BOM_directory }}/{{ kernel_bom_name }}/{{ kernel_bom_name }}.yaml"
+          - "BoM Exists: {{ microsoft_supplied_kernel_bom.stat.exists }}"
+        verbosity:                      0
+    # Step: 05-03-02 - END
+    # ---------------------------------+-------------------------------------------8
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 05-03-03
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied Kernel BOM {{ kernel_bom_name }}"
+      ansible.builtin.include_vars:
+        file:                           "{{ microsoft_supplied_kernel_bom.stat.path }}"
+        name:                           kernel_bom_temp
+      when:                             microsoft_supplied_kernel_bom.stat.exists
+    # Step: 05-03-03 - END
+    # ---------------------------------+-------------------------------------------8
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 05-04-03
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied Kernel BOM ({{ kernel_bom_name }}) facts"
+      ansible.builtin.set_fact:
+        kernel_bom:                     "{{ kernel_bom_temp }}"
+        kernel_bom_file:                "{{ microsoft_supplied_kernel_bom.stat.path }}"
+      vars:
+        path:                           "{{ microsoft_supplied_kernel_bom.stat.path | dirname }}"
+      when:                             microsoft_supplied_kernel_bom.stat.exists
+
+    # Step: 05-03-03 - END
+    # ---------------------------------+-------------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 05-04
+# Description:  Check for Microsoft provided dependent BOM from the samples repository
+#
+- name:                                 "3.3.1 BoM Processing - Check for Microsoft Supplied dependent BOM ({{ new_bom_name }})"
+  when:
+    - bom is defined
+    - not first_pass
+  block:
+      # ---------------------------------+-------------------------------------------8
+      # Step: 05-04-01
+      # Description:
+      #
+    - name:                             "3.3.1 BoM Processing - Check for Microsoft Supplied dependent BOM ({{ new_bom_name }})"
+      ansible.builtin.stat:
+        path:                           "{{ BOM_directory }}/{{ new_bom_name }}/{{ new_bom_name }}.yaml"
+      register:                         microsoft_supplied_dependent_bom
+      delegate_to:                      localhost
+      become:                          "{{ bom_processing_become }}"
+
+    # Step: 05-04-01 - END
+    # ---------------------------------+-------------------------------------------8
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 05-04-02
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Show Microsoft Supplied BOM dependent BOM ({{ new_bom_name }}) result"
+      ansible.builtin.debug:
+        msg: |-
+                                        BOM PATH:   {{ BOM_directory }}/{{ new_bom_name }}/{{ new_bom_name }}.yaml
+                                        BOM Exists: {{ microsoft_supplied_dependent_bom.stat.exists }}
+        verbosity:                      0
+    # Step: 05-04-02 - END
+    # ---------------------------------+-------------------------------------------8
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 05-04-03
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied dependent BOM {{ new_bom_name }}"
+      ansible.builtin.include_vars:
+        file:                           "{{ microsoft_supplied_dependent_bom.stat.path }}"
+        name:                           dependent_bom_temp
+      when:                             microsoft_supplied_dependent_bom.stat.exists
+    # Step: 05-04-03 - END
+    # ---------------------------------+-------------------------------------------8
+
+    # ---------------------------------+-------------------------------------------8
+    # Step: 05-04-03
+    # Description:
+    #
+    - name:                             "3.3.1 BoM Processing - Register Microsoft Supplied dependent BOM ({{ new_bom_name }}) facts"
+      ansible.builtin.set_fact:
+        root_media_list:               "{% if root_media_list is defined %}{{ root_media_list + dependent_bom_temp.materials.media | flatten(levels=1) }}{% else %}{{ root_media_list }}{% endif %}"
+      when:
+        - microsoft_supplied_dependent_bom.stat.exists
+        - root_media_list is defined
+
+    # Step: 05-03-03 - END
+    # ---------------------------------+-------------------------------------------8
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 05-05
+# Description:
+#
+- name:                             "3.3.1 BoM Processing - Check for Microsoft Supplied BOM ({{ new_bom_name }}) in archives"
+  when:
+    - microsoft_supplied_dependent_bom.stat is defined
+    - not microsoft_supplied_dependent_bom.stat.exists
+  block:
+
+    # -------------------------------------+---------------------------------------8
+    # Step: 05-05-01
+    # Description:
+    #
+    - name:                         "3.3.1 BoM Processing - Check for Microsoft Supplied BOM ({{ new_bom_name }}) in archives"
+      ansible.builtin.stat:
+        path:                       "{{ BOM_directory }}/archives/{{ new_bom_name }}/{{ new_bom_name }}.yaml"
+      register:                     microsoft_supplied_bom_archive
+      delegate_to:                  localhost
+      become:                       "{{ bom_processing_become }}"
+    # Step: 05-05-01 - END
+    # -------------------------------------+---------------------------------------8
+
+    # -------------------------------------+---------------------------------------8
+    # Step: 05-05-02
+    # Description:
+    #
+    - name:                         "3.3.1 BoM Processing - Register Microsoft Supplied BOM {{ new_bom_name }} from archives"
+      ansible.builtin.include_vars:
+        file:                       "{{ microsoft_supplied_bom_archive.stat.path }}"
+        name:                       bom_supplied_temp
+      when:                         microsoft_supplied_bom_archive.stat.exists
+    # Step: 05-05-02 - END
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------+---------------------------------------8
+# Step: 05-05-03
+# Description:
+#
+    - name:                         "3.3.1 BoM Processing - Register Microsoft Supplied BOM ({{ bom_name }}) facts"
+      ansible.builtin.set_fact:
+        supplied_bom:               "{{ bom_supplied_temp }}"
+        bom_file:                   "{{ microsoft_supplied_bom_archive.stat.path }}"
+        aggregated_bom_directories: "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'local'}] }}"
+      vars:
+        path:                       "{{ microsoft_supplied_bom_archive.stat.path | dirname }}"
+      when:                         microsoft_supplied_bom_archive.stat.exists
+# Step: 05-05-03 - END
+# -------------------------------------+---------------------------------------8
+
+# Step: 05-05 - END
+# -------------------------------------+---------------------------------------8
+
+# Step: 05 - END
+# -------------------------------------+---------------------------------------8
+- name:                                "3.3.1 BoM Processing - Main BoM processing block"
+  when:
+    - bom is not defined or first_pass
+  block:
+
+    - name:                            "3.3.1 BoM Processing - Show Application, Database, and Kernel BOMs"
+      ansible.builtin.debug:
+        msg:
+          - "Application Platform                {{ application_bom.platform | default('Not defined') }}"
+          - "Application supported SPS Versions: {{ application_bom.supportedSPSVersions | default('Not defined') }}"
+          - "Application supported Kernels:      {{ application_bom.supportedKernels | default('Not defined') }}"
+          - "Database Platform:                  {{ database_bom.platform | default('Not defined') }}"
+          - "Database Version:                   {{ database_bom.version | default('Not defined') }}"
+          - "Kernel Version:                     {{ kernel_bom.kernel | default('Not defined') }}"
+
+    - name:                            "3.3.1 BoM Processing - Incompatible Application and Database BOM"
+      ansible.builtin.fail:
+        msg:
+          - "Incompatible combination of Application BOM (platform: {{ application_bom.platform }}) and Database BOM (platform: {{ database_bom.platform }}, version: {{ database_bom.version }})."
+      when:
+        - database_bom is defined
+        - application_bom.platform != database_bom.platform or database_bom.version is not in application_bom.supportedSPSVersions
+
+    - name:                            "3.3.1 BoM Processing - Incompatible Application and Kernel BOM"
+      ansible.builtin.fail:
+        msg:
+          - "Incompatible combination of Application BOM (Supported Kernels: {{ application_bom.supportedKernels }}) and Kernel BOM (kernel: {{ kernel_bom.kernel }})."
+      when:
+        - kernel_bom is defined
+        - kernel_bom.kernel is not in application_bom.supportedKernels
+
+    - name:                            "3.3.1 BoM Processing - Add installation media listings from main BOM"
+      when:
+        - application_bom is defined
+      ansible.builtin.set_fact:
+        bom:                           "{{ application_bom }}"
+        root_bom:                      "{{ application_bom }}"
+        bom_dependencies:              "{% if application_bom.materials.dependencies is defined %}{{ application_bom.materials.dependencies }}{% endif %}"
+        root_media_list:               "{% if root_media_list is defined %}{{ root_media_list + application_bom.materials.media | flatten(levels=1) }}{% else %}{{ application_bom.materials.media | flatten(levels=1) }}{% endif %}"
+
+    - name:                            "3.3.1 BoM Processing - Append database media to merged media listings"
+      when:
+        - database_bom is defined
+      ansible.builtin.set_fact:
+        bom_dependencies:              "{% if database_bom.materials.dependencies is defined %}{{ bom_dependencies + database_bom.materials.dependencies }}{% else %}{{ bom_dependencies }}{% endif %}"
+        root_media_list:               "{% if root_media_list is defined %}{{ root_media_list + database_bom.materials.media | flatten(levels=1) }}{% else %}{{ database_bom.materials.media | flatten(levels=1) }}{% endif %}"
+
+    - name:                            "3.3.1 BoM Processing - Append Kernel media to merged media listings"
+      when:
+        - kernel_bom is defined
+      ansible.builtin.set_fact:
+        bom_dependencies:              "{% if kernel_bom.materials.dependencies is defined %}{{ bom_dependencies + kernel_bom.materials.dependencies }}{% else %}{{ bom_dependencies }}{% endif %}"
+        root_media_list:               "{% if root_media_list is defined %}{{ root_media_list + kernel_bom.materials.media | flatten(levels=1) }}{% else %}{{ kernel_bom.materials.media | flatten(levels=1) }}{% endif %}"
+
+    - name:                            "3.3.1 BoM Processing - Filter duplicated media entries from merged media listings"
+      ansible.builtin.set_fact:
+        root_media_list:               "{{ root_media_list | unique(attribute='archive') }}"
+
+    - name:                            "3.3.1 BoM Processing - Assemble combined BoM"
+      ansible.builtin.set_fact:
+        bom:                           "{{ lookup('template', 'bom.j2') }}"
+
+    - name:                            "3.3.1 BoM Processing - Show medial listings merged from Application, Database, and Kernel BOMs"
+      ansible.builtin.debug:
+        msg:
+          - "Nr of files to download: {{ bom.media.list | length }}"
+          - "Files to download:       {{ bom.media.list }}"
+        verbosity:                     2
+
+# -------------------------------------+---------------------------------------8
+# Step: 06
+# Description:  Validate that BoM was found
+#
+
+- name:                                 "3.3.1 BoM Processing - Show BOM object"
+  ansible.builtin.debug:
+    var:                                bom
+    verbosity:                          2
+
+- name:                                 "3.3.1 BoM Processing - Validate that a BOM object is created"
+  ansible.builtin.fail:
+    msg:                                "Unable to find the Bill of materials file for {{ bom_name }}."
+  when:                                 bom is not defined
+# Step: 06 - END
+# -------------------------------------+---------------------------------------8
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 07
+# Description:  Show BOM detail
+#
+- name:                                 "3.3.1 BoM Processing - Show BOM details"
+  ansible.builtin.debug:
+    msg:
+      - "BoM name:        {{ bom.name }}"
+      - "BoM target:      {{ bom.target }}"
+      - "BoM version:     {{ bom.version }}"
+      - "BoM DB platform: {% if bom.platform is defined %}{{ bom.platform }}{% else %}Not defined{% endif %}"
+      - "Instance type:   {% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}Not defined{% endif %}"
+  when:
+    - bom.name is not search('SWPM')
+    - bom.name is not search('SUM')
+# Step: 07 - END
+# -------------------------------------+---------------------------------------8
+
+
+# -------------------------------------+---------------------------------------8
+# Step: 08
+# Description:  Validate that BoM was found
+#
+# ToDo Add this back later, Kimmo Jan 25
+# - name:                                 "3.3.1 BoM Processing - Ensure that a BoM platform is defined"
+#   ansible.builtin.assert:
+#     that:
+#       - bom.platform is defined                                                 # Has the variable been defined
+#       - bom.platform | upper == platform | upper
+#     fail_msg:                           "The BoM {{ bom_name }} is not for platform {{ platform }}"
+#   when:
+#     - platform is defined
+#     - platform | length > 2
+# Step: 08 - END
+# -------------------------------------+---------------------------------------8
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/

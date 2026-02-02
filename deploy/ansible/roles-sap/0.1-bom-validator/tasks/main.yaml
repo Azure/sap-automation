@@ -152,17 +152,21 @@
 
 - name:                                 "0.1 BoM Validator - Initialize names"
   ansible.builtin.set_fact:
-    application_bom_name:               "{{ bom_base_name.split('-')[0] }}"
+    root_bom_name:                      "{{ bom_base_name.split('-')[0] }}"
     database_bom_name:                  "{{ bom_base_name.split('-')[1] | default('')}}"
     kernel_bom_name:                    "{{ bom_base_name.split('-')[2] | default('')}}"
     new_bom_name:                       "{{ bom_base_name.split('-')[3] | default(bom_base_name.split('-')[0]) }}{{ bom_suffix }}"
     bom_dependencies:                   "{{ bom.materials.dependencies | default([]) }}"
 
+- name:                                 "0.1 BoM Validator - Initialize names with kernel and database"
+  ansible.builtin.set_fact:
+    bom_dependencies:                   "{{ bom.materials.dependencies | + [{{ database_bom_name }},{{ kernel_bom_name }}] }}"
+
 - name:                                "0.1 BoM Validator - Informational"
   ansible.builtin.debug:
     msg:
       - "BOM Base Name:          {{ bom_base_name }}"
-      - "Application BOM Name:   {{ application_bom_name }}"
+      - "Application BOM Name:   {{ root_bom_name }}"
       - "Database BOM Name:      {{ database_bom_name }}"
       - "Kernel BOM Name:        {{ kernel_bom_name }}"
       - "New BOM Name:           {{ new_bom_name }}"
@@ -172,7 +176,7 @@
   vars:
     account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
-    bom_name:                          "{{ application_bom_name }}"
+    current_bom_name:                  "{{ root_bom_name }}"
     upload:                            true
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
@@ -182,12 +186,66 @@
 # Step: 05
 # Description:  Save BOM and Media list for consolidation
 #
-- name:                                "0.1 BoM Validator - Save BOM {{ application_bom_name }} as Dictionary"
+- name:                                "0.1 BoM Validator - Save BOM {{ root_bom_name }} as Dictionary"
   ansible.builtin.set_fact:
     root_bom:                          "{{ bom }}"
     root_media_list:                   "{{ root_media_list | flatten(levels=1) }}"
 # Step: 05 - END
 # -------------------------------------+---------------------------------------8
+
+- name:                                "0.1 BoM Validator - Process database BOM"
+  when:
+    - database_bom_name != ""
+  ansible.builtin.include_tasks:       bom_validator.yaml
+  vars:
+    account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
+    container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
+    current_bom_name:                  "{{ database_bom_name }}"
+    upload:                            true
+
+- name:                                "0.1 BoM Validator - Save BOM {{ database_bom_name }} as Dictionary"
+  ansible.builtin.set_fact:
+    database_bom:                      "{{ bom }}"
+
+- name:                                "0.1 BoM Validator - Process kernel BOM"
+  when:
+    - kernel_bom_name != ""
+  ansible.builtin.include_tasks:       bom_validator.yaml
+  vars:
+    account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
+    container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
+    current_bom_name:                  "{{ kernel_bom_name }}"
+    upload:                            true
+
+- name:                                "0.1 BoM Validator - Save BOM {{ kernel_bom_name }} as Dictionary"
+  ansible.builtin.set_fact:
+    kernel_bom:                        "{{ bom }}"
+
+- name:                                "0.1 BoM Validator -  - Show Application, Database, and Kernel BOMs"
+  ansible.builtin.debug:
+    msg:
+      - "Application Platform                {{ root_bom.platform | default('Not defined') }}"
+      - "Application supported SPS Versions: {{ root_bom.supportedSPSVersions | default('Not defined') }}"
+      - "Application supported Kernels:      {{ root_bom.supportedKernels | default('Not defined') }}"
+      - "Database Platform:                  {{ database_bom.platform | default('Not defined') }}"
+      - "Database Version:                   {{ database_bom.version | default('Not defined') }}"
+      - "Kernel Version:                     {{ kernel_bom.kernel | default('Not defined') }}"
+
+- name:                                "0.1 BoM Validator - Incompatible Application and Database BOM"
+  ansible.builtin.fail:
+    msg:
+      - "Incompatible combination of Application BOM (platform: {{ root_bom.platform }}) and Database BOM (platform: {{ database_bom.platform }}, version: {{ database_bom.version }})."
+  when:
+    - database_bom is defined
+    - root_bom.platform != database_bom.platform or database_bom.version is not in root_bom.supportedSPSVersions
+
+- name:                                "0.1 BoM Validator - Incompatible Application and Kernel BOM"
+  ansible.builtin.fail:
+    msg:
+      - "Incompatible combination of Application BOM (Supported Kernels: {{ root_bom.supportedKernels }}) and Kernel BOM (kernel: {{ kernel_bom.kernel }})."
+  when:
+    - kernel_bom is defined
+    - kernel_bom.kernel is not in root_bom.supportedKernels
 
 
 # -------------------------------------+---------------------------------------8
@@ -378,7 +436,7 @@
                                             --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
                                             --auth-mode login
                                             --container-name {{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}
-                                            --name {{ application_bom_name }}.yaml
+                                            --name {{ root_bom_name }}.yaml
       delegate_to:                         localhost
       register:                            azresult
       changed_when:                        false
