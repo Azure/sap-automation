@@ -376,7 +376,8 @@
 #
 - name:                                 "3.3.1 BoM Processing - Check for Microsoft Supplied dependent BOM ({{ new_bom_name }})"
   when:
-    - application_bom is defined
+    - bom is defined
+    - not first_pass
   block:
       # ---------------------------------+-------------------------------------------8
       # Step: 05-04-01
