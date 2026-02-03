@@ -247,10 +247,6 @@
     - kernel_bom is defined
     - kernel_bom.kernel is not in root_bom.supportedKernels
 
-- name:                                "0.1 BoM Validator - Filter combined BoM"
-  ansible.builtin.set_fact:
-    root_media_list:                   "{{ root_media_list | unique(attribute='archive') | list }}"
-
 # -------------------------------------+---------------------------------------8
 # Step: 06
 # Description:  Call BOM processor, passing dependent BOM names.

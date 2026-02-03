@@ -162,7 +162,7 @@
 #
 - name:                                "0.1 BoM Validator - BOM {{ bom_name }} Check and Download Files"
   ansible.builtin.include_tasks:       bom_download.yaml
-  loop:                                "{{ root_media_list | flatten(levels=1) }}"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   loop_control:
     loop_var:                           bom_media_entry
     index_var:                          bom_media_index
@@ -178,20 +178,19 @@
 # Description:  Combine dependent BoMs block
 #
 - name:                                 "Combine dependent BoMs block"
-  when:                                 root_media_list is defined
   block:
 
   # -------------------------------------+---------------------------------------8
   # Step: 06-01
   # Description:
   #
-    - name:                             "{{ task_prefix }} - Combine dependent BoMs"
+    - name:                            "{{ task_prefix }} - Combine dependent BoMs"
       ansible.builtin.set_fact:
-        root_media_list:                "{{ root_media_list + bom.materials.media | flatten(levels=1) }}"
+        root_media_list:               "{% if root_media_list is defined %}{{ root_media_list + bom.materials.media | flatten(levels=1) }}{% else %}{{ bom.materials.media | flatten(levels=1) }}{% endif %}"
   # Step: 06-01 - END
-  # -------------------------------------+---------------------------------------8
+  # -----------------------------------+-----------------------------------------8
 
-  # -------------------------------------+---------------------------------------8
+  # -----------------------------------+-----------------------------------------8
   # Step: 06-02
   # Description:
   #
@@ -201,15 +200,15 @@
                                         {{ root_media_list }}
         verbosity:                      1
   # Step: 06-02 - END
-  # -------------------------------------+---------------------------------------8
+  # -----------------------------------+-----------------------------------------8
 
   vars:
     task_prefix:                        Combine dependent BoMs block
 # Step: 06 - END
-# -------------------------------------+---------------------------------------8
+# -----------------------------------+-----------------------------------------8
 
 
-# -------------------------------------+---------------------------------------8
+# -----------------------------------+-----------------------------------------8
 # Step: 07
 # Description:
 #
