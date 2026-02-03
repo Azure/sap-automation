@@ -128,6 +128,7 @@ fi
 
 sapbits_location_base_path=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SAPMediaPath" "${CONTROL_PLANE_NAME}")
 
+export ANSIBLE_DISPLAY_SKIPPED_HOSTS=false
 
 command="ansible-playbook -e download_directory=$AGENT_TEMP_DIRECTORY \
 -e BOM_directory=${sample_path} \

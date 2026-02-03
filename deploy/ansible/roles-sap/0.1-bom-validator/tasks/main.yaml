@@ -205,7 +205,7 @@
 - name:                                "0.1 BoM Validator - Save BOM {{ database_bom_name }} as Dictionary"
   ansible.builtin.set_fact:
     database_bom:                      "{{ bom }}"
-    bom_dependencies:                  "{% if bom_dependencies is defined %} {{ bom_dependencies + [{ 'name': database_bom_name } ] }} {% else %} [ { 'name': database_bom_name } ] {% endif %}"
+    bom_dependencies:                  "{% if bom_dependencies is defined %} {{ bom_dependencies | ansible.builtin.combine({ 'name': database_bom_name }, list_merge='append'  )) }} {% else %} [ { 'name': database_bom_name } ] {% endif %}"
 
 
 - name:                                "0.1 BoM Validator - Process kernel BOM"
@@ -221,7 +221,7 @@
 - name:                                "0.1 BoM Validator - Save BOM {{ kernel_bom_name }} as Dictionary"
   ansible.builtin.set_fact:
     kernel_bom:                        "{{ bom }}"
-    bom_dependencies:                  "{% if bom_dependencies is defined %} {{ bom_dependencies + [{ 'name':  kernel_bom_name} ] }} {% else %} [ { 'name':  kernel_bom_name} ] {% endif %}"
+    bom_dependencies:                  "{% if bom_dependencies is defined %} {{ bom_dependencies | ansible.builtin.combine({ 'name': kernel_bom_name }, list_merge='append'  )) }} {% else %} [ { 'name': kernel_bom_name } ] {% endif %}"
 
 - name:                                "0.1 BoM Validator -  - Show Application, Database, and Kernel BOMs"
   ansible.builtin.debug:
