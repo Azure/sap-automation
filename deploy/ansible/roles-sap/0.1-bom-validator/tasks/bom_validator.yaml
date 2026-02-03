@@ -184,22 +184,12 @@
   # Step: 06-01
   # Description:
   #
-    - name:                            "{{ task_prefix }} - Combine dependent BoMs"
-      ansible.builtin.set_fact:
-        root_media_list:               "{% if root_media_list is defined %}{{ root_media_list + bom.materials.media | flatten(levels=1) }}{% else %}{{ bom.materials.media | flatten(levels=1) }}{% endif %}"
-  # Step: 06-01 - END
-  # -----------------------------------+-----------------------------------------8
-
-  # -----------------------------------+-----------------------------------------8
-  # Step: 06-02
-  # Description:
-  #
-    - name:                             "{{ task_prefix }} - Informational"
+    - name:                             "{{ task_prefix }} - List of files"
       ansible.builtin.debug:
         msg: |-
                                         {{ root_media_list }}
         verbosity:                      1
-  # Step: 06-02 - END
+  # Step: 06-01 - END
   # -----------------------------------+-----------------------------------------8
 
   vars:

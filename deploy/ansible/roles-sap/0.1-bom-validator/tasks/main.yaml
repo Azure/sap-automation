@@ -180,7 +180,7 @@
 
 - name:                                "0.1 BoM Validator - Initialize names with kernel and database"
   ansible.builtin.set_fact:
-    bom_dependencies:                  "{{ bom.materials.dependencies | default([]) + [database_bom_name,kernel_bom_name] }}"
+    bom_dependencies:                  "{{ bom.materials.dependencies | default([]) + [{ name: database_bom_name}, { name: kernel_bom_name}] }}"
 
 - name:                                "0.1 BoM Validator - Informational"
   ansible.builtin.debug:
@@ -257,7 +257,7 @@
   vars:
     account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
-    current_bom_name:                  "{{ bom_dependency }}"
+    current_bom_name:                  "{{ bom_dependency.name }}"
     upload:                            false
   register:                            dependent_bom_collection
   loop:                                "{{ bom_dependencies | flatten(levels=1) }}"
