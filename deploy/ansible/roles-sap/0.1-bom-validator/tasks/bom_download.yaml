@@ -6,7 +6,7 @@
 # Step: 01
 # Description:  Initialize facts
 #
-- name:                                 "{{ task_prefix }} - BOM: {{ bom_name }} Download {{ bom_media_entry.archive }}"
+- name:                                 "0.1 Bom Validator - Download {{ bom_media_entry.archive }}"
   ansible.builtin.set_fact:
     task_prefix:                        bom_download                            # set the fact so it is globally availabe
     proceed:                            true
@@ -20,16 +20,13 @@
 # Step: 02
 # Description:  Informational
 #
-- name:                                 "{{ task_prefix }} - Informational"
+- name:                                "0.1 Bom Validator - Informational"
   ansible.builtin.debug:
-    var:                                bom_media_entry
-    verbosity:                          1
+    msg:
+      - "Entry : {{ bom_media_entry }}"
+      - "check_storage_account:    {{ check_storage_account }}"
+    verbosity:                         1
 
-- name:                                 "{{ task_prefix }} - Informational"
-  ansible.builtin.debug:
-    msg: |-
-                                        check_storage_account:    {{ check_storage_account }}
-    verbosity:                          1
 # Step: 02 - END
 # -------------------------------------+---------------------------------------8
 
@@ -37,7 +34,7 @@
 # Step: 03
 # Description:
 #
-- name:                                 "{{ task_prefix }} - BOM: {{ bom_name }} Check Storage Account for {{ bom_media_entry.archive }}"
+- name:                                 "0.1 Bom Validator - Check Storage Account for file"
   when:
     - check_storage_account | bool
     - sa_enabled
@@ -48,14 +45,14 @@
   # Step: 03-01
   # Description:
   #
-    - name:                             "{{ task_prefix }} - BOM: {{ bom_name }} Check is file {{ bom_media_entry.archive }} is already downloaded"
+    - name:                             "0.1 Bom Validator - Check if file is already downloaded using SAS token"
       ansible.builtin.uri:
         url:                            "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ bom_media_entry.archive }}{% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
         status_code:                    [200, 403, 404, 409]
         method:                         HEAD
       register:                         blob_exists
 
-    - name:                             "{{ task_prefix }} - Informational"
+    - name:                             "0.1 Bom Validator - Show if File is downloaded"
       ansible.builtin.debug:
         var:                            blob_exists
         verbosity:                      1
@@ -66,7 +63,7 @@
       # Step: 03-02
       # Description:  Validate the url status. Fail if authentication fails
       #
-    - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Authentication error {{ bom_media_entry.archive }}"
+    - name:                            "0.1 Bom Validator - Authentication error"
       ansible.builtin.fail:
         msg:                           "Authentication error, please check the SAS token"
       when:                            blob_exists.status == 403
@@ -77,7 +74,7 @@
       # Step: 03-03
       # Description:
       #
-    - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Set Fact  {{ bom_media_entry.archive }}"
+    - name:                            "0.1 Bom Validator - Set Fact"
       ansible.builtin.set_fact:
         proceed:                       false
       when:                            blob_exists.status != 404
@@ -85,7 +82,7 @@
 # -------------------------------------+---------------------------------------8
 
 
-- name:                                 "{{ task_prefix }} - BOM: {{ bom_name }} Check Storage Account for {{ bom_media_entry.archive }}"
+- name:                                 "0.1 Bom Validator - Check Storage Account for file using Entra authentication"
   when:
     - check_storage_account | bool
     - sa_enabled
@@ -96,7 +93,7 @@
   # Step: 03-01
   # Description:
   #
-    - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Check is file {{ bom_media_entry.archive }} is already downloaded"
+    - name:                            "0.1 Bom Validator - Check if file is already downloaded using Entra authentication"
       ansible.builtin.command: >-
                                           az storage blob list
                                             --account-name {{ account }}
@@ -106,9 +103,9 @@
       delegate_to:                     localhost
       register:                        blobExists
 
-    - name:                            "{{ task_prefix }} - Informational"
+    - name:                            "0.1 Bom Validator - Informational"
       ansible.builtin.debug:
-        var:                           blobExists
+        msg:                           "blobExists: {{ blobExists }}"
         verbosity:                     2
       # Step: 03-01 - END
       # -------------------------------+---------------------------------------------8
@@ -121,7 +118,7 @@
       # Step: 03-03
       # Description:
       #
-    - name:                            "{{ task_prefix }} - BOM: {{ bom_name }} Set Fact  {{ bom_media_entry.archive }}"
+    - name:                            "0.1 Bom Validator - Set Fact to not proceed"
       ansible.builtin.set_fact:
         proceed:                       false
       when:                            blobExists.stdout | trim | length > 0
@@ -135,7 +132,7 @@
 # Step: 04
 # Description:  Informational check of the proceed parameter.
 #
-- name:                                 "{{ task_prefix }} - Informational check of the proceed parameter"
+- name:                                 "0.1 Bom Validator - Informational check of the proceed parameter"
   ansible.builtin.assert:
     that:
       - "proceed"
