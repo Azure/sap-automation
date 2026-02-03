@@ -180,7 +180,7 @@
 
 - name:                                "0.1 BoM Validator - Initialize names with kernel and database"
   ansible.builtin.set_fact:
-    bom_dependencies:                  "{% if bom.materials.dependencies is defined %} {{ bom.materials.dependencies + [{ 'name': database_bom_name }, { 'name':  kernel_bom_name} ] }} {% else %} [ { 'name': database_bom_name }, { 'name':  kernel_bom_name} ] {% endif %}"
+    bom_dependencies:                  "{% if bom.materials.dependencies is defined %} {{ bom.materials.dependencies }}{% endif %}"
 
 - name:                                "0.1 BoM Validator - Informational"
   ansible.builtin.debug:
@@ -205,6 +205,8 @@
 - name:                                "0.1 BoM Validator - Save BOM {{ database_bom_name }} as Dictionary"
   ansible.builtin.set_fact:
     database_bom:                      "{{ bom }}"
+    bom_dependencies:                  "{% if bom_dependencies is defined %} {{ bom_dependencies + [{ 'name': database_bom_name } ] }} {% else %} [ { 'name': database_bom_name } ] {% endif %}"
+
 
 - name:                                "0.1 BoM Validator - Process kernel BOM"
   when:
@@ -219,6 +221,7 @@
 - name:                                "0.1 BoM Validator - Save BOM {{ kernel_bom_name }} as Dictionary"
   ansible.builtin.set_fact:
     kernel_bom:                        "{{ bom }}"
+    bom_dependencies:                  "{% if bom_dependencies is defined %} {{ bom_dependencies + [{ 'name':  kernel_bom_name} ] }} {% else %} [ { 'name':  kernel_bom_name} ] {% endif %}"
 
 - name:                                "0.1 BoM Validator -  - Show Application, Database, and Kernel BOMs"
   ansible.builtin.debug:
@@ -229,6 +232,7 @@
       - "Database Platform:                  {{ database_bom.platform | default('Not defined') }}"
       - "Database Version:                   {{ database_bom.version | default('Not defined') }}"
       - "Kernel Version:                     {{ kernel_bom.kernel | default('Not defined') }}"
+      - "BOM Dependencies:                   {{ bom_dependencies | default('None') }}"
 
 - name:                                "0.1 BoM Validator - Incompatible Application and Database BOM"
   ansible.builtin.fail:
@@ -251,6 +255,11 @@
 # Description:  Call BOM processor, passing dependent BOM names.
 #               account and container vars are never used if sa_enabled is False
 #
+- name:                                "0.1 BoM Validator - Filter dependencies list"
+  ansible.builtin.set_fact:
+    bom_dependencies:                  "{{ bom_dependencies | unique(attribute='name') | list }}"
+
+
 - name:                                "0.1 BoM Validator - Process dependent BoMs in a loop"
   ansible.builtin.include_tasks:       bom_validator.yaml
   vars:
@@ -265,7 +274,6 @@
   when:
     - bom_dependencies is defined
     - bom_dependencies | length > 0
-    - bom_dependency.name | length > 0
 # Step: 06 - END
 # -------------------------------------+---------------------------------------8
 
