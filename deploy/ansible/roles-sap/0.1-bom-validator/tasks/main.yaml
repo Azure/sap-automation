@@ -202,10 +202,21 @@
     current_bom_name:                  "{{ database_bom_name }}"
     upload:                            true
 
+- name:                                "0.1 BoM Validator - Database BoM dependency"
+  when:
+    - database_bom_name != ""
+  ansible.builtin.set_fact:
+    database_dependency:               "{{ [ { 'name': database_bom_name } ] }}"
+
 - name:                                "0.1 BoM Validator - Save BOM {{ database_bom_name }} as Dictionary"
   ansible.builtin.set_fact:
     database_bom:                      "{{ bom }}"
-    bom_dependencies:                  "{% if bom_dependencies is defined %} {{ bom_dependencies + [ { 'name': database_bom_name } ] }} {% else %} {{ [ { 'name': database_bom_name } ] }} {% endif %}"
+
+- name:                                "0.1 BoM Validator - Append Database BOM to dependencies"
+  when:
+    - database_dependency is defined
+  ansible.builtin.set_fact:
+    bom_dependencies:                  "{% if bom_dependencies is defined %}{{ bom_dependencies | list + database_dependency }} {% else %} {{ database_dependency }} {% endif %}"
 
 - name:                                "0.1 BoM Validator - Process kernel BOM"
   when:
@@ -217,10 +228,21 @@
     current_bom_name:                  "{{ kernel_bom_name }}"
     upload:                            true
 
-- name:                                "0.1 BoM Validator - Save BOM {{ kernel_bom_name }} as Dictionary"
+- name:                                "0.1 BoM Validator - Database BoM dependency"
+  when:
+    - kernel_bom_name != ""
+  ansible.builtin.set_fact:
+    kernel_dependency:               "{{ [ { 'name': kernel_bom_name } ] }}"
+
+- name:                                "0.1 BoM Validator - Save Kernel BOM as Dictionary"
   ansible.builtin.set_fact:
     kernel_bom:                        "{{ bom }}"
-    bom_dependencies:                  "{% if bom_dependencies is defined %} {{ bom_dependencies + [ { 'name': kernel_bom_name } ] }} {% else %} {{ [ { 'name': kernel_bom_name } ] }} {% endif %}"
+
+- name:                                "0.1 BoM Validator - Append Kernel BOM to dependencies"
+  when:
+    - kernel_dependency is defined
+  ansible.builtin.set_fact:
+    bom_dependencies:                  "{% if bom_dependencies is defined %} {{ bom_dependencies + kernel_dependency }} {% else %} {{ kernel_dependency }} {% endif %}"
 
 - name:                                "0.1 BoM Validator -  - Show Application, Database, and Kernel BOMs"
   ansible.builtin.debug:
