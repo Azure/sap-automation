@@ -180,7 +180,7 @@
 
 - name:                                "0.1 BoM Validator - Initialize names with kernel and database"
   ansible.builtin.set_fact:
-    bom_dependencies:                  "{{ bom.materials.dependencies | default([]) + [{ 'name:' database_bom_name}, { 'name:' kernel_bom_name}] }}"
+    bom_dependencies:                  "{{ bom.materials.dependencies | default([]) + [{ 'name': database_bom_name }, { 'name':  kernel_bom_name} ] }}"
 
 - name:                                "0.1 BoM Validator - Informational"
   ansible.builtin.debug:
