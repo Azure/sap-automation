@@ -190,7 +190,14 @@
       - "Database BOM Name:      {{ database_bom_name }}"
       - "Kernel BOM Name:        {{ kernel_bom_name }}"
       - "New BOM Name:           {{ new_bom_name }}"
-      - "BOM Dependencies:       {{ bom_dependencies | list | flatten(levels=1) }}"
+      - "BOM Dependencies:       {{ bom_dependencies | flatten(levels=1) }}"
+
+- name:                                "0.1 BoM Validator - Initialize names with kernel and database"
+  ansible.builtin.fail:
+    msg:
+      - "BOM does not define 'materials.dependencies'. At least one of database or kernel BOM must be specified."
+
+
 
 - name:                                "0.1 BoM Validator - Process database BOM"
   when:
@@ -278,7 +285,7 @@
 #
 - name:                                "0.1 BoM Validator - Filter dependencies list"
   ansible.builtin.set_fact:
-    bom_dependencies:                  "{{ bom_dependencies | unique(attribute='name') | list }}"
+    bom_dependencies:                  "{{ bom_dependencies | unique(attribute='name') }}"
 
 - name:                                "0.1 BoM Validator - Process dependent BoMs in a loop"
   ansible.builtin.include_tasks:       bom_validator.yaml
