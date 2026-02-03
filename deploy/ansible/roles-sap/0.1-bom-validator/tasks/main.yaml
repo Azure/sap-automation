@@ -247,6 +247,9 @@
     - kernel_bom is defined
     - kernel_bom.kernel is not in root_bom.supportedKernels
 
+- name:                                "0.1 BoM Validator - Filter combined BoM"
+  ansible.builtin.set_fact:
+    root_media_list:                   "{{ root_media_list | unique(attribute='archive') | list }}"
 
 # -------------------------------------+---------------------------------------8
 # Step: 06
@@ -258,7 +261,7 @@
   vars:
     account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
-    current_bom_name:                  "{{ bom_dependency.name }}"
+    current_bom_name:                  "{{ bom_dependency }}"
     upload:                            false
   register:                            dependent_bom_collection
   loop:                                "{{ bom_dependencies | flatten(levels=1) }}"
@@ -267,6 +270,7 @@
   when:
     - bom_dependencies is defined
     - bom_dependencies | length > 0
+    - bom_dependency | length > 0
 # Step: 06 - END
 # -------------------------------------+---------------------------------------8
 
