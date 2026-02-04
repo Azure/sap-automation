@@ -198,9 +198,12 @@
       - "Kernel BOM Name:        {{ kernel_bom_name }}"
       - "New BOM Name:           {{ new_bom_name }}"
       - "BOM Dependencies:       {{ bom_dependencies }}"
+      - "BOM Dependencies:       {{ bom_dependencies | from_yaml}}"
       - "Type:                   {{ bom_dependencies | type_debug }}"
       - "DB Dependencies:        {{ database_dependency }}"
       - "Type:                   {{ database_dependency | type_debug }}"
+      - "BOM Dependencies:       {{ bom.materials.dependencies}}"
+      - "Type:                   {{ bom.materials.dependencies | type_debug }}"
 
 
 - name:                                "0.1 BoM Validator - Append Database BOM to dependencies"
