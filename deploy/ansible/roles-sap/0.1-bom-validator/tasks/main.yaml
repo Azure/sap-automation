@@ -245,16 +245,6 @@
 
 # -------------------------------------+---------------------------------------8
 # Step: 06
-# Description:  Call BOM processor, passing dependent BOM names.
-#               account and container vars are never used if sa_enabled is False
-#
-
-# Step: 06 - END
-# -------------------------------------+---------------------------------------8
-
-
-# -------------------------------------+---------------------------------------8
-# Step: 07
 # Description:  Deduplicate entries in consolidated BOM Media list
 #
 - name:                                "0.1 BoM Validator - Filter combined BoM"
@@ -272,7 +262,7 @@
   ansible.builtin.set_fact:
     new_bom:                           "{{ lookup('template', 'bom.j2') }}"
 
-- name:                               "0.1 BoM Validator - Informational"
+- name:                               "0.1 BoM Validator - Show new BoM"
   ansible.builtin.debug:
     var:                              new_bom
     verbosity:                        1
