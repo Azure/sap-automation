@@ -178,17 +178,6 @@
 # Step: 05 - END
 # -------------------------------------+---------------------------------------8
 
-- name:                                "0.1 BoM Validator - Initialize names with kernel and database"
-  ansible.builtin.set_fact:
-    bom_dependencies:                  "{% if bom.materials.dependencies is defined %} {{ bom.materials.dependencies | from_yaml }}{% endif %}"
-
-- name:                                "0.1 BoM Validator - Database BoM dependency"
-  when:
-    - database_bom_name != ""
-  ansible.builtin.set_fact:
-    database_dependency:               "{{ { 'name': database_bom_name } }}"
-
-
 - name:                                "0.1 BoM Validator - Informational"
   ansible.builtin.debug:
     msg:
@@ -197,35 +186,7 @@
       - "Database BOM Name:      {{ database_bom_name }}"
       - "Kernel BOM Name:        {{ kernel_bom_name }}"
       - "New BOM Name:           {{ new_bom_name }}"
-      - "BOM Dependencies:       {{ bom_dependencies }}"
-      - "BOM Dependencies:       {{ bom_dependencies | from_yaml}}"
-      - "Type:                   {{ bom_dependencies | type_debug }}"
-      - "DB Dependencies:        {{ database_dependency }}"
-      - "Type:                   {{ database_dependency | type_debug }}"
       - "BOM Dependencies:       {{ bom.materials.dependencies}}"
-      - "Type:                   {{ bom.materials.dependencies | type_debug }}"
-
-
-- name:                                "0.1 BoM Validator - Append Database BOM to dependencies"
-  when:
-    - database_dependency is defined
-  ansible.builtin.set_fact:
-    bom_dependencies:                  "{% if bom_dependencies is defined %}{{ bom_dependencies  + [database_dependency]  }} {% else %} {{ [ database_dependency ] }} {% endif %}"
-
-- name:                                "0.1 BoM Validator - Informational"
-  ansible.builtin.debug:
-    msg:
-      - "BOM Base Name:          {{ bom_base_name }}"
-      - "Application BOM Name:   {{ root_bom_name }}"
-      - "Database BOM Name:      {{ database_bom_name }}"
-      - "Kernel BOM Name:        {{ kernel_bom_name }}"
-      - "New BOM Name:           {{ new_bom_name }}"
-      - "BOM Dependencies:       {{ bom_dependencies }}"
-
-- name:                                "0.1 BoM Validator - Initialize names with kernel and database"
-  ansible.builtin.fail:
-    msg:
-      - "BOM does not define 'materials.dependencies'. At least one of database or kernel BOM must be specified."
 
 - name:                                "0.1 BoM Validator - Process database BOM"
   when:
@@ -237,21 +198,9 @@
     current_bom_name:                  "{{ database_bom_name }}"
     upload:                            true
 
-- name:                                "0.1 BoM Validator - Database BoM dependency"
-  when:
-    - database_bom_name != ""
-  ansible.builtin.set_fact:
-    database_dependency:               "{{ { 'name': database_bom_name } }}"
-
 - name:                                "0.1 BoM Validator - Save BOM {{ database_bom_name }} as Dictionary"
   ansible.builtin.set_fact:
     database_bom:                      "{{ bom }}"
-
-- name:                                "0.1 BoM Validator - Append Database BOM to dependencies"
-  when:
-    - database_dependency is defined
-  ansible.builtin.set_fact:
-    bom_dependencies:                  "{% if bom_dependencies is defined %}{{ bom_dependencies  + [database_dependency]  }} {% else %} {{ [ database_dependency ] }} {% endif %}"
 
 - name:                                "0.1 BoM Validator - Process kernel BOM"
   when:
@@ -263,21 +212,9 @@
     current_bom_name:                  "{{ kernel_bom_name }}"
     upload:                            true
 
-- name:                                "0.1 BoM Validator - Database BoM dependency"
-  when:
-    - kernel_bom_name != ""
-  ansible.builtin.set_fact:
-    kernel_dependency:               "{{ { 'name': kernel_bom_name } }}"
-
 - name:                                "0.1 BoM Validator - Save Kernel BOM as Dictionary"
   ansible.builtin.set_fact:
     kernel_bom:                        "{{ bom }}"
-
-- name:                                "0.1 BoM Validator - Append Kernel BOM to dependencies"
-  when:
-    - kernel_dependency is defined
-  ansible.builtin.set_fact:
-    bom_dependencies:                  "{% if bom_dependencies is defined %} {{ bom_dependencies | combine(kernel_dependency, list_merge='append') }} {% else %} {{ [ kernel_dependency ] }} {% endif %}"
 
 - name:                                "0.1 BoM Validator -  - Show Application, Database, and Kernel BOMs"
   ansible.builtin.debug:
@@ -288,7 +225,7 @@
       - "Database Platform:                  {{ database_bom.platform | default('Not defined') }}"
       - "Database Version:                   {{ database_bom.version | default('Not defined') }}"
       - "Kernel Version:                     {{ kernel_bom.kernel | default('Not defined') }}"
-      - "BOM Dependencies:                   {{ bom_dependencies | default('None') }}"
+      - "BOM Dependencies:                   {{ root_bom.dependencies | default('None') }}"
 
 - name:                                "0.1 BoM Validator - Incompatible Application and Database BOM"
   ansible.builtin.fail:
@@ -311,9 +248,6 @@
 # Description:  Call BOM processor, passing dependent BOM names.
 #               account and container vars are never used if sa_enabled is False
 #
-- name:                                "0.1 BoM Validator - Filter dependencies list"
-  ansible.builtin.set_fact:
-    bom_dependencies:                  "{{ bom_dependencies | unique(attribute='name') }}"
 
 - name:                                "0.1 BoM Validator - Process dependent BoMs in a loop"
   ansible.builtin.include_tasks:       bom_validator.yaml
@@ -323,12 +257,12 @@
     current_bom_name:                  "{{ bom_dependency.name }}"
     upload:                            false
   register:                            dependent_bom_collection
-  loop:                                "{{ bom_dependencies | flatten(levels=1) }}"
+  loop:                                "{{ root_bom.dependencies | flatten(levels=1) }}"
   loop_control:
     loop_var:                          bom_dependency
   when:
-    - bom_dependencies is defined
-    - bom_dependencies | length > 0
+    - root_bom.dependencies is defined
+    - root_bom.dependencies | length > 0
 # Step: 06 - END
 # -------------------------------------+---------------------------------------8
 
