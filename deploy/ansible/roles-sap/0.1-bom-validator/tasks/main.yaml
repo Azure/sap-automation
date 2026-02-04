@@ -187,6 +187,26 @@
       - "Kernel BOM Name:        {{ kernel_bom_name }}"
       - "New BOM Name:           {{ new_bom_name }}"
 
+
+# # -------------------------------------+---------------------------------------8
+# # Step: 08
+# # Description: Dependencies processing
+
+- name:                                "0.1 BoM Validator - Process dependent BoMs in a loop"
+  ansible.builtin.include_tasks:       bom_validator.yaml
+  vars:
+    account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
+    container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
+    current_bom_name:                  "{{ bom_dependency.name }}"
+    upload:                            false
+  register:                            dependent_bom_collection
+  loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
+  loop_control:
+    loop_var:                          bom_dependency
+  when:
+    - bom.materials.dependencies is defined
+    - bom.materials.dependencies | length > 0
+
 - name:                                "0.1 BoM Validator - Process database BOM"
   when:
     - database_bom_name != ""
@@ -201,6 +221,21 @@
   ansible.builtin.set_fact:
     database_bom:                      "{{ bom }}"
 
+- name:                                "0.1 BoM Validator - Process dependent BoMs in a loop"
+  ansible.builtin.include_tasks:       bom_validator.yaml
+  vars:
+    account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
+    container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
+    current_bom_name:                  "{{ bom_dependency.name }}"
+    upload:                            false
+  register:                            dependent_bom_collection
+  loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
+  loop_control:
+    loop_var:                          bom_dependency
+  when:
+    - bom.materials.dependencies is defined
+    - bom.materials.dependencies | length > 0
+
 - name:                                "0.1 BoM Validator - Process kernel BOM"
   when:
     - kernel_bom_name != ""
@@ -214,6 +249,21 @@
 - name:                                "0.1 BoM Validator - Save Kernel BOM as Dictionary"
   ansible.builtin.set_fact:
     kernel_bom:                        "{{ bom }}"
+
+- name:                                "0.1 BoM Validator - Process dependent BoMs in a loop"
+  ansible.builtin.include_tasks:       bom_validator.yaml
+  vars:
+    account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
+    container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
+    current_bom_name:                  "{{ bom_dependency.name }}"
+    upload:                            false
+  register:                            dependent_bom_collection
+  loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
+  loop_control:
+    loop_var:                          bom_dependency
+  when:
+    - bom.materials.dependencies is defined
+    - bom.materials.dependencies | length > 0
 
 - name:                                "0.1 BoM Validator -  - Show Application, Database, and Kernel BOMs"
   ansible.builtin.debug:
