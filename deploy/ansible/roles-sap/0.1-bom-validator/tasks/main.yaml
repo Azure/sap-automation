@@ -190,7 +190,7 @@
       - "Database BOM Name:      {{ database_bom_name }}"
       - "Kernel BOM Name:        {{ kernel_bom_name }}"
       - "New BOM Name:           {{ new_bom_name }}"
-      - "BOM Dependencies:       {{ bom_dependencies | flatten(levels=1) }}"
+      - "BOM Dependencies:       {{ bom_dependencies }}"
 
 - name:                                "0.1 BoM Validator - Database BoM dependency"
   when:
@@ -212,7 +212,7 @@
       - "Database BOM Name:      {{ database_bom_name }}"
       - "Kernel BOM Name:        {{ kernel_bom_name }}"
       - "New BOM Name:           {{ new_bom_name }}"
-      - "BOM Dependencies:       {{ bom_dependencies | flatten(levels=1) }}"
+      - "BOM Dependencies:       {{ bom_dependencies }}"
 
 - name:                                "0.1 BoM Validator - Initialize names with kernel and database"
   ansible.builtin.fail:
