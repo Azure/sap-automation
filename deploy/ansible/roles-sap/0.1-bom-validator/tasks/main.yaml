@@ -182,6 +182,13 @@
   ansible.builtin.set_fact:
     bom_dependencies:                  "{% if bom.materials.dependencies is defined %} {{ bom.materials.dependencies }}{% endif %}"
 
+- name:                                "0.1 BoM Validator - Database BoM dependency"
+  when:
+    - database_bom_name != ""
+  ansible.builtin.set_fact:
+    database_dependency:               "{{ { 'name': database_bom_name } }}"
+
+
 - name:                                "0.1 BoM Validator - Informational"
   ansible.builtin.debug:
     msg:
@@ -191,12 +198,10 @@
       - "Kernel BOM Name:        {{ kernel_bom_name }}"
       - "New BOM Name:           {{ new_bom_name }}"
       - "BOM Dependencies:       {{ bom_dependencies }}"
+      - "Type:                   {{ bom_dependencies | type_debug }}"
+      - "DB Dependencies:        {{ database_dependency }}"
+      - "Type:                   {{ database_dependency | type_debug }}"
 
-- name:                                "0.1 BoM Validator - Database BoM dependency"
-  when:
-    - database_bom_name != ""
-  ansible.builtin.set_fact:
-    database_dependency:               "{{ { 'name': database_bom_name } }}"
 
 - name:                                "0.1 BoM Validator - Append Database BOM to dependencies"
   when:
