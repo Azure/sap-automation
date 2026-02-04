@@ -211,10 +211,7 @@
 
 # # -------------------------------------+---------------------------------------8
 # # Step: 08
-# # Description:
-# #
-# - name: "Upload"
-#   block:
+# # Description: Dependencies processing
 
 - name:                                "0.1 BoM Validator - Process dependent BoMs in a loop"
   ansible.builtin.include_tasks:       bom_validator.yaml
@@ -224,12 +221,12 @@
     current_bom_name:                  "{{ bom_dependency.name }}"
     upload:                            false
   register:                            dependent_bom_collection
-  loop:                                "{{ bom.dependencies | flatten(levels=1) }}"
+  loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
   loop_control:
     loop_var:                          bom_dependency
   when:
-    - bom.dependencies is defined
-    - bom.dependencies | length > 0
+    - bom.materials.dependencies is defined
+    - bom.materials.dependencies | length > 0
 
 ...
 # /*---------------------------------------------------------------------------8
