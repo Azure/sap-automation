@@ -47,12 +47,12 @@
 
 - name:                                "3.3.1 BoM Processing - Set the new name"
   ansible.builtin.set_fact:
-    new_bom_name:                      "{{ current_bom_name | default(bom_base_name + bom_suffix) }}"
+    this_bom_name:                      "{{ current_bom_name | default(bom_base_name + bom_suffix) }}"
 
 - name:                                "3.3.1 BoM Processing - Show new name"
   ansible.builtin.debug:
     msg:
-      - "BoM Name:   {{ new_bom_name }}"
+      - "BoM Name:   {{ this_bom_name }}"
 
 # -------------------------------------+---------------------------------------8
 # Step: 03
@@ -65,11 +65,11 @@
 # Step: 03-01
 # Description:
 #
-    - name:                             "3.3.1 BoM Processing - Download {{ new_bom_name }} from the storage account"
+    - name:                             "3.3.1 BoM Processing - Download {{ this_bom_name }} from the storage account"
       ansible.builtin.get_url:
-        url:                            "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}/{{ new_bom_name }}.yaml\
+        url:                            "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ this_bom_name }}/{{ this_bom_name }}.yaml\
                                         {% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
-        dest:                           "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
+        dest:                           "{{ download_directory }}/bom/{{ this_bom_name }}.yaml"
         mode:                           0644
         validate_certs:                 false
       delegate_to:                      localhost
@@ -87,7 +87,7 @@
     - name:                             "3.3.1 BoM Processing - Show BoM download status"
       ansible.builtin.debug:
         msg:
-          - "URL:    {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}/{{ new_bom_name }}.yaml{% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
+          - "URL:    {{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ this_bom_name }}/{{ this_bom_name }}.yaml{% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
           - "Result: {{ result }}"
         verbosity:                      2
 # Step: 03-03 - END
@@ -107,16 +107,16 @@
 # Step: 04
 # Description:  Register BOM if found in Storage Account
 #
-- name:                                 "3.3.1 BoM Processing - Retrieve BOM ({{  new_bom_name }}) from Storage Account"
+- name:                                 "3.3.1 BoM Processing - Retrieve BOM ({{  this_bom_name }}) from Storage Account"
   block:
 
 # -------------------------------------+---------------------------------------8
 # Step: 04-01
 # Description:
 #
-    - name:                             "{{ task_prefix }} Register downloaded BOM ({{  new_bom_name }})"
+    - name:                             "{{ task_prefix }} Register downloaded BOM ({{  this_bom_name }})"
       ansible.builtin.include_vars:
-        file:                           "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
+        file:                           "{{ download_directory }}/bom/{{ this_bom_name }}.yaml"
         name:                           bom
 # Step: 04-01 - END
 # -------------------------------------+---------------------------------------8
@@ -125,12 +125,12 @@
 # Step: 04-02
 # Description:
 #
-    - name:                             "{{ task_prefix }} Register downloaded BOM ({{  new_bom_name }}) file name"
+    - name:                             "{{ task_prefix }} Register downloaded BOM ({{  this_bom_name }}) file name"
       ansible.builtin.set_fact:
-        bom_file:                       "{{ download_directory }}/bom/{{ new_bom_name }}.yaml"
+        bom_file:                       "{{ download_directory }}/bom/{{ this_bom_name }}.yaml"
         aggregated_bom_directories:     "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'sa'}] }}"
       vars:
-        path:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ new_bom_name }}"
+        path:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/boms/{{ this_bom_name }}"
 # Step: 04-02 - END
 # -------------------------------------+---------------------------------------8
 
@@ -146,16 +146,16 @@
 # Step: 05
 # Description:  Check for MS provided BOM if not in SA
 #
-- name:                                 "{{ task_prefix }} Check for Microsoft Supplied BOM ({{  new_bom_name }})"
+- name:                                 "{{ task_prefix }} Check for Microsoft Supplied BOM ({{  this_bom_name }})"
   block:
 
 # -------------------------------------+---------------------------------------8
 # Step: 05-01
 # Description:
 #
-    - name:                             "{{ task_prefix }} Check for Microsoft Supplied BOM ({{  new_bom_name }})"
+    - name:                             "{{ task_prefix }} Check for Microsoft Supplied BOM ({{  this_bom_name }})"
       ansible.builtin.stat:
-        path:                           "{{ BOM_directory }}/{{  new_bom_name }}/{{  new_bom_name }}.yaml"
+        path:                           "{{ BOM_directory }}/{{  this_bom_name }}/{{  this_bom_name }}.yaml"
       register:                         microsoft_supplied_bom
       delegate_to:                      localhost
       become:                          "{{ bom_processing_become }}"
@@ -170,7 +170,7 @@
     - name:                             "{{ task_prefix }} Show Microsoft Supplied BOM ({{ bom_base_name }}) result"
       ansible.builtin.debug:
         msg: |-
-                                        BOM PATH:   {{ BOM_directory }}/{{  new_bom_name }}/{{  new_bom_name }}.yaml
+                                        BOM PATH:   {{ BOM_directory }}/{{  this_bom_name }}/{{  this_bom_name }}.yaml
                                         BOM Exists: {{ microsoft_supplied_bom.stat.exists }}
         verbosity:                      0
 # Step: 05-02 - END
@@ -180,7 +180,7 @@
 # Step: 05-03
 # Description:
 #
-    - name:                             "{{ task_prefix }} Register Microsoft Supplied BOM {{  new_bom_name }}"
+    - name:                             "{{ task_prefix }} Register Microsoft Supplied BOM {{  this_bom_name }}"
       ansible.builtin.include_vars:
         file:                           "{{ microsoft_supplied_bom.stat.path }}"
         name:                           bom_temp
@@ -192,7 +192,7 @@
 # Step: 05-04
 # Description:
 #
-    - name:                            "{{ task_prefix }} Register Microsoft Supplied BOM ({{  new_bom_name }}) facts"
+    - name:                            "{{ task_prefix }} Register Microsoft Supplied BOM ({{  this_bom_name }}) facts"
       ansible.builtin.set_fact:
         bom:                           "{{ bom_temp }}"
         bom_file:                      "{{ microsoft_supplied_bom.stat.path }}"
@@ -207,16 +207,16 @@
 # Step: 05-05
 # Description:
 #
-    - name:                             "{{ task_prefix }} Check for Microsoft Supplied BOM ({{  new_bom_name }}) in archives"
+    - name:                             "{{ task_prefix }} Check for Microsoft Supplied BOM ({{  this_bom_name }}) in archives"
       block:
 
 # -------------------------------------+---------------------------------------8
 # Step: 05-05-01
 # Description:
 #
-        - name:                         "{{ task_prefix }} Check for Microsoft Supplied BOM ({{  new_bom_name }}) in archives"
+        - name:                         "{{ task_prefix }} Check for Microsoft Supplied BOM ({{  this_bom_name }}) in archives"
           ansible.builtin.stat:
-            path:                       "{{ BOM_directory }}/archives/{{  new_bom_name }}/{{  new_bom_name }}.yaml"
+            path:                       "{{ BOM_directory }}/archives/{{  this_bom_name }}/{{  this_bom_name }}.yaml"
           register:                     microsoft_supplied_bom_archive
           delegate_to:                  localhost
           become:                       "{{ bom_processing_become }}"
@@ -227,7 +227,7 @@
 # Step: 05-05-02
 # Description:
 #
-        - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM {{  new_bom_name }} from archives"
+        - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM {{  this_bom_name }} from archives"
           ansible.builtin.include_vars:
             file:                       "{{ microsoft_supplied_bom_archive.stat.path }}"
             name:                       bom_temp
@@ -239,7 +239,7 @@
 # Step: 05-05-03
 # Description:
 #
-        - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM ({{  new_bom_name }}) facts"
+        - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM ({{  this_bom_name }}) facts"
           ansible.builtin.set_fact:
             bom:                        "{{ bom_temp }}"
             bom_file:                   "{{ microsoft_supplied_bom_archive.stat.path }}"
@@ -276,7 +276,7 @@
 
 - name:                                 "{{ task_prefix }} Validate that a BOM object is created"
   ansible.builtin.fail:
-    msg:                                "Unable to find the Bill of materials file for {{  new_bom_name }}."
+    msg:                                "Unable to find the Bill of materials file for {{  this_bom_name }}."
   when:                                 bom is not defined
 # Step: 06 - END
 # -------------------------------------+---------------------------------------8

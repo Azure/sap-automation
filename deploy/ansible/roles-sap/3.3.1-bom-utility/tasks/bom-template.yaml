@@ -34,7 +34,7 @@
 
 - name:                                "3.3.1 BoM Template Processing: - Set the new name"
   ansible.builtin.set_fact:
-    new_bom_name:                      "{{ bom_base_name }}{{ bom_suffix }}"
+    bom_name:                          "{{ bom_base_name }}{{ bom_suffix }}"
 
 #   0x) Create hidden directory for parameter files
 - name:                                "3.3.1 BoM Template processing: Create hidden directory"
