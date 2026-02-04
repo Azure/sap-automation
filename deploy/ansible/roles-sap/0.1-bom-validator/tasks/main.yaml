@@ -180,7 +180,7 @@
 
 - name:                                "0.1 BoM Validator - Initialize names with kernel and database"
   ansible.builtin.set_fact:
-    bom_dependencies:                  "{% if bom.materials.dependencies is defined %} {{ bom.materials.dependencies }}{% endif %}"
+    bom_dependencies:                  "{% if bom.materials.dependencies is defined %} {{ bom.materials.dependencies | items2dict }}{% endif %}"
 
 - name:                                "0.1 BoM Validator - Database BoM dependency"
   when:
