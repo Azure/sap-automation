@@ -202,7 +202,7 @@
   when:
     - database_dependency is defined
   ansible.builtin.set_fact:
-    bom_dependencies:                  "{% if bom_dependencies is defined %}{{ bom_dependencies  | combine(database_dependency, list_merge='append')  }} {% else %} {{ [ database_dependency ] }} {% endif %}"
+    bom_dependencies:                  "{% if bom_dependencies is defined %}{{ bom_dependencies  + [database_dependency]  }} {% else %} {{ [ database_dependency ] }} {% endif %}"
 
 - name:                                "0.1 BoM Validator - Informational"
   ansible.builtin.debug:
@@ -243,7 +243,7 @@
   when:
     - database_dependency is defined
   ansible.builtin.set_fact:
-    bom_dependencies:                  "{% if bom_dependencies is defined %}{{ bom_dependencies  | combine(database_dependency, list_merge='append')  }} {% else %} {{ [ database_dependency ] }} {% endif %}"
+    bom_dependencies:                  "{% if bom_dependencies is defined %}{{ bom_dependencies  + [database_dependency]  }} {% else %} {{ [ database_dependency ] }} {% endif %}"
 
 - name:                                "0.1 BoM Validator - Process kernel BOM"
   when:
