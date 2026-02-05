@@ -221,6 +221,12 @@
   ansible.builtin.set_fact:
     database_bom:                      "{{ bom }}"
 
+- name:                                "0.1 BoM Validator - Save minimumDistroVersions"
+  ansible.builtin.set_fact:
+    minimumRedHatVersion:              "{% if bom.minimumRedHatVersion is defined %}{{ bom.minimumRedHatVersion }}{% endif %}"
+    minimumSLESVersion:                "{% if bom.minimumSLESVersion is defined %}{{ bom.minimumSLESVersion }}{% endif %}"
+
+
 - name:                                "0.1 BoM Validator - Process dependent BoMs in a loop"
   ansible.builtin.include_tasks:       bom_validator.yaml
   vars:
