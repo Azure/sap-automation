@@ -284,11 +284,11 @@
       # Step: 05-03-02
       # Description:
       #
-        - name:                         "block"
-          when:
-            - bom_media_entry.checksum is defined
-            - bom_media_entry.checksum | bool is not true
-          block:
+        # - name:                         "block"
+        #   when:
+        #     - bom_media_entry.checksum is defined
+        #     - bom_media_entry.checksum | bool is not true
+        #   block:
           # ---------------------------+-------------------------------------------------8
           # Step: 05-03-02-01
           # Description:
