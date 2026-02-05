@@ -343,9 +343,9 @@
           #
             - name:                                 "Update BOM"
               ansible.builtin.set_fact:
-                bom:                                "{{ bom_update }}"
+                root_media_list:                    "{{ root_media_list_update }}"
               vars:
-                bom_update:                         "{#- -#}{% set _ = bom.materials.media[bom_media_index].update({'checksum': fs_check.stat.checksum}) -%} {{ bom }}"
+                root_media_list_update:             "{#- -#}{% set _ = root_media_list[bom_media_index].update({'checksum': fs_check.stat.checksum}) -%} {{ root_media_list }}"
           # Step: 05-03-03-01 - END
           # ---------------------------+-------------------------------------------------8
 
@@ -355,7 +355,7 @@
           #
             - name:                        "BOM: Show Entry"
               ansible.builtin.debug:
-                var:                       bom.materials.media[bom_media_index]
+                var:                       root_media_list[bom_media_index]
                 verbosity:                 1
           # Step: 05-03-03-02 - END
           # ---------------------------+-------------------------------------------------8
