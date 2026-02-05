@@ -281,7 +281,7 @@
       - "Incompatible combination of Application BOM (platform: {{ root_bom.supportedPlatforms }}) and Database BOM (platform: {{ database_bom.platform }}, version: {{ database_bom.version }})."
   when:
     - database_bom is defined
-    - database_bom.platform in root_bom.supportedPlatforms !=  or database_bom.version is not in root_bom.supportedDBVersions
+    - database_bom.platform is not in root_bom.supportedPlatforms or database_bom.version is not in root_bom.supportedDBVersions
 
 - name:                                "0.1 BoM Validator - Incompatible Application and Kernel BOM"
   ansible.builtin.fail:
