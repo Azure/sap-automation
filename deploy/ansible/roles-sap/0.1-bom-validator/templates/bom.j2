@@ -14,7 +14,9 @@ platform:             {% if root_bom.platform is defined %}{{ root_bom.platform 
 
 InstanceType:         {% if root_bom.InstanceType is defined %}{{ root_bom.InstanceType }}{% else %}ABAP{% endif %}
 
-supportedSPSVersions: {% if root_bom.supportedSPSVersions is defined %}{{ root_bom.supportedSPSVersions }}{% endif %}
+supportedPlatforms: {% if root_bom.supportedPlatforms is defined %}{{ root_bom.supportedPlatforms }}{% endif %}
+
+supportedDBVersions: {% if root_bom.supportedDBVersions is defined %}{{ root_bom.supportedDBVersions }}{% endif %}
 
 supportedKernels:     {% if root_bom.supportedKernels is defined %}{{ root_bom.supportedKernels }}{% endif %}
 
@@ -27,10 +29,10 @@ product_ids:
 {%   endfor %}
 {% endif %}
 
+{% if root_bom.patch_information is defined %}
 
 patch_information:
 
-{% if root_bom.patch_information is defined %}
 {%   for pKey,pValue in root_bom.patch_information.items() %}
 {{'  %-20s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim) }}
 {%   endfor %}

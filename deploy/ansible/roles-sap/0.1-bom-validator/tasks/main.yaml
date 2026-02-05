@@ -269,7 +269,7 @@
   ansible.builtin.debug:
     msg:
       - "Application Platform                {{ root_bom.platform | default('Not defined') }}"
-      - "Application supported SPS Versions: {{ root_bom.supportedSPSVersions | default('Not defined') }}"
+      - "Application supported SPS Versions: {{ root_bom.supportedDBVersions | default('Not defined') }}"
       - "Application supported Kernels:      {{ root_bom.supportedKernels | default('Not defined') }}"
       - "Database Platform:                  {{ database_bom.platform | default('Not defined') }}"
       - "Database Version:                   {{ database_bom.version | default('Not defined') }}"
@@ -278,10 +278,10 @@
 - name:                                "0.1 BoM Validator - Incompatible Application and Database BOM"
   ansible.builtin.fail:
     msg:
-      - "Incompatible combination of Application BOM (platform: {{ root_bom.platform }}) and Database BOM (platform: {{ database_bom.platform }}, version: {{ database_bom.version }})."
+      - "Incompatible combination of Application BOM (platform: {{ root_bom.supportedPlatforms }}) and Database BOM (platform: {{ database_bom.platform }}, version: {{ database_bom.version }})."
   when:
     - database_bom is defined
-    - root_bom.platform != database_bom.platform or database_bom.version is not in root_bom.supportedSPSVersions
+    - database_bom.platform in root_bom.supportedPlatforms !=  or database_bom.version is not in root_bom.supportedDBVersions
 
 - name:                                "0.1 BoM Validator - Incompatible Application and Kernel BOM"
   ansible.builtin.fail:
