@@ -155,14 +155,15 @@
 # Description:
 #
 - name:                                "BOM: Download File {{ bom_media_entry.archive }}"
+  when:
+    - proceed
+    - bom_media_entry.platform is undefined or bom_media_entry.platform | upper == platform
   block:
   # -----------------------------------+-----------------------------------------8
   # Step: 05-01
   # Description:
   #
     - name:                            "BOM: {{ bom_name }} Download File"
-      when:
-        - bom_media_entry.platform is undefined
       block:
       # -------------------------------+---------------------------------------------8
       # Step: 05-01-01
@@ -235,82 +236,6 @@
           # Step: 05-01-01 - END
           # ---------------------------+-------------------------------------------------8
 
-    - name:                            "BOM: {{ bom_name }} Download File for a defined platform"
-      when:
-        - bom_media_entry.platform is defined
-      block:
-      # -------------------------------+---------------------------------------------8
-      # Step: 05-01-01
-      # Description:
-      #
-        - name:                        "BOM: {{ bom_name }} Download File {{ bom_media_entry.archive }}"
-          when:
-            - bom_media_entry.platform == platform
-          ansible.builtin.get_url:
-            url:                       "{{ bom_media_entry.url | string | trim }}"
-            dest:                      "{{ download_directory }}/files/{{ bom_media_entry.archive }}"
-            tmp_dest:                  "{{ download_directory }}/tmp"
-            url_username:              "{{ s_user }}"
-            url_password:              "{{ s_password }}"
-            force_basic_auth:          true
-            http_agent:                'SAP Software Download'
-            timeout:                   60
-            mode:                      0644
-          become:                      "{{ bom_processing_become }}"
-          register:                    result
-          until:                       result is succeeded or not result.changed
-          retries:                     2
-          delay:                       1
-          no_log:                      false
-      rescue:
-      # -------------------------------+---------------------------------------------8
-      # Step: 05-01-01-on-failure-01
-      # Description:
-      #
-        - name:                        "BOM: Ensure URL is correct"
-          ansible.builtin.set_fact:
-            file_url:                  "{{ bom_media_entry.url | lower | urlsplit('scheme') }}://{{ bom_media_entry.url | lower | urlsplit('hostname') }}/{{ bom_media_entry.url | lower | urlsplit('path') | replace('\"', '') }}"
-          # Step: 05-01-01-on-failure-01 - END
-          # ---------------------------+-------------------------------------------------8
-
-          # -----------------------------------+-----------------------------------------8
-          # Step: 05-01-01-on-failure-02
-          # Description:
-          #
-        - name:                        "BOM: Ensure URL is correct"
-          ansible.builtin.debug:
-            msg:
-              - "file_url: '{{ file_url }}"
-          # Step: 05-01-01-on-failure-02 - END
-          # ---------------------------+-------------------------------------------------8
-
-          # ---------------------------+-------------------------------------------------8
-          # Step: 05-01-01-on-failure-03
-          # Description:
-          #
-        - name:                        "BOM: {{ bom_name }} Download File {{ bom_media_entry.archive }}"
-          ansible.builtin.get_url:
-            url:                       "{{ file_url | trim }}"
-            dest:                      "{{ download_directory }}/files/{{ bom_media_entry.archive }}"
-            tmp_dest:                  "{{ download_directory }}/tmp"
-            url_username:              "{{ s_user }}"
-            url_password:              "{{ s_password }}"
-            force_basic_auth:          true
-            http_agent:                'SAP Software Download'
-            timeout:                   60
-            mode:                      0644
-          # become:                      "{{ bom_processing_become }}"
-          # become_user:                 root
-          register:                    result
-          no_log:                      false
-          # failed_when:                 false
-
-          # Step: 05-01-01-on-failure-03 - END
-          # ---------------------------+-------------------------------------------------8
-
-          # Step: 05-01-01 - END
-          # ---------------------------+-------------------------------------------------8
-
 
   # Step: 05-01 - END
   # -----------------------------------+-----------------------------------------8
@@ -319,9 +244,9 @@
   # Step: 05-02
   # Description:
   #
-    - name:                            "BOM: {{ bom_name }} Download File {{ bom_media_entry.archive }}"
+    - name:                            "BOM: Show result from Download File"
       ansible.builtin.debug:
-        var:                           result
+        msg:                           "Download result: {{ result }}"
         verbosity:                     1
   # Step: 05-02 - END
   # -----------------------------------+-----------------------------------------8
@@ -338,13 +263,13 @@
       # Step: 05-03-01
       # Description:
       #
-        - name:                        "BOM: Verify Files"
+        - name:                        "BOM: Calculate checksum"
           ansible.builtin.stat:
             path:                      "{{ result.dest }}"
             checksum_algorithm:        sha256
           register:                    fs_check
 
-        - name:                        "BOM: Show Parameters"
+        - name:                        "BOM: Show Checksum"
           ansible.builtin.debug:
             msg:
               - "fs_check:         {{ fs_check }}"
@@ -369,33 +294,16 @@
           # Description:
           #
 
-            # # MKD - Interesting change to task, but ultimately leaves room for error.
-            # #       It can identify an incorrectly indented line and insert a line
-            # #       after with a fixed indentation that breaks the yaml structure.
-            # #       This was noticed in a merge conflict during resolution prior to a
-            # #       pull request for the dynamic bom
-            # - name:                        "BOM: Line"
-            #   ansible.builtin.blockinfile:
-            #     path:                      "{{ bom_file }}"
-            #     # regexp:                    '      archive:      {{ item.archive }}'
-            #     insertafter:               '^\s*archive:\s*{{ item.archive }}'
-            #     block:                     "      checksum: {{ fs_check.stat.checksum }}"
-            #     marker:                    "# {mark} ANSIBLE MANAGED BLOCK {{ item.archive }}"
+            # - name:                        "BOM: Add checksum length"
             #   when:
             #     - fs_check is defined
             #     - create_checksums is defined
             #     - bom_file is defined
-
-            - name:                        "BOM: Add checksum length"
-              when:
-                - fs_check is defined
-                - create_checksums is defined
-                - bom_file is defined
-              ansible.builtin.blockinfile:
-                path:                      "{{ bom_file }}"
-                insertafter:               '      archive:      {{ bom_media_entry.archive }}'
-                block:                     "      checksum:     {{ fs_check.stat.checksum }}"
-                marker:                    "# {mark} ANSIBLE MANAGED BLOCK {{ bom_media_entry.archive }}"
+            #   ansible.builtin.blockinfile:
+            #     path:                      "{{ bom_file }}"
+            #     insertafter:               '      archive:      {{ bom_media_entry.archive }}'
+            #     block:                     "      checksum:     {{ fs_check.stat.checksum }}"
+            #     marker:                    "# {mark} ANSIBLE MANAGED BLOCK {{ bom_media_entry.archive }}"
           # Step: 05-03-02-01 - END
           # ---------------------------+-------------------------------------------------8
 
@@ -403,17 +311,17 @@
           # Step: 05-03-02-02
           # Description:
           #
-            - name:                        "BOM: Remove begin marker"
-              ansible.builtin.lineinfile:
-                path:                      "{{ bom_file }}"
-                regexp:                    '# BEGIN ANSIBLE MANAGED BLOCK {{ bom_media_entry.archive }}'
-                state:                      absent
+            # - name:                        "BOM: Remove begin marker"
+            #   ansible.builtin.lineinfile:
+            #     path:                      "{{ bom_file }}"
+            #     regexp:                    '# BEGIN ANSIBLE MANAGED BLOCK {{ bom_media_entry.archive }}'
+            #     state:                      absent
 
-            - name:                        "BOM: Remove end marker"
-              ansible.builtin.lineinfile:
-                path:                      "{{ bom_file }}"
-                regexp:                    '# END ANSIBLE MANAGED BLOCK {{ bom_media_entry.archive }}'
-                state:                     absent
+            # - name:                        "BOM: Remove end marker"
+            #   ansible.builtin.lineinfile:
+            #     path:                      "{{ bom_file }}"
+            #     regexp:                    '# END ANSIBLE MANAGED BLOCK {{ bom_media_entry.archive }}'
+            #     state:                     absent
           # Step: 05-03-02-02 - END
           # ---------------------------+-------------------------------------------------8
 
@@ -536,7 +444,6 @@
   # Step: 05-04 - END
   # -----------------------------------+-----------------------------------------8
 
-  when: proceed
 # Step: 05 - END
 # -------------------------------------+---------------------------------------8
 
