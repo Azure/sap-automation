@@ -175,7 +175,7 @@
 - name:                                "0.1 BoM Validator - Save BOM {{ root_bom_name }} as Dictionary"
   ansible.builtin.set_fact:
     root_bom:                          "{{ bom }}"
-    platform:                          "{% if platform is undefined is defined %}{{ bom.platform | default('HANA') | upper }}{% endif %}"
+    platform:                          "{% if platform is undefined %}{{ bom.platform | default('HANA') | upper }}{% endif %}"
 # Step: 05 - END
 # -------------------------------------+---------------------------------------8
 
