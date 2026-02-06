@@ -156,6 +156,7 @@
     database_bom_name:                 "{{ bom_base_name.split('-')[1] | default('')}}"
     kernel_bom_name:                   "{{ bom_base_name.split('-')[2] | default('')}}"
     new_bom_name:                      "{{ bom_base_name.split('-')[3] | default(bom_base_name.split('-')[0]) }}{{ bom_suffix }}"
+    new_bom_file_name:                 "{{ bom_base_name.split('-')[3] | default(bom_base_name.split('-')[0]) }}{{ bom_suffix }}.yaml"
 
 - name:                                "0.1 BoM Validator - Process main BOM"
   ansible.builtin.include_tasks:       bom_validator.yaml

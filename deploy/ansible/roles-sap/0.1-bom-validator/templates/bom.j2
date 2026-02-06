@@ -2,9 +2,9 @@
 #
 # Downloaded on {{ ansible_date_time.date }} at {{ ansible_date_time.time }}
 
-name:                 {{ root_bom.name }}
+name:                 {{ new_bom_name }}
 
-filename:             {% if root_bom.filename is defined %}{{ root_bom.filename }}{% endif %}
+filename:             {% if new_bom_file_name is defined %}{{ new_bom_file_name }}{% endif %}
 
 target:               {{ root_bom.target }}
 
