@@ -529,21 +529,21 @@ required_pkgs=(
   ca-certificates
   curl
   gnupg
+  python3-pip
+  python3-virtualenv
 )
 
 cli_pkgs=(
+    azure-cli
 )
 
 # Include distro version agnostic packages into required packages list
 case "$(get_distro_name)" in
 ubuntu)
   cli_pkgs+=(
-    azure-cli
   )
   required_pkgs+=(
     sshpass
-    python3-pip
-    python3-virtualenv
     apt-transport-https
     lsb-release
     software-properties-common
@@ -552,13 +552,10 @@ ubuntu)
   ;;
 sles)
   cli_pkgs+=(
-    azure-cli
   )
   required_pkgs+=(
     curl
-    python3-pip
     lsb-release
-    python3-virtualenv
   )
   ;;
 rhel)
@@ -569,7 +566,6 @@ rhel)
   required_pkgs+=(
     sshpass
     python36
-    python3-pip
   )
   ;;
 esac
@@ -706,8 +702,8 @@ set -o xtrace
 set -o errexit
 
 # Ensure our package metadata cache is up to date
-# pkg_mgr_refresh
-# pkg_mgr_upgrade
+pkg_mgr_refresh
+pkg_mgr_upgrade
 #
 # Install latest Ansible revision of specified version for all users.
 #
