@@ -672,6 +672,7 @@ ubuntu)
   ;;
 sles)
   sudo zypper install -y azure-cli
+  export HOME="/home/$${local_user}"
   ;;
 rhel*)
   sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
@@ -863,7 +864,7 @@ export PATH="$${PATH}":"$${ansible_bin}":"$${tf_bin}":"$${DOTNET_ROOT}"
 # turn tracing off when you are here
 set +o xtrace
 if [[ -n "$${PAT}" ]]; then
-  sudo runuser -l "$${local_user}" -c '/usr/bin/az extension add -n azure-devops >/dev/null'
+  /usr/bin/az extension add -n azure-devops >/dev/null
 fi
 
 set -o xtrace
