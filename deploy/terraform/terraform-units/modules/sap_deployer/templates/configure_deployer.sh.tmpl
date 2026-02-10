@@ -964,7 +964,7 @@ if [ "$${platform}" != "github" ]; then
 
       echo "Installing Agent"
 
-      sudo runuser -l "$${local_user}" -c "$${agent_home}/config_fixed_params.sh" | sudo tee -a "$${agent_home}/log.txt"
+      su -u "$${local_user}" bash  -c "$${agent_home}/config_fixed_params.sh" | sudo tee -a "$${agent_home}/log.txt"
 
       # automatic start configuration after VM reboot
 
