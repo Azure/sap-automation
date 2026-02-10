@@ -304,56 +304,6 @@ sles15*)
 	;;
 esac
 
-echo "Set ansible version for specific distros"
-echo ""
-case "$(get_distro_name)" in
-ubuntu)
-	echo "we are inside ubuntu"
-	rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
-	if [ "$rel" == "22.04" ]; then
-		ansible_version="2.16"
-		ansible_major="${ansible_version%%.*}"
-		ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
-	fi
-	;;
-sles)
-	echo "we are inside sles"
-	if [[ "$(get_distro_version)" == 16.* ]]; then
-		ansible_version="2.16"
-	else
-		ansible_version="2.11"
-	fi
-	ansible_major="${ansible_version%%.*}"
-	ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
-	# Ansible installation directories
-	ansible_base="/opt/ansible"
-	ansible_bin="${ansible_base}/bin"
-	ansible_venv="${ansible_base}/venv/${ansible_version}"
-	ansible_venv_bin="${ansible_venv}/bin"
-	ansible_collections="${ansible_base}/collections"
-	ansible_pip3="${ansible_venv_bin}/pip3"
-	sudo python3 -m pip install virtualenv
-	;;
-rhel)
-	echo "we are inside RHEL"
-	ansible_version="2.11"
-	ansible_major="${ansible_version%%.*}"
-	ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
-	# Ansible installation directories
-	ansible_base="/opt/ansible"
-	ansible_bin="${ansible_base}/bin"
-	ansible_venv="${ansible_base}/venv/${ansible_version}"
-	ansible_venv_bin="${ansible_venv}/bin"
-	ansible_collections="${ansible_base}/collections"
-	ansible_pip3="${ansible_venv_bin}/pip3"
-	sudo python3 -m pip install virtualenv
-	;;
-*)
-	echo "we are in the default case statement"
-	;;
-esac
-
-echo "Ansible version: ${ansible_version}"
 # List of required packages whose names are common to all supported distros
 required_pkgs=(
 	git
@@ -425,6 +375,58 @@ pkg_mgr_refresh
 
 # Install required packages as determined above
 pkg_mgr_install "${required_pkgs[@]}"
+
+echo "Set ansible version for specific distros"
+echo ""
+case "$(get_distro_name)" in
+ubuntu)
+	echo "we are inside ubuntu"
+	rel=$(lsb_release -a | grep Release | cut -d':' -f2 | xargs)
+	if [ "$rel" == "22.04" ]; then
+		ansible_version="2.16"
+		ansible_major="${ansible_version%%.*}"
+		ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
+	fi
+	;;
+sles)
+	echo "we are inside sles"
+	if [[ "$(get_distro_version)" == 16.* ]]; then
+		ansible_version="2.16"
+	else
+		ansible_version="2.11"
+	fi
+	ansible_major="${ansible_version%%.*}"
+	ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
+	# Ansible installation directories
+	ansible_base="/opt/ansible"
+	ansible_bin="${ansible_base}/bin"
+	ansible_venv="${ansible_base}/venv/${ansible_version}"
+	ansible_venv_bin="${ansible_venv}/bin"
+	ansible_collections="${ansible_base}/collections"
+	ansible_pip3="${ansible_venv_bin}/pip3"
+	sudo python3 -m pip install virtualenv
+	;;
+rhel)
+	echo "we are inside RHEL"
+	ansible_version="2.16"
+	ansible_major="${ansible_version%%.*}"
+	ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
+	# Ansible installation directories
+	ansible_base="/opt/ansible"
+	ansible_bin="${ansible_base}/bin"
+	ansible_venv="${ansible_base}/venv/${ansible_version}"
+	ansible_venv_bin="${ansible_venv}/bin"
+	ansible_collections="${ansible_base}/collections"
+	ansible_pip3="${ansible_venv_bin}/pip3"
+	sudo python3 -m pip install virtualenv
+	;;
+*)
+	echo "we are in the default case statement"
+	;;
+esac
+
+echo "Ansible version: ${ansible_version}"
+
 
 # # Install required packages as determined above
 # pkg_mgr_install "${distro_required_pkgs[@]}"

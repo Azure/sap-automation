@@ -586,7 +586,6 @@ esac
 sleep 10
 set +o errexit
 pkg_mgr_install "$${required_pkgs[@]}"
-
 set -o errexit
 
 # Upgrade packages
@@ -706,6 +705,16 @@ set -o xtrace
 # Fail if any command exits with a non-zero exit status
 set -o errexit
 
+# Ensure our package metadata cache is up to date
+# pkg_mgr_refresh
+# pkg_mgr_upgrade
+#
+# Install latest Ansible revision of specified version for all users.
+#
+sudo mkdir -p \
+  "$${ansible_bin}"
+
+
 case "$(get_distro_name)" in
 rhel)
   if [[ ! -e "$${ansible_venv_bin}/activate" ]]; then
@@ -723,14 +732,6 @@ ubuntu | sles)
   ;;
 esac
 
-# Ensure our package metadata cache is up to date
-# pkg_mgr_refresh
-# pkg_mgr_upgrade
-#
-# Install latest Ansible revision of specified version for all users.
-#
-sudo mkdir -p \
-  "$${ansible_bin}"
 
 # Fail if pip3 doesn't exist in the venv
 if [[ ! -x "$${ansible_venv_bin}/pip3" ]]; then
