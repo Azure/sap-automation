@@ -2,16 +2,28 @@
 #
 # Downloaded on {{ ansible_date_time.date }} at {{ ansible_date_time.time }}
 
-name:          {{ root_bom.name }}
-filename:      {% if root_bom.filename is defined %}{{ root_bom.filename }}{% endif %}
+name:                 {{ new_bom_name }}
 
-target:        {{ root_bom.target }}
+filename:             {% if new_bom_file_name is defined %}{{ new_bom_file_name }}{% endif %}
 
-version:       {{ root_bom.version }}
+target:               {{ root_bom.target }}
 
-platform:      {% if root_bom.platform is defined %}{{ root_bom.platform }}{% endif %}
+version:              {{ root_bom.version }}
 
-InstanceType:  {% if root_bom.InstanceType is defined %}{{ root_bom.InstanceType }}{% else %}ABAP{% endif %}
+platform:             {% if root_bom.platform is defined %}{{ root_bom.platform }}{% endif %}
+
+InstanceType:         {% if root_bom.InstanceType is defined %}{{ root_bom.InstanceType }}{% else %}ABAP{% endif %}
+
+supportedPlatforms:   {% if root_bom.supportedPlatforms is defined %}{{ root_bom.supportedPlatforms }}{% endif %}
+
+supportedDBVersions:  {% if root_bom.supportedDBVersions is defined %}{{ root_bom.supportedDBVersions }}{% endif %}
+
+supportedKernels:     {% if root_bom.supportedKernels is defined %}{{ root_bom.supportedKernels }}{% endif %}
+
+minimumRedHatVersion: {% if minimumRedHatVersion is defined %}{{ minimumRedHatVersion }}{% endif %}
+
+minimumSLESVersion:   {% if minimumSLESVersion is defined %}{{ minimumSLESVersion }}{% endif %}
+
 
 
 product_ids:
@@ -22,10 +34,10 @@ product_ids:
 {%   endfor %}
 {% endif %}
 
+{% if root_bom.patch_information is defined %}
 
 patch_information:
 
-{% if root_bom.patch_information is defined %}
 {%   for pKey,pValue in root_bom.patch_information.items() %}
 {{'  %-20s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim) }}
 {%   endfor %}

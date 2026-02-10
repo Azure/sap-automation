@@ -37,6 +37,12 @@
         mode:                           0755
 
 # Preserve original BOM block
+
+- name:                                 "{{ task_prefix }}: - Check if directory for new BoM exists"
+  ansible.builtin.stat:
+    path:                               "{{ download_directory }}/bom/{{ new_bom_name }}"
+  register:                             original_bom_stats
+
 - name:                                 "{{ task_prefix }}: - Original BOM block"
   vars:
     destination:                        "{{ download_directory }}/bom/{{ new_bom_name }}"
@@ -45,6 +51,7 @@
     file_name:                          "{{ sub_path | basename }}"
     new_file_name:                      "{{ sub_path | basename }}.original"
   when:
+    - original_bom_stats.stat.exists
     - object_stats.stat.mimetype  == "text/plain"
     - file_name                   == this_bom_name + ".yaml"
   block:
@@ -78,6 +85,7 @@
     file_name:                          "{{ sub_path | basename }}"
     new_file_name:                      "{{ sub_path | basename | regex_replace(this_bom_name, new_bom_name) }}"
   when:
+    - original_bom_stats.stat.exists
     - object_stats.stat.mimetype  == "text/plain"         or
       object_stats.stat.mimetype  == "application/pdf"    or
       object_stats.stat.mimetype  == "text/xml"
