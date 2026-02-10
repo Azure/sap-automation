@@ -40,16 +40,16 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   network_rules {
                 default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
                 virtual_network_subnet_ids  = var.public_network_access_enabled ? compact([
-                                                var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
+                                                (var.infrastructure.virtual_networks.sap.subnet_db.defined||var.infrastructure.virtual_networks.sap.subnet_db.exists) ? (
                                                   var.infrastructure.virtual_networks.sap.subnet_db.exists ? var.infrastructure.virtual_networks.sap.subnet_db.id : azurerm_subnet.db[0].id) : (
                                                   null
-                                                  ), var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
+                                                  ), (var.infrastructure.virtual_networks.sap.subnet_app.defined||var.infrastructure.virtual_networks.sap.subnet_app.exists) ? (
                                                   var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.id : azurerm_subnet.app[0].id) : (
                                                   null
-                                                ), var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
-                                                  var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_web.id : azurerm_subnet.web[0].id) : (
+                                                ), (var.infrastructure.virtual_networks.sap.subnet_web.defined||var.infrastructure.virtual_networks.sap.subnet_web.exists) ? (
+                                                  var.infrastructure.virtual_networks.sap.subnet_web.exists ? var.infrastructure.virtual_networks.sap.subnet_web.id : azurerm_subnet.web[0].id) : (
                                                   null
-                                                ), var.infrastructure.virtual_networks.sap.subnet_iscsi.defined ? (
+                                                ), (var.infrastructure.virtual_networks.sap.subnet_iscsi.defined||var.infrastructure.virtual_networks.sap.subnet_iscsi.exists) ? (
                                                   var.infrastructure.virtual_networks.sap.subnet_iscsi.exists ? var.infrastructure.virtual_networks.sap.subnet_iscsi.id : azurerm_subnet.iscsi[0].id) : (
                                                   null
                                                 ), length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null,
@@ -314,10 +314,11 @@ resource "azurerm_storage_account" "transport" {
   network_rules {
                   default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
                   virtual_network_subnet_ids  = var.public_network_access_enabled ? compact([
-                                                  var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
+                                                  (var.infrastructure.virtual_networks.sap.subnet_db.defined||var.infrastructure.virtual_networks.sap.subnet_db.exists) ? (
                                                     var.infrastructure.virtual_networks.sap.subnet_db.exists ? var.infrastructure.virtual_networks.sap.subnet_db.id : azurerm_subnet.db[0].id) : (
                                                     null
-                                                    ), var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
+                                                    ), 
+                                                  (var.infrastructure.virtual_networks.sap.subnet_app.defined||var.infrastructure.virtual_networks.sap.subnet_app.exists) ? (
                                                     var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.id : azurerm_subnet.app[0].id) : (
                                                     null
                                                   ),
@@ -530,10 +531,10 @@ resource "azurerm_storage_account_network_rules" "install" {
                                                 ]) : null
 
   virtual_network_subnet_ids           = var.public_network_access_enabled ? compact([
-                                                  var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
+                                                  (var.infrastructure.virtual_networks.sap.subnet_db.defined||var.infrastructure.virtual_networks.sap.subnet_db.exists) ? (
                                                     var.infrastructure.virtual_networks.sap.subnet_db.exists ? var.infrastructure.virtual_networks.sap.subnet_db.id : azurerm_subnet.db[0].id) : (
                                                     null
-                                                    ), var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
+                                                    ), (var.infrastructure.virtual_networks.sap.subnet_app.defined||var.infrastructure.virtual_networks.sap.subnet_app.exists) ? (
                                                     var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.id : azurerm_subnet.app[0].id) : (
                                                     null
                                                   ),
