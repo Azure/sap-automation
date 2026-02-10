@@ -443,6 +443,15 @@ fi
 # Main body of script
 #
 
+if [ "$(getenforce 2>/dev/null)" = "Enforcing" ]; then
+    # Try command to generate denial
+    runuser -l "$${local_user}" -c 'true' 2>/dev/null || true
+
+    # Generate and install policy from any denials
+    ausearch -m avc -ts recent 2>/dev/null | audit2allow -M "$${local_user}"-policy 2>/dev/null || true
+    [ -f "$${local_user}"-policy.pp ] && semodule -i "$${local_user}"-policy.pp
+fi
+
 # Check for supported distro
 case "$(get_distro_name_version)" in
 sles_12*  | sles_15*)
@@ -964,7 +973,7 @@ if [ "$${platform}" != "github" ]; then
 
       echo "Installing Agent"
 
-      su -u "$${local_user}" bash  -c "$${agent_home}/config_fixed_params.sh" | sudo tee -a "$${agent_home}/log.txt"
+      sudo runuser -l "$${local_user}" -c "$${agent_home}/config_fixed_params.sh" | sudo tee -a "$${agent_home}/log.txt"
 
       # automatic start configuration after VM reboot
 
