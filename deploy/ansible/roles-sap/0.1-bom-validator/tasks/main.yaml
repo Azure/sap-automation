@@ -290,6 +290,8 @@
       - "Incompatible combination of Application BOM (platform: {{ root_bom.supportedPlatforms }}) and Database BOM (platform: {{ database_bom.platform }}, version: {{ database_bom.version }})."
   when:
     - database_bom is defined
+    - root_bom.supportedPlatforms is defined
+    - root_bom.supportedDBVersions is defined
     - (database_bom.platform is not in root_bom.supportedPlatforms) or (database_bom.version is not in root_bom.supportedDBVersions)
 
 - name:                                "0.1 BoM Validator - Incompatible Application and Kernel BOM"
@@ -299,6 +301,7 @@
   when:
     - kernel_bom is defined
     - kernel_bom.kernel is not in root_bom.supportedKernels
+    - root_bom.supportedKernels is defined
 
 # -------------------------------------+---------------------------------------8
 # Step: 06
