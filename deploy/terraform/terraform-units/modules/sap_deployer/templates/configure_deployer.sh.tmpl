@@ -445,7 +445,7 @@ fi
 
 # Check for supported distro
 case "$(get_distro_name_version)" in
-sles_12*)
+sles_12*  | sles_15*)
   error "Unsupported distro: $${distro_name_version} doesn't provide virtualenv in standard repos."
   exit 1
   ;;
@@ -485,8 +485,12 @@ ubuntu)
   ;;
 sles)
   echo "we are inside SUSE block"
-  ansible_version="2.11"
-  ansible_major="$${ansible_version%%.*}"
+  	if [[ "$(get_distro_version)" == 16.* ]]; then
+		ansible_version="2.16"
+	else
+		ansible_version="2.11"
+	fi
+	ansible_major="$${ansible_version%%.*}"
   ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
   # Ansible installation directories
   ansible_base="/opt/ansible"
@@ -499,7 +503,7 @@ sles)
   ;;
 rhel)
   echo "we are inside RHEL block"
-  ansible_version="2.11"
+  ansible_version="2.16"
   ansible_major="$${ansible_version%%.*}"
   ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
   # Ansible installation directories
@@ -547,10 +551,14 @@ ubuntu)
   )
   ;;
 sles)
+  cli_pkgs+=(
+    azure-cli
+  )
   required_pkgs+=(
     curl
     python3-pip
     lsb-release
+    python3-virtualenv
   )
   ;;
 rhel)
@@ -625,7 +633,7 @@ sudo chmod 755 "$${tf_bin}/terraform"
 
 sudo rm "/$${asad_home}/$${tf_zip}"
 
-sudo chown -R "$${local_user}" "$${tf_cache}" 
+sudo chown -R "$${local_user}" "$${tf_cache}"
 
 # Uninstall Azure CLI - For some platforms
 case "$(get_distro_name)" in
@@ -666,19 +674,7 @@ ubuntu)
   sudo apt-get install azure-cli -y
   ;;
 sles)
-  set +o errexit
-  if [ -f /home/"$${local_user}"/repos_configured ]; then
-    sudo zypper install -y --from azure-cli azure-cli
-  else
-    sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
-    repo_found=$(zypper repos | grep "Azure CLI")
-    if [ -z "$${repo_found}" ]; then
-      sudo zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli
-    fi
-    sudo touch /home/$${local_user}/repos_configured
-    sudo zypper install -y --from azure-cli azure-cli
-  fi
-  set -o errexit
+  sudo zypper install -y azure-cli
   ;;
 rhel*)
   sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
