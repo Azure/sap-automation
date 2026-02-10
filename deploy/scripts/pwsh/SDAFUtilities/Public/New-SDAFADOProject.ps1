@@ -323,6 +323,10 @@ function New-SDAFADOProject {
 
       Write-Verbose "Creating service connection: $ConnectionName"
       az devops service-endpoint create --service-endpoint-configuration $JsonInputFile --organization $AdoOrganization --project $AdoProject --output none --only-show-errors
+      if ($LASTEXITCODE -ne 0) {
+        Write-Error "Failed to create service connection '$ConnectionName'"
+        throw "Service connection creation failed"
+      }
       Write-Host "Service connection '$ConnectionName' created successfully." -ForegroundColor Green
 
       if (Test-Path $JsonInputFile) {

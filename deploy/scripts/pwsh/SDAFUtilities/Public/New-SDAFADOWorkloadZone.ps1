@@ -227,6 +227,10 @@ function New-SDAFADOWorkloadZone {
 
       Write-Verbose "Creating service connection: $ConnectionName"
       az devops service-endpoint create --service-endpoint-configuration $JsonInputFile --organization $AdoOrganization --project $AdoProject --output none --only-show-errors
+      if ($LASTEXITCODE -ne 0) {
+        Write-Error "Failed to create service connection '$ConnectionName'"
+        throw "Service connection creation failed"
+      }
       Write-Host "Service connection '$ConnectionName' created successfully." -ForegroundColor Green
 
       if (Test-Path $JsonInputFile) {
@@ -402,6 +406,9 @@ function New-SDAFADOWorkloadZone {
         throw "Project not found"
       }
 
+      Write-Verbose "Setting Azure DevOps defaults: organization=$AdoOrganization project=$AdoProject"
+      az devops configure --defaults organization=$AdoOrganization project="$AdoProject"
+
       $ControlPlaneVariableGroupId = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
       $AgentPoolName = ""
       if ($ControlPlaneVariableGroupId.Length -ne 0) {
@@ -427,7 +434,7 @@ function New-SDAFADOWorkloadZone {
 
         if ($ManagedIdentityId.Length -ne 0) {
           $ResourceGroupName = $ManagedIdentityId.Split("/")[4]
-          $ManagedIdentityClientId = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].id" --subscription $ControlPlaneSubscriptionId --resource-group $ResourceGroupName --output tsv)
+          $ManagedIdentityClientId = $(az identity list --query "[?principalId=='$ManagedIdentityObjectId'].clientId" --subscription $ControlPlaneSubscriptionId --resource-group $ResourceGroupName --output tsv)
           Write-Verbose "Client ID of the Managed Identity: $ManagedIdentityClientId"
           if ($ManagedIdentityClientId.Length -eq 0) {
             Write-Error "Managed Identity with Object ID $ManagedIdentityObjectId was not found in subscription $ControlPlaneSubscriptionId"
@@ -547,16 +554,38 @@ function New-SDAFADOWorkloadZone {
         if ($ServiceConnectionExists.Length -eq 0) {
           Write-Host "Creating Service Endpoint" $ServiceConnectionName -ForegroundColor Green
           az devops service-endpoint azurerm create --azure-rm-service-principal-id $WorkloadZoneClientId --azure-rm-subscription-id $WorkloadZoneSubscriptionId --azure-rm-subscription-name $WorkloadZoneSubscriptionName --azure-rm-tenant-id $WorkloadZoneTenantId --name $ServiceConnectionName --output none --only-show-errors
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to create service connection '$ServiceConnectionName'"
+            throw "Service connection creation failed"
+          }
+          Write-Host "Service connection '$ServiceConnectionName' created successfully." -ForegroundColor Green
           $ServiceConnectionId = az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].id" -o tsv
           az devops service-endpoint update --id $ServiceConnectionId --enable-for-all true --output none --only-show-errors
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to enable service connection '$ServiceConnectionName' for all pipelines"
+            throw "Service connection update failed"
+          }
         }
         else {
           Write-Host "Service Endpoint already exists, recreating it with the updated credentials" -ForegroundColor Green
           $ServiceConnectionId = az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].id" -o tsv
           az devops service-endpoint delete --id $ServiceConnectionId --yes
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to delete existing service connection '$ServiceConnectionName'"
+            throw "Service connection deletion failed"
+          }
           az devops service-endpoint azurerm create --azure-rm-service-principal-id $WorkloadZoneClientId --azure-rm-subscription-id $WorkloadZoneSubscriptionId --azure-rm-subscription-name $WorkloadZoneSubscriptionName --azure-rm-tenant-id $WorkloadZoneTenantId --name $ServiceConnectionName --output none --only-show-errors
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to recreate service connection '$ServiceConnectionName'"
+            throw "Service connection creation failed"
+          }
+          Write-Host "Service connection '$ServiceConnectionName' recreated successfully." -ForegroundColor Green
           $ServiceConnectionId = az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].id" -o tsv
           az devops service-endpoint update --id $ServiceConnectionId --enable-for-all true --output none --only-show-errors
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to enable service connection '$ServiceConnectionName' for all pipelines"
+            throw "Service connection update failed"
+          }
         }
       }
 
