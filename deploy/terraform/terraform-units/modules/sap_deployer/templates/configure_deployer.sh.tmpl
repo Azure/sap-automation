@@ -691,15 +691,6 @@ ubuntu)
   ;;
 esac
 
-# If the deployer will be an ADO agent install the devops cli
-# turn tracing off when you are here
-set +o xtrace
-if [[ -n "$${PAT}" ]]; then
-  az extension add -n azure-devops >/dev/null
-fi
-
-set -o xtrace
-
 # Fail if any command exits with a non-zero exit status
 set -o errexit
 
@@ -867,6 +858,16 @@ export PATH="$${PATH}":"$${ansible_bin}":"$${tf_bin}":"$${DOTNET_ROOT}"
 (echo export ARM_USE_MSI=true | sudo tee -a /etc/profile.d/deploy_server.sh) >/dev/null 2>&1
 (echo export ARM_TENANT_ID="$${ARM_TENANT_ID}" | sudo tee -a /etc/profile.d/deploy_server.sh) >/dev/null 2>&1
 (echo export ARM_CLIENT_ID="$${ARM_CLIENT_ID}" | sudo tee -a /etc/profile.d/deploy_server.sh) >/dev/null 2>&1
+
+# If the deployer will be an ADO agent install the devops cli
+# turn tracing off when you are here
+set +o xtrace
+if [[ -n "$${PAT}" ]]; then
+  sudo runuser -l "$${local_user}" -c '/usr/bin/az extension add -n azure-devops >/dev/null'
+fi
+
+set -o xtrace
+
 
 # if [[ -n $${TOKEN} ]]; then
 #     echo export AZURE_DEVOPS_EXT_PAT=$${TOKEN} | sudo tee -a /etc/profile.d/deploy_server.sh
