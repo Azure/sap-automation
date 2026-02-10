@@ -285,14 +285,19 @@ esac
 if [ "$(get_distro_version)" == "15.4" ]; then
 	error "Unsupported distro: ${distro_name_version} at this time."
 	exit 1
-fi
-if [ "$(get_distro_version)" == "15.5" ]; then
+elif [ "$(get_distro_version)" == "15.5" ]; then
+	error "Unsupported distro: ${distro_name_version} at this time."
+	exit 1
+elif [ "$(get_distro_version)" == "15.6" ]; then
+	error "Unsupported distro: ${distro_name_version} at this time."
+	exit 1
+elif [ "$(get_distro_version)" == "15.7" ]; then
 	error "Unsupported distro: ${distro_name_version} at this time."
 	exit 1
 fi
 
 case "$(get_distro_name_version)" in
-sles*)
+sles15*)
 	set +o errexit
 	zypper addrepo https://download.opensuse.org/repositories/network/SLE_15/network.repo
 	set -o errexit
@@ -313,7 +318,11 @@ ubuntu)
 	;;
 sles)
 	echo "we are inside sles"
-	ansible_version="2.11"
+	if [[ "$(get_distro_version)" == 16.* ]]; then
+		ansible_version="2.16"
+	else
+		ansible_version="2.11"
+	fi
 	ansible_major="${ansible_version%%.*}"
 	ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
 	# Ansible installation directories
@@ -375,10 +384,14 @@ ubuntu)
 	)
 	;;
 sles)
+	cli_pkgs+=(
+		azure-cli
+	)
 	required_pkgs+=(
 		curl
 		python3-pip
 		lsb-release
+		python3-virtualenv
 	)
 	;;
 rhel)
@@ -506,17 +519,7 @@ ubuntu)
 	;;
 sles)
 	set +o errexit
-	if [ -f /home/"${local_user}"/repos_configured ]; then
-		sudo zypper install -y --from azure-cli azure-cli
-	else
-		sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
-		repo_found=$(zypper repos | grep "Azure CLI")
-		if [ -z "$repo_found" ]; then
-			sudo zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli
-		fi
-		sudo touch /home/${local_user}/repos_configured
-		sudo zypper install -y --from azure-cli azure-cli
-	fi
+  sudo zypper install -y  azure-cli
 	set -o errexit
 	;;
 rhel*)
