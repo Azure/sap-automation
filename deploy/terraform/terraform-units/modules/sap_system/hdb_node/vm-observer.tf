@@ -120,5 +120,11 @@ resource "azurerm_linux_virtual_machine" "observer" {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
 
-}
+  lifecycle {
+    ignore_changes = [
+      "source_image_id",
+      "source_image_reference[0]"
+    ]
+  }
 
+}
