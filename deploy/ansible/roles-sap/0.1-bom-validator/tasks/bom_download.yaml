@@ -257,6 +257,7 @@
   #
     - name:                            "BOM: Create checksums"
       when:
+        - create_checksums | default(false) | bool
         - bom_media_entry.checksum is not defined
       block:
       # -------------------------------+---------------------------------------------8
