@@ -256,6 +256,7 @@ resource "local_file" "sap-parameters_yml" {
               subnet_cidr_db              = trimspace(coalesce(var.subnet_cidr_db," ")),
               subnet_cidr_storage         = trimspace(coalesce(var.subnet_cidr_storage," ")),
               upgrade_packages            = var.upgrade_packages ? "true" : "false"
+              suse_subscription_id        = var.suse_subscription_id
               use_msi_for_clusters        = var.use_msi_for_clusters
               usr_sap                     = length(var.usr_sap) > 1 ? (
                                               format("usr_sap_mountpoint:            %s", var.usr_sap)) : (

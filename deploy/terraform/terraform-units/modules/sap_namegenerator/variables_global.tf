@@ -211,6 +211,7 @@ variable "region_mapping" {
     "francesouth"        = "frso"
     "germanynorth"       = "geno"
     "germanywestcentral" = "gewc"
+    "indonesiacentral"   = "ince"
     "israelcentral"      = "isce"
     "italynorth"         = "itno"
     "japaneast"          = "jaea"

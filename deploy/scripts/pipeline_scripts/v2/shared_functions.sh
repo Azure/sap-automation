@@ -191,6 +191,7 @@ function region_with_region_map() {
 	"GENO") LOCATION_IN_FILENAME="germanynorth" ;;
 	"GEWE") LOCATION_IN_FILENAME="germanywest" ;;
 	"GEWC") LOCATION_IN_FILENAME="germanywestcentral" ;;
+	"INCE") LOCATION_IN_FILENAME="indonesiacentral" ;;
 	"ISCE") LOCATION_IN_FILENAME="israelcentral" ;;
 	"ITNO") LOCATION_IN_FILENAME="italynorth" ;;
 	"JAEA") LOCATION_IN_FILENAME="japaneast" ;;

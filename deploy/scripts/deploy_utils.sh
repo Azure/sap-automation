@@ -515,6 +515,7 @@ function get_region_code() {
 	"francesouth") export region_code="FRSO" ;;
 	"germanynorth") export region_code="GENO" ;;
 	"germanywestcentral") export region_code="GEWC" ;;
+	"indonesiacentral") export region_code="INCE" ;;
 	"israelcentral") export region_code="ISCE" ;;
 	"italynorth") export region_code="ITNO" ;;
 	"japaneast") export region_code="JAEA" ;;

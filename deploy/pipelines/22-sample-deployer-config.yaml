@@ -37,6 +37,7 @@ parameters:
       - FRSO
       - GENO
       - GEWC
+      - INCE
       - ISCE
       - ITNO
       - JAEA
@@ -135,6 +136,7 @@ stages:
                         "FRSO" { "francesouth" }
                         "GENO" { "germanynorth" }
                         "GEWC" { "germanywestcentral" }
+                        "INCE" { "indonesiacentral" }
                         "ISCE" { "israelcentral" }
                         "ITNO" { "italynorth" }
                         "JAEA" { "japaneast" }

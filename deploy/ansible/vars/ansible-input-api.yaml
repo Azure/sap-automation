@@ -17,6 +17,7 @@ SDAF_Version:                           "3.17.0.1"
 chrony_pool:                            ""
 chrony_servers:                         []
 timezone:                               "Etc/GMT"
+suse_subscription_id:                   ""                                      # SUSE registration code for BYOS/BYOL images. Leave empty for PAYG marketplace images.
 # -------------------- End - OS Config Settings variables --------------------8
 
 # --------------------- Begin - BOM Processing variables ---------------------8

@@ -194,6 +194,10 @@ variable "subnet_cidr_storage"                  { description = "address prefix 
 variable "tfstate_resource_id"                  { description = "Resource ID for tf state file" }
 variable "upgrade_packages"                     { description = "Upgrade packages" }
 variable "use_AFS_encryption_in_transit"        { description = "Indicates if Encryption in transit is enabled for AFS shares" }
+variable "suse_subscription_id"                  {
+                                                  description = "SUSE registration code for BYOS/BYOL images"
+                                                  default     = ""
+                                                }
 variable "use_custom_dns_a_registration"        {
                                                   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
                                                   default     = false
