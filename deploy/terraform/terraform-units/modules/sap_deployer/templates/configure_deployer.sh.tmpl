@@ -478,6 +478,14 @@ if [ "$(get_distro_version)" == "15.5" ]; then
   error "Unsupported distro: $${distro_name_version} at this time."
   exit 1
 fi
+if [ "$(get_distro_version)" == "15.6" ]; then
+  error "Unsupported distro: $${distro_name_version} at this time."
+  exit 1
+fi
+if [ "$(get_distro_version)" == "15.7" ]; then
+  error "Unsupported distro: $${distro_name_version} at this time."
+  exit 1
+fi
 
 # List of required packages whose names are common to all supported distros
 required_pkgs=(
