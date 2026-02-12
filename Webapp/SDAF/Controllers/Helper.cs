@@ -46,6 +46,7 @@ namespace SDAFWebApp.Controllers
                 {"francesouth", "frso"},
                 {"germanynorth", "geno"},
                 {"germanywestcentral", "gewc"},
+                {"indonesiacentral", "ince"},
                 {"japaneast", "jaea"},
                 {"japanwest", "jawe"},
                 {"jioindiacentral", "jinc"},

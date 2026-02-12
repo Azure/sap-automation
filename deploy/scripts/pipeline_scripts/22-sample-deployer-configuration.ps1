@@ -30,6 +30,7 @@ $region = switch ("$Env:DEPLOYER_REGION") {
   "FRSO" { "francesouth" }
   "GENO" { "germanynorth" }
   "GEWC" { "germanywestcentral" }
+  "INCE" { "indonesiacentral" }
   "JAEA" { "japaneast" }
   "JAWE" { "japanwest" }
   "JINC" { "jioindiacentral" }
