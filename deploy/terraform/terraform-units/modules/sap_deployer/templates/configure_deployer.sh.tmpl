@@ -573,12 +573,12 @@ ubuntu)
   ;;
 sles)
   echo "we are inside SUSE block"
-  	if [[ "$(get_distro_version)" == 16.* ]]; then
-		ansible_version="2.16"
-	else
-		ansible_version="2.11"
-	fi
-	ansible_major="$${ansible_version%%.*}"
+  if [[ "$(get_distro_version)" == 16.* ]]; then
+    ansible_version="2.16"
+  else
+    ansible_version="2.11"
+  fi
+  ansible_major="$${ansible_version%%.*}"
   ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
   # Ansible installation directories
   ansible_base="/opt/ansible"
