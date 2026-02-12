@@ -204,7 +204,7 @@
         - name:                        "BOM: Show file URL"
           ansible.builtin.debug:
             msg:
-              - "file_url: '{{ file_url }}"
+              - "file_url: '{{ file_url }}'"
             verbosity:                 1
           # Step: 05-01-01-on-failure-02 - END
           # ---------------------------+-------------------------------------------------8
