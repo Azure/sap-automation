@@ -292,7 +292,7 @@
     - database_bom is defined
     - root_bom.supportedPlatforms is defined
     - root_bom.supportedDBVersions is defined
-    - (database_bom.platform is not in root_bom.supportedPlatforms) or (database_bom.version is not in root_bom.supportedDBVersions)
+    - (database_bom.platform not in root_bom.supportedPlatforms) or (database_bom.version not in root_bom.supportedDBVersions)
 
 - name:                                "0.1 BoM Validator - Incompatible Application and Kernel BOM"
   ansible.builtin.fail:
@@ -301,7 +301,7 @@
   when:
     - kernel_bom is defined
     - root_bom.supportedKernels is defined
-    - kernel_bom.kernel is not in root_bom.supportedKernels
+    - kernel_bom.kernel not in root_bom.supportedKernels
 
 # -------------------------------------+---------------------------------------8
 # Step: 06
