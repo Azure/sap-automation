@@ -346,6 +346,7 @@ sles)
 		curl
 		python3-pip
 		lsb-release
+		libicu77
 		python3-virtualenv
 	)
 	;;
