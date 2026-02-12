@@ -216,6 +216,18 @@ variable "enable_firewall_for_keyvaults_and_storage" {
                                                        type        = bool
                                                      }
 
+variable "use_AFS_for_shared_storage"            {
+                                                    description = "If true, will use AFS for installation media."
+                                                    type        = bool
+                                                    default     = false
+                                                 }
+
+variable "AFS_enable_encryption_in_transit"      {
+                                                    description = "Enable encryption in transit for Azure Files"
+                                                    type        = bool
+                                                    default     = false
+                                                 }
+
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #
@@ -223,9 +235,9 @@ variable "enable_firewall_for_keyvaults_and_storage" {
 #########################################################################################
 
 
-variable "dns_settings"                                 {
-                                                          description = "DNS Settings"
-                                                        }
+variable "dns_settings"                          {
+                                                    description = "DNS Settings"
+                                                 }
 variable "sapmnt_private_endpoint_id"            {
                                                     description = "Azure Resource Identifier for an private endpoint connection"
                                                     type        = string

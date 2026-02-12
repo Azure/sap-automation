@@ -19,7 +19,7 @@ namespace SDAFWebApp.Models
                 network_logical_name != null
                 ;
         }
-        
+
         [DisplayName("Workload zone ID")]
         public string Id { get; set; }
 
@@ -352,6 +352,8 @@ namespace SDAFWebApp.Models
         public bool? use_AFS_for_installation_media { get; set; } = true;
 
         public bool? use_AFS_for_shared_storage { get; set; } = true;
+
+        public bool? AFS_enable_encryption_in_transit { get; set; } = true;
 
         public bool? create_transport_storage { get; set; } = true;
 

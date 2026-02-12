@@ -71,6 +71,34 @@
     msg:                               "Swap size: {{ swap_size }}"
     verbosity:                         2
 
+- name:                                "1.1 Swap - Configure NVMe VMs for Swap"
+  when:                                use_nvme_disks and swap_size == 0
+  block:
+    # copy nvme disk config script for temporary disks
+    - name:                            "1.1 Swap - Create Azure NVMe temp disk configuration helper script"
+      ansible.builtin.copy:
+        src:                           88-azure-nvme-swap-conf
+        dest:                          /usr/local/bin/azure-nvme-swap-conf
+        mode:                          '0755'
+        owner:                         root
+        group:                         root
+        force:                         true
+      register:                        helper_script_created
+
+    # touch /etc/mdadm/mdadm.conf to avoid errors in the script
+    - name:                            "1.1 Swap - Ensure /etc/mdadm/mdadm.conf exists"
+      ansible.builtin.file:
+        path:                          /etc/mdadm/mdadm.conf
+        mode:                          '0644'
+        state:                         touch
+      when:                            helper_script_created is changed
+
+    # run the nvme disk config script
+    - name:                            "1.1 Swap - Run Azure NVMe temp disk configuration helper script"
+      ansible.builtin.command:         /usr/local/bin/azure-nvme-swap-conf ext4 /mnt/resource
+      register:                        nvme_swap_configured
+      changed_when:                    nvme_swap_configured.rc == 0 and "'No changes were necessary' not in nvme_swap_configured.stdout"
+
 - name:                                "1.1 Swap - Check for (waagent_conf)"
   ansible.builtin.stat:
     path:                              /etc/waagent.conf

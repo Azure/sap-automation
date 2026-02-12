@@ -47,10 +47,10 @@ locals {
   // If the environment deployment created a route table use it to populate a route
   route_table_name                     = try(split("/", var.landscape_tfstate.route_table_id)[8], "")
 
-  db_ha = try(var.database.high_availability, "false")
+  db_ha                                = try(var.database.high_availability, "false")
 
   //If custom image is used, we do not overwrite os reference with default value
-  db_custom_image = try(var.database.os.source_image_id, "") != "" ? true : false
+  db_custom_image                      = try(var.database.os.source_image_id, "") != "" ? true : false
 
   db_os = {
     "source_image_id"                  = local.db_custom_image ? var.database.os.source_image_id : ""
@@ -119,6 +119,11 @@ locals {
   use_ANF                              = try(var.database.use_ANF, false)
   //Scalout subnet is needed if ANF is used and there are more than one hana node
 
+  //use AFS for shared storage even when NFS provider is ANF
+  use_AFS_for_shared                   = (var.NFS_provider == "ANF" && var.use_AFS_for_shared_storage) || var.NFS_provider == "AFS"
+  // encryption in transit for AFS
+  use_AFS_encryption_in_transit        = var.AFS_enable_encryption_in_transit
+
   //Anchor VM
   deploy_anchor                        = try(var.infrastructure.anchor_vms.deploy, false)
   anchor_auth_type                     = try(var.infrastructure.anchor_vms.authentication.type, "key")
@@ -135,36 +140,36 @@ locals {
                                            try(var.infrastructure.anchor_vms.os.source_image_id, "")
                                          ) > 0
 
-  anchor_os = local.deploy_anchor ? (
-                 {
-                   "source_image_id" = local.anchor_custom_image ? (
-                     var.infrastructure.anchor_vms.os.source_image_id) : (
-                     ""
-                   )
-                   "publisher" = try(var.infrastructure.anchor_vms.os.publisher,
-                     local.anchor_custom_image ? (
-                       "") : (
-                       local.db_os.publisher
-                     )
-                   )
-                   "offer" = try(var.infrastructure.anchor_vms.os.offer,
-                     local.anchor_custom_image ? (
-                       "") : (
-                     local.db_os.offer)
-                   )
-                   "sku" = try(var.infrastructure.anchor_vms.os.sku,
-                     local.anchor_custom_image ? (
-                       "") : (
-                     local.db_os.sku)
-                   )
-                   "version" = try(var.infrastructure.anchor_vms.os.version,
-                     local.anchor_custom_image ? (
-                       "") : (
-                     local.db_os.version)
-                   )
-                 }) : (
-                 null
-               )
+  anchor_os                            = local.deploy_anchor ? (
+                                            {
+                                              "source_image_id" = local.anchor_custom_image ? (
+                                                var.infrastructure.anchor_vms.os.source_image_id) : (
+                                                ""
+                                              )
+                                              "publisher" = try(var.infrastructure.anchor_vms.os.publisher,
+                                                local.anchor_custom_image ? (
+                                                  "") : (
+                                                  local.db_os.publisher
+                                                )
+                                              )
+                                              "offer" = try(var.infrastructure.anchor_vms.os.offer,
+                                                local.anchor_custom_image ? (
+                                                  "") : (
+                                                local.db_os.offer)
+                                              )
+                                              "sku" = try(var.infrastructure.anchor_vms.os.sku,
+                                                local.anchor_custom_image ? (
+                                                  "") : (
+                                                local.db_os.sku)
+                                              )
+                                              "version" = try(var.infrastructure.anchor_vms.os.version,
+                                                local.anchor_custom_image ? (
+                                                  "") : (
+                                                local.db_os.version)
+                                              )
+                                            }) : (
+                                            null
+                                          )
 
   anchor_ostype                        = upper(try(var.infrastructure.anchor_vms.os.os_type, local.db_ostype))
 
@@ -218,19 +223,19 @@ locals {
   #
   ##############################################################################################
 
-  admin_subnet_nsg_name                           = var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists_in_workload ? (
-                                                    split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_admin.nsg.id, var.infrastructure.virtual_networks.sap.subnet_admin.nsg.id_in_workload)))[8] : (
-                                                    coalesce(var.infrastructure.virtual_networks.sap.subnet_admin.nsg.name,
-                                                             format("%s%s%s%s",
-                                                               var.naming.resource_prefixes.admin_subnet_nsg,
-                                                               length(local.prefix) > 0 ? (
-                                                                 local.prefix) : (
-                                                                 var.infrastructure.environment
-                                                                ),
-                                                               var.naming.separator,
-                                                               local.resource_suffixes.admin_subnet_nsg)
-                                                    )
-                                                  )
+  admin_subnet_nsg_name                = var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_admin.nsg.exists_in_workload ? (
+                                         split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_admin.nsg.id, var.infrastructure.virtual_networks.sap.subnet_admin.nsg.id_in_workload)))[8] : (
+                                         coalesce(var.infrastructure.virtual_networks.sap.subnet_admin.nsg.name,
+                                                  format("%s%s%s%s",
+                                                    var.naming.resource_prefixes.admin_subnet_nsg,
+                                                    length(local.prefix) > 0 ? (
+                                                      local.prefix) : (
+                                                      var.infrastructure.environment
+                                                     ),
+                                                    var.naming.separator,
+                                                    local.resource_suffixes.admin_subnet_nsg)
+                                         )
+                                       )
 
   ##############################################################################################
   #
@@ -239,21 +244,21 @@ locals {
   ##############################################################################################
 
 
-  database_subnet_name                    = var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
-                                           coalesce(split("/", var.infrastructure.virtual_networks.sap.subnet_db.id)[10],
-                                                    var.infrastructure.virtual_networks.sap.subnet_db.name,
-                                                    format("%s%s%s%s",
-                                                      var.naming.resource_prefixes.db_subnet,
-                                                      length(local.prefix) > 0 ? (
-                                                        local.prefix) : (
-                                                        var.infrastructure.environment
-                                                      ),
-                                                      var.naming.separator,
-                                                      local.resource_suffixes.db_subnet))): (
-                                           can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.subnet_db.id_in_workload)) ? (
-                                                    try(split("/", var.infrastructure.virtual_networks.sap.subnet_db.id_in_workload)[10], "")) :
-                                                    ""
-                                                      )
+  database_subnet_name                 = var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
+                                        coalesce(split("/", var.infrastructure.virtual_networks.sap.subnet_db.id)[10],
+                                                 var.infrastructure.virtual_networks.sap.subnet_db.name,
+                                                 format("%s%s%s%s",
+                                                   var.naming.resource_prefixes.db_subnet,
+                                                   length(local.prefix) > 0 ? (
+                                                     local.prefix) : (
+                                                     var.infrastructure.environment
+                                                   ),
+                                                   var.naming.separator,
+                                                   local.resource_suffixes.db_subnet))): (
+                                        can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.subnet_db.id_in_workload)) ? (
+                                                 try(split("/", var.infrastructure.virtual_networks.sap.subnet_db.id_in_workload)[10], "")) :
+                                                 ""
+                                                   )
 
   ##############################################################################################
   #
@@ -261,19 +266,19 @@ locals {
   #
   ##############################################################################################
 
-  database_subnet_nsg_name                        = var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists_in_workload ? (
-                                                    split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_db.nsg.id, var.infrastructure.virtual_networks.sap.subnet_db.nsg.id_in_workload)))[8] : (
-                                                    coalesce(var.infrastructure.virtual_networks.sap.subnet_db.nsg.name,
-                                                             format("%s%s%s%s",
-                                                               var.naming.resource_prefixes.db_subnet_nsg,
-                                                               length(local.prefix) > 0 ? (
-                                                                 local.prefix) : (
-                                                                 var.infrastructure.environment
-                                                                ),
-                                                               var.naming.separator,
-                                                               local.resource_suffixes.db_subnet_nsg)
-                                                    )
-                                                  )
+  database_subnet_nsg_name             = var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_db.nsg.exists_in_workload ? (
+                                         split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_db.nsg.id, var.infrastructure.virtual_networks.sap.subnet_db.nsg.id_in_workload)))[8] : (
+                                         coalesce(var.infrastructure.virtual_networks.sap.subnet_db.nsg.name,
+                                                  format("%s%s%s%s",
+                                                    var.naming.resource_prefixes.db_subnet_nsg,
+                                                    length(local.prefix) > 0 ? (
+                                                      local.prefix) : (
+                                                      var.infrastructure.environment
+                                                     ),
+                                                    var.naming.separator,
+                                                    local.resource_suffixes.db_subnet_nsg)
+                                         )
+                                       )
 
 
   # ##############################################################################################
@@ -321,37 +326,37 @@ locals {
 
   //Storage subnet
 
-  storage_subnet_name                    = var.infrastructure.virtual_networks.sap.subnet_storage.defined ? (
-                                           coalesce(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id)[10],
-                                                    var.infrastructure.virtual_networks.sap.subnet_storage.name,
-                                                    format("%s%s%s%s",
-                                                      var.naming.resource_prefixes.storage_subnet,
-                                                      length(local.prefix) > 0 ? (
-                                                        local.prefix) : (
-                                                        var.infrastructure.environment
+  storage_subnet_name                  = var.infrastructure.virtual_networks.sap.subnet_storage.defined ? (
+                                         coalesce(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id)[10],
+                                                  var.infrastructure.virtual_networks.sap.subnet_storage.name,
+                                                  format("%s%s%s%s",
+                                                    var.naming.resource_prefixes.storage_subnet,
+                                                    length(local.prefix) > 0 ? (
+                                                      local.prefix) : (
+                                                      var.infrastructure.environment
+                                                    ),
+                                                    var.naming.separator,
+                                                    local.resource_suffixes.storage_subnet))): (
+                                         contains(keys(var.infrastructure.virtual_networks.sap), "subnet_storage") ?
+                                            can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload)) ?
+                                              try(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload)[10], "") :
+                                              "":
+                                            "")
+
+
+  storage_subnet_nsg_name              = var.infrastructure.virtual_networks.sap.subnet_storage.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_storage.nsg.exists_in_workload ? (
+                                          split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_storage.nsg.id, var.infrastructure.virtual_networks.sap.subnet_storage.nsg.id_in_workload)))[8] : (
+                                          coalesce(var.infrastructure.virtual_networks.sap.subnet_storage.nsg.name,
+                                                   format("%s%s%s%s",
+                                                     var.naming.resource_prefixes.storage_subnet_nsg,
+                                                     length(local.prefix) > 0 ? (
+                                                       local.prefix) : (
+                                                       var.infrastructure.environment
                                                       ),
-                                                      var.naming.separator,
-                                                      local.resource_suffixes.storage_subnet))): (
-                                           contains(keys(var.infrastructure.virtual_networks.sap), "subnet_storage") ?
-                                              can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload)) ?
-                                                try(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload)[10], "") :
-                                                "":
-                                              "")
-
-
-  storage_subnet_nsg_name                = var.infrastructure.virtual_networks.sap.subnet_storage.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_storage.nsg.exists_in_workload ? (
-                                            split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_storage.nsg.id, var.infrastructure.virtual_networks.sap.subnet_storage.nsg.id_in_workload)))[8] : (
-                                            coalesce(var.infrastructure.virtual_networks.sap.subnet_storage.nsg.name,
-                                                     format("%s%s%s%s",
-                                                       var.naming.resource_prefixes.storage_subnet_nsg,
-                                                       length(local.prefix) > 0 ? (
-                                                         local.prefix) : (
-                                                         var.infrastructure.environment
-                                                        ),
-                                                       var.naming.separator,
-                                                       local.resource_suffixes.storage_subnet_nsg)
-                                            )
+                                                     var.naming.separator,
+                                                     local.resource_suffixes.storage_subnet_nsg)
                                           )
+                                        )
 
   // If the user specifies arm id of key vaults in input,
   // the key vault will be imported instead of using the landscape key vault
@@ -429,7 +434,7 @@ locals {
                                            var.database.use_ppg) : (
                                            var.application_tier.app_use_ppg || var.application_tier.scs_use_ppg || var.application_tier.web_use_ppg || var.database.use_ppg
                                          )
-deployment_type                        = var.application_tier.enable_deployment ? (
+  deployment_type                      = var.application_tier.enable_deployment ? (
                                            (
                                              var.database.scale_out ? (
                                                "SCALEOUT") : (

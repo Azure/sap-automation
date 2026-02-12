@@ -33,7 +33,7 @@ jobs:
           ansible-galaxy collection install ansible.utils --force
           ansible-galaxy collection install ansible.netcommon:5.1.2 --force
           ansible-galaxy collection install community.windows --force
-          ansible-galaxy collection install community.general --force
+          ansible-galaxy collection install community.general:11.4.1 --force
           ansible-galaxy collection install microsoft.ad --force
 
       - name: Run ansible-lint

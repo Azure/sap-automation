@@ -19,6 +19,7 @@
         'pas_inst_no': '{{ pas_instance_number }}',
         'app_inst_no': '{{ app_instance_number }}'
       }
+    nfs_fs_type:                       "{% if use_eit_for_afs %}'aznfs'{% else %}'nfs4'{% endif %}"
 
 - name:                                "2.6.0 AFS Mounts - Create list of all_sap_mounts to support "
   ansible.builtin.set_fact:
@@ -33,7 +34,11 @@
 
 - name:                                "2.6.0 AFS Mounts - Set the NFSmount options"
   ansible.builtin.set_fact:
-    afs_mnt_options:                   'noresvport,vers=4,minorversion=1,sec=sys'
+    afs_mnt_options: |-
+                                       {% if use_eit_for_afs %}
+                                       'noresvport,vers=4,minorversion=1,sec=sys,nolock,proto=tcp,nofail,_netdev'
+                                       {% else %}
+                                       'noresvport,vers=4,minorversion=1,sec=sys'
 
 - name:                                "2.6.0 AFS Mounts - Create list of all_sap_mounts to support"
   ansible.builtin.debug:
@@ -94,7 +99,7 @@
               ansible.posix.mount:
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
-                fstype:                "nfs4"
+                fstype:                "{{ nfs_fs_type }}"
                 opts:                  "{{ afs_mnt_options }}"
                 state:                 mounted
 
@@ -111,7 +116,7 @@
               ansible.posix.mount:
                 src:                   "{{ sap_mnt }}"
                 path:                  "/saptmp"
-                fstype:                "nfs4"
+                fstype:                "{{ nfs_fs_type }}"
                 opts:                  "{{ afs_mnt_options }}"
                 state:                 mounted
 
@@ -163,7 +168,7 @@
           ansible.posix.mount:
             src:                       "{{ sap_mnt }}"
             path:                      "/saptmp"
-            fstype:                    "nfs4"
+            fstype:                    "{{ nfs_fs_type }}"
             opts:                      "{{ afs_mnt_options }}"
             state:                     absent
 
@@ -284,7 +289,7 @@
         opts:                          "{{ afs_mnt_options }}"
         state:                         mounted
       loop:
-        - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
+        - { type: "{{ nfs_fs_type }}",  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
   rescue:
     - name:                            "2.6.0 AFS Mounts - sapmnt/{{ sap_sid | upper }} - Standalone"
       ansible.posix.mount:
@@ -294,7 +299,7 @@
         opts:                          "{{ afs_mnt_options }}"
         state:                         unmounted
       loop:
-        - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
+        - { type: "{{ nfs_fs_type }}",  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
 
     - name:                            "2.6.0 AFS Mounts - Pause for 15 seconds"
       ansible.builtin.pause:
@@ -311,7 +316,7 @@
         opts:                          "{{ afs_mnt_options }}"
         state:                         mounted
       loop:
-        - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
+        - { type: "{{ nfs_fs_type }}",  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
 
 
 - name:                                "2.6.0 AFS Mounts - sapmnt/{{ sap_sid | upper }} - Standalone MULTI_SIDS"
@@ -324,7 +329,7 @@
   ansible.posix.mount:
     src:                               "{{ sap_mnt }}/sapmnt{{ item.sid }}"
     path:                              "/sapmnt/{{ item.sid }}"
-    fstype:                            'nfs4'
+    fstype:                            "{{ nfs_fs_type }}"
     opts:                              "{{ afs_mnt_options }}"
     state:                             mounted
   loop:                                "{{ MULTI_SIDS }}"
@@ -340,7 +345,7 @@
       ansible.posix.mount:
         src:                           "{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}"
         path:                          "/sapmnt/{{ sap_sid | upper }}"
-        fstype:                        nfs4
+        fstype:                        "{{ nfs_fs_type }}"
         opts:                          "{{ afs_mnt_options }}"
         state:                         mounted
   rescue:
@@ -351,7 +356,7 @@
       ansible.posix.mount:
         src:                           "{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}"
         path:                          "/sapmnt/{{ sap_sid | upper }}"
-        fstype:                        nfs4
+        fstype:                        "{{ nfs_fs_type }}"
         opts:                          "{{ afs_mnt_options }}"
         state:                         mounted
 
@@ -371,7 +376,7 @@
         state:                         mounted
       register:                        sys_mounted
       loop:
-        - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}sys', path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
+        - { type: "{{ nfs_fs_type }}",  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}sys', path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
   rescue:
     - name:                            "2.6.0 AFS Mounts - Pause for 15 seconds"
       ansible.builtin.pause:
@@ -393,7 +398,7 @@
         state:                         mounted
 
       loop:
-        - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}sys', path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
+        - { type: "{{ nfs_fs_type }}",  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}sys', path: '/usr/sap/{{ sap_sid | upper }}/SYS' }
   tags:
     - sap_app_ha_sys_mount
 

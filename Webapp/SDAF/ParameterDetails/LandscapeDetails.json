@@ -1074,6 +1074,15 @@
         "Display": 2
       },
       {
+        "Name": "AFS_enable_encryption_in_transit",
+        "Required": false,
+        "Description": "Defines if encryption in transit is enabled for Azure Files.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "create_transport_storage",
         "Required": false,
         "Description": "Defines if the workload zone will host storage for the transport data.",

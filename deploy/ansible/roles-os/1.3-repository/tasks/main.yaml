@@ -132,4 +132,18 @@
     - custom_repos_for_tier is defined
     - ansible_os_family | upper != 'SUSE'
 
+- name:                                "1.3 Repository - Setup Azure Files NFS Encryption in Transit (SUSE)"
+  when:
+                                       - use_eit_for_afs | default(false) | bool
+                                       - ansible_os_family | upper == 'SUSE'
+                                       - node_tier == 'ha'
+  ansible.builtin.include_tasks:       "1.3.4-eit-setup-Suse.yaml"
+
+
+- name:                                "1.3 Repository - Setup Azure Files NFS Encryption in Transit (RHEL)"
+  ansible.builtin.include_tasks:       "1.3.4-eit-setup-RedHat.yaml"
+  when:
+                                       - use_eit_for_afs | default(false) | bool
+                                       - ansible_os_family | upper == 'REDHAT'
+                                       - node_tier == 'ha'
 ...

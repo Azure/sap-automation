@@ -95,6 +95,7 @@ module "common_infrastructure" {
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   dns_settings                                  = local.dns_settings
   enable_firewall_for_keyvaults_and_storage     = var.enable_firewall_for_keyvaults_and_storage
+  AFS_enable_encryption_in_transit              = var.AFS_enable_encryption_in_transit
 
 }
 
@@ -447,6 +448,7 @@ module "output_files" {
   hana_log                                      = module.hdb_node.hana_log_ANF_volumes
   hana_shared                                   = var.NFS_provider == "ANF" ? module.hdb_node.hana_shared : module.hdb_node.hana_shared_afs_path
   usr_sap                                       = module.common_infrastructure.usrsap_path
+  use_AFS_encryption_in_transit                 = module.common_infrastructure.use_AFS_encryption_in_transit
 
   #########################################################################################
   #  DNS information                                                                      #

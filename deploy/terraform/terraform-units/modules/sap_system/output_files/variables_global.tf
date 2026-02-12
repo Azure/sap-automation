@@ -190,9 +190,10 @@ variable "scs_server_vm_resource_ids"           { description = "List of Virtual
 variable "scs_vm_names"                         { description = "List of VM names for the SCS Servers" }
 variable "shared_home"                          { description = "If defined provides shared-home support" }
 variable "sid_keyvault_user_id"                 { description = "Defines the names for the resources" }
-variable "subnet_cidr_storage"                { description = "address prefix for the storage subnet" }
+variable "subnet_cidr_storage"                  { description = "address prefix for the storage subnet" }
 variable "tfstate_resource_id"                  { description = "Resource ID for tf state file" }
 variable "upgrade_packages"                     { description = "Upgrade packages" }
+variable "use_AFS_encryption_in_transit"        { description = "Indicates if Encryption in transit is enabled for AFS shares" }
 variable "suse_subscription_id"                  {
                                                   description = "SUSE registration code for BYOS/BYOL images"
                                                   default     = ""

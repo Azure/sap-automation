@@ -38,7 +38,7 @@
           ansible.posix.mount:
             src:                       "{{ item.mount }}"
             path:                      "/{{ item.temppath }}"
-            fstype:                    "nfs4"
+            fstype:                    "{{ nfs_fs_type }}"
             opts:                      "{{ item.opts }}"
             state:                      mounted
       rescue:
@@ -53,7 +53,7 @@
           ansible.posix.mount:
             src:                       "{{ item.mount }}"
             path:                      "/{{ item.temppath }}"
-            fstype:                    "nfs4"
+            fstype:                    "{{ nfs_fs_type }}"
             opts:                      "{{ item.opts }}"
             state:                      mounted
 
@@ -79,7 +79,7 @@
       ansible.posix.mount:
         src:                           "{{ item.mount }}"
         path:                          "/{{ item.temppath }}"
-        fstype:                        "nfs4"
+        fstype:                        "{{ nfs_fs_type }}"
         opts:                          "{{ item.opts }}"
         state:                         absent
 
@@ -126,7 +126,7 @@
       ansible.posix.mount:
         src:                           "{% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %}"
         path:                          "{{ item.path }}"
-        fstype:                        "nfs4"
+        fstype:                        "{{ nfs_fs_type }}"
         opts:                          "{{ item.opts }}"
         state:                         mounted
   rescue:
@@ -138,6 +138,6 @@
       ansible.posix.mount:
         src:                           "{% if item.create_temp_folders %}{{ item.mount }}/{{ item.folder }}{% else %}{{ item.mount }}{% endif %}"
         path:                          "{{ item.path }}"
-        fstype:                        "nfs4"
+        fstype:                        "{{ nfs_fs_type }}"
         opts:                          "{{ item.opts }}"
         state:                         mounted

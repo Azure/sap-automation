@@ -201,7 +201,7 @@ variable "ANF_settings"                                 {
                                                                       transport_volume_name         = ""
                                                                       transport_volume_size         = 32
                                                                       transport_volume_throughput   = 32
-
+                                                                      export_policy_client_access_list = []
                                                                       use_existing_install_volume   = false
                                                                       install_volume_name           = ""
                                                                       install_volume_size           = 128
@@ -265,7 +265,14 @@ variable "public_network_access_enabled"                 { description = "Define
 
 variable "use_AFS_for_shared_storage"                    {
                                                            description = "If true, will use AFS for installation media."
-                                                           default = false
+                                                           type        = bool
+                                                           default     = false
+                                                         }
+
+variable "AFS_enable_encryption_in_transit"              {
+                                                           description = "Enable encryption in transit for Azure Files"
+                                                           type        = bool
+                                                           default     = false
                                                          }
 
 variable "tags"                                          { description = "List of tags to associate to all resources" }

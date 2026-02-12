@@ -163,7 +163,7 @@ resource "azurerm_storage_account" "witness_storage" {
 
   account_replication_type             = "LRS"
   account_tier                         = "Standard"
-  https_traffic_only_enabled            = true
+  https_traffic_only_enabled           = true
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
   cross_tenant_replication_enabled     = false
@@ -301,7 +301,7 @@ resource "azurerm_storage_account" "transport" {
   account_tier                         = "Premium"
   account_replication_type             = "ZRS"
   account_kind                         = "FileStorage"
-  https_traffic_only_enabled            = false
+  https_traffic_only_enabled           = local.use_AFS_encryption_in_transit
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
@@ -503,7 +503,7 @@ resource "azurerm_storage_account" "install" {
   account_replication_type             = var.storage_account_replication_type
   account_tier                         = "Premium"
   allow_nested_items_to_be_public      = false
-  https_traffic_only_enabled            = false
+  https_traffic_only_enabled           = local.use_AFS_encryption_in_transit
   min_tls_version                      = "TLS1_2"
   cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.public_network_access_enabled

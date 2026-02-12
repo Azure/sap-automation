@@ -49,6 +49,7 @@ module "sap_landscape" {
   transport_storage_account_id                 = var.transport_storage_account_id
   transport_volume_size                        = var.transport_volume_size
   use_AFS_for_shared_storage                   = var.use_AFS_for_shared_storage
+  AFS_enable_encryption_in_transit             = var.AFS_enable_encryption_in_transit
   use_deployer                                 = length(var.deployer_tfstate_key) > 0
   use_private_endpoint                         = var.use_private_endpoint
   use_service_endpoint                         = var.use_service_endpoint

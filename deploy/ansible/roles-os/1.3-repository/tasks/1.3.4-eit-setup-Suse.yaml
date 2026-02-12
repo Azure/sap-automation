@@ -1,0 +1,65 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+# Azure Files NFS Encryption in Transit requires:
+# - SLES for SAP 15 SP4 and higher
+# - Microsoft packages repository
+# - aznfs package
+
+- name:                                "1.3.4 EiT - SUSE - Validate OS version meets minimum requirements"
+  block:
+    - name:                            "1.3.4 EiT - SUSE - Parse SLES version"
+      ansible.builtin.set_fact:
+        sles_major:                    "{{ ansible_distribution_version.split('.')[0] | int }}"
+        sles_minor:                    "{{ ansible_distribution_version.split('.')[1] | int if ansible_distribution_version.split('.') | length > 1 else 0 | int }}"
+
+    - name:                            "1.3.4 EiT - SUSE - Fail if OS version is not supported"
+      when:
+                                       - sles_major | int < 15 or (sles_major | int == 15 and sles_minor | int < 4)
+      ansible.builtin.fail:
+        msg: |
+                                       Azure Files NFS Encryption in Transit requires SLES for SAP 15 SP4 or higher.
+                                       Current version: {{ ansible_distribution }} {{ ansible_distribution_version }}
+                                       Minimum required: SLES 15.4
+
+- name:                                "1.3.4 EiT - SUSE - Download Microsoft packages repository RPM"
+  ansible.builtin.get_url:
+    url:                               "https://packages.microsoft.com/config/{{ ansible_distribution | lower }}/{{ ansible_distribution_version.split('.')[0] }}/packages-microsoft-prod.rpm"
+    dest:                              "/tmp/packages-microsoft-prod.rpm"
+    mode:                              '0644'
+  register:                            ms_repo_download
+  retries:                             4
+  delay:                               30
+  until:                               ms_repo_download is succeeded
+
+- name:                                "1.3.4 EiT - SUSE - Install Microsoft packages repository"
+  community.general.zypper:
+    name:                              "/tmp/packages-microsoft-prod.rpm"
+    state:                             present
+    disable_gpg_check:                 true
+  register:                            ms_repo_install
+
+- name:                                "1.3.4 EiT - SUSE - Refresh zypper repositories"
+  ansible.builtin.command:             zypper refresh
+  changed_when:                        false
+  when:                                ms_repo_install is changed
+
+- name:                                "1.3.4 EiT - SUSE - Install aznfs package"
+  community.general.zypper:
+    name:                              aznfs
+    state:                             present
+    update_cache:                      "{{ ms_repo_install is changed }}"
+  register:                            aznfs_install
+
+- name:                                "1.3.4 EiT - SUSE - Cleanup temporary repository RPM"
+  ansible.builtin.file:
+    path:                              "/tmp/packages-microsoft-prod.rpm"
+    state:                             absent
+
+- name:                                "1.3.4 EiT - SUSE - Display installation result"
+  ansible.builtin.debug:
+    msg:
+      - "Microsoft repository installed: {{ ms_repo_install is changed }}"
+      - "aznfs package installed: {{ aznfs_install is changed }}"
+    verbosity: 2

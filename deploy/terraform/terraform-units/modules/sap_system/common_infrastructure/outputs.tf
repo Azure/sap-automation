@@ -300,6 +300,11 @@ output "usrsap_path"                             {
 
                                                  }
 
+output "use_AFS_encryption_in_transit"           {
+                                                   description = "Indicates if Encryption in transit is enabled for AFS shares"
+                                                   value       = local.use_AFS_encryption_in_transit
+                                                 }
+
 ###############################################################################
 #                                                                             #
 #                       Anchor VM                                             #
