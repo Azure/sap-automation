@@ -8,17 +8,15 @@
     verbosity:                         1
 
 - name:                                 "aggregate_bom: - One time block"
-  when:
-    - first_pass is not defined # Causes to only be run on first pass when called in a loop
   block:
     - name:                            "aggregate_bom: - new bom name"
-      when:                            new_bom_name is not defined
+      when:                            this_bom_name is not defined
       ansible.builtin.set_fact:
-        new_bom_name:                  "{{ bom_base_name }}{{ bom_suffix }}"
+        this_bom_name:                  "{{ bom_base_name }}{{ bom_suffix }}"
 
     - name:                            "Informational"
       ansible.builtin.debug:
-        var:                           new_bom_name
+        var:                           this_bom_name
         verbosity:                     1
 
     # Create download directory structure
@@ -27,7 +25,7 @@
       become:                          "{{ bom_processing_become }}"
       become_user:                     "{{ orchestration_ansible_user }}"
       ansible.builtin.file:
-        path:                          "{{ download_directory }}/bom/{{ new_bom_name }}"
+        path:                          "{{ download_directory }}/bom/{{ this_bom_name }}"
         state:                         directory
         mode:                          0755
 
@@ -38,7 +36,7 @@
       become_user:                     "{{ orchestration_ansible_user }}"
       ansible.builtin.copy:
         content:                       "{{ new_bom | default('NOT DEFINED') }}"
-        dest:                          "{{ download_directory }}/bom/{{ new_bom_name }}/{{ new_bom_name }}.yaml"
+        dest:                          "{{ download_directory }}/bom/{{ this_bom_name }}/{{ this_bom_name }}.yaml"
         mode:                          0644
         force:                         true
       register:                        first_pass

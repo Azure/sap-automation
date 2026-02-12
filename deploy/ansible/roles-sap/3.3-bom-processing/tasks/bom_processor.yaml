@@ -181,16 +181,14 @@
                                          -xf {{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                          {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
   args:
-    chdir:                             "{{ target_media_location }}/{{ item.extractDir }}"
-    creates:                           "{{ target_media_location }}/{{ item.extractDir }}/ \
+    chdir:                             "{{ target_media_location }}/{{ item.extractDir | default('') }}"
+    creates:                           "{{ target_media_location }}/{{ item.extractDir | default('') }}/ \
                                         {% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}"
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
-    - item.extract is not undefined
-    - item.extract
-    - ( item.filename is undefined and (item.archive | regex_search('[^.]+(?=\\.*$)') | upper=="SAR") ) or
-      ( item.filename is defined   and (item.filename | regex_search('[^.]+(?=\\.*$)') | upper=="SAR") )
-
+    - item.extract | default(false)
+    - (item.archive is defined and (item.archive | regex_search('[^.]+(?=\\.*$)') | upper == "SAR")) or
+      (item.filename is defined and (item.filename | regex_search('[^.]+(?=\\.*$)') | upper == "SAR"))
 
 #   06) Extract files - UNRAR
 

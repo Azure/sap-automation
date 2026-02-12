@@ -30,7 +30,7 @@
 #         - text        = AnsibleUnicode
 #         - boolean     = bool
 #
-- name:                                 "(pre_checks.yaml) - Validate required variable is present and not empty (bom_base_name)"
+- name:                                 "0.1 BoM Validator - Pre Check - Validate required variable is present and not empty (bom_base_name)"
   ansible.builtin.assert:
     that:
       - "bom_base_name is defined"                                              # Has the variable been defined
@@ -54,10 +54,10 @@
 #                 - s_password
 #               from KeyVault when they are not already defined.
 #
-- name:                                 "(pre_checks.yaml) - KeyVault validation block..."
+- name:                                 "0.1 BoM Validator - Pre Check - KeyVault validation block..."
   block:
 
-    - name:                             "(pre_checks.yaml) - {{ task_prefix }} - Informational"
+    - name:                             "0.1 BoM Validator - Pre Check - {{ task_prefix }} - Informational"
       ansible.builtin.debug:
         msg: |-
                                         Entering KV Block...
@@ -67,7 +67,7 @@
 # Step: 02-01
 # Description:
 #
-    - name:                             "(pre_checks.yaml) - {{ task_prefix }} - Set deployer keyvault name"
+    - name:                             "0.1 BoM Validator - Pre Check - {{ task_prefix }} - Set deployer keyvault name"
       ansible.builtin.set_fact:
         kv_name:                        "{{ deployer_kv_name }}"
       when:                             deployer_kv_name is defined
@@ -78,7 +78,7 @@
 # Step: 02-02
 # Description:
 #
-    - name:                             "(pre_checks.yaml) - {{ task_prefix }} - Load the keyvault secrets"
+    - name:                             "0.1 BoM Validator - Pre Check - {{ task_prefix }} - Load the keyvault secrets"
       ansible.builtin.include_role:
         name:                           roles-misc/0.2-kv-secrets
         public:                         true
@@ -93,7 +93,7 @@
 # Step: 02-03
 # Description:
 #
-    - name:                             "(pre_checks.yaml) - {{ task_prefix }} - Set kv_enabled: true"
+    - name:                             "0.1 BoM Validator - Pre Check - Set kv_enabled: true"
       ansible.builtin.set_fact:
         kv_enabled:                     true
       when:
@@ -118,7 +118,7 @@
 # Step: 03
 # Description:  Informational check of the kv_name parameter.
 #
-- name:                                "(pre_checks.yaml) - Informational check of the kv_name parameter"
+- name:                                "0.1 BoM Validator - Pre Check - Informational check of the kv_name parameter"
   ansible.builtin.assert:
     that:
       - "kv_name is defined"                                                    # Has the variable been defined
@@ -142,7 +142,7 @@
 # Step: 04
 # Description:  Validation for s_user
 #
-- name:                                 "(pre_checks.yaml) - Check that the S-User is present and not empty (s_user)"
+- name:                                 "0.1 BoM Validator - Pre Check - Check that the S-User is present and not empty (s_user)"
   ansible.builtin.assert:
     that:
       - "s_user is defined"                                                     # Has the variable been defined
@@ -163,7 +163,7 @@
 # Step: 05
 # Description:  Validate that s_password parameter has been given a value
 #
-- name:                                 "(pre_checks.yaml) - Check that the S-User password is present and not empty (s_password)"
+- name:                                 "0.1 BoM Validator - Pre Check - Check that the S-User password is present and not empty (s_password)"
   ansible.builtin.assert:
     that:
       - "s_password is defined"                                                 # Has the variable been defined
@@ -187,7 +187,7 @@
 #               is an intermediary location to stage files before upload to SA.
 #               Default: ~/tmp/downloads
 #
-- name:                                 "(pre_checks.yaml) - Check that the Download Directory is present and not empty (download_directory)"
+- name:                                 "0.1 BoM Validator - Pre Check - Check that the Download Directory is present and not empty (download_directory)"
   ansible.builtin.assert:
     that:
       - "download_directory is defined"                                              # Has the variable been defined
@@ -206,9 +206,11 @@
 # Step: 07
 # Description:  Create BOM download directories".
 #
-# TODO: allow for concurrancy by using unique tmp directory dtructure.
+# TODO: allow for concurrency by using unique tmp directory structure.
 #
-- name:                                 "(pre_checks.yaml) - Prepare download directory"
+- name:                                 "0.1 BoM Validator - Pre Check - Prepare download directory"
+  when:
+    - download_directory
   block:
 
 # -------------------------------------+---------------------------------------8
@@ -230,7 +232,6 @@
         - "{{ download_directory }}/files"
         - "{{ download_directory }}/bom"
 
-
 # Step: 07-01 - END
 # -------------------------------------+---------------------------------------8
 
@@ -238,7 +239,7 @@
 # Step: 07-02
 # Description:  Create test file
 #
-    - name:                             "(pre_checks.yaml) - {{ task_prefix }} - BoM Initial file"
+    - name:                             "0.1 BoM Validator - Pre Check - {{ task_prefix }} - Create BoM Initial file"
       ansible.builtin.copy:
         dest:                           "{{ download_directory }}/readme.md"
         content:                        "This is the container with the SAP media"
@@ -250,8 +251,6 @@
 
   vars:
     task_prefix:                        Prepare download directory block
-  when:
-    - download_directory
 # Step: 07 - END
 # -------------------------------------+---------------------------------------8
 
@@ -266,10 +265,10 @@
 #                 - sapbits_sas_token
 #               from KeyVault when they are not already defined.
 #
-- name:                                 "(pre_checks.yaml) - Storage Account validation block"
+- name:                                 "0.1 BoM Validator - Pre Check - Storage Account validation block"
   block:
 
-    - name:                             "(pre_checks.yaml) - {{ task_prefix }} - Informational"
+    - name:                             "0.1 BoM Validator - Pre Check - {{ task_prefix }} - Informational"
       ansible.builtin.debug:
         msg: |-
                                         Entering Storage Account Block...
@@ -280,7 +279,7 @@
 # Step: 08-01
 # Description:  Validate sapbits_bom_files
 #
-    - name:                             "(pre_checks.yaml) - {{ task_prefix }} - Validate required variable is present and not empty (sapbits_bom_files)"
+    - name:                             "0.1 BoM Validator - Pre Check - {{ task_prefix }} - Validate required variable is present and not empty (sapbits_bom_files)"
       ansible.builtin.assert:
         that:
           - "sapbits_bom_files is defined"                                          # Has the variable been defined
@@ -297,7 +296,7 @@
 # Step: 08-02
 # Description:
 #
-    - name:                             "(pre_checks.yaml) - {{ task_prefix }} - Load the storage account details"
+    - name:                             "0.1 BoM Validator - Pre Check - {{ task_prefix }} - Load the storage account details"
       ansible.builtin.include_role:
         name:                           roles-misc/0.3.sap-installation-media-storage-details
         public:                         true
@@ -310,7 +309,7 @@
 # Step: 08-03
 # Description:
 #
-    - name:                             "(pre_checks.yaml) - {{ task_prefix }} - Validate required variable is present and not empty (sapbits_location_base_path)"
+    - name:                             "0.1 BoM Validator - Pre Check - {{ task_prefix }} - Validate required variable is present and not empty (sapbits_location_base_path)"
       ansible.builtin.assert:
         that:
           - "sapbits_location_base_path is defined"                                 # Has the variable been defined
@@ -333,7 +332,7 @@
 # Step: 08 - END
 # -------------------------------------+---------------------------------------8
 
-- name:                                 "(pre_checks.yaml) - {{ task_prefix }} - Get account information"
+- name:                                 "0.1 BoM Validator - Pre Check - {{ task_prefix }} - Get account information"
   ansible.builtin.command: >-
                                         az account show --query user --output yaml
   vars:
@@ -343,15 +342,15 @@
   ignore_errors:                        true
   changed_when:                         false
 
-- name:                                 "(pre_checks.yaml) - {{ task_prefix }} - Show account information"
+- name:                                 "0.1 BoM Validator - Pre Check - {{ task_prefix }} - Show account information"
   ansible.builtin.debug:
-    var:                                azresult
+    msg:                                "Running as: {{ azresult.stdout }}"
 
 # -------------------------------------+---------------------------------------8
 # Step: 09
 # Description:
 #
-- name:                                 "(pre_checks.yaml) - Set SAS Token"
+- name:                                 "0.1 BoM Validator - Pre Check - Set SAS Token"
   ansible.builtin.set_fact:
     sapbits_sas_token:                  "{{ sapbits_access_key }}"
   no_log:                               true                                    # censor output of secret
@@ -366,7 +365,7 @@
 # Step: 10
 # Description:
 #
-- name:                                 "(pre_checks.yaml) - Set sa_enabled: true"
+- name:                                 "0.1 BoM Validator - Pre Check - Set sa_enabled: true"
   ansible.builtin.set_fact:
     sa_enabled:                         true
   when:
@@ -386,7 +385,7 @@
 # Step: 11
 # Description:
 #
-- name:                                 "(pre_checks.yaml) - {{ task_prefix }} - Check storage account container when using SAS Token"
+- name:                                 "0.1 BoM Validator - Pre Check - {{ task_prefix }} - Upload readme.md using SAS Token"
   ansible.builtin.command: >-
                                         az storage blob upload
                                           --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
@@ -411,7 +410,7 @@
     - sa_enabled
     - allowSharedKeyAccess
 
-- name:                                 "(pre_checks.yaml) - {{ task_prefix }} - Check storage account container"
+- name:                                 "0.1 BoM Validator - Pre Check - {{ task_prefix }} - Upload readme.md"
   ansible.builtin.command: >-
                                         az storage blob upload
                                           --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
@@ -447,7 +446,7 @@
 #   - sapbits_location_base_path
 #   - sapbits_access_key
 #   - sapbits_sas_token
-- name:                                "(pre_checks.yaml) - Informational check of Storage Account parameters"
+- name:                                "0.1 BoM Validator - Pre Check - Informational check of Storage Account parameters"
   ansible.builtin.assert:
     that:
       - "sapbits_location_base_path is defined"                                 # Has the variable been defined
@@ -466,7 +465,7 @@
                                        - "Storage account_name:            {{ account_name }}"
                                        - "allowSharedKeyAccess:            {{ allowSharedKeyAccess }}"
 
-- name:                                "(pre_checks.yaml) - Informational check of Storage Account parameters"
+- name:                                "0.1 BoM Validator - Pre Check - Informational check of Storage Account parameters"
   when:                                 allowSharedKeyAccess
   ansible.builtin.assert:
     that:
