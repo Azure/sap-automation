@@ -187,7 +187,8 @@
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - item.extract | default(false)
-    - item.archive | regex_search('[^.]+(?=\\.*$)') | upper=="SAR"
+    - (item.archive is defined and (item.archive | regex_search('[^.]+(?=\\.*$)') | upper == "SAR")) or
+      (item.filename is defined and (item.filename | regex_search('[^.]+(?=\\.*$)') | upper == "SAR"))
 
 #   06) Extract files - UNRAR
 
