@@ -269,6 +269,10 @@
 - name:                                "{{ task_prefix }} Append the file list"
   ansible.builtin.set_fact:
     root_media_list:                   "{% if root_media_list is defined %}{{ root_media_list + bom.materials.media | flatten(levels=1) }}{% else %}{{ bom.materials.media }}{% endif %}"
+  when:
+    - bom is defined
+    - bom.materials is defined
+    - bom.materials.media is defined
 
 - name:                                 "{{ task_prefix }} Show BOM object"
   ansible.builtin.debug:
