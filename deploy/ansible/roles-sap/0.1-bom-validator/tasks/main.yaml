@@ -261,6 +261,9 @@
 - name:                                "0.1 BoM Validator - Save Kernel BOM as Dictionary"
   ansible.builtin.set_fact:
     kernel_bom:                        "{{ bom }}"
+  when:
+    - kernel_bom_name != ""
+    - bom is defined
 
 - name:                                "0.1 BoM Validator - Process dependent BoMs in a loop"
   ansible.builtin.include_tasks:       bom_validator.yaml
