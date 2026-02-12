@@ -474,6 +474,7 @@ module "output_files" {
   #########################################################################################
   use_simple_mount                              = local.validated_use_simple_mount
   upgrade_packages                              = var.upgrade_packages
+  suse_subscription_id                          = var.suse_subscription_id
   scale_out                                     = var.database_HANA_use_scaleout_scenario
   scale_out_no_standby_role                     = var.database_HANA_no_standby_role
 

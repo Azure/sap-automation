@@ -193,6 +193,10 @@ variable "sid_keyvault_user_id"                 { description = "Defines the nam
 variable "subnet_cidr_storage"                { description = "address prefix for the storage subnet" }
 variable "tfstate_resource_id"                  { description = "Resource ID for tf state file" }
 variable "upgrade_packages"                     { description = "Upgrade packages" }
+variable "suse_subscription_id"                  {
+                                                  description = "SUSE registration code for BYOS/BYOL images"
+                                                  default     = ""
+                                                }
 variable "use_custom_dns_a_registration"        {
                                                   description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
                                                   default     = false

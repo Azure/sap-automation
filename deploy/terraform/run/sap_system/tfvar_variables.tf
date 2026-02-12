@@ -1595,6 +1595,11 @@ variable "upgrade_packages"                     {
                                                   default     = false
                                                 }
 
+variable "suse_subscription_id"                  {
+                                                  description = "If defined, the SUSE registration code for BYOS/BYOL images. Leave empty for PAYG marketplace images."
+                                                  default     = ""
+                                                }
+
 variable "tags"                                 {
                                                   description = "If provided, tags for all resources"
                                                   default     = {}
