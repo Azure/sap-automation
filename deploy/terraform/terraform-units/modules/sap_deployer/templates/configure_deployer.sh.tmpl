@@ -168,7 +168,7 @@ rg_name="${rg_name}"
 terraform_version="${terraform_version}"
 
 if [ -z "$${terraform_version}" ]; then
-  terraform_version="1.14.1"
+  terraform_version="1.14.5"
 fi
 ARM_CLIENT_ID="${client_id}"
 ARM_SUBSCRIPTION_ID="${subscription_id}"
@@ -443,9 +443,18 @@ fi
 # Main body of script
 #
 
+if [ "$(getenforce 2>/dev/null)" = "Enforcing" ]; then
+    # Try command to generate denial
+    runuser -l "$${local_user}" -c 'true' 2>/dev/null || true
+
+    # Generate and install policy from any denials
+    ausearch -m avc -ts recent 2>/dev/null | audit2allow -M "$${local_user}"-policy 2>/dev/null || true
+    [ -f "$${local_user}"-policy.pp ] && semodule -i "$${local_user}"-policy.pp
+fi
+
 # Check for supported distro
 case "$(get_distro_name_version)" in
-sles_12*)
+sles_12*  | sles_15*)
   error "Unsupported distro: $${distro_name_version} doesn't provide virtualenv in standard repos."
   exit 1
   ;;
@@ -469,6 +478,93 @@ if [ "$(get_distro_version)" == "15.5" ]; then
   error "Unsupported distro: $${distro_name_version} at this time."
   exit 1
 fi
+if [ "$(get_distro_version)" == "15.6" ]; then
+  error "Unsupported distro: $${distro_name_version} at this time."
+  exit 1
+fi
+if [ "$(get_distro_version)" == "15.7" ]; then
+  error "Unsupported distro: $${distro_name_version} at this time."
+  exit 1
+fi
+
+# List of required packages whose names are common to all supported distros
+required_pkgs=(
+  git
+  jq
+  unzip
+  ca-certificates
+  curl
+  gnupg
+  python3-pip
+  python3-virtualenv
+)
+
+cli_pkgs=(
+    azure-cli
+)
+
+# Include distro version agnostic packages into required packages list
+case "$(get_distro_name)" in
+ubuntu)
+  cli_pkgs+=(
+  )
+  required_pkgs+=(
+    sshpass
+    apt-transport-https
+    lsb-release
+    software-properties-common
+    zip
+  )
+  ;;
+sles)
+  cli_pkgs+=(
+  )
+  required_pkgs+=(
+    curl
+    lsb-release
+    libicu77
+
+  )
+  ;;
+rhel)
+  echo "we are inside RHEL block"
+  cli_pkgs+=(
+    azure-cli
+  )
+  required_pkgs+=(
+    sshpass
+    python36
+  )
+  ;;
+esac
+# Include distro version specific packages into required packages list
+case "$(get_distro_name_version)" in
+ubuntu_18.04)
+  required_pkgs+=(
+    virtualenv
+  )
+  ;;
+esac
+
+# Install required packages as determined above
+sleep 10
+set +o errexit
+pkg_mgr_install "$${required_pkgs[@]}"
+set -o errexit
+
+# Upgrade packages
+pkg_mgr_upgrade
+
+# Ensure our package metadata cache is up to date
+pkg_mgr_refresh
+
+# Prepare Azure SAP Automated Deployment folder structure
+mkdir -p \
+  "$${asad_ws}/LOCAL/${rg_name}" \
+  "$${asad_ws}/LIBRARY" \
+  "$${asad_ws}/SYSTEM" \
+  "$${asad_ws}/LANDSCAPE" \
+  "$${asad_ws}/DEPLOYER"
 
 echo "Set ansible version for specific distros"
 echo ""
@@ -485,7 +581,11 @@ ubuntu)
   ;;
 sles)
   echo "we are inside SUSE block"
-  ansible_version="2.11"
+  if [[ "$(get_distro_version)" == 16.* ]]; then
+    ansible_version="2.16"
+  else
+    ansible_version="2.11"
+  fi
   ansible_major="$${ansible_version%%.*}"
   ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
   # Ansible installation directories
@@ -499,7 +599,7 @@ sles)
   ;;
 rhel)
   echo "we are inside RHEL block"
-  ansible_version="2.11"
+  ansible_version="2.16"
   ansible_major="$${ansible_version%%.*}"
   ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
   # Ansible installation directories
@@ -517,83 +617,7 @@ rhel)
 esac
 
 echo "Ansible version: $${ansible_version}"
-# List of required packages whose names are common to all supported distros
-required_pkgs=(
-  git
-  jq
-  unzip
-  ca-certificates
-  curl
-  gnupg
-)
 
-cli_pkgs=(
-)
-
-# Include distro version agnostic packages into required packages list
-case "$(get_distro_name)" in
-ubuntu)
-  cli_pkgs+=(
-    azure-cli
-  )
-  required_pkgs+=(
-    sshpass
-    python3-pip
-    python3-virtualenv
-    apt-transport-https
-    lsb-release
-    software-properties-common
-    zip
-  )
-  ;;
-sles)
-  required_pkgs+=(
-    curl
-    python3-pip
-    lsb-release
-  )
-  ;;
-rhel)
-  echo "we are inside RHEL block"
-  cli_pkgs+=(
-    azure-cli
-  )
-  required_pkgs+=(
-    sshpass
-    python36
-    python3-pip
-  )
-  ;;
-esac
-# Include distro version specific packages into required packages list
-case "$(get_distro_name_version)" in
-ubuntu_18.04)
-  required_pkgs+=(
-    virtualenv
-  )
-  ;;
-esac
-
-# Install required packages as determined above
-sleep 10
-set +o errexit
-pkg_mgr_install "$${required_pkgs[@]}"
-
-set -o errexit
-
-# Upgrade packages
-pkg_mgr_upgrade
-
-# Ensure our package metadata cache is up to date
-pkg_mgr_refresh
-
-# Prepare Azure SAP Automated Deployment folder structure
-mkdir -p \
-  "$${asad_ws}/LOCAL/${rg_name}" \
-  "$${asad_ws}/LIBRARY" \
-  "$${asad_ws}/SYSTEM" \
-  "$${asad_ws}/LANDSCAPE" \
-  "$${asad_ws}/DEPLOYER"
 
 #
 # Clone Azure SAP Automated Deployment project repository
@@ -625,7 +649,7 @@ sudo chmod 755 "$${tf_bin}/terraform"
 
 sudo rm "/$${asad_home}/$${tf_zip}"
 
-sudo chown -R "$${local_user}" "$${tf_cache}" 
+sudo chown -R "$${local_user}" "$${tf_base}"
 
 # Uninstall Azure CLI - For some platforms
 case "$(get_distro_name)" in
@@ -666,19 +690,8 @@ ubuntu)
   sudo apt-get install azure-cli -y
   ;;
 sles)
-  set +o errexit
-  if [ -f /home/"$${local_user}"/repos_configured ]; then
-    sudo zypper install -y --from azure-cli azure-cli
-  else
-    sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
-    repo_found=$(zypper repos | grep "Azure CLI")
-    if [ -z "$${repo_found}" ]; then
-      sudo zypper addrepo --name 'Azure CLI' --check https://packages.microsoft.com/yumrepos/azure-cli azure-cli
-    fi
-    sudo touch /home/$${local_user}/repos_configured
-    sudo zypper install -y --from azure-cli azure-cli
-  fi
-  set -o errexit
+  sudo zypper install -y azure-cli
+  export HOME="/home/$${local_user}"
   ;;
 rhel*)
   sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
@@ -698,17 +711,18 @@ ubuntu)
   ;;
 esac
 
-# If the deployer will be an ADO agent install the devops cli
-# turn tracing off when you are here
-set +o xtrace
-if [[ -n "$${PAT}" ]]; then
-  az extension add -n azure-devops >/dev/null
-fi
-
-set -o xtrace
-
 # Fail if any command exits with a non-zero exit status
 set -o errexit
+
+# Ensure our package metadata cache is up to date
+pkg_mgr_refresh
+pkg_mgr_upgrade
+#
+# Install latest Ansible revision of specified version for all users.
+#
+sudo mkdir -p \
+  "$${ansible_bin}"
+
 
 case "$(get_distro_name)" in
 rhel)
@@ -727,14 +741,6 @@ ubuntu | sles)
   ;;
 esac
 
-# Ensure our package metadata cache is up to date
-# pkg_mgr_refresh
-# pkg_mgr_upgrade
-#
-# Install latest Ansible revision of specified version for all users.
-#
-sudo mkdir -p \
-  "$${ansible_bin}"
 
 # Fail if pip3 doesn't exist in the venv
 if [[ ! -x "$${ansible_venv_bin}/pip3" ]]; then
@@ -873,6 +879,16 @@ export PATH="$${PATH}":"$${ansible_bin}":"$${tf_bin}":"$${DOTNET_ROOT}"
 (echo export ARM_TENANT_ID="$${ARM_TENANT_ID}" | sudo tee -a /etc/profile.d/deploy_server.sh) >/dev/null 2>&1
 (echo export ARM_CLIENT_ID="$${ARM_CLIENT_ID}" | sudo tee -a /etc/profile.d/deploy_server.sh) >/dev/null 2>&1
 
+# If the deployer will be an ADO agent install the devops cli
+# turn tracing off when you are here
+set +o xtrace
+if [[ -n "$${PAT}" ]]; then
+  /usr/bin/az extension add -n azure-devops >/dev/null
+fi
+
+set -o xtrace
+
+
 # if [[ -n $${TOKEN} ]]; then
 #     echo export AZURE_DEVOPS_EXT_PAT=$${TOKEN} | sudo tee -a /etc/profile.d/deploy_server.sh
 # fi
@@ -884,7 +900,7 @@ echo export "PATH=$${ansible_bin}:$${tf_bin}:$${PATH}":"$${DOTNET_ROOT}":"$${AZA
 # Ensure that the user's account is logged in to Azure with specified creds
 (echo az login --identity --allow-no-subscriptions --client-id "$${ARM_CLIENT_ID}" --output none | sudo tee -a /etc/profile.d/deploy_server.sh) >/dev/null 2>&1
 (echo 'echo "$${USER}" account ready for use with Azure SAP Automated Deployment' | sudo tee -a /etc/profile.d/deploy_server.sh) >/dev/null 2>&1
-sudo runuser -l "$${local_user}" -c '/usr/bin/az login --identity --allow-no-subscriptions --client-id "$${ARM_CLIENT_ID}" --output none'
+# Not needed? sudo runuser -l "$${local_user}" -c '/usr/bin/az login --identity --allow-no-subscriptions --client-id "$${ARM_CLIENT_ID}" --output none'
 
 #
 # Create Agent
