@@ -65,7 +65,7 @@ export local_user=$USER
 #
 
 if [ -z "${TF_VERSION}" ]; then
-	TF_VERSION="1.14.1"
+	TF_VERSION="1.14.5"
 fi
 
 # Fail if attempting to access and unset variable or parameter
@@ -255,7 +255,7 @@ tf_base=/opt/terraform
 tf_dir="${tf_base}/terraform_${tfversion}"
 tf_bin="${tf_base}/bin"
 tf_zip="terraform_${tfversion}_linux_amd64.zip"
-
+chown -R "${USER}" "${tf_base}"
 #
 #Don't re-run the following if the script is already installed
 #

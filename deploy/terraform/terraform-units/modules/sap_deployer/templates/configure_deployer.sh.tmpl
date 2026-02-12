@@ -168,7 +168,7 @@ rg_name="${rg_name}"
 terraform_version="${terraform_version}"
 
 if [ -z "$${terraform_version}" ]; then
-  terraform_version="1.14.1"
+  terraform_version="1.14.5"
 fi
 ARM_CLIENT_ID="${client_id}"
 ARM_SUBSCRIPTION_ID="${subscription_id}"
@@ -514,6 +514,8 @@ sles)
   required_pkgs+=(
     curl
     lsb-release
+    libicu77
+
   )
   ;;
 rhel)
@@ -639,7 +641,7 @@ sudo chmod 755 "$${tf_bin}/terraform"
 
 sudo rm "/$${asad_home}/$${tf_zip}"
 
-sudo chown -R "$${local_user}" "$${tf_cache}"
+sudo chown -R "$${local_user}" "$${tf_base}"
 
 # Uninstall Azure CLI - For some platforms
 case "$(get_distro_name)" in
