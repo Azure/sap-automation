@@ -396,7 +396,7 @@ ubuntu)
 	;;
 sles)
 	echo "we are inside sles"
-	if [[ "$(get_distro_version)" == 16.* ]]; then
+	if [[ "$(get_distro_version)" == "16."* ]]; then
 		ansible_version="2.16"
 	else
 		ansible_version="2.11"
