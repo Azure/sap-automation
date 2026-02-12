@@ -71,19 +71,51 @@
   retries:                         2
   delay:                           5
 
-- name:                            "SAP on Azure quality checks: - run PowerShell setup"
+- name:                            "SAP on Azure quality checks: - configure PSGallery repository"
   become:                          true
   become_user:                     root
   ansible.builtin.shell: >-
+                                   Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+  register:                        qc_psgallery_result
+  failed_when:                     qc_psgallery_result.rc != 0
+  args:
+    chdir:                         "/opt/microsoft/quality_check"
+    executable:                    "/usr/local/bin/pwsh"
+
+- name:                            "SAP on Azure quality checks: - install PowerShell modules (version-locked for PS 7.3.12 compatibility)"
+  become:                          true
+  become_user:                     root
+  ansible.builtin.shell: |
                                    Update-AzConfig -EnableLoginByWam $false
 
-                                   $modules = @("Az", "Az.NetAppFiles", "Posh-SSH")
+                                   # Install Az.Accounts {{ az_accounts_version }} (last 4.x version, compatible with PowerShell 7.3.12)
+                                   # Az.Accounts 5.x has known assembly loading issues with PS 7.3.x
+                                   # See: https://github.com/Azure/azure-powershell/issues/28495
+                                   Write-Host "Installing Az.Accounts {{ az_accounts_version }} (PowerShell 7.3.12 compatible)..." -ForegroundColor Yellow
+                                   Install-Module Az.Accounts -RequiredVersion {{ az_accounts_version }} -Force -Scope AllUsers -AllowClobber -Confirm:$false
 
-                                   foreach ($module in $modules) {
-                                     if (-not (Get-Module -ListAvailable -Name $module)) {
-                                       Install-Module $module -Force -Scope AllUsers -Confirm:$false
-                                     }
+                                   # Install compatible Az modules that work with Az.Accounts {{ az_accounts_version }}
+                                   Write-Host "Installing Az.Compute {{ az_compute_version }}..." -ForegroundColor Yellow
+                                   Install-Module Az.Compute -RequiredVersion {{ az_compute_version }} -Force -Scope AllUsers -AllowClobber -Confirm:$false -SkipPublisherCheck
+
+                                   Write-Host "Installing Az.Network {{ az_network_version }}..." -ForegroundColor Yellow
+                                   Install-Module Az.Network -RequiredVersion {{ az_network_version }} -Force -Scope AllUsers -AllowClobber -Confirm:$false -SkipPublisherCheck
+
+                                   Write-Host "Installing Az.NetAppFiles {{ az_netappfiles_version }}..." -ForegroundColor Yellow
+                                   Install-Module Az.NetAppFiles -RequiredVersion {{ az_netappfiles_version }} -Force -Scope AllUsers -AllowClobber -Confirm:$false -SkipPublisherCheck
+
+                                   Write-Host "Installing Posh-SSH (latest)..." -ForegroundColor Yellow
+                                   if (-not (Get-Module -ListAvailable -Name Posh-SSH)) {
+                                     Install-Module Posh-SSH -Force -Scope AllUsers -AllowClobber -Confirm:$false -SkipPublisherCheck
                                    }
+
+                                   Write-Host "Verifying module imports..." -ForegroundColor Yellow
+                                   Import-Module Az.Accounts -RequiredVersion {{ az_accounts_version }} -ErrorAction Stop
+                                   Import-Module Az.Compute -ErrorAction Stop
+                                   Import-Module Az.Network -ErrorAction Stop
+                                   Import-Module Posh-SSH -ErrorAction Stop
+
+                                   Write-Host "✓ All modules installed and verified successfully" -ForegroundColor Green
   register:                        qc_modules_result
   failed_when:                     qc_modules_result.rc != 0
   args:

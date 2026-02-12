@@ -4,6 +4,15 @@
 azure_utility_repo: https://raw.githubusercontent.com/Azure/SAP-on-Azure-Scripts-and-Utilities
 powershell_version: 7.3.12
 
+# PowerShell Az Module Versions (version-locked for PowerShell 7.3.12 compatibility)
+# Az.Accounts 5.x has known assembly loading issues with PowerShell 7.3.x
+# See: https://github.com/Azure/azure-powershell/issues/28495
+# Last working 4.x version: 4.2.0
+az_accounts_version: 4.2.0
+az_compute_version: 9.2.0
+az_network_version: 7.4.0
+az_netappfiles_version: 0.16.0
+
 # https://github.com/Azure/SAP-on-Azure-Scripts-and-Utilities/blob/main/QualityCheck/QualityCheck.ps1
 vm_operating_system_map:
   SUSE: "SUSE"
