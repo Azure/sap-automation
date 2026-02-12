@@ -242,11 +242,15 @@ ansible_venv_bin="${ansible_venv}/bin"
 ansible_collections="${ansible_base}/collections"
 ansible_pip3="${ansible_venv_bin}/pip3"
 
+# Git repository settings
+organization="${ORGANIZATION:-Azure}"
+branch="${BRANCH:-main}"
+
 # Azure SAP Automated Deployment directories
 asad_home="${HOME}/Azure_SAP_Automated_Deployment"
 asad_ws="${asad_home}/WORKSPACES"
-asad_repo="https://github.com/Azure/sap-automation.git"
-asad_sample_repo="https://github.com/Azure/sap-automation-samples.git"
+asad_repo="https://github.com/${organization}/sap-automation.git"
+asad_sample_repo="https://github.com/${organization}/sap-automation-samples.git"
 asad_dir="${asad_home}/$(basename ${asad_repo} .git)"
 asad_sample_dir="${asad_home}/samples"
 
@@ -255,7 +259,8 @@ tf_base=/opt/terraform
 tf_dir="${tf_base}/terraform_${tfversion}"
 tf_bin="${tf_base}/bin"
 tf_zip="terraform_${tfversion}_linux_amd64.zip"
-chown -R "${USER}" "${tf_base}"
+sudo mkdir -p "${tf_base}"
+sudo chown -R "${USER}" "${tf_base}"
 #
 #Don't re-run the following if the script is already installed
 #
@@ -448,6 +453,8 @@ mkdir -p \
 #
 if [[ ! -d "${asad_dir}" ]]; then
 	git clone "${asad_repo}" "${asad_dir}"
+	cd "${asad_dir}"
+	git checkout "${branch}"
 fi
 
 #
@@ -455,6 +462,8 @@ fi
 #
 if [[ ! -d "${asad_sample_dir}" ]]; then
 	git clone "${asad_sample_repo}" "${asad_sample_dir}"
+	cd "${asad_sample_dir}"
+	git checkout "${branch}"
 fi
 
 #
