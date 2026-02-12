@@ -420,7 +420,11 @@
 
         - name:                            "BOM: {{ bom_name }} Upload File {{ bom_media_entry.archive }} failed"
           ansible.builtin.fail:
-            msg:                           "Authentication error, please check the SAS token"
+            msg: >-
+                                      {{ "Upload failed using SAS token authentication. Please verify the SAS token, storage account, container, and network connectivity. "
+                                         if allowSharedKeyAccess else
+                                         "Upload failed using Azure AD authentication (--auth-mode login). Please ensure you are logged in with 'az login' and have sufficient permissions. " }}
+                                      az storage blob upload stderr: {{ blobUpload.stderr | default("n/a") }}
           when:
             - blobUpload.rc != 0
             - blobUpload.stderr is defined
