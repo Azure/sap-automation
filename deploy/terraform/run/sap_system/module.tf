@@ -82,7 +82,7 @@ module "common_infrastructure" {
   key_vault                                     = local.key_vault
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   license_type                                  = var.license_type
-  naming                                        = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
+  naming                                        = length(var.name_override_file) > 0 ? local.custom_names : local.generator_as_lists
   NFS_provider                                  = var.NFS_provider
   options                                       = local.options
   sapmnt_private_endpoint_id                    = var.sapmnt_private_endpoint_id
@@ -148,7 +148,7 @@ module "hdb_node" {
   infrastructure                                = local.infrastructure
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   license_type                                  = var.license_type
-  naming                                        = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
+  naming                                        = length(var.name_override_file) > 0 ? local.custom_names : local.generator_as_lists
   NFS_provider                                  = var.NFS_provider
   observer_vm_size                              = var.observer_vm_size
   observer_vm_tags                              = var.observer_vm_tags
@@ -207,7 +207,7 @@ module "app_tier" {
   infrastructure                                = local.infrastructure
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   license_type                                  = var.license_type
-  naming                                        = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
+  naming                                        = length(var.name_override_file) > 0 ? local.custom_names : local.generator_as_lists
   network_location                              = module.common_infrastructure.network_location
   network_resource_group                        = module.common_infrastructure.network_resource_group
   options                                       = local.options
@@ -271,7 +271,7 @@ module "anydb_node" {
   infrastructure                                = local.infrastructure
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   license_type                                  = var.license_type
-  naming                                        = length(var.name_override_file) > 0 ? local.custom_names : module.sap_namegenerator.naming
+  naming                                        = length(var.name_override_file) > 0 ? local.custom_names : local.generator_as_lists
   observer_vm_size                              = var.observer_vm_size
   observer_vm_tags                              = var.observer_vm_tags
   observer_vm_zones                             = var.observer_vm_zones

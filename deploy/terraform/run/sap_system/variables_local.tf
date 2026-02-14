@@ -49,9 +49,39 @@ locals {
 
   deployer_subscription_id           = length(local.spn_key_vault_arm_id) > 0 ? split("/", local.spn_key_vault_arm_id)[2] : ""
 
-  custom_names                       = length(var.name_override_file) > 0 ? (
+  // Custom naming: Load from JSON file (jsondecode creates tuples from JSON arrays)
+  custom_names_raw                   = length(var.name_override_file) > 0 ? (
                                         jsondecode(file(format("%s/%s", path.cwd, var.name_override_file)))) : (
                                         null
                                       )
+
+  
+  // Convert ALL generator virtualmachine_names attributes to lists
+  generator_as_lists                = merge(
+                                        module.sap_namegenerator.naming,
+                                        {
+                                          virtualmachine_names = {
+                                            for vm_key, vm_val in module.sap_namegenerator.naming.virtualmachine_names :
+                                            vm_key => tolist(vm_val)  # Convert ALL to lists
+                                          }
+                                        }
+                                      )
+
+  // Merge custom naming with generator (fill missing keys with generator values)
+  // Strategy: Start with generator (all 9 keys), override with custom JSON keys,
+  //           then convert virtualmachine_names arrays to lists
+  // This allows custom JSON to override ANY key (storageaccount_names, ppg_names, etc.)
+  // while keeping generator defaults for missing keys
+  custom_names                       = local.custom_names_raw == null ? null : merge(
+                                        local.generator_as_lists,  # Base: all 9 keys from generator
+                                        local.custom_names_raw,    # Override: any keys from JSON file
+                                        {
+                                          virtualmachine_names = {
+                                            for vm_key, vm_val in local.custom_names_raw.virtualmachine_names :
+                                            vm_key => tolist(vm_val)  # Convert arrays to lists
+                                          }
+                                        }
+                                      )
+
   workload_zone_name                 = coalesce(var.workload_zone_name, upper(format("%s-%s-%s", var.environment, module.sap_namegenerator.naming_new.location_short, var.network_logical_name)))
 }
