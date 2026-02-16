@@ -205,7 +205,9 @@
 # DEBUG: Count HTML files
 - name:                            "SAP on Azure quality checks: - [DEBUG] Count HTML files"
   delegate_to:                     localhost
-  ansible.builtin.shell:           find {{ _workspace_directory }}/quality_assurance -name "*.html" -type f | wc -l
+  ansible.builtin.shell:           set -o pipefail && find {{ _workspace_directory }}/quality_assurance -name "*.html" -type f | wc -l
+  args:
+    executable:                    /bin/bash
   register:                        qc_html_count
   failed_when:                     false
   changed_when:                    false
