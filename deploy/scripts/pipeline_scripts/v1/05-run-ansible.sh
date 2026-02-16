@@ -127,6 +127,15 @@ else
 	sudo chmod 600 "$SSH_KEY_NAME"
 fi
 
+# Copy SSH key to expected name for quality check compatibility
+echo "##[section]Preparing SSH key for quality check..."
+cp "$curdir/$SSH_KEY_NAME" "$curdir/sshkey"
+chmod 600 "$curdir/sshkey"
+
+echo "SSH key file locations:"
+echo "  Primary: $curdir/$SSH_KEY_NAME"
+echo "  Quality Check copy: $curdir/sshkey"
+
 password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv)
 user_name=$(az keyvault secret show --name "$USERNAME_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value -o tsv)
 
