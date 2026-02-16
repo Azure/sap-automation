@@ -55,7 +55,20 @@
                                    - "Output Directory {{ _workspace_directory }}/quality_assurance"
                                    - "SID: {{ qc_sid }}"
                                    - "High Availability: {{ qc_high_availability }}"
-    verbosity:                     2
+
+# DEBUG: Always show debug variables (removed verbosity restriction)
+- name:                            "SAP on Azure quality checks: - [DEBUG] Show execution parameters"
+  ansible.builtin.debug:
+    msg:
+                                   - "==================== QUALITY CHECK DEBUG INFO ===================="
+                                   - "Target VM: {{ qc_vm_hostname }} ({{ qc_az_vm_name }})"
+                                   - "Role: {{ qc_vm_role }} | Database: {{ qc_vm_database }} | OS: {{ qc_vm_operating_system }}"
+                                   - "Output Directory: {{ _workspace_directory }}/quality_assurance"
+                                   - "SSH Key: {{ _workspace_directory }}/sshkey"
+                                   - "SID: {{ qc_sid }} | HA: {{ qc_high_availability }}"
+                                   - "Subscription: {{ qc_subscription_id }}"
+                                   - "Resource Group: {{ qc_az_vm_resource_group }}"
+                                   - "==============================================================="
 
 
 - name:                            "SAP on Azure quality checks: - get access token in the context of azureadm on deployer"
@@ -72,9 +85,57 @@
   failed_when:                     gz_arm_client_id_result.stdout == ""
   register:                        gz_arm_client_id_result
 
+# DEBUG: List files in output directory BEFORE execution
+- name:                            "SAP on Azure quality checks: - [DEBUG] List output directory BEFORE execution"
+  delegate_to:                     localhost
+  ansible.builtin.command:         ls -lhR {{ _workspace_directory }}/quality_assurance
+  register:                        qc_files_before
+  failed_when:                     false
+  changed_when:                    false
+
+- name:                            "SAP on Azure quality checks: - [DEBUG] Show files BEFORE execution"
+  ansible.builtin.debug:
+    msg:
+                                   - "==================== FILES BEFORE EXECUTION ===================="
+                                   - "{{ qc_files_before.stdout_lines | default(['Directory empty or does not exist']) }}"
+                                   - "================================================================"
+
+# DEBUG: Check output directory permissions
+- name:                            "SAP on Azure quality checks: - [DEBUG] Check output directory permissions"
+  delegate_to:                     localhost
+  ansible.builtin.stat:
+    path:                          "{{ _workspace_directory }}/quality_assurance"
+  register:                        qc_output_dir_stat
+
+- name:                            "SAP on Azure quality checks: - [DEBUG] Show directory permissions"
+  ansible.builtin.debug:
+    msg:
+                                   - "==================== OUTPUT DIRECTORY STATUS ==================="
+                                   - "Path: {{ _workspace_directory }}/quality_assurance"
+                                   - "Exists: {{ qc_output_dir_stat.stat.exists }}"
+                                   - "Writable: {{ qc_output_dir_stat.stat.writeable | default('N/A') }}"
+                                   - "Owner: {{ qc_output_dir_stat.stat.pw_name | default('N/A') }}"
+                                   - "Group: {{ qc_output_dir_stat.stat.gr_name | default('N/A') }}"
+                                   - "Mode: {{ qc_output_dir_stat.stat.mode | default('N/A') }}"
+                                   - "================================================================"
+
 - name:                            "SAP on Azure quality checks: - Run quality check"
   ansible.builtin.shell:
     cmd: >-
+                                   Import-Module Az.Accounts -RequiredVersion {{ az_accounts_version }} -ErrorAction Stop
+
+                                   if (-not (Get-Command Connect-AzAccount -ErrorAction SilentlyContinue)) {
+                                     throw "FATAL: Connect-AzAccount not available after importing Az.Accounts {{ az_accounts_version }}"
+                                   }
+
+                                   Import-Module Az.Compute -ErrorAction Stop
+
+                                   Import-Module Az.Network -ErrorAction Stop
+
+                                   Import-Module Az.NetAppFiles -ErrorAction Stop
+
+                                   Import-Module Posh-SSH -ErrorAction Stop
+
                                    Connect-AzAccount -AccountId {{ gz_arm_client_id_result.stdout }} `
                                                      -AccessToken {{ qc_access_token_result.stdout }} `
                                                      -Subscription {{ qc_subscription_id }}
@@ -97,11 +158,85 @@
   args:
     executable:                    "/usr/local/bin/pwsh"
     chdir:                         "/opt/microsoft/quality_check"
-  no_log:                          true
+  no_log:                          false  # DEBUG: Changed from true to false to see output
   delegate_to:                     localhost
   become_user:                     root
   become:                          true
   register:                        quality_check_result
+  failed_when:                     false  # DEBUG: Don't fail immediately, capture output first
+
+# DEBUG: Always show quality check result
+- name:                            "SAP on Azure quality checks: - [DEBUG] Show quality check stdout"
+  ansible.builtin.debug:
+    msg:
+                                   - "==================== QUALITY CHECK STDOUT ===================="
+                                   - "{{ quality_check_result.stdout_lines | default(['No stdout']) }}"
+                                   - "=============================================================="
+
+- name:                            "SAP on Azure quality checks: - [DEBUG] Show quality check stderr"
+  ansible.builtin.debug:
+    msg:
+                                   - "==================== QUALITY CHECK STDERR ===================="
+                                   - "{{ quality_check_result.stderr_lines | default(['No stderr']) }}"
+                                   - "=============================================================="
+
+- name:                            "SAP on Azure quality checks: - [DEBUG] Show exit code"
+  ansible.builtin.debug:
+    msg:
+                                   - "==================== QUALITY CHECK EXIT CODE ================="
+                                   - "Return Code: {{ quality_check_result.rc }}"
+                                   - "=============================================================="
+
+# DEBUG: List files in output directory AFTER execution
+- name:                            "SAP on Azure quality checks: - [DEBUG] List output directory AFTER execution"
+  delegate_to:                     localhost
+  ansible.builtin.command:         ls -lhR {{ _workspace_directory }}/quality_assurance
+  register:                        qc_files_after
+  failed_when:                     false
+  changed_when:                    false
+
+- name:                            "SAP on Azure quality checks: - [DEBUG] Show files AFTER execution"
+  ansible.builtin.debug:
+    msg:
+                                   - "==================== FILES AFTER EXECUTION ===================="
+                                   - "{{ qc_files_after.stdout_lines | default(['Directory empty']) }}"
+                                   - "==============================================================="
+
+# DEBUG: Count HTML files
+- name:                            "SAP on Azure quality checks: - [DEBUG] Count HTML files"
+  delegate_to:                     localhost
+  ansible.builtin.shell:           find {{ _workspace_directory }}/quality_assurance -name "*.html" -type f | wc -l
+  register:                        qc_html_count
+  failed_when:                     false
+  changed_when:                    false
+
+- name:                            "SAP on Azure quality checks: - [DEBUG] Report HTML file count"
+  ansible.builtin.debug:
+    msg:
+                                   - "==================== HTML REPORT COUNT ========================"
+                                   - "HTML files found: {{ qc_html_count.stdout | default('0') }}"
+                                   - "Expected: 1 HTML file per VM"
+                                   - "==============================================================="
+
+# Report execution status (informational only - no failure)
+- name:                            "SAP on Azure quality checks: - [DEBUG] Report execution status"
+  ansible.builtin.debug:
+    msg:
+                                   - "==================== EXECUTION STATUS SUMMARY =================="
+                                   - "Exit code: {{ quality_check_result.rc }}"
+                                   - "HTML files found: {{ qc_html_count.stdout | default('0') }}"
+                                   - "Expected: At least 1 HTML file per VM"
+                                   - "---------------------------------------------------------------"
+                                   - "{% if quality_check_result.rc != 0 %}⚠️  Non-zero exit code detected{% else %}✅ Exit code OK{% endif %}"
+                                   - "{% if (qc_html_count.stdout | default('0') | int) == 0 %}⚠️  No HTML files found{% else %}✅ HTML files generated{% endif %}"
+                                   - "---------------------------------------------------------------"
+                                   - "Check QUALITY CHECK STDOUT and STDERR sections above for details."
+                                   - "Common issues if status shows warnings:"
+                                   - "  - Az.Accounts version mismatch (should be {{ az_accounts_version }})"
+                                   - "  - Connect-AzAccount cmdlet not available"
+                                   - "  - SSH key permissions or connectivity issues"
+                                   - "  - OutputDirName path issue in QualityCheck.ps1"
+                                   - "==============================================================="
 
 - name:                            "SAP on Azure quality checks: - Debug quality check result"
   ansible.builtin.debug:

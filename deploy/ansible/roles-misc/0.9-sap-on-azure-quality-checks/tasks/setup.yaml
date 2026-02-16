@@ -8,6 +8,16 @@
 # +------------------------------------4--------------------------------------*/
 ---
 
+# DEBUG: Show workspace directory
+- name:                            "SAP on Azure quality checks: - [DEBUG] Show workspace directory"
+  ansible.builtin.debug:
+    msg:
+                                   - "==================== WORKSPACE CONFIGURATION ==================="
+                                   - "Workspace Directory: {{ _workspace_directory }}"
+                                   - "Orchestration User: {{ orchestration_ansible_user }}"
+                                   - "PowerShell Version: {{ powershell_version }}"
+                                   - "================================================================"
+
 - name:                            "SAP on Azure quality checks: - setup directories"
   become:                          true
   become_user:                     root
@@ -20,6 +30,23 @@
     - { path: "/opt/microsoft/powershell/v{{ powershell_version }}", owner: "root" }
     - { path: "/opt/microsoft/quality_check", owner: "{{ orchestration_ansible_user }}" }
     - { path: "{{ _workspace_directory }}/quality_assurance", owner: "{{ orchestration_ansible_user }}" }
+
+# DEBUG: Verify directories were created
+- name:                            "SAP on Azure quality checks: - [DEBUG] Verify directories created"
+  ansible.builtin.stat:
+    path:                          "{{ item }}"
+  register:                        qc_dir_stat
+  loop:
+    - "/opt/microsoft/powershell/v{{ powershell_version }}"
+    - "/opt/microsoft/quality_check"
+    - "{{ _workspace_directory }}/quality_assurance"
+
+- name:                            "SAP on Azure quality checks: - [DEBUG] Show directory creation status"
+  ansible.builtin.debug:
+    msg:
+                                   - "==================== DIRECTORY CREATION STATUS ================="
+                                   - "{{ item.item }}: {{ 'EXISTS' if item.stat.exists else 'MISSING' }} (owner: {{ item.stat.pw_name | default('N/A') }})"
+  loop:                            "{{ qc_dir_stat.results }}"
 
 
 - name:                            "SAP on Azure quality checks: - extract PowerShell binary"
@@ -82,17 +109,82 @@
     chdir:                         "/opt/microsoft/quality_check"
     executable:                    "/usr/local/bin/pwsh"
 
-- name:                            "SAP on Azure quality checks: - install PowerShell modules (version-locked for PS 7.3.12 compatibility)"
+- name:                            "SAP on Azure quality checks: - Remove old Az module versions (cleanup)"
   become:                          true
   become_user:                     root
   ansible.builtin.shell: |
-                                   Update-AzConfig -EnableLoginByWam $false
+                                   # List all installed Az.* modules
+                                   Write-Host "Checking for existing Az modules..." -ForegroundColor Yellow
+                                   $modules = Get-Module -ListAvailable Az* | Select-Object Name, Version
 
-                                   # Install Az.Accounts {{ az_accounts_version }} (last 4.x version, compatible with PowerShell 7.3.12)
-                                   # Az.Accounts 5.x has known assembly loading issues with PS 7.3.x
-                                   # See: https://github.com/Azure/azure-powershell/issues/28495
-                                   Write-Host "Installing Az.Accounts {{ az_accounts_version }} (PowerShell 7.3.12 compatible)..." -ForegroundColor Yellow
+                                   foreach ($mod in $modules) {
+                                     Write-Host "Found $($mod.Name) version: $($mod.Version)" -ForegroundColor Cyan
+                                   }
+
+                                   # Remove ALL Az modules to start fresh
+                                   Write-Host "Removing all Az modules for clean installation..." -ForegroundColor Yellow
+                                   Get-Module -ListAvailable Az* | ForEach-Object {
+                                     Write-Host "Uninstalling $($_.Name) $($_.Version)..." -ForegroundColor Yellow
+                                     Uninstall-Module -Name $_.Name -RequiredVersion $_.Version -Force -ErrorAction SilentlyContinue
+                                   }
+
+                                   # Also remove from file system to be certain
+                                   $modulePaths = @(
+                                     "/usr/local/share/powershell/Modules/Az*",
+                                     "/opt/microsoft/powershell/Modules/Az*"
+                                   )
+
+                                   foreach ($pathPattern in $modulePaths) {
+                                     $paths = Get-ChildItem -Path $pathPattern -Directory -ErrorAction SilentlyContinue
+                                     foreach ($path in $paths) {
+                                       Write-Host "Removing directory: $($path.FullName)" -ForegroundColor Yellow
+                                       Remove-Item -Path $path.FullName -Recurse -Force -ErrorAction SilentlyContinue
+                                     }
+                                   }
+
+                                   Write-Host "✓ All old Az modules removed" -ForegroundColor Green
+  register:                        qc_cleanup_result
+  failed_when:                     qc_cleanup_result.rc != 0
+  args:
+    executable:                    "/usr/local/bin/pwsh"
+
+- name:                            "SAP on Azure quality checks: - [DEBUG] Show Az module cleanup output"
+  ansible.builtin.debug:
+    msg:
+                                   - "==================== AZ MODULE CLEANUP OUTPUT ==================="
+                                   - "{{ qc_cleanup_result.stdout_lines | default(['No output']) }}"
+                                   - "================================================================="
+
+- name:                            "SAP on Azure quality checks: - install PowerShell modules (version-locked for PS 7.5.4 compatibility)"
+  become:                          true
+  become_user:                     root
+  ansible.builtin.shell: |
+                                   # Disable WAM login (not supported in non-interactive scenarios)
+                                   # Note: Update-AzConfig may not be available in all Az.Accounts versions
+                                   if (Get-Command Update-AzConfig -ErrorAction SilentlyContinue) {
+                                     Update-AzConfig -EnableLoginByWam $false -ErrorAction SilentlyContinue
+                                   }
+
+                                   # Install Az.Accounts {{ az_accounts_version }} (compatible with PowerShell 7.5.4)
+                                   # QualityCheck.ps1 requires Az.NetAppFiles > 0.24.0, which requires Az.Accounts 5.x
+                                   # PowerShell 7.5.4 resolved the assembly loading issues present in 7.3.x
+                                   Write-Host "Installing Az.Accounts {{ az_accounts_version }} (PowerShell 7.5.4 compatible)..." -ForegroundColor Yellow
                                    Install-Module Az.Accounts -RequiredVersion {{ az_accounts_version }} -Force -Scope AllUsers -AllowClobber -Confirm:$false
+
+                                   # VERIFY only {{ az_accounts_version }} is installed
+                                   $installedVersions = Get-Module -ListAvailable Az.Accounts
+                                   if ($installedVersions.Count -ne 1) {
+                                     Write-Host "ERROR: Multiple Az.Accounts versions found!" -ForegroundColor Red
+                                     $installedVersions | ForEach-Object { Write-Host "  - Version: $($_.Version)" -ForegroundColor Red }
+                                     throw "Expected only Az.Accounts {{ az_accounts_version }}, but found multiple versions"
+                                   }
+
+                                   if ($installedVersions[0].Version -ne "{{ az_accounts_version }}") {
+                                     Write-Host "ERROR: Wrong Az.Accounts version installed: $($installedVersions[0].Version)" -ForegroundColor Red
+                                     throw "Expected Az.Accounts {{ az_accounts_version }}, but got $($installedVersions[0].Version)"
+                                   }
+
+                                   Write-Host "✓ Az.Accounts {{ az_accounts_version }} confirmed as ONLY installed version" -ForegroundColor Green
 
                                    # Install compatible Az modules that work with Az.Accounts {{ az_accounts_version }}
                                    Write-Host "Installing Az.Compute {{ az_compute_version }}..." -ForegroundColor Yellow
@@ -113,12 +205,35 @@
                                    Import-Module Az.Accounts -RequiredVersion {{ az_accounts_version }} -ErrorAction Stop
                                    Import-Module Az.Compute -ErrorAction Stop
                                    Import-Module Az.Network -ErrorAction Stop
+                                   Import-Module Az.NetAppFiles -ErrorAction Stop
                                    Import-Module Posh-SSH -ErrorAction Stop
 
+                                   # VERIFY Connect-AzAccount is available
+                                   if (-not (Get-Command Connect-AzAccount -ErrorAction SilentlyContinue)) {
+                                     throw "ERROR: Connect-AzAccount cmdlet not found after importing Az.Accounts {{ az_accounts_version }}"
+                                   }
+
                                    Write-Host "✓ All modules installed and verified successfully" -ForegroundColor Green
+                                   Write-Host "✓ Connect-AzAccount cmdlet confirmed available" -ForegroundColor Green
+                                   Write-Host "✓ Az.NetAppFiles {{ az_netappfiles_version }} import successful" -ForegroundColor Green
   register:                        qc_modules_result
   failed_when:                     qc_modules_result.rc != 0
   args:
     chdir:                         "/opt/microsoft/quality_check"
     executable:                    "/usr/local/bin/pwsh"
+
+- name:                            "SAP on Azure quality checks: - [DEBUG] Show module installation output"
+  ansible.builtin.debug:
+    msg:
+                                   - "==================== MODULE INSTALLATION OUTPUT ================="
+                                   - "{{ qc_modules_result.stdout_lines | default(['No output']) }}"
+                                   - "================================================================="
+
+- name:                            "SAP on Azure quality checks: - [DEBUG] Show module installation errors"
+  ansible.builtin.debug:
+    msg:
+                                   - "==================== MODULE INSTALLATION ERRORS ================="
+                                   - "{{ qc_modules_result.stderr_lines | default(['No errors']) }}"
+                                   - "================================================================="
+  when:                            qc_modules_result.stderr is defined and qc_modules_result.stderr != ""
 ...

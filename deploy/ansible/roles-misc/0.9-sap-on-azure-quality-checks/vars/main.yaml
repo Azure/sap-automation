@@ -2,16 +2,17 @@
 # Licensed under the MIT License.
 
 azure_utility_repo: https://raw.githubusercontent.com/Azure/SAP-on-Azure-Scripts-and-Utilities
-powershell_version: 7.3.12
+powershell_version: 7.5.4
 
-# PowerShell Az Module Versions (version-locked for PowerShell 7.3.12 compatibility)
-# Az.Accounts 5.x has known assembly loading issues with PowerShell 7.3.x
+# PowerShell Az Module Versions (for PowerShell 7.5.4 compatibility)
+# PowerShell 7.5.4 supports Az.Accounts 5.x without assembly loading issues
+# QualityCheck.ps1 requires Az.NetAppFiles > 0.24.0, which requires Az.Accounts 5.x
 # See: https://github.com/Azure/azure-powershell/issues/28495
-# Last working 4.x version: 4.2.0
-az_accounts_version: 4.2.0
-az_compute_version: 9.2.0
-az_network_version: 7.4.0
-az_netappfiles_version: 0.16.0
+# Using versions verified to work on deployer VM (manual quality check execution)
+az_accounts_version: 5.3.2
+az_compute_version: 11.2.0
+az_network_version: 7.24.1
+az_netappfiles_version: 1.0.0
 
 # https://github.com/Azure/SAP-on-Azure-Scripts-and-Utilities/blob/main/QualityCheck/QualityCheck.ps1
 vm_operating_system_map:
