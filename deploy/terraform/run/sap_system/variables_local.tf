@@ -68,18 +68,21 @@ locals {
                                       )
 
   // Merge custom naming with generator (fill missing keys with generator values)
-  // Strategy: Start with generator (all 9 keys), override with custom JSON keys,
-  //           then convert virtualmachine_names arrays to lists
+  // Strategy: Start with generator (all 9 top-level keys, all 23 VM keys)
+  //           Override with custom JSON keys (merge VM keys, don't replace)
   // This allows custom JSON to override ANY key (storageaccount_names, ppg_names, etc.)
   // while keeping generator defaults for missing keys
   custom_names                       = local.custom_names_raw == null ? null : merge(
-                                        local.generator_as_lists,  # Base: all 9 keys from generator
-                                        local.custom_names_raw,    # Override: any keys from JSON file
+                                        local.generator_as_lists,  # Base: all 9 top-level keys from generator
+                                        local.custom_names_raw,    # Override: any top-level keys from JSON file
                                         {
-                                          virtualmachine_names = {
-                                            for vm_key, vm_val in local.custom_names_raw.virtualmachine_names :
-                                            vm_key => tolist(vm_val)  # Convert arrays to lists
-                                          }
+                                          virtualmachine_names = merge(
+                                            local.generator_as_lists.virtualmachine_names,  # All 23 VM keys from generator (as lists)
+                                            {
+                                              for vm_key, vm_val in local.custom_names_raw.virtualmachine_names :
+                                              vm_key => tolist(vm_val)  # Override specific VM keys from JSON (convert to lists)
+                                            }
+                                          )
                                         }
                                       )
 
