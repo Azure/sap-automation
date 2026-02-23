@@ -53,9 +53,7 @@ locals {
   custom_names_raw                   = length(var.name_override_file) > 0 ? (
                                         jsondecode(file(format("%s/%s", path.cwd, var.name_override_file)))) : (
                                         null
-                                      )
-
-  
+                                      ) 
   // Convert ALL generator virtualmachine_names attributes to lists
   generator_as_lists                = merge(
                                         module.sap_namegenerator.naming,
@@ -79,7 +77,7 @@ locals {
                                           virtualmachine_names = merge(
                                             local.generator_as_lists.virtualmachine_names,  # All 23 VM keys from generator (as lists)
                                             {
-                                              for vm_key, vm_val in local.custom_names_raw.virtualmachine_names :
+                                              for vm_key, vm_val in try(local.custom_names_raw.virtualmachine_names, {}) :
                                               vm_key => tolist(vm_val)  # Override specific VM keys from JSON (convert to lists)
                                             }
                                           )
