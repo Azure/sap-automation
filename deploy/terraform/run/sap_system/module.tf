@@ -331,7 +331,7 @@ module "output_files" {
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   naming                                        = length(var.name_override_file) > 0 ? (
                                                     local.custom_names) : (
-                                                    module.sap_namegenerator.naming
+                                                    local.generator_as_lists
                                                   )
   random_id                                     = module.common_infrastructure.random_id
   save_naming_information                       = var.save_naming_information
