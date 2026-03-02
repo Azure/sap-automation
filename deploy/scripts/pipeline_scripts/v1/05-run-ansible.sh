@@ -167,12 +167,18 @@ fi
 # Run Pre tasks if Ansible playbook with the correct naming exists                         #
 #                                                                                          #
 ############################################################################################
-filename=./config/Ansible/"${filename_without_prefix}"_pre.yml
+
+if [ "$PLATFORM" == "devops" ]; then
+	cd "$BUILD_REPOSITORY_LOCALPATH" || exit
+fi
+
+
+filename=./Ansible/"${filename_without_prefix}"_pre.yml
 
 echo "Check if file: ${filename} exists"
 
 if [ -f "${filename}" ]; then
-	echo "##[group]- preconfiguration"
+	echo "##[group]- Pre configuration"
 
 	redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$curdir' $EXTRA_PARAMS -e orchestration_ansible_user=$USER -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${filename}"
 
@@ -191,7 +197,7 @@ if [ -f "${filename}" ]; then
 
 	eval "${command}"
 	return_code=$?
-	echo "##[section]Ansible playbook ${filename} execution completed with exit code [$return_code]"
+	echo "##[section]Ansible pre-configuration playbook ${filename} execution completed with exit code [$return_code]"
 	echo "##[endgroup]"
 
 fi
@@ -222,12 +228,12 @@ echo "##[endgroup]"
 #                                                                                          #
 ############################################################################################
 
-filename=./config/Ansible/"${filename_without_prefix}"_post.yml
+filename=./Ansible/"${filename_without_prefix}"_post.yml
 echo "Check if file: ${filename} exists"
 
 if [ -f "${filename}" ]; then
 
-	echo "##[group]- postconfiguration"
+	echo "##[group]- Post configuration"
 	redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$curdir' $EXTRA_PARAMS -e orchestration_ansible_user=$USER -e ansible_user=$user_name -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${filename}"
 	echo "##[section]Executing [$redacted_command]..."
 
@@ -244,7 +250,7 @@ if [ -f "${filename}" ]; then
 
 	eval "${command}"
 	return_code=$?
-	echo "##[section]Ansible playbook ${filename} execution completed with exit code [$return_code]"
+	echo "##[section]Ansible post-configuration playbook ${filename} execution completed with exit code [$return_code]"
 	echo "##[endgroup]"
 
 fi

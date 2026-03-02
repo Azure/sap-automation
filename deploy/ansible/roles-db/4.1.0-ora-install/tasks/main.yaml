@@ -105,14 +105,14 @@
 
 - name:                                "4.1.0 Oracle Installation - Check updated installation media exists"
   ansible.builtin.stat:
-    path:                              "{{ target_media_location }}/SAP/SAP/RUNINSTALLER"
-  register:                            oracle_media_installed
+    path:                              "{{ target_media_location }}/SBP/SAP/RUNINSTALLER"
+  register:                            runinstaller_media_found
 
 - name:                                "4.1.0 Oracle Installation - Check oradism exists"
   ansible.builtin.assert:
     that:
-      - oracle_media_installed.stat.exists
-    fail_msg:                          "Oracle Database installation requires the updated RUNINSTALLER media to be available at {{ target_media_location }}/SAP/SAP/RUNINSTALLER"
+      - runinstaller_media_found.stat.exists
+    fail_msg:                          "Oracle Database installation requires the updated RUNINSTALLER media to be available at {{ target_media_location }}/SAP/RUNINSTALLER"
 
 - name:                                "4.1.0 Oracle Installation - OPatch ID"
   ansible.builtin.set_fact:
@@ -168,13 +168,13 @@
 
     - name:                            "4.1.0 Oracle Installation - Execute RUNINSTALLER command"
       ansible.builtin.debug:
-        msg:                           "Running {{ target_media_location }}/SAP/SAP/RUNINSTALLER -oracle_image {{ OracleImage }} -applyRU {{ ApplyRU }} -opatchLocation {{ OPatchPath }} -silent -ignorePrereqWarnings"
+        msg:                           "Running {{ runinstaller_media_found.stat.path }} -oracle_image {{ OracleImage }} -applyRU {{ ApplyRU }} -opatchLocation {{ OPatchPath }} -silent -ignorePrereqWarnings"
 
     - name:                            "4.1.0 Oracle Installation - Execute RUNINSTALLER"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       {{ target_media_location }}/SAP/RUNINSTALLER \
+                                       {{ runinstaller_media_found.stat.path }} \
                                        -oracle_image {{ OracleImage }}                           \
                                        -applyRU {{ ApplyRU }}                                    \
                                        -opatchLocation {{ OPatchPath }}                          \
@@ -214,7 +214,7 @@
 
 - name:                                "4.1.0 Oracle Installation - Find MOPatch"
   ansible.builtin.find:
-    paths:                             "{{ target_media_location }}/SBP/SGR19P"
+    paths:                             "{{ target_media_location }}/SBP/SAPSBP/"
     patterns:                          ["MOPatch"]
     file_type:                         directory
     recurse:                           true
