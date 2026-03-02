@@ -27,6 +27,7 @@ resource "azurerm_storage_account" "hanashared" {
                                            ""
                                          ), 0, 24)
 
+
   resource_group_name                  = var.resource_group[0].name
   location                             = var.resource_group[0].location
   account_tier                         = "Premium"
@@ -67,7 +68,7 @@ resource "azurerm_storage_share" "hanashared" {
    count                                = var.NFS_provider == "AFS" && var.database.scale_out ? (
                                            length(try(var.hanashared_id, "")) > 0 ? (
                                              0) : (
-                                             length(var.database.zones)
+                                             var.use_single_hana_shared ? 1 : max(2,length(var.database.zones))
                                            )) : (
                                            0
                                          )
@@ -84,7 +85,7 @@ resource "azurerm_storage_share" "hanashared" {
   storage_account_id                   = var.NFS_provider == "AFS" ? (
                                            length(try(var.hanashared_id, "")) > 0 ? (
                                              var.hanashared_id[var.use_single_hana_shared ? 0 : count.index]) : (
-                                             azurerm_storage_account.hanashared[var.use_single_hana_shared ? 0 : count.index].id
+                                             azurerm_storage_account.hanashared[var.use_single_hana_shared ? 0 : 0].id
                                            )
                                            ) : (
                                            ""

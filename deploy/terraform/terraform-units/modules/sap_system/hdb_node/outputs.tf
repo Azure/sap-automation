@@ -332,17 +332,17 @@ output "hana_shared_afs_path"          {
                                                              ),
                                                              azurerm_storage_share.hanashared[0].name
                                                            ),
-                                                           length(var.database.zones) > 1 ?
+                                                           length(azurerm_storage_share.hanashared) > 1 ?
                                                            format("%s:/%s/%s",
-                                                               try(azurerm_private_endpoint.hanashared[var.use_single_hana_shared ? 0 : 1].private_dns_zone_configs[0].record_sets[0].fqdn,
-                                                                 try(azurerm_private_endpoint.hanashared[var.use_single_hana_shared ? 0 : 1].private_service_connection[0].private_ip_address,"")
+                                                               try(azurerm_private_endpoint.hanashared[var.use_single_hana_shared ? 0 : 0].private_dns_zone_configs[0].record_sets[0].fqdn,
+                                                                 try(azurerm_private_endpoint.hanashared[var.use_single_hana_shared ? 0 : 0].private_service_connection[0].private_ip_address,"")
                                                                ),
                                                              length(try(var.hanashared_id, "")) > 0 ? (
-                                                               split("/", var.hanashared_id[1])[8]
+                                                               split("/", var.hanashared_id[var.use_single_hana_shared ? 0 : 1])[8]
                                                                ) : (
-                                                               azurerm_storage_account.hanashared[var.use_single_hana_shared ? 0 : 1].name
+                                                               azurerm_storage_account.hanashared[var.use_single_hana_shared ? 0 : 0].name
                                                              ),
-                                                             azurerm_storage_share.hanashared[1].name
+                                                             azurerm_storage_share.hanashared[var.use_single_hana_shared ? 0 : 1].name
                                                            ) : ""
                                                          ]) : []
                                         }

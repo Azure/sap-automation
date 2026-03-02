@@ -26,8 +26,14 @@ output "environment"                   {
 #######################################4#######################################8
 
 output "automation_version"            {
-                                         description = "Defines the version of the terraform templates used in the deloyment"
+                                         description = "Defines the version of the terraform templates used in the deployment"
                                          value       = local.version_label
+                                       }
+
+
+output "workload_automation_version"   {
+                                         description = "Defines the version of the terraform templates used in the workload zone deployment"
+                                         value       = data.terraform_remote_state.landscape.outputs.automation_version
                                        }
 
 output "random_id"                     {
@@ -246,30 +252,4 @@ output "subscription_id_used"          {
                                          description = "The Subscription ID configured in the key vault"
                                          value       = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value
                                          sensitive   = true
-                                       }
-
-###############################################################################
-#                                                                             #
-#                    DEBUG: sap_namegenerator output                          #
-#                    (Temporary output to debug type mismatch)                #
-#                                                                             #
-###############################################################################
-
-output "debug_namegenerator_raw"       {
-                                         description = "DEBUG: Raw output from sap_namegenerator module"
-                                         value       = module.sap_namegenerator.naming
-                                       }
-
-output "debug_vm_names_values"         {
-                                         description = "DEBUG: VM names values and lengths"
-                                         value       = {
-                                           for k, v in module.sap_namegenerator.naming.virtualmachine_names :
-                                           k => {
-                                             value  = v
-                                             length = try(length(v), 0)
-                                             # Type will be inferred from structure:
-                                             # - tuple: shown as (item1, item2) or parens in JSON
-                                             # - list: shown as [item1, item2] or brackets in JSON
-                                           }
-                                         }
                                        }
