@@ -84,6 +84,7 @@
         hana_major_version:            "{{ version_string.split('.')[0] | int }}"
         hana_minor_version:            "{{ version_string.split('.')[1] | int }}"
         hana_sps_level:                "{{ version_string.split('.')[2] | int }}"
+        hdb_version:                   "{{ version_string }}"
 
     # Get SAPHanaSR Version using package_facts
     - name:                            "5.5.1 HANA Pacemaker - Get installed package facts"

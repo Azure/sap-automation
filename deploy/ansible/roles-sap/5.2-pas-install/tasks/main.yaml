@@ -227,11 +227,11 @@
       when:
         - database_high_availability
         - platform == 'HANA'
-        - hdbuserstore_file | length > 0
+        - hdbuserstore_file.files | length > 0
 
     - name:                            "5.2 Primary Application Server Installation - Show hdbuserstore path"
       ansible.builtin.debug:
-        var:                           hdbuserstore_path
+        msg:                           "Path to hdbuserstore: {{ hdbuserstore_path | default('not defined') }}"
       when:
         - database_high_availability
         - platform == 'HANA'

@@ -95,6 +95,81 @@
         - database_high_availability is not defined
 
 # /*---------------------------------------------------------------------------8
+# |  SAPHanaSR-angi package detection and installation logic                   |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "5.8 HANA Pacemaker Scale-out - SAPHanaSR-angi package management"
+  when:
+                                       - node_tier == 'hana'
+                                       - ansible_os_family | upper == "SUSE"
+  block:
+    - name:                            "5.8 HANA Pacemaker Scale-out - Generate list of deployed packages on current host"
+      ansible.builtin.package_facts:
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - Get SAPHanaSR-ScaleOut package version"
+      ansible.builtin.set_fact:
+        saphanaSR_scaleout_version:    "{{ ansible_facts.packages['SAPHanaSR-ScaleOut'][0].version | default('0.0.0') }}"
+      when:
+                                       - ansible_facts.packages['SAPHanaSR-ScaleOut'] is defined
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - Set default SAPHanaSR-ScaleOut version if not installed"
+      ansible.builtin.set_fact:
+        saphanaSR_scaleout_version:    "0.0.0"
+      when:
+                                       - ansible_facts.packages['SAPHanaSR-ScaleOut'] is not defined
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - Get SAPHanaSR-angi package version"
+      ansible.builtin.set_fact:
+        saphanaSR_angi_version:        "{{ ansible_facts.packages['SAPHanaSR-angi'][0].version | default('0.0.0') }}"
+      when:
+                                       - ansible_facts.packages['SAPHanaSR-angi'] is defined
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - Set default SAPHanaSR-angi version if not installed"
+      ansible.builtin.set_fact:
+        saphanaSR_angi_version:        "0.0.0"
+      when:
+                                       - ansible_facts.packages['SAPHanaSR-angi'] is not defined
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - Display SAPHanaSR package versions"
+      ansible.builtin.debug:
+        msg:
+                                       - "SAPHanaSR-ScaleOut version: {{ saphanaSR_scaleout_version }}"
+                                       - "SAPHanaSR-angi version:     {{ saphanaSR_angi_version }}"
+                                       - "use_hanasr_angi:            {{ use_hanasr_angi | default(false) }}"
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - Install SAPHanaSR-angi package"
+      when:
+                                       - use_hanasr_angi | default(false)
+                                       - saphanaSR_angi_version == "0.0.0"
+      block:
+        - name:                        "5.8 HANA Pacemaker Scale-out - Uninstall SAPHanaSR-ScaleOut package"
+          ansible.builtin.package:
+            name:                      "{{ item }}"
+            state:                     absent
+          loop:
+                                       - SAPHanaSR-ScaleOut
+                                       - SAPHanaSR-ScaleOut-doc
+                                       - SAPHanaSR
+                                       - SAPHanaSR-doc
+                                       - yast2-sap-ha
+          when:
+                                       - ansible_facts.packages[item] is defined
+
+        - name:                        "5.8 HANA Pacemaker Scale-out - Install SAPHanaSR-angi"
+          ansible.builtin.package:
+            name:                      SAPHanaSR-angi
+            state:                     present
+
+        - name:                        "5.8 HANA Pacemaker Scale-out - Refresh package facts after SAPHanaSR-angi install"
+          ansible.builtin.package_facts:
+
+        - name:                        "5.8 HANA Pacemaker Scale-out - Update SAPHanaSR-angi version after install"
+          ansible.builtin.set_fact:
+            saphanaSR_angi_version:    "{{ ansible_facts.packages['SAPHanaSR-angi'][0].version | default('0.0.0') }}"
+          when:
+                                       - ansible_facts.packages['SAPHanaSR-angi'] is defined
+
+# /*---------------------------------------------------------------------------8
 # |                                   END                                     |
 # +------------------------------------4--------------------------------------*/
 

@@ -83,3 +83,13 @@
       when:                            hana_shared_mounted.rc > 0
       ansible.builtin.fail:
         msg:                           "Critical failure : /hana/shared is not mounted"
+
+# /*---------------------------------------------------------------------------8
+# |  SAPHanaSR-angi certification and pre-checks                              |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "5.8 HANA Pacemaker Scale-out - SAPHanaSR-angi pre-checks"
+  when:
+                                       - ansible_os_family | upper == "SUSE"
+                                       - node_tier == 'hana'
+  ansible.builtin.include_tasks:       ../../../roles-misc/0.4-helpers/tasks/04.03-angi-pre-checks.yml

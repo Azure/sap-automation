@@ -1,0 +1,112 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+
+# /*---------------------------------------------------------------------------8
+# | Shared SAPHanaSR-angi hook verification                                   |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "04.04 SAPHanaSR-angi verify - Set trace directory path"
+  ansible.builtin.set_fact:
+    cdtrace:                           "/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace"
+
+- name:                                "04.04 SAPHanaSR-angi verify - Check susHanaSR load status"
+  ansible.builtin.shell:              "grep 'HADR.*load.*susHanaSR' nameserver_*.trc"
+  args:
+    chdir:                             "{{ cdtrace }}"
+  become:                              true
+  become_user:                         "{{ db_sid | lower }}adm"
+  register:                            sushanasr_load
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "04.04 SAPHanaSR-angi verify - Check susHanaSR initialization"
+  ansible.builtin.shell:              "grep 'susHanaSR.init' nameserver_*.trc"
+  args:
+    chdir:                             "{{ cdtrace }}"
+  become:                              true
+  become_user:                         "{{ db_sid | lower }}adm"
+  register:                            sushanasr_init
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "04.04 SAPHanaSR-angi verify - Check susChkSrv load status"
+  ansible.builtin.shell:              "grep 'HADR.*load.*susChkSrv' nameserver_*.trc"
+  args:
+    chdir:                             "{{ cdtrace }}"
+  become:                              true
+  become_user:                         "{{ db_sid | lower }}adm"
+  register:                            suschksrv_load
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "04.04 SAPHanaSR-angi verify - Check susChkSrv initialization"
+  ansible.builtin.shell:              "grep 'susChkSrv.init' nameserver_*.trc"
+  args:
+    chdir:                             "{{ cdtrace }}"
+  become:                              true
+  become_user:                         "{{ db_sid | lower }}adm"
+  register:                            suschksrv_init
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "04.04 SAPHanaSR-angi verify - Check susChkSrv events"
+  ansible.builtin.shell: |
+                                       set -o pipefail;
+                                       tail -n 10000 nameserver_suschksrv.trc | egrep '(LOST:|STOP:|START:|DOWN:|init|load|fail)'
+  args:
+    chdir:                             "{{ cdtrace }}"
+  become:                              true
+  become_user:                         "{{ db_sid | lower }}adm"
+  register:                            suschksrv_events
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "04.04 SAPHanaSR-angi verify - Set hook configuration status"
+  ansible.builtin.set_fact:
+    hook_status:
+      susHanaSR:
+        loaded:                        "{{ (sushanasr_load.stdout   | default('')) is search('HADR.*load.*susHanaSR') }}"
+        initialized:                   "{{ (sushanasr_init.stdout   | default('')) is search('susHanaSR.init') }}"
+      susChkSrv:
+        loaded:                        "{{ (suschksrv_load.stdout   | default('')) is search('HADR.*load.*susChkSrv') }}"
+        initialized:                   "{{ (suschksrv_init.stdout   | default('')) is search('susChkSrv.init') }}"
+        events_found:                  "{{ (suschksrv_events.stdout | default('')) is search('START:.*graceful .*(indexserver started)') }}"
+
+- name:                                "04.04 SAPHanaSR-angi verify - Display hook configuration validation results"
+  ansible.builtin.debug:
+    msg: |
+                                       04.04 SAPHanaSR-angi Hook Configuration Status:
+
+                                       Trace directory: {{ cdtrace }}
+
+                                       1. susHanaSR.py:
+                                           - Loaded:       {{ hook_status.susHanaSR.loaded }}
+                                           - Initialized:  {{ hook_status.susHanaSR.initialized }}
+
+                                       2. susChkSrv.py:
+                                           - Loaded:       {{ hook_status.susChkSrv.loaded }}
+                                           - Initialized:  {{ hook_status.susChkSrv.initialized }}
+                                           - Events Found: {{ hook_status.susChkSrv.events_found }}
+
+- name:                                "04.04 SAPHanaSR-angi verify - Set overall hook validation status"
+  ansible.builtin.set_fact:
+    hooks_properly_configured:         "{{
+                                         hook_status.susHanaSR.loaded and
+                                         hook_status.susHanaSR.initialized and
+                                         hook_status.susChkSrv.loaded and
+                                         hook_status.susChkSrv.initialized and
+                                         hook_status.susChkSrv.events_found
+                                       }}"
+
+- name:                                "04.04 SAPHanaSR-angi verify - Display overall hook configuration status"
+  ansible.builtin.debug:
+    msg:                               "04.04 SAPHanaSR-angi Hook Configuration: {{ 'PASSED' if hooks_properly_configured else 'FAILED' }}"
+
+- name:                                "04.04 SAPHanaSR-angi verify - Assert hook configuration is correct"
+  ansible.builtin.assert:
+    that:
+                                       - hooks_properly_configured
+    fail_msg:                          "SAPHanaSR-angi hook configuration is incorrect. Check trace files in {{ cdtrace }}"
+    success_msg:                       "SAPHanaSR-angi hook configuration is correct"

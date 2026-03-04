@@ -420,14 +420,14 @@ resource "azurerm_application_security_group" "web" {
 
 resource "azurerm_subnet_route_table_association" "subnet_sap_app" {
   provider                             = azurerm.main
-  count                                = !var.infrastructure.virtual_networks.sap.subnet_app.exists && !var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload && local.deploy_route_table ? 1 : 0
+  count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_app.defined && local.deploy_route_table ? 1 : 0
   subnet_id                            = azurerm_subnet.subnet_sap_app[0].id
   route_table_id                       = var.route_table_id
 }
 
 resource "azurerm_subnet_route_table_association" "subnet_sap_web" {
   provider                             = azurerm.main
-  count                                = !var.infrastructure.virtual_networks.sap.subnet_web.exists && !var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload && local.deploy_route_table ? 1 : 0
+  count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_web.defined && local.deploy_route_table ? 1 : 0
   subnet_id                            = azurerm_subnet.subnet_sap_web[0].id
   route_table_id                       = var.route_table_id
 }

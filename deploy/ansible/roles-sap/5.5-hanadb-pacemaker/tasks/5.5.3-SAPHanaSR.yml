@@ -45,9 +45,16 @@
       changed_when:                    false
       register:                        hana_system_stopped
 
-    - name:                            "5.5.3 HANA Pacemaker - Wait 2 minutes for SAP system to stop"
-      ansible.builtin.pause:
-        seconds:                       120
+    - name:                           "5.5.3 HANA Pacemaker - Stop HANA Database"
+      ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+      vars:
+        allow_world_readable_tmpfiles: true
+      environment:
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
     - name:                            "5.5.3 HANA Pacemaker - copy SAPHanaSR.py (SUSE)"
       when:
@@ -160,11 +167,6 @@
         LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
-    - name:                            "5.5.3 HANA Pacemaker - Pause to give HANA time to stabilize"
-      ansible.builtin.wait_for:
-        timeout:                       110
-        delay:                         10
-
     - name:                           "5.5.3 HANA Pacemaker - Start HANA Database"
       ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
       vars:
@@ -182,7 +184,6 @@
     - name:                            "5.5.3 HANA Pacemaker - Pause to give HANA replication time to stabilize"
       ansible.builtin.wait_for:
         timeout:                       "{{ hsr_status_report_wait_in_s }}"
-
 
     - name:                            "5.5.3 HANA Pacemaker - Verify that the hook script is working as expected"
       when:                            inventory_hostname == primary_instance_name
@@ -203,11 +204,21 @@
           delay:                       30
 
       rescue:
+
+        - name:                        "[Rescue] 5.5.3 HANA Pacemaker - Reload HA Provides"
+          become_user:                 "{{ db_sid | lower }}adm"
+          become:                      true
+          ansible.builtin.shell:       hdbnsutil -reloadHADRProviders
+          register:                    saphanasr_reload
+          failed_when:                 saphanasr_reload.rc != 0
+          args:
+            chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+
         - name:                        "5.5.3 HANA Pacemaker - [Rescue] - Pause to give HANA replication time to stabilize"
           ansible.builtin.pause:
             seconds:                   "{{ rescue_hsr_status_report_wait_in_s }}"
 
-        - name:                        "5.5.3 HANA Pacemaker - Verify the hook Installation"
+        - name:                        "5.5.3 HANA Pacemaker - [Rescue] - Verify the hook Installation"
           when:                        inventory_hostname == primary_instance_name
           become_user:                 "{{ db_sid | lower }}adm"
           become:                      true
@@ -310,7 +321,7 @@
     # If path is a directory, it is copied recursively. In this case, if path ends with “/”, only inside
     # contents of that directory are copied to destination. Otherwise, if it does not end with “/”, the
     # directory itself with all contents is copied. This behavior is similar to the rsync command line tool.
-    - name:                            "5.5.3 HANA Pacemaker - Copy SAPHanaSR.py (SUSE)"
+    - name:                            "5.5.3 HANA Pacemaker - copy SAPHanaSR.py (SUSE)"
       when:
                                        - ansible_os_family | upper == "SUSE"
                                        - not my_hooks_stat.stat.exists
@@ -383,124 +394,17 @@
       ansible.builtin.wait_for:
         timeout:                       "{{ hsr_status_report_wait_in_s }}"
 
-    - name:                            "5.5.3 HANA Pacemaker - Validate SAPHanaSR-angi Hook Configuration"
+    - name:                            "5.5.3 HANA Pacemaker - Verify SAPHanaSR-angi hook configuration"
       when:                            inventory_hostname == primary_instance_name
       block:
-        # Step 1: Change to trace directory - /usr/sap/<SID>/HDB<instance>/<inventory_hostname>/trace
-        - name:                        "5.5.3 HANA Pacemaker - Get trace directory path"
-          ansible.builtin.set_fact:
-            cdtrace:                   "/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace"
-
-        # Step 2: Check SAPHanaSR-angi configuration
-        - name:                        "5.5.3 HANA Pacemaker - Check SAPHanaSR-angi load status"
-          ansible.builtin.shell:       "grep 'HADR.*load.*susHanaSR' nameserver_*.trc"
-          args:
-            chdir:                     "{{ cdtrace }}"
-          become:                      true
-          become_user:                 "{{ db_sid | lower }}adm"
-          register:                    sushanasr_load
-          changed_when:                false
-          failed_when:                 false
-
-        - name:                        "5.5.3 HANA Pacemaker - Check SAPHanaSR-angi initialization"
-          ansible.builtin.shell:       "grep 'susHanaSR.init' nameserver_*.trc"
-          args:
-            chdir:                     "{{ cdtrace }}"
-          become:                      true
-          become_user:                 "{{ db_sid | lower }}adm"
-          register:                    sushanasr_init
-          changed_when:                false
-          failed_when:                 false
-
-        # Step 3: Check susChkSrv.py configuration
-        - name:                        "5.5.3 HANA Pacemaker - Check susChkSrv.py load status"
-          ansible.builtin.shell:       "grep 'HADR.*load.*susChkSrv' nameserver_*.trc"
-          args:
-            chdir:                     "{{ cdtrace }}"
-          become:                      true
-          become_user:                 "{{ db_sid | lower }}adm"
-          register:                    suschksrv_load
-          changed_when:                false
-          failed_when:                 false
-
-        - name:                        "5.5.3 HANA Pacemaker - Check susChkSrv.py initialization"
-          ansible.builtin.shell:       "grep 'susChkSrv.init' nameserver_*.trc"
-          args:
-            chdir:                     "{{ cdtrace }}"
-          become:                      true
-          become_user:                 "{{ db_sid | lower }}adm"
-          register:                    suschksrv_init
-          changed_when:                false
-          failed_when:                 false
-
-        - name:                        "5.5.3 HANA Pacemaker - Check susChkSrv events"
-          ansible.builtin.shell: |
-                                       set -o pipefail;
-                                       egrep '(LOST:|STOP:|START:|DOWN:|init|load|fail)' nameserver_suschksrv.trc
-          args:
-            chdir:                     "{{ cdtrace }}"
-          become:                      true
-          become_user:                 "{{ db_sid | lower }}adm"
-          register:                    suschksrv_events
-          changed_when:                false
-          failed_when:                 false
-
-        # Step 4: Set validation results
-        - name:                        "5.5.3 HANA Pacemaker - Set hook configuration status"
-          ansible.builtin.set_fact:
-            hook_status:
-              susHanaSR:
-                loaded:                "{{ (sushanasr_load.stdout   | default('')) is search('HADR.*load.*susHanaSR') }}"
-                initialized:           "{{ (sushanasr_init.stdout   | default('')) is search('susHanaSR.init') }}"
-              susChkSrv:
-                loaded:                "{{ (suschksrv_load.stdout   | default('')) is search('HADR.*load.*susChkSrv') }}"
-                initialized:           "{{ (suschksrv_init.stdout   | default('')) is search('susChkSrv.init') }}"
-                events_found:          "{{ (suschksrv_events.stdout | default('')) is search('START:.*graceful .*(indexserver started)') }}"
-
-        # Step 5: Display validation results
-        - name:                        "5.5.3 HANA Pacemaker - Display hook configuration validation results"
-          ansible.builtin.debug:
-            msg: |
-                                       SAPHanaSR-angi Hook Configuration Status:
-
-                                       1. susHanaSR.py:
-                                           - Loaded:       {{ hook_status.susHanaSR.loaded }}
-                                           - Initialized:  {{ hook_status.susHanaSR.initialized }}
-
-                                       2. susChkSrv.py:
-                                           - Loaded:       {{ hook_status.susChkSrv.loaded }}
-                                           - Initialized:  {{ hook_status.susChkSrv.initialized }}
-                                           - Events Found: {{ hook_status.susChkSrv.events_found }}
-
-        # Step 6: Set overall validation status
-        - name:                        "5.5.3 HANA Pacemaker - Set overall hook validation status"
-          ansible.builtin.set_fact:
-            hooks_properly_configured: "{{
-                                         hook_status.susHanaSR.loaded and
-                                         hook_status.susHanaSR.initialized and
-                                         hook_status.susChkSrv.loaded and
-                                         hook_status.susChkSrv.initialized and
-                                         hook_status.susChkSrv.events_found
-                                       }}"
-
-        # Step 7: Display overall validation status
-        - name:                        "5.5.3 HANA Pacemaker - Display overall hook configuration status"
-          ansible.builtin.debug:
-            msg: |
-                                       SAPHanaSR-angi Hook Configuration Status: {{ 'PASSED' if hooks_properly_configured else 'FAILED' }}
-
-        - name:                        "5.5.3 HANA Pacemaker - Assert that the hook configuration is correct"
-          ansible.builtin.assert:
-            that:
-                                       - hooks_properly_configured
-            fail_msg:                  "Hook configuration is incorrect"
-            success_msg:               "Hook configuration is correct"
-
+        - name:                        "5.5.3 HANA Pacemaker - Run shared hook verification"
+          ansible.builtin.include_tasks: ../../../roles-misc/0.4-helpers/tasks/04.04-angi-hook-verify.yml
       rescue:
-        - name:                        "5.5.3 HANA Pacemaker - Handle hook validation failure"
-          ansible.builtin.fail:
-            msg: |
-                                       Failed to validate hook configuration: {{ ansible_failed_task.name }}
-                                         {{ ansible_failed_result.msg | default('Unknown error occurred') }}
+        - name:                        "[Rescue] 5.5.3 HANA Pacemaker - Pause to give HANA replication time to stabilize"
+          ansible.builtin.wait_for:
+            timeout:                   "{{ rescue_hsr_status_report_wait_in_s }}"
+
+        - name:                        "[Rescue] 5.5.3 HANA Pacemaker - Retry shared hook verification"
+          ansible.builtin.include_tasks: ../../../roles-misc/0.4-helpers/tasks/04.04-angi-hook-verify.yml
 
 # +------------------------------------4--------------------------------------*/

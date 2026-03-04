@@ -82,14 +82,14 @@ resource "azurerm_netapp_volume" "sapmnt_secondary" {
 
   protocols                            = ["NFSv4.1"]
   network_features                     = "Standard"
-  zone                                 = length(local.scs_zones) > 1 && var.hana_ANF_volumes.use_zones ? (
-                                          try(local.scs_zones[1], null)) : length(local.scs_zones) > 0 ? try(local.scs_zones[0], null) : (
-                                          null
-                                          )
+  zone                                 = var.hana_ANF_volumes.use_zones ? (
+                                          length(local.scs_zones) > 1 ? try(local.scs_zones[1], null) : (
+                                            length(local.scs_zones) > 0 ? try(local.scs_zones[0], null) : null
+                                          )) : null
 
   tags                                 = var.tags
   export_policy_rule {
-                       allowed_clients     = var.infrastructure.virtual_networks.sap.address_space
+                       allowed_clients     = data.azurerm_virtual_network.vnet_sap.address_space
                        protocol            = ["NFSv4.1"]
                        rule_index          = 1
                        unix_read_only      = false
@@ -165,11 +165,11 @@ resource "azurerm_netapp_volume" "usrsap" {
   storage_quota_in_gb                  = var.hana_ANF_volumes.usr_sap_volume_size
   throughput_in_mibps                  = var.hana_ANF_volumes.usr_sap_volume_throughput
 
-  zone                                 = length(local.scs_zones) > 1 && var.hana_ANF_volumes.use_zones ? try(local.scs_zones[1], null) : length(local.scs_zones) > 0 ? try(local.scs_zones[0], null) : null
+  zone                                 = var.hana_ANF_volumes.use_zones && length(local.scs_zones) > 0 ? try(local.scs_zones[0], null) : null
   tags                                 = var.tags
 
   export_policy_rule {
-                       allowed_clients     = var.infrastructure.virtual_networks.sap.address_space
+                       allowed_clients     = data.azurerm_virtual_network.vnet_sap.address_space
                        protocol            = ["NFSv4.1"]
                        rule_index          = 1
                        unix_read_only      = false

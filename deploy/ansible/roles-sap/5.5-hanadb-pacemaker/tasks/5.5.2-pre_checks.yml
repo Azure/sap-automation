@@ -72,24 +72,10 @@
                                        - "HANA SPS level:                     {{ hana_sps_level }}"
                                        - "SAPHanaSR version:                  {{ saphanaSR_version }}"
 
-- name:                                "5.5.2 HANA Pacemaker - Display version numbers and package facts for SAPHanaSR-ANGI"
-  when:
-                                       - use_hanasr_angi | default(false)
-                                       - ansible_os_family | upper == 'SUSE'
-
-  ansible.builtin.debug:
-    msg: |
-                                       - "saphanaSR_angi_version:             {{ saphanaSR_angi_version }}"
-
-- name:                                "5.5.2 HANA Pacemaker - Can the SUSE distribution be used with SAPHanaSR-angi"
+- name:                                "5.5.2 HANA Pacemaker - SAPHanaSR-angi pre-checks"
   when:
                                        - ansible_os_family | upper == "SUSE"
-                                       - use_hanasr_angi | default(false)
-  ansible.builtin.set_fact:
-    is_certified_for_hanasr_angi: >-
-                                       {{ (ansible_distribution == 'SLES_SAP' and
-                                           (ansible_distribution_version is version('15.4', '>='))) | default(false)
-                                       }}
+  ansible.builtin.include_tasks:       ../../../roles-misc/0.4-helpers/tasks/04.03-angi-pre-checks.yml
 
 - name:                                "5.5.2 HANA Pacemaker - Check SAP HANA version requirements"
   ansible.builtin.assert:
@@ -153,26 +139,5 @@
                                        - Required: HANA 2.0 SPS 05 or higher (Current: {{ hana_major_version }}.0 SPS {{ hana_sps_level }})
                                        - Required: SAPHanaSR {{ min_saphanaSR_version_suschk }} or higher (Current: {{ saphanaSR_version }})
   register:                            suschk_hook_check
-
-# SAPHanaSR-angi Python Hook Check
-# currently we do not have any version requirements for SAPHanaSR-angi
-- name:                                "5.5.2 HANA Pacemaker - Validate SAPHanaSR-angi Python hook requirements"
-  when:
-                                       - ansible_os_family | upper == 'SUSE'
-                                       - is_certified_for_hanasr_angi | default(false)
-                                       - use_hanasr_angi | default(false)
-  ansible.builtin.assert:
-    that:
-                                       - "hana_major_version is version(min_hana_major_version, '>=')"
-                                       - "hana_sps_level is version(min_hana_sps_level, '>=')"
-                                       - "saphanaSR_angi_version is version('0.0.0', '>')"
-    success_msg:                       "SAPHanaSR-angi Python hook requirements met"
-    fail_msg: |
-                                       SAPHanaSR-angi Python hook requirements not met:
-                                         - Required: HANA 2.0 SPS 05 or higher (Current: {{ hana_major_version }}.0 SPS {{ hana_sps_level }})
-                                         - Required: SUSE for SAP Applications 15 SP4, SP5, or SP6 (Current: {{ distribution_full_id }})
-                                         - Required: SAPHanaSR-angi, should be installed
-  register:                            angi_hook_check
-
 
 # /*---------------------------------------------------------------------------8

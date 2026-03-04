@@ -52,13 +52,14 @@
                                        - database_scale_out
                                        - ansible_os_family | upper == 'SUSE'
                                        - inventory_hostname == primary_instance_name
+                                       - not (is_certified_for_hanasr_angi | default(false) and use_hanasr_angi | default(false))
   block:
     - name:                            "5.8.5 HANA Pacemaker Scale-out - Verify the hook Installation (SUSE)"
       become_user:                     root
       become:                          true
       ansible.builtin.shell:           /usr/sbin/SAPHanaSR-showAttr
       register:                        outsaphanasr
-      until:                           outsaphanasr.stdout | regex_search("(?s)\sSOK\s")
+      until:                           outsaphanasr.stdout | regex_search('(?s)\sSOK\s')
       retries:                         10
       delay:                           30
   rescue:
@@ -73,9 +74,78 @@
                                     set -o pipefail
                                     grep SAPHanaSr.*init nameserver_*.trc | tail -3
       args:
-        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ inventory_hostname }}/trace
+        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
       register:                        saphanasr
       until:                           saphanasr.stdout is search("Running")
+      retries:                         10
+      delay:                           30
+
+- name:                                "5.8.5 HANA Pacemaker Scale-out [angi] - Verify that the hook script is working as expected (Scale Out) for SUSE"
+  when:
+                                       - database_scale_out
+                                       - ansible_os_family | upper == 'SUSE'
+                                       - inventory_hostname == primary_instance_name
+                                       - is_certified_for_hanasr_angi | default(false)
+                                       - use_hanasr_angi | default(false)
+  block:
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Verify the hook Installation (SUSE)"
+      become_user:                     root
+      become:                          true
+      ansible.builtin.shell:           /usr/bin/SAPHanaSR-showAttr
+      register:                        outsaphanasr
+      until:                           outsaphanasr.stdout | regex_search('(?s)\sSOK\s')
+      retries:                         10
+      delay:                           30
+
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Verify susHanaSR hook loaded"
+      become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
+      ansible.builtin.shell: |
+                                    set -o pipefail
+                                    grep "HADR.*load.*susHanaSR" nameserver_*.trc | tail -3
+      args:
+        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
+      register:                        saphanasr_load
+      changed_when:                    false
+      failed_when:                     false
+
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Show susHanaSR hook load status"
+      ansible.builtin.debug:
+        var:                           saphanasr_load.stdout_lines
+        verbosity:                     2
+
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Verify susChkSrv hook loaded"
+      become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
+      ansible.builtin.shell: |
+                                    set -o pipefail
+                                    egrep '(LOST:|STOP:|START:|DOWN:|init|load|fail)' nameserver_suschksrv.trc | tail -5
+      args:
+        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
+      register:                        suschksrv_status
+      changed_when:                    false
+      failed_when:                     false
+
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Show susChkSrv hook status"
+      ansible.builtin.debug:
+        var:                           suschksrv_status.stdout_lines
+        verbosity:                     2
+
+  rescue:
+    - name:                            "[Rescue] 5.8.5 HANA Pacemaker Scale-out [angi] - Pause to give HANA replication time to stabilize"
+      ansible.builtin.wait_for:
+        timeout:                       "{{ rescue_hsr_status_report_wait_in_s }}"
+
+    - name:                            "[Rescue] 5.8.5 HANA Pacemaker Scale-out [angi] - Verify the hook Installation (SUSE)"
+      become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
+      ansible.builtin.shell: |
+                                    set -o pipefail
+                                    grep susHanaSR.*init nameserver_*.trc | tail -3
+      args:
+        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
+      register:                        saphanasr
+      until:                           saphanasr.stdout is search("susHanaSR.init")
       retries:                         10
       delay:                           30
 

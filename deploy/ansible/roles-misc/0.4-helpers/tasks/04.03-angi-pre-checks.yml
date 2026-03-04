@@ -1,0 +1,49 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+
+# /*---------------------------------------------------------------------------8
+# | Shared SAPHanaSR-angi pre-checks                                          |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "04.03 SAPHanaSR-angi pre-checks - Check if SUSE distribution supports SAPHanaSR-angi"
+  when:
+                                       - ansible_os_family | upper == "SUSE"
+                                       - use_hanasr_angi | default(false)
+  ansible.builtin.set_fact:
+    is_certified_for_hanasr_angi:      >-
+                                       {{ (ansible_distribution == 'SLES_SAP' and
+                                           (ansible_distribution_version is version('15.4', '>='))) | default(false)
+                                       }}
+
+- name:                                "04.03 SAPHanaSR-angi pre-checks - Display certification status"
+  when:
+                                       - ansible_os_family | upper == "SUSE"
+                                       - use_hanasr_angi | default(false)
+  ansible.builtin.debug:
+    msg:
+                                       - "SLES version:                    {{ ansible_distribution_version }}"
+                                       - "Distribution:                    {{ ansible_distribution }}"
+                                       - "Is certified for SAPHanaSR-angi: {{ is_certified_for_hanasr_angi | default(false) }}"
+                                       - "Uses SAPHanaSR-angi:             {{ use_hanasr_angi | default(false) }}"
+                                       - "SAPHanaSR-angi version:          {{ saphanaSR_angi_version | default('0.0.0') }}"
+
+- name:                                "04.03 SAPHanaSR-angi pre-checks - Validate SAPHanaSR-angi requirements"
+  when:
+                                       - ansible_os_family | upper == "SUSE"
+                                       - is_certified_for_hanasr_angi | default(false)
+                                       - use_hanasr_angi | default(false)
+  ansible.builtin.assert:
+    that:
+                                       - "hdb_version is defined"
+                                       - "hdb_version[0:2] == '2.'"
+                                       - "saphanaSR_angi_version | default('0.0.0') is version('0.0.0', '>')"
+    fail_msg:                          >-
+                                       SAPHanaSR-angi requirements not met.
+                                       HANA version must be 2.x and SAPHanaSR-angi package must be installed.
+                                       Required: SUSE for SAP Applications 15 SP4 or higher (Current: {{ ansible_distribution_version }}).
+                                       Current HANA version: {{ hdb_version | default('unknown') }},
+                                       SAPHanaSR-angi version: {{ saphanaSR_angi_version | default('0.0.0') }}
+    success_msg:                       "SAPHanaSR-angi requirements are met"
+  register:                            angi_hook_check
