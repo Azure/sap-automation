@@ -152,6 +152,15 @@
             group:                     root
             # validate:                          /usr/sbin/visudo -cf %s
 
+        - name:                        "5.8 HANA Pacemaker Scale-out - Execute HANA StartSystem on both sites"
+          when:                        ansible_hostname in [ primary_instance_name , secondary_instance_name ]
+          become_user:                 "{{ db_sid | lower }}adm"
+          become:                      true
+          ansible.builtin.command:     "{{ sapcontrol_command }} -function StartSystem"
+          failed_when:                 false
+          changed_when:                false
+          register:                    hana_system_started
+
         - name:                        "5.8 HANA Pacemaker Scale-out - Start HANA on both nodes"
           when:
                                        - ansible_hostname in [ primary_instance_name , secondary_instance_name ]

@@ -112,23 +112,19 @@
         path:                          /hana/shared/myHooks
       register:                        my_hooks_stat
 
-    - name:                            "5.8 HANA Pacemaker Scale-out - Stop HANA System on both sites"
+    - name:                        "5.8 HANA Pacemaker Scale-out - Execute HANA StopSystem on both sites"
+      when:                        ansible_hostname in [ primary_instance_name , secondary_instance_name ]
+      become_user:                 "{{ db_sid | lower }}adm"
+      become:                      true
+      ansible.builtin.command:     "{{ sapcontrol_command }} -function StopSystem"
+      failed_when:                 false
+      changed_when:                false
+      register:                    hana_system_stopped
+
+    - name:                        "5.8 HANA Pacemaker Scale-out - Stop HANA on both nodes"
       when:
-                                       - ansible_hostname == primary_instance_name or ansible_hostname == secondary_instance_name
-      become_user:                     "{{ db_sid | lower }}adm"
-      become:                          true
-      ansible.builtin.command:         "{{ sapcontrol_command }}  -function StopSystem"
-      failed_when:                     false
-      changed_when:                    false
-      register:                        hana_system_stopped
-
-    - name:                            "5.8 HANA Pacemaker Scale-out - Wait for SAP system to stop"
-      ansible.builtin.debug:
-        msg:                           "5.8 HANA Pacemaker Scale-out - Wait {{ hana_wait_for_stop_in_sec }} seconds for SAP system to stop"
-
-    - name:                            "5.8 HANA Pacemaker Scale-out - Wait for SAP system to stop"
-      ansible.builtin.wait_for:
-        timeout:                       "{{ hana_wait_for_stop_in_sec }}"
+                                    - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
+      ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
 
     # We are going to use the default path of the hook script installed by the package.
     - name:                            "5.8 HANA Pacemaker Scale-out - Change ownership of the directory"
@@ -182,21 +178,19 @@
         owner:                         root
         group:                         root
 
-    - name:                            "5.8 HANA Pacemaker Scale-out - Start HANA System on both nodes"
+    - name:                            "5.8 HANA Pacemaker Scale-out - Execute HANA StartSystem on both sites"
+      when:                            ansible_hostname in [ primary_instance_name , secondary_instance_name ]
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
-      ansible.builtin.command:         "{{ sapcontrol_command }}  -function StartSystem"
+      ansible.builtin.command:         "{{ sapcontrol_command }} -function StartSystem"
       failed_when:                     false
       changed_when:                    false
       register:                        hana_system_started
 
-    - name:                            "5.8 HANA Pacemaker Scale-out - Wait for SAP system to start"
-      ansible.builtin.debug:
-        msg:                           "5.8 HANA Pacemaker Scale-out - Wait {{ hana_scaleout_wait_for_start_in_sec }} seconds for SAP system to start"
-
-    - name:                            "5.8 HANA Pacemaker Scale-out - Wait for SAP system to start"
-      ansible.builtin.wait_for:
-        timeout:                       "{{ hana_scaleout_wait_for_start_in_sec }}"
+    - name:                            "5.8 HANA Pacemaker Scale-out - Start HANA on both nodes"
+      when:
+                                        - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
+      ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
     - name:                            "5.8 HANA Pacemaker Scale-out - Verify SAPHanaSrMultiTarget hook is working as expected (SUSE)"
       when:                            inventory_hostname == primary_instance_name
@@ -214,6 +208,16 @@
           retries:                     10
           delay:                       30
       rescue:
+
+        - name:                        "[Rescue] 5.8 HANA Pacemaker Scale-out - Reload HA Provides"
+          become_user:                 "{{ db_sid | lower }}adm"
+          become:                      true
+          ansible.builtin.shell:       hdbnsutil -reloadHADRProviders
+          register:                    saphanasr_reload
+          failed_when:                 saphanasr_reload.rc != 0
+          args:
+            chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+
         - name:                        "[Rescue] 5.8 HANA Pacemaker Scale-out - Pause to give HANA replication time to stabilize"
           ansible.builtin.wait_for:
             timeout:                   "{{ rescue_hsr_status_report_wait_in_s }}"
@@ -247,6 +251,16 @@
           retries:                     10
           delay:                       30
       rescue:
+
+        - name:                        "[Rescue] 5.8 HANA Pacemaker Scale-out - Reload HA Provides"
+          become_user:                 "{{ db_sid | lower }}adm"
+          become:                      true
+          ansible.builtin.shell:       hdbnsutil -reloadHADRProviders
+          register:                    saphanasr_reload
+          failed_when:                 saphanasr_reload.rc != 0
+          args:
+            chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+
         - name:                        "[Rescue] 5.8 HANA Pacemaker Scale-out - Pause to give HANA replication time to stabilize"
           ansible.builtin.wait_for:
             timeout:                   "{{ rescue_hsr_status_report_wait_in_s }}"
