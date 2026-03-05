@@ -118,9 +118,25 @@
 
     - name:                            "4.0.1.5 Hana System Replication - Stop HANA on {{ virtual_host }}"
       ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+      vars:
+        allow_world_readable_tmpfiles: true
+      environment:
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
     - name:                            "4.0.1.5 Hana System Replication - Start HANA on {{ virtual_host }}"
       ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+      vars:
+        allow_world_readable_tmpfiles: true
+      environment:
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
 
 - name:                                "4.0.1.5 Hana System Replication - Ensure System Replication is configured command on secondary"
@@ -137,6 +153,14 @@
 
     - name:                            "4.0.1.5 Hana System Replication - Stop HANA on {{ virtual_host }}"
       ansible.builtin.import_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+      vars:
+        allow_world_readable_tmpfiles: true
+      environment:
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
     - name:                            "4.0.1.5 Hana System Replication - Ensure Secondary node is registered as secondary in replication"
       become_user:                     "{{ db_sid_admin_user }}"

@@ -38,6 +38,11 @@
 
     - name:                            "04.02 Stop HANA - Ensure HANA is stopped {{ ansible_hostname }}"
       when:                            hana_stopped.rc != 4
+      ansible.builtin.debug:
+        msg:                           "Calling StopWait with timeout {{ hana_stop_start_timeout_in_seconds }} seconds"
+
+    - name:                            "04.02 Stop HANA - Ensure HANA is stopped {{ ansible_hostname }}"
+      when:                            hana_stopped.rc != 4
       ansible.builtin.shell:           "sapcontrol -nr {{ db_instance_number }} -function StopWait {{ hana_stop_start_timeout_in_seconds }} {{ hana_stop_start_delay_in_seconds }}"
       vars:
         allow_world_readable_tmpfiles: true

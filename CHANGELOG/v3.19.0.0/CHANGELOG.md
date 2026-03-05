@@ -29,15 +29,16 @@ Following the SDAF 3.18.0.0 (January 2026) release, several areas required criti
 - Fixed Microsoft packages repository RPM download URLs for both RHEL and SUSE
 
 ### Infrastructure & Platform Support
-- **Terraform 1.14.5**: Updated across all v1/v2 pipeline scripts, PowerShell utilities, GitHub Actions configs, deployer bootstrap, and URL configurations (32 files)
+- **Terraform 1.14.6**: Updated across all v1/v2 pipeline scripts, PowerShell utilities, GitHub Actions configs, deployer bootstrap, and URL configurations (32 files)
 - **Red Hat 10.0**: Added RHEL 10.0 and RHEL 10.0 HA images to `VM-Images.json`
-- **SLES SAP 16**: Added service configurations for SLES SAP 16 and enhanced iSCSI package definitions in `os-services.yaml`
 - **NVMe swap**: Added NVMe swap dependency installation tasks for both RHEL and SUSE in the swap configuration role
+- **v6 SKU support**: Added support for the new v6 SKUS
 - **SUSE subscription & disk controller**: Added new parameters for SUSE subscription and disk controller types in `SystemModel` and related Webapp files
 
 ### Pacemaker / High Availability
 - Refactored NFS mount options and cluster commands for consistency across RedHat and SUSE in the SCS/ERS pacemaker role
 - `clus_nfs_options` fact now correctly handles AFS vs ANF provider differences and appends `_netdev` only for NFSv4.1 with EiT enabled
+- 'sap angi' support for SLES based deployments
 
 ### Bug Fixes
 - **Terraform role assignment typo**: Fixed resource reference typo in `role_assignments.tf` for the deployer module
@@ -50,6 +51,8 @@ Following the SDAF 3.18.0.0 (January 2026) release, several areas required criti
 - **AFS mount options formatting**: Multiple fixes to AFS mount options formatting and configuration in the 2.6.0 AFS Mounts task
 - **Scope addition wording**: Fixed wording in scope addition instructions across PowerShell scripts
 - **HTTPS-only on SAP storage**: Disabled HTTPS-only traffic specifically for SAP mount storage account (required for NFS)
+- **For HANA scale out scenario**: Add the identities of all nodes to the resource group with permissions to start fencing
+
 
 ## Tests
 

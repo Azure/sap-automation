@@ -278,7 +278,7 @@
                                          op monitor interval="60" role="Promoted" timeout="700" \
                                          op monitor interval="61" role="Unpromoted" timeout="700" \
                                          params SID="{{ db_sid | upper }}" InstanceNumber="{{ db_instance_number }}" PREFER_SITE_TAKEOVER="true" \
-                                         DUPLICATE_PRIMARY_TIMEOUT="7200" AUTOMATED_REGISTER="false" \
+                                         DUPLICATE_PRIMARY_TIMEOUT="7200" AUTOMATED_REGISTER="true" \
                                          HANA_CALL_TIMEOUT="120"
       register:                        sap_hana_controller
       failed_when:                     sap_hana_controller.rc > 1
@@ -407,7 +407,7 @@
     - name:                            "5.8 HANA Pacemaker Scale-out - Stop HANA System on both sites"
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
-      ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem"
+      ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem  {{ db_sid | upper }}"
       failed_when:                     false
       changed_when:                    false
       register:                        hana_system_stopped
@@ -458,3 +458,12 @@
 
     - name:                            "5.8 HANA Pacemaker Scale-out - Remove false positives"
       ansible.builtin.shell:           crm_resource -C
+
+  vars:
+    allow_world_readable_tmpfiles: true
+  environment:
+    PATH:                              /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    HOME:                              /usr/sap/{{ db_sid | upper }}/home
+    DIR_LIBRARY:                       /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    LD_LIBRARY_PATH:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    SAPSYSTEMNAME:                     "{{ db_sid | upper }}"

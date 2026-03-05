@@ -41,7 +41,7 @@
       when:                        ansible_hostname in [ primary_instance_name , secondary_instance_name ]
       become_user:                 "{{ db_sid | lower }}adm"
       become:                      true
-      ansible.builtin.command:     "{{ sapcontrol_command }} -function StopSystem"
+      ansible.builtin.command:     "{{ sapcontrol_command }} -function StopSystem  {{ db_sid | upper }}"
       failed_when:                 false
       changed_when:                false
       register:                    hana_system_stopped
@@ -50,6 +50,14 @@
       when:
                                     - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
       ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+      vars:
+        allow_world_readable_tmpfiles: true
+      environment:
+        PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        HOME:                          /usr/sap/{{ db_sid | upper }}/home
+        DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+        SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
 
     - name:                        "5.8 HANA Pacemaker Scale-out - Comment out the mountpoint from '/etc/fstab' file"
@@ -195,21 +203,22 @@
         - name:                        "5.8 HANA Pacemaker Scale-out - Start HANA System on both nodes"
           become_user:                 "{{ db_sid | lower }}adm"
           become:                      true
-          ansible.builtin.command:     "{{ sapcontrol_command }}  -function StartSystem"
+          ansible.builtin.command:     "{{ sapcontrol_command }} -function StartSystem {{ db_sid | upper }}"
           failed_when:                 false
           changed_when:                false
           register:                    hana_system_started
 
+        - name:                        "5.8 HANA Pacemaker Scale-out - Wait for SAP system to stabilize (debug)"
+          ansible.builtin.debug:
+            msg:                       "5.8 HANA Pacemaker Scale-out - Wait {{ hana_scaleout_wait_for_start_in_sec }} seconds for SAP system to stabilize"
+
+        - name:                        "5.8 HANA Pacemaker Scale-out - Wait for SAP system to stabilize"
+          ansible.builtin.wait_for:
+            timeout:                   "{{ hana_scaleout_wait_for_start_in_sec }}"
+
         - name:                        "5.8 HANA Pacemaker Scale-out - Start HANA on both nodes"
           ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
-    # - name:                            "5.8 HANA Pacemaker Scale-out - Wait for SAP system to stabilize (debug)"
-    #   ansible.builtin.debug:
-    #     msg:                           "5.8 HANA Pacemaker Scale-out - Wait {{ hana_scaleout_wait_for_start_in_sec }} seconds for SAP system to stabilize"
-
-    # - name:                            "5.8 HANA Pacemaker Scale-out - Wait for SAP system to stabilize"
-    #   ansible.builtin.wait_for:
-    #     timeout:                       "{{ hana_scaleout_wait_for_start_in_sec }}"
 # End of HANA filesystem clustering resources
 
   # Ref : https://access.redhat.com/articles/3004101 - 4.3 Configure general cluster properties

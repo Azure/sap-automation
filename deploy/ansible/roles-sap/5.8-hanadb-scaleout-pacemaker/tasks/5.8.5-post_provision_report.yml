@@ -192,3 +192,32 @@
     path:                              /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
     state:                             touch
     mode:                              0755
+
+- name:                                "5.8.5 HANA Pacemaker Scale-out - flag"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/sap_deployment_hana_pcm.txt
+    state:                             touch
+    mode:                              0755
+
+# - name:                                "5.8.5 Hana System Replication - Get replication status"
+#   when:                                ansible_hostname == primary_instance_name
+#   become_user:                         "{{ db_sid | lower }}adm"
+#   become:                              true
+#   ansible.builtin.shell: |
+#                                        (cdpy && python systemReplicationStatus.py)
+#   register:                            systemReplicationStatus
+#   failed_when:                         false
+#   changed_when:                        false
+#   vars:
+#     allow_world_readable_tmpfiles:     true
+#   args:
+#     chdir:                             /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe/python_support
+#   environment:
+#     PATH:                              /usr/bin/:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe/Python3/bin
+#     DIR_LIBRARY:                       /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+#     LD_LIBRARY_PATH:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+#     SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
+
+# - name:                                "5.8.5 Hana System Replication - Debug replication"
+#   ansible.builtin.debug:
+#     msg:                               "System replication status {{ systemReplicationStatus }}"

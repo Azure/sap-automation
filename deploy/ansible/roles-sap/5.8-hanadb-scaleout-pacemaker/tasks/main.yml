@@ -12,6 +12,7 @@
   ansible.builtin.include_tasks:       5.8.3-SAPHanaSRMultiTarget-{{ ansible_os_family }}.yml
   when:
     - node_tier in ['hana','observer']
+    - not hana_cluster_existence_check
 
 # Scale-Out HSR Specific provision task with its own unique sequence
 - name:                                "5.8. HANA Database Pacemaker - Scale-out - Provision Scale-out HANA System Replication"

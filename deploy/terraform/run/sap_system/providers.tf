@@ -100,7 +100,7 @@
                                                                             }
                                                                 local    = {
                                                                               source = "hashicorp/local"
-                                                                              version = "2.5.2"
+                                                                              version = "2.7.0"
                                                                             }
                                                                 random   = {
                                                                               source = "hashicorp/random"
@@ -110,11 +110,11 @@
                                                                             }
                                                                 azuread =  {
                                                                               source  = "hashicorp/azuread"
-                                                                              version = "3.6.0"
+                                                                              version = "3.8.0"
                                                                             }
                                                                 azurerm =  {
                                                                               source  = "hashicorp/azurerm"
-                                                                              version = "4.55.0"
+                                                                              version = "4.63.0"
                                                                             }
                                                               }
                                         }

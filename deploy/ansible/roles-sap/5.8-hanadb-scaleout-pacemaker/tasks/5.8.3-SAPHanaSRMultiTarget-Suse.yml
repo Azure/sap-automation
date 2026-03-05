@@ -117,7 +117,7 @@
       when:                            ansible_hostname in [ primary_instance_name , secondary_instance_name ]
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
-      ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem"
+      ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem  {{ db_sid | upper }}"
       failed_when:                     false
       changed_when:                    false
       register:                        hana_system_stopped
@@ -324,6 +324,14 @@
 # Note: We do not configure Hook on Majority maker, only installation is needed.
 # Unfortunately since this task runs on HANA VM's only, Majority maker is skipped.
 # Hook packages are deployed on Majority maker in task 1.18-scaleout-pacemaker
+  vars:
+    allow_world_readable_tmpfiles: true
+  environment:
+    PATH:                              /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    HOME:                              /usr/sap/{{ db_sid | upper }}/home
+    DIR_LIBRARY:                       /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    LD_LIBRARY_PATH:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    SAPSYSTEMNAME:                     "{{ db_sid | upper }}"
 
 - name:                                "5.8 HANA Pacemaker Scale-out - HANA 2.0 only - Implement the Python system replication hook SAPHanaSR-angi (susHanaSR)"
   when:
@@ -357,7 +365,7 @@
                                        - ansible_hostname == primary_instance_name or ansible_hostname == secondary_instance_name
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
-      ansible.builtin.command:         "{{ sapcontrol_command }}  -function StopSystem"
+      ansible.builtin.command:         "{{ sapcontrol_command }}  -function StopSystem  {{ db_sid | upper }}"
       failed_when:                     false
       changed_when:                    false
       register:                        hana_system_stopped
@@ -432,6 +440,11 @@
 
     - name:                            "5.8 HANA Pacemaker Scale-out [angi] - Verify hook configuration"
       when:                            inventory_hostname == primary_instance_name
+      ansible.builtin.debug:
+        msg:                           "Verifying SAPHanaSR-angi hook configuration on primary node"
+
+    - name:                            "5.8 HANA Pacemaker Scale-out [angi] - Verify hook configuration"
+      when:                            inventory_hostname == primary_instance_name
       block:
         - name:                        "5.8 HANA Pacemaker Scale-out [angi] - Run shared hook verification"
           ansible.builtin.include_tasks: ../../../roles-misc/0.4-helpers/tasks/04.04-angi-hook-verify.yml
@@ -451,3 +464,11 @@
 
         - name:                        "[Rescue] 5.8 HANA Pacemaker Scale-out [angi] - Retry shared hook verification"
           ansible.builtin.include_tasks: ../../../roles-misc/0.4-helpers/tasks/04.04-angi-hook-verify.yml
+  vars:
+    allow_world_readable_tmpfiles: true
+  environment:
+    PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    HOME:                          /usr/sap/{{ db_sid | upper }}/home
+    DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+    SAPSYSTEMNAME:                 "{{ db_sid | upper }}"

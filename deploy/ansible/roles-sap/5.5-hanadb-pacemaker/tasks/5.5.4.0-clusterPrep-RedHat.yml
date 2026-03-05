@@ -47,7 +47,7 @@
     - name:                            "5.5.4.0 HANA Pacemaker - Cluster Preparation - REDHAT - Stop HANA System on both nodes"
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
-      ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem"
+      ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem  {{ db_sid | upper }}"
       failed_when:                     false
       changed_when:                    false
       register:                        hana_system_stopped

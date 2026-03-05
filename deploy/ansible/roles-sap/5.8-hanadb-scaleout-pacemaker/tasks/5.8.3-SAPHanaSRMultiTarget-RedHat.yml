@@ -71,13 +71,14 @@
 
 
     - name:                            "5.8 HANA Pacemaker Scale-out - Configure global.ini for host name resolution if global.ini file does not exist"
+      when:                            not hana_cluster_existence_check
       block:
 
         - name:                        "5.8 HANA Pacemaker Scale-out - Execute HANA StopSystem on both sites"
           when:                        ansible_hostname in [ primary_instance_name , secondary_instance_name ]
           become_user:                 "{{ db_sid | lower }}adm"
           become:                      true
-          ansible.builtin.command:     "{{ sapcontrol_command }} -function StopSystem"
+          ansible.builtin.command:     "{{ sapcontrol_command }}  -function StopSystem  {{ db_sid | upper }}"
           failed_when:                 false
           changed_when:                false
           register:                    hana_system_stopped
@@ -86,6 +87,14 @@
           when:
                                        - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
           ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+          vars:
+            allow_world_readable_tmpfiles: true
+          environment:
+            PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            HOME:                          /usr/sap/{{ db_sid | upper }}/home
+            DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
         - name:                        "5.8 HANA Pacemaker Scale-out - Copy Python hooks from /usr/share/SAPHanaSR-ScaleOut/ to /hana/shared/myHooks/ (RHEL)"
           ansible.builtin.copy:

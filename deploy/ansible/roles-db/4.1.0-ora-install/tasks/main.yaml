@@ -112,7 +112,7 @@
   ansible.builtin.assert:
     that:
       - runinstaller_media_found.stat.exists
-    fail_msg:                          "Oracle Database installation requires the updated RUNINSTALLER media to be available at {{ target_media_location }}/SAP/RUNINSTALLER"
+    fail_msg:                          "Oracle Database installation requires the updated RUNINSTALLER media to be available at {{ target_media_location }}/SBP/SAP/RUNINSTALLER"
 
 - name:                                "4.1.0 Oracle Installation - OPatch ID"
   ansible.builtin.set_fact:
