@@ -353,9 +353,9 @@ resource "azurerm_role_assignment" "role_assignment_msi_ha" {
                                           ) : (
                                           0
                                         )
-  scope                                = azurerm_linux_virtual_machine.vm_dbnode[count.index].id
+  scope                                = var.resource_group[0].id
   role_definition_name                 = var.fencing_role_name
-  principal_id                         = azurerm_linux_virtual_machine.vm_dbnode[(count.index +1) % var.database_server_count].identity[0].principal_id
+  principal_id                         = azurerm_linux_virtual_machine.vm_dbnode[count.index].identity[0].principal_id
 }
 
 # determine if we have any backup disks with ZRS
