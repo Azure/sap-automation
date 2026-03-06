@@ -6,8 +6,8 @@ Following the SDAF 3.18.0.0 (January 2026) release, several areas required criti
 
 1. **Azure Files NFS Encryption in Transit** - AFS NFS mount configurations needed end-to-end support for Encryption in Transit (EiT), including Terraform variable propagation, Ansible mount options, and repository/package setup for the `aznfs` client
 2. **Repository & Package Management** - Microsoft repository URLs, GPG key handling, and zypper task reliability on SUSE required significant fixes
-3. **Terraform Upgrade** - Terraform needed to be updated to 1.14.5 across all pipeline scripts and configurations
-4. **Platform Gaps** - Missing support for Red Hat 10.0, SLES SAP 16, and NVMe swap dependencies
+3. **Terraform Upgrade** - Terraform needed to be updated to 1.14.6 across all pipeline scripts and configurations
+4. **Platform Gaps** - Missing support for Red Hat 10.0, and NVMe swap dependencies
 5. **Authentication & Provider Issues** - Service Principal login, azurerm provider MSI/SPN configuration, and GitHub Actions SPN export needed fixes
 
 ## Solution
@@ -38,7 +38,7 @@ Following the SDAF 3.18.0.0 (January 2026) release, several areas required criti
 ### Pacemaker / High Availability
 - Refactored NFS mount options and cluster commands for consistency across RedHat and SUSE in the SCS/ERS pacemaker role
 - `clus_nfs_options` fact now correctly handles AFS vs ANF provider differences and appends `_netdev` only for NFSv4.1 with EiT enabled
-- 'SAPHanaSR-angi' support for SLES based deployments, [What is SAPHanaSR-angi?](https://www.suse.com/c/what-is-saphanasr-angi/)
+- 'SAPHanaSR-angi' support for SLES based HANA scale out deployments, [What is SAPHanaSR-angi?](https://www.suse.com/c/what-is-saphanasr-angi/)
 
 ### Bug Fixes
 - **Terraform role assignment typo**: Fixed resource reference typo in `role_assignments.tf` for the deployer module
@@ -69,10 +69,10 @@ Following the SDAF 3.18.0.0 (January 2026) release, several areas required criti
 # Verify: NFS mounts use NFSv4.1 with _netdev option, aznfs packages installed, Microsoft GPG keys imported
 ```
 
-**2. Terraform 1.14.5 Upgrade**
+**2. Terraform 1.14.6 Upgrade**
 ```bash
 # Run any deployment pipeline
-# Verify: Terraform version 1.14.5 is downloaded and used
+# Verify: Terraform version 1.14.6 is downloaded and used
 ```
 
 **3. Red Hat 10 / SLES SAP 16 Deployments**
@@ -93,7 +93,7 @@ Following the SDAF 3.18.0.0 (January 2026) release, several areas required criti
 - None identified — all changes are backward compatible. The AFS encryption in transit feature is opt-in via the `AFS_enable_encryption_in_transit` parameter.
 
 ### Migration Considerations
-- Terraform 1.14.5 is now required; ensure deployer environments are updated
+- Terraform 1.14.6 is now required; ensure deployer environments are updated
 - If using AFS with encryption in transit, set `AFS_enable_encryption_in_transit = true` in landscape configuration
 - Microsoft repository URLs for RHEL and SUSE have been updated; existing deployments will pick up the new URLs on next repository configuration run
 - The `aznfs` package is no longer installed via `os-packages.yaml`; it is now handled through the EiT setup tasks directly
