@@ -38,7 +38,7 @@ Following the SDAF 3.18.0.0 (January 2026) release, several areas required criti
 ### Pacemaker / High Availability
 - Refactored NFS mount options and cluster commands for consistency across RedHat and SUSE in the SCS/ERS pacemaker role
 - `clus_nfs_options` fact now correctly handles AFS vs ANF provider differences and appends `_netdev` only for NFSv4.1 with EiT enabled
-- 'sap angi' support for SLES based deployments
+- 'SAPHanaSR-angi' support for SLES based deployments, [What is SAPHanaSR-angi?](https://www.suse.com/c/what-is-saphanasr-angi/)
 
 ### Bug Fixes
 - **Terraform role assignment typo**: Fixed resource reference typo in `role_assignments.tf` for the deployer module
