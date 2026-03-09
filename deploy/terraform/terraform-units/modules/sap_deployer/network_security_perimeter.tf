@@ -1,5 +1,5 @@
 resource "azurerm_network_security_perimeter" "perimeter" {
-  count               = var.options.network_security_perimeter.deploy && !var.options.network_security_perimeter.exists  ? 1 : 0
+  count               = try(var.options.network_security_perimeter.deploy, false) && !try(var.options.network_security_perimeter.exists, false)  ? 1 : 0
   name                = var.options.network_security_perimeter.name
   resource_group_name = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
@@ -12,7 +12,7 @@ resource "azurerm_network_security_perimeter" "perimeter" {
 }
 
 data "azurerm_network_security_perimeter" "perimeter" {
-  count               = var.options.network_security_perimeter.deploy && var.options.network_security_perimeter.exists  ? 1 : 0
+  count               = try(var.options.network_security_perimeter.deploy, false) && try(var.options.network_security_perimeter.exists, false)  ? 1 : 0
   name                = var.options.network_security_perimeter.name
   resource_group_name = var.infrastructure.resource_group.exists ? (
                                            data.azurerm_resource_group.deployer[0].name) : (
@@ -22,13 +22,13 @@ data "azurerm_network_security_perimeter" "perimeter" {
 
 
 resource "azurerm_network_security_perimeter_profile" "profile" {
-  count                          = var.options.network_security_perimeter.deploy ? 1 : 0
+  count                          = try(var.options.network_security_perimeter.deploy, false) ? 1 : 0
   name                           = "SDAF"
-  network_security_perimeter_id  = !var.options.network_security_perimeter.exists ? azurerm_network_security_perimeter.perimeter[0].id : data.azurerm_network_security_perimeter.perimeter[0].id
+  network_security_perimeter_id  = try(var.options.network_security_perimeter.exists, false)  ? data.azurerm_network_security_perimeter.perimeter[0].id : azurerm_network_security_perimeter.perimeter[0].id
 }
 
 # resource "azurerm_network_security_perimeter_access_rule" "inbound" {
-#   count                                  = var.options.network_security_perimeter.deploy ? 1 : 0
+#   count                                  = try(var.options.network_security_perimeter.deploy, false) ? 1 : 0
 #   name                                   = local.prefix
 #   network_security_perimeter_profile_id  = azurerm_network_security_perimeter_profile.profile[0].id
 #   direction                              = "Inbound"
@@ -37,34 +37,32 @@ resource "azurerm_network_security_perimeter_profile" "profile" {
 # }
 
 resource "azurerm_network_security_perimeter_association" "vault" {
-  count                                  = var.options.network_security_perimeter.deploy ? 1 : 0
+  count                                  = try(var.options.network_security_perimeter.deploy, false) ? 1 : 0
   name                                   = local.keyvault_names.user_access
-  access_mode                            = "Enforced"
+  access_mode                            = var.options.network_security_perimeter.network_security_access_mode
 
-  network_security_perimeter_profile_id = !var.options.network_security_perimeter.exists ? azurerm_network_security_perimeter_profile.profile[0].id : null
+  network_security_perimeter_profile_id = try(var.options.network_security_perimeter.exists, false) ? null : azurerm_network_security_perimeter_profile.profile[0].id
   resource_id                           = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
 
 resource "azurerm_network_security_perimeter_association" "app_config" {
-  count                                  = var.options.network_security_perimeter.deploy && var.app_config_service.deploy ? 1 : 0
+  count                                  = try(var.options.network_security_perimeter.deploy, false) && var.app_config_service.deploy ? 1 : 0
   name                                   = local.app_config_name
-  access_mode                            = "Enforced"
+  access_mode                            = var.options.network_security_perimeter.network_security_access_mode
 
-  network_security_perimeter_profile_id = !var.options.network_security_perimeter.exists ? azurerm_network_security_perimeter_profile.profile[0].id : null
+  network_security_perimeter_profile_id = try(var.options.network_security_perimeter.exists, false) ? null : azurerm_network_security_perimeter_profile.profile[0].id
   resource_id                           = length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
 }
 
 resource "azurerm_network_security_perimeter_association" "webapp" {
-  count                                  = var.options.network_security_perimeter.deploy && var.app_service.use ? 1 : 0
+  count                                  = try(var.options.network_security_perimeter.deploy, false) && var.app_service.use ? 1 : 0
   name                                   = azurerm_windows_web_app.webapp[0].name
-  access_mode                            = "Enforced"
+  access_mode                            = var.options.network_security_perimeter.network_security_access_mode
 
-  network_security_perimeter_profile_id = !var.options.network_security_perimeter.exists ? azurerm_network_security_perimeter_profile.profile[0].id : null
+  network_security_perimeter_profile_id = try(var.options.network_security_perimeter.exists, false) ? null : azurerm_network_security_perimeter_profile.profile[0].id
   resource_id                           = azurerm_windows_web_app.webapp[0].id
 }
 
-
-
 output "network_security_perimeter_id" {
-  value                                  = var.options.network_security_perimeter.deploy ? azurerm_network_security_perimeter.perimeter[0].id : ""
+  value                                  = try(azurerm_network_security_perimeter.perimeter[0].id,"")
 }

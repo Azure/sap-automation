@@ -232,6 +232,7 @@ locals {
                                            id                                          = var.network_security_perimeter_id
                                            exists                                      = length(var.network_security_perimeter_id) > 0 ? true : false
                                            deploy                                      = var.network_security_perimeter_deployment
+                                           network_security_access_mode                = var.network_security_access_mode
 
                                          }
 

@@ -309,9 +309,13 @@ output "network_security_perimeter_deployment"  {
                                                     value       = var.network_security_perimeter_deployment
                                                 }
 
-
 output "network_security_perimeter_id"          {
-                                                  description = "If provided, the Azure network security perimeter id"
+                                                  description = "The Azure network security perimeter id"
                                                   value       = coalesce(module.sap_deployer.network_security_perimeter_id, var.network_security_perimeter_id)
                                                 }
 
+
+output "network_security_access_mode"          {
+                                                  description = "The access mode for the network security perimeter association. Possible values are Audit, Enforced, and Learning."
+                                                  value       = var.network_security_access_mode
+                                                }

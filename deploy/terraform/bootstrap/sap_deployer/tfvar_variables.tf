@@ -852,6 +852,11 @@ variable "network_security_perimeter_name"     {
                                                   default     = ""
                                                 }
 
+variable "network_security_access_mode"         {
+                                                  description = "If provided, the access mode for the network security perimeter association. Possible values are Audit, Enforced, and Learning."
+                                                  default     = "Enforced"
+                                                }
+
 variable "network_security_perimeter_id"       {
                                                   description = "If provided, the Azure network security perimeter id"
                                                   default     = ""
