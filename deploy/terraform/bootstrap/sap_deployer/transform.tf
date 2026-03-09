@@ -178,6 +178,7 @@ locals {
                                             use_spn                         = var.use_spn
                                             assign_resource_permissions     = var.deployer_assign_resource_permissions
                                             assign_subscription_permissions = var.deployer_assign_subscription_permissions
+                                            network_security_perimeter      = local.network_security_perimeter
                                          }
 
   firewall                             = {
@@ -226,5 +227,12 @@ locals {
                                            control_plane_name                          = module.sap_namegenerator.naming.prefix.DEPLOYER
                                          }
 
+  network_security_perimeter              = {
+                                           name                                        = coalesce(var.network_security_perimeter_name,module.sap_namegenerator.naming_new.network_security_perimeter_name)
+                                           id                                          = var.network_security_perimeter_id
+                                           exists                                      = length(var.network_security_perimeter_id) > 0 ? true : false
+                                           deploy                                      = var.network_security_perimeter_deployment
+
+                                         }
 
 }

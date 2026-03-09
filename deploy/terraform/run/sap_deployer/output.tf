@@ -296,3 +296,22 @@ output "DevOpsInfrastructureObjectId"            {
                                                    description = "DevOps Infrastructure Object ID"
                                                    value       = var.DevOpsInfrastructure_object_id
                                                  }
+
+
+#######################################4#######################################8
+#                                                                              #
+#                          Network Security Perimeter outputs                  #
+#                                                                              #
+#######################################4#######################################8
+
+output "network_security_perimeter_deployment"  {
+                                                    description = "Is the Network Security Perimeter deployed"
+                                                    value       = var.network_security_perimeter_deployment
+                                                }
+
+
+output "network_security_perimeter_id"          {
+                                                  description = "If provided, the Azure network security perimeter id"
+                                                  value       = coalesce(module.sap_deployer.network_security_perimeter_id, var.network_security_perimeter_id)
+                                                }
+
