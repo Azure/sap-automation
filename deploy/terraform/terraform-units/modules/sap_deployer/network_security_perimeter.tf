@@ -45,6 +45,24 @@ resource "azurerm_network_security_perimeter_association" "vault" {
   resource_id                           = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
 
+resource "azurerm_network_security_perimeter_association" "app_config" {
+  count                                  = var.options.network_security_perimeter.deploy && var.app_config_service.deploy ? 1 : 0
+  name                                   = local.app_config_name
+  access_mode                            = "Enforced"
+
+  network_security_perimeter_profile_id = !var.options.network_security_perimeter.exists ? azurerm_network_security_perimeter_profile.profile[0].id : null
+  resource_id                           = length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
+}
+
+resource "azurerm_network_security_perimeter_association" "webapp" {
+  count                                  = var.options.network_security_perimeter.deploy && var.app_service.use ? 1 : 0
+  name                                   = azurerm_windows_web_app.webapp[0].name
+  access_mode                            = "Enforced"
+
+  network_security_perimeter_profile_id = !var.options.network_security_perimeter.exists ? azurerm_network_security_perimeter_profile.profile[0].id : null
+  resource_id                           = azurerm_windows_web_app.webapp[0].id
+}
+
 
 
 output "network_security_perimeter_id" {

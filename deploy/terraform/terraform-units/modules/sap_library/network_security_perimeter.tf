@@ -1,18 +1,21 @@
 
 data "azurerm_network_security_perimeter" "perimeter" {
-  count                          = var.deployer_tfstate.network_security_perimeter_deployment ? 1 : 0
-  name                           = local.network_security_name
-  resource_group_name            = local.network_security_resource_group_name
+  provider                             = azurerm.deployer
+  count                                = var.deployer_tfstate.network_security_perimeter_deployment ? 1 : 0
+  name                                 = local.network_security_name
+  resource_group_name                  = local.network_security_resource_group_name
 }
 
 
 data "azurerm_network_security_perimeter_profile" "profile" {
-  count                          = var.deployer_tfstate.network_security_perimeter_deployment ? 1 : 0
-  name                           = "SDAF"
-  network_security_perimeter_id  = data.azurerm_network_security_perimeter.perimeter[0].id
+  provider                             = azurerm.deployer
+  count                                = var.deployer_tfstate.network_security_perimeter_deployment ? 1 : 0
+  name                                 = "SDAF"
+  network_security_perimeter_id        = data.azurerm_network_security_perimeter.perimeter[0].id
 }
 
 resource "azurerm_network_security_perimeter_association" "storage_tfstate" {
+  provider                               = azurerm.deployer
   count                                  = var.deployer_tfstate.network_security_perimeter_deployment ? 1 : 0
   name                                   = var.storage_account_tfstate.exists ? (
                                                      data.azurerm_storage_account.storage_tfstate[0].name) : (
@@ -28,6 +31,7 @@ resource "azurerm_network_security_perimeter_association" "storage_tfstate" {
 }
 
 resource "azurerm_network_security_perimeter_association" "storage_sapbits" {
+  provider                               = azurerm.deployer
   count                                  = var.deployer_tfstate.network_security_perimeter_deployment ? 1 : 0
   name                                   = var.storage_account_sapbits.exists ? (
                                                      data.azurerm_storage_account.storage_sapbits[0].name) : (
