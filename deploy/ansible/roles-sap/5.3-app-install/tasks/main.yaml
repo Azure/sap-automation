@@ -136,7 +136,7 @@
       ansible.builtin.set_fact:
         scs_server:                    "{% if scs_high_availability %}{{ sid_to_be_deployed.sid | lower }}scs{{ scs_instance_number }}cl1{% else %}{{ hostvars[scs_server_temp | first]['virtual_host'] }}{% endif %}"
         db_virtual_hostname:           "{{ hostvars[db_server_temp | first]['virtual_host'] }}"
-        file_path:                     "{% if scs_high_availability %}{{ 'INSTALL/HA/ABAP/APPX' if app_bom_instance_type == 'JAVA' else 'INSTALL/HA/JAVA/APPX' }}{% else %}{{ 'INSTALL/AS/APPS' if app_bom_instance_type == 'JAVA' else 'INSTALL/DISTRIBUTED/ABAP/APPS' }}{% endif %}"
+        file_path:                     "{% if scs_high_availability %}{{ 'INSTALL/HA/JAVA/APPX' if app_bom_instance_type == 'JAVA' else 'INSTALL/HA/ABAP/APPX' }}{% else %}{{ 'INSTALL/AS/APPS' if app_bom_instance_type == 'JAVA' else 'INSTALL/DISTRIBUTED/ABAP/APPS' }}{% endif %}"
 
     - name:                            "5.3 Additional Application Server Installation - Check that installation media exists"
       ansible.builtin.stat:
