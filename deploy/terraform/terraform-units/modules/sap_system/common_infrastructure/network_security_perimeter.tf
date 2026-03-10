@@ -30,22 +30,6 @@ resource "azurerm_network_security_perimeter_association" "sapmnt" {
                                                    )
 }
 
-resource "azurerm_network_security_perimeter_association" "sid_keyvault_user" {
-  provider                               = azurerm.deployer
-  count                                  = try(var.deployer_tfstate.network_security_perimeter_deployment, false) ? 1 : 0
-  name                                   = local.enable_sid_deployment && local.use_local_credentials && length(local.user_key_vault_id) == 0 ? (
-                                                     data.azurerm_key_vault.sid_keyvault_user[0].name) : (
-                                                     azurerm_key_vault.sid_keyvault_user[0].name
-                                                   )
-  access_mode                            = var.deployer_tfstate.network_security_access_mode
-
-  network_security_perimeter_profile_id = data.azurerm_network_security_perimeter_profile.profile[0].id
-  resource_id                           = local.enable_sid_deployment && local.use_local_credentials && length(local.user_key_vault_id) == 0 ? (
-                                                     data.azurerm_key_vault.sid_keyvault_user[0].id) : (
-                                                     azurerm_key_vault.sid_keyvault_user[0].id
-                                                   )
-}
-
 locals {
   parsed_network_security_id           = try(var.deployer_tfstate.network_security_perimeter_deployment, false) ? try(provider::azurerm::parse_resource_id(var.deployer_tfstate.network_security_perimeter_id), "") : null
   network_security_name                = try(var.deployer_tfstate.network_security_perimeter_deployment, false) ? local.parsed_network_security_id["resource_name"] : ""
