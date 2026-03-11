@@ -60,6 +60,12 @@
   ansible.builtin.debug:
     var:                               sap_hosts_content
 
+- name:                                "2.4 Hosts: - Read existing /etc/hosts from target host"
+  ansible.builtin.slurp:
+    path:                              /etc/hosts
+  register:                            existing_hosts_slurp
+  changed_when:                        false
+
 - name:                                "2.4 Hosts: - Update /etc/hosts with all SAP entries"
   ansible.builtin.copy:
     dest:                              /etc/hosts
@@ -67,22 +73,18 @@
     mode:                              0644
     backup:                            true
   vars:
-    # Read existing hosts content and preserve non-SAP entries
-    existing_hosts_file:               "{{ lookup('file', '/etc/hosts', errors='ignore') }}"
-    existing_hosts_lines:              "{{ existing_hosts_file.split('\n') if existing_hosts_file else [] }}"
-    # Remove any existing SAP managed blocks to avoid duplicates
-    filtered_hosts_lines: >-
+    # Read existing hosts content from target host and preserve non-SAP entries
+    existing_hosts_file:               "{{ existing_hosts_slurp.content | b64decode }}"
+    # Remove existing SAP managed blocks (including block contents) to avoid duplicates
+    cleaned_hosts_file: >-
       {{
-        existing_hosts_lines |
-        reject('search', '^# BEGIN ANSIBLE MANAGED BLOCK - ' + sap_sid | upper) |
-        reject('search', '^# END ANSIBLE MANAGED BLOCK - ' + sap_sid | upper) |
-        reject('search', '^# BEGIN ASCS/ERS Entries') |
-        reject('search', '^# END ASCS/ERS Entries') |
-        reject('search', '^# BEGIN DB Entries') |
-        reject('search', '^# END DB Entries') |
-        list
+        (existing_hosts_file
+        | regex_replace('(?ms)^# BEGIN ANSIBLE MANAGED BLOCK - ' + (sap_sid | upper) + '.*?^# END ANSIBLE MANAGED BLOCK - ' + (sap_sid | upper) + '\\n?', '')
+        | regex_replace('(?ms)^# BEGIN ASCS/ERS Entries.*?^# END ASCS/ERS Entries.*\\n?', '')
+        | regex_replace('(?ms)^# BEGIN DB Entries.*?^# END DB Entries.*\\n?', ''))
       }}
-    existing_hosts_content: "{{ filtered_hosts_lines | reject('match', '^$') | list }}"
+    existing_hosts_lines:              "{{ cleaned_hosts_file.split('\n') if cleaned_hosts_file else [] }}"
+    existing_hosts_content:            "{{ existing_hosts_lines | reject('match', '^$') | list }}"
 
 # -------------------------------------+---------------------------------------8
 #
@@ -131,14 +133,24 @@
 #
 # Description: Verification that all required entries are present
 #
-- name:                                "2.4 Hosts: - Verify SAP hosts file contains required entries"
-  ansible.builtin.lineinfile:
+- name:                                "2.4 Hosts: - Read final /etc/hosts for verification"
+  ansible.builtin.slurp:
     path:                              /etc/hosts
-    line:                              "# Verification placeholder - this line should not appear"
-    state:                             absent
-  check_mode:                          true
-  register:                            hosts_verification
+  register:                            final_hosts_slurp
   changed_when:                        false
+
+- name:                                "2.4 Hosts: - Build expected and actual entry sets"
+  ansible.builtin.set_fact:
+    final_hosts_lines:                 "{{ (final_hosts_slurp.content | b64decode).split('\n') if final_hosts_slurp.content is defined else [] }}"
+    expected_sap_entries:              "{{ sap_hosts_content | reject('match', '^#') | reject('match', '^$') | list }}"
+
+- name:                                "2.4 Hosts: - Verify expected SAP entries were written"
+  ansible.builtin.assert:
+    that:
+      - expected_sap_entries | length > 0
+      - item in final_hosts_lines
+    fail_msg:                          "Expected SAP hosts entry not found in /etc/hosts: {{ item }}"
+  loop:                                "{{ expected_sap_entries }}"
 
 - name:                                "2.4 Hosts: - Final status"
   ansible.builtin.debug:

@@ -18,6 +18,10 @@ import ipaddress
 from typing import Dict, List, Optional, Any
 
 
+DB_TIERS = {"hana", "oracle", "oracle-asm", "db2", "sybase"}
+SCALE_OUT_DB_TIERS = {"hana"}
+
+
 class FilterModule:
     """
     Ansible filter plugin for SAP hosts file generation in Azure SDAF
@@ -30,6 +34,14 @@ class FilterModule:
             "sdaf_format_hosts_entry": self.format_hosts_entry,
             "sdaf_validate_network_config": self.validate_network_config,
         }
+
+    def _is_database_host(self, supported_tiers: List[str]) -> bool:
+        """Return True when a host contains any DB tier used by the hosts template."""
+        return any(tier in DB_TIERS for tier in supported_tiers)
+
+    def _is_scale_out_db_host(self, supported_tiers: List[str]) -> bool:
+        """Return True when a host is in a DB tier that supports scale-out behavior."""
+        return any(tier in SCALE_OUT_DB_TIERS for tier in supported_tiers)
 
     def generate_sap_hosts_entries(self, ansible_vars: Dict[str, Any]) -> List[str]:
         """
@@ -58,7 +70,7 @@ class FilterModule:
         current_hostname = ansible_vars.get("inventory_hostname", "")
         current_host_vars = ansible_vars.get("hostvars", {}).get(current_hostname, {})
         current_host_tiers = current_host_vars.get("supported_tiers", [])
-        is_current_host_db_vm = "hana" in current_host_tiers
+        is_current_host_db_vm = self._is_scale_out_db_host(current_host_tiers)
 
         # Generate all hosts file sections
         entries = []
@@ -164,7 +176,7 @@ class FilterModule:
         current_hostname = ansible_vars.get("inventory_hostname", "")
         current_host_vars = ansible_vars.get("hostvars", {}).get(current_hostname, {})
         current_host_tiers = current_host_vars.get("supported_tiers", [])
-        is_current_host_db_vm = "hana" in current_host_tiers
+        is_current_host_db_vm = self._is_scale_out_db_host(current_host_tiers)
 
         network_isolation_active = (
             config["database_scale_out"]
@@ -242,7 +254,7 @@ class FilterModule:
 
         # Get host tier information
         supported_tiers = host_vars.get("supported_tiers", [])
-        is_target_host_db_vm = "hana" in supported_tiers
+        is_target_host_db_vm = self._is_scale_out_db_host(supported_tiers)
 
         # Determine if we need to apply network isolation filtering
         apply_filtering = (
@@ -315,29 +327,48 @@ class FilterModule:
         primary_ip: str,
         supported_tiers: List[str],
     ) -> List[str]:
-        """Generate custom virtual hostname entries for non-HA scenarios."""
+        """Generate custom virtual hostname entries with hosts.j2-compatible tier rules."""
         entries = []
+        added_hostnames = set()
+        default_virtual_host = host_vars.get("virtual_host")
 
-        # Check each tier for custom virtual hostnames
+        # Check each tier for custom virtual hostnames.
+        # Values are resolved per-target-host from host_vars to avoid cross-host leakage.
         tier_mapping = {
+            "scs": "custom_scs_virtual_hostname",
+            "ers": "custom_ers_virtual_hostname",
             "pas": "custom_pas_virtual_hostname",
             "app": "custom_app_virtual_hostname",
             "web": "custom_web_virtual_hostname",
         }
 
         for tier in supported_tiers:
-            if tier in tier_mapping:
+            if tier in DB_TIERS:
+                custom_key = "custom_db_virtual_hostname"
+            elif tier in tier_mapping:
                 custom_key = tier_mapping[tier]
-                custom_hostname = config.get(custom_key) or host_vars.get(custom_key)
+            else:
+                continue
 
-                if custom_hostname:
-                    entries.append(
-                        self._format_hosts_entry(
-                            primary_ip,
-                            f"{custom_hostname}.{config['sap_fqdn']}",
-                            custom_hostname,
-                        )
+            # Match hosts.j2 behavior: do not add SCS/ERS custom aliases when SCS HA is enabled.
+            if tier in {"scs", "ers"} and config["scs_high_availability"]:
+                continue
+
+            custom_hostname = host_vars.get(custom_key)
+
+            if (
+                custom_hostname
+                and custom_hostname != default_virtual_host
+                and custom_hostname not in added_hostnames
+            ):
+                entries.append(
+                    self._format_hosts_entry(
+                        primary_ip,
+                        f"{custom_hostname}.{config['sap_fqdn']}",
+                        custom_hostname,
                     )
+                )
+                added_hostnames.add(custom_hostname)
 
         return entries
 
@@ -406,7 +437,7 @@ class FilterModule:
 
     def _get_client_subnet_ip_or_primary(
         self, ip_addresses: List[str], network_config: Dict[str, Any], primary_ip: str
-    ) -> Optional[str]:
+    ) -> str:
         """
         Find IP address in client subnet, or return primary IP if none found.
 
