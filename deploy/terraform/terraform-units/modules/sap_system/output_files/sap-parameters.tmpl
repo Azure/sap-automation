@@ -182,6 +182,13 @@ upgrade_packages:              ${upgrade_packages}
 # SUSE registration code for BYOS/BYOL images. Leave empty for PAYG marketplace images.
 suse_subscription_id:          ${suse_subscription_id}
 
+# Deploy the Azure Extended monitoring for SAP solution
+deploy_monitoring_extension:   ${deploy_monitoring_extension}
+
+%{~ if length(user_assigned_identity_id) != 0 }
+user_assigned_identity_id:     ${user_assigned_identity_id}
+%{~ endif }
+
 ${settings}
 
 #############################################################################
