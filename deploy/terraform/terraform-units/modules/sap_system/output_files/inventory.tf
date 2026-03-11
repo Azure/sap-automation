@@ -199,6 +199,7 @@ resource "local_file" "sap-parameters_yml" {
               db_instance_number          = try(var.database.instance.number, "00")
               database_loadbalancer_ip    = var.database_loadbalancer_ip
               db_sid                      = var.db_sid
+              deploy_monitoring_extension = var.deploy_monitoring_extension
               disks                       = var.disks
               dns                         = local.dns_label
               dns                         = var.dns
@@ -256,6 +257,7 @@ resource "local_file" "sap-parameters_yml" {
               subnet_cidr_db              = trimspace(coalesce(var.subnet_cidr_db," ")),
               subnet_cidr_storage         = trimspace(coalesce(var.subnet_cidr_storage," ")),
               upgrade_packages            = var.upgrade_packages ? "true" : "false"
+              user_assigned_identity_id   = var.user_assigned_identity_id
               suse_subscription_id        = var.suse_subscription_id
               use_msi_for_clusters        = var.use_msi_for_clusters
               usr_sap                     = length(var.usr_sap) > 1 ? (
