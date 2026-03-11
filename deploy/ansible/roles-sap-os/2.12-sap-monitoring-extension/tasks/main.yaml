@@ -1,0 +1,32 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+
+######################################################################################################
+# This task is used to install the SAP Monitoring Extension.                                         #
+######################################################################################################
+
+- name:                            "2.12 Install the Azure Extended monitoring for SAP extension for {{ vm_name }} in resource_group: {{ resourceGroup_name }}"
+  when:                            deploy_monitoring_extension | default(false) and user_assigned_identity_id is undefined
+  delegate_to:                     localhost
+  become:                          false
+  ansible.builtin.command: >-
+                                   az vm extension set --vm-name {{ vm_name }} --resource-group {{ resourceGroup_name }}  \
+                                     --subscription {{ subscriptionId }} \
+                                     --publisher Microsoft.AzureCAT.AzureEnhancedMonitoring --settings '{"cfg": []}'    \
+                                     --extension-instance-name AzureEnhancedMonitoringForSAP --version 1.0  -ProtectedSettingString '{"system":"SAP"}'
+
+  register:                        vm_agent_status
+
+- name:                            "2.12 Install the Azure Extended monitoring for SAP extension for {{ vm_name }} in resource_group: {{ resourceGroup_name }}"
+  when:                            deploy_monitoring_extension | default(false) and user_assigned_identity_id is defined
+  delegate_to:                     localhost
+  become:                          false
+  ansible.builtin.command: >-
+                                   az vm extension set --vm-name {{ vm_name }} --resource-group {{ resourceGroup_name }}  \
+                                     --subscription {{ subscriptionId }} \
+                                     --publisher Microsoft.AzureCAT.AzureEnhancedMonitoring --settings '{"cfg": [{"key":"msi_res_id","value":{{ user_assigned_identity_id }}"}]}'    \
+                                     --extension-instance-name AzureEnhancedMonitoringForSAP --version 1.0  -ProtectedSettingString '{"system":"SAP"}'
+
+  register:                        vm_agent_status
