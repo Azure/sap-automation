@@ -15,7 +15,7 @@
                                    az vm extension set --vm-name {{ vm_name }} --resource-group {{ resource_group_name }}  \
                                      --subscription {{ subscription_id }} \
                                      --publisher Microsoft.AzureCAT.AzureEnhancedMonitoring --settings '{"cfg": []}'    \
-                                     --extension-instance-name AzureEnhancedMonitoringForSAP --version 1.0  -ProtectedSettingString '{"system":"SAP"}'
+                                     --name AzureEnhancedMonitoringForSAP --version 1.0  -ProtectedSettingString '{"system":"SAP"}'
 
   register:                        vm_agent_status
 
@@ -26,7 +26,7 @@
   ansible.builtin.command: >-
                                    az vm extension set --vm-name {{ vm_name }} --resource-group {{ resource_group_name }}  \
                                      --subscription {{ subscription_id }} \
-                                     --publisher Microsoft.AzureCAT.AzureEnhancedMonitoring --settings '{"cfg": [{"key":"msi_res_id","value":{{ user_assigned_identity_id }}"}]}'    \
-                                     --extension-instance-name AzureEnhancedMonitoringForSAP --version 1.0  -ProtectedSettingString '{"system":"SAP"}'
+                                     --publisher Microsoft.AzureCAT.AzureEnhancedMonitoring --settings '{"cfg": [{"key":"msi_res_id","value":"{{ user_assigned_identity_id }}"}]}'    \
+                                     --name AzureEnhancedMonitoringForSAP --version 1.0  -ProtectedSettingString '{"system":"SAP"}'
 
   register:                        vm_agent_status
