@@ -15,7 +15,7 @@
                                    az vm extension set --vm-name {{ vm_name }} --resource-group {{ resource_group_name }}  \
                                      --subscription {{ subscription_id }} \
                                      --publisher Microsoft.AzureCAT.AzureEnhancedMonitoring --settings '{"cfg": []}'    \
-                                     --name AzureEnhancedMonitoringForSAP --version 1.0  -ProtectedSettingString '{"system":"SAP"}'
+                                     --name AzureEnhancedMonitoringForSAP --version 1.0  --protected-settings '{"system":"SAP"}'
 
   register:                        vm_agent_status
 
@@ -27,6 +27,6 @@
                                    az vm extension set --vm-name {{ vm_name }} --resource-group {{ resource_group_name }}  \
                                      --subscription {{ subscription_id }} \
                                      --publisher Microsoft.AzureCAT.AzureEnhancedMonitoring --settings '{"cfg": [{"key":"msi_res_id","value":"{{ user_assigned_identity_id }}"}]}'    \
-                                     --name AzureEnhancedMonitoringForSAP --version 1.0  -ProtectedSettingString '{"system":"SAP"}'
+                                     --name AzureEnhancedMonitoringForSAP --version 1.0  --protected-settings '{"system":"SAP"}'
 
   register:                        vm_agent_status
