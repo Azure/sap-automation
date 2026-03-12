@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 """
 SAP Hosts Filter Plugin for Ansible
 
@@ -47,20 +49,17 @@ class FilterModule:
         """
         Main filter function to generate complete SAP hosts file content.
 
-        Args:
-            ansible_vars: Dictionary containing all Ansible variables including:
-                - ansible_play_hosts: List of hostnames
-                - hostvars: Dictionary of host variables with 'ipadd' arrays
-                - inventory_hostname: Current host this filter is running on
-                - sap_sid: SAP System ID
-                - sap_fqdn: SAP Fully Qualified Domain Name
-                - Database configuration (scale_out, HA, load balancer IPs)
-                - SCS/ERS configuration (HA, load balancer IPs, instance numbers)
-                - Network configuration (subnet CIDRs including subnet_cidr_client)
-                - Custom virtual hostname overrides
-
-        Returns:
-            List of formatted hosts file entries ready for blockinfile
+        :param ansible_vars: Dictionary containing all Ansible variables, including
+            ``ansible_play_hosts``, ``hostvars`` (with ``ipadd`` arrays),
+            ``inventory_hostname``, ``sap_sid``, ``sap_fqdn``, database
+            configuration (scale-out/HA/load balancer IPs), SCS/ERS
+            configuration (HA/load balancer IPs/instance numbers), network
+            configuration (subnet CIDRs including ``subnet_cidr_client``), and
+            custom virtual hostname overrides.
+        :type ansible_vars: Dict[str, Any]
+        :returns: Formatted hosts file entries ready to be written to
+            ``/etc/hosts``.
+        :rtype: List[str]
         """
         # Extract and normalize configuration
         config = self._extract_sap_configuration(ansible_vars)

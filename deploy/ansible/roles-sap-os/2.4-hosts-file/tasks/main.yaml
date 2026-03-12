@@ -105,26 +105,48 @@
 #
 # Description: Optional validation and troubleshooting
 #
+- name:                                "2.4 Hosts: - Build topology-aware validation host list"
+  ansible.builtin.set_fact:
+    validation_host_candidates:
+      - "{{ sap_sid | lower }}scs{{ scs_instance_number | default('00') }}cl1.{{ sap_fqdn }}"
+      - "{{ sap_sid | lower }}ers{{ ers_instance_number | default('01') }}cl2.{{ sap_fqdn }}"
+      - "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number | default('00') }}cl.{{ sap_fqdn }}"
+    validation_hostnames: >-
+      {{
+        []
+        + ([validation_host_candidates[0], validation_host_candidates[1]] if (scs_high_availability | default(false)) else [])
+        + ([validation_host_candidates[2]] if (database_high_availability | default(false)) else [])
+      }}
+
+- name:                                "2.4 Hosts: - Keep only validation hosts generated for this topology"
+  ansible.builtin.set_fact:
+    validation_hostnames:              "{{ validation_hostnames | select('in', (sap_hosts_content | join('\n'))) | list }}"
+
+- name:                                "2.4 Hosts: - Validation skipped when no topology hostnames are expected"
+  ansible.builtin.debug:
+    msg:                               "Skipping host resolution validation: no SCS/ERS/DB validation hostnames are expected for this topology."
+  when:
+    - validation_hostnames is defined
+    - validation_hostnames | length == 0
+
 - name:                                "2.4 Hosts: - Validate generated hosts file entries"
   ansible.builtin.command:
     cmd:                               "getent hosts {{ item }}"
-  loop:
-    - "{{ sap_sid | lower }}scs{{ scs_instance_number | default('00') }}cl1.{{ sap_fqdn }}"
-    - "{{ sap_sid | lower }}ers{{ ers_instance_number | default('01') }}cl2.{{ sap_fqdn }}"
-    - "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number | default('00') }}cl.{{ sap_fqdn }}"
+  loop:                                "{{ validation_hostnames | default([]) }}"
   register:                            hosts_validation
   failed_when:                         false
   changed_when:                        false
   when:
-    - scs_high_availability | default(false) or database_high_availability | default(false)
+    - validation_hostnames is defined
+    - validation_hostnames | length > 0
 
 - name:                                "2.4 Hosts: - Display validation results"
   ansible.builtin.debug:
     msg:
-      - "Host resolution validation for {{ item.item }}:"
-      - "Status: {{ 'SUCCESS - Resolvable' if item.rc == 0 else 'WARNING - Not resolvable (expected if load balancer not active)' }}"
-      - "{{ 'Note: Load balancer IPs may not respond until cluster is configured' if item.rc != 0 else '' }}"
-  loop:                                "{{ hosts_validation.results | default([]) }}"
+      - "Host resolution validation for {{ item.item | default('unknown host') }}:"
+      - "Status: {{ 'SUCCESS - Resolvable' if (item.rc | default(1)) == 0 else 'WARNING - Not resolvable (expected if load balancer not active)' }}"
+      - "{{ 'Note: Load balancer IPs may not respond until cluster is configured' if (item.rc | default(1)) != 0 else '' }}"
+  loop:                                "{{ hosts_validation.results | default([]) | selectattr('rc', 'defined') | list }}"
   when:
     - hosts_validation is defined
     - hosts_validation.results is defined
