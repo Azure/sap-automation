@@ -31,8 +31,8 @@ resource "azurerm_network_security_perimeter_association" "hanashared" {
 }
 
 locals {
-  parsed_network_security_id           = try(var.deployer_tfstate.network_security_perimeter_deployment, false) ? try(provider::azurerm::parse_resource_id(var.deployer_tfstate.network_security_perimeter_id), "") : null
-  network_security_name                = try(var.deployer_tfstate.network_security_perimeter_deployment, false) ? local.parsed_network_security_id["resource_name"] : ""
-  network_security_resource_group_name = try(var.deployer_tfstate.network_security_perimeter_deployment, false) ? local.parsed_network_security_id["resource_group_name"] : ""
+  parsed_network_security_id           = try(var.deployer_tfstate.network_security_perimeter_deployment, false) ? try(provider::azurerm::parse_resource_id(var.deployer_tfstate.network_security_perimeter_id), null) : null
+  network_security_name                = try(var.deployer_tfstate.network_security_perimeter_deployment, false) ? try(local.parsed_network_security_id["resource_name"], "") : ""
+  network_security_resource_group_name = try(var.deployer_tfstate.network_security_perimeter_deployment, false) ? try(local.parsed_network_security_id["resource_group_name"], "") : ""
 
 }
