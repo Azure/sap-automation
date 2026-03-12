@@ -18,7 +18,7 @@ resource "azurerm_network_security_perimeter_association" "hanashared" {
   provider                               = azurerm.deployer
   count                                  = try(var.deployer_tfstate.network_security_perimeter_deployment, false) ? local.hana_shared_count : 0
   name                                   = length(var.hanashared_id) > 0 ? (
-                                                     var.hanashared_id[count.index]) : (
+                                                     split("/", var.hanashared_id[count.index])[8]) : (
                                                      azurerm_storage_account.hanashared[count.index].name
                                                    )
   access_mode                            = var.deployer_tfstate.network_security_access_mode
