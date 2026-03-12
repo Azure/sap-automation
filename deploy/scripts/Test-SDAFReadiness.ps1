@@ -347,7 +347,7 @@ if ($selection.ToUpper() -eq "Y") {
 
   if ($null -eq $zone -or $zone -eq "") {
     Write-Host "Creating a Virtual Machine" -foregroundcolor Yellow
-    $vmStatus = $(az vm create --resource-group $resourceGroupName --name $vmName --image $distro --admin-username "azureadm" --admin-password $ARM_CLIENT_SECRET --size $vmSKU --vnet-name $vnetName --subnet $subnetName  --vmss $vmssid --no-wait --query "provisioningState")
+    $vmStatus = $(az vm create --resource-group $resourceGroupName --name $vmName --image $distro --admin-username "azureadm" --admin-password $ARM_CLIENT_SECRET --size $vmSKU --vnet-name $vnetName --subnet $subnetName  --vmss $vmssid --platform-fault-domain 1 --no-wait --query "provisioningState")
   }
   else {
     $diskName = "SDAFdisk"
@@ -356,12 +356,11 @@ if ($selection.ToUpper() -eq "Y") {
     Write-Host "Creating a Premium SSD v2 disk" -foregroundcolor Yellow
     az disk create -n $diskName -g $resourceGroupName --size-gb 100 --disk-iops-read-write 5000 --disk-mbps-read-write 150 --location $Location --zone $zone --sku PremiumV2_LRS --logical-sector-size $logicalSectorSize --query "provisioningState"
     Write-Host "Creating a Virtual Machine" -foregroundcolor Yellow
-    $vmStatus = $(az vm create --resource-group $resourceGroupName --name $vmName --image $distro --admin-username "azureadm" --admin-password $VM_password --size $vmSKU --vnet-name $vnetName --subnet $subnetName  --vmss $vmssid  --zone $zone --attach-data-disks $diskName  --query "provisioningState")
+    $vmStatus = $(az vm create --resource-group $resourceGroupName --name $vmName --image $distro --admin-username "azureadm" --admin-password $VM_password --size $vmSKU --vnet-name $vnetName --subnet $subnetName  --vmss $vmssid --platform-fault-domain 1 --zone $zone --attach-data-disks $diskName  --query "provisioningState")
 
   }
 
   Write-Host $vmStatus
-  $vmStatus = "Succeeded"
 
   if ($vmStatus -eq "Succeeded") {
 
@@ -454,7 +453,7 @@ if ($selection.ToUpper() -eq "Y") {
     foreach ($IP in $UrlsToCheck.windows.IPs) {
       Write-Host "Checking if $IP is accessible from the Virtual Machine"
       $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name $vmName  --command-id RunShellScript  --scripts "nc -zv $IP 443" --query value[0].message)
-      $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name "SDAF-VM"  --command-id RunShellScript  --scripts "nc -zv $IP 443" --query value[0].message)
+
       if ($result.Contains("succeeded!")) {
         $OutputString = "$IP is accessible"
         Write-Host $OutputString -ForegroundColor Green
