@@ -261,7 +261,7 @@ variable "use_private_endpoint"                  {
 
 variable "public_network_access_enabled"              {
                                                         description = "Boolean value indicating if public access should be enabled for key vaults and storage"
-                                                        default     = false
+                                                        default     = true
                                                         type        = bool
                                                       }
 #########################################################################################
