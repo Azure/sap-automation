@@ -1269,12 +1269,11 @@ if [ "${deployment_system}" == sap_landscape ]; then
 	fi
 fi
 if [ "${deployment_system}" == sap_library ]; then
-	deployer_environment_file_name="${automation_config_directory}"/"${environment}""${region_code}"
 	if [ "$useSAS" = "true" ]; then
-		az storage blob upload --file "${deployer_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" \
+		az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 	else
-		az storage blob upload --file "${deployer_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}" \
+		az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 	fi
 fi
