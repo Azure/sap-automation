@@ -375,6 +375,15 @@ if [ 0 == "$step" ]; then
 
 	cd "${deployer_dirname}" || exit
 
+	# Ensure subscription_id is populated in the parameter file.
+	# The boilerplate tfvars ships with either a commented-out placeholder
+	# (#subscription_id = "") or a dummy GUID placeholder; replace both with
+	# the actual subscription so Terraform does not prompt / fail.
+	if [ -n "${subscription}" ]; then
+		sed -i.bak "s|#subscription_id *= *\"\"|subscription_id = \"${subscription}\"|" "${deployer_file_parametername}"
+		sed -i.bak "s|subscription_id *= *\"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"|subscription_id = \"${subscription}\"|" "${deployer_file_parametername}"
+	fi
+
 	echo "Calling install_deployer.sh:         $allParameters"
 	echo "Deployer State File:                 ${deployer_tf_state}"
 
