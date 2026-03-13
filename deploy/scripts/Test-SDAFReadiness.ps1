@@ -229,7 +229,7 @@ if ($selection.ToUpper() -eq "Y") {
   $OutputString = "Creating Storage Account: " + $storageAccountName
   Write-Host $OutputString -foregroundcolor Yellow
   Add-Content -Path $LogFileName $OutputString
-  $OutputString = $(az storage account create --name $storageAccountName --resource-group $resourceGroupName --location $Location  --kind FileStorage --sku Premium_LRS  --allow-blob-public-access false --https-only=false --query "provisioningState")
+  $OutputString = $(az storage account create --name $storageAccountName --resource-group $resourceGroupName --location $Location  --kind FileStorage --sku Premium_LRS  --allow-blob-public-access false --https-only=false  --allow-shared-key-access false --query "provisioningState")
   Write-Host $OutputString
   Add-Content -Path $LogFileName $OutputString
 
@@ -259,7 +259,7 @@ if ($selection.ToUpper() -eq "Y") {
   $OutputString = "Creating Key vault: " + $kvName
   Write-Host $OutputString -foregroundcolor Yellow
   Add-Content -Path $LogFileName $OutputString
-  az keyvault create --name $kvName --resource-group $resourceGroupName --location $Location --query "provisioningState" --enable-purge-protection false --retention-days 7
+  az keyvault create --name $kvName --resource-group $resourceGroupName --location $Location --query "provisioningState" --retention-days 7
 
   az keyvault secret set --vault-name $kvName --name "sdaftestsecret" --value "sdaftestsecretvalue" --query "id"
 }
@@ -347,7 +347,7 @@ if ($selection.ToUpper() -eq "Y") {
 
   if ($null -eq $zone -or $zone -eq "") {
     Write-Host "Creating a Virtual Machine" -foregroundcolor Yellow
-    $vmStatus = $(az vm create --resource-group $resourceGroupName --name $vmName --image $distro --admin-username "azureadm" --admin-password $ARM_CLIENT_SECRET --size $vmSKU --vnet-name $vnetName --subnet $subnetName  --vmss $vmssid --platform-fault-domain 1 --no-wait --query "provisioningState")
+    $vmStatus = $(az vm create --resource-group $resourceGroupName --name $vmName --image $distro --admin-username "azureadm" --admin-password $ARM_CLIENT_SECRET --size $vmSKU --vnet-name $vnetName --subnet $subnetName  --vmss $vmssid --no-wait --query "provisioningState")
   }
   else {
     $diskName = "SDAFdisk"
@@ -356,7 +356,7 @@ if ($selection.ToUpper() -eq "Y") {
     Write-Host "Creating a Premium SSD v2 disk" -foregroundcolor Yellow
     az disk create -n $diskName -g $resourceGroupName --size-gb 100 --disk-iops-read-write 5000 --disk-mbps-read-write 150 --location $Location --zone $zone --sku PremiumV2_LRS --logical-sector-size $logicalSectorSize --query "provisioningState"
     Write-Host "Creating a Virtual Machine" -foregroundcolor Yellow
-    $vmStatus = $(az vm create --resource-group $resourceGroupName --name $vmName --image $distro --admin-username "azureadm" --admin-password $VM_password --size $vmSKU --vnet-name $vnetName --subnet $subnetName  --vmss $vmssid --platform-fault-domain 1 --zone $zone --attach-data-disks $diskName  --query "provisioningState")
+    $vmStatus = $(az vm create --resource-group $resourceGroupName --name $vmName --image $distro --admin-username "azureadm" --admin-password $VM_password --size $vmSKU --vnet-name $vnetName --subnet $subnetName  --vmss $vmssid --zone $zone --attach-data-disks $diskName  --query "provisioningState")
 
   }
 
@@ -545,7 +545,7 @@ if ($selection.ToUpper() -eq "Y") {
   Add-Content -Path $LogFileName $OutputString
 
   $poolName = "sdafpool"
-  $poolSize_TiB = 2
+  $poolSize_TiB = 4
   $serviceLevel = "Premium" # Valid values are Standard, Premium and Ultra
 
   $OutputString = "Creating NetApp Capacity Pool: " + $poolName
