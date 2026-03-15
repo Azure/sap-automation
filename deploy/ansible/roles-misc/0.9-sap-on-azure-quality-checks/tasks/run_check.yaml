@@ -158,7 +158,7 @@
   args:
     executable:                    "/usr/local/bin/pwsh"
     chdir:                         "/opt/microsoft/quality_check"
-  no_log:                          false  # DEBUG: Changed from true to false to see output
+  no_log:                          true
   delegate_to:                     localhost
   become_user:                     root
   become:                          true
@@ -244,5 +244,9 @@
   ansible.builtin.debug:
     msg:                           "{{ quality_check_result.stdout_lines }}"
     verbosity:                     2
+- name:                            "SAP on Azure quality checks: - Fail if quality check returned non-zero exit code"
+  ansible.builtin.fail:
+    msg:                           "Quality check failed with exit code {{ quality_check_result.rc }}."
+  when:                            quality_check_result.rc != 0
 
 ...
