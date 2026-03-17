@@ -90,6 +90,14 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
   principal_id                         = azurerm_user_assigned_identity.deployer[0].principal_id
 }
 
+resource "azurerm_role_assignment" "role_assignment_msi_officer_bootstrap" {
+  provider                             = azurerm.main
+  count                                = var.key_vault.enable_rbac_authorization ? 1 : 0
+  scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  role_definition_name                 = "Key Vault Secrets Officer"
+  principal_id                         = data.azurerm_client_config.deployer.object_id
+}
+
 
 resource "azurerm_role_assignment" "role_assignment_msi_officer" {
   provider                             = azurerm.main

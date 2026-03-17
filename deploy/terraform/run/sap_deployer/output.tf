@@ -311,7 +311,7 @@ output "network_security_perimeter_deployment"  {
 
 output "network_security_perimeter_id"          {
                                                   description = "The Azure network security perimeter id"
-                                                  value       = length(trimspace(coalesce(module.sap_deployer.network_security_perimeter_id, ""))) > 0 ? module.sap_deployer.network_security_perimeter_id : var.network_security_perimeter_id
+                                                  value       = var.network_security_perimeter_deployment ? module.sap_deployer.network_security_perimeter_id : ""
                                                 }
 
 

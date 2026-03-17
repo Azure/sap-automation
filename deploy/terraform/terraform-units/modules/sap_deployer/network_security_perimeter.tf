@@ -64,5 +64,17 @@ resource "azurerm_network_security_perimeter_association" "webapp" {
 }
 
 output "network_security_perimeter_id" {
-  value                                  = try(azurerm_network_security_perimeter.perimeter[0].id,"")
+  description                            = "The Azure network security perimeter id"
+  value                                  = try(var.options.network_security_perimeter.deploy, false) ? (
+                                             try(var.options.network_security_perimeter.exists, false) ? (
+                                               data.azurerm_network_security_perimeter.perimeter[0].id) : (
+                                               azurerm_network_security_perimeter.perimeter[0].id)) : (
+                                             "")
 }
+
+
+  
+  
+  
+  
+  

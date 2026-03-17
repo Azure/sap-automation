@@ -457,7 +457,7 @@ variable "set_secret_expiry"                         {
 
 variable "enable_rbac_authorization"                 {
                                                        description = "Enables RBAC authorization for Azure keyvault"
-                                                       default     = true
+                                                       default     = false
                                                      }
 
 #######################################4#######################################8
@@ -482,7 +482,7 @@ variable "deployer_assign_resource_permissions"   {
 
 variable "use_private_endpoint"                       {
                                                         description = "Boolean value indicating if private endpoint should be used for the deployment"
-                                                        default     = true
+                                                        default     = false
                                                         type        = bool
                                                       }
 
